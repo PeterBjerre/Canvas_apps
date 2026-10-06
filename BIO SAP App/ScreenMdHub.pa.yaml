@@ -22,7 +22,8 @@ Screens:
                       'MD_RequestIndex'
                   )
               ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe })),
-              ClearCollect(colMdAprAll, SortByColumns(Filter(MD_ApprovalLog, Stage = "System" || Stage = "Cost" || Stage = "Quality"), "ID", SortOrder.Descending))
+              ClearCollect(colMdAprAll, SortByColumns(Filter(MD_ApprovalLog, Stage = "System" || Stage = "Cost" || Stage = "Quality"), "ID", SortOrder.Descending)),
+              ClearCollect(colMdSelfNotes, If(IsAdmin, ShowColumns(VHP_NoteToSelf, RequestGuid), ShowColumns(Filter(VHP_NoteToSelf, OwnerEmail = varMdMe), RequestGuid)))
           )
     Children:
       - conMdRoot:
@@ -2061,7 +2062,7 @@ Screens:
                                     Text: |-
                                         ="REQUEST"
                                     Width: |-
-                                        =(Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080 - 720))
+                                        =(Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720))
                                     Wrap: |-
                                         =false
                               - txtMdH2:
@@ -2271,7 +2272,7 @@ Screens:
                                     Text: |-
                                         ="ACTIONS"
                                     Width: |-
-                                        =120
+                                        =160
                                     Wrap: |-
                                         =false
                         - conMdListRule:
@@ -2548,7 +2549,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 4
                                     Width: |-
-                                        =Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080)) - 120 - 8
+                                        =Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) - 120 - 8
                                     Wrap: |-
                                         =false
                                     X: |-
@@ -2591,7 +2592,7 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 12 + 0 + (192) + 12 + ((Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080 - 720))) + 12
+                                        =0 + 12 + 0 + (192) + 12 + ((Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720))) + 12
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1) - 0 - 0) - (20)) / 2
                               - txtMdRowReq:
@@ -2630,7 +2631,7 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 12 + 0 + (192) + 12 + ((Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080 - 720))) + 12 + (64) + 12
+                                        =0 + 12 + 0 + (192) + 12 + ((Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720))) + 12 + (64) + 12
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1) - 0 - 0) - (20)) / 2
                               - imgMdRowApproval:
@@ -2689,6 +2690,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "' fill='" & If(a = "Pending", "none", Switch(
                                             a,
@@ -2699,6 +2701,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
                                         "<text x='33' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
@@ -2710,6 +2713,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "'>System</text>" &
                                         "<circle cx='99' cy='23' r='4' stroke-width='1.5' stroke='" & Switch(
@@ -2721,6 +2725,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "' fill='" & If(b = "Pending", "none", Switch(
                                             b,
@@ -2731,6 +2736,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
                                         "<text x='99' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
@@ -2742,6 +2748,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "'>Cost</text>" &
                                         "<circle cx='165' cy='23' r='4' stroke-width='1.5' stroke='" & Switch(
@@ -2753,6 +2760,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "' fill='" & If(c = "Pending", "none", Switch(
                                             c,
@@ -2763,6 +2771,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
                                         "<text x='165' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
@@ -2774,6 +2783,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "'>Quality</text>" &
                                         "<circle cx='231' cy='23' r='4' stroke-width='1.5' stroke='" & Switch(
@@ -2785,6 +2795,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "' fill='" & If(d = "Pending", "none", Switch(
                                             d,
@@ -2795,6 +2806,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
                                         "<text x='231' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
@@ -2806,6 +2818,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "'>SAP</text>" &
                                         "</svg>"))))
@@ -2822,7 +2835,7 @@ Screens:
                                     Width: |-
                                         =270
                                     X: |-
-                                        =0 + 12 + 0 + (192) + 12 + ((Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080 - 720))) + 12 + (64) + 12 + (84) + 12
+                                        =0 + 12 + 0 + (192) + 12 + ((Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720))) + 12 + (64) + 12 + (84) + 12
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1) - 0 - 0) - (30)) / 2
                               - imgMdRowStatus:
@@ -2862,7 +2875,7 @@ Screens:
                                     Width: |-
                                         =22
                                     X: |-
-                                        =0 + 12 + 0 + (192) + 12 + ((Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080 - 720))) + 12 + (64) + 12 + (84) + 12 + (270) + 12 + 0 + 0 + 0
+                                        =0 + 12 + 0 + (192) + 12 + ((Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720))) + 12 + (64) + 12 + (84) + 12 + (270) + 12 + 0 + 0 + 0
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1) - 0 - 0) - (22 + If(ThisItem.IsOpen && DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) > 5, 0 + (18), 0))) / 2 + 0 + 0 + 0 + (((22) - 0 - 0) - (22)) / 2
                               - txtMdRowStatus:
@@ -2912,7 +2925,7 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 12 + 0 + (192) + 12 + ((Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080 - 720))) + 12 + (64) + 12 + (84) + 12 + (270) + 12 + 0 + 0 + 0 + (22) + 10
+                                        =0 + 12 + 0 + (192) + 12 + ((Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720))) + 12 + (64) + 12 + (84) + 12 + (270) + 12 + 0 + 0 + 0 + (22) + 10
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1) - 0 - 0) - (22 + If(ThisItem.IsOpen && DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) > 5, 0 + (18), 0))) / 2 + 0 + 0 + 0 + (((22) - 0 - 0) - (20)) / 2
                               - txtMdRowStuck:
@@ -2953,7 +2966,7 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 12 + 0 + (192) + 12 + ((Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080 - 720))) + 12 + (64) + 12 + (84) + 12 + (270) + 12 + 0
+                                        =0 + 12 + 0 + (192) + 12 + ((Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720))) + 12 + (64) + 12 + (84) + 12 + (270) + 12 + 0
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1) - 0 - 0) - (22 + If(ThisItem.IsOpen && DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) > 5, 0 + (18), 0))) / 2 + 0 + 0 + (22) + 0
                               - txtMdRowWhen:
@@ -2992,7 +3005,7 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 12 + 0 + (192) + 12 + ((Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080 - 720))) + 12 + (64) + 12 + (84) + 12 + (270) + 12 + (130) + 12
+                                        =0 + 12 + 0 + (192) + 12 + ((Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720))) + 12 + (64) + 12 + (84) + 12 + (270) + 12 + (130) + 12
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1) - 0 - 0) - (20)) / 2
                               - rctMdRowCBg:
@@ -3093,7 +3106,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank < 4
                                     Width: |-
-                                        =Max(0, ((((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12 - 12) - If(LayoutRank < 2, 34, 178)) - ((20) + 8) - ((18) + 8) - (If(LayoutRank >= 2, (96) + 8, 0)) - 2)
+                                        =Max(0, ((((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12 - 12) - If(LayoutRank < 2, 70, 178)) - ((20) + 8) - ((18) + 8) - (If(LayoutRank >= 2, (96) + 8, 0)) - 2)
                                     Wrap: |-
                                         =false
                                     X: |-
@@ -3137,7 +3150,7 @@ Screens:
                                     Width: |-
                                         =18
                                     X: |-
-                                        =0 + 12 + 0 + 0 + (20) + 8 + (Max(0, ((((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12 - 12) - If(LayoutRank < 2, 34, 178)) - ((20) + 8) - ((18) + 8) - (If(LayoutRank >= 2, (96) + 8, 0)) - 2)) + 8
+                                        =0 + 12 + 0 + 0 + (20) + 8 + (Max(0, ((((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12 - 12) - If(LayoutRank < 2, 70, 178)) - ((20) + 8) - ((18) + 8) - (If(LayoutRank >= 2, (96) + 8, 0)) - 2)) + 8
                                     Y: |-
                                         =0 + 8 + 0 + 0 + (((22) - 0 - 0) - (18)) / 2
                               - txtMdRowStatusC:
@@ -3187,7 +3200,7 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 12 + 0 + 0 + (20) + 8 + (Max(0, ((((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12 - 12) - If(LayoutRank < 2, 34, 178)) - ((20) + 8) - ((18) + 8) - (If(LayoutRank >= 2, (96) + 8, 0)) - 2)) + 8 + (18) + 8
+                                        =0 + 12 + 0 + 0 + (20) + 8 + (Max(0, ((((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12 - 12) - If(LayoutRank < 2, 70, 178)) - ((20) + 8) - ((18) + 8) - (If(LayoutRank >= 2, (96) + 8, 0)) - 2)) + 8 + (18) + 8
                                     Y: |-
                                         =0 + 8 + 0 + 0 + (((22) - 0 - 0) - (20)) / 2
                               - txtMdRowTextC:
@@ -3343,6 +3356,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "' fill='" & If(a = "Pending", "none", Switch(
                                             a,
@@ -3353,6 +3367,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
                                         "<text x='33' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
@@ -3364,6 +3379,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "'>System</text>" &
                                         "<circle cx='99' cy='23' r='4' stroke-width='1.5' stroke='" & Switch(
@@ -3375,6 +3391,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "' fill='" & If(b = "Pending", "none", Switch(
                                             b,
@@ -3385,6 +3402,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
                                         "<text x='99' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
@@ -3396,6 +3414,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "'>Cost</text>" &
                                         "<circle cx='165' cy='23' r='4' stroke-width='1.5' stroke='" & Switch(
@@ -3407,6 +3426,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "' fill='" & If(c = "Pending", "none", Switch(
                                             c,
@@ -3417,6 +3437,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
                                         "<text x='165' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
@@ -3428,6 +3449,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "'>Quality</text>" &
                                         "<circle cx='231' cy='23' r='4' stroke-width='1.5' stroke='" & Switch(
@@ -3439,6 +3461,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "' fill='" & If(d = "Pending", "none", Switch(
                                             d,
@@ -3449,6 +3472,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
                                         "<text x='231' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
@@ -3460,6 +3484,7 @@ Screens:
                                             "Returned", C.'hex-state-warn-fg',
                                             "Pending", C.'hex-text-muted',
                                             "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "'>SAP</text>" &
                                         "</svg>"))))
@@ -3616,6 +3641,7 @@ Screens:
                                         Set(varMdAprMode, "A");
                                         Set(varMdAprOpen, true);
                                         Set(varMdAprReq, ThisItem);
+                                        Set(varMdAprNote, If(varMdAprReq.HasApproverNote && (Lower(Coalesce(varMdAprReq.RequesterEmail, "")) = varMdMe || IsAdmin || IsApprover || Lower(Coalesce(varMdAprReq.AssignedToEmail, "")) = varMdMe || !IsBlank(LookUp(colMdAprAll, RequestGuid = varMdAprReq.RequestGuid && DecidedByEmail = varMdMe))), Coalesce(LookUp(MaintenancePlans, ID = varMdAprReq.SourceItemId).NoteToApprover, ""), ""));
                                         ClearCollect(colMdAprLog, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid));
                                         ClearCollect(colMdAprLatest, ForAll(GroupBy(Filter(colMdAprLog, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))));
                                         Collect(colMdAprLatest, ForAll(GroupBy(Filter(colMdAprLog, Stage = "Cost"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))));
@@ -3693,7 +3719,7 @@ Screens:
                                     Width: |-
                                         =If(LayoutRank < 4, ((((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 24) / 4) * 4, 270)
                                     X: |-
-                                        =If(LayoutRank < 4, 12, 12 + 192 + 12 + (Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080 - 720)) + 12 + 64 + 12 + 84 + 12)
+                                        =If(LayoutRank < 4, 12, 12 + 192 + 12 + (Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720)) + 12 + 64 + 12 + 84 + 12)
                                     Y: |-
                                         =If(LayoutRank < 4, 65, ((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1 - 40) / 2)
                               - imgMdRowActionsZone:
@@ -3728,9 +3754,9 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 3
                                     Width: |-
-                                        =If(LayoutRank < 4, 124, 120)
+                                        =If(LayoutRank < 4, 164, 160)
                                     X: |-
-                                        =If(LayoutRank < 4, Parent.Width - 18 - 12 - 28 - 8 - 80 - 4, 12 + 192 + 12 + (Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080 - 720)) + 12 + 64 + 12 + 84 + 12 + 270 + 12 + 130 + 12 + 84 + 12 - 4)
+                                        =If(LayoutRank < 4, Parent.Width - 18 - 12 - 28 - 8 - 80 - 44, 12 + 192 + 12 + (Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720)) + 12 + 64 + 12 + 84 + 12 + 270 + 12 + 130 + 12 + 84 + 12 - 4)
                                     Y: |-
                                         =If(LayoutRank < 4, 4, ((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1 - 34) / 2)
                               - imgMdRowTimeline:
@@ -3765,6 +3791,7 @@ Screens:
                                         Set(varMdAprReq, ThisItem);
                                         ClearCollect(colMdAprLog, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid));
                                         ClearCollect(colMdAprRows, { Kind: "D", Stage: "T", Title: Upper(First(Split(Coalesce(varMdAprReq.RequesterEmail, "unknown"), "@")).Value), State: "Done", Label: "Created", Rule: "", Cur: false, Sub: "", Act: "Created the request", Stamp: Text(varMdAprReq.Created, "dd-mm-yyyy hh:mm"), Human: true });
+                                        If(varMdAprReq.Domain.Value = "MaintenancePlan" && ((varMdAprReq.HasApproverNote && (Lower(Coalesce(varMdAprReq.RequesterEmail, "")) = varMdMe || IsAdmin || IsApprover || Lower(Coalesce(varMdAprReq.AssignedToEmail, "")) = varMdMe || !IsBlank(LookUp(colMdAprAll, RequestGuid = varMdAprReq.RequestGuid && DecidedByEmail = varMdMe)))) || ((varMdAprReq.RequestGuid in colMdSelfNotes.RequestGuid) && (Lower(Coalesce(varMdAprReq.RequesterEmail, "")) = varMdMe || IsAdmin))), With({ p: LookUp(MaintenancePlans, ID = varMdAprReq.SourceItemId) }, Collect(colMdAprRows, { Kind: "D", Stage: "N", Title: Upper(First(Split(Coalesce(Coalesce(p.SubmittedBy, varMdAprReq.RequesterEmail), "unknown"), "@")).Value), State: "Note", Label: "Notes", Rule: "", Cur: false, Sub: Concat(Filter(Table({ v: If(varMdAprReq.HasApproverNote && (Lower(Coalesce(varMdAprReq.RequesterEmail, "")) = varMdMe || IsAdmin || IsApprover || Lower(Coalesce(varMdAprReq.AssignedToEmail, "")) = varMdMe || !IsBlank(LookUp(colMdAprAll, RequestGuid = varMdAprReq.RequestGuid && DecidedByEmail = varMdMe))), "Note to approver", "") }, { v: If((varMdAprReq.RequestGuid in colMdSelfNotes.RequestGuid) && (Lower(Coalesce(varMdAprReq.RequesterEmail, "")) = varMdMe || IsAdmin), "Note to self", "") }), !IsBlank(v)), v, " and ") & " - select to read", Act: "Added submission notes", Stamp: Text(p.SubmittedOn, "dd-mm-yyyy hh:mm"), Human: true })));
                                         Collect(colMdAprRows, ForAll(SortByColumns(colMdAprLog, "DecidedOn"), { Kind: "D", Stage: "T", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown"), "@")).Value), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned")), Rule: "", Cur: false, Sub: With({ n: If(!IsBlank(Comment), Substitute(Comment, Char(10), " "), Coalesce(Detail, "")) }, If(IsBlank(ItemText), n, ItemText & If(IsBlank(n), "", "  ·  " & n))), Act: Switch(Stage, "System", "System approval", "Cost", "Cost approval", "Quality", "Quality review", "SapCreated", "Creation in SAP", "Admin", "Admin change", Stage), Stamp: Text(DecidedOn, "dd-mm-yyyy hh:mm"), Human: "@" in Coalesce(DecidedByEmail, "") }));
                                         If(!IsBlank(varMdAprReq.SapObjectNo), Collect(colMdAprRows, { Kind: "D", Stage: "T", Title: "SAP", State: "Done", Label: "Created", Rule: "", Cur: false, Sub: "SAP " & varMdAprReq.SapObjectNo, Act: "Created in SAP", Stamp: "", Human: false }));
                                         If(varMdAprReq.IsOpen && !IsBlank(varMdAprReq.AssignedToEmail), Collect(colMdAprRows, { Kind: "D", Stage: "T", Title: Upper(First(Split(Coalesce(varMdAprReq.AssignedToEmail, "unknown"), "@")).Value), State: "In progress", Label: "Waiting", Rule: "", Cur: false, Sub: "", Act: "Assigned to", Stamp: "", Human: true }));
@@ -3779,9 +3806,53 @@ Screens:
                                     Width: |-
                                         =28
                                     X: |-
-                                        =If(LayoutRank < 4, Parent.Width - 18 - 12 - 28, 12 + 192 + 12 + (Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080 - 720)) + 12 + 64 + 12 + 84 + 12 + 270 + 12 + 130 + 12 + 84 + 12)
+                                        =If(LayoutRank < 4, Parent.Width - 18 - 12 - 28, 12 + 192 + 12 + (Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720)) + 12 + 64 + 12 + 84 + 12 + 270 + 12 + 130 + 12 + 84 + 12)
                                     Y: |-
                                         =If(LayoutRank < 4, 8, ((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1 - 28) / 2)
+                              - imgMdRowNotes:
+                                  Control: Image
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="View notes for " & ThisItem.RequestNo
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    FocusedBorderColor: |-
+                                        =C.'color-brand-primary'
+                                    FocusedBorderThickness: |-
+                                        =2
+                                    Height: |-
+                                        =28
+                                    HoverFill: |-
+                                        =C.'row-hover'
+                                    Image: |-
+                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><g transform='translate(0 0) scale(1)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 3h9l4 4v14H6z M14 3v5h5 M9 12h7 M9 16h5'/></g></svg>")
+                                    ImagePosition: |-
+                                        =ImagePosition.Fit
+                                    OnSelect: |-
+                                        =Set(varMdNoteReq, ThisItem);
+                                        Set(varMdNoteShowA, (Lower(Coalesce(varMdNoteReq.RequesterEmail, "")) = varMdMe || IsAdmin || IsApprover || Lower(Coalesce(varMdNoteReq.AssignedToEmail, "")) = varMdMe || !IsBlank(LookUp(colMdAprAll, RequestGuid = varMdNoteReq.RequestGuid && DecidedByEmail = varMdMe))));
+                                        Set(varMdNoteShowS, (Lower(Coalesce(varMdNoteReq.RequesterEmail, "")) = varMdMe || IsAdmin));
+                                        Set(varMdNoteA, If(varMdNoteShowA && varMdNoteReq.HasApproverNote, Coalesce(LookUp(MaintenancePlans, ID = varMdNoteReq.SourceItemId).NoteToApprover, ""), ""));
+                                        Set(varMdNoteS, If(varMdNoteShowS && (varMdNoteReq.RequestGuid in colMdSelfNotes.RequestGuid), Coalesce(LookUp(VHP_NoteToSelf, RequestGuid = varMdNoteReq.RequestGuid).Note, ""), ""));
+                                        Set(varMdNotesOpen, true)
+                                    PressedFill: |-
+                                        =C.'row-hover'
+                                    TabIndex: |-
+                                        =0
+                                    Tooltip: |-
+                                        ="View notes"
+                                    Visible: |-
+                                        =(ThisItem.Domain.Value = "MaintenancePlan" && ((ThisItem.HasApproverNote && (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe || IsAdmin || IsApprover || Lower(Coalesce(ThisItem.AssignedToEmail, "")) = varMdMe || !IsBlank(LookUp(colMdAprAll, RequestGuid = ThisItem.RequestGuid && DecidedByEmail = varMdMe)))) || ((ThisItem.RequestGuid in colMdSelfNotes.RequestGuid) && (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe || IsAdmin))))
+                                    Width: |-
+                                        =28
+                                    X: |-
+                                        =If(LayoutRank < 3, Parent.Width - 18 - 12 - 28 - 8 - 28, If(LayoutRank < 4, Parent.Width - 18 - 12 - 28 - 8 - 80 - 40, 12 + 192 + 12 + (Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720)) + 12 + 64 + 12 + 84 + 12 + 270 + 12 + 130 + 12 + 84 + 12 + 28 + 12 + 80))
+                                    Y: |-
+                                        =If(LayoutRank < 3, 8, If(LayoutRank < 4, 6, ((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1 - 30) / 2))
                               - btnMdRowEdit:
                                   Control: Image
                                   Properties:
@@ -3851,7 +3922,7 @@ Screens:
                                     Width: |-
                                         =28
                                     X: |-
-                                        =12 + 192 + 12 + (Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080 - 720)) + 12 + 64 + 12 + 84 + 12 + 270 + 12 + 130 + 12 + 84 + 12 + 28 + 12 + 0
+                                        =12 + 192 + 12 + (Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720)) + 12 + 64 + 12 + 84 + 12 + 270 + 12 + 130 + 12 + 84 + 12 + 28 + 12 + 0
                                     Y: |-
                                         =((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1 - 30) / 2
                               - btnMdRowDelete:
@@ -3889,7 +3960,7 @@ Screens:
                                     Width: |-
                                         =28
                                     X: |-
-                                        =12 + 192 + 12 + (Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1080 - 720)) + 12 + 64 + 12 + 84 + 12 + 270 + 12 + 130 + 12 + 84 + 12 + 28 + 12 + 40
+                                        =12 + 192 + 12 + (Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720)) + 12 + 64 + 12 + 84 + 12 + 270 + 12 + 130 + 12 + 84 + 12 + 28 + 12 + 40
                                     Y: |-
                                         =((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1 - 30) / 2
                               - btnMdRowEditC:
@@ -5672,41 +5743,46 @@ Screens:
                                                     If(
                                                         !IsBlank(varMdDelSp) && !IsEmpty(Errors(MaintenanceItems)),
                                                         Notify("The request could not be deleted: " & First(Errors(MaintenanceItems)).Message, NotificationType.Error),
-                                                        If(!IsBlank(varMdDelSp), Remove(MaintenancePlans, Filter(MaintenancePlans, ID = varMdDelSp)));
+                                                        Remove(VHP_NoteToSelf, Filter(VHP_NoteToSelf, RequestGuid = varMdDelGuid));
                                                         If(
-                                                            !IsBlank(varMdDelSp) && !IsEmpty(Errors(MaintenancePlans)),
-                                                            Notify("The request could not be deleted: " & First(Errors(MaintenancePlans)).Message, NotificationType.Error),
-                                                            Remove(MD_RequestIndex, Filter(MD_RequestIndex, RequestGuid = varMdDelGuid));
+                                                            !IsEmpty(Errors(VHP_NoteToSelf)),
+                                                            Notify("The request could not be deleted: " & First(Errors(VHP_NoteToSelf)).Message, NotificationType.Error),
+                                                            If(!IsBlank(varMdDelSp), Remove(MaintenancePlans, Filter(MaintenancePlans, ID = varMdDelSp)));
                                                             If(
-                                                                !IsEmpty(Errors(MD_RequestIndex)),
-                                                                Notify("The request could not be deleted: " & First(Errors(MD_RequestIndex)).Message, NotificationType.Error),
+                                                                !IsBlank(varMdDelSp) && !IsEmpty(Errors(MaintenancePlans)),
+                                                                Notify("The request could not be deleted: " & First(Errors(MaintenancePlans)).Message, NotificationType.Error),
+                                                                Remove(MD_RequestIndex, Filter(MD_RequestIndex, RequestGuid = varMdDelGuid));
                                                                 If(
-                                                                    (IsAdmin && !(Lower(Coalesce(varMdDelIdx.RequesterEmail, "")) = varMdMe)),
-                                                                    IfError(
-                                                                        Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
-                                                                            Title: varMdDelKey,
-                                                                            RequestGuid: varMdDelGuid,
-                                                                            Stage: "Admin",
-                                                                            Decision: "AdminDelete",
-                                                                            Detail: Left("Request deleted (" & varMdDelIdx.Status.Value & ", owner " & varMdDelIdx.RequesterEmail & ")", 255),
-                                                                            Comment: "Request deleted (" & varMdDelIdx.Status.Value & ", owner " & varMdDelIdx.RequesterEmail & ")",
-                                                                            DecidedByEmail: Lower(User().Email),
-                                                                            DecidedOn: Now()
-                                                                        });
-                                                                        true,
-                                                                        Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
-                                                                        false
-                                                                    )
-                                                                );
-                                                                RemoveIf(colMdScope, Id = varMdDelIdx.ID);
-                                                                Switch(
-                                                                    varMdDelDomain,
-                                                                    "FunctionalLocation", Set(gblFlStale, true),
-                                                                    "MaintenancePlan", Set(gblVhpStale, true),
-                                                                    "Equipment", Set(gblEqStale, true),
-                                                                    "Material", Set(gblMatStale, true)
-                                                                );
-                                                                Notify("Request deleted.", NotificationType.Success)
+                                                                    !IsEmpty(Errors(MD_RequestIndex)),
+                                                                    Notify("The request could not be deleted: " & First(Errors(MD_RequestIndex)).Message, NotificationType.Error),
+                                                                    If(
+                                                                        (IsAdmin && !(Lower(Coalesce(varMdDelIdx.RequesterEmail, "")) = varMdMe)),
+                                                                        IfError(
+                                                                            Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                                                Title: varMdDelKey,
+                                                                                RequestGuid: varMdDelGuid,
+                                                                                Stage: "Admin",
+                                                                                Decision: "AdminDelete",
+                                                                                Detail: Left("Request deleted (" & varMdDelIdx.Status.Value & ", owner " & varMdDelIdx.RequesterEmail & ")", 255),
+                                                                                Comment: "Request deleted (" & varMdDelIdx.Status.Value & ", owner " & varMdDelIdx.RequesterEmail & ")",
+                                                                                DecidedByEmail: Lower(User().Email),
+                                                                                DecidedOn: Now()
+                                                                            });
+                                                                            true,
+                                                                            Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                                            false
+                                                                        )
+                                                                    );
+                                                                    RemoveIf(colMdScope, Id = varMdDelIdx.ID);
+                                                                    Switch(
+                                                                        varMdDelDomain,
+                                                                        "FunctionalLocation", Set(gblFlStale, true),
+                                                                        "MaintenancePlan", Set(gblVhpStale, true),
+                                                                        "Equipment", Set(gblEqStale, true),
+                                                                        "Material", Set(gblMatStale, true)
+                                                                    );
+                                                                    Notify("Request deleted.", NotificationType.Success)
+                                                                )
                                                             )
                                                         )
                                                     )
@@ -5870,7 +5946,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =84 + If(IfError(varMdAprBusy, false), 110, 20 + 10 + (Min(CountRows(colMdAprRows), 11) + IfError(varMdAprExtra, 0)) * 48)
+                      =84 + If(IfError(varMdAprBusy, false), 110, 20 + 10 + (Min(CountRows(colMdAprRows), 11) + IfError(varMdAprExtra, 0)) * 48) + If(!IfError(varMdAprBusy, false) && !(IfError(varMdAprMode, "") = "T") && !IsBlank(IfError(varMdAprNote, "")), 143 + 10, 0)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -6117,6 +6193,164 @@ Screens:
                             =!IfError(varMdAprBusy, false)
                         Wrap: |-
                             =false
+                  - conMdAprNote:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderColor: |-
+                            =C.'color-brand-primary'
+                        BorderThickness: |-
+                            =1
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =143
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Stretch
+                        LayoutDirection: |-
+                            =LayoutDirection.Vertical
+                        LayoutGap: |-
+                            =4
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        PaddingBottom: |-
+                            =10
+                        PaddingLeft: |-
+                            =12
+                        PaddingRight: |-
+                            =12
+                        PaddingTop: |-
+                            =10
+                        RadiusBottomLeft: |-
+                            =8
+                        RadiusBottomRight: |-
+                            =8
+                        RadiusTopLeft: |-
+                            =8
+                        RadiusTopRight: |-
+                            =8
+                        Visible: |-
+                            =!IfError(varMdAprBusy, false) && !(IfError(varMdAprMode, "") = "T") && !IsBlank(IfError(varMdAprNote, ""))
+                        Width: |-
+                            =(Min(720, App.Width - 24) - 32)
+                      Children:
+                        - txtMdAprNoteTitle:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Note to approver"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'color-brand-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =21
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  ="Note to approver"
+                              Wrap: |-
+                                  =false
+                        - txtMdAprNoteHint:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="From the requester, added at submission."
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-muted'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =18
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =12
+                              Text: |-
+                                  ="From the requester, added at submission."
+                              Wrap: |-
+                                  =false
+                        - inpMdAprNote:
+                            Control: ModernTextInput
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Note to approver"
+                              Appearance: |-
+                                  =If((DisplayMode.View) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              BorderColor: |-
+                                  =C.'border-default'
+                              BorderStyle: |-
+                                  =BorderStyle.Solid
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =If((DisplayMode.View) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                              Default: |-
+                                  =IfError(varMdAprNote, "")
+                              DisplayMode: |-
+                                  =If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                              Fill: |-
+                                  =If(DisplayMode.View = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =76
+                              LayoutMinWidth: |-
+                                  =0
+                              Placeholder: |-
+                                  =""
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =If(LayoutRank < 2, 16, 14)
+                              Type: |-
+                                  =TextInputType.Multiline
+                              ValidationState: |-
+                                  =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                              Width: |-
+                                  =Parent.Width
                   - imgMdAprSpinner:
                       Control: Image
                       Properties:
@@ -6249,6 +6483,7 @@ Screens:
                                       "Returned", C.'hex-state-warn-fg',
                                       "Pending", C.'hex-text-muted',
                                       "Admin", C.'hex-state-warn-fg',
+                                      "Note", C.'hex-color-brand-primary',
                                       "Rejected", C.'hex-state-error-fg',
                                       "Cancelled", C.'hex-state-neutral-fg',
                                       C.'hex-text-muted'
@@ -6269,6 +6504,7 @@ Screens:
                                       "Returned", C.'hex-state-warn-fg',
                                       "Pending", C.'hex-text-muted',
                                       "Admin", C.'hex-state-warn-fg',
+                                      "Note", C.'hex-color-brand-primary',
                                       "Rejected", C.'hex-state-error-fg',
                                       "Cancelled", C.'hex-state-neutral-fg',
                                       C.'hex-text-muted'
@@ -6281,6 +6517,7 @@ Screens:
                                       "Returned", C.'hex-state-warn-fg',
                                       "Pending", C.'hex-text-muted',
                                       "Admin", C.'hex-state-warn-fg',
+                                      "Note", C.'hex-color-brand-primary',
                                       "Rejected", C.'hex-state-error-fg',
                                       "Cancelled", C.'hex-state-neutral-fg',
                                       C.'hex-text-muted'
@@ -6293,6 +6530,7 @@ Screens:
                                       "Returned", C.'hex-state-warn-fg',
                                       "Pending", C.'hex-text-muted',
                                       "Admin", C.'hex-state-warn-fg',
+                                      "Note", C.'hex-color-brand-primary',
                                       "Rejected", C.'hex-state-error-fg',
                                       "Cancelled", C.'hex-state-neutral-fg',
                                       C.'hex-text-muted'
@@ -6305,6 +6543,7 @@ Screens:
                                       "Returned", C.'hex-state-warn-fg',
                                       "Pending", C.'hex-text-muted',
                                       "Admin", C.'hex-state-warn-fg',
+                                      "Note", C.'hex-color-brand-primary',
                                       "Rejected", C.'hex-state-error-fg',
                                       "Cancelled", C.'hex-state-neutral-fg',
                                       C.'hex-text-muted'
@@ -6738,6 +6977,7 @@ Screens:
                                       "Pending", C.'state-info-fg',
                                       "Admin", C.'state-warn-fg',
                                       "Rejected", C.'state-error-fg',
+                                      "Note", C.'text-primary',
                                       C.'state-neutral-fg'
                                   )
                               Fill: |-
@@ -6752,6 +6992,7 @@ Screens:
                                       "Pending", C.'state-neutral-bg',
                                       "Admin", C.'state-warn-bg',
                                       "Rejected", C.'state-error-bg',
+                                      "Note", C.'color-brand-primary-soft',
                                       C.'state-neutral-bg'
                                   )
                               Font: |-
@@ -6818,7 +7059,12 @@ Screens:
                               HoverFill: |-
                                   =C.'row-hover'
                               OnSelect: |-
-                                  =If(ThisItem.Kind = "X" || IfError(varMdAprExp, 0) = ThisItem.Idx, Set(varMdAprExp, 0); Set(varMdAprExtra, 0), Set(varMdAprExp, ThisItem.Idx); Set(varMdAprExtra, With({t: If(Len(ThisItem.Act) > RoundDown((((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12 - (If(ThisItem.Human, 70, 48) + Min(Len(ThisItem.Title) * 8 + 4, ((((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12) - 48) / 2) + 8)) / 6.6, 0), ThisItem.Act & "  ·  ", "") & ThisItem.Stamp & If(IsBlank(ThisItem.Stamp) || IsBlank(ThisItem.Sub), "", "  ·  ") & ThisItem.Sub, c: RoundDown((((Min(720, App.Width - 24) - 32) - 20) - 56) / 5.8, 0)}, RoundUp(Len(t) / (2 * c), 0))))
+                                  =If(ThisItem.Kind = "D" && ThisItem.Stage = "N", Set(varMdNoteReq, varMdAprReq);
+                                  Set(varMdNoteShowA, (Lower(Coalesce(varMdNoteReq.RequesterEmail, "")) = varMdMe || IsAdmin || IsApprover || Lower(Coalesce(varMdNoteReq.AssignedToEmail, "")) = varMdMe || !IsBlank(LookUp(colMdAprAll, RequestGuid = varMdNoteReq.RequestGuid && DecidedByEmail = varMdMe))));
+                                  Set(varMdNoteShowS, (Lower(Coalesce(varMdNoteReq.RequesterEmail, "")) = varMdMe || IsAdmin));
+                                  Set(varMdNoteA, If(varMdNoteShowA && varMdNoteReq.HasApproverNote, Coalesce(LookUp(MaintenancePlans, ID = varMdNoteReq.SourceItemId).NoteToApprover, ""), ""));
+                                  Set(varMdNoteS, If(varMdNoteShowS && (varMdNoteReq.RequestGuid in colMdSelfNotes.RequestGuid), Coalesce(LookUp(VHP_NoteToSelf, RequestGuid = varMdNoteReq.RequestGuid).Note, ""), ""));
+                                  Set(varMdNotesOpen, true), If(ThisItem.Kind = "X" || IfError(varMdAprExp, 0) = ThisItem.Idx, Set(varMdAprExp, 0); Set(varMdAprExtra, 0), Set(varMdAprExp, ThisItem.Idx); Set(varMdAprExtra, With({t: If(Len(ThisItem.Act) > RoundDown((((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12 - (If(ThisItem.Human, 70, 48) + Min(Len(ThisItem.Title) * 8 + 4, ((((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12) - 48) / 2) + 8)) / 6.6, 0), ThisItem.Act & "  ·  ", "") & ThisItem.Stamp & If(IsBlank(ThisItem.Stamp) || IsBlank(ThisItem.Sub), "", "  ·  ") & ThisItem.Sub, c: RoundDown((((Min(720, App.Width - 24) - 32) - 20) - 56) / 5.8, 0)}, RoundUp(Len(t) / (2 * c), 0)))))
                               PressedBorderColor: |-
                                   =RGBA(0, 0, 0, 0)
                               PressedColor: |-
@@ -6836,15 +7082,592 @@ Screens:
                               TabIndex: |-
                                   =0
                               Text: |-
-                                  ="Show or hide the full text"
+                                  =If(ThisItem.Kind = "D" && ThisItem.Stage = "N", "Read the submission notes", "Show or hide the full text")
                               Visible: |-
-                                  =ThisItem.Kind = "D" && LayoutRank < 2 && (Len(If(LayoutRank < 2, ThisItem.Stamp & If(IsBlank(ThisItem.Stamp) || IsBlank(ThisItem.Sub), "", "  ·  ") & ThisItem.Sub, ThisItem.Sub)) > RoundDown((((Min(720, App.Width - 24) - 32) - 20) - 56) / 5.8, 0) || Len(ThisItem.Act) > RoundDown((((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12 - (If(ThisItem.Human, 70, 48) + Min(Len(ThisItem.Title) * 8 + 4, ((((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12) - 48) / 2) + 8)) / 6.6, 0)) || ThisItem.Kind = "X"
+                                  =ThisItem.Kind = "D" && LayoutRank < 2 && (Len(If(LayoutRank < 2, ThisItem.Stamp & If(IsBlank(ThisItem.Stamp) || IsBlank(ThisItem.Sub), "", "  ·  ") & ThisItem.Sub, ThisItem.Sub)) > RoundDown((((Min(720, App.Width - 24) - 32) - 20) - 56) / 5.8, 0) || Len(ThisItem.Act) > RoundDown((((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12 - (If(ThisItem.Human, 70, 48) + Min(Len(ThisItem.Title) * 8 + 4, ((((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12) - 48) / 2) + 8)) / 6.6, 0)) || ThisItem.Kind = "X" || (ThisItem.Kind = "D" && ThisItem.Stage = "N")
                               Width: |-
                                   =((Min(720, App.Width - 24) - 32) - 20) - 38
                               X: |-
                                   =38
                               Y: |-
                                   =If(ThisItem.Kind = "X", 0, 4)
+      - conMdNotesBackdrop:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderStyle: |-
+                =BorderStyle.None
+            DropShadow: |-
+                =DropShadow.None
+            Fill: |-
+                =C.'overlay'
+            FillPortions: |-
+                =0
+            Height: |-
+                =App.Height
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Center
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =0
+            LayoutJustifyContent: |-
+                =LayoutJustifyContent.Start
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Scroll
+            PaddingBottom: |-
+                =16
+            PaddingLeft: |-
+                =0
+            PaddingRight: |-
+                =0
+            PaddingTop: |-
+                =16
+            Visible: |-
+                =IfError(varMdNotesOpen, false)
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+          Children:
+            - conMdNotesModal:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  AlignInContainer: |-
+                      =AlignInContainer.Center
+                  BorderColor: |-
+                      =C.'color-brand-primary-soft'
+                  BorderThickness: |-
+                      =1
+                  DropShadow: |-
+                      =DropShadow.ExtraBold
+                  Fill: |-
+                      =C.'bg-modal'
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =174 + If(LayoutRank < 2 && ((IfError(varMdNoteShowA, false)) && (IfError(varMdNoteShowS, false))), 462, 223)
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Stretch
+                  LayoutDirection: |-
+                      =LayoutDirection.Vertical
+                  LayoutGap: |-
+                      =12
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  PaddingBottom: |-
+                      =18
+                  PaddingLeft: |-
+                      =18
+                  PaddingRight: |-
+                      =18
+                  PaddingTop: |-
+                      =18
+                  RadiusBottomLeft: |-
+                      =16
+                  RadiusBottomRight: |-
+                      =16
+                  RadiusTopLeft: |-
+                      =16
+                  RadiusTopRight: |-
+                      =16
+                  Width: |-
+                      =Min(760, App.Width - 24)
+                Children:
+                  - txtMdNotesTitle:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Submission notes"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =26
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =17
+                        Text: |-
+                            ="Submission notes"
+                        Wrap: |-
+                            =false
+                  - txtMdNotesIntro:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            =Self.Text
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-muted'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =40
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =13
+                        Text: |-
+                            ="Notes added when " & varMdNoteReq.RequestNo & " was submitted. They are read-only."
+                        Wrap: |-
+                            =true
+                  - conMdNotesSplit:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =If(LayoutRank < 2 && ((IfError(varMdNoteShowA, false)) && (IfError(varMdNoteShowS, false))), 462, 223)
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Start
+                        LayoutDirection: |-
+                            =If(LayoutRank < 2, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                        LayoutGap: |-
+                            =16
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Width: |-
+                            =(Min(760, App.Width - 24) - 36)
+                      Children:
+                        - conMdNoteA:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderColor: |-
+                                  =C.'border-default'
+                              BorderThickness: |-
+                                  =1
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =223
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Stretch
+                              LayoutDirection: |-
+                                  =LayoutDirection.Vertical
+                              LayoutGap: |-
+                                  =6
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              PaddingBottom: |-
+                                  =12
+                              PaddingLeft: |-
+                                  =12
+                              PaddingRight: |-
+                                  =12
+                              PaddingTop: |-
+                                  =12
+                              RadiusBottomLeft: |-
+                                  =8
+                              RadiusBottomRight: |-
+                                  =8
+                              RadiusTopLeft: |-
+                                  =8
+                              RadiusTopRight: |-
+                                  =8
+                              Visible: |-
+                                  =IfError(varMdNoteShowA, false)
+                              Width: |-
+                                  =If(LayoutRank < 2 || !((IfError(varMdNoteShowA, false)) && (IfError(varMdNoteShowS, false))), (Min(760, App.Width - 24) - 36), ((Min(760, App.Width - 24) - 36) - 16) / 2)
+                            Children:
+                              - txtMdNoteATitle:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Note to approver"
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =21
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="Note to approver"
+                                    Wrap: |-
+                                        =false
+                              - txtMdNoteAHint:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =Self.Text
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =34
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =12
+                                    Text: |-
+                                        =If(false, "Shared with the approvers of this plan. You and administrators can also see it.", "Visible to the requester, administrators and the approvers of this plan.")
+                                    Wrap: |-
+                                        =true
+                              - inpMdNoteA:
+                                  Control: ModernTextInput
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Note to approver"
+                                    Appearance: |-
+                                        =If((If(false, DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderStyle: |-
+                                        =BorderStyle.Solid
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =If((If(false, DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                    Default: |-
+                                        =varMdNoteA
+                                    DisplayMode: |-
+                                        =If((If(false, DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                    Fill: |-
+                                        =If(If(false, DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =132
+                                    LayoutMinWidth: |-
+                                        =0
+                                    MaxLength: |-
+                                        =4000
+                                    Placeholder: |-
+                                        =If(false, "Optional - for example context for the approval", "No note was added.")
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =If(LayoutRank < 2, 16, 14)
+                                    Type: |-
+                                        =TextInputType.Multiline
+                                    ValidationState: |-
+                                        =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                    Width: |-
+                                        =Parent.Width
+                        - conMdNoteS:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderColor: |-
+                                  =C.'border-default'
+                              BorderThickness: |-
+                                  =1
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =223
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Stretch
+                              LayoutDirection: |-
+                                  =LayoutDirection.Vertical
+                              LayoutGap: |-
+                                  =6
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              PaddingBottom: |-
+                                  =12
+                              PaddingLeft: |-
+                                  =12
+                              PaddingRight: |-
+                                  =12
+                              PaddingTop: |-
+                                  =12
+                              RadiusBottomLeft: |-
+                                  =8
+                              RadiusBottomRight: |-
+                                  =8
+                              RadiusTopLeft: |-
+                                  =8
+                              RadiusTopRight: |-
+                                  =8
+                              Visible: |-
+                                  =IfError(varMdNoteShowS, false)
+                              Width: |-
+                                  =If(LayoutRank < 2 || !((IfError(varMdNoteShowA, false)) && (IfError(varMdNoteShowS, false))), (Min(760, App.Width - 24) - 36), ((Min(760, App.Width - 24) - 36) - 16) / 2)
+                            Children:
+                              - txtMdNoteSTitle:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Note to self"
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =21
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="Note to self"
+                                    Wrap: |-
+                                        =false
+                              - txtMdNoteSHint:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =Self.Text
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =34
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =12
+                                    Text: |-
+                                        =If(false, "Private. Only you and administrators can see it - it is never shared with approvers.", "Private to the requester and administrators. Never shared with approvers.")
+                                    Wrap: |-
+                                        =true
+                              - inpMdNoteS:
+                                  Control: ModernTextInput
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Note to self"
+                                    Appearance: |-
+                                        =If((If(false, DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderStyle: |-
+                                        =BorderStyle.Solid
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =If((If(false, DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                    Default: |-
+                                        =varMdNoteS
+                                    DisplayMode: |-
+                                        =If((If(false, DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                    Fill: |-
+                                        =If(If(false, DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =132
+                                    LayoutMinWidth: |-
+                                        =0
+                                    MaxLength: |-
+                                        =4000
+                                    Placeholder: |-
+                                        =If(false, "Optional - a private reminder", "No note was added.")
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =If(LayoutRank < 2, 16, 14)
+                                    Type: |-
+                                        =TextInputType.Multiline
+                                    ValidationState: |-
+                                        =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                    Width: |-
+                                        =Parent.Width
+                  - conMdNotesFooter:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =36
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Center
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =8
+                        LayoutJustifyContent: |-
+                            =LayoutJustifyContent.End
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Width: |-
+                            =Parent.Width
+                      Children:
+                        - btnMdNotesClose:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Close"
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-default'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'text-primary'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =36
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
+                              OnSelect: |-
+                                  =Set(varMdNotesOpen, false)
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  ="Close"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Width: |-
+                                  =77
       - imgMdNavScrim:
           Control: Image
           Properties:

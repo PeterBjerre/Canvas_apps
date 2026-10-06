@@ -26,6 +26,7 @@ from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET
 from design_tokens import theme_query, ref_hex, ref as _t
 from icons import MIRROR_X
 import approval_flow
+import submission_notes as sn
 import permissions as perm
 import request_delete as rd
 from layout_tokens import (if_below, below, at_least, SCROLLBAR_W, GALLERY_RESERVE, PAGE_PAD_R,
@@ -254,7 +255,9 @@ HUB_ON_VISIBLE = (
     "If(IsBlank(varMdView), Set(varMdView, \"mine\"));\n"
     "If(IsBlank(varMdStatusMode), Set(varMdStatusMode, \"open\"));\n"
     "If(IsBlank(varMdFlag), Set(varMdFlag, \"\"));\n"
-    "Concurrent(\n    " + SCOPE_REFRESH + ",\n    " + approval_flow.LOG_REFRESH + "\n)"
+    "Concurrent(\n    " + SCOPE_REFRESH + ",\n    " + approval_flow.LOG_REFRESH + ",\n    " +
+    # Note to self-raekkerne, brugeren maa se - kun RequestGuid (issue #115).
+    sn.hub_self_refresh("varMdMe") + "\n)"
 )
 
 
@@ -291,7 +294,7 @@ PEEK_OPEN = "IfError(varMdClosedPeek, false)"
 DOM_TEXT = 156
 REQ_AIR = 28
 COLS = [("DOMAIN", 192), ("REQUEST", 0), ("PLANT", 64), ("REQUESTER", 84), ("APPROVAL", 270),
-        ("STATUS", 130), ("UPDATED", 84), ("ACTIONS", 120)]
+        ("STATUS", 130), ("UPDATED", 84), ("ACTIONS", 160)]
 CW = dict(COLS)
 TL_W = 28
 GAP = 12
@@ -326,6 +329,7 @@ INITIALS = 'Upper(First(Split(Coalesce(ThisItem.RequesterEmail, "?@"), "@")).Val
 
 ICON_CHEVRON = "M9 6l6 6-6 6"
 ICON_CLOCK = "M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM12 7v5l3 2"
+ICON_NOTE = "M6 3h9l4 4v14H6z M14 3v5h5 M9 12h7 M9 16h5"
 
 NO_W = 120
 
@@ -1055,7 +1059,20 @@ def build_list():
         b.props["HoverFill"] = C_ROW_HOVER
         b.props["PressedFill"] = C_ROW_HOVER
     c_base = f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {TL_W} - 8 - 80"
-    zone_w = 80 + 8 + TL_W + 8
+    # NOTE-IKONET (issue #115): kun naar planen har en note, brugeren maa
+    # se. Bred: efter Edit/Delete. Kompakt: foran Edit. Under Desktop:
+    # foran Activity, som er det eneste ikon dér.
+    notes = _image("imgMdRowNotes", _svg_uri(_icon_svg(ICON_NOTE, _hx("text-muted"))), TL_W, TL_W,
+                   onselect=sn.hub_open_fx("ThisItem"),
+                   label=f'"View notes for " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
+    notes.props["Tooltip"] = f'"{sn.TIP}"'
+    notes.props["X"] = if_below(
+        "Desktop", f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {TL_W} - 8 - {TL_W}",
+        if_below("Wide", f"{c_base} - 40", f"{tl_x} + {TL_W} + 12 + 80"))
+    notes.props["Y"] = if_below("Desktop", "8", if_below("Wide", "6", "(Parent.TemplateHeight - 1 - 30) / 2"))
+    notes.props["Visible"] = sn.hub_has_visible("ThisItem")
+    notes.vis = notes.props["Visible"]
+    zone_w = 40 + 80 + 8 + TL_W + 8
     # HANDLINGSZONEN ER GENNEMSIGTIG (issue #90). Den stod i kortets farve
     # og tegnede en hvid kasse oven i raekkens hover-tone. Nu ses raekkens
     # tone igennem den; peger man direkte paa zonen, toner den sig selv
@@ -1063,9 +1080,9 @@ def build_list():
     # Zonen fanger stadig klik mellem ikonerne (onselect false).
     zone = _image("imgMdRowActionsZone", '""', zone_w, 34, onselect="false", hover=C_ROW_HOVER)
     zone.props["PressedFill"] = C_ROW_HOVER
-    zone.props["X"] = if_below("Wide", f"{c_base} - 4", f"{tl_x} - 4")
+    zone.props["X"] = if_below("Wide", f"{c_base} - 44", f"{tl_x} - 4")
     zone.props["Y"] = if_below("Wide", "4", "(Parent.TemplateHeight - 1 - 34) / 2")
-    zone.props["Width"] = if_below("Wide", str(zone_w), str(TL_W + 12 + 72 + 8))
+    zone.props["Width"] = if_below("Wide", str(zone_w), str(TL_W + 12 + 72 + 40 + 8))
     zone.props["Visible"] = at_least("Desktop")
     gal = Ctrl("galMdRequests", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Requests"',
@@ -1079,7 +1096,7 @@ def build_list():
                                  if_below("Wide", str(ROW_H_C), str(ROW_H))),
         "Width": "Parent.Width",
         "WrapCount": "1",
-    }, children=[row, compact_row, compact_strip, rule, hit, *strip, zone, timeline, *actions, *c_actions], h=GAL_ROWS * ROW_H)
+    }, children=[row, compact_row, compact_strip, rule, hit, *strip, zone, timeline, notes, *actions, *c_actions], h=GAL_ROWS * ROW_H)
 
     empty = text_ctrl("txtMdEmpty", '"No requests match the filters."', size=13,
                       color=C_MUTED, height=24, wrap="true",
@@ -1180,7 +1197,7 @@ def _compact_row(act):
                        height=20, width=96, wrap="false")
     line1 = group("conMdRowLineC1", [dom_icon, no, st_icon, st_lbl], direction="Horizontal", gap=8,
                   height=22, align_items="Center",
-                  pad=(0, if_below("Tablet", str(TL_W + 6), str(TL_W + 6 + 144)), 0, 0))
+                  pad=(0, if_below("Tablet", str(2 * TL_W + 14), str(TL_W + 6 + 144)), 0, 0))
     st_lbl.vis = at_least("Tablet")
     line2 = text_ctrl("txtMdRowTextC",
                       f'If({below("Tablet")}, ' + _domain_switch(lambda d: f'"{d["name"]}"', '"?"') +
