@@ -20,7 +20,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_TRANSPARENT, SHELL_W, C_WARN_FG, C_WARN_BG, C_ROW_HOVER, C_WHITE)
 import layout_tokens as lay
 from build_helpers import (_sum_expr, row_rule, row_hit, text_input, text_ctrl, group, button, card, flow_row, top_bar,
-                           fit_button_width, ICON_W, grow, themed_dropdown, icon_on_mobile,
+                           fit_button_width, text_px, ICON_W, grow, themed_dropdown, icon_on_mobile,
                            confirm_modal)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET
 from design_tokens import theme_query, ref_hex, ref as _t
@@ -387,9 +387,9 @@ def _view_switch(mobile=False):
     Mobile: My | All (first row under the top bar)."""
     btns = []
     size = 12 if mobile else lay.SIZE_INPUT
-    for name, key, wide, short in (
-            ("btnMdViewMine", "mine", "My requests", "My"),
-            ("btnMdViewAll", "queue", "Department", "All")):
+    for name, key, wide, short, tight in (
+            ("btnMdViewMine", "mine", "My requests", "My", "Mine"),
+            ("btnMdViewAll", "queue", "Department", "All", "Dept.")):
         label = short if mobile else wide
         w = fit_button_width(f'"{label}"', size=size, min_w=0) + 20
         b = button(name + ("M" if mobile else ""), f'"{label}"',
@@ -399,6 +399,11 @@ def _view_switch(mobile=False):
         b.props["Size"] = str(size)
         b.props["LayoutMinWidth"] = b.props["Width"]
         b.vis = below("Tablet") if mobile else at_least("Tablet")
+        # Filterlinjens trin (build_filters, issue #91): fuld tekst i de to
+        # brede, "Mine" | "Dept." i det korte.
+        _FLT_LV[b.name] = {"full": (w, None, None),
+                 "compact": (_tight(wide), None, None),
+                 "short": (_tight(tight), None, f'"{tight}"')}
         btns.append(b)
     return btns
 
@@ -596,22 +601,70 @@ def build_tiles():
 # ---------------------------------------------------------------------------
 # Filtre
 # ---------------------------------------------------------------------------
+# FILTERLINJENS TRE TRIN (issue #91)
+#
+# Foer stod filterlinjen kun paa een linje fra App.Width 1460 og op. Under
+# det stablede flow_row den, og paa en tablet stod soegefeltet og ti knapper
+# under hinanden midt paa siden. Nu skifter linjen ikke RETNING men
+# STOERRELSE, og den staar vandret fra Tablet og op:
+#
+#   full     Window-size: som foer (ikoner, 14 pt, 10 px mellemrum).
+#   compact  Samme tekster uden ikoner, 12 pt, 6 px mellemrum.
+#   short    Korte tekster (Mine, Dept.), flagene som ikon + tal, 4 px.
+#
+# Et trin gaelder, saa snart ALLE dets kontroller plus soegefeltets
+# mindstebredde kan staa i SHELL_W. Graensen regnes af bredderne nedenfor
+# (build_filters) - den er ikke skrevet som et tal. Telefonen (under
+# Tablet) har sin egen dropdown og roeres ikke.
+FLT_LEVELS = ("full", "compact", "short")
+FLT_GAP = {"full": 10, "compact": 6, "short": 4}
+# Luften om teksten i de to smalle trin. Samme luft som VH-planens
+# item-knapper og hubbens egen smalle "New request" (text_px + 24).
+FLT_PAD = 24
+FLT_SIZE = {"full": lay.SIZE_INPUT, "compact": 12, "short": 12}
+SEARCH_W = 280
+SEARCH_MIN = {"full": 140, "compact": 120, "short": 80}
+# Taelleren skal kunne rumme fire cifre i hvert trin.
+COUNT_W = {"full": 110,
+           "compact": text_px("9999 requests", 12, semibold=False) + 4,
+           "short": text_px("9999", 12, semibold=False) + 4}
+PEEK_BTN_W = {"full": 36, "compact": 36, "short": 32}
+# Pr. kontrolnavn: {trin: (bredde, Layout, kort tekst)}. Ctrl har __slots__,
+# saa trinnene staar her og ikke paa kontrollen. Tooltip'en (kun kort trin)
+# staar i _FLT_TIP.
+_FLT_LV = {}
+_FLT_TIP = {}
+
+
+def _tight(label, icon=False):
+    """Bredden i de smalle trin: teksten i 12 pt + FLT_PAD (+ ikonet)."""
+    return text_px(label, 12) + FLT_PAD + (ICON_W if icon else 0)
+
+
 def _chip(name, label, value, icon):
     b = button(name, f'"{label}"', f'Set(varMdStatusMode, "{value}");\n' + SCOPE_REFRESH,
                width=fit_button_width(f'"{label}"') + ICON_W, height=36, icon=icon)
+    # Pr. trin: (bredde, Layout, tekst). None = teksten er den samme.
+    _FLT_LV[b.name] = {"full": (int(b.props["Width"]), "ButtonLayout.IconBefore", None),
+             "compact": (_tight(label), "ButtonLayout.TextOnly", None),
+             "short": (_tight(label), "ButtonLayout.TextOnly", None)}
     return _selected_style(b, f'varMdStatusMode = "{value}"', idle_color=C_MUTED)
-
-
-SEARCH_W = 280
-SEARCH_MIN_W = 140
 
 
 def _flag_pill(name, flag, label, field, icon):
     n = f"Text(CountRows(Filter(colMdScope, {field})))"
-    b = button(name, f'"{label} (" & {n} & ")"',
+    full_txt = f'"{label} (" & {n} & ")"'
+    b = button(name, full_txt,
                f'Set(varMdFlag, If(varMdFlag = "{flag}", "", "{flag}"));\n'
                'If(varMdFlag <> "", Set(varMdStatusMode, "open"));\n' + SCOPE_REFRESH,
                width=fit_button_width(f'"{label} (99)"') + ICON_W, height=36, icon=icon)
+    # Kort trin: ikonet og tallet. Skaermlaeseren faar stadig hele teksten
+    # (AccessibleLabel = full_txt fra button()), og tooltip'en har ordene
+    # (saettes i build_filters, kun i det korte trin).
+    _FLT_TIP[b.name] = f'"{label}"'
+    _FLT_LV[b.name] = {"full": (int(b.props["Width"]), "ButtonLayout.IconBefore", None),
+             "compact": (_tight(f"{label} (99)"), "ButtonLayout.TextOnly", None),
+             "short": (_tight("99", icon=True), "ButtonLayout.IconBefore", n)}
     return _selected_style(b, f'varMdFlag = "{flag}"', idle_color=C_MUTED)
 
 
@@ -638,8 +691,11 @@ def build_filters():
 
     Soegefeltet er saa bredt som det, man soeger efter (et nummer, et
     vaerk, et par ord) - ikke resten af linjen. Taelleren staar til hoejre
-    og tager resten, saa den flugter med listens hoejre kant. My requests
-    staar i bjaelken: det er et omfang, ikke et statusfilter."""
+    og tager resten, saa den flugter med listens hoejre kant.
+
+    Fra Tablet og op staar linjen ALTID vandret; den krymper i tre trin i
+    stedet for at stable (FLT_LEVELS, issue #91). Under Tablet er den kun
+    soegefeltet, og dropdown'en (_mobile_filter) tager knapperne."""
     # Det SAMME felt som alle andre (build_helpers.text_input -> input_theme,
     # issue #78) - ikke et haandbygget med sine egne farver.
     search = text_input("inpMdFind", '""', placeholder='"Search number, text or plant..."',
@@ -656,22 +712,68 @@ def build_filters():
              _chip("btnMdFltAll", "All", "all", "TextBulletListLtr"),
              _flag_pill("btnMdFltMe", "me", "Waiting for me", "Mine", "Person"),
              _flag_pill("btnMdFltStuck", "stuck", "Stuck > 5 d", "Stuck", "Clock")]
-    # Soegefelt og knapper staar til venstre; tallet tager resten af linjen.
-    # Enten een linje, eller et felt pr. linje - se build_helpers.flow_row.
-    # Under Tablet erstattes knapperne af EN dropdown (+ info-knappen).
+    # Soegefelt og knapper staar til venstre; My requests | Department og
+    # tallet til hoejre. Under Tablet erstattes knapperne af EN dropdown
+    # (+ info-knappen), og raekken er kun soegefeltet i fuld bredde.
     for c in chips + [count]:
         c.vis = at_least("Tablet")
     mobile = _mobile_filter()
     spacer = group("conMdFltGap", [], direction="Horizontal", height=0)
     spacer.vis = at_least("Tablet")
-    search.props["Width"] = str(SEARCH_MIN_W)
-    row = flow_row("conMdFltRow", [search] + chips + [spacer] + _view_switch() + [count], SHELL_W,
-                   gap=10, flex=spacer, flex_min=0)
-    # The search field gives way before the row stacks: it takes what the other
-    # controls leave, between SEARCH_MIN_W and SEARCH_W.
-    others = [str(c.props["Width"]) for c in row.children if c is not search and c is not spacer]
-    rest = _sum_expr(others + ["0"], 10)
-    search.props["Width"] = f"Max({SEARCH_MIN_W}, Min({SEARCH_W}, {SHELL_W} - ({rest})))"
+    _FLT_LV[chips[2].name] = {k: (PEEK_BTN_W[k], None, None) for k in FLT_LEVELS}
+    _FLT_LV[count.name] = {k: (COUNT_W[k], None, None) for k in FLT_LEVELS}
+    fixed = chips + _view_switch() + [count]
+    n_gaps = len(fixed) + 1          # soegefeltet + mellemrummet (spacer)
+
+    # Hvad hvert trin skal bruge: alle knapper + soegefeltets mindstebredde
+    # + mellemrummene. Mellemrummet (spacer) kan vaere 0.
+    need = {k: sum(_FLT_LV[c.name][k][0] for c in fixed) + SEARCH_MIN[k] + FLT_GAP[k] * n_gaps
+            for k in FLT_LEVELS}
+    assert need["full"] > need["compact"] > need["short"], need
+    full_ok = f"({SHELL_W}) >= {need['full']}"
+    compact_ok = f"({SHELL_W}) >= {need['compact']}"
+
+    def lvl(full, compact, short):
+        if full == compact == short:
+            return str(full)
+        return f"If({full_ok}, {full}, {compact_ok}, {compact}, {short})"
+
+    gap = lvl(*(FLT_GAP[k] for k in FLT_LEVELS))
+    is_short = f"!({compact_ok})"
+    for c in fixed:
+        c.props["Width"] = lvl(*(_FLT_LV[c.name][k][0] for k in FLT_LEVELS))
+        lays = [_FLT_LV[c.name][k][1] for k in FLT_LEVELS]
+        if lays[0] is not None:
+            c.props["Layout"] = lvl(*lays)
+        txt = _FLT_LV[c.name]["short"][2]
+        if txt is not None:
+            c.props["Text"] = f"If({is_short}, {txt}, {c.props['Text']})"
+        if c.props.get("Size") and c is not count and c is not chips[2]:
+            c.props["Size"] = lvl(*(FLT_SIZE[k] for k in FLT_LEVELS))
+        if c.name in _FLT_TIP:
+            c.props["Tooltip"] = f'If({is_short}, {_FLT_TIP[c.name]}, "")'
+    # Kort trin: kun tallet. "requests" er der ikke plads til paa en smal
+    # tablet, og tallet staar lige efter "Dept.".
+    count.props["Text"] = f'{shown} & If({is_short}, "", " requests")'
+
+    # Soegefeltet tager det, de andre efterlader - mellem SEARCH_MIN og
+    # SEARCH_W - og er aldrig grunden til, at raekken ikke passer.
+    rest = " + ".join(f"({c.props['Width']})" for c in fixed)
+    search.props["Width"] = (f"Max({lvl(*(SEARCH_MIN[k] for k in FLT_LEVELS))}, "
+                             f"Min({SEARCH_W}, {SHELL_W} - ({rest}) - ({gap}) * {n_gaps}))")
+    # Kort pladsholder, naar feltet er for smalt til den lange.
+    long_ph = "Search number, text or plant..."
+    search.props["Placeholder"] = (
+        f'If(Self.Width < {text_px(long_ph, 14, semibold=False) + 48}, '
+        f'"Search...", "{long_ph}")')
+    search.props["Size"] = f"If({below('Tablet')}, {lay.SIZE_INPUT_MOBILE}, {is_short}, 12, {lay.SIZE_INPUT})"
+    row = flow_row("conMdFltRow", [search] + fixed[:6] + [spacer] + fixed[6:], SHELL_W,
+                   gap=gap, flex=spacer, flex_min=0, ok=at_least("Tablet"))
+    # Altid een linje: vandret fra Tablet, og under Tablet er soegefeltet
+    # det eneste synlige barn. flow_rows stablede hoejde ville aldrig blive
+    # brugt, saa den skrives ikke ud.
+    row.props["Height"] = "36"
+    row.h = 36
     return group("conMdFlt", [row, mobile], direction="Vertical", gap=8)
 
 
