@@ -1907,7 +1907,7 @@ Screens:
                                                   );
                                                   ClearCollect(
                                                       colVhpSpItems,
-                                                      ForAll(Filter(MaintenanceItems, MaintenancePlanNo.Id = varVhpPlanSpId) As I, { ID: I.ID, ItemID: I.ItemID })
+                                                      ForAll(Filter(MaintenanceItems, MaintenancePlanNo.Id = varVhpPlanSpId) As I, { ID: I.ID, ItemID: I.ItemID, Sceq: !IsBlank(I.SCEqFL) || !IsBlank(I.SCEqOL) })
                                                   );
                                                   ClearCollect(
                                                       colVhpSavedItems,
@@ -1941,7 +1941,12 @@ Screens:
                                                               ItemDescription: Coalesce(IT.LongText, IT.ShortText),
                                                               FunctionalLocation: IT.FunctionalLocation,
                                                               ObjectList: IT.ObjectList,
-                                                              Priority: { Value: "Yellow (default)" },
+                                                              Priority: { Value: If(
+                                                                  Coalesce(LookUp(colVhpSpItems, ID = IT.SpId).Sceq, false) || StartsWith(IT.ActivityType, "110") || StartsWith(IT.ActivityType, "115"),
+                                                                  "Red (Statutory and SCEq)",
+                                                                  StartsWith(IT.ActivityType, "120"), "Blue (standing order)",
+                                                                  "Yellow (default)"
+                                                              ) },
                                                               OrstedResponsible: {
                                                                   '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
                                                                   Claims: "i:0#.f|membership|" & If((!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)), Lower(Coalesce(IT.OrstedResponsible, varVhpIdxNow.RequesterEmail)), varVhpMe),
@@ -1985,7 +1990,12 @@ Screens:
                                                               ItemDescription: Coalesce(IT.LongText, IT.ShortText),
                                                               FunctionalLocation: IT.FunctionalLocation,
                                                               ObjectList: IT.ObjectList,
-                                                              Priority: { Value: "Yellow (default)" },
+                                                              Priority: { Value: If(
+                                                                  Coalesce(LookUp(colVhpSpItems, ID = IT.SpId).Sceq, false) || StartsWith(IT.ActivityType, "110") || StartsWith(IT.ActivityType, "115"),
+                                                                  "Red (Statutory and SCEq)",
+                                                                  StartsWith(IT.ActivityType, "120"), "Blue (standing order)",
+                                                                  "Yellow (default)"
+                                                              ) },
                                                               OrstedResponsible: {
                                                                   '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
                                                                   Claims: "i:0#.f|membership|" & If((!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)), Lower(Coalesce(IT.OrstedResponsible, varVhpIdxNow.RequesterEmail)), varVhpMe),
@@ -21752,7 +21762,7 @@ Screens:
                 
                             If(false, ClearCollect(colVhpSavedOps, { LocalItemId: 0, OpNo: "", SpId: 0, TaskKey: "" }));
                 
-                            If(false, ClearCollect(colVhpSpItems, { ID: 0, ItemID: "" }));
+                            If(false, ClearCollect(colVhpSpItems, { ID: 0, ItemID: "", Sceq: false }));
                 
                             If(false, ClearCollect(colVhpAdmOld, { ID: 0, ItemID: "", Title: "", ItemDescription: "", FunctionalLocation: "", ObjectList: "" }));
                 

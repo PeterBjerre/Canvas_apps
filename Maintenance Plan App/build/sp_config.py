@@ -469,7 +469,10 @@ WORKING_COLLECTIONS = [
     # Gemmets arbejdssamlinger (build_save.py): hvad der er i SharePoint
     # foer skrivningen, de gamle raekker, der slettes til sidst, og
     # trinenes fejl.
-    ("colVhpSpItems", {"ID": 0, "ItemID": '""'}),
+    # Sceq: raekken har SCEqFL eller SCEqOL - sikkerhedskritisk udstyr, som
+    # den gamle app hentede fra FL-flowet. Prioriteten (build_save.PRIORITY)
+    # holder et saadant item roedt, ogsaa naar det gemmes igen.
+    ("colVhpSpItems", {"ID": 0, "ItemID": '""', "Sceq": "false"}),
     # Items, som de stod foer en ADMINS gemning af en andens plan - kun
     # hentet dér, til admin-loggen (tools/admin_log.py).
     ("colVhpAdmOld", {"ID": 0, "ItemID": '""', "Title": '""', "ItemDescription": '""',

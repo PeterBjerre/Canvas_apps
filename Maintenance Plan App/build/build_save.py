@@ -126,6 +126,33 @@ M_SPID = M_LOOKUP + ".SpId"
 PLAN_STATUS_DRAFT = "Draft"
 PLAN_STATUS_SUBMITTED = "In Progress"
 
+# PRIORITETEN regnes, den vaelges ikke - samme regel som den gamle app
+# (solution/BIOSAP/.../orsted_biosapmaintenanceplans_ba408.src, Priority-
+# kortet i MaintenanceItemForm):
+#
+#   Roed    lovpligtigt (aktivitetstype 110 eller 115) eller sikkerheds-
+#           kritisk udstyr (SCEqFL/SCEqOL udfyldt paa itemet)
+#   Blaa    staaende ordre (120)
+#   Gul     ellers
+#
+# FL-flowet svarer ikke laengere med "Safety Critical Equip.", saa et NYT
+# item kan ikke blive roedt af den grund. Et item, der allerede STAAR med
+# SCEq i listen, bliver ved med at vaere roedt (colVhpSpItems.Sceq) - foer
+# blev alle items skrevet som gule ved hvert gem.
+def priority_expr(act, sceq):
+    return (
+        "If(\n"
+        f"                    {sceq} || StartsWith({act}, \"110\") || StartsWith({act}, \"115\"),\n"
+        "                    \"Red (Statutory and SCEq)\",\n"
+        f"                    StartsWith({act}, \"120\"), \"Blue (standing order)\",\n"
+        "                    \"Yellow (default)\"\n"
+        "                )"
+    )
+
+
+PRIORITY = priority_expr("IT.ActivityType",
+                         "Coalesce(LookUp(colVhpSpItems, ID = IT.SpId).Sceq, false)")
+
 # Kun naar ingen af de foregaaende trin fejlede.
 OK = "CountRows(colVhpSaveErrors) = 0"
 
@@ -226,8 +253,9 @@ def item_fields(key=None):
         "                ItemDescription: Coalesce(IT.LongText, IT.ShortText),\n"
         "                FunctionalLocation: IT.FunctionalLocation,\n"
         "                ObjectList: IT.ObjectList,\n"
-        # Priority er obligatorisk i listen, men appen har ikke feltet.
-        "                Priority: { Value: \"Yellow (default)\" },\n"
+        # Priority er obligatorisk i listen. Appen har ikke feltet - den
+        # regnes som i den gamle app (PRIORITY ovenfor).
+        f"                Priority: {{ Value: {PRIORITY} }},\n"
         # Person-kolonnen er obligatorisk. Indsenderen staar som ansvarlig,
         # indtil appen faar en rigtig personvaelger. Teksten ved siden af er
         # den, der kan filtreres delegerbart.
@@ -391,7 +419,8 @@ def _step_items():
         # Hvad der er i SharePoint nu - ID og noegle.
         "    ClearCollect(\n"
         "        colVhpSpItems,\n"
-        f"        ForAll({ex} As I, {{ ID: I.ID, ItemID: I.ItemID }})\n"
+        f"        ForAll({ex} As I, {{ ID: I.ID, ItemID: I.ItemID, "
+        "Sceq: !IsBlank(I.SCEqFL) || !IsBlank(I.SCEqOL) })\n"
         "    );\n"
         # De eksisterende foerst i oversaettelsen: operationerne,
         # materialerne og dokumenterne slaar op i den.
