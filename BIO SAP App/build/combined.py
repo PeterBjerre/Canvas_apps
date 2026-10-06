@@ -23,7 +23,7 @@ det, der SKAL vaere anderledes i een app:
                  og koeres FOERST, naar skaermen aabnes. App.OnStart har
                  kun temaet og hubbens fire variabler.
   indlaesning    een ventespinner, mens et domaene klargoeres - den faelles
-                 build_helpers.loading_overlay (issue #64).
+                 build_helpers.open_overlay (issue #64, #92).
 
 Stopper en af de fem apps med at se ud, som denne fil forventer, stopper
 byggeriet med en besked - den glider ikke tavst fra dem.

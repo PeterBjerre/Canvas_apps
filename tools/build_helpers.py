@@ -353,7 +353,16 @@ def spinner_svg(size=64, stroke=6, delay=0.15, caption=None):
 
     delay: hjulet toner ind efter saa mange sekunder. En hentning, der er
     faerdig hurtigere, viser derfor ikke et hjul, der blinker forbi - kun
-    sloeret, som alligevel skal spaerre skaermen."""
+    sloeret, som alligevel skal spaerre skaermen.
+
+    CSS-ANIMATION, IKKE SMIL (issue #92)
+    ------------------------------------
+    Drejningen og indtoningen er CSS i SVG'ens egen <style>, saa
+    @media (prefers-reduced-motion: reduce) kan stoppe drejningen for den,
+    der har bedt styresystemet om mindre bevaegelse. Buen staar saa
+    stille, og statusteksten fortaeller stadig, hvad der sker. Power Apps
+    kan ikke selv laese indstillingen; browseren goer det for billedet,
+    hvor den understoettes."""
     hx = lambda n: '" & %s & "' % ref_hex_expr(n)
     c = size // 2
     r = c - stroke - 4
@@ -363,20 +372,43 @@ def spinner_svg(size=64, stroke=6, delay=0.15, caption=None):
     text = (f"<text x='{c}' y='{size + 24}' text-anchor='middle' font-family='Segoe UI, sans-serif' "
             f"font-size='14' font-weight='600' fill='{hx('text-primary')}'>{caption}</text>"
             if caption else "")
+    style = ("<style>"
+             f".f{{opacity:0;animation:f .2s ease-out {delay}s forwards}}"
+             f".s{{transform-origin:{c}px {c}px;animation:s .9s linear infinite}}"
+             "@keyframes f{to{opacity:1}}"
+             "@keyframes s{to{transform:rotate(360deg)}}"
+             "@media (prefers-reduced-motion:reduce){.s{animation:none}}"
+             "</style>")
     svg = ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h}' "
            f"viewBox='0 0 {w} {h}'>"
-           f"<g opacity='0' transform='translate({cx - c} 0)'>"
+           f"{style}"
+           f"<g class='f' transform='translate({cx - c} 0)'>"
            f"{text}"
-           f"<animate attributeName='opacity' from='0' to='1' begin='{delay}s' "
-           f"dur='0.2s' fill='freeze'/>"
            f"<circle cx='{c}' cy='{c}' r='{r}' fill='none' stroke-width='{stroke}' "
            f"stroke='{hx('state-neutral-bg')}'/>"
-           f"<path d='M{c} {c - r} a{r} {r} 0 0 1 {r} {r}' fill='none' "
+           f"<path class='s' d='M{c} {c - r} a{r} {r} 0 0 1 {r} {r}' fill='none' "
            f"stroke-width='{stroke}' stroke-linecap='round' "
-           f"stroke='{hx('color-brand-primary')}'>"
-           f"<animateTransform attributeName='transform' type='rotate' "
-           f"from='0 {c} {c}' to='360 {c} {c}' dur='0.9s' repeatCount='indefinite'/>"
-           f"</path></g>"
+           f"stroke='{hx('color-brand-primary')}'/>"
+           f"</g>"
+           "</svg>" + '"')
+    return f'"data:image/svg+xml;utf8," & EncodeUrl({svg})'
+
+
+def error_svg(size=40, stroke=4):
+    """Det stille modstykke til hjulet: en cirkel med et udraabstegn i
+    fejlfarven, i hjulets stoerrelse - saa intet flytter sig, naar en
+    indlaesning stopper med en fejl (issue #92)."""
+    hx = lambda n: '" & %s & "' % ref_hex_expr(n)
+    c = size // 2
+    r = c - stroke
+    col = hx('state-error-fg')
+    svg = ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{size}' height='{size}' "
+           f"viewBox='0 0 {size} {size}'>"
+           f"<circle cx='{c}' cy='{c}' r='{r}' fill='none' stroke-width='{stroke - 1}' "
+           f"stroke='{col}'/>"
+           f"<path d='M{c} {c - r // 2} V{c + 2}' stroke='{col}' stroke-width='{stroke}' "
+           f"stroke-linecap='round'/>"
+           f"<circle cx='{c}' cy='{c + r // 2 + 1}' r='{stroke // 2 + 1}' fill='{col}'/>"
            "</svg>" + '"')
     return f'"data:image/svg+xml;utf8," & EncodeUrl({svg})'
 
@@ -410,6 +442,95 @@ def loading_overlay(name, busy_var, label="Saving, please wait", caption=None):
         "X": "0",
         "Y": "0",
     }, h="App.Height", vis=vis)
+
+
+def open_overlay(prefix, busy_var, failed_var, slow_var, *, title_fx, step_fx, hint_fx,
+                 retry_fx, close_fx, label, slow_ms=6000):
+    """Indlaesningen af en anmodning - [sloer, kort, timer] (issue #92).
+
+    Erstatter det store hjul med den faste billedtekst. Et lille, centreret
+    kort paa sloeret:
+
+        (hjul)                 eller (!) ved en fejl - samme stoerrelse
+        Opening request        titlen
+        Loading items ...      det trin, indlaesningen ER i lige nu
+        Taking longer ...      kun naar det trin tager lang tid
+        [Close] [Retry]        kun ved en fejl
+
+    Hver linje har sin faste hoejde, og trinlinjen ombryder ikke - en ny
+    tekst flytter derfor intet. Kun knapraekken kommer og gaar, og det er
+    et skift af tilstand, ikke af tekst.
+
+    INGEN PROCENT
+    -------------
+    Trinene er rigtige, men de varer vidt forskelligt, og et par af dem
+    koster kun noget foerste gang i sessionen. En bjaelke, der hopper fra
+    20 til 80 %, ville vaere en gaet fremdrift. Hjulet er ubestemt, og
+    teksten siger, hvad der sker.
+
+    TIMEREN ER KUN TIL "DET TAGER LANG TID"
+    ---------------------------------------
+    Den starter, naar busy_var bliver sand, og nulstilles, naar den bliver
+    falsk. Naar den udloeber, saettes slow_var - og hint_fx viser en
+    besked om det trin, der er i gang. Den skifter aldrig trinteksten."""
+    busy = f"IfError({busy_var}, false)"
+    failed = f"IfError({failed_var}, false)"
+    vis = f"{busy} || {failed}"
+    scrim = Ctrl(f"img{prefix}Loading", "Image", props={
+        "AccessibleLabel": f'"{label}"',
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "Fill": C_OVERLAY,
+        "Height": "App.Height",
+        "Image": '""',
+        "TabIndex": "-1",
+        "Visible": vis,
+        "Width": "App.Width",
+        "X": "0",
+        "Y": "0",
+    }, h="App.Height", vis=vis)
+    icon = Ctrl(f"img{prefix}LoadIcon", "Image", props={
+        "AccessibleLabel": f'If({failed}, "Error", "Loading")',
+        "AlignInContainer": "AlignInContainer.Center",
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "Height": "40",
+        "Image": f"If({failed}, {error_svg(40, 4)}, {spinner_svg(40, 4)})",
+        "ImagePosition": "ImagePosition.Fit",
+        "TabIndex": "-1",
+        "Width": "40",
+    }, h=40)
+    title = text_ctrl(f"txt{prefix}LoadTitle", title_fx, size=lay.SIZE_CARD_TITLE,
+                      weight="Semibold", align="Center", height=26, wrap="false")
+    step = text_ctrl(f"txt{prefix}LoadStep", step_fx, size=13, color=C_MUTED,
+                     align="Center", height=20, wrap="false")
+    hint = text_ctrl(f"txt{prefix}LoadHint", hint_fx, size=12, color=C_MUTED,
+                     align="Center", height=34, wrap="true")
+    close = button(f"btn{prefix}LoadClose", '"Close"', close_fx,
+                   width=fit_button_width('"Close"'), height=36)
+    retry = button(f"btn{prefix}LoadRetry", '"Retry"', retry_fx, primary=True,
+                   width=fit_button_width('"Retry"'), height=36)
+    actions = group(f"con{prefix}LoadActions", [close, retry], direction="Horizontal", gap=8,
+                    height=36, justify="Center", align_items="Center", visible=failed)
+    card = group(f"con{prefix}LoadCard", [icon, title, step, hint, actions],
+                 direction="Vertical", gap=6, fill=C_MODAL_BG, border_color=C_CARD_BORDER,
+                 radius=lay.RADIUS_MODAL, pad=(22, 20, 18, 20),
+                 width="Min(360, App.Width - 32)", drop_shadow="Bold", visible=vis)
+    card.props["X"] = "(App.Width - Self.Width) / 2"
+    card.props["Y"] = "(App.Height - Self.Height) / 2"
+    timer = Ctrl(f"tmr{prefix}LoadSlow", "Timer", props={
+        "AutoPause": "false",
+        "AutoStart": "false",
+        "Duration": str(slow_ms),
+        "Height": "1",
+        "OnTimerEnd": f"Set({slow_var}, true)",
+        "Repeat": "false",
+        "Reset": f"!{busy}",
+        "Start": busy,
+        "Visible": "false",
+        "Width": "1",
+    }, h=1, vis="false")
+    return [scrim, card, timer]
 
 
 def tap_backdrop(name, vis, close_fx):
