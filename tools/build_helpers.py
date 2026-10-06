@@ -714,6 +714,20 @@ def grow(ctrl, min_w=0):
     return ctrl
 
 
+def fit(ctrl, natural_w, reserve=None):
+    """Kontrollen er saa bred som sit indhold (natural_w) - men aldrig
+    bredere end pladsen inden i foraelderen minus reserve.
+
+    Ligesom grow en MARKERING: gen_screen._resolve_fit regner bredden ud,
+    naar skaermen skrives, ud fra foraelderens udregnede bredde - ikke
+    Parent.Width (check_layout regel 24). Er der plads, staar hele teksten;
+    kun naar foraelderen reelt er for smal, klipper den (issue #93)."""
+    ctrl._fit = (natural_w, reserve)
+    ctrl.props["Width"] = str(natural_w)
+    ctrl.props["LayoutMinWidth"] = "0"
+    return ctrl
+
+
 def flow_row(name, children, container_w, gap=8, flex=None, flex_min=0,
              **group_kw):
     """En raekke, der ENTEN staar vandret paa een linje ELLER lodret med
@@ -928,11 +942,22 @@ def top_bar(prefix, title, subtitle, actions, container_w=None, gap=10,
     if num_var and icon:
         nb = number_badge(prefix, num_var, icon)
         nb.props["AlignInContainer"] = "AlignInContainer.Center"
-        tw = int(text_px(title.strip()[1:-1], lay.SIZE_PAGE_TITLE) * 0.86) + 2
-        t.props["Width"] = str(tw)
-        t.props["LayoutMinWidth"] = str(tw)
-        first = group("con%sTitleLine" % prefix, [t, nb], direction="Horizontal", gap=6,
-                      height=33, align_items="Center", width=str(tw + 6 + 88))
+        # TITLEN FAAR SIN FULDE BREDDE - OG KUN MINDRE, NAAR DER IKKE ER PLADS
+        #
+        # Her stod text_px(...) * 0.86 + 2 som FAST bredde paa baade titlen
+        # og linjen. Skoennet ganget med 0.86 ramte under tekstens egen
+        # bredde: "Equipment" fik 106 px, men er ca. 111 px i Segoe UI
+        # Semibold 22 - og blev til "Equipme..." paa enhver skaerm, uanset
+        # hvor meget plads bjaelken havde (issue #93). Nu maales titlen med
+        # fontens egne tegnbredder (label_px, samme tabel som labels), og
+        # bredden er et loft: Min(teksten, pladsen i linjen). Saa staar hele
+        # titlen, naar der er plads, og kun naar bjaelken reelt er for smal,
+        # klipper den med "...". Nummer-pillen (88 px + 6 px luft) tager
+        # kun plads fra titlen, naar der ER et nummer.
+        tw = label_px(title.strip()[1:-1], lay.SIZE_PAGE_TITLE) + 2
+        fit(t, tw, reserve="If(IsBlank(%s), 0, 6 + 88)" % num_var)
+        first = fit(group("con%sTitleLine" % prefix, [t, nb], direction="Horizontal", gap=6,
+                          height=33, align_items="Center"), tw + 6 + 88)
         first.props["AlignInContainer"] = "AlignInContainer.Start"
         first.vis = at_least("Tablet")
         first.props["Visible"] = first.vis
