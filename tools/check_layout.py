@@ -1527,12 +1527,22 @@ def rule_10(ctx):
         # 'TabIndex' for control type 'ModernButton'" (issue #79).
         "ModernButton": ("TabIndex",),
     }
+    # Nogle egenskaber afhaenger ogsaa af varianten. Et Gallery med
+    # Variant: VariableHeight har ingen WrapCount - compile: "Unknown
+    # property 'WrapCount' for control type 'Gallery' and variant
+    # 'VariableHeight'" (issue #130, Activity-listen i Issue Board).
+    UNSUPPORTED_BY_VARIANT = {
+        ("Gallery", "VariableHeight"): ("WrapCount",),
+    }
     for p_, name, body in all_nodes:
-        bad = UNSUPPORTED.get((body.get("Control") or "").strip())
+        ctl = (body.get("Control") or "").strip()
+        bad = UNSUPPORTED.get(ctl, ()) + UNSUPPORTED_BY_VARIANT.get(
+            (ctl, (body.get("Variant") or "").strip()), ())
         if not bad:
             continue
         for key in sorted(set(body.get("Properties") or {}) & set(bad)):
-            problems.append(f"[10] {name}: {body['Control']} kender ikke "
+            kind = body["Control"] + (f" ({body['Variant']})" if body.get("Variant") else "")
+            problems.append(f"[10] {name}: {kind} kender ikke "
                             f"egenskaben '{key}' - compile vil fejle")
 
 def rule_10c(ctx):
