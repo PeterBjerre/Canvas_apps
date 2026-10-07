@@ -35,6 +35,7 @@ TaskListMain og MaintenanceItems; ID i MaintenancePlans.
 import admin_log as alog
 import permissions as perm
 import request_index as ri
+import display_text as dt
 
 INDEX = ri.LIST
 
@@ -122,7 +123,8 @@ def delete_fx(prefix, domains, success, me, indent=0):
     index = [(INDEX, None, f"Remove({INDEX}, Filter({INDEX}, RequestGuid = {guid}))")]
     log = (f"If(\n    {perm.as_admin(idx + '.RequesterEmail', me)},\n"
            + alog.write(guid, key, alog.DELETE,
-                        f'"Request deleted (" & {idx}.Status.Value & ", owner " & {idx}.RequesterEmail & ")"', 4)
+                        f'"Request deleted (" & {dt.status(idx + ".Status.Value")} & ", owner " & '
+                        f'{idx}.RequesterEmail & ")"', 4)
            + "\n);\n")
     success = log + success
     head = (f"Set({guid}, {idx}.RequestGuid);\n"

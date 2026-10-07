@@ -184,6 +184,19 @@ App:
       // Een delegerbar LookUp i admin-listen, laest dovent og kun een gang.
       IsAdmin = !IsBlank(LookUp(UserAndGroups, Title = "Admin" && Member = Lower(User().Email)));
 
+      // STATUSETIKETTER. Genereret af tools/display_text.py - ret ikke her.
+      // Noeglen er den LAGREDE vaerdi (laeses af flowene); Label er visningen.
+      RequestStatusLabels = Table(
+          { Key: "Kladde", Label: "Draft" },
+          { Key: "Indsendt", Label: "Submitted" },
+          { Key: "UnderBehandling", Label: "In progress" },
+          { Key: "AfventerInfo", Label: "Awaiting info" },
+          { Key: "KlarTilSAP", Label: "Ready for SAP" },
+          { Key: "OprettetISAP", Label: "Created in SAP" },
+          { Key: "Afvist", Label: "Rejected" },
+          { Key: "Annulleret", Label: "Cancelled" }
+      );
+
       // GODKENDER. Genereret af tools/permissions.py - ret ikke her.
       MyUserId = Upper(First(Split(User().Email, "@")).Value);
       IsApprover = !IsBlank(LookUp(MD_Approver, Approver1 = MyUserId || Approver2 = MyUserId));

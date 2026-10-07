@@ -53,6 +53,7 @@ from build_helpers import concurrent
 import permissions as perm
 from build_status import HAS_PKGS
 import submission_notes as sn
+import display_text as dt
 
 # Hvem maa se noterne ved Submit (issue #115) - tools/submission_notes.py.
 NOTE_S_OK = sn.may_self("idx.RequesterEmail", "varVhpMe")
@@ -239,7 +240,9 @@ def load_block():
         "                Set(varVhpPlanKey, pl.PlanID);\n"
         "                Set(varVhpFlow, { Status: Coalesce(pl.Status.Value, \"\"), "
         "Stage: Coalesce(pl.ApprovalStage.Value, \"\"), "
-        "ReturnComment: Coalesce(pl.ReturnComment, \"\") });\n"
+        # ReturnComment er flowets tekst: vist paa engelsk, ogsaa naar en
+        # aeldre raekke har den danske (tools/display_text.py, #162).
+        f"ReturnComment: {dt.log('pl.ReturnComment')} }});\n"
         # Noterne ved Submit (issue #115): Note to approver kun for den,
         # der maa se den - Note to self hentes i boelge 1 nedenfor.
         "                Set(varVhpOwnerEmail, Lower(Coalesce(idx.RequesterEmail, \"\")));\n"
