@@ -1,6 +1,6 @@
 ﻿# SharePoint-lister bag VH-plan appen
 
-Udtrukket 2026-10-05 20:37 fra https://orsted.sharepoint.com/teams/BioSAPDEV
+Udtrukket 2026-10-07 09:31 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 
 | Liste | Raekker | Kolonner |
 |---|---:|---:|
@@ -12,20 +12,24 @@ Udtrukket 2026-10-05 20:37 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `FunctionalLocationItems` | 1 | 21 |
 | `FunctionalLocationRequests` | 1 | 17 |
 | `HEV Standard Tasklist` | 30 | 42 |
+| `IB_AppSections` | 87 | 13 |
+| `IB_SharedIssues` | 0 | 17 |
+| `IB_TicketComments` | 0 | 20 |
+| `IB_Tickets` | 0 | 30 |
 | `KYV Standard Tasklist` | 20 | 42 |
 | `LubricationTaskTypeList` | 2 | 6 |
 | `MaintenanceActivityTypeList` | 7 | 7 |
 | `MaintenanceItems` | 71 | 36 |
-| `MaintenancePlans` | 50 | 38 |
+| `MaintenancePlans` | 50 | 40 |
 | `MainWorkCenters` | 53 | 8 |
-| `MaterialItems` | 5 | 32 |
-| `MD_ApprovalLog` | 19 | 18 |
+| `MaterialItems` | 2 | 32 |
+| `MD_ApprovalLog` | 25 | 18 |
 | `MD_Approver` | 25 | 10 |
 | `MD_FLKey` | 6733 | 9 |
 | `MD_HelpText` | 36 | 11 |
 | `MD_KksFunctionKey` | 2913 | 9 |
-| `MD_RequestIndex` | 37 | 23 |
-| `MD_StandardTaskOperations` | 176 | 31 |
+| `MD_RequestIndex` | 34 | 24 |
+| `MD_StandardTaskOperations` | 176 | 32 |
 | `MD_Strategy` | 53 | 11 |
 | `MD_StrategyPackage` | 3 | 14 |
 | `MD_TasklistAttachment` | 1 | 13 |
@@ -36,9 +40,10 @@ Udtrukket 2026-10-05 20:37 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `SSV Standard Tasklist` | 32 | 42 |
 | `StandardStrategyList` | 3 | 6 |
 | `StandardTaskList` | 3 | 12 |
-| `TaskListMain` | 357 | 31 |
+| `TaskListMain` | 360 | 32 |
 | `UserAndGroups` | 7 | 7 |
 | `Vendors` | 20 | 7 |
+| `VHP_NoteToSelf` | 1 | 10 |
 
 ## `AppSettings`  -  7 raekker
 
@@ -300,6 +305,106 @@ Udtrukket 2026-10-05 20:37 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
+## `IB_AppSections`  -  87 raekker
+
+| Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
+|---|---|---|:-:|:-:|---|
+| `Title` | **Application** | Text | x | x |  |
+| `Section` | Section | Text |  |  |  |
+| `AppOrder` | AppOrder | Number |  |  |  |
+| `SectionOrder` | SectionOrder | Number |  |  |  |
+| `IsActive` | IsActive | Boolean |  | x |  |
+| `ScreenKey` | ScreenKey | Text |  |  |  |
+| `DomainColor` | DomainColor | Text |  |  |  |
+| `IconRef` | IconRef | Text |  |  |  |
+| `ID` | ID | Counter |  |  | skrivebeskyttet |
+| `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
+| `Created` | Created | DateTime |  |  | skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+
+## `IB_SharedIssues`  -  0 raekker
+
+| Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
+|---|---|---|:-:|:-:|---|
+| `Title` | Title | Text |  |  |  |
+| `TicketNo` | TicketNo | Text |  | x |  |
+| `Summary` | Summary | Note |  |  |  |
+| `Application` | Application | Text |  | x |  |
+| `Section` | Section | Text |  |  |  |
+| `Status` | Status | Text |  | x |  |
+| `Severity` | Severity | Text |  |  |  |
+| `Priority` | Priority | Text |  |  |  |
+| `Resolution` | Resolution | Note |  |  |  |
+| `ReportedOn` | ReportedOn | DateTime |  |  |  |
+| `LastActivityOn` | LastActivityOn | DateTime |  | x |  |
+| `IsArchived` | IsArchived | Boolean |  | x |  |
+| `ID` | ID | Counter |  |  | skrivebeskyttet |
+| `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
+| `Created` | Created | DateTime |  |  | skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+
+## `IB_TicketComments`  -  0 raekker
+
+| Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
+|---|---|---|:-:|:-:|---|
+| `Title` | Title | Text |  |  |  |
+| `TicketId` | TicketId | Number |  | x |  |
+| `TicketNo` | TicketNo | Text |  | x |  |
+| `AuthorEmail` | AuthorEmail | Text |  |  |  |
+| `AuthorName` | AuthorName | Text |  |  |  |
+| `AuthorRole` | AuthorRole | Choice |  |  | valg: Reporter, Admin, System |
+| `EventType` | EventType | Choice |  |  | valg: Comment, StatusChange, Assignment, PriorityChange, Attachment, Reopened, Closed, Archived, System |
+| `Visibility` | Visibility | Choice |  |  | valg: Reporter, Internal |
+| `Content` | Content | Note |  |  |  |
+| `PreviousStatus` | PreviousStatus | Text |  |  |  |
+| `NewStatus` | NewStatus | Text |  |  |  |
+| `EventOn` | EventOn | DateTime |  | x |  |
+| `FileName` | FileName | Text |  |  |  |
+| `FileSizeKb` | FileSizeKb | Number |  |  |  |
+| `AtSubmission` | AtSubmission | Boolean |  |  |  |
+| `ID` | ID | Counter |  |  | skrivebeskyttet |
+| `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
+| `Created` | Created | DateTime |  |  | skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+
+## `IB_Tickets`  -  0 raekker
+
+| Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
+|---|---|---|:-:|:-:|---|
+| `Title` | Title | Text |  |  |  |
+| `TicketNo` | TicketNo | Text |  | x |  |
+| `Description` | Description | Note |  |  |  |
+| `ReproSteps` | ReproSteps | Note |  |  |  |
+| `ExpectedResult` | ExpectedResult | Note |  |  |  |
+| `ActualResult` | ActualResult | Note |  |  |  |
+| `Application` | Application | Text |  | x |  |
+| `Section` | Section | Text |  | x |  |
+| `OtherContext` | OtherContext | Text |  |  |  |
+| `RelatedRequestNo` | RelatedRequestNo | Text |  |  |  |
+| `LayoutContext` | LayoutContext | Text |  |  |  |
+| `ClientContext` | ClientContext | Text |  |  |  |
+| `Severity` | Severity | Choice |  |  | valg: Blocker, Major, Minor, Cosmetic |
+| `Priority` | Priority | Choice |  |  | valg: Urgent, High, Normal, Low |
+| `Status` | Status | Choice |  | x | valg: New, Reopened, Triaged, In progress, Ready for retest, Closed |
+| `ReporterEmail` | ReporterEmail | Text |  | x |  |
+| `ReporterName` | ReporterName | Text |  |  |  |
+| `AssignedToEmail` | AssignedToEmail | Text |  | x |  |
+| `AssignedToName` | AssignedToName | Text |  |  |  |
+| `LastActivityOn` | LastActivityOn | DateTime |  | x |  |
+| `ResolvedOn` | ResolvedOn | DateTime |  |  |  |
+| `ClosedOn` | ClosedOn | DateTime |  |  |  |
+| `IsArchived` | IsArchived | Boolean |  | x |  |
+| `Resolution` | Resolution | Note |  |  |  |
+| `SharedItemId` | SharedItemId | Number |  |  |  |
+| `ID` | ID | Counter |  |  | skrivebeskyttet |
+| `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
+| `Created` | Created | DateTime |  |  | skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+
 ## `KYV Standard Tasklist`  -  20 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
@@ -448,6 +553,8 @@ Udtrukket 2026-10-05 20:37 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `SapOrderFile` | SapOrderFile | Text |  |  |  |
 | `SapCreatedOn` | SapCreatedOn | DateTime |  |  |  |
 | `SapCreatedBy` | SapCreatedBy | Text |  |  |  |
+| `NoteToApprover` | NoteToApprover | Note |  |  |  |
+| `SubmittedBy` | SubmittedBy | Text |  |  |  |
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
@@ -467,7 +574,7 @@ Udtrukket 2026-10-05 20:37 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MaterialItems`  -  5 raekker
+## `MaterialItems`  -  2 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -504,7 +611,7 @@ Udtrukket 2026-10-05 20:37 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MD_ApprovalLog`  -  19 raekker
+## `MD_ApprovalLog`  -  25 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -586,7 +693,7 @@ Udtrukket 2026-10-05 20:37 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MD_RequestIndex`  -  37 raekker
+## `MD_RequestIndex`  -  34 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -608,6 +715,7 @@ Udtrukket 2026-10-05 20:37 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `AppUrl` | AppUrl | Text |  |  |  |
 | `LastActionOn` | LastActionOn | DateTime |  | x |  |
 | `LastActionBy` | LastActionBy | Text |  |  |  |
+| `HasApproverNote` | HasApproverNote | Boolean |  |  |  |
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
@@ -644,6 +752,7 @@ Udtrukket 2026-10-05 20:37 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `PurchasingGroup` | PurchasingGroup | Text |  |  |  |
 | `VendorNo` | VendorNo | Text |  |  |  |
 | `PurchasingOrg` | PurchasingOrg | Text |  |  |  |
+| `ServiceNo` | ServiceNo | Text |  |  |  |
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
@@ -866,7 +975,7 @@ Udtrukket 2026-10-05 20:37 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `TaskListMain`  -  357 raekker
+## `TaskListMain`  -  360 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -896,6 +1005,7 @@ Udtrukket 2026-10-05 20:37 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `OperationNo` | OperationNo | Number |  | x |  |
 | `PackagesKey` | PackagesKey | Text |  |  |  |
 | `MaterialGroup` | MaterialGroup | Text |  |  |  |
+| `ServiceNo` | ServiceNo | Text |  |  |  |
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
@@ -920,6 +1030,21 @@ Udtrukket 2026-10-05 20:37 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 |---|---|---|:-:|:-:|---|
 | `Title` | **VendorName** | Text |  |  |  |
 | `VendorNumber` | VendorNumber | Text |  |  |  |
+| `ID` | ID | Counter |  |  | skrivebeskyttet |
+| `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
+| `Created` | Created | DateTime |  |  | skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+
+## `VHP_NoteToSelf`  -  1 raekker
+
+| Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
+|---|---|---|:-:|:-:|---|
+| `Title` | **RequestNo** | Text |  |  |  |
+| `RequestGuid` | RequestGuid | Text |  | x |  |
+| `PlanId` | PlanId | Number |  |  |  |
+| `OwnerEmail` | OwnerEmail | Text |  | x |  |
+| `Note` | Note | Note |  |  |  |
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
