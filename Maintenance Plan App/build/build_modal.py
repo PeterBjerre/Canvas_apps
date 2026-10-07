@@ -386,7 +386,13 @@ def build_modal_backdrop():
            "!IsBlank(varVhpMatOpNo) || !IsBlank(varVhpAttOpNo) || !IsBlank(varVhpOpMNo)")
     inner = ("varVhpTasklistPickerOpen || varVhpLongTextOpen || varVhpObjListOpen || "
              "!IsBlank(varVhpMatOpNo) || !IsBlank(varVhpAttOpNo)")
+    # Dokumentpopuppen lukker ikke midt i en upload, og den glemmer de
+    # valgte filer, naar den lukker (issue #134, tools/doc_upload.py).
+    import build_attflows
+    att = build_attflows.PANE
     return tap_backdrop("conVhpPickerBackdrop", vis,
-                        f"If({inner}, Set(varVhpTasklistPickerOpen, false); Set(varVhpLongTextOpen, false); "
-                        "Set(varVhpObjListOpen, false); Set(varVhpMatOpNo, \"\"); Set(varVhpAttOpNo, \"\"), "
-                        "Set(varVhpOpMNo, \"\"))")
+                        f"If(!{att.busy}, If({inner}, Set(varVhpTasklistPickerOpen, false); "
+                        "Set(varVhpLongTextOpen, false); "
+                        "Set(varVhpObjListOpen, false); Set(varVhpMatOpNo, \"\"); Set(varVhpAttOpNo, \"\"); "
+                        + att.close_fx().replace("\n", " ") + ", "
+                        "Set(varVhpOpMNo, \"\")))")
