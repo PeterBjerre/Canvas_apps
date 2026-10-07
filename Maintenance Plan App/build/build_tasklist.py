@@ -928,7 +928,7 @@ def build_tasklist_section():
     # DEN SAMMENKLAPPEDE LINJE (issue #103, #123) - Plan Headers chips:
     # tasklisten og de vigtigste tal, ikke hele tabellen. Paa alle bredder;
     # layoutet er den navngivne formel VhpOpsSummary (ops_summary_fx).
-    summary = summary_chips("imgVhpOpsSummary", "VhpOpsSummary", OPS_SUMMARY_VIS)
+    summary = summary_chips("htmVhpOpsSummary", "VhpOpsSummary", OPS_SUMMARY_VIS)
     # Foldet ud: hvad der mangler, foer sektionen kan gemmes.
     attention = text_ctrl(
         "txtVhpOpsAttention",
