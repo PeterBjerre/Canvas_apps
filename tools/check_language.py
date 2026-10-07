@@ -69,6 +69,8 @@ SINGLE = {
     # "Gemning afbrudt - kontakt SAP masterdata." stod i to Notify'er i
     # VH-plan og slap igennem: fem ord, og kun "gemning" stod her.
     "afbrudt", "kontakt", "fejl", "gemmer", "venligst", "mislykkedes",
+    # Issue #162: godkendelsesflowenes tekster ("intet svar fra ...").
+    "svar", "retur",
 }
 
 DANISH = re.compile(
@@ -81,7 +83,10 @@ DANISH = re.compile(
     r"advarsel|traek|gennemse|laeg|filtrer|antal|personer|leverandoer|pris|lager|"
     r"reservedele|meld|indberetningen|indmeldingen|biblioteket|indsnaevre|mappen|hedder|"
     r"sendt|forfra|garanti|sidder|strategi|strategier|arbejdsplaner|arbejdscentre|tegn|"
-    r"maks|hoejst|mindst|nedenfor|paakraevet)\b|[ÆØÅæøå])",
+    r"maks|hoejst|mindst|nedenfor|paakraevet|"
+    # Issue #162: ordene i godkendelsesflowenes log-, retur- og mailtekster.
+    r"godkender|godkendelse|godkendelsen|omkostning|kvalitet|intet|planen|tidligere|"
+    r"opretter|strategiplan|cyklus|rekvirent|funktionsplads|kvittering|varighed)\b|[ÆØÅæøå])",
     re.I)
 
 # Strenge, der er danske MED VILJE.
@@ -94,7 +99,16 @@ ALLOW = {
     # ville goere dem umulige at finde.
     'Source: ""Den gode VH-plan"" (May 2025) and ""Planlaegning af en VH '
     'ordre"" (2026). Ask SAPvedligehold@orsted.dk.',
+    # Godkendelseskortets gamle svar. Udfaldet godtager det stadig, saa et
+    # kort startet foer issue #162 godkender (solution/.../Workflows).
+    "Godkend",
 }
+# De danske saetninger, flowene skrev foer issue #162. De staar i appen som
+# OPSLAG i tools/display_text.py (dansk -> engelsk ved visning), ikke som
+# visningstekst. Kun paa skaermene: et FLOW maa ikke skrive dem igen.
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import display_text as _dt  # noqa: E402
+ALLOW_SCREENS = ALLOW | {da.strip() for da, _en in _dt.EXACT + _dt.PREFIX + _dt.FRAGMENT}
 
 # Ting, der ikke er saetninger: farver, tal, egenskabsnavne, URL'er.
 SKIP = re.compile(r"^(#|RGBA|Font\.|https?:|[A-Za-z]+\.[A-Za-z]|@odata|[\d\s,.:;/|<>_-]+$)")
@@ -117,6 +131,83 @@ def screens():
     return out
 
 
+def _danish(v, allow=ALLOW):
+    """Er v (en streng uden omgivende mellemrum) dansk visningstekst?"""
+    if len(v) < 3 or v in allow or SKIP.match(v):
+        return False
+    words = re.findall(r"[A-Za-zÆØÅæøå]+", v)
+    # Kort streng: eet dansk ord er nok. Laengere streng: to - saa
+    # en enkelt tilfaeldighed ("alle" i et navn) ikke giver et fund,
+    # men en dansk saetning med kun SINGLE-ord gaar ikke igennem.
+    hits = sum(1 for w in words if w.lower() in SINGLE)
+    single = hits >= (1 if len(words) <= 3 else 2)
+    return bool(DANISH.search(v)) or single
+
+
+# ---------------------------------------------------------------------------
+# FLOWENE (issue #162)
+#
+# Godkendelsesflowene skrev dansk i MD_ApprovalLog ("opretter er 1. eller 2.
+# godkender for system 2"), i ReturnComment og i mails - og appen viste det.
+# Skaermtjekket ovenfor ser kun .pa.yaml. Her laeses de tekster i flow-
+# eksporten, som en bruger kan se: kolonner, flowet skriver (item/...,
+# HTTP-body), godkendelseskortet, mails og Compose-tekster. Ikke: navne paa
+# handlinger, beskrivelser (kun i designeren), valgvaerdier ("Value") og
+# mappestier.
+# ---------------------------------------------------------------------------
+FLOWS = os.path.join("solution", "BIOSAP", "src", "Workflows")
+_EXPR = re.compile(r"@\{(?:[^{}]|\{[^{}]*\})*\}")
+
+
+def _flow_texts(o, key=""):
+    if isinstance(o, dict):
+        for k, v in o.items():
+            if k in ("description", "runAfter", "Value", "folderPath", "type", "kind",
+                     "metadata", "operationMetadataId") or k.startswith("$"):
+                continue
+            yield from _flow_texts(v, k)
+    elif isinstance(o, list):
+        for v in o:
+            yield from _flow_texts(v, key)
+    elif isinstance(o, str):
+        if o.startswith("@"):
+            # Et udtryk: kun dets tekstkonstanter ('...').
+            for m in re.finditer(r"'((?:[^']|'')*)'", o):
+                yield m.group(1)
+        else:
+            # Tekst med indlejrede udtryk: konstanterne i udtrykkene og
+            # teksten imellem dem, uden HTML-maerker.
+            for m in _EXPR.finditer(o):
+                for c in re.finditer(r"'((?:[^']|'')*)'", m.group(0)):
+                    yield c.group(1)
+            rest = _EXPR.sub(" ", o)
+            for t in re.split(r"<[^>]*>|&[a-z]+;|\\n|\n", rest):
+                yield t
+
+
+def check_flows():
+    import json
+    d = os.path.join(ROOT, FLOWS)
+    if not os.path.isdir(d):
+        return [], 0
+    bad, n = [], 0
+    for f in sorted(os.listdir(d)):
+        if not f.endswith(".json"):
+            continue
+        n += 1
+        with io.open(os.path.join(d, f), encoding="utf-8-sig") as fh:
+            data = json.load(fh)
+        name = re.sub(r"-[0-9A-Fa-f]{8}-.*$", "", f)
+        for t in _flow_texts(data):
+            v = t.strip()
+            # Mappestier og filendelser (/SAP-oprettelse/..., .kvittering.json)
+            # er navne i SharePoint, ikke tekst.
+            if v.startswith(("/", ".")) or not _danish(v):
+                continue
+            bad.append("  %-24s %s" % (name, v[:90]))
+    return bad, n
+
+
 def check():
     bad = []
     n_files = 0
@@ -129,15 +220,7 @@ def check():
         # filen: tjekket laeste kode som tekst og meldte den som dansk.
         for m in re.finditer(r'"((?:[^"]|"")*)"', txt):
             v = m.group(1).strip()
-            if len(v) < 3 or v in ALLOW or SKIP.match(v):
-                continue
-            words = re.findall(r"[A-Za-zÆØÅæøå]+", v)
-            # Kort streng: eet dansk ord er nok. Laengere streng: to - saa
-            # en enkelt tilfaeldighed ("alle" i et navn) ikke giver et fund,
-            # men en dansk saetning med kun SINGLE-ord gaar ikke igennem.
-            hits = sum(1 for w in words if w.lower() in SINGLE)
-            single = hits >= (1 if len(words) <= 3 else 2)
-            if not DANISH.search(v) and not single:
+            if not _danish(v, ALLOW_SCREENS):
                 continue
             # En VAERDI, ikke en visning: { Value: "..." } eller en
             # Switch-noegle. Begge skrives i en liste og er ikke sprog.
@@ -145,6 +228,8 @@ def check():
             if re.search(r"Value:\s*$", before):
                 continue
             bad.append("  %-24s %s" % (os.path.basename(os.path.dirname(path)), v[:90]))
+    flow_bad, n_flows = check_flows()
+    bad += flow_bad
     if bad:
         raise SystemExit(
             "Sprogtjek: %d dansk(e) streng(e) paa skaermene.\n" % len(bad)
@@ -152,7 +237,8 @@ def check():
             "\n\nAppernes sprog er engelsk. Er strengen en LAGRET vaerdi - en\n"
             "SharePoint-valgvaerdi eller en Switch-noegle - saa skal den ikke\n"
             "oversaettes; skriv den i ALLOW i tools/check_language.py i stedet.")
-    print("Sprogtjek: %d skaerm(e), ingen dansk visningstekst." % n_files)
+    print("Sprogtjek: %d skaerm(e) og %d flow(s), ingen dansk visningstekst."
+          % (n_files, n_flows))
 
 
 if __name__ == "__main__":

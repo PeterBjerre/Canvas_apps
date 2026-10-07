@@ -8290,8 +8290,8 @@ Screens:
                                                         RequestGuid: varFlRequestGuid,
                                                         Stage: "Admin",
                                                         Decision: "AdminEdit",
-                                                        Detail: Left("Status: " & Switch(varFlReqNow.Status.Value, "Kladde", "Draft", "Indsendt", "Submitted", "UnderBehandling", "In progress", "AfventerInfo", "Awaiting info", "KlarTilSAP", "Ready for SAP", "OprettetISAP", "Created in SAP", "Afvist", "Rejected", "Annulleret", "Cancelled", varFlReqNow.Status.Value) & " → Submitted", 255),
-                                                        Comment: "Status: " & Switch(varFlReqNow.Status.Value, "Kladde", "Draft", "Indsendt", "Submitted", "UnderBehandling", "In progress", "AfventerInfo", "Awaiting info", "KlarTilSAP", "Ready for SAP", "OprettetISAP", "Created in SAP", "Afvist", "Rejected", "Annulleret", "Cancelled", varFlReqNow.Status.Value) & " → Submitted",
+                                                        Detail: Left("Status: " & Coalesce(LookUp(RequestStatusLabels, Key = varFlReqNow.Status.Value, Label), varFlReqNow.Status.Value) & " → Submitted", 255),
+                                                        Comment: "Status: " & Coalesce(LookUp(RequestStatusLabels, Key = varFlReqNow.Status.Value, Label), varFlReqNow.Status.Value) & " → Submitted",
                                                         DecidedByEmail: Lower(User().Email),
                                                         DecidedOn: Now()
                                                     });
@@ -8596,8 +8596,8 @@ Screens:
                                                         RequestGuid: varFlDelGuid,
                                                         Stage: "Admin",
                                                         Decision: "AdminDelete",
-                                                        Detail: Left("Request deleted (" & varFlDelIdx.Status.Value & ", owner " & varFlDelIdx.RequesterEmail & ")", 255),
-                                                        Comment: "Request deleted (" & varFlDelIdx.Status.Value & ", owner " & varFlDelIdx.RequesterEmail & ")",
+                                                        Detail: Left("Request deleted (" & Coalesce(LookUp(RequestStatusLabels, Key = varFlDelIdx.Status.Value, Label), varFlDelIdx.Status.Value) & ", owner " & varFlDelIdx.RequesterEmail & ")", 255),
+                                                        Comment: "Request deleted (" & Coalesce(LookUp(RequestStatusLabels, Key = varFlDelIdx.Status.Value, Label), varFlDelIdx.Status.Value) & ", owner " & varFlDelIdx.RequesterEmail & ")",
                                                         DecidedByEmail: Lower(User().Email),
                                                         DecidedOn: Now()
                                                     });

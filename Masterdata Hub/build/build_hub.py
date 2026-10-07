@@ -29,6 +29,7 @@ import approval_flow
 import submission_notes as sn
 import permissions as perm
 import request_delete as rd
+import display_text as dt
 from layout_tokens import (if_below, below, at_least, SCROLLBAR_W, GALLERY_RESERVE, PAGE_PAD_R,
                            HEADER_PAD_T)
 
@@ -355,23 +356,16 @@ if set(STATUS_ICON) != {s[0] for s in STATUS}:
                      % sorted(set(STATUS_ICON) ^ {s[0] for s in STATUS}))
 
 
-def _switch(field_index, fallback, quote=False):
-    """Switch over statusvaerdien, bygget af ordforraadet i hub_config.
-
-    quote=True naar feltet er TEKST. Farvefelterne er Power Fx-udtryk
-    ("RGBA(...)") og skal staa uden anfoerselstegn, men etiketten er en
-    streng - uden dem blev "In progress" til to identifiers."""
-    parts = [f'"{s[0]}", ' + (f'"{s[field_index]}"' if quote else f'{s[field_index]}')
-             for s in STATUS]
-    return "Switch(\n    ThisItem.Status.Value,\n    " + ",\n    ".join(parts) + \
-           f",\n    {fallback}\n)"
-
+# Statusteksten i raekken: den lagrede vaerdi (Kladde, Indsendt ...) vist
+# paa engelsk via appens ene statustabel (tools/display_text.py, #162).
+# Filtrene bruger stadig den lagrede vaerdi.
+STATUS_TEXT = dt.status("ThisItem.Status.Value", '"Unknown"')
 
 # Etiketterne paa raekkernes domaene- og statusikoner (issue #165): App
 # checker godtager ikke en tom etiket paa et billede (AccessibleLabelNeeded).
 # Ikonet viser domaenet og statussen - det samme, teksten ved siden af siger.
 DOMAIN_LABEL = _domain_switch(lambda d: f'"{d["name"]}"', '"Request"')
-STATUS_LABEL = '"Status: " & ' + _switch(1, '"Unknown"', quote=True)
+STATUS_LABEL = '"Status: " & ' + STATUS_TEXT
 
 
 # ---------------------------------------------------------------------------
@@ -1029,7 +1023,7 @@ def build_list():
                        for k, (path, tok) in STATUS_ICON.items()) +
         f',\n    {_icon_svg(STATUS_ICON["Kladde"][0], _hx("state-neutral-fg"), size=22)}\n)'),
         22, 22, label=STATUS_LABEL)
-    st_lbl = text_ctrl("txtMdRowStatus", _switch(1, '"Unknown"', quote=True), size=13,
+    st_lbl = text_ctrl("txtMdRowStatus", STATUS_TEXT, size=13,
                        height=20, width=f"{CWF['STATUS']} - 22 - 10", wrap="false")
     st_top = group("conMdRowStatTop", [st_icon, st_lbl], direction="Horizontal", gap=10,
                    width=CWF["STATUS"], height=22, align_items="Center")
@@ -1244,7 +1238,7 @@ def _compact_row(act):
                        for k, (path, tok) in STATUS_ICON.items()) +
         f',\n    {_icon_svg(STATUS_ICON["Kladde"][0], _hx("state-neutral-fg"), size=18)}\n)'), 18, 18,
         label=STATUS_LABEL)
-    st_lbl = text_ctrl("txtMdRowStatusC", _switch(1, '"Unknown"', quote=True), size=12,
+    st_lbl = text_ctrl("txtMdRowStatusC", STATUS_TEXT, size=12,
                        height=20, width=96, wrap="false")
     line1 = group("conMdRowLineC1", [dom_icon, no, st_icon, st_lbl], direction="Horizontal", gap=8,
                   height=22, align_items="Center",
