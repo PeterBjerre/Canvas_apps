@@ -270,7 +270,7 @@ def _subject_picker(n):
     hit.vis = pickable
 
     gal_name = n("gal", "Subject")
-    gal_h = f"Min(CountRows({gal_name}.AllItems), {MAX_ROWS}) * {ROW_H}"
+    gal_h = f"Min({gal_name}.AllItemsCount, {MAX_ROWS}) * {ROW_H}"
     gal = Ctrl(gal_name, "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Subjects and your requests"',
         "BorderStyle": "BorderStyle.None", "Fill": C_TRANSPARENT, "FillPortions": "0",

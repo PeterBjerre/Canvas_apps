@@ -1396,7 +1396,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =56 + If(IsAdmin && varIbScope = "all", 8 + (34), 0) + If(CountRows(galIbList.AllItems) > 0, 8 + (Max(1, Min(CountRows(galIbList.AllItems), 10)) * 68), 0) + If(CountRows(galIbList.AllItems) = 0, 8 + (40), 0) + If(IbFailed && !varIbLoading, 8 + (36), 0)
+                            =56 + If(IsAdmin && varIbScope = "all", 8 + (34), 0) + If(galIbList.AllItemsCount > 0, 8 + (Max(1, Min(galIbList.AllItemsCount, 10)) * 68), 0) + If(galIbList.AllItemsCount = 0, 8 + (40), 0) + If(IbFailed && !varIbLoading, 8 + (36), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -1458,7 +1458,7 @@ Screens:
                               Size: |-
                                   =13
                               Text: |-
-                                  =CountRows(galIbList.AllItems) & If(CountRows(galIbList.AllItems) = 1, " issue", " issues")
+                                  =galIbList.AllItemsCount & If(galIbList.AllItemsCount = 1, " issue", " issues")
                               Wrap: |-
                                   =false
                         - txtIbAdminCounts:
@@ -1507,7 +1507,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =Max(1, Min(CountRows(galIbList.AllItems), 10)) * 68
+                                  =Max(1, Min(galIbList.AllItemsCount, 10)) * 68
                               Items: |-
                                   =With(
                                       { q: Trim(inpIbSearch.Text), t: Switch(varIbScope, "shared", colIbShared, "all", colIbAll, colIbMine) },
@@ -1545,7 +1545,7 @@ Screens:
                               TemplateSize: |-
                                   =68
                               Visible: |-
-                                  =CountRows(galIbList.AllItems) > 0
+                                  =galIbList.AllItemsCount > 0
                               Width: |-
                                   =Parent.Width
                               WrapCount: |-
@@ -1891,7 +1891,7 @@ Screens:
                               Text: |-
                                   =If(varIbLoading, "Loading issues...", IbFailed, "The issues could not be loaded. Check your connection and try again.", varIbScope = "mine" && IsEmpty(colIbMine), "You have not reported any issues yet. Use New issue to report one.", varIbScope = "all" && IsEmpty(colIbAll), "No issues have been reported yet.", varIbScope = "shared" && IsEmpty(colIbShared), "No issues have been shared yet.", "No issues match the filters.")
                               Visible: |-
-                                  =CountRows(galIbList.AllItems) = 0
+                                  =galIbList.AllItemsCount = 0
                               Wrap: |-
                                   =true
                         - btnIbRetry:
@@ -3266,7 +3266,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =242 + 12 + (62 + If(gblFbPick, 6 + (12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(CountRows(galIbFbSubject.AllItems), 7) * 36)), 0)) + If(!gblFbPick, 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(220, Min(272, App.Height - 40 - 402))))), 0) + If(!gblFbPick, 12 + (36), 0)
+                      =242 + 12 + (62 + If(gblFbPick, 6 + (12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(galIbFbSubject.AllItemsCount, 7) * 36)), 0)) + If(!gblFbPick, 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(220, Min(272, App.Height - 40 - 402))))), 0) + If(!gblFbPick, 12 + (36), 0)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -3666,7 +3666,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =62 + If(gblFbPick, 6 + (12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(CountRows(galIbFbSubject.AllItems), 7) * 36)), 0)
+                            =62 + If(gblFbPick, 6 + (12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(galIbFbSubject.AllItemsCount, 7) * 36)), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -3886,7 +3886,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(CountRows(galIbFbSubject.AllItems), 7) * 36)
+                                  =12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(galIbFbSubject.AllItemsCount, 7) * 36)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -4013,7 +4013,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =Min(CountRows(galIbFbSubject.AllItems), 7) * 36
+                                        =Min(galIbFbSubject.AllItemsCount, 7) * 36
                                     Items: |-
                                         =With({q: Trim(inpIbFbSubjectFind.Text)},
                                             With({
@@ -4559,7 +4559,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =214 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + If(IsBlank(varIbFormApp), 12 + (18), 0) + If(IbOtherNeeded, 12 + (62), 0) + 12 + (62) + If(!(varIbFormMode = "edit") && CountRows(galIbSimilar.AllItems) > 0, 12 + (38 + 6 + (CountRows(galIbSimilar.AllItems) * 44)), 0) + 12 + (136) + If(varIbMore, 12 + (0 + (98) + 12 + (98) + 12 + (98) + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62)))), 0) + If(!(varIbFormMode = "edit"), 12 + (20 + 6 + (If(CountRows(attIbNewFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbNewFiles.Attachments), 4) * 36))), 0) + If(varIbFormMode = "edit" && IsAdmin, 12 + (90 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + 12 + (62) + 12 + (98)), 0) + If(!(varIbFormMode = "edit"), 12 + (34), 0) + If(!(!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && (!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))), 12 + (34), 0)
+                      =214 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + If(IsBlank(varIbFormApp), 12 + (18), 0) + If(IbOtherNeeded, 12 + (62), 0) + 12 + (62) + If(!(varIbFormMode = "edit") && galIbSimilar.AllItemsCount > 0, 12 + (38 + 6 + (galIbSimilar.AllItemsCount * 44)), 0) + 12 + (136) + If(varIbMore, 12 + (0 + (98) + 12 + (98) + 12 + (98) + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62)))), 0) + If(!(varIbFormMode = "edit"), 12 + (20 + 6 + (If(CountRows(attIbNewFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbNewFiles.Attachments), 4) * 36))), 0) + If(varIbFormMode = "edit" && IsAdmin, 12 + (90 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + 12 + (62) + 12 + (98)), 0) + If(!(varIbFormMode = "edit"), 12 + (34), 0) + If(!(!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && (!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))), 12 + (34), 0)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -5540,7 +5540,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =38 + 6 + (CountRows(galIbSimilar.AllItems) * 44)
+                            =38 + 6 + (galIbSimilar.AllItemsCount * 44)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -5570,7 +5570,7 @@ Screens:
                         RadiusTopRight: |-
                             =10
                         Visible: |-
-                            =!(varIbFormMode = "edit") && CountRows(galIbSimilar.AllItems) > 0
+                            =!(varIbFormMode = "edit") && galIbSimilar.AllItemsCount > 0
                         Width: |-
                             =Parent.Width
                       Children:
@@ -5620,7 +5620,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =CountRows(galIbSimilar.AllItems) * 44
+                                  =galIbSimilar.AllItemsCount * 44
                               Items: |-
                                   =With(
                                       { w: Filter(ForAll(Split(Trim(inpIbTitle.Text), " ") As s, { Word: s.Value }), Len(Word) >= 4) },
@@ -7978,7 +7978,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =163 + If(IbCanEdit || IbCanReopen || IbCanManage, 12 + (34), 0) + If(varIbSelShared, 12 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 12 + (34), 0) + If(!varIbSelShared, 12 + (32), 0) + If(varIbSelShared || varIbTab = "details", 12 + (0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)), 0) + If(!varIbSelShared && varIbTab = "activity", 12 + (0 + If(varIbActBusy || IfError(varIbActFailed, false), 0 + (20), 0) + If(!varIbActBusy, 12 + (Min(420, Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown(((((Min(760, App.Width - 24) - 36) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40)))), 0) + If(IbCanComment, 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0)), 0) + If(!varIbSelShared && varIbTab = "files", 12 + (0 + If(CountRows(galIbFiles.AllItems) = 0, 0 + (20), 0) + If(CountRows(galIbFiles.AllItems) > 0, 12 + (Min(5, CountRows(galIbFiles.AllItems)) * 60), 0) + If(!varIbSel.Archived, 12 + (86 + (If(CountRows(attIbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFiles.Attachments), 4) * 36))), 0)), 0)
+                      =163 + If(IbCanEdit || IbCanReopen || IbCanManage, 12 + (34), 0) + If(varIbSelShared, 12 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 12 + (34), 0) + If(!varIbSelShared, 12 + (32), 0) + If(varIbSelShared || varIbTab = "details", 12 + (0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)), 0) + If(!varIbSelShared && varIbTab = "activity", 12 + (0 + If(varIbActBusy || IfError(varIbActFailed, false), 0 + (20), 0) + If(!varIbActBusy, 12 + (Min(420, Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown(((((Min(760, App.Width - 24) - 36) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40)))), 0) + If(IbCanComment, 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0)), 0) + If(!varIbSelShared && varIbTab = "files", 12 + (0 + If(galIbFiles.AllItemsCount = 0, 0 + (20), 0) + If(galIbFiles.AllItemsCount > 0, 12 + (Min(5, galIbFiles.AllItemsCount) * 60), 0) + If(!varIbSel.Archived, 12 + (86 + (If(CountRows(attIbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFiles.Attachments), 4) * 36))), 0)), 0)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -10086,7 +10086,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + If(CountRows(galIbFiles.AllItems) = 0, 0 + (20), 0) + If(CountRows(galIbFiles.AllItems) > 0, 12 + (Min(5, CountRows(galIbFiles.AllItems)) * 60), 0) + If(!varIbSel.Archived, 12 + (86 + (If(CountRows(attIbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFiles.Attachments), 4) * 36))), 0)
+                            =0 + If(galIbFiles.AllItemsCount = 0, 0 + (20), 0) + If(galIbFiles.AllItemsCount > 0, 12 + (Min(5, galIbFiles.AllItemsCount) * 60), 0) + If(!varIbSel.Archived, 12 + (86 + (If(CountRows(attIbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFiles.Attachments), 4) * 36))), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -10134,7 +10134,7 @@ Screens:
                               Text: |-
                                   =If(varIbFilesBusy, "Loading attachments...", IfError(varIbFilesFailed, false), "The attachments could not be loaded. Select the tab again to retry.", "No files yet. Screenshots help a lot.")
                               Visible: |-
-                                  =CountRows(galIbFiles.AllItems) = 0
+                                  =galIbFiles.AllItemsCount = 0
                               Wrap: |-
                                   =true
                         - galIbFiles:
@@ -10150,7 +10150,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =Min(5, CountRows(galIbFiles.AllItems)) * 60
+                                  =Min(5, galIbFiles.AllItemsCount) * 60
                               Items: |-
                                   =If(varIbFilesFor = varIbSelId, varIbFiles, FirstN(varIbFiles, 0))
                               LayoutMinWidth: |-
@@ -10168,7 +10168,7 @@ Screens:
                               TemplateSize: |-
                                   =60
                               Visible: |-
-                                  =CountRows(galIbFiles.AllItems) > 0
+                                  =galIbFiles.AllItemsCount > 0
                               Width: |-
                                   =Parent.Width
                               WrapCount: |-

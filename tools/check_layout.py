@@ -180,6 +180,9 @@ def _evaluate_n(expr, w, n):
     # De tre specifikke erstatninger her var VH-plans egne, paa ORDRET
     # tekst. _sub_countrows tager dem alle - ogsaa de tre andre apps'.
     e = _sub_countrows(e, n)
+    # galXxx.AllItemsCount er det samme tal som CountRows(galXxx.AllItems),
+    # som regel 36 har afloest (App checker: CountRowsGalleryAllItems).
+    e = re.sub(r"\b\w+\.AllItemsCount\b", str(n), e)
     # IsEmpty(...) -> sand: ugunstigste tilfaelde, "tom"-beskeden vises.
     # Hvad der staar inde i den, er data og ikke hoejdealgebra - samme
     # begrundelse som for CountRows.
@@ -2224,6 +2227,22 @@ def rule_35(ctx):
             break
 
 
+def rule_36(ctx):
+    """AllItemsCount i stedet for CountRows(galleri.AllItems) (issue #165)"""
+    # App checker (CountRowsGalleryAllItems, Medium): CountRows(gal.AllItems)
+    # bygger en tabel med en kopi af data OG alle boernekontrollernes
+    # tilstand - og kan tvinge uinitialiserede raekker i gang. Galleriet
+    # kender selv tallet: gal.AllItemsCount. 42 fund i issue #165.
+    pat = re.compile(r"\bCountRows\(\s*([A-Za-z_]\w*)\.AllItems\s*\)")
+    for owner, key, val in _formulas(ctx):
+        for m in pat.finditer(val):
+            if fx.open_string(val[:m.start()]):
+                continue
+            ctx.problems.append(
+                f"[36] {owner}.{key}: CountRows({m.group(1)}.AllItems) - brug "
+                f"{m.group(1)}.AllItemsCount (App checker: CountRowsGalleryAllItems)")
+
+
 RULES = [
     Rule('0', 'Hvert kontrolnavn findes kun een gang', rule_0),
     Rule('1', 'Ingen kontrol-til-kontrol hoejdereferencer', rule_1),
@@ -2268,6 +2287,7 @@ RULES = [
     Rule('20', 'Flere UAFHAENGIGE hentninger i kaede -> Concurrent', rule_20),
     Rule('34', 'OnStart maa ikke toemme en samling, skaermens OnVisible fylder', rule_34),
     Rule('35', 'Index i stedet for Last(FirstN( og First(LastN( (issue #165)', rule_35),
+    Rule('36', 'AllItemsCount i stedet for CountRows(galleri.AllItems) (issue #165)', rule_36),
 ]
 
 
