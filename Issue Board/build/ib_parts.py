@@ -1392,7 +1392,7 @@ def _files_panel():
     up = button("btnIbUpload", '"Upload"', UPLOAD_FILES, primary=True,
                 width=fit_button_width('"Upload"') + ICON_W, height=36, icon="ArrowUpload",
                 accessible='"Upload the chosen files to this issue"',
-                display_mode=("If(attIbFiles.AttachmentsCount = 0 || attIbFiles.IsUploading || "
+                display_mode=("If(CountRows(attIbFiles.Attachments) = 0 || "
                               "varIbUploading, DisplayMode.Disabled, DisplayMode.Edit)"))
     up.props["AlignInContainer"] = "AlignInContainer.End"
     hint = text_ctrl("txtIbFilesHint",
