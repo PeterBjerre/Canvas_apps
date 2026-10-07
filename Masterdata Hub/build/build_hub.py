@@ -102,15 +102,17 @@ def _svg_uri(svg_expr):
     return f'"data:image/svg+xml;utf8," & EncodeUrl({svg_expr})'
 
 
-def _glyph(path, color, x=0, y=0, size=24, width=1.8, mirror=False):
+def _glyph(path, color, x=0, y=0, size=24, width=1.8, mirror=False, opacity=None):
     """Et stregikon. mirror spejler det vandret (icons.MIRROR_X) - Measuring
     Points lineal, saa den peger samme vej som Equipments skruenoegle."""
     s = size / 24
     inner = f"<path d='{path}'/>"
     if mirror:
         inner = f"<g transform='{MIRROR_X}'>{inner}</g>"
+    # opacity: et falmet ikon (fx en deaktiveret handling, issue #138).
+    fade = "" if opacity is None else f" stroke-opacity='{opacity:g}'"
     return (f"<g transform='translate({x:g} {y:g}) scale({s:g})' fill='none' "
-            f"stroke='{color}' stroke-width='{width}' stroke-linecap='round' "
+            f"stroke='{color}'{fade} stroke-width='{width}' stroke-linecap='round' "
             f"stroke-linejoin='round'>{inner}</g>")
 
 
@@ -119,9 +121,9 @@ def _dglyph(d, color, **kw):
     return _glyph(d["icon"], color, mirror=d.get("mirror", False), **kw)
 
 
-def _icon_svg(path, color, size=24, mirror=False):
+def _icon_svg(path, color, size=24, mirror=False, opacity=None):
     return ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{size}' height='{size}' "
-            f"viewBox='0 0 {size} {size}'>" + _glyph(path, color, size=size, mirror=mirror)
+            f"viewBox='0 0 {size} {size}'>" + _glyph(path, color, size=size, mirror=mirror, opacity=opacity)
             + "</svg>" + '"')
 
 
@@ -1055,7 +1057,8 @@ def build_list():
         b.props["X"] = f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {TL_W} - 8 - 80 + {i * 40}"
         b.props["Y"] = "6"
         b.props["Visible"] = f"{at_least('Desktop')} && {below('Wide')} && ({b.props['Visible']})"
-    for b in (*actions, *c_actions):
+    # Edit saetter selv hover/tryk - ingen, naar den er deaktiveret (#138).
+    for b in (del_btn, c_del):
         b.props["HoverFill"] = C_ROW_HOVER
         b.props["PressedFill"] = C_ROW_HOVER
     c_base = f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {TL_W} - 8 - 80"
@@ -1130,6 +1133,7 @@ def build_list():
 # planen afgoer ogsaa Edit paa indeksets status (build_load.py), saa
 # MaintenancePlans' egen status skal ikke slaas op - intet kald pr. raekke.
 EDIT_ICON = "M4 20h4L19 9l-4-4L4 16v4z M13.5 6.5l4 4"
+EDIT_OFF_OPACITY = 0.45
 EDIT_LOCKED_TIP = '"This request can no longer be edited because it has been submitted."'
 
 
@@ -1141,9 +1145,18 @@ def _owner_buttons(act, suffix):
     edit = _image("btnMdRowEdit" + suffix,
                   _svg_uri(f"If(\n    {can_edit},\n    "
                            + _icon_svg(EDIT_ICON, _hx("text-muted")) + ",\n    "
-                           + _icon_svg(EDIT_ICON, _hx("border-default")) + "\n)"),
+                           + _icon_svg(EDIT_ICON, _hx("text-muted"), opacity=EDIT_OFF_OPACITY) + "\n)"),
                   TL_W, TL_W, onselect=act, label=f'"Edit " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
     edit.props["DisplayMode"] = f"If({can_edit}, DisplayMode.Edit, DisplayMode.Disabled)"
+    # DEAKTIVERET EDIT ER KUN ET FALMET IKON (issue #138). Ingen ramme,
+    # flade, hover, tryk eller fokus, naar Edit ikke kan bruges - kun den
+    # graa blyant med nedsat opacitet. Aktiv Edit er uaendret.
+    edit.props["DisabledBorderColor"] = C_TRANSPARENT
+    edit.props["DisabledFill"] = C_TRANSPARENT
+    edit.props["HoverFill"] = f"If({can_edit}, {C_ROW_HOVER}, {C_TRANSPARENT})"
+    edit.props["PressedFill"] = f"If({can_edit}, {C_ROW_HOVER}, {C_TRANSPARENT})"
+    edit.props["FocusedBorderThickness"] = f"If({can_edit}, 2, 0)"
+    edit.props["TabIndex"] = f"If({can_edit}, 0, -1)"
     edit.props["Tooltip"] = f'If({can_edit}, "Edit request", {EDIT_LOCKED_TIP})'
     dele = _image("btnMdRowDelete" + suffix,
                   _svg_uri(_icon_svg("M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3", _hx("state-error-fg"))),
