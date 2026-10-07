@@ -1975,7 +1975,7 @@ Screens:
                               LayoutDirection: |-
                                   =LayoutDirection.Horizontal
                               LayoutGap: |-
-                                  =12
+                                  =16
                               LayoutMinWidth: |-
                                   =0
                               LayoutOverflowX: |-
@@ -2027,14 +2027,14 @@ Screens:
                                     Text: |-
                                         ="DOMAIN"
                                     Width: |-
-                                        =192
+                                        =168
                                     Wrap: |-
                                         =false
                               - txtMdH1:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="REQUEST"
+                                        ="PLANT"
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -2060,16 +2060,16 @@ Screens:
                                     Size: |-
                                         =11
                                     Text: |-
-                                        ="REQUEST"
+                                        ="PLANT"
                                     Width: |-
-                                        =(Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720))
+                                        =(72 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6))
                                     Wrap: |-
                                         =false
                               - txtMdH2:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="PLANT"
+                                        ="REQUEST"
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -2095,9 +2095,9 @@ Screens:
                                     Size: |-
                                         =11
                                     Text: |-
-                                        ="PLANT"
+                                        ="REQUEST"
                                     Width: |-
-                                        =64
+                                        =(260 + Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2))
                                     Wrap: |-
                                         =false
                               - txtMdH3:
@@ -2132,7 +2132,7 @@ Screens:
                                     Text: |-
                                         ="REQUESTER"
                                     Width: |-
-                                        =84
+                                        =(88 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6))
                                     Wrap: |-
                                         =false
                               - txtMdH4:
@@ -2202,7 +2202,7 @@ Screens:
                                     Text: |-
                                         ="STATUS"
                                     Width: |-
-                                        =130
+                                        =(140 + 2 * Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6))
                                     Wrap: |-
                                         =false
                               - txtMdH6:
@@ -2237,7 +2237,7 @@ Screens:
                                     Text: |-
                                         ="UPDATED"
                                     Width: |-
-                                        =84
+                                        =(88 + 2 * Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6))
                                     Wrap: |-
                                         =false
                               - txtMdH7:
@@ -2272,7 +2272,7 @@ Screens:
                                     Text: |-
                                         ="ACTIONS"
                                     Width: |-
-                                        =160
+                                        =156
                                     Wrap: |-
                                         =false
                         - conMdListRule:
@@ -2484,6 +2484,45 @@ Screens:
                                         =0 + 12 + 0 + 0 + 0 + (24) + 12
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1) - 0 - 0) - (24)) / 2 + 0 + (((24) - 0 - 0) - (20)) / 2
+                              - txtMdRowPlant:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =Self.Text
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =ThisItem.Plant
+                                    Visible: |-
+                                        =LayoutRank >= 4
+                                    Width: |-
+                                        =(72 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6))
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 12 + 0 + (168) + 16
+                                    Y: |-
+                                        =0 + 0 + ((((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1) - 0 - 0) - (20)) / 2
                               - txtMdRowNo:
                                   Control: ModernText
                                   Properties:
@@ -2522,7 +2561,7 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 12 + 0 + (192) + 12 + 0 + 0
+                                        =0 + 12 + 0 + (168) + 16 + ((72 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6))) + 16 + 0 + 0
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1) - 0 - 0) - (20)) / 2 + 0 + (((20) - 0 - 0) - (20)) / 2
                               - txtMdRowText:
@@ -2557,52 +2596,13 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 4
                                     Width: |-
-                                        =Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) - 120 - 8
+                                        =(260 + Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) - 120 - 8
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 12 + 0 + (192) + 12 + 0 + 0 + (120) + 8
+                                        =0 + 12 + 0 + (168) + 16 + ((72 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6))) + 16 + 0 + 0 + (120) + 8
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1) - 0 - 0) - (20)) / 2 + 0 + (((20) - 0 - 0) - (20)) / 2
-                              - txtMdRowPlant:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =Self.Text
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =20
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =13
-                                    Text: |-
-                                        =ThisItem.Plant
-                                    Visible: |-
-                                        =LayoutRank >= 4
-                                    Width: |-
-                                        =64
-                                    Wrap: |-
-                                        =false
-                                    X: |-
-                                        =0 + 12 + 0 + (192) + 12 + ((Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720))) + 12
-                                    Y: |-
-                                        =0 + 0 + ((((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1) - 0 - 0) - (20)) / 2
                               - txtMdRowReq:
                                   Control: ModernText
                                   Properties:
@@ -2635,11 +2635,11 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 4
                                     Width: |-
-                                        =84
+                                        =(88 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6))
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 12 + 0 + (192) + 12 + ((Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720))) + 12 + (64) + 12
+                                        =0 + 12 + 0 + (168) + 16 + ((72 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6))) + 16 + ((260 + Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2))) + 16
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1) - 0 - 0) - (20)) / 2
                               - imgMdRowApproval:
@@ -2847,7 +2847,7 @@ Screens:
                                     Width: |-
                                         =270
                                     X: |-
-                                        =0 + 12 + 0 + (192) + 12 + ((Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720))) + 12 + (64) + 12 + (84) + 12
+                                        =0 + 12 + 0 + (168) + 16 + ((72 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6))) + 16 + ((260 + Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2))) + 16 + ((88 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6))) + 16
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1) - 0 - 0) - (30)) / 2
                               - imgMdRowStatus:
@@ -2887,7 +2887,7 @@ Screens:
                                     Width: |-
                                         =22
                                     X: |-
-                                        =0 + 12 + 0 + (192) + 12 + ((Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720))) + 12 + (64) + 12 + (84) + 12 + (270) + 12 + 0 + 0 + 0
+                                        =0 + 12 + 0 + (168) + 16 + ((72 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6))) + 16 + ((260 + Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2))) + 16 + ((88 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6))) + 16 + (270) + 16 + 0 + 0 + 0
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1) - 0 - 0) - (22 + If(ThisItem.IsOpen && DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) > 5, 0 + (18), 0))) / 2 + 0 + 0 + 0 + (((22) - 0 - 0) - (22)) / 2
                               - txtMdRowStatus:
@@ -2922,11 +2922,11 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 4
                                     Width: |-
-                                        =130 - 22 - 10
+                                        =(140 + 2 * Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) - 22 - 10
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 12 + 0 + (192) + 12 + ((Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720))) + 12 + (64) + 12 + (84) + 12 + (270) + 12 + 0 + 0 + 0 + (22) + 10
+                                        =0 + 12 + 0 + (168) + 16 + ((72 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6))) + 16 + ((260 + Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2))) + 16 + ((88 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6))) + 16 + (270) + 16 + 0 + 0 + 0 + (22) + 10
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1) - 0 - 0) - (22 + If(ThisItem.IsOpen && DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) > 5, 0 + (18), 0))) / 2 + 0 + 0 + 0 + (((22) - 0 - 0) - (20)) / 2
                               - txtMdRowStuck:
@@ -2963,11 +2963,11 @@ Screens:
                                     Visible: |-
                                         =(LayoutRank >= 4) && (ThisItem.IsOpen && DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) > 5)
                                     Width: |-
-                                        =(130) - 0 - 0
+                                        =((140 + 2 * Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6))) - 0 - 0
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 12 + 0 + (192) + 12 + ((Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720))) + 12 + (64) + 12 + (84) + 12 + (270) + 12 + 0
+                                        =0 + 12 + 0 + (168) + 16 + ((72 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6))) + 16 + ((260 + Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2))) + 16 + ((88 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6))) + 16 + (270) + 16 + 0
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1) - 0 - 0) - (22 + If(ThisItem.IsOpen && DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) > 5, 0 + (18), 0))) / 2 + 0 + 0 + (22) + 0
                               - txtMdRowWhen:
@@ -3002,11 +3002,11 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 4
                                     Width: |-
-                                        =84
+                                        =(88 + 2 * Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6))
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =0 + 12 + 0 + (192) + 12 + ((Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720))) + 12 + (64) + 12 + (84) + 12 + (270) + 12 + (130) + 12
+                                        =0 + 12 + 0 + (168) + 16 + ((72 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6))) + 16 + ((260 + Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2))) + 16 + ((88 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6))) + 16 + (270) + 16 + ((140 + 2 * Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6))) + 16
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1) - 0 - 0) - (20)) / 2
                               - rctMdRowCBg:
@@ -3284,7 +3284,7 @@ Screens:
                                             "Equipment", "Equipment",
                                             "MeasuringPoint", "Measuring point",
                                             "?"
-                                        ) & "  ·  " & Upper(First(Split(Coalesce(ThisItem.RequesterEmail, "?@"), "@")).Value) & "  ·  Plant " & ThisItem.Plant & "  ·  " & With(
+                                        ) & "  ·  Plant " & ThisItem.Plant & "  ·  " & Upper(First(Split(Coalesce(ThisItem.RequesterEmail, "?@"), "@")).Value) & "  ·  " & With(
                                             { d: DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) },
                                             If(d <= 0, "Today", If(d = 1, "Yesterday", Text(d) & " days ago"))
                                         ) & If(ThisItem.IsOpen && DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) > 5, "  ·  " & "Stuck " & Text(DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days)) & " d", "")
@@ -3721,7 +3721,7 @@ Screens:
                                     Width: |-
                                         =If(LayoutRank < 4, ((((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 24) / 4) * 4, 270)
                                     X: |-
-                                        =If(LayoutRank < 4, 12, 12 + 192 + 12 + (Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720)) + 12 + 64 + 12 + 84 + 12)
+                                        =If(LayoutRank < 4, 12, 12 + 168 + 16 + (72 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) + 16 + (260 + Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) + 16 + (88 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) + 16)
                                     Y: |-
                                         =If(LayoutRank < 4, 65, ((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1 - 40) / 2)
                               - imgMdRowActionsZone:
@@ -3758,7 +3758,7 @@ Screens:
                                     Width: |-
                                         =If(LayoutRank < 4, 164, 160)
                                     X: |-
-                                        =If(LayoutRank < 4, Parent.Width - 18 - 12 - 28 - 8 - 80 - 44, 12 + 192 + 12 + (Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720)) + 12 + 64 + 12 + 84 + 12 + 270 + 12 + 130 + 12 + 84 + 12 - 4)
+                                        =If(LayoutRank < 4, Parent.Width - 18 - 12 - 28 - 8 - 80 - 44, 12 + 168 + 16 + (72 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) + 16 + (260 + Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) + 16 + (88 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) + 16 + 270 + 16 + (140 + 2 * Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) + 16 + (88 + 2 * Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) + 16 - 4)
                                     Y: |-
                                         =If(LayoutRank < 4, 4, ((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1 - 34) / 2)
                               - imgMdRowTimeline:
@@ -3816,7 +3816,7 @@ Screens:
                                     Width: |-
                                         =28
                                     X: |-
-                                        =If(LayoutRank < 4, Parent.Width - 18 - 12 - 28, 12 + 192 + 12 + (Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720)) + 12 + 64 + 12 + 84 + 12 + 270 + 12 + 130 + 12 + 84 + 12)
+                                        =If(LayoutRank < 4, Parent.Width - 18 - 12 - 28, 12 + 168 + 16 + (72 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) + 16 + (260 + Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) + 16 + (88 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) + 16 + 270 + 16 + (140 + 2 * Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) + 16 + (88 + 2 * Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) + 16)
                                     Y: |-
                                         =If(LayoutRank < 4, 8, ((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1 - 28) / 2)
                               - imgMdRowNotes:
@@ -3868,7 +3868,7 @@ Screens:
                                     Width: |-
                                         =28
                                     X: |-
-                                        =If(LayoutRank < 3, Parent.Width - 18 - 12 - 28 - 8 - 28, If(LayoutRank < 4, Parent.Width - 18 - 12 - 28 - 8 - 80 - 40, 12 + 192 + 12 + (Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720)) + 12 + 64 + 12 + 84 + 12 + 270 + 12 + 130 + 12 + 84 + 12 + 28 + 12 + 80))
+                                        =If(LayoutRank < 3, Parent.Width - 18 - 12 - 28 - 8 - 28, If(LayoutRank < 4, Parent.Width - 18 - 12 - 28 - 8 - 80 - 40, 12 + 168 + 16 + (72 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) + 16 + (260 + Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) + 16 + (88 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) + 16 + 270 + 16 + (140 + 2 * Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) + 16 + (88 + 2 * Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) + 16 + 28 + 12 + 80))
                                     Y: |-
                                         =If(LayoutRank < 3, 8, If(LayoutRank < 4, 6, ((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1 - 30) / 2))
                               - btnMdRowEdit:
@@ -3952,7 +3952,7 @@ Screens:
                                     Width: |-
                                         =28
                                     X: |-
-                                        =12 + 192 + 12 + (Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720)) + 12 + 64 + 12 + 84 + 12 + 270 + 12 + 130 + 12 + 84 + 12 + 28 + 12 + 0
+                                        =12 + 168 + 16 + (72 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) + 16 + (260 + Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) + 16 + (88 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) + 16 + 270 + 16 + (140 + 2 * Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) + 16 + (88 + 2 * Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) + 16 + 28 + 12 + 0
                                     Y: |-
                                         =((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1 - 30) / 2
                               - btnMdRowDelete:
@@ -3998,7 +3998,7 @@ Screens:
                                     Width: |-
                                         =28
                                     X: |-
-                                        =12 + 192 + 12 + (Min(720, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120)) + 28 + Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1120 - 720)) + 12 + 64 + 12 + 84 + 12 + 270 + 12 + 130 + 12 + 84 + 12 + 28 + 12 + 40
+                                        =12 + 168 + 16 + (72 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) + 16 + (260 + Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) + 16 + (88 + Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) + 16 + 270 + 16 + (140 + 2 * Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) + 16 + (88 + 2 * Min(40, (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) - Min(300, Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1378) / 2)) / 6)) + 16 + 28 + 12 + 40
                                     Y: |-
                                         =((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1 - 30) / 2
                               - btnMdRowEditC:
@@ -6518,9 +6518,11 @@ Screens:
                         WrapCount: |-
                             =1
                       Children:
-                        - btnMdAprCard:
-                            Control: Classic/Button
+                        - txtMdAprCard:
+                            Control: ModernText
                             Properties:
+                              AccessibleLabel: |-
+                                  ="Stage card"
                               BorderColor: |-
                                   =If(ThisItem.Human && ThisItem.State <> "Pending", RGBA(0, 0, 0, 0), C.'border-default')
                               BorderStyle: |-
@@ -6528,25 +6530,21 @@ Screens:
                               BorderThickness: |-
                                   =If(ThisItem.Human && ThisItem.State <> "Pending", 0, 1)
                               Color: |-
-                                  =RGBA(0, 0, 0, 0)
-                              DisplayMode: |-
-                                  =DisplayMode.View
+                                  =C.'text-primary'
                               Fill: |-
                                   =If((ThisItem.Kind = "D" || ThisItem.Kind = "X") && ThisItem.Human && ThisItem.State <> "Pending", C.'bg-muted', RGBA(0, 0, 0, 0))
+                              Font: |-
+                                  =Font.'Segoe UI'
                               Height: |-
                                   =If(ThisItem.Kind = "X", If(ThisItem.IsLast, 44, 48), If(IfError(varMdAprExp, 0) = ThisItem.Idx, 44, 40))
-                              HoverBorderColor: |-
-                                  =If(ThisItem.Human && ThisItem.State <> "Pending", RGBA(0, 0, 0, 0), C.'border-default')
-                              HoverColor: |-
-                                  =RGBA(0, 0, 0, 0)
-                              HoverFill: |-
-                                  =If((ThisItem.Kind = "D" || ThisItem.Kind = "X") && ThisItem.Human && ThisItem.State <> "Pending", C.'bg-muted', RGBA(0, 0, 0, 0))
-                              PressedBorderColor: |-
-                                  =If(ThisItem.Human && ThisItem.State <> "Pending", RGBA(0, 0, 0, 0), C.'border-default')
-                              PressedColor: |-
-                                  =RGBA(0, 0, 0, 0)
-                              PressedFill: |-
-                                  =If((ThisItem.Kind = "D" || ThisItem.Kind = "X") && ThisItem.Human && ThisItem.State <> "Pending", C.'bg-muted', RGBA(0, 0, 0, 0))
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
                               RadiusBottomLeft: |-
                                   =If(ThisItem.Kind = "X", If(ThisItem.IsLast, 8, 0), If(IfError(varMdAprExp, 0) = ThisItem.Idx, 0, 8))
                               RadiusBottomRight: |-
@@ -6555,14 +6553,16 @@ Screens:
                                   =If(ThisItem.Kind = "X", 0, 8)
                               RadiusTopRight: |-
                                   =If(ThisItem.Kind = "X", 0, 8)
-                              TabIndex: |-
-                                  =0
+                              Size: |-
+                                  =11
                               Text: |-
                                   =""
                               Visible: |-
                                   =ThisItem.Kind = "D" || ThisItem.Kind = "X"
                               Width: |-
                                   =((Min(720, App.Width - 24) - 32) - 20) - 38
+                              Wrap: |-
+                                  =false
                               X: |-
                                   =38
                               Y: |-
@@ -7265,7 +7265,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =174 + If(LayoutRank < 2 && ((IfError(varMdNoteShowA, false)) && (IfError(varMdNoteShowS, false))), 462, 223)
+                      =174 + If(LayoutRank < 2 && ((IfError(varMdNoteShowA, false)) && (IfError(varMdNoteShowS, false))), 466, 227)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -7372,7 +7372,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =If(LayoutRank < 2 && ((IfError(varMdNoteShowA, false)) && (IfError(varMdNoteShowS, false))), 462, 223)
+                            =If(LayoutRank < 2 && ((IfError(varMdNoteShowA, false)) && (IfError(varMdNoteShowS, false))), 466, 227)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Start
                         LayoutDirection: |-
@@ -7385,6 +7385,14 @@ Screens:
                             =LayoutOverflow.Hide
                         LayoutOverflowY: |-
                             =LayoutOverflow.Hide
+                        PaddingBottom: |-
+                            =2
+                        PaddingLeft: |-
+                            =2
+                        PaddingRight: |-
+                            =2
+                        PaddingTop: |-
+                            =2
                         Width: |-
                             =(Min(760, App.Width - 24) - 36)
                       Children:
@@ -7433,7 +7441,7 @@ Screens:
                               Visible: |-
                                   =IfError(varMdNoteShowA, false)
                               Width: |-
-                                  =If(LayoutRank < 2 || !((IfError(varMdNoteShowA, false)) && (IfError(varMdNoteShowS, false))), (Min(760, App.Width - 24) - 36), ((Min(760, App.Width - 24) - 36) - 16) / 2)
+                                  =If(LayoutRank < 2 || !((IfError(varMdNoteShowA, false)) && (IfError(varMdNoteShowS, false))), ((Min(760, App.Width - 24) - 36) - 4), (((Min(760, App.Width - 24) - 36) - 4) - 16) / 2)
                             Children:
                               - txtMdNoteATitle:
                                   Control: ModernText
@@ -7593,7 +7601,7 @@ Screens:
                               Visible: |-
                                   =IfError(varMdNoteShowS, false)
                               Width: |-
-                                  =If(LayoutRank < 2 || !((IfError(varMdNoteShowA, false)) && (IfError(varMdNoteShowS, false))), (Min(760, App.Width - 24) - 36), ((Min(760, App.Width - 24) - 36) - 16) / 2)
+                                  =If(LayoutRank < 2 || !((IfError(varMdNoteShowA, false)) && (IfError(varMdNoteShowS, false))), ((Min(760, App.Width - 24) - 36) - 4), (((Min(760, App.Width - 24) - 36) - 4) - 16) / 2)
                             Children:
                               - txtMdNoteSTitle:
                                   Control: ModernText
