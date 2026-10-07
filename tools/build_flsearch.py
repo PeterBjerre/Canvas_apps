@@ -120,7 +120,7 @@ def collect_results(target_collection, *, raw_var):
 def search_action(query_ctrl, target_collection, msg_var, *, raw_var,
                   label="Functional Locations",
                   busy_var=None, query_expr=None, last_var=None, on_start=None,
-                  on_found=None):
+                  on_found=None, min_len=None):
     """Soegningen, som den ser ud bag en SOEGEKNAP.
 
     Hvem der kalder den: Search-knappen i FL-vaelgeren
@@ -145,6 +145,9 @@ def search_action(query_ctrl, target_collection, msg_var, *, raw_var,
     on_found: koeres, naar soegningen har fundet mindst een raekke - fx at
     vaelge den foerste (issue #72).
 
+    min_len: mindste antal tegn (trimmet) foer der soeges. Standard er
+    MIN_SEARCH_LEN; VH-planens Item Editor kraever 8 (issue #144).
+
     GAMLE RESULTATER RYDDES, NAAR EN NY SOEGNING STARTER (issue #63)
     ----------------------------------------------------------------
     Ellers kunne man vaelge en raekke fra den forrige soegning, mens den
@@ -152,15 +155,16 @@ def search_action(query_ctrl, target_collection, msg_var, *, raw_var,
     Notify det - beskeden under feltet findes ikke i alle apps.
     """
     q_src = query_expr if query_expr else f"{query_ctrl}.Text"
+    n_min = min_len or MIN_SEARCH_LEN
     busy_on = f"        Set({busy_var}, true);\n" if busy_var else ""
     busy_off = f";\n        Set({busy_var}, false)" if busy_var else ""
     return (
         f"With(\n"
         f"    {{ q: Upper(Trim({q_src})) }},\n"
         f"    If(\n"
-        f"        Len(q) < {MIN_SEARCH_LEN},\n"
+        f"        Len(q) < {n_min},\n"
         f"        Notify(\n"
-        f"            \"Type at least {MIN_SEARCH_LEN} characters before searching.\",\n"
+        f"            \"Type at least {n_min} characters before searching.\",\n"
         f"            NotificationType.Warning\n"
         f"        ),\n"
         f"\n"
