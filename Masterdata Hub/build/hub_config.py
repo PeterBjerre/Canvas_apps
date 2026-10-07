@@ -138,34 +138,23 @@ STATUS = [(k, label, step, _t(_STATUS_COLORS[k][0]), _t(_STATUS_COLORS[k][1]))
 # noegler som STATUS; build_hub stopper, hvis de to ikke er enige.
 # Farven er navnet paa en designtoken (hex-udgaven bruges i SVG'en).
 # ---------------------------------------------------------------------------
-_DOC = ("M14 2.5H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5L14 2.5Z "
-        "M14 2.5v5h5 M9 13h6M9 17h6")
-_CHECK = "M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M8 12.2l2.8 2.8L16 9.5"
-_CLOCK = "M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 7v5l3.5 2"
-_ALERT = "M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 7.5v5.5M12 16.5v.01"
-_CROSS = "M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M9 9l6 6M15 9l-6 6"
-# Oprettet i SAP: et skjold med flueben - "laast og faerdigt", og en anden
-# FORM end Ready for SAP's cirkel, saa de to groenne kan skelnes.
-_SHIELD = "M12 21.5s7.5-3.2 7.5-9.5V5.2L12 2.5 4.5 5.2V12c0 6.3 7.5 9.5 7.5 9.5Z M8.8 11.8l2.3 2.3 4.3-4.6"
-# Annulleret: en overstreget cirkel - ikke Afvist's kryds i graat.
-_BAN = "M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M5.3 5.3l13.4 13.4"
-
-# Issue #74: hver status sin egen kombination af form og farve - og nu ogsaa
-# sin egen FARVE (otte forskellige nuancer):
+# Stierne staar i tools/icons.py (STATUS_*, issue #139), saa samme status
+# har samme form overalt.
 #   Draft           graat dokument            Submitted     blaa papirflyver
-#   In progress     violet ur                 Awaiting info orange advarsel
+#   In progress     violet halvfyldt cirkel   Awaiting info orange advarsel
 #   Ready for SAP   groent flueben            Created in SAP lime skjold
 #   Rejected        roedt kryds               Cancelled     rose overstreget cirkel
-_SEND = "M21.5 3 2.5 10.5l7 3 3 7L21.5 3Z M9.5 13.5 21.5 3"
+# In progress var et ur; uret betyder nu tid (Stuck-filteret, aktivitet),
+# og "paabegyndt" er den halvt fyldte cirkel.
 STATUS_ICON = {
-    "Kladde":          (_DOC,    "state-neutral-fg"),
-    "Indsendt":        (_SEND,   "state-info-fg"),
-    "UnderBehandling": (_CLOCK,  "state-violet-fg"),
-    "AfventerInfo":    (_ALERT,  "state-warn-fg"),
-    "KlarTilSAP":      (_CHECK,  "state-ok-fg"),
-    "OprettetISAP":    (_SHIELD, "state-lime-fg"),
-    "Afvist":          (_CROSS,  "state-error-fg"),
-    "Annulleret":      (_BAN,    "state-rose-fg"),
+    "Kladde":          (icons.STATUS_DRAFT,     "state-neutral-fg"),
+    "Indsendt":        (icons.STATUS_SUBMITTED, "state-info-fg"),
+    "UnderBehandling": (icons.STATUS_PROGRESS,  "state-violet-fg"),
+    "AfventerInfo":    (icons.STATUS_AWAITING,  "state-warn-fg"),
+    "KlarTilSAP":      (icons.STATUS_READY,     "state-ok-fg"),
+    "OprettetISAP":    (icons.STATUS_CREATED,   "state-lime-fg"),
+    "Afvist":          (icons.STATUS_REJECTED,  "state-error-fg"),
+    "Annulleret":      (icons.STATUS_CANCELLED, "state-rose-fg"),
 }
 
 # Ingen to statusser maa have samme ikon OG samme farve.

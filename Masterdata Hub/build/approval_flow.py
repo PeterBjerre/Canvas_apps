@@ -27,6 +27,7 @@ from gen_screen import (Ctrl, C_OVERLAY, C_MODAL_BG, C_PRIMARY_SOFT, C_MUTED, C_
 from build_helpers import group, text_ctrl, button, grow, spinner_svg, row_hit, text_px, text_input
 from hub_config import DOMAINS, STATUS
 from design_tokens import ref_hex
+import icons
 import layout_tokens as lay
 import admin_log as alog
 import submission_notes as sn
@@ -136,6 +137,20 @@ ROW_LOG = ('With({ c: Filter(colMdAprAll, RequestGuid = ThisItem.RequestGuid) },
            'Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c))')
 
 
+# Knuderne i striben (issue #139): r 6 i stedet for 4, saa der er plads til
+# et symbol. Stregen er 1,6 px paa skaermen ved et 12 px symbol.
+NODE_R = 6
+NODE_STROKE = 3.2
+
+
+def _strip_glyph(value):
+    """Symbolet for en knude i striben - de tilstande, striben kan have."""
+    states = ("Approved", "Done", "Skipped", "In progress", "Returned")
+    return ("Switch(%s, " % value
+            + ", ".join('"%s", "%s"' % (k, icons.WORKFLOW[k]) for k in states)
+            + ', "%s")' % icons.WORKFLOW_DEFAULT)
+
+
 def row_svg():
     """Power Fx text for the strip's SVG, or "" when the request has no approval flow."""
     req = "ThisItem"
@@ -154,8 +169,15 @@ def row_svg():
         col = _hex_switch(var[i])
         hollow = f'{var[i]} = "Pending"'
         parts.append(
-            f'"<circle cx=\'{xs[i]}\' cy=\'{y}\' r=\'4\' stroke-width=\'1.5\' stroke=\'" & {col} & '
+            f'"<circle cx=\'{xs[i]}\' cy=\'{y}\' r=\'{NODE_R}\' stroke-width=\'1.5\' stroke=\'" & {col} & '
             f'"\' fill=\'" & If({hollow}, "none", {col}) & "\'/>"')
+        # Symbolet i knuden (issue #139): farven alene skiller ikke Approved
+        # fra In progress. Samme symboler som popuppens tidslinje.
+        parts.append(
+            f'If({hollow}, "", "<g transform=\'translate({xs[i] - NODE_R} {y - NODE_R}) '
+            f'scale({NODE_R / 12:g})\' fill=\'none\' stroke=\'" & {ref_hex("text-on-primary")} & '
+            f'"\' stroke-width=\'{NODE_STROKE:g}\' stroke-linecap=\'round\' stroke-linejoin=\'round\'>'
+            f'<path d=\'" & {_strip_glyph(var[i])} & "\'/></g>")')
         parts.append(
             f'"<text x=\'{xs[i]}\' y=\'12\' text-anchor=\'middle\' {SVG_FONT} font-size=\'11\' '
             f'font-weight=\'600\' fill=\'" & {col} & "\'>{nm}</text>"')
@@ -479,7 +501,7 @@ CHIP_H = 22
 STAMP_W = 104
 LX = 48            # where the row text starts (card at 38 + 10 padding)
 ICON_W = 16
-PERSON = "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z M4.5 20.5a7.5 7.5 0 0 1 15 0"
+PERSON = icons.PERSON
 
 # Badge colours, by State. One table for both popups. Tinted background,
 # readable foreground - no solid fills:
@@ -503,13 +525,12 @@ def _rail_svg():
     col = _switch("ThisItem.State", {k: ref_hex(t) for k, t in RAIL_HEX.items()}, ref_hex("text-muted"))
     c = ROW_H // 2
     line = ref_hex("border-default")
+    # Symbolet i knuden: tools/icons.WORKFLOW (issue #139) - hver tilstand
+    # sit eget, ogsaa Rejected, Cancelled og Pending, der foer kun var en prik.
     node_glyph = _switch(
         "ThisItem.State",
-        {k: '"%s"' % v for k, v in {
-            "Approved": "M7 12.5l3.2 3.2L17 9", "Done": "M7 12.5l3.2 3.2L17 9",
-            "Skipped": "M8 12h8", "In progress": "M12 7.5v5l3 2",
-            "Returned": "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4"}.items()},
-        '"M12 12v.01"')
+        {k: '"%s"' % v for k, v in icons.WORKFLOW.items()},
+        '"%s"' % icons.WORKFLOW_DEFAULT)
     head = (f'"<circle cx=\'16\' cy=\'{c}\' r=\'11\' fill=\'" & {col} & "\'/>'
             f'<g transform=\'translate(4 {c - 12})\' fill=\'none\' stroke=\'" & {ref_hex("text-on-primary")} & '
             f'"\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><path d=\'" & '
@@ -672,7 +693,8 @@ def build_popup():
         "Image": ('"data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns=\'http://www.w3.org/2000/svg\' '
                   'width=\'24\' height=\'24\' viewBox=\'0 0 24 24\'><path d=\'' + PERSON +
                   '\' fill=\'none\' stroke=\'" & ' + ref_hex("text-muted") +
-                  ' & "\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'/></svg>")'),
+                  ' & "\' stroke-width=\'%g\' stroke-linecap=\'round\' stroke-linejoin=\'round\'/></svg>")'
+                  % icons.stroke(ICON_W)),
         "ImagePosition": "ImagePosition.Fit", "OnSelect": "false", "TabIndex": "-1",
         "Width": str(ICON_W), "X": str(LX), "Y": f"{y1} + 2",
         "Visible": f"{_is('D')} && ThisItem.Human",

@@ -192,9 +192,13 @@ def group(name, children, direction="Vertical", gap=8, height=None, width="Paren
 
 
 # Ikonerne paa gem- og indsend-knapperne i hele BIO SAP (issue #54). Navnene
-# er Fluent-ikonernes; ModernButton.Icon tager dem direkte.
-ICON_SAVE = "Save"
-ICON_SUBMIT = None
+# er Fluent-ikonernes; ModernButton.Icon tager dem direkte. De staar i
+# tools/icons.FLUENT (issue #139): Submit fik ingen ikon, mens Save draft
+# ved siden af havde et, og Send (beskeder, Issue Board) havde papirflyveren.
+# Nu er indsend = send overalt.
+import icons as _icons
+ICON_SAVE = _icons.FLUENT["save"]
+ICON_SUBMIT = _icons.FLUENT["submit"]
 # Ikon + mellemrum foran teksten - laegges til knappens tekstbredde.
 ICON_W = 24
 
@@ -1075,10 +1079,16 @@ def mode_badge(prefix, var):
     view = f"IfError({var}, false)"
     fill = f'If({view}, {ref_hex_expr("state-info-bg")}, {ref_hex_expr("state-neutral-bg")})'
     fg = f'If({view}, {ref_hex_expr("state-info-fg")}, {ref_hex_expr("state-warn-fg")})'
+    # Ikonet foran teksten (issue #139): et oeje i View, blyanten i Edit -
+    # tilstanden kan ses paa formen, ikke kun paa farven. Prikken foer var
+    # den samme i begge.
+    import icons
+    glyph = ('" & If(' + view + ', "' + icons.glyph(icons.EYE, "#", size=14, x=8, y=6).replace("'#'", "'\" & " + fg + " & \"'")
+             + '", "' + icons.glyph(icons.EDIT, "#", size=14, x=8, y=6).replace("'#'", "'\" & " + fg + " & \"'")
+             + '") & "')
     svg = ('"data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'104\' '
            'height=\'26\' viewBox=\'0 0 104 26\'><rect width=\'104\' height=\'26\' rx=\'13\' fill=\'" & ' + fill +
-           ' & "\'/><circle cx=\'15\' cy=\'13\' r=\'3.5\' fill=\'" & ' + fg +
-           ' & "\'/><text x=\'26\' y=\'17.5\' font-family=\'Segoe UI, sans-serif\' font-size=\'12\' '
+           ' & "\'/>' + glyph + '<text x=\'26\' y=\'17.5\' font-family=\'Segoe UI, sans-serif\' font-size=\'12\' '
            'font-weight=\'600\' fill=\'" & ' + fg + ' & "\'>" & If(' + view +
            ', "View mode", "Edit mode") & "</text></svg>")')
     img = Ctrl(f"img{prefix}Mode", "Image", props={
