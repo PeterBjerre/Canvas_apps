@@ -753,8 +753,6 @@ def _step_notes():
         f"                Patch(\n                    {sn.LIST},\n"
         f"                    If(IsBlank(s), Defaults({sn.LIST}), s),\n"
         "                    {\n"
-        # Title hedder RequestNo i listen (Provision-VHPlanApproval.ps1), og
-        # Power Fx binder paa visningsnavnet.
         "                        RequestNo: varVhpPlanKey,\n"
         "                        RequestGuid: varVhpRequestGuid,\n"
         "                        PlanId: varVhpPlanSpId,\n"
