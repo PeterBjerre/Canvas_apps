@@ -13896,7 +13896,7 @@ Screens:
             Image: |-
                 =""
             OnSelect: |-
-                =If(LayoutRank < 2, If(varVhpTasklistPickerOpen || varVhpLongTextOpen || varVhpObjListOpen || !IsBlank(varVhpMatOpNo) || !IsBlank(varVhpAttOpNo), Set(varVhpTasklistPickerOpen, false); Set(varVhpLongTextOpen, false); Set(varVhpObjListOpen, false); Set(varVhpMatOpNo, ""); Set(varVhpAttOpNo, ""), Set(varVhpOpMNo, "")))
+                =If(LayoutRank < 2, If(!IfError(Coalesce(varVhpAttBusy, false), false), If(varVhpTasklistPickerOpen || varVhpLongTextOpen || varVhpObjListOpen || !IsBlank(varVhpMatOpNo) || !IsBlank(varVhpAttOpNo), Set(varVhpTasklistPickerOpen, false); Set(varVhpLongTextOpen, false); Set(varVhpObjListOpen, false); Set(varVhpMatOpNo, ""); Set(varVhpAttOpNo, ""); Reset(attVhpAttPicker); Clear(colVhpAttUp); Set(varVhpAttRemove, Blank()), Set(varVhpOpMNo, ""))))
             TabIndex: |-
                 =-1
             Visible: |-
@@ -15703,7 +15703,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =496 + If(IfError(CountRows(Filter(colVhpAttachments, ItemId = varVhpActiveItemId)) = 0, false), 12 + (36), 0)
+                =68 + 12 + (Min(48 + If((!IfError(varVhpViewOnly, false) && !(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0)), 0 + (If(attVhpAttPicker.AttachmentsCount = 0, 112, 112 + Min(attVhpAttPicker.AttachmentsCount, 4) * 36)), 0) + If((!IfError(varVhpViewOnly, false) && !(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0)), 12 + (18), 0) + If((IfError(Coalesce(varVhpAttBusy, false), false) || CountRows(colVhpAttUp) > 0), 12 + (34), 0) + If(!IsBlank(varVhpAttRemove), 12 + (96), 0) + If((!IfError(varVhpViewOnly, false) && !(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0)) && CountRows(Filter(colVhpAttachments, ItemId = varVhpActiveItemId)) > 0, 12 + (32), 0) + 12 + (CountRows(Filter(colVhpAttachments, ItemId = varVhpActiveItemId)) * 40) + If(IfError(CountRows(Filter(colVhpAttachments, ItemId = varVhpActiveItemId)) = 0, false), 12 + (36), 0) + If(!(!IfError(varVhpViewOnly, false) && !(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0)), 12 + (18), 0), App.Height - 40 - 36 - 32 - 12))
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -15802,7 +15802,7 @@ Screens:
                         Size: |-
                             =17
                         Text: |-
-                            ="Documents - operation " & varVhpAttOpNo
+                            ="Documents · Operation " & varVhpAttOpNo
                         Width: |-
                             =Max(0, (((Min(620, App.Width - 40)) - 18 - 18)) - ((77) + 12) - 2)
                         Wrap: |-
@@ -15824,6 +15824,8 @@ Screens:
                             =1
                         Color: |-
                             =C.'text-primary'
+                        DisplayMode: |-
+                            =If(IfError(Coalesce(varVhpAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)
                         Font: |-
                             =Font.'Segoe UI'
                         FontWeight: |-
@@ -15833,7 +15835,10 @@ Screens:
                         Layout: |-
                             =ButtonLayout.TextOnly
                         OnSelect: |-
-                            =Set(varVhpAttOpNo, "")
+                            =Set(varVhpAttOpNo, "");
+                            Reset(attVhpAttPicker);
+                            Clear(colVhpAttUp);
+                            Set(varVhpAttRemove, Blank())
                         RadiusBottomLeft: |-
                             =10
                         RadiusBottomRight: |-
@@ -15850,34 +15855,7 @@ Screens:
                             =VerticalAlign.Middle
                         Width: |-
                             =77
-            - attVhpAttPicker:
-                Control: Attachments@2.3.0
-                Properties:
-                  AccessibleLabel: |-
-                      ="Choose documents"
-                  BorderColor: |-
-                      =C.'border-default'
-                  BorderThickness: |-
-                      =1
-                  Height: |-
-                      =96
-                  MaxAttachmentSize: |-
-                      =50
-                  MaxAttachments: |-
-                      =10
-                  NoAttachmentsText: |-
-                      ="Drop documents here, or browse"
-                  PaddingBottom: |-
-                      =5
-                  PaddingLeft: |-
-                      =5
-                  PaddingRight: |-
-                      =5
-                  PaddingTop: |-
-                      =5
-                  Width: |-
-                      =Parent.Width
-            - conVhpAttActions:
+            - conVhpAttBody:
                 Control: GroupContainer
                 Variant: AutoLayout
                 Properties:
@@ -15888,413 +15866,60 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =36
+                      =Min(48 + If((!IfError(varVhpViewOnly, false) && !(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0)), 0 + (If(attVhpAttPicker.AttachmentsCount = 0, 112, 112 + Min(attVhpAttPicker.AttachmentsCount, 4) * 36)), 0) + If((!IfError(varVhpViewOnly, false) && !(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0)), 12 + (18), 0) + If((IfError(Coalesce(varVhpAttBusy, false), false) || CountRows(colVhpAttUp) > 0), 12 + (34), 0) + If(!IsBlank(varVhpAttRemove), 12 + (96), 0) + If((!IfError(varVhpViewOnly, false) && !(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0)) && CountRows(Filter(colVhpAttachments, ItemId = varVhpActiveItemId)) > 0, 12 + (32), 0) + 12 + (CountRows(Filter(colVhpAttachments, ItemId = varVhpActiveItemId)) * 40) + If(IfError(CountRows(Filter(colVhpAttachments, ItemId = varVhpActiveItemId)) = 0, false), 12 + (36), 0) + If(!(!IfError(varVhpViewOnly, false) && !(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0)), 12 + (18), 0), App.Height - 40 - 36 - 32 - 12)
                   LayoutAlignItems: |-
-                      =LayoutAlignItems.Center
+                      =LayoutAlignItems.Stretch
                   LayoutDirection: |-
-                      =LayoutDirection.Horizontal
+                      =LayoutDirection.Vertical
                   LayoutGap: |-
-                      =8
+                      =12
                   LayoutMinWidth: |-
                       =0
                   LayoutOverflowX: |-
                       =LayoutOverflow.Hide
                   LayoutOverflowY: |-
-                      =LayoutOverflow.Hide
+                      =LayoutOverflow.Scroll
                   Width: |-
                       =Parent.Width
                 Children:
-                  - btnVhpAttUpload:
-                      Control: ModernButton
+                  - attVhpAttPicker:
+                      Control: ModernAttachments@1.3.0
                       Properties:
                         AccessibleLabel: |-
-                            ="Upload"
-                        Align: |-
-                            =Align.Center
-                        AlignInContainer: |-
-                            =AlignInContainer.Center
-                        BasePaletteColor: |-
-                            =C.'color-brand-primary'
-                        Color: |-
-                            =C.'text-on-primary'
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
+                            ="Choose documents for operation " & varVhpAttOpNo
+                        DisplayMode: |-
+                            =If(IfError(Coalesce(varVhpAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)
                         Height: |-
-                            =36
-                        Icon: |-
-                            ="ArrowUpload"
-                        Layout: |-
-                            =ButtonLayout.IconBefore
-                        OnSelect: |-
-                            =Clear(colVhpAttUp);
-                            If(
-                                IsBlank(LookUp(colVhpSavedItems, LocalId = varVhpActiveItemId).ItemKey),
-                                Notify("Save the plan before attaching documents - the folder is named after the item.", NotificationType.Warning),
-                            
-                                If(
-                                    CountRows(attVhpAttPicker.Attachments) = 0,
-                                    Notify("Choose one or more files first.", NotificationType.Warning),
-                            
-                                    ClearCollect(
-                                        colVhpAttUp,
-                                        ForAll(
-                                            attVhpAttPicker.Attachments As F,
-                                            {
-                                                Name: F.Name,
-                                                Ok: IfError(
-                                                    Lower(
-                                                        Text(
-                                                            'BioSap-TaskListAttachment'.Run(
-                                                                LookUp(colVhpSavedItems, LocalId = varVhpActiveItemId).ItemKey,
-                                                                { file: { contentBytes: F.Value, name: F.Name } }
-                                                            ).flowrunsuccess
-                                                        )
-                                                    ) = "true",
-                                                    false
-                                                )
-                                            }
-                                        )
-                                    );
-                                    Reset(attVhpAttPicker);
-                            
-                                    ClearCollect(
-                                        colVhpAttKeep,
-                                        ForAll(
-                                            Filter(colVhpAttachments, ItemId = varVhpActiveItemId) As A,
-                                            { FileName: A.FileName, OperationsKey: A.OperationsKey }
-                                        )
-                                    );
-                                    Set(
-                                        varVhpAttJson,
-                                        'BioSap-GetSubmittedAttachments'.Run("TaskListDocuments/" & LookUp(colVhpSavedItems, LocalId = varVhpActiveItemId).ItemKey).files
-                                    );
-                                    ClearCollect(
-                                        colVhpAttFiles,
-                                        ForAll(
-                                            ParseJSON(Coalesce(varVhpAttJson, "[]")),
-                                            {
-                                                Name: Text(ThisRecord.Name),
-                                                Link: Text(ThisRecord.Link),
-                                                Identifier: Text(ThisRecord.Identifier)
-                                            }
-                                        )
-                                    );
-                                    RemoveIf(colVhpAttachments, ItemId = varVhpActiveItemId);
-                                    Collect(
-                                        colVhpAttachments,
-                                        ForAll(
-                                            colVhpAttFiles As F,
-                                            {
-                                                ItemId: varVhpActiveItemId,
-                                                FileName: F.Name,
-                                                FileUrl: F.Link,
-                                                Identifier: F.Identifier,
-                                                FileSize: 0,
-                                                OperationsKey: Coalesce(
-                                                    LookUp(colVhpAttKeep, FileName = F.Name).OperationsKey,
-                                                    ";"
-                                                ),
-                                                Status: "Uploaded",
-                                                Selected: false
-                                            }
-                                        )
-                                    );
-                                    Clear(colVhpAttKeep);
-                            
-                                    If(
-                                        CountRows(Filter(colVhpAttUp, Ok = false)) > 0,
-                                        Notify(
-                                            "SharePoint refused: " &
-                                            Concat(Filter(colVhpAttUp, Ok = false), Name, ", "),
-                                            NotificationType.Error
-                                        ),
-                                        Notify("Document(s) uploaded.", NotificationType.Success)
-                                    )
-                                )
-                            );
-                            UpdateIf(
-                                colVhpAttachments,
-                                ItemId = varVhpActiveItemId &&
-                                    FileName in Filter(colVhpAttUp, Ok).Name &&
-                                    !(";" & varVhpAttOpNo & ";" in Coalesce(OperationsKey, ";")),
-                                { OperationsKey: Coalesce(OperationsKey, ";") & varVhpAttOpNo & ";" }
-                            )
-                        RadiusBottomLeft: |-
+                            =If(Self.AttachmentsCount = 0, 112, 112 + Min(Self.AttachmentsCount, 4) * 36)
+                        Items: |-
+                            =Blank()
+                        MaxAttachmentSize: |-
+                            =50
+                        MaxAttachments: |-
                             =10
-                        RadiusBottomRight: |-
-                            =10
-                        RadiusTopLeft: |-
-                            =10
-                        RadiusTopRight: |-
-                            =10
-                        Size: |-
-                            =14
-                        Text: |-
-                            ="Upload"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
+                        OnError: |-
+                            =Notify("This file could not be added. You can add up to 10 files of up to 50 MB each.", NotificationType.Error)
+                        Visible: |-
+                            =(!IfError(varVhpViewOnly, false) && !(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0))
                         Width: |-
-                            =110
-                  - btnVhpAttRefresh:
-                      Control: ModernButton
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Refresh"
-                        Align: |-
-                            =Align.Center
-                        AlignInContainer: |-
-                            =AlignInContainer.Center
-                        Appearance: |-
-                            =ButtonAppearance.Outline
-                        BorderColor: |-
-                            =C.'border-default'
-                        BorderThickness: |-
-                            =1
-                        Color: |-
-                            =C.'text-primary'
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
-                        Height: |-
-                            =36
-                        Layout: |-
-                            =ButtonLayout.TextOnly
-                        OnSelect: |-
-                            =If(
-                                IsBlank(LookUp(colVhpSavedItems, LocalId = varVhpActiveItemId).ItemKey),
-                                Notify("Save the plan before attaching documents - the folder is named after the item.", NotificationType.Warning),
-                            
-                                ClearCollect(
-                                    colVhpAttKeep,
-                                    ForAll(
-                                        Filter(colVhpAttachments, ItemId = varVhpActiveItemId) As A,
-                                        { FileName: A.FileName, OperationsKey: A.OperationsKey }
-                                    )
-                                );
-                                Set(
-                                    varVhpAttJson,
-                                    'BioSap-GetSubmittedAttachments'.Run("TaskListDocuments/" & LookUp(colVhpSavedItems, LocalId = varVhpActiveItemId).ItemKey).files
-                                );
-                                ClearCollect(
-                                    colVhpAttFiles,
-                                    ForAll(
-                                        ParseJSON(Coalesce(varVhpAttJson, "[]")),
-                                        {
-                                            Name: Text(ThisRecord.Name),
-                                            Link: Text(ThisRecord.Link),
-                                            Identifier: Text(ThisRecord.Identifier)
-                                        }
-                                    )
-                                );
-                                RemoveIf(colVhpAttachments, ItemId = varVhpActiveItemId);
-                                Collect(
-                                    colVhpAttachments,
-                                    ForAll(
-                                        colVhpAttFiles As F,
-                                        {
-                                            ItemId: varVhpActiveItemId,
-                                            FileName: F.Name,
-                                            FileUrl: F.Link,
-                                            Identifier: F.Identifier,
-                                            FileSize: 0,
-                                            OperationsKey: Coalesce(
-                                                LookUp(colVhpAttKeep, FileName = F.Name).OperationsKey,
-                                                ";"
-                                            ),
-                                            Status: "Uploaded",
-                                            Selected: false
-                                        }
-                                    )
-                                );
-                                Clear(colVhpAttKeep)
-                            )
-                        RadiusBottomLeft: |-
-                            =10
-                        RadiusBottomRight: |-
-                            =10
-                        RadiusTopLeft: |-
-                            =10
-                        RadiusTopRight: |-
-                            =10
-                        Size: |-
-                            =14
-                        Text: |-
-                            ="Refresh"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
-                        Width: |-
-                            =91
-                  - btnVhpRemoveAttachment:
-                      Control: ModernButton
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Remove document"
-                        Align: |-
-                            =Align.Center
-                        AlignInContainer: |-
-                            =AlignInContainer.Center
-                        Appearance: |-
-                            =ButtonAppearance.Outline
-                        BorderColor: |-
-                            =C.'border-error'
-                        BorderThickness: |-
-                            =1
-                        Color: |-
-                            =C.'state-error-fg'
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
-                        Height: |-
-                            =36
-                        Layout: |-
-                            =ButtonLayout.TextOnly
-                        OnSelect: |-
-                            =If(
-                                CountRows(Filter(colVhpAttachments, ItemId = varVhpActiveItemId, Selected = true)) = 0,
-                                Notify("Select one or more documents first.", NotificationType.Warning),
-                            
-                                ForAll(
-                                    Filter(colVhpAttachments, ItemId = varVhpActiveItemId, Selected = true) As D,
-                                    If(
-                                        !IsBlank(D.Identifier),
-                                        'BioSap-DeleteSubmittedAttachments'.Run(D.Identifier)
-                                    )
-                                );
-                                RemoveIf(colVhpAttachments, ItemId = varVhpActiveItemId, Selected = true);
-                                Notify("Document(s) removed.", NotificationType.Success)
-                            )
-                        RadiusBottomLeft: |-
-                            =10
-                        RadiusBottomRight: |-
-                            =10
-                        RadiusTopLeft: |-
-                            =10
-                        RadiusTopRight: |-
-                            =10
-                        Size: |-
-                            =14
-                        Text: |-
-                            ="Remove document"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
-                        Width: |-
-                            =164
-            - txtVhpAttNote:
-                Control: ModernText
-                Properties:
-                  AccessibleLabel: |-
-                      ="Tick This operation to attach a document to the operation. A document with no operations belongs to the whole item."
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  BorderThickness: |-
-                      =0
-                  Color: |-
-                      =C.'text-muted'
-                  Fill: |-
-                      =RGBA(0, 0, 0, 0)
-                  Font: |-
-                      =Font.'Segoe UI'
-                  Height: |-
-                      =32
-                  PaddingBottom: |-
-                      =0
-                  PaddingLeft: |-
-                      =0
-                  PaddingRight: |-
-                      =0
-                  PaddingTop: |-
-                      =0
-                  Size: |-
-                      =12
-                  Text: |-
-                      ="Tick This operation to attach a document to the operation. A document with no operations belongs to the whole item."
-                  Wrap: |-
-                      =true
-            - galVhpAttachments:
-                Control: Gallery
-                Variant: Vertical
-                Properties:
-                  AccessibleLabel: |-
-                      ="Documents for active item"
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  Fill: |-
-                      =C.'bg-card'
-                  FillPortions: |-
-                      =0
-                  Height: |-
-                      =216
-                  Items: |-
-                      =Sort(Filter(colVhpAttachments, ItemId = varVhpActiveItemId), FileName)
-                  LayoutMinWidth: |-
-                      =0
-                  LoadingSpinner: |-
-                      =LoadingSpinner.None
-                  Selectable: |-
-                      =true
-                  ShowScrollbar: |-
-                      =true
-                  TabIndex: |-
-                      =0
-                  TemplatePadding: |-
-                      =0
-                  TemplateSize: |-
-                      =36
-                  Width: |-
-                      =Parent.Width
-                  WrapCount: |-
-                      =1
-                Children:
-                  - chkVhpAttSel:
-                      Control: ModernCheckbox
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Select document"
-                        BasePaletteColor: |-
-                            =C.'color-brand-primary'
-                        Color: |-
-                            =C.'text-primary'
-                        Default: |-
-                            =ThisItem.Selected
-                        Font: |-
-                            =Font.'Segoe UI'
-                        Height: |-
-                            =24
-                        Label: |-
-                            =""
-                        OnCheck: |-
-                            =Patch(colVhpAttachments, ThisItem, { Selected: true })
-                        OnUncheck: |-
-                            =Patch(colVhpAttachments, ThisItem, { Selected: false })
-                        Size: |-
-                            =13
-                        Width: |-
-                            =30
-                        X: |-
-                            =0 + 0 + 0
-                        Y: |-
-                            =0 + 0 + ((((36) - 1) - 0 - 0) - (24)) / 2
-                  - txtVhpAttName:
+                            =Parent.Width
+                  - txtVhpAttLimits:
                       Control: ModernText
                       Properties:
                         AccessibleLabel: |-
-                            =Self.Text
+                            ="Up to 10 files at a time, 50 MB each."
                         BorderStyle: |-
                             =BorderStyle.None
                         BorderThickness: |-
                             =0
                         Color: |-
-                            =C.'text-primary'
+                            =C.'text-muted'
                         Fill: |-
                             =RGBA(0, 0, 0, 0)
                         Font: |-
                             =Font.'Segoe UI'
                         Height: |-
-                            =30
+                            =18
                         PaddingBottom: |-
                             =0
                         PaddingLeft: |-
@@ -16304,18 +15929,547 @@ Screens:
                         PaddingTop: |-
                             =0
                         Size: |-
-                            =13
+                            =12
                         Text: |-
-                            =ThisItem.FileName
-                        Width: |-
-                            =190
+                            ="Up to 10 files at a time, 50 MB each."
+                        Visible: |-
+                            =(!IfError(varVhpViewOnly, false) && !(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0))
                         Wrap: |-
-                            =false
-                        X: |-
-                            =0 + 0 + 0 + (30) + 10
-                        Y: |-
-                            =0 + 0 + ((((36) - 1) - 0 - 0) - (30)) / 2
-                  - txtVhpAttScope:
+                            =true
+                  - conVhpAttActions:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =36
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Center
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =8
+                        LayoutJustifyContent: |-
+                            =LayoutJustifyContent.End
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Width: |-
+                            =Parent.Width
+                      Children:
+                        - btnVhpAttRefresh:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Refresh the document list"
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-default'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'text-primary'
+                              DisplayMode: |-
+                                  =If(IfError(Coalesce(varVhpAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =36
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
+                              LayoutMinWidth: |-
+                                  =91
+                              OnSelect: |-
+                                  =If(
+                                      IsBlank(LookUp(colVhpSavedItems, LocalId = varVhpActiveItemId).ItemKey),
+                                      Notify("Save the plan before attaching documents - the folder is named after the item.", NotificationType.Warning),
+                                  
+                                      Set(varVhpAttBusy, true);
+                                      ClearCollect(
+                                          colVhpAttKeep,
+                                          ForAll(
+                                              Filter(colVhpAttachments, ItemId = varVhpActiveItemId) As A,
+                                              { FileName: A.FileName, OperationsKey: A.OperationsKey }
+                                          )
+                                      );
+                                      Set(
+                                          varVhpAttJson,
+                                          'BioSap-GetSubmittedAttachments'.Run("TaskListDocuments/" & LookUp(colVhpSavedItems, LocalId = varVhpActiveItemId).ItemKey).files
+                                      );
+                                      ClearCollect(
+                                          colVhpAttFiles,
+                                          ForAll(
+                                              ParseJSON(Coalesce(varVhpAttJson, "[]")),
+                                              {
+                                                  Name: Text(ThisRecord.Name),
+                                                  Link: Text(ThisRecord.Link),
+                                                  Identifier: Text(ThisRecord.Identifier)
+                                              }
+                                          )
+                                      );
+                                      RemoveIf(colVhpAttachments, ItemId = varVhpActiveItemId);
+                                      Collect(
+                                          colVhpAttachments,
+                                          ForAll(
+                                              colVhpAttFiles As F,
+                                              {
+                                                  ItemId: varVhpActiveItemId,
+                                                  FileName: F.Name,
+                                                  FileUrl: F.Link,
+                                                  Identifier: F.Identifier,
+                                                  FileSize: 0,
+                                                  OperationsKey: Coalesce(
+                                                      LookUp(colVhpAttKeep, FileName = F.Name).OperationsKey,
+                                                      ";"
+                                                  ),
+                                                  Status: "Uploaded",
+                                                  Selected: false
+                                              }
+                                          )
+                                      );
+                                      Clear(colVhpAttKeep);
+                                      Set(varVhpAttBusy, false)
+                                  )
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  ="Refresh"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Width: |-
+                                  =91
+                        - btnVhpAttUpload:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Upload the chosen files"
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              Color: |-
+                                  =C.'text-on-primary'
+                              DisplayMode: |-
+                                  =If(IfError(Coalesce(varVhpAttBusy, false), false) || attVhpAttPicker.AttachmentsCount = 0 || attVhpAttPicker.IsUploading, DisplayMode.Disabled, DisplayMode.Edit)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =36
+                              Icon: |-
+                                  ="ArrowUpload"
+                              Layout: |-
+                                  =ButtonLayout.IconBefore
+                              LayoutMinWidth: |-
+                                  =110
+                              OnSelect: |-
+                                  =If(
+                                      IsBlank(LookUp(colVhpSavedItems, LocalId = varVhpActiveItemId).ItemKey),
+                                      Notify("Save the plan before attaching documents - the folder is named after the item.", NotificationType.Warning),
+                                  
+                                      CountRows(attVhpAttPicker.Attachments) = 0,
+                                      Notify("Choose one or more files first.", NotificationType.Warning),
+                                  
+                                      Set(varVhpAttBusy, true);
+                                      If(CountRows(Filter(colVhpAttUp, !Ok)) = 0, Clear(colVhpAttUp));
+                                      With(
+                                          { done: Filter(colVhpAttUp, Ok).Name },
+                                          RemoveIf(colVhpAttUp, !Ok);
+                                          Collect(
+                                              colVhpAttUp,
+                                              ForAll(
+                                                  Filter(attVhpAttPicker.Attachments As P, !(P.Name in done)) As F,
+                                                  {
+                                                      Name: F.Name,
+                                                      Ok: IfError(
+                                                          Lower(
+                                                              Text(
+                                                                  'BioSap-TaskListAttachment'.Run(
+                                                                      LookUp(colVhpSavedItems, LocalId = varVhpActiveItemId).ItemKey,
+                                                                      { file: { contentBytes: F.Value, name: F.Name } }
+                                                                  ).flowrunsuccess
+                                                              )
+                                                          ) = "true",
+                                                          false
+                                                      )
+                                                  }
+                                              )
+                                          )
+                                      );
+                                      If(CountRows(Filter(colVhpAttUp, !Ok)) = 0, Reset(attVhpAttPicker));
+                                  
+                                      ClearCollect(
+                                          colVhpAttKeep,
+                                          ForAll(
+                                              Filter(colVhpAttachments, ItemId = varVhpActiveItemId) As A,
+                                              { FileName: A.FileName, OperationsKey: A.OperationsKey }
+                                          )
+                                      );
+                                      Set(
+                                          varVhpAttJson,
+                                          'BioSap-GetSubmittedAttachments'.Run("TaskListDocuments/" & LookUp(colVhpSavedItems, LocalId = varVhpActiveItemId).ItemKey).files
+                                      );
+                                      ClearCollect(
+                                          colVhpAttFiles,
+                                          ForAll(
+                                              ParseJSON(Coalesce(varVhpAttJson, "[]")),
+                                              {
+                                                  Name: Text(ThisRecord.Name),
+                                                  Link: Text(ThisRecord.Link),
+                                                  Identifier: Text(ThisRecord.Identifier)
+                                              }
+                                          )
+                                      );
+                                      RemoveIf(colVhpAttachments, ItemId = varVhpActiveItemId);
+                                      Collect(
+                                          colVhpAttachments,
+                                          ForAll(
+                                              colVhpAttFiles As F,
+                                              {
+                                                  ItemId: varVhpActiveItemId,
+                                                  FileName: F.Name,
+                                                  FileUrl: F.Link,
+                                                  Identifier: F.Identifier,
+                                                  FileSize: 0,
+                                                  OperationsKey: Coalesce(
+                                                      LookUp(colVhpAttKeep, FileName = F.Name).OperationsKey,
+                                                      ";"
+                                                  ),
+                                                  Status: "Uploaded",
+                                                  Selected: false
+                                              }
+                                          )
+                                      );
+                                      Clear(colVhpAttKeep);
+                                      Set(varVhpAttBusy, false);
+                                  
+                                      If(
+                                          CountRows(Filter(colVhpAttUp, !Ok)) > 0,
+                                          Notify(
+                                              "Not uploaded: " &
+                                              Concat(Filter(colVhpAttUp, !Ok), Name, ", ") &
+                                              ". Select Upload again to retry.",
+                                              NotificationType.Error
+                                          ),
+                                          Notify("Document(s) uploaded.", NotificationType.Success)
+                                      )
+                                  );
+                                  UpdateIf(
+                                      colVhpAttachments,
+                                      ItemId = varVhpActiveItemId &&
+                                          FileName in Filter(colVhpAttUp, Ok).Name &&
+                                          !(";" & varVhpAttOpNo & ";" in Coalesce(OperationsKey, ";")),
+                                      { OperationsKey: Coalesce(OperationsKey, ";") & varVhpAttOpNo & ";" }
+                                  )
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  ="Upload"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Visible: |-
+                                  =(!IfError(varVhpViewOnly, false) && !(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0))
+                              Width: |-
+                                  =110
+                  - txtVhpAttStatus:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            =If(
+                                IfError(Coalesce(varVhpAttBusy, false), false),
+                                "Working... please wait.",
+                                CountRows(Filter(colVhpAttUp, !Ok)) > 0,
+                                "Not uploaded: " & Concat(Filter(colVhpAttUp, !Ok), Name, ", ") &
+                                    ". Select Upload again to retry - files already uploaded are skipped.",
+                                CountRows(colVhpAttUp) > 0,
+                                "Uploaded: " & Concat(colVhpAttUp, Name, ", "),
+                                ""
+                            )
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =If(IfError(Coalesce(varVhpAttBusy, false), false), C.'text-muted', CountRows(Filter(colVhpAttUp, !Ok)) > 0, C.'state-error-fg', C.'state-ok-fg')
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =34
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =12
+                        Text: |-
+                            =If(
+                                IfError(Coalesce(varVhpAttBusy, false), false),
+                                "Working... please wait.",
+                                CountRows(Filter(colVhpAttUp, !Ok)) > 0,
+                                "Not uploaded: " & Concat(Filter(colVhpAttUp, !Ok), Name, ", ") &
+                                    ". Select Upload again to retry - files already uploaded are skipped.",
+                                CountRows(colVhpAttUp) > 0,
+                                "Uploaded: " & Concat(colVhpAttUp, Name, ", "),
+                                ""
+                            )
+                        Visible: |-
+                            =(IfError(Coalesce(varVhpAttBusy, false), false) || CountRows(colVhpAttUp) > 0)
+                        Wrap: |-
+                            =true
+                  - conVhpAttRemove:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderColor: |-
+                            =C.'border-default'
+                        BorderThickness: |-
+                            =1
+                        DropShadow: |-
+                            =DropShadow.None
+                        Fill: |-
+                            =C.'state-info-bg'
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =96
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Stretch
+                        LayoutDirection: |-
+                            =LayoutDirection.Vertical
+                        LayoutGap: |-
+                            =8
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        PaddingBottom: |-
+                            =10
+                        PaddingLeft: |-
+                            =12
+                        PaddingRight: |-
+                            =12
+                        PaddingTop: |-
+                            =10
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Visible: |-
+                            =!IsBlank(varVhpAttRemove)
+                        Width: |-
+                            =Parent.Width
+                      Children:
+                        - txtVhpAttRemoveAsk:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  =Self.Text
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =36
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  ="Remove " & varVhpAttRemove & " from SharePoint? This cannot be undone."
+                              Wrap: |-
+                                  =true
+                        - conVhpAttRemoveBtns:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =32
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Center
+                              LayoutDirection: |-
+                                  =LayoutDirection.Horizontal
+                              LayoutGap: |-
+                                  =8
+                              LayoutJustifyContent: |-
+                                  =LayoutJustifyContent.End
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              Width: |-
+                                  =Parent.Width
+                            Children:
+                              - btnVhpAttRemoveCancel:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Cancel"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =32
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
+                                        =86
+                                    OnSelect: |-
+                                        =Set(varVhpAttRemove, Blank())
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="Cancel"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =86
+                              - btnVhpAttRemoveConfirm:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Remove " & varVhpAttRemove
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-error'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'state-error-fg'
+                                    DisplayMode: |-
+                                        =If(IfError(Coalesce(varVhpAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =32
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
+                                        =89
+                                    OnSelect: |-
+                                        =Set(varVhpAttBusy, true);
+                                        With(
+                                            { d: LookUp(colVhpAttachments, ItemId = varVhpActiveItemId && FileName = varVhpAttRemove) },
+                                            If(
+                                                IsBlank(d.Identifier) ||
+                                                    IfError('BioSap-DeleteSubmittedAttachments'.Run(d.Identifier); true, false),
+                                                RemoveIf(colVhpAttachments, ItemId = varVhpActiveItemId && FileName = d.FileName);
+                                                Notify(d.FileName & " removed.", NotificationType.Success),
+                                                Notify(d.FileName & " could not be removed. Try again.", NotificationType.Error)
+                                            )
+                                        );
+                                        Set(varVhpAttRemove, Blank());
+                                        Set(varVhpAttBusy, false)
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="Remove"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =89
+                  - txtVhpAttNote:
                       Control: ModernText
                       Properties:
                         AccessibleLabel: |-
@@ -16331,7 +16485,7 @@ Screens:
                         Font: |-
                             =Font.'Segoe UI'
                         Height: |-
-                            =30
+                            =32
                         PaddingBottom: |-
                             =0
                         PaddingLeft: |-
@@ -16343,123 +16497,416 @@ Screens:
                         Size: |-
                             =12
                         Text: |-
-                            =If(
-                                Len(Coalesce(ThisItem.OperationsKey, ";")) <= 1,
-                                "Whole item",
-                                "Ops: " & Substitute(Mid(ThisItem.OperationsKey, 2), ";", " ")
-                            )
-                        Width: |-
-                            =120
+                            ="Tick the box on a document to attach it to operation " & varVhpAttOpNo & ". A document with no operations belongs to the whole item."
+                        Visible: |-
+                            =(!IfError(varVhpViewOnly, false) && !(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0)) && CountRows(Filter(colVhpAttachments, ItemId = varVhpActiveItemId)) > 0
                         Wrap: |-
-                            =false
-                        X: |-
-                            =0 + 0 + 0 + (30) + 10 + (190) + 10
-                        Y: |-
-                            =0 + 0 + ((((36) - 1) - 0 - 0) - (30)) / 2
-                  - chkVhpAttOp:
-                      Control: ModernCheckbox
+                            =true
+                  - galVhpAttachments:
+                      Control: Gallery
+                      Variant: Vertical
                       Properties:
                         AccessibleLabel: |-
-                            ="Attach to operation " & varVhpAttOpNo
-                        BasePaletteColor: |-
-                            =C.'color-brand-primary'
-                        Color: |-
-                            =C.'text-primary'
-                        Default: |-
-                            =";" & varVhpAttOpNo & ";" in Coalesce(ThisItem.OperationsKey, ";")
-                        Font: |-
-                            =Font.'Segoe UI'
+                            ="Documents for active item"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        Fill: |-
+                            =C.'bg-card'
+                        FillPortions: |-
+                            =0
                         Height: |-
-                            =24
-                        Label: |-
-                            ="This operation"
-                        OnCheck: |-
-                            =With(
-                                { fn: ThisItem.FileName },
-                                UpdateIf(
-                                    colVhpAttachments,
-                                    ItemId = varVhpActiveItemId && FileName = fn &&
-                                        !(";" & varVhpAttOpNo & ";" in Coalesce(OperationsKey, ";")),
-                                    { OperationsKey: Coalesce(OperationsKey, ";") & varVhpAttOpNo & ";" }
-                                )
-                            )
-                        OnUncheck: |-
-                            =With(
-                                { fn: ThisItem.FileName },
-                                UpdateIf(
-                                    colVhpAttachments,
-                                    ItemId = varVhpActiveItemId && FileName = fn,
-                                    { OperationsKey: Substitute(Coalesce(OperationsKey, ";"), ";" & varVhpAttOpNo & ";", ";") }
-                                )
-                            )
-                        Size: |-
-                            =13
+                            =CountRows(Filter(colVhpAttachments, ItemId = varVhpActiveItemId)) * 40
+                        Items: |-
+                            =Sort(Filter(colVhpAttachments, ItemId = varVhpActiveItemId), FileName)
+                        LayoutMinWidth: |-
+                            =0
+                        LoadingSpinner: |-
+                            =LoadingSpinner.None
+                        Selectable: |-
+                            =false
+                        ShowScrollbar: |-
+                            =false
+                        TabIndex: |-
+                            =0
+                        TemplatePadding: |-
+                            =0
+                        TemplateSize: |-
+                            =40
                         Width: |-
-                            =130
-                        X: |-
-                            =0 + 0 + 0 + (30) + 10 + (190) + 10 + (120) + 10
-                        Y: |-
-                            =0 + 0 + ((((36) - 1) - 0 - 0) - (24)) / 2
-                  - rctVhpAttRule:
-                      Control: Rectangle
+                            =Parent.Width
+                        WrapCount: |-
+                            =1
+                      Children:
+                        - txtVhpAttType:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  =Self.Text
+                              Align: |-
+                                  =Align.Center
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-muted'
+                              Fill: |-
+                                  =C.'bg-muted'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =24
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              RadiusBottomLeft: |-
+                                  =6
+                              RadiusBottomRight: |-
+                                  =6
+                              RadiusTopLeft: |-
+                                  =6
+                              RadiusTopRight: |-
+                                  =6
+                              Size: |-
+                                  =11
+                              Text: |-
+                                  =If(IsBlank(Find(".", ThisItem.FileName)), "FILE", Upper(Left(Last(Split(ThisItem.FileName, ".")).Value, 4)))
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Width: |-
+                                  =44
+                              Wrap: |-
+                                  =false
+                              X: |-
+                                  =0 + 0 + 0
+                              Y: |-
+                                  =0 + 0 + ((((40) - 1) - 0 - 0) - (24)) / 2
+                        - txtVhpAttName:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  =Self.Text
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =30
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  =ThisItem.FileName
+                              Width: |-
+                                  =Max(0, (((((Min(620, App.Width - 40)) - 18 - 18) - 18) - 2 * 0 - 0 - 40)) - ((44) + 8) - (If(LayoutRank >= 2, (110) + 8, 0)) - ((If(LayoutRank >= 2, 130, 32)) + 8) - ((71) + 8) - (If((!IfError(varVhpViewOnly, false) && !(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0)), (40) + 8, 0)) - 2)
+                              Wrap: |-
+                                  =false
+                              X: |-
+                                  =0 + 0 + 0 + (44) + 8
+                              Y: |-
+                                  =0 + 0 + ((((40) - 1) - 0 - 0) - (30)) / 2
+                        - txtVhpAttScope:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  =Self.Text
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-muted'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =30
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =12
+                              Text: |-
+                                  =If(
+                                      Len(Coalesce(ThisItem.OperationsKey, ";")) <= 1,
+                                      "Whole item",
+                                      "Ops: " & Substitute(Mid(ThisItem.OperationsKey, 2), ";", " ")
+                                  )
+                              Visible: |-
+                                  =LayoutRank >= 2
+                              Width: |-
+                                  =110
+                              Wrap: |-
+                                  =false
+                              X: |-
+                                  =0 + 0 + 0 + (44) + 8 + (Max(0, (((((Min(620, App.Width - 40)) - 18 - 18) - 18) - 2 * 0 - 0 - 40)) - ((44) + 8) - (If(LayoutRank >= 2, (110) + 8, 0)) - ((If(LayoutRank >= 2, 130, 32)) + 8) - ((71) + 8) - (If((!IfError(varVhpViewOnly, false) && !(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0)), (40) + 8, 0)) - 2)) + 8
+                              Y: |-
+                                  =0 + 0 + ((((40) - 1) - 0 - 0) - (30)) / 2
+                        - chkVhpAttOp:
+                            Control: ModernCheckbox
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Attach " & ThisItem.FileName & " to operation " & varVhpAttOpNo
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              Color: |-
+                                  =C.'text-primary'
+                              Default: |-
+                                  =";" & varVhpAttOpNo & ";" in Coalesce(ThisItem.OperationsKey, ";")
+                              DisplayMode: |-
+                                  =If((If((!IfError(varVhpViewOnly, false) && !(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0)) && !IfError(Coalesce(varVhpAttBusy, false), false), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =24
+                              Label: |-
+                                  =If(LayoutRank >= 2, "This operation", "")
+                              OnCheck: |-
+                                  =With(
+                                      { fn: ThisItem.FileName },
+                                      UpdateIf(
+                                          colVhpAttachments,
+                                          ItemId = varVhpActiveItemId && FileName = fn &&
+                                              !(";" & varVhpAttOpNo & ";" in Coalesce(OperationsKey, ";")),
+                                          { OperationsKey: Coalesce(OperationsKey, ";") & varVhpAttOpNo & ";" }
+                                      )
+                                  )
+                              OnUncheck: |-
+                                  =With(
+                                      { fn: ThisItem.FileName },
+                                      UpdateIf(
+                                          colVhpAttachments,
+                                          ItemId = varVhpActiveItemId && FileName = fn,
+                                          { OperationsKey: Substitute(Coalesce(OperationsKey, ";"), ";" & varVhpAttOpNo & ";", ";") }
+                                      )
+                                  )
+                              Size: |-
+                                  =13
+                              Width: |-
+                                  =If(LayoutRank >= 2, 130, 32)
+                              X: |-
+                                  =0 + 0 + 0 + (44) + 8 + (Max(0, (((((Min(620, App.Width - 40)) - 18 - 18) - 18) - 2 * 0 - 0 - 40)) - ((44) + 8) - (If(LayoutRank >= 2, (110) + 8, 0)) - ((If(LayoutRank >= 2, 130, 32)) + 8) - ((71) + 8) - (If((!IfError(varVhpViewOnly, false) && !(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0)), (40) + 8, 0)) - 2)) + 8 + If(LayoutRank >= 2, (110) + 8, 0)
+                              Y: |-
+                                  =0 + 0 + ((((40) - 1) - 0 - 0) - (24)) / 2
+                        - btnVhpAttOpen:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Open or download " & ThisItem.FileName
+                              Align: |-
+                                  =Align.Center
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-default'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'text-primary'
+                              DisplayMode: |-
+                                  =If(IsBlank(ThisItem.FileUrl), DisplayMode.Disabled, DisplayMode.Edit)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =32
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
+                              OnSelect: |-
+                                  =Launch(ThisItem.FileUrl, { }, LaunchTarget.New)
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  ="Open"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Width: |-
+                                  =71
+                              X: |-
+                                  =0 + 0 + 0 + (44) + 8 + (Max(0, (((((Min(620, App.Width - 40)) - 18 - 18) - 18) - 2 * 0 - 0 - 40)) - ((44) + 8) - (If(LayoutRank >= 2, (110) + 8, 0)) - ((If(LayoutRank >= 2, 130, 32)) + 8) - ((71) + 8) - (If((!IfError(varVhpViewOnly, false) && !(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0)), (40) + 8, 0)) - 2)) + 8 + If(LayoutRank >= 2, (110) + 8, 0) + (If(LayoutRank >= 2, 130, 32)) + 8
+                              Y: |-
+                                  =0 + 0 + ((((40) - 1) - 0 - 0) - (32)) / 2
+                        - btnVhpAttRemove:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Remove " & ThisItem.FileName
+                              Align: |-
+                                  =Align.Center
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-error'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'state-error-fg'
+                              DisplayMode: |-
+                                  =If(IfError(Coalesce(varVhpAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =32
+                              Icon: |-
+                                  ="Delete"
+                              Layout: |-
+                                  =ButtonLayout.IconOnly
+                              OnSelect: |-
+                                  =Set(varVhpAttRemove, ThisItem.FileName)
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  ="Remove"
+                              Tooltip: |-
+                                  ="Remove " & ThisItem.FileName
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Visible: |-
+                                  =(!IfError(varVhpViewOnly, false) && !(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0))
+                              Width: |-
+                                  =40
+                              X: |-
+                                  =0 + 0 + 0 + (44) + 8 + (Max(0, (((((Min(620, App.Width - 40)) - 18 - 18) - 18) - 2 * 0 - 0 - 40)) - ((44) + 8) - (If(LayoutRank >= 2, (110) + 8, 0)) - ((If(LayoutRank >= 2, 130, 32)) + 8) - ((71) + 8) - (If((!IfError(varVhpViewOnly, false) && !(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0)), (40) + 8, 0)) - 2)) + 8 + If(LayoutRank >= 2, (110) + 8, 0) + (If(LayoutRank >= 2, 130, 32)) + 8 + (71) + 8
+                              Y: |-
+                                  =0 + 0 + ((((40) - 1) - 0 - 0) - (32)) / 2
+                        - rctVhpAttRule:
+                            Control: Rectangle
+                            Properties:
+                              AccessibleLabel: |-
+                                  =""
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Fill: |-
+                                  =C.'border-subtle'
+                              Height: |-
+                                  =1
+                              OnSelect: |-
+                                  =false
+                              TabIndex: |-
+                                  =-1
+                              Width: |-
+                                  =((((Min(620, App.Width - 40)) - 18 - 18) - 18) - 2 * 0 - 0 - 40)
+                              X: |-
+                                  =0
+                              Y: |-
+                                  =39
+                  - txtVhpAttEmpty:
+                      Control: ModernText
                       Properties:
                         AccessibleLabel: |-
-                            =""
+                            =Self.Text
                         BorderStyle: |-
                             =BorderStyle.None
                         BorderThickness: |-
                             =0
+                        Color: |-
+                            =C.'text-muted'
                         Fill: |-
-                            =C.'border-subtle'
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
                         Height: |-
-                            =1
-                        OnSelect: |-
-                            =false
-                        TabIndex: |-
-                            =-1
-                        Width: |-
-                            =(((Min(620, App.Width - 40)) - 18 - 18) - 2 * 0 - 18 - 40)
-                        X: |-
+                            =36
+                        PaddingBottom: |-
                             =0
-                        Y: |-
-                            =35
-            - txtVhpAttEmpty:
-                Control: ModernText
-                Properties:
-                  AccessibleLabel: |-
-                      =Self.Text
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  BorderThickness: |-
-                      =0
-                  Color: |-
-                      =C.'text-muted'
-                  Fill: |-
-                      =RGBA(0, 0, 0, 0)
-                  Font: |-
-                      =Font.'Segoe UI'
-                  Height: |-
-                      =36
-                  PaddingBottom: |-
-                      =0
-                  PaddingLeft: |-
-                      =0
-                  PaddingRight: |-
-                      =0
-                  PaddingTop: |-
-                      =0
-                  Size: |-
-                      =13
-                  Text: |-
-                      =If(
-                          IsBlank(LookUp(colVhpSavedItems, LocalId = varVhpActiveItemId).ItemKey),
-                          "Save the plan before attaching documents - the folder is named after the item.",
-                          "No documents in " & "TaskListDocuments/" & LookUp(colVhpSavedItems, LocalId = varVhpActiveItemId).ItemKey & " yet."
-                      )
-                  Visible: |-
-                      =IfError(CountRows(Filter(colVhpAttachments, ItemId = varVhpActiveItemId)) = 0, false)
-                  Wrap: |-
-                      =true
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =13
+                        Text: |-
+                            =If(
+                                IsBlank(LookUp(colVhpSavedItems, LocalId = varVhpActiveItemId).ItemKey),
+                                "Save the plan before attaching documents - the folder is named after the item.",
+                                "No documents in " & "TaskListDocuments/" & LookUp(colVhpSavedItems, LocalId = varVhpActiveItemId).ItemKey & " yet."
+                            )
+                        Visible: |-
+                            =IfError(CountRows(Filter(colVhpAttachments, ItemId = varVhpActiveItemId)) = 0, false)
+                        Wrap: |-
+                            =true
+                  - txtVhpAttReadOnly:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Read only. You can open the documents, but not add or remove them."
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-muted'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =18
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =12
+                        Text: |-
+                            ="Read only. You can open the documents, but not add or remove them."
+                        Visible: |-
+                            =!(!IfError(varVhpViewOnly, false) && !(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0))
+                        Wrap: |-
+                            =true
       - conVhpPickerModal:
           Control: GroupContainer
           Variant: AutoLayout
