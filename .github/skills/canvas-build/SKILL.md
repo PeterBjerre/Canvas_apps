@@ -516,6 +516,7 @@ layoutfejl bor:
 | 34 | OnStart maa ikke toemme en samling, skaermens OnVisible fylder |
 | 35 | Index i stedet for Last(FirstN( og First(LastN( (issue #165) |
 | 36 | AllItemsCount i stedet for CountRows(galleri.AllItems) (issue #165) |
+| 37 | Billeder, figurer og klassiske knapper skal have TabIndex >= 0 (issue #165) |
 <!-- rules:end -->
 
 Punkt 7 fanger den klassiske: du sletter en kontrol og glemmer en

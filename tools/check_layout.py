@@ -2243,6 +2243,32 @@ def rule_36(ctx):
                 f"{m.group(1)}.AllItemsCount (App checker: CountRowsGalleryAllItems)")
 
 
+def rule_37(ctx):
+    """Billeder, figurer og klassiske knapper skal have TabIndex >= 0 (issue #165)"""
+    # Studios App checker (TabIndexShouldBeDefinedForInteractiveControl,
+    # Error) regner ethvert klassisk Image, Rectangle og Classic/Button for
+    # interaktivt - ogsaa et rent pyntebillede med OnSelect = false, og
+    # ogsaa et uden OnSelect (standarden ER false). 138 fund i issue #165,
+    # praecis alle dem med TabIndex -1. Issue #45 troede, at TabIndex -1 og
+    # en tom etiket gjorde en figur til pynt; det goer det ikke for checkeren.
+    #
+    # En FORMEL godtages (fx If(<under Tablet>, 0, -1) paa sloeret, der kun
+    # lukker paa en telefon, og hubbens Edit-ikon, der kun er der, naar man
+    # maa redigere) - checkeren melder dem ikke, og her kan den ikke regnes ud.
+    # ModernButton har ingen TabIndex (regel 10); Gallery er regel 18.
+    kinds = ("Image", "Rectangle", "Classic/Button")
+    for _p, name, body in ctx.all_nodes:
+        ctl = (body.get("Control") or "").strip().split("@")[0]
+        if ctl not in kinds:
+            continue
+        ti = (body.get("Properties") or {}).get("TabIndex")
+        v = None if ti is None else str(ti).strip().lstrip("=").strip()
+        if v is None or re.fullmatch(r"-\s*\d+(\.\d*)?", v):
+            ctx.problems.append(
+                f"[37] {name}: {ctl} med TabIndex {v if v is not None else '(ingen)'} - "
+                f"App checker melder 'Missing tab stop'. Saet TabIndex til 0")
+
+
 RULES = [
     Rule('0', 'Hvert kontrolnavn findes kun een gang', rule_0),
     Rule('1', 'Ingen kontrol-til-kontrol hoejdereferencer', rule_1),
@@ -2288,6 +2314,7 @@ RULES = [
     Rule('34', 'OnStart maa ikke toemme en samling, skaermens OnVisible fylder', rule_34),
     Rule('35', 'Index i stedet for Last(FirstN( og First(LastN( (issue #165)', rule_35),
     Rule('36', 'AllItemsCount i stedet for CountRows(galleri.AllItems) (issue #165)', rule_36),
+    Rule('37', 'Billeder, figurer og klassiske knapper skal have TabIndex >= 0 (issue #165)', rule_37),
 ]
 
 

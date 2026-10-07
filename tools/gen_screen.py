@@ -568,8 +568,11 @@ def _background(c, x, y, w, h, vis):
              # manglende AccessibleLabel og manglende tab stop. Uden OnSelect,
              # med TabIndex -1 og en tom etiket er den et billede, som
              # skaermlaeseren springer over - teksten staar i boernene.
+             # Issue #165: Studios App checker melder ALLIGEVEL ethvert
+             # Rectangle med TabIndex < 0 (Missing tab stop) og en tom
+             # etiket (AccessibleLabelNeeded). Derfor TabIndex 0.
              "OnSelect": "false",
-             "TabIndex": "-1",
+             "TabIndex": "0",
              "AccessibleLabel": "\"\""}
     if vis:
         props["Visible"] = vis

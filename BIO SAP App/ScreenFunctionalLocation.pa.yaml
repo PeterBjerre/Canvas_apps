@@ -131,7 +131,7 @@ Screens:
                               OnSelect: |-
                                   =false
                               TabIndex: |-
-                                  =-1
+                                  =0
                               Visible: |-
                                   =LayoutRank >= 2
                               Width: |-
@@ -253,7 +253,7 @@ Screens:
                                     OnSelect: |-
                                         =false
                                     TabIndex: |-
-                                        =-1
+                                        =0
                                     Visible: |-
                                         =LayoutRank >= 2
                                     Width: |-
@@ -1738,7 +1738,7 @@ Screens:
                                     OnSelect: |-
                                         =false
                                     TabIndex: |-
-                                        =-1
+                                        =0
                                     Width: |-
                                         =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 0 - 40)
                                     X: |-
@@ -3075,7 +3075,7 @@ Screens:
                                     OnSelect: |-
                                         =false
                                     TabIndex: |-
-                                        =-1
+                                        =0
                                     Width: |-
                                         =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 0 - 40)
                                     X: |-
@@ -3791,7 +3791,7 @@ Screens:
                         PressedFill: |-
                             =RGBA(0, 0, 0, 0)
                         TabIndex: |-
-                            =-1
+                            =0
                         Width: |-
                             =36
                   - imgFlTheme:
@@ -3930,7 +3930,7 @@ Screens:
                   OnSelect: |-
                       =false
                   TabIndex: |-
-                      =-1
+                      =0
                   Width: |-
                       =32
             - txtFlNavTitle:
@@ -3990,7 +3990,7 @@ Screens:
             OnSelect: |-
                 =If(LayoutRank < 2, Set(varFlDetailRow, ""))
             TabIndex: |-
-                =-1
+                =If(LayoutRank < 2, 0, -1)
             Visible: |-
                 =!IsBlank(varFlDetailRow) && !IsBlank(LookUp(colFlRows, RowGuid = varFlDetailRow).RowGuid) && Coalesce(LookUp(colFlRows, RowGuid = varFlDetailRow).AssignedClass, "NO CLASS") = varFlDetailClass
             Width: |-
@@ -4646,7 +4646,7 @@ Screens:
             PressedFill: |-
                 =RGBA(0, 0, 0, 0)
             TabIndex: |-
-                =-1
+                =0
             Visible: |-
                 =gblNavOpen
             Width: |-
@@ -5142,7 +5142,7 @@ Screens:
                         PressedFill: |-
                             =RGBA(0, 0, 0, 0)
                         TabIndex: |-
-                            =-1
+                            =0
                         Width: |-
                             =148
                   - imgFlThemeOpen:
@@ -5759,7 +5759,7 @@ Screens:
                                     OnSelect: |-
                                         =Set(gblFbPick, !gblFbPick)
                                     TabIndex: |-
-                                        =-1
+                                        =0
                                     Visible: |-
                                         =gblFbSel.Kind = "R"
                                     Width: |-
@@ -5845,7 +5845,7 @@ Screens:
                                     OnSelect: |-
                                         =Set(gblFbPick, !gblFbPick)
                                     TabIndex: |-
-                                        =-1
+                                        =0
                                     Width: |-
                                         =20
                         - conFlFbSubjectList:
@@ -6080,7 +6080,7 @@ Screens:
                                           OnSelect: |-
                                               =false
                                           TabIndex: |-
-                                              =-1
+                                              =0
                                           Visible: |-
                                               =!IsBlank(gblFbSel.Kind) && ThisItem.Kind = gblFbSel.Kind && ThisItem.Label = gblFbSel.Label
                                           Width: |-
@@ -6109,7 +6109,7 @@ Screens:
                                           OnSelect: |-
                                               =false
                                           TabIndex: |-
-                                              =-1
+                                              =0
                                           Visible: |-
                                               =ThisItem.Kind = "R"
                                           Width: |-
@@ -6492,7 +6492,7 @@ Screens:
             OnSelect: |-
                 =If(LayoutRank < 2, Set(varFlConfirmSubmit, false))
             TabIndex: |-
-                =-1
+                =If(LayoutRank < 2, 0, -1)
             Visible: |-
                 =IfError(varFlConfirmSubmit, false)
             Width: |-
@@ -7090,7 +7090,7 @@ Screens:
             OnSelect: |-
                 =If(LayoutRank < 2, Set(varFlDeleteOpen, false))
             TabIndex: |-
-                =-1
+                =If(LayoutRank < 2, 0, -1)
             Visible: |-
                 =IfError(varFlDeleteOpen, false)
             Width: |-
@@ -7397,7 +7397,7 @@ Screens:
             ImagePosition: |-
                 =ImagePosition.Center
             TabIndex: |-
-                =-1
+                =0
             Visible: |-
                 =IfError(varFlSaving, false)
             Width: |-
@@ -7647,7 +7647,7 @@ Screens:
             Image: |-
                 =""
             TabIndex: |-
-                =-1
+                =0
             Visible: |-
                 =IfError(varFlLoading, false) || IfError(varFlLoadFailed, false)
             Width: |-
@@ -7727,7 +7727,7 @@ Screens:
                   ImagePosition: |-
                       =ImagePosition.Fit
                   TabIndex: |-
-                      =-1
+                      =0
                   Width: |-
                       =40
             - txtFlLoadTitle:

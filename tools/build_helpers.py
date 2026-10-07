@@ -495,7 +495,7 @@ def loading_overlay(name, busy_var, label="Saving, please wait", caption=None):
         "Height": "App.Height",
         "Image": spinner_svg(caption=caption),
         "ImagePosition": "ImagePosition.Center",
-        "TabIndex": "-1",
+        "TabIndex": "0",
         "Visible": vis,
         "Width": "App.Width",
         "X": "0",
@@ -542,7 +542,7 @@ def open_overlay(prefix, busy_var, failed_var, slow_var, *, title_fx, step_fx, h
         "Fill": C_OVERLAY,
         "Height": "App.Height",
         "Image": '""',
-        "TabIndex": "-1",
+        "TabIndex": "0",
         "Visible": vis,
         "Width": "App.Width",
         "X": "0",
@@ -556,7 +556,7 @@ def open_overlay(prefix, busy_var, failed_var, slow_var, *, title_fx, step_fx, h
         "Height": "40",
         "Image": f"If({failed}, {error_svg(40, 4)}, {spinner_svg(40, 4)})",
         "ImagePosition": "ImagePosition.Fit",
-        "TabIndex": "-1",
+        "TabIndex": "0",
         "Width": "40",
     }, h=40)
     title = text_ctrl(f"txt{prefix}LoadTitle", title_fx, size=lay.SIZE_CARD_TITLE,
@@ -595,7 +595,14 @@ def open_overlay(prefix, busy_var, failed_var, slow_var, *, title_fx, step_fx, h
 def tap_backdrop(name, vis, close_fx):
     """Sloeret bag en popup. Paa mobil lukker et tryk udenfor popuppen den;
     sloeret daekker hele skaermen, saa siden under ikke kan trykkes paa. Er
-    ventespinneren oppe, ligger den oven paa og tager trykket."""
+    ventespinneren oppe, ligger den oven paa og tager trykket.
+
+    TAB STOP DER, HVOR DEN LUKKER (issue #165). App checker kraever et tab
+    stop paa ethvert Image (TabIndexShouldBeDefinedForInteractiveControl).
+    Sloeret lukker kun under Tablet, saa det er et tab stop ("Close the
+    dialog") netop dér - paa en bred skaerm ville Enter paa det intet goere.
+    Close-knappen i popuppen er den lukning, der virker overalt."""
+    below = lay.below('Tablet')
     return Ctrl(name, "Image", props={
         "AccessibleLabel": '"Close the dialog"',
         "BorderStyle": "BorderStyle.None",
@@ -603,8 +610,8 @@ def tap_backdrop(name, vis, close_fx):
         "Fill": C_OVERLAY,
         "Height": "App.Height",
         "Image": '""',
-        "OnSelect": f"If({lay.below('Tablet')}, {close_fx})",
-        "TabIndex": "-1",
+        "OnSelect": f"If({below}, {close_fx})",
+        "TabIndex": f"If({below}, 0, -1)",
         "Visible": vis,
         "Width": "App.Width",
         "X": "0",
@@ -1016,7 +1023,7 @@ def page_icon(name, key, size=PAGE_ICON):
         "Image": f'"data:image/svg+xml;utf8," & EncodeUrl("{svg}")',
         "ImagePosition": "ImagePosition.Fit",
         "OnSelect": "false",
-        "TabIndex": "-1",
+        "TabIndex": "0",
         "Width": str(size),
     }, h=size)
 
@@ -1096,7 +1103,7 @@ def mode_badge(prefix, var):
         "AlignInContainer": "AlignInContainer.Center",
         "BorderStyle": "BorderStyle.None", "BorderThickness": "0", "Height": "26",
         "Image": f'If(IfError({var.replace("ViewOnly", "BadgeOn")}, false), {svg}, "")', "ImagePosition": "ImagePosition.Fit", "LayoutMinWidth": "104",
-        "OnSelect": "false", "TabIndex": "-1", "Width": "104",
+        "OnSelect": "false", "TabIndex": "0", "Width": "104",
     }, h=26)
     return img
 
@@ -1115,7 +1122,7 @@ def number_badge(prefix, var, key):
         "AlignInContainer": "AlignInContainer.Start",
         "BorderStyle": "BorderStyle.None", "BorderThickness": "0", "Height": "26",
         "Image": f'If(IsBlank({var}), "", {svg})', "ImagePosition": "ImagePosition.Fit",
-        "LayoutMinWidth": "88", "OnSelect": "false", "TabIndex": "-1", "Width": "88",
+        "LayoutMinWidth": "88", "OnSelect": "false", "TabIndex": "0", "Width": "88",
     }, h=26)
 
 
@@ -1391,7 +1398,7 @@ def row_rule(name, template_size):
     return Ctrl(name, "Rectangle", props={
         "AccessibleLabel": '""', "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0", "Fill": C_DIVIDER, "Height": "1",
-        "OnSelect": "false", "TabIndex": "-1",
+        "OnSelect": "false", "TabIndex": "0",
         "Width": "Parent.TemplateWidth", "X": "0", "Y": str(template_size - 1),
     }, h=1)
 

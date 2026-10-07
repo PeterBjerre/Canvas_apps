@@ -578,7 +578,7 @@ def _number_badge(name):
         "BorderStyle": "BorderStyle.None", "BorderThickness": "0", "Fill": C_TRANSPARENT,
         "Height": "26", "Image": f'If(IsBlank({R}.RequestNo), "", With({{ c: {col} }}, {svg}))',
         "ImagePosition": "ImagePosition.Fit", "LayoutMinWidth": "88",
-        "OnSelect": "false", "TabIndex": "-1", "Width": "88",
+        "OnSelect": "false", "TabIndex": "0", "Width": "88",
     }, h=26)
 
 
@@ -667,12 +667,12 @@ def build_popup():
         "RadiusTopLeft": f"If({_is('X')}, 0, 8)", "RadiusTopRight": f"If({_is('X')}, 0, 8)",
         "RadiusBottomLeft": f"If({_is('X')}, If(ThisItem.IsLast, 8, 0), If({is_open}, 0, 8))",
         "RadiusBottomRight": f"If({_is('X')}, If(ThisItem.IsLast, 8, 0), If({is_open}, 0, 8))",
-        "TabIndex": "-1", "Text": '""', "Visible": d_or_x,
+        "TabIndex": "0", "Text": '""', "Visible": d_or_x,
     }, h=ROW_H - 8, vis=d_or_x)
     rail = Ctrl(n("img", "Rail"), "Image", props={
         "AccessibleLabel": '""', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
         "Fill": C_TRANSPARENT, "Height": str(ROW_H), "Image": _rail_svg(),
-        "ImagePosition": "ImagePosition.Fit", "OnSelect": "false", "TabIndex": "-1",
+        "ImagePosition": "ImagePosition.Fit", "OnSelect": "false", "TabIndex": "0",
         "Width": "32", "X": "0", "Y": "0",
     }, h=ROW_H)
 
@@ -700,7 +700,7 @@ def build_popup():
                   '\' fill=\'none\' stroke=\'" & ' + ref_hex("text-muted") +
                   ' & "\' stroke-width=\'%g\' stroke-linecap=\'round\' stroke-linejoin=\'round\'/></svg>")'
                   % icons.stroke(ICON_W)),
-        "ImagePosition": "ImagePosition.Fit", "OnSelect": "false", "TabIndex": "-1",
+        "ImagePosition": "ImagePosition.Fit", "OnSelect": "false", "TabIndex": "0",
         "Width": str(ICON_W), "X": str(LX), "Y": f"{y1} + 2",
         "Visible": f"{_is('D')} && ThisItem.Human",
     }, h=ICON_W, vis=f"{_is('D')} && ThisItem.Human")
@@ -790,7 +790,7 @@ def build_popup():
         "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0", "Fill": C_TRANSPARENT, "Height": "110",
         "Image": spinner_svg(), "ImagePosition": "ImagePosition.Center",
-        "TabIndex": "-1", "Visible": busy, "Width": GW,
+        "TabIndex": "0", "Visible": busy, "Width": GW,
     }, h=110, vis=busy)
 
     modal = group(n("con", "Modal"), [head, sub, note, spin, gal], direction="Vertical", gap=10,
