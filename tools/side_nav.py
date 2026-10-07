@@ -93,7 +93,7 @@ import env_config as env
 import icons
 import feedback_popup as feedback
 
-ICON_MESSAGE = "M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-4 3.5V17H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"
+ICON_MESSAGE = icons.MESSAGE
 # Aaben eller lukket. Blank ved start = lukket. Den gemmes ikke: en
 # sidebar, der stod aaben fra sidst, ville ligge oven paa formularen.
 OPEN = "gblNavOpen"
@@ -125,9 +125,13 @@ def use_screens(screens):
         raise SystemExit("side_nav.use_screens: ingen skaerm til %s" % ", ".join(missing))
     SCREENS = dict(screens)
 
-ICON_EXPAND = "M6 6l6 6-6 6 M12 6l6 6-6 6"
-ICON_MENU = "M4 7h16M4 12h16M4 17h16"
-ICON_COLLAPSE = "M18 6l-6 6 6 6 M12 6l-6 6 6 6"
+# Systemikonerne staar i tools/icons.py (issue #139) - samme betydning som
+# foer: dobbeltpil ud/ind og hamburgermenuen.
+ICON_EXPAND = icons.EXPAND
+ICON_MENU = icons.MENU
+ICON_COLLAPSE = icons.COLLAPSE
+# Ikonernes tegnede stoerrelse i sidebaren.
+ICON_PX = 18
 
 FONT = "font-family='Segoe UI, sans-serif'"
 
@@ -141,15 +145,17 @@ def _svg(w, h, body):
             f"height='{h}' viewBox='0 0 {w} {h}'>" + body + "</svg>" + '"')
 
 
-def _icon(path, color):
+def _icon(path, color, current=False):
     """Ikonet fra shell.js: viewBox 24, tegnet 18 px stort og centreret i
-    den lukkede skinne."""
-    s = 18 / 24
-    x = (lay.NAV_W - 18) / 2
-    y = (ITEM_H - 18) / 2
+    den lukkede skinne. Stregen er icons.stroke(18); den valgte side faar
+    en kraftigere streg (icons.SELECTED_BOOST) - samme ikon, mere vaegt."""
+    s = ICON_PX / 24
+    x = (lay.NAV_W - ICON_PX) / 2
+    y = (ITEM_H - ICON_PX) / 2
+    w = icons.stroke(ICON_PX) + (icons.SELECTED_BOOST if current else 0)
     shape = (icons.hub_paths(_hx) if path == icons.HUB else f"<path d='{path}'/>")
     return (f"<g transform='translate({x:g} {y:g}) scale({s:g})' fill='none' "
-            f"stroke='{color}' stroke-width='1.6' stroke-linecap='round' "
+            f"stroke='{color}' stroke-width='{w:g}' stroke-linecap='round' "
             f"stroke-linejoin='round'>{shape}</g>")
 
 
@@ -165,12 +171,14 @@ def _item_svg(w, path, label, current, icon_token=None):
                  f"fill='{_hx('state-info-bg')}'/>"
                  f"<rect x='0' y='{ITEM_H // 2 - 10}' width='3' height='20' rx='1.5' "
                  f"fill='{icon_fg}'/>")
-    body += _icon(path, icon_fg)
+    body += _icon(path, icon_fg, current)
     if label:
         # The label is a STANDALONE string in the expression, so the language
-        # selector (tools/i18n.py) can translate it.
+        # selector (tools/i18n.py) can translate it. Valgt: fed tekst;
+        # ellers en tand stillere (issue #139).
+        weight = 700 if current else 500
         body += (f"<text x='{lay.NAV_W}' y='{ITEM_H // 2 + 5}' {FONT} "
-                 f"font-size='14' font-weight='600' fill='{fg}'>"
+                 f"font-size='14' font-weight='{weight}' fill='{fg}'>"
                  f'" & "{label}" & "</text>')
     return _svg(w, ITEM_H, body)
 
@@ -255,17 +263,19 @@ def _message_button(p, suffix, compact):
     W = H if compact else 148
     ox = (W - 18) / 2 if compact else 12
     oy = (H - 18) / 2
-    icon = (f"<g transform='translate({ox:g} {oy:g}) scale({18 / 24:g})' fill='none' "
-            f"stroke='{_hx('text-primary')}' stroke-width='1.8' stroke-linecap='round' "
-            f"stroke-linejoin='round'><path d='{ICON_MESSAGE}'/></g>")
-    body = (f"<rect x='1' y='1' width='{W - 2}' height='{H - 2}' rx='{H // 2 - 1}' "
-            f"fill='{_hx('state-neutral-bg')}' stroke='{_hx('border-default')}'/>" + icon)
+    # En handling, ikke en kontakt: ingen fast pille rundt om (issue #139).
+    # Hover og fokus tegner en rund flade (Radius = H/2) - pillerne under
+    # den (Help, tema) har pillen som fast form, fordi de viser en tilstand.
+    body = icons.glyph(ICON_MESSAGE, _hx('text-primary'), size=ICON_PX, x=ox, y=oy)
     if not compact:
         body += (f"<text x='40' y='{H // 2 + 5}' {FONT} font-size='13' font-weight='600' "
                  f"fill='{_hx('text-primary')}'>" + '" & "Message us" & "</text>')
-    return _image(f"img{p}NavMessage{suffix}", '"' + _svg_data(W, H, body) + '"', W, H,
-                  f"{CLOSE}; {feedback.OPEN_FX}", '"Message SAP maintenance"',
-                  tooltip='"Message SAP maintenance"')
+    img = _image(f"img{p}NavMessage{suffix}", '"' + _svg_data(W, H, body) + '"', W, H,
+                 f"{CLOSE}; {feedback.OPEN_FX}", '"Message SAP maintenance"',
+                 tooltip='"Message SAP maintenance"')
+    for k in ("RadiusTopLeft", "RadiusTopRight", "RadiusBottomLeft", "RadiusBottomRight"):
+        img.props[k] = str(H // 2)
+    return img
 
 
 def _launch(key, current=None):

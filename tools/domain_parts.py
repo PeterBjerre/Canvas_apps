@@ -225,7 +225,7 @@ def build_bar():
         icon=ICON_SUBMIT,
         display_mode=f'If(varDomViewOnly || CountRows({VALID}) = 0, DisplayMode.Disabled, DisplayMode.Edit)',
         tooltip='"Submit the valid rows - they are locked afterwards (asks first)"'),
-        False)
+        bool(ICON_SUBMIT))
     new = sized(button(
         "btnDomNewRequest", '"New request"',
         'Set(varDomRequestGuid, "");\nSet(varDomRequestNo, "");\nSet(varDomViewOnly, false);\nSet(varDomCanEdit, false);\n' + clear_form_fx(),
