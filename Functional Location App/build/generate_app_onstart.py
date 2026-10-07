@@ -83,6 +83,27 @@ def _function_keys():
             "FlFunctionKeys =\n    %s;" % (len(keys), body))
 
 
+# Listerne, der kun har vaerdien X (Atex, TRM assignment): afkrydsning.
+X_LISTS = {lid for lid in {r["List"] for r in R["lists"]}
+           if [r["Value"] for r in R["lists"] if r["List"] == lid] == ["X"]}
+
+
+def editor_kind(col):
+    """Feltets editor i formularen (issue #166, FL59):
+      ro     skrivebeskyttet (StrIndicator, ABC Indic. ...)
+      check  afkrydsning, gemmer X eller intet (X-listerne og
+             "<klasse> assignment")
+      list   dropdown mod listen
+      text   tekst med maks.-laengde"""
+    if not col["Editable"]:
+        return "ro"
+    if col["List"] in X_LISTS or (not col["List"] and col["Field"].endswith(" ASSIGNMENT")):
+        return "check"
+    if col["List"]:
+        return "list"
+    return "text"
+
+
 def formulas_block():
     parts = [tok.formula(), lay.formula(), perm.formula()]
     parts.append(_table(
@@ -94,9 +115,10 @@ def formulas_block():
         ["List", "Ord", "Value", "UValue"],
         "Dropdown-listerne (FL31, FL35, FL37-FL47). UValue er til FL54."))
     parts.append(_table(
-        "colFlColumns", R["columns"],
-        ["Cls", "Ord", "Column", "Field", "Editable", "List", "MaxLen"],
-        "Kolonnerne pr. klasse og deres editor (FL58-FL61, FL_SPOOL_COLUMNS)."))
+        "colFlColumns", [dict(c, Kind=editor_kind(c)) for c in R["columns"]],
+        ["Cls", "Ord", "Column", "Field", "Editable", "List", "MaxLen", "Section", "Kind"],
+        "Kolonnerne pr. klasse, deres sektion paa skaermen og deres editor "
+        "(FL58-FL61, FL_SPOOL_COLUMNS)."))
     parts.append(_table("colFlAggregate", R["aggregate"], ["Key", "Cls"],
                         "ClassDeterminationAggregateKey (FL17, FL18)."))
     parts.append(_table("colFlComponent", R["component"], ["Key", "Cls"],
@@ -144,9 +166,10 @@ COLLECTIONS = [
     ("colFlTrm", {"RowGuid": '""', "AnyTrm": "false", "Ue": "false"}),
     # FL5: de FL'er, der staar paa mere end een raekke (fl_validation.DUPS).
     ("colFlDupFl", {"FL": '""'}),
-    # Detaljeruden - regnet ved aabning og efter validering (fl_parts).
+    # Formularen for den valgte raekke (issue #166) - regnet, naar raekken
+    # vaelges, og efter hver validering (fl_parts.DET_ITEMS).
     ("colFlDet", {"Column": '""', "Field": '""', "Editable": "false", "List": '""',
-                  "MaxLen": "0", "Value": '""', "Issue": '""'}),
+                  "MaxLen": "0", "Section": '""', "Kind": '""', "Value": '""', "Issue": '""'}),
     # Raekker, brugeren har slettet. Gem fjerner KUN dem (og tomme
     # raekker) fra listen - ikke raekker, en anden har tilfoejet (D24).
     ("colFlDeleted", {"RowGuid": '""'}),
@@ -192,10 +215,9 @@ Set(varFlCanEdit, false);
 Set(varFlNextRowNo, 1);
 // Aktiv klassefane. ALL som i renderClassTabs.
 Set(varFlTab, "ALL");
-// Detaljeruden: raekkens RowGuid og den klasse, den blev aabnet i.
+// Den raekke, formularen viser (issue #166). Valideringen vaelger den
+// foerste, naar den er tom.
 Set(varFlDetailRow, "");
-Set(varFlDetailClass, "");
-Set(varFlShowEmpty, false);
 // Er der aendret noget siden sidste validering? Submit kraever false (FL68).
 Set(varFlStale, false);
 // Kun fejl ved gem/indsend - vist under Validation-tabellen (issue #77).

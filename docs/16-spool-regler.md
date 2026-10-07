@@ -293,7 +293,16 @@ det en klasse, der er faldet ud af trinlisten, eller en kolonne, der er
 blevet tilbage. Alle 16 andre SCEq-kolonner svarer til en klasse, der kører
 `TRMNEW`.
 
+> **Afgjort (issue #166):** MAF er en del af GIV. Appen lægger MAF-kolonnens
+> værdier i GIV's liste (`SCE_COLUMN_INTO_CLASS` i
+> `html/app-functional-location.js`). De tre værdier stod i forvejen også i
+> GIV-kolonnen, så listen er den samme.
+
 **`Required` står på fem felter ud af 88.** Description, Beskrivelse, Plant,
 Equipment Category og Func. location. Alt andet må stå tomt — også Safety
 Critical Equipment og Fire Classification uden for BR18-reglen. Det kan være
 med vilje; det er værd at få bekræftet, før appen gør det samme.
+
+> **Afgjort (issue #166):** Det er med vilje. I Functional Location-appen er
+> kun Description påkrævet, plus de afledte regler (Fire Classification ved
+> MKP/UE, Fire Sealing Type og Product ved UE/FP - docs/31, FL50-FL51).
