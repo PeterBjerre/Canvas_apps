@@ -4543,7 +4543,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =214 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + If(IsBlank(varIbFormApp), 12 + (18), 0) + If(IbOtherNeeded, 12 + (62), 0) + 12 + (62) + If(!(varIbFormMode = "edit") && CountRows(galIbSimilar.AllItems) > 0, 12 + (38 + 6 + (CountRows(galIbSimilar.AllItems) * 44)), 0) + 12 + (136) + If(varIbMore, 12 + (0 + (98) + 12 + (98) + 12 + (98) + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62)))), 0) + If(!(varIbFormMode = "edit"), 12 + (116), 0) + If(varIbFormMode = "edit" && IsAdmin, 12 + (90 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + 12 + (62) + 12 + (98)), 0) + If(!(varIbFormMode = "edit"), 12 + (34), 0) + If(!(!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && (!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))), 12 + (34), 0)
+                      =214 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + If(IsBlank(varIbFormApp), 12 + (18), 0) + If(IbOtherNeeded, 12 + (62), 0) + 12 + (62) + If(!(varIbFormMode = "edit") && CountRows(galIbSimilar.AllItems) > 0, 12 + (38 + 6 + (CountRows(galIbSimilar.AllItems) * 44)), 0) + 12 + (136) + If(varIbMore, 12 + (0 + (98) + 12 + (98) + 12 + (98) + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62)))), 0) + If(!(varIbFormMode = "edit"), 12 + (20 + 6 + (If(attIbNewFiles.AttachmentsCount = 0, 112, 112 + Min(attIbNewFiles.AttachmentsCount, 4) * 36))), 0) + If(varIbFormMode = "edit" && IsAdmin, 12 + (90 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + 12 + (62) + 12 + (98)), 0) + If(!(varIbFormMode = "edit"), 12 + (34), 0) + If(!(!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && (!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))), 12 + (34), 0)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -6654,7 +6654,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =116
+                            =20 + 6 + (If(attIbNewFiles.AttachmentsCount = 0, 112, 112 + Min(attIbNewFiles.AttachmentsCount, 4) * 36))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -6708,30 +6708,22 @@ Screens:
                               Wrap: |-
                                   =false
                         - attIbNewFiles:
-                            Control: Attachments@2.3.0
+                            Control: ModernAttachments@1.3.0
                             Properties:
                               AccessibleLabel: |-
                                   ="Screenshots and files for the new issue"
-                              BorderColor: |-
-                                  =C.'border-default'
-                              BorderThickness: |-
-                                  =1
+                              DisplayMode: |-
+                                  =If(varIbUploading, DisplayMode.Disabled, DisplayMode.Edit)
                               Height: |-
-                                  =90
+                                  =If(Self.AttachmentsCount = 0, 112, 112 + Min(Self.AttachmentsCount, 4) * 36)
+                              Items: |-
+                                  =Blank()
                               MaxAttachmentSize: |-
                                   =10
                               MaxAttachments: |-
                                   =5
-                              NoAttachmentsText: |-
-                                  ="Drag screenshots or files here, or browse"
-                              PaddingBottom: |-
-                                  =5
-                              PaddingLeft: |-
-                                  =5
-                              PaddingRight: |-
-                                  =5
-                              PaddingTop: |-
-                                  =5
+                              OnError: |-
+                                  =Notify("This file could not be added. You can add up to 5 files of up to 10 MB each.", NotificationType.Error)
                               Width: |-
                                   =Parent.Width
                   - conIbManage:
@@ -7659,7 +7651,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =163 + If(IbCanEdit || IbCanReopen || IbCanManage, 12 + (34), 0) + If(varIbSelShared, 12 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 12 + (34), 0) + If(!varIbSelShared, 12 + (32), 0) + If(varIbSelShared || varIbTab = "details", 12 + (0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)), 0) + If(!varIbSelShared && varIbTab = "activity", 12 + (0 + If(varIbActBusy || IfError(varIbActFailed, false), 0 + (20), 0) + If(!varIbActBusy, 12 + (Min(420, Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown(((((Min(760, App.Width - 24) - 36) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40)))), 0) + If(IbCanComment, 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0)), 0) + If(!varIbSelShared && varIbTab = "files", 12 + (0 + If(CountRows(galIbFiles.AllItems) = 0, 0 + (20), 0) + If(CountRows(galIbFiles.AllItems) > 0, 12 + (Min(5, CountRows(galIbFiles.AllItems)) * 60), 0) + If(!varIbSel.Archived, 12 + (176), 0)), 0)
+                      =163 + If(IbCanEdit || IbCanReopen || IbCanManage, 12 + (34), 0) + If(varIbSelShared, 12 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 12 + (34), 0) + If(!varIbSelShared, 12 + (32), 0) + If(varIbSelShared || varIbTab = "details", 12 + (0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown(((Min(760, App.Width - 24) - 36)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)), 0) + If(!varIbSelShared && varIbTab = "activity", 12 + (0 + If(varIbActBusy || IfError(varIbActFailed, false), 0 + (20), 0) + If(!varIbActBusy, 12 + (Min(420, Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown(((((Min(760, App.Width - 24) - 36) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40)))), 0) + If(IbCanComment, 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0)), 0) + If(!varIbSelShared && varIbTab = "files", 12 + (0 + If(CountRows(galIbFiles.AllItems) = 0, 0 + (20), 0) + If(CountRows(galIbFiles.AllItems) > 0, 12 + (Min(5, CountRows(galIbFiles.AllItems)) * 60), 0) + If(!varIbSel.Archived, 12 + (86 + (If(attIbFiles.AttachmentsCount = 0, 112, 112 + Min(attIbFiles.AttachmentsCount, 4) * 36))), 0)), 0)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -9759,7 +9751,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + If(CountRows(galIbFiles.AllItems) = 0, 0 + (20), 0) + If(CountRows(galIbFiles.AllItems) > 0, 12 + (Min(5, CountRows(galIbFiles.AllItems)) * 60), 0) + If(!varIbSel.Archived, 12 + (176), 0)
+                            =0 + If(CountRows(galIbFiles.AllItems) = 0, 0 + (20), 0) + If(CountRows(galIbFiles.AllItems) > 0, 12 + (Min(5, CountRows(galIbFiles.AllItems)) * 60), 0) + If(!varIbSel.Archived, 12 + (86 + (If(attIbFiles.AttachmentsCount = 0, 112, 112 + Min(attIbFiles.AttachmentsCount, 4) * 36))), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -10071,7 +10063,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =176
+                                  =86 + (If(attIbFiles.AttachmentsCount = 0, 112, 112 + Min(attIbFiles.AttachmentsCount, 4) * 36))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -10090,30 +10082,22 @@ Screens:
                                   =Parent.Width
                             Children:
                               - attIbFiles:
-                                  Control: Attachments@2.3.0
+                                  Control: ModernAttachments@1.3.0
                                   Properties:
                                     AccessibleLabel: |-
                                         ="Choose files to attach"
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderThickness: |-
-                                        =1
+                                    DisplayMode: |-
+                                        =If(varIbUploading, DisplayMode.Disabled, DisplayMode.Edit)
                                     Height: |-
-                                        =90
+                                        =If(Self.AttachmentsCount = 0, 112, 112 + Min(Self.AttachmentsCount, 4) * 36)
+                                    Items: |-
+                                        =Blank()
                                     MaxAttachmentSize: |-
                                         =10
                                     MaxAttachments: |-
                                         =5
-                                    NoAttachmentsText: |-
-                                        ="Drag screenshots or files here, or browse"
-                                    PaddingBottom: |-
-                                        =5
-                                    PaddingLeft: |-
-                                        =5
-                                    PaddingRight: |-
-                                        =5
-                                    PaddingTop: |-
-                                        =5
+                                    OnError: |-
+                                        =Notify("This file could not be added. You can add up to 5 files of up to 10 MB each.", NotificationType.Error)
                                     Width: |-
                                         =Parent.Width
                               - txtIbFilesHint:
@@ -10161,7 +10145,7 @@ Screens:
                                     Color: |-
                                         =C.'text-on-primary'
                                     DisplayMode: |-
-                                        =If(CountRows(attIbFiles.Attachments) = 0 || varIbUploading, DisplayMode.Disabled, DisplayMode.Edit)
+                                        =If(attIbFiles.AttachmentsCount = 0 || attIbFiles.IsUploading || varIbUploading, DisplayMode.Disabled, DisplayMode.Edit)
                                     Font: |-
                                         =Font.'Segoe UI'
                                     FontWeight: |-
