@@ -2552,7 +2552,24 @@ App:
       // sidebaren). Kun naar konfigurationen siger det - ellers intet gaet.
       IbFrom = Coalesce(LookUp(colIbSections, ScreenKey = gblNavFrom && !IsBlank(gblNavFrom)).Application, "");
 
-      IbFailed = IfError(varIbCfgFailed, false) || IfError(varIbMineFailed, false) || (varIbScope = "shared" && IfError(varIbSharedFailed, false));
+      IbFailed = IfError(varIbCfgFailed, false) || IfError(varIbMineFailed, false) || (varIbScope = "shared" && IfError(varIbSharedFailed, false)) || (varIbScope = "all" && IfError(varIbAllFailed, false));
+
+      // Hvad maa brugeren paa den aabne sag? EET sted for knapperne - og samme
+      // regler som flowet BioSap-IssueBoard-Submit, der afgoer det paa serveren.
+      // En anonym (delt) sag kan ingen aendre herfra.
+      IbSelMine = !varIbSelShared && varIbSel.Reporter = varIbMe;
+
+      IbCanEdit = !varIbSelShared && !varIbSel.Archived && (IsAdmin || (IbSelMine && varIbSel.Status = "New"));
+
+      IbCanReopen = !varIbSelShared && !varIbSel.Archived && (IsAdmin || IbSelMine) && varIbSel.Status in ["Closed", "Ready for retest"];
+
+      IbCanManage = !varIbSelShared && IsAdmin;
+
+      IbCanComment = !varIbSelShared && !varIbSel.Archived;
+
+      // Antallet af filer paa sagen - af Activity, saa fanen kan vise det uden
+      // at hente filerne.
+      IbFileCount = CountRows(Filter(colIbActivity, Kind = "Attachment"));
     OnError: |
       =Trace(
           "Unhandled error",

@@ -21,7 +21,8 @@ import ib_config as cfg  # noqa: E402
 PS1 = os.path.join(ROOT, "sharepoint", "provision", "Provision-IssueBoard.ps1")
 FLOWS = os.path.join(ROOT, "solution", "BIOSAP", "src", "Workflows")
 # Kolonner, SharePoint selv har paa hver liste.
-BUILTIN = {"ID", "Title", "Created", "Modified"}
+# Attachments: SharePoint-vedhaeftningerne paa raekken (trin 2).
+BUILTIN = {"ID", "Title", "Created", "Modified", "Attachments"}
 
 
 def _ps1():
@@ -149,3 +150,91 @@ def test_feature_flag_hides_the_screen(monkeypatch):
     assert env_config._app_enabled("kks")
     monkeypatch.setattr(env_config, "FEATURES", {cfg.FEATURE: True})
     assert env_config._app_enabled(cfg.APP_KEY)
+
+
+# ---------------------------------------------------------------------------
+# Trin 2: admin-board, redigering, vedhaeftninger, mail
+# ---------------------------------------------------------------------------
+def _cases():
+    try_ = _flow()["properties"]["definition"]["actions"]["Try"]["actions"]
+    return {c["case"]: c["actions"] for c in try_["Action"]["cases"].values()}
+
+
+def test_flow_has_every_action_the_screen_calls():
+    cases = _cases()
+    for act in (cfg.ACT_CREATE, cfg.ACT_COMMENT, cfg.ACT_EDIT, cfg.ACT_REOPEN,
+                cfg.ACT_ARCHIVE, cfg.ACT_DELETE, cfg.ACT_ATTACH):
+        assert act in cases, act
+    import ib_parts as P
+    text = "\n".join([P.SUBMIT, P.SAVE_EDIT, P.POST, P.REOPEN, P.ARCHIVE, P.DELETE,
+                      P.UPLOAD_FILES])
+    for act in cases:
+        assert f'"{act}"' in text, act
+
+
+def test_admin_only_actions_are_checked_on_the_server():
+    cases = _cases()
+    for act in (cfg.ACT_ARCHIVE, cfg.ACT_DELETE):
+        problem = json.dumps(next(iter(cases[act].values())))
+        assert "not(outputs('Is_admin'))" in problem, act
+    # Rapportoeren maa kun rette en sag, der er New; admin altid.
+    edit = json.dumps(cases[cfg.ACT_EDIT]["Edit_problem"])
+    assert f"equals(outputs('Current_status'), '{cfg.STATUS_EDITABLE}')" in edit
+    # Status, prioritet, tildeling og loesning tages kun fra en admin.
+    ok = cases[cfg.ACT_EDIT]["Edit_ok"]["actions"]
+    for name in ("New_status", "New_priority", "New_assignee", "New_resolution"):
+        assert ok[name]["inputs"].startswith("@if(outputs('Is_admin')"), name
+    # Intern note kun fra en admin.
+    assert "Only administrators can add internal notes." in json.dumps(cases[cfg.ACT_COMMENT])
+
+
+def test_delete_needs_the_ticket_number_and_takes_the_history_with_it():
+    delete = _cases()[cfg.ACT_DELETE]
+    assert "confirm" in json.dumps(delete["Delete_problem"])
+    ok = json.dumps(delete["Delete_ok"])
+    for table in (cfg.L_COMMENTS, cfg.L_SHARED, cfg.L_TICKETS):
+        assert f'"table": "{table}"' in ok, table
+
+
+def test_internal_notes_never_reach_the_reporter():
+    actions = dict(_walk(_flow()["properties"]["definition"]["actions"]))
+    grant = actions["Grant_event_reporter"]
+    assert grant["expression"] == {"equals": ["@items('For_each_event')?['visibility']", "Reporter"]}
+    assert "Grant_comment_reporter_read" in grant["actions"]
+    # Haendelserne skrives i raekkefoelge - ID er Activity's sortering.
+    assert actions["For_each_event"]["runtimeConfiguration"]["concurrency"]["repetitions"] == 1
+
+
+def test_attachments_live_on_the_ticket_row():
+    attach = json.dumps(_cases()[cfg.ACT_ATTACH])
+    assert '"operationId": "CreateAttachment"' in attach
+    assert f'"table": "{cfg.L_TICKETS}"' in attach
+    trigger = _flow()["properties"]["definition"]["triggers"]["manual"]["inputs"]["schema"]
+    assert trigger["properties"]["file"]["x-ms-content-hint"] == "FILE"
+    assert "file" not in trigger["required"]
+
+
+def test_archiving_removes_the_issue_from_the_shared_board():
+    archive = json.dumps(_cases()[cfg.ACT_ARCHIVE])
+    assert '"operationId": "DeleteItem"' in archive and f'"table": "{cfg.L_SHARED}"' in archive
+    assert '"item/SharedItemId": 0' in archive
+
+
+def test_mail_only_goes_to_the_reporter_on_three_events():
+    actions = dict(_walk(_flow()["properties"]["definition"]["actions"]))
+    mails = [n for n, a in actions.items() if _op(a) == "SendEmailV2"]
+    assert mails == ["Send_mail_to_reporter"]
+    to = actions["Send_mail_to_reporter"]["inputs"]["parameters"]["emailMessage/To"]
+    assert "ReporterEmail" in to
+    setters = [n for n, a in actions.items()
+               if a.get("type") == "SetVariable" and a["inputs"]["name"] == "MailSubject"]
+    assert sorted(setters) == ["Reply_subject", "Status_subject"]
+    assert "'Ready for retest', 'Closed'" in json.dumps(actions["Mail_on_status"])
+
+
+def test_admin_scope_and_actions_follow_is_admin():
+    import ib_parts as P
+    from permissions import IS_ADMIN
+    assert f"{IS_ADMIN} && !varIbAllLoaded" in P.LOAD_ALL
+    assert f"IbCanManage = !varIbSelShared && {IS_ADMIN};" in P.FORMULAS
+    assert "IbCanEdit = " in P.FORMULAS and f'varIbSel.Status = "{cfg.STATUS_EDITABLE}"' in P.FORMULAS

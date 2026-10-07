@@ -9,6 +9,15 @@
         "api": {
           "name": "shared_sharepointonline"
         }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapOutlookConn"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
       }
     },
     "definition": {
@@ -46,7 +55,7 @@
                   "title": "Action",
                   "type": "string",
                   "x-ms-dynamically-added": true,
-                  "description": "create or comment",
+                  "description": "create, comment, edit, reopen, archive, delete or attach",
                   "x-ms-content-hint": "TEXT"
                 },
                 "text_1": {
@@ -55,6 +64,22 @@
                   "x-ms-dynamically-added": true,
                   "description": "JSON from the Issue Board screen",
                   "x-ms-content-hint": "TEXT"
+                },
+                "file": {
+                  "title": "File",
+                  "type": "object",
+                  "x-ms-dynamically-added": true,
+                  "description": "A file to attach (attach only)",
+                  "x-ms-content-hint": "FILE",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "contentBytes": {
+                      "type": "string",
+                      "format": "byte"
+                    }
+                  }
                 }
               },
               "required": [
@@ -122,9 +147,109 @@
             ]
           }
         },
-        "Try": {
+        "Init_events": {
           "runAfter": {
             "Init_comment_id": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e5300b66-6841-5067-a090-146f6ce6c535"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Events",
+                "type": "array",
+                "value": []
+              }
+            ]
+          }
+        },
+        "Init_admin_ids": {
+          "runAfter": {
+            "Init_events": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "bb596022-da5d-528b-8d3d-81a6a6c64e84"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "AdminIds",
+                "type": "array",
+                "value": []
+              }
+            ]
+          }
+        },
+        "Init_problem": {
+          "runAfter": {
+            "Init_admin_ids": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "a9ec6c58-ef19-5da5-a99b-174c5808b2a6"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Problem",
+                "type": "string",
+                "value": ""
+              }
+            ]
+          }
+        },
+        "Init_mail_subject": {
+          "runAfter": {
+            "Init_problem": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "283919a1-b5d0-54a2-ae45-8add15967dd9"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "MailSubject",
+                "type": "string",
+                "value": ""
+              }
+            ]
+          }
+        },
+        "Init_mail_body": {
+          "runAfter": {
+            "Init_mail_subject": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "ce70fd0e-214a-526d-ba35-c44d58613048"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "MailBody",
+                "type": "string",
+                "value": ""
+              }
+            ]
+          }
+        },
+        "Try": {
+          "runAfter": {
+            "Init_mail_body": [
               "Succeeded"
             ]
           },
@@ -205,9 +330,90 @@
               "type": "Compose",
               "inputs": "@contains(body('Select_admins'), outputs('Caller'))"
             },
-            "Action": {
+            "Load_ticket": {
               "runAfter": {
                 "Is_admin": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "9e29e2c8-53ef-5726-9d1a-f2e807ba4bd2"
+              },
+              "type": "If",
+              "expression": {
+                "not": {
+                  "equals": [
+                    "@toLower(coalesce(triggerBody()?['text'], ''))",
+                    "create"
+                  ]
+                }
+              },
+              "actions": {
+                "Get_ticket_rows": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "dc50ee70-f33a-5bfc-850f-4b0a1777fc00"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "connectionName": "shared_sharepointonline",
+                      "operationId": "GetItems"
+                    },
+                    "parameters": {
+                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                      "table": "IB_Tickets",
+                      "$filter": "ID eq @{int(coalesce(outputs('Payload')?['ticketId'], 0))}",
+                      "$top": 1
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Ticket": {
+                  "runAfter": {
+                    "Get_ticket_rows": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "6ef75ae3-d730-5b1c-96b4-8bcd26b96175"
+                  },
+                  "type": "Compose",
+                  "inputs": "@first(body('Get_ticket_rows')?['value'])"
+                },
+                "Is_reporter": {
+                  "runAfter": {
+                    "Ticket": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "fcca633a-a608-5fb6-bffc-b57e5685f790"
+                  },
+                  "type": "Compose",
+                  "inputs": "@equals(toLower(coalesce(outputs('Ticket')?['ReporterEmail'], '')), outputs('Caller'))"
+                },
+                "Current_status": {
+                  "runAfter": {
+                    "Is_reporter": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "f66e3f42-0976-5c53-be50-1437614bce57"
+                  },
+                  "type": "Compose",
+                  "inputs": "@coalesce(outputs('Ticket')?['Status']?['Value'], 'New')"
+                }
+              },
+              "else": {
+                "actions": {}
+              }
+            },
+            "Action": {
+              "runAfter": {
+                "Load_ticket": [
                   "Succeeded"
                 ]
               },
@@ -652,37 +858,13 @@
                 "Comment": {
                   "case": "comment",
                   "actions": {
-                    "Get_ticket": {
+                    "Comment_problem": {
                       "runAfter": {},
                       "metadata": {
-                        "operationMetadataId": "fee6dc23-4a24-57c3-873f-4ec89e710cc0"
-                      },
-                      "type": "OpenApiConnection",
-                      "inputs": {
-                        "host": {
-                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                          "connectionName": "shared_sharepointonline",
-                          "operationId": "GetItem"
-                        },
-                        "parameters": {
-                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
-                          "table": "IB_Tickets",
-                          "id": "@int(coalesce(outputs('Payload')?['ticketId'], 0))"
-                        },
-                        "authentication": "@parameters('$authentication')"
-                      }
-                    },
-                    "Comment_problem": {
-                      "runAfter": {
-                        "Get_ticket": [
-                          "Succeeded"
-                        ]
-                      },
-                      "metadata": {
-                        "operationMetadataId": "f092f50f-940d-5386-9ef3-20e342968f25"
+                        "operationMetadataId": "5e6e1cb3-2fae-5900-b9c8-30cbddd0e6b6"
                       },
                       "type": "Compose",
-                      "inputs": "@if(empty(trim(coalesce(outputs('Payload')?['content'], ''))), 'Write a comment first.', if(not(or(equals(toLower(coalesce(body('Get_ticket')?['ReporterEmail'], '')), outputs('Caller')), outputs('Is_admin'))), 'You can only comment on your own issues.', if(equals(body('Get_ticket')?['IsArchived'], true), 'This issue is archived.', '')))"
+                      "inputs": "@if(empty(trim(coalesce(outputs('Payload')?['content'], ''))), 'Write a comment first.', if(empty(outputs('Ticket')), 'This issue no longer exists.', if(not(or(outputs('Is_reporter'), outputs('Is_admin'))), 'You can only comment on your own issues.', if(equals(outputs('Ticket')?['IsArchived'], true), 'This issue is archived.', if(and(equals(outputs('Payload')?['internal'], true), not(outputs('Is_admin'))), 'Only administrators can add internal notes.', '')))))"
                     },
                     "Comment_ok": {
                       "runAfter": {
@@ -691,7 +873,7 @@
                         ]
                       },
                       "metadata": {
-                        "operationMetadataId": "109230a0-9f12-5e9c-ae1c-d78560673c4b"
+                        "operationMetadataId": "46a85cdc-5584-548d-acde-4d99f307cd28"
                       },
                       "type": "If",
                       "expression": {
@@ -701,225 +883,35 @@
                         ]
                       },
                       "actions": {
-                        "Create_comment": {
+                        "Log_comment": {
                           "runAfter": {},
                           "metadata": {
-                            "operationMetadataId": "e789c87c-88d6-588b-84aa-8a7f17fa5ee9"
+                            "operationMetadataId": "76e40903-61e4-5005-bddc-02c70f4ff872"
                           },
-                          "type": "OpenApiConnection",
+                          "type": "AppendToArrayVariable",
                           "inputs": {
-                            "host": {
-                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                              "connectionName": "shared_sharepointonline",
-                              "operationId": "PostItem"
-                            },
-                            "parameters": {
-                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
-                              "table": "IB_TicketComments",
-                              "item/Title": "@{body('Get_ticket')?['TicketNo']}",
-                              "item/TicketId": "@body('Get_ticket')?['ID']",
-                              "item/TicketNo": "@{body('Get_ticket')?['TicketNo']}",
-                              "item/AuthorEmail": "@{outputs('Caller')}",
-                              "item/AuthorName": "@{take(coalesce(triggerOutputs()?['headers']?['x-ms-user-name'], ''), 255)}",
-                              "item/AuthorRole/Value": "@{if(and(outputs('Is_admin'), not(equals(toLower(coalesce(body('Get_ticket')?['ReporterEmail'], '')), outputs('Caller')))), 'Admin', 'Reporter')}",
-                              "item/EventType/Value": "Comment",
-                              "item/Visibility/Value": "Reporter",
-                              "item/Content": "@{take(trim(coalesce(outputs('Payload')?['content'], '')), 4000)}",
-                              "item/EventOn": "@{utcNow()}"
-                            },
-                            "authentication": "@parameters('$authentication')"
-                          }
-                        },
-                        "Set_comment_id": {
-                          "runAfter": {
-                            "Create_comment": [
-                              "Succeeded"
-                            ]
-                          },
-                          "metadata": {
-                            "operationMetadataId": "f1d2d061-3c93-5366-9f59-fb2233b44261"
-                          },
-                          "type": "SetVariable",
-                          "inputs": {
-                            "name": "CommentId",
-                            "value": "@body('Create_comment')?['ID']"
-                          }
-                        },
-                        "Break_comment_inheritance": {
-                          "runAfter": {
-                            "Set_comment_id": [
-                              "Succeeded"
-                            ]
-                          },
-                          "metadata": {
-                            "operationMetadataId": "4e6904bb-45ec-52f8-9d7e-18c06b5fb661"
-                          },
-                          "type": "OpenApiConnection",
-                          "inputs": {
-                            "host": {
-                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                              "connectionName": "shared_sharepointonline",
-                              "operationId": "HttpRequest"
-                            },
-                            "parameters": {
-                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
-                              "parameters/method": "POST",
-                              "parameters/uri": "_api/web/lists/GetByTitle('IB_TicketComments')/items(@{variables('CommentId')})/breakroleinheritance(copyRoleAssignments=true,clearSubscopes=true)",
-                              "parameters/headers": {
-                                "Accept": "application/json;odata=nometadata",
-                                "Content-Type": "application/json;odata=nometadata"
-                              }
-                            },
-                            "authentication": "@parameters('$authentication')"
-                          }
-                        },
-                        "Ensure_comment_reporter": {
-                          "runAfter": {
-                            "Break_comment_inheritance": [
-                              "Succeeded"
-                            ]
-                          },
-                          "metadata": {
-                            "operationMetadataId": "69e05b07-2534-5164-96c0-a58c7d2bd590"
-                          },
-                          "type": "OpenApiConnection",
-                          "inputs": {
-                            "host": {
-                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                              "connectionName": "shared_sharepointonline",
-                              "operationId": "HttpRequest"
-                            },
-                            "parameters": {
-                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
-                              "parameters/method": "POST",
-                              "parameters/uri": "_api/web/ensureuser",
-                              "parameters/headers": {
-                                "Accept": "application/json;odata=nometadata",
-                                "Content-Type": "application/json;odata=nometadata"
-                              },
-                              "parameters/body": "{\"logonName\": \"i:0#.f|membership|@{toLower(coalesce(body('Get_ticket')?['ReporterEmail'], ''))}\"}"
-                            },
-                            "authentication": "@parameters('$authentication')"
-                          }
-                        },
-                        "Grant_comment_reporter_read": {
-                          "runAfter": {
-                            "Ensure_comment_reporter": [
-                              "Succeeded"
-                            ]
-                          },
-                          "metadata": {
-                            "operationMetadataId": "cb05241d-a924-5042-b278-ff95c2f37447"
-                          },
-                          "type": "OpenApiConnection",
-                          "inputs": {
-                            "host": {
-                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                              "connectionName": "shared_sharepointonline",
-                              "operationId": "HttpRequest"
-                            },
-                            "parameters": {
-                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
-                              "parameters/method": "POST",
-                              "parameters/uri": "_api/web/lists/GetByTitle('IB_TicketComments')/items(@{variables('CommentId')})/roleassignments/addroleassignment(principalid=@{body('Ensure_comment_reporter')?['Id']},roledefid=1073741826)",
-                              "parameters/headers": {
-                                "Accept": "application/json;odata=nometadata",
-                                "Content-Type": "application/json;odata=nometadata"
-                              }
-                            },
-                            "authentication": "@parameters('$authentication')"
-                          }
-                        },
-                        "For_each_comment_admin": {
-                          "foreach": "@body('Select_admins')",
-                          "actions": {
-                            "Ensure_comment_admin": {
-                              "runAfter": {},
-                              "metadata": {
-                                "operationMetadataId": "5bc9fa1a-8a23-54c3-bddd-106dce82e24b"
-                              },
-                              "type": "OpenApiConnection",
-                              "inputs": {
-                                "host": {
-                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                                  "connectionName": "shared_sharepointonline",
-                                  "operationId": "HttpRequest"
-                                },
-                                "parameters": {
-                                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
-                                  "parameters/method": "POST",
-                                  "parameters/uri": "_api/web/ensureuser",
-                                  "parameters/headers": {
-                                    "Accept": "application/json;odata=nometadata",
-                                    "Content-Type": "application/json;odata=nometadata"
-                                  },
-                                  "parameters/body": "{\"logonName\": \"i:0#.f|membership|@{items('For_each_comment_admin')}\"}"
-                                },
-                                "authentication": "@parameters('$authentication')"
-                              }
-                            },
-                            "Grant_comment_admin_contribute": {
-                              "runAfter": {
-                                "Ensure_comment_admin": [
-                                  "Succeeded"
-                                ]
-                              },
-                              "metadata": {
-                                "operationMetadataId": "d0dc705f-130c-526d-b6e6-2296b4a216cb"
-                              },
-                              "type": "OpenApiConnection",
-                              "inputs": {
-                                "host": {
-                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                                  "connectionName": "shared_sharepointonline",
-                                  "operationId": "HttpRequest"
-                                },
-                                "parameters": {
-                                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
-                                  "parameters/method": "POST",
-                                  "parameters/uri": "_api/web/lists/GetByTitle('IB_TicketComments')/items(@{variables('CommentId')})/roleassignments/addroleassignment(principalid=@{body('Ensure_comment_admin')?['Id']},roledefid=1073741827)",
-                                  "parameters/headers": {
-                                    "Accept": "application/json;odata=nometadata",
-                                    "Content-Type": "application/json;odata=nometadata"
-                                  }
-                                },
-                                "authentication": "@parameters('$authentication')"
-                              }
-                            },
-                            "Admin_comment_handled": {
-                              "runAfter": {
-                                "Grant_comment_admin_contribute": [
-                                  "Succeeded",
-                                  "Failed",
-                                  "Skipped",
-                                  "TimedOut"
-                                ]
-                              },
-                              "metadata": {
-                                "operationMetadataId": "27c04d14-d91f-5ceb-a160-63947c6c99d0"
-                              },
-                              "type": "Compose",
-                              "inputs": "@true"
+                            "name": "Events",
+                            "value": {
+                              "type": "Comment",
+                              "visibility": "@{if(equals(outputs('Payload')?['internal'], true), 'Internal', 'Reporter')}",
+                              "role": "@{if(and(outputs('Is_admin'), not(outputs('Is_reporter'))), 'Admin', 'Reporter')}",
+                              "content": "@{take(trim(coalesce(outputs('Payload')?['content'], '')), 4000)}",
+                              "prev": "",
+                              "next": "",
+                              "file": "",
+                              "sizeKb": 0,
+                              "initial": false
                             }
-                          },
-                          "runAfter": {
-                            "Grant_comment_reporter_read": [
-                              "Succeeded"
-                            ]
-                          },
-                          "metadata": {
-                            "operationMetadataId": "0953fd48-fcd8-5497-b94b-0f2c709522e2"
-                          },
-                          "type": "Foreach"
+                          }
                         },
                         "Touch_ticket": {
                           "runAfter": {
-                            "For_each_comment_admin": [
+                            "Log_comment": [
                               "Succeeded"
                             ]
                           },
                           "metadata": {
-                            "operationMetadataId": "25bc24c9-61b9-5a3d-960c-e1bcb77a202a"
+                            "operationMetadataId": "a528e346-d1b5-59c5-a700-27a2bd0d3411"
                           },
                           "type": "OpenApiConnection",
                           "inputs": {
@@ -931,7 +923,7 @@
                             "parameters": {
                               "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
                               "table": "IB_Tickets",
-                              "id": "@body('Get_ticket')?['ID']",
+                              "id": "@outputs('Ticket')?['ID']",
                               "item/LastActivityOn": "@{utcNow()}"
                             },
                             "authentication": "@parameters('$authentication')"
@@ -944,20 +936,374 @@
                             ]
                           },
                           "metadata": {
-                            "operationMetadataId": "8f100cf9-c2ab-5a4a-b96a-49ff353a55f3"
+                            "operationMetadataId": "adcf4871-ac59-584b-92b0-41550bd82154"
+                          },
+                          "type": "If",
+                          "expression": {
+                            "equals": [
+                              "@equals(outputs('Payload')?['internal'], true)",
+                              false
+                            ]
+                          },
+                          "actions": {
+                            "Touch_shared_public": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "e3a64c7f-6ef9-50dc-9e65-e372a938519d"
+                              },
+                              "type": "If",
+                              "expression": {
+                                "greater": [
+                                  "@coalesce(outputs('Ticket')?['SharedItemId'], 0)",
+                                  0
+                                ]
+                              },
+                              "actions": {
+                                "Touch_shared_public_item": {
+                                  "runAfter": {},
+                                  "metadata": {
+                                    "operationMetadataId": "3dd6f090-bf81-5ded-88ea-f98e3e495020"
+                                  },
+                                  "type": "OpenApiConnection",
+                                  "inputs": {
+                                    "host": {
+                                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                      "connectionName": "shared_sharepointonline",
+                                      "operationId": "PatchItem"
+                                    },
+                                    "parameters": {
+                                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                      "table": "IB_SharedIssues",
+                                      "id": "@int(coalesce(outputs('Ticket')?['SharedItemId'], 0))",
+                                      "item/LastActivityOn": "@{utcNow()}"
+                                    },
+                                    "authentication": "@parameters('$authentication')"
+                                  }
+                                }
+                              },
+                              "else": {
+                                "actions": {}
+                              }
+                            }
+                          },
+                          "else": {
+                            "actions": {}
+                          }
+                        },
+                        "Mail_on_reply": {
+                          "runAfter": {
+                            "Touch_shared": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "c6c0d1fb-caa5-5ae3-8dd3-cd65606b039f"
+                          },
+                          "type": "If",
+                          "expression": {
+                            "and": [
+                              {
+                                "equals": [
+                                  "@equals(outputs('Payload')?['internal'], true)",
+                                  false
+                                ]
+                              },
+                              {
+                                "equals": [
+                                  "@outputs('Is_reporter')",
+                                  false
+                                ]
+                              },
+                              {
+                                "equals": [
+                                  "@outputs('Is_admin')",
+                                  true
+                                ]
+                              }
+                            ]
+                          },
+                          "actions": {
+                            "Reply_subject": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "3d07b8e8-d7b3-54e2-8d59-a0fde90c37af"
+                              },
+                              "type": "SetVariable",
+                              "inputs": {
+                                "name": "MailSubject",
+                                "value": "[@{outputs('Ticket')?['TicketNo']}] New reply: @{outputs('Ticket')?['Title']}"
+                              }
+                            },
+                            "Reply_body": {
+                              "runAfter": {
+                                "Reply_subject": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "metadata": {
+                                "operationMetadataId": "c0d3920c-1cd8-55ac-883f-606dfa974cff"
+                              },
+                              "type": "SetVariable",
+                              "inputs": {
+                                "name": "MailBody",
+                                "value": "<p>Hi,</p><p>An administrator replied to your issue <b>@{outputs('Ticket')?['TicketNo']} - @{replace(replace(replace(coalesce(outputs('Ticket')?['Title'], ''), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</b>:</p><blockquote>@{replace(replace(replace(take(trim(coalesce(outputs('Payload')?['content'], '')), 4000), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</blockquote><p>Open the Issue Board in BIO SAP to answer.</p>"
+                              }
+                            }
+                          },
+                          "else": {
+                            "actions": {}
+                          }
+                        }
+                      },
+                      "else": {
+                        "actions": {
+                          "Comment_invalid": {
+                            "runAfter": {},
+                            "metadata": {
+                              "operationMetadataId": "e0d0b958-f618-5e1c-aa87-50f27bb7bf5e"
+                            },
+                            "type": "SetVariable",
+                            "inputs": {
+                              "name": "Problem",
+                              "value": "@{outputs('Comment_problem')}"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "Edit": {
+                  "case": "edit",
+                  "actions": {
+                    "Edit_problem": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "2238be23-2a84-5e7b-af0e-3bf1c854f3bf"
+                      },
+                      "type": "Compose",
+                      "inputs": "@if(empty(outputs('Ticket')), 'This issue no longer exists.', if(equals(outputs('Ticket')?['IsArchived'], true), 'This issue is archived. Restore it first.', if(not(or(outputs('Is_admin'), and(outputs('Is_reporter'), equals(outputs('Current_status'), 'New')))), 'You can edit your issue only while it is New. Add a comment instead.', if(less(length(trim(coalesce(outputs('Payload')?['title'], ''))), 4), 'The title must be at least 4 characters.', if(empty(trim(coalesce(outputs('Payload')?['application'], ''))), 'Pick an application.', if(empty(trim(coalesce(outputs('Payload')?['section'], ''))), 'Pick a section.', if(empty(trim(coalesce(outputs('Payload')?['description'], ''))), 'Describe what happened.', if(and(outputs('Is_admin'), not(contains(createArray('New', 'Reopened', 'Triaged', 'In progress', 'Ready for retest', 'Closed'), coalesce(outputs('Payload')?['status'], '')))), 'Pick a valid status.', if(and(outputs('Is_admin'), not(contains(createArray('Urgent', 'High', 'Normal', 'Low'), coalesce(outputs('Payload')?['priority'], '')))), 'Pick a valid priority.', if(and(outputs('Is_admin'), not(empty(trim(coalesce(outputs('Payload')?['assignee'], '')))), not(contains(body('Select_admins'), toLower(trim(coalesce(outputs('Payload')?['assignee'], '')))))), 'Pick an administrator from the list.', ''))))))))))"
+                    },
+                    "Edit_ok": {
+                      "runAfter": {
+                        "Edit_problem": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "5e3ed86e-ff8e-51fb-b780-ac57432bb5a4"
+                      },
+                      "type": "If",
+                      "expression": {
+                        "equals": [
+                          "@outputs('Edit_problem')",
+                          ""
+                        ]
+                      },
+                      "actions": {
+                        "New_status": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "2b1e49f2-d3e0-5f9f-bef5-8b478d7754ca"
+                          },
+                          "type": "Compose",
+                          "inputs": "@if(outputs('Is_admin'), outputs('Payload')?['status'], outputs('Current_status'))"
+                        },
+                        "New_priority": {
+                          "runAfter": {
+                            "New_status": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "c3ea6d94-9659-5755-a62f-55d68a9f2b2c"
+                          },
+                          "type": "Compose",
+                          "inputs": "@if(outputs('Is_admin'), outputs('Payload')?['priority'], coalesce(outputs('Ticket')?['Priority']?['Value'], 'Normal'))"
+                        },
+                        "New_assignee": {
+                          "runAfter": {
+                            "New_priority": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "7d25183c-da5e-53b2-8109-b59456e4853f"
+                          },
+                          "type": "Compose",
+                          "inputs": "@if(outputs('Is_admin'), toLower(trim(coalesce(outputs('Payload')?['assignee'], ''))), toLower(coalesce(outputs('Ticket')?['AssignedToEmail'], '')))"
+                        },
+                        "New_resolution": {
+                          "runAfter": {
+                            "New_assignee": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "a44c7bcc-ee06-570c-98b4-2d1626b53419"
+                          },
+                          "type": "Compose",
+                          "inputs": "@if(outputs('Is_admin'), take(trim(coalesce(outputs('Payload')?['resolution'], '')), 4000), coalesce(outputs('Ticket')?['Resolution'], ''))"
+                        },
+                        "Details_changed": {
+                          "runAfter": {
+                            "New_resolution": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "08ae8700-98db-5a6f-85bf-9d838f7ac705"
+                          },
+                          "type": "Compose",
+                          "inputs": "@or(not(equals(coalesce(outputs('Ticket')?['Title'], ''), take(trim(coalesce(outputs('Payload')?['title'], '')), 255))), not(equals(coalesce(outputs('Ticket')?['Description'], ''), take(trim(coalesce(outputs('Payload')?['description'], '')), 4000))), not(equals(coalesce(outputs('Ticket')?['ReproSteps'], ''), take(trim(coalesce(outputs('Payload')?['steps'], '')), 4000))), not(equals(coalesce(outputs('Ticket')?['ExpectedResult'], ''), take(trim(coalesce(outputs('Payload')?['expected'], '')), 4000))), not(equals(coalesce(outputs('Ticket')?['ActualResult'], ''), take(trim(coalesce(outputs('Payload')?['actual'], '')), 4000))), not(equals(coalesce(outputs('Ticket')?['Application'], ''), take(trim(coalesce(outputs('Payload')?['application'], '')), 255))), not(equals(coalesce(outputs('Ticket')?['Section'], ''), take(trim(coalesce(outputs('Payload')?['section'], '')), 255))), not(equals(coalesce(outputs('Ticket')?['OtherContext'], ''), take(trim(coalesce(outputs('Payload')?['other'], '')), 255))), not(equals(coalesce(outputs('Ticket')?['RelatedRequestNo'], ''), take(trim(coalesce(outputs('Payload')?['relatedNo'], '')), 255))), not(equals(coalesce(outputs('Ticket')?['Severity']?['Value'], ''), if(contains(createArray('Blocker', 'Major', 'Minor', 'Cosmetic'), coalesce(outputs('Payload')?['severity'], '')), outputs('Payload')?['severity'], coalesce(outputs('Ticket')?['Severity']?['Value'], 'Minor')))))"
+                        },
+                        "Update_ticket_edit": {
+                          "runAfter": {
+                            "Details_changed": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "cc7fa628-8f6e-5fdb-a619-57602baef1bc"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                              "connectionName": "shared_sharepointonline",
+                              "operationId": "PatchItem"
+                            },
+                            "parameters": {
+                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                              "table": "IB_Tickets",
+                              "id": "@outputs('Ticket')?['ID']",
+                              "item/Title": "@{take(trim(coalesce(outputs('Payload')?['title'], '')), 255)}",
+                              "item/Description": "@{take(trim(coalesce(outputs('Payload')?['description'], '')), 4000)}",
+                              "item/ReproSteps": "@{take(trim(coalesce(outputs('Payload')?['steps'], '')), 4000)}",
+                              "item/ExpectedResult": "@{take(trim(coalesce(outputs('Payload')?['expected'], '')), 4000)}",
+                              "item/ActualResult": "@{take(trim(coalesce(outputs('Payload')?['actual'], '')), 4000)}",
+                              "item/Application": "@{take(trim(coalesce(outputs('Payload')?['application'], '')), 255)}",
+                              "item/Section": "@{take(trim(coalesce(outputs('Payload')?['section'], '')), 255)}",
+                              "item/OtherContext": "@{take(trim(coalesce(outputs('Payload')?['other'], '')), 255)}",
+                              "item/RelatedRequestNo": "@{take(trim(coalesce(outputs('Payload')?['relatedNo'], '')), 255)}",
+                              "item/Severity/Value": "@{if(contains(createArray('Blocker', 'Major', 'Minor', 'Cosmetic'), coalesce(outputs('Payload')?['severity'], '')), outputs('Payload')?['severity'], coalesce(outputs('Ticket')?['Severity']?['Value'], 'Minor'))}",
+                              "item/Status/Value": "@{outputs('New_status')}",
+                              "item/Priority/Value": "@{outputs('New_priority')}",
+                              "item/AssignedToEmail": "@{outputs('New_assignee')}",
+                              "item/AssignedToName": "@{if(empty(outputs('New_assignee')), '', toUpper(first(split(outputs('New_assignee'), '@'))))}",
+                              "item/Resolution": "@{outputs('New_resolution')}",
+                              "item/LastActivityOn": "@{utcNow()}"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        },
+                        "Stamp_resolved": {
+                          "runAfter": {
+                            "Update_ticket_edit": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "224327de-5d4b-5274-aff5-e362e624580f"
+                          },
+                          "type": "If",
+                          "expression": {
+                            "equals": [
+                              "@and(not(equals(outputs('New_status'), outputs('Current_status'))), equals(outputs('New_status'), 'Ready for retest'))",
+                              true
+                            ]
+                          },
+                          "actions": {
+                            "Stamp_resolved_on": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "15cb685e-31bd-5dbe-abe1-488a7855a519"
+                              },
+                              "type": "OpenApiConnection",
+                              "inputs": {
+                                "host": {
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                  "connectionName": "shared_sharepointonline",
+                                  "operationId": "PatchItem"
+                                },
+                                "parameters": {
+                                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                  "table": "IB_Tickets",
+                                  "id": "@outputs('Ticket')?['ID']",
+                                  "item/ResolvedOn": "@{utcNow()}"
+                                },
+                                "authentication": "@parameters('$authentication')"
+                              }
+                            }
+                          },
+                          "else": {
+                            "actions": {}
+                          }
+                        },
+                        "Stamp_closed": {
+                          "runAfter": {
+                            "Stamp_resolved": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "8ee867f7-70c7-5b37-a4bd-3621575a4536"
+                          },
+                          "type": "If",
+                          "expression": {
+                            "equals": [
+                              "@and(not(equals(outputs('New_status'), outputs('Current_status'))), equals(outputs('New_status'), 'Closed'))",
+                              true
+                            ]
+                          },
+                          "actions": {
+                            "Stamp_closed_on": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "92741081-0b8f-58b3-9ae6-7ed8b523da0d"
+                              },
+                              "type": "OpenApiConnection",
+                              "inputs": {
+                                "host": {
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                  "connectionName": "shared_sharepointonline",
+                                  "operationId": "PatchItem"
+                                },
+                                "parameters": {
+                                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                  "table": "IB_Tickets",
+                                  "id": "@outputs('Ticket')?['ID']",
+                                  "item/ClosedOn": "@{utcNow()}"
+                                },
+                                "authentication": "@parameters('$authentication')"
+                              }
+                            }
+                          },
+                          "else": {
+                            "actions": {}
+                          }
+                        },
+                        "Sync_shared_edit": {
+                          "runAfter": {
+                            "Stamp_closed": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "b2234184-6403-5220-af6c-2a7e89cfd012"
                           },
                           "type": "If",
                           "expression": {
                             "greater": [
-                              "@coalesce(body('Get_ticket')?['SharedItemId'], 0)",
+                              "@coalesce(outputs('Ticket')?['SharedItemId'], 0)",
                               0
                             ]
                           },
                           "actions": {
-                            "Touch_shared_item": {
+                            "Sync_shared_edit_item": {
                               "runAfter": {},
                               "metadata": {
-                                "operationMetadataId": "882dd8fc-69fc-5a57-bda5-19eb7fc25aaf"
+                                "operationMetadataId": "c1a38a8e-6a5f-5485-8c20-a2b041f4cd6d"
                               },
                               "type": "OpenApiConnection",
                               "inputs": {
@@ -969,7 +1315,15 @@
                                 "parameters": {
                                   "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
                                   "table": "IB_SharedIssues",
-                                  "id": "@int(body('Get_ticket')?['SharedItemId'])",
+                                  "id": "@int(coalesce(outputs('Ticket')?['SharedItemId'], 0))",
+                                  "item/Title": "@{take(trim(coalesce(outputs('Payload')?['title'], '')), 255)}",
+                                  "item/Summary": "@{take(trim(coalesce(outputs('Payload')?['description'], '')), 1000)}",
+                                  "item/Application": "@{take(trim(coalesce(outputs('Payload')?['application'], '')), 255)}",
+                                  "item/Section": "@{take(trim(coalesce(outputs('Payload')?['section'], '')), 255)}",
+                                  "item/Status": "@{outputs('New_status')}",
+                                  "item/Severity": "@{if(contains(createArray('Blocker', 'Major', 'Minor', 'Cosmetic'), coalesce(outputs('Payload')?['severity'], '')), outputs('Payload')?['severity'], coalesce(outputs('Ticket')?['Severity']?['Value'], 'Minor'))}",
+                                  "item/Priority": "@{outputs('New_priority')}",
+                                  "item/Resolution": "@{outputs('New_resolution')}",
                                   "item/LastActivityOn": "@{utcNow()}"
                                 },
                                 "authentication": "@parameters('$authentication')"
@@ -980,47 +1334,656 @@
                             "actions": {}
                           }
                         },
-                        "Respond_commented": {
+                        "Log_details": {
                           "runAfter": {
-                            "Touch_shared": [
+                            "Sync_shared_edit": [
                               "Succeeded"
                             ]
                           },
                           "metadata": {
-                            "operationMetadataId": "eea37698-d042-53f4-b47f-1bea192915ee"
+                            "operationMetadataId": "a52c1731-5754-5ef8-8b7e-a6a4d9df37e8"
                           },
-                          "type": "Response",
-                          "kind": "PowerApp",
-                          "inputs": {
-                            "statusCode": 200,
-                            "body": {
-                              "ok": "yes",
-                              "message": "",
-                              "ticketno": "@{body('Get_ticket')?['TicketNo']}",
-                              "ticketid": "@{body('Get_ticket')?['ID']}"
+                          "type": "If",
+                          "expression": {
+                            "equals": [
+                              "@outputs('Details_changed')",
+                              true
+                            ]
+                          },
+                          "actions": {
+                            "Log_details_event": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "1a93aae8-dea5-5859-8279-0c3982bf5e3f"
+                              },
+                              "type": "AppendToArrayVariable",
+                              "inputs": {
+                                "name": "Events",
+                                "value": {
+                                  "type": "System",
+                                  "visibility": "Reporter",
+                                  "role": "@{if(and(outputs('Is_admin'), not(outputs('Is_reporter'))), 'Admin', 'Reporter')}",
+                                  "content": "Edited the issue details.",
+                                  "prev": "",
+                                  "next": "",
+                                  "file": "",
+                                  "sizeKb": 0,
+                                  "initial": false
+                                }
+                              }
+                            }
+                          },
+                          "else": {
+                            "actions": {}
+                          }
+                        },
+                        "Log_status": {
+                          "runAfter": {
+                            "Log_details": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "210a526a-2286-5da7-8757-e550973ee969"
+                          },
+                          "type": "If",
+                          "expression": {
+                            "equals": [
+                              "@not(equals(outputs('New_status'), outputs('Current_status')))",
+                              true
+                            ]
+                          },
+                          "actions": {
+                            "Log_status_event": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "d04be55d-9445-5237-b3b0-593cf8fb8b81"
+                              },
+                              "type": "AppendToArrayVariable",
+                              "inputs": {
+                                "name": "Events",
+                                "value": {
+                                  "type": "@{if(equals(outputs('New_status'), 'Closed'), 'Closed', if(equals(outputs('New_status'), 'Reopened'), 'Reopened', 'StatusChange'))}",
+                                  "visibility": "Reporter",
+                                  "role": "@{if(and(outputs('Is_admin'), not(outputs('Is_reporter'))), 'Admin', 'Reporter')}",
+                                  "content": "",
+                                  "prev": "@{outputs('Current_status')}",
+                                  "next": "@{outputs('New_status')}",
+                                  "file": "",
+                                  "sizeKb": 0,
+                                  "initial": false
+                                }
+                              }
+                            }
+                          },
+                          "else": {
+                            "actions": {}
+                          }
+                        },
+                        "Log_priority": {
+                          "runAfter": {
+                            "Log_status": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "d24f5b33-6d04-5729-97a0-37be6fb70eb0"
+                          },
+                          "type": "If",
+                          "expression": {
+                            "equals": [
+                              "@not(equals(outputs('New_priority'), coalesce(outputs('Ticket')?['Priority']?['Value'], 'Normal')))",
+                              true
+                            ]
+                          },
+                          "actions": {
+                            "Log_priority_event": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "ae14d304-4ca8-56c8-a4f5-d0fece0401bd"
+                              },
+                              "type": "AppendToArrayVariable",
+                              "inputs": {
+                                "name": "Events",
+                                "value": {
+                                  "type": "PriorityChange",
+                                  "visibility": "Reporter",
+                                  "role": "@{if(and(outputs('Is_admin'), not(outputs('Is_reporter'))), 'Admin', 'Reporter')}",
+                                  "content": "Priority changed from @{coalesce(outputs('Ticket')?['Priority']?['Value'], 'Normal')} to @{outputs('New_priority')}.",
+                                  "prev": "",
+                                  "next": "",
+                                  "file": "",
+                                  "sizeKb": 0,
+                                  "initial": false
+                                }
+                              }
+                            }
+                          },
+                          "else": {
+                            "actions": {}
+                          }
+                        },
+                        "Log_assignment": {
+                          "runAfter": {
+                            "Log_priority": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "18d42fc9-f04c-5be5-a1e2-6a81240ce087"
+                          },
+                          "type": "If",
+                          "expression": {
+                            "equals": [
+                              "@not(equals(outputs('New_assignee'), toLower(coalesce(outputs('Ticket')?['AssignedToEmail'], ''))))",
+                              true
+                            ]
+                          },
+                          "actions": {
+                            "Log_assignment_event": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "be2829d0-4d2c-5746-ad22-ae90eb72df6e"
+                              },
+                              "type": "AppendToArrayVariable",
+                              "inputs": {
+                                "name": "Events",
+                                "value": {
+                                  "type": "Assignment",
+                                  "visibility": "Reporter",
+                                  "role": "@{if(and(outputs('Is_admin'), not(outputs('Is_reporter'))), 'Admin', 'Reporter')}",
+                                  "content": "@{if(empty(outputs('New_assignee')), 'Removed the assignment.', concat('Assigned to ', toUpper(first(split(outputs('New_assignee'), '@'))), '.'))}",
+                                  "prev": "",
+                                  "next": "",
+                                  "file": "",
+                                  "sizeKb": 0,
+                                  "initial": false
+                                }
+                              }
+                            }
+                          },
+                          "else": {
+                            "actions": {}
+                          }
+                        },
+                        "Log_resolution": {
+                          "runAfter": {
+                            "Log_assignment": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "50483c3a-7538-53d3-b7d8-39cd2aa15750"
+                          },
+                          "type": "If",
+                          "expression": {
+                            "equals": [
+                              "@and(not(equals(outputs('New_resolution'), coalesce(outputs('Ticket')?['Resolution'], ''))), not(empty(outputs('New_resolution'))))",
+                              true
+                            ]
+                          },
+                          "actions": {
+                            "Log_resolution_event": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "aab1345f-98ea-55f7-be6b-6377ffa65787"
+                              },
+                              "type": "AppendToArrayVariable",
+                              "inputs": {
+                                "name": "Events",
+                                "value": {
+                                  "type": "System",
+                                  "visibility": "Reporter",
+                                  "role": "@{if(and(outputs('Is_admin'), not(outputs('Is_reporter'))), 'Admin', 'Reporter')}",
+                                  "content": "Updated the resolution.",
+                                  "prev": "",
+                                  "next": "",
+                                  "file": "",
+                                  "sizeKb": 0,
+                                  "initial": false
+                                }
+                              }
+                            }
+                          },
+                          "else": {
+                            "actions": {}
+                          }
+                        },
+                        "Mail_on_status": {
+                          "runAfter": {
+                            "Log_resolution": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "e95f8387-fddd-5f1e-a266-21250773ff7f"
+                          },
+                          "type": "If",
+                          "expression": {
+                            "equals": [
+                              "@and(not(equals(outputs('New_status'), outputs('Current_status'))), contains(createArray('Ready for retest', 'Closed'), outputs('New_status')), not(outputs('Is_reporter')))",
+                              true
+                            ]
+                          },
+                          "actions": {
+                            "Status_subject": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "0ab86967-7316-5112-a0c4-9519023425c0"
+                              },
+                              "type": "SetVariable",
+                              "inputs": {
+                                "name": "MailSubject",
+                                "value": "[@{outputs('Ticket')?['TicketNo']}] @{outputs('New_status')}: @{take(trim(coalesce(outputs('Payload')?['title'], '')), 255)}"
+                              }
                             },
-                            "schema": {
-                              "type": "object",
-                              "properties": {
-                                "ok": {
-                                  "title": "ok",
-                                  "x-ms-dynamically-added": true,
-                                  "type": "string"
+                            "Status_body": {
+                              "runAfter": {
+                                "Status_subject": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "metadata": {
+                                "operationMetadataId": "0f591450-a557-5ada-bf4d-7cef289e295a"
+                              },
+                              "type": "SetVariable",
+                              "inputs": {
+                                "name": "MailBody",
+                                "value": "<p>Hi,</p><p>Your issue <b>@{outputs('Ticket')?['TicketNo']} - @{replace(replace(replace(take(trim(coalesce(outputs('Payload')?['title'], '')), 255), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</b> @{if(equals(outputs('New_status'), 'Closed'), 'has been closed.', 'has been fixed and is ready for you to retest.')}</p>@{if(empty(outputs('New_resolution')), '', concat('<p><b>Resolution:</b> ', replace(replace(replace(outputs('New_resolution'), '&', '&amp;'), '<', '&lt;'), '>', '&gt;'), '</p>'))}<p>@{if(equals(outputs('New_status'), 'Closed'), 'If the problem comes back, open the issue in the Issue Board in BIO SAP and select Reopen.', 'Please try it again. If the problem is still there, open the issue in the Issue Board in BIO SAP and select Reopen.')}</p>"
+                              }
+                            }
+                          },
+                          "else": {
+                            "actions": {}
+                          }
+                        }
+                      },
+                      "else": {
+                        "actions": {
+                          "Edit_invalid": {
+                            "runAfter": {},
+                            "metadata": {
+                              "operationMetadataId": "0b56dc2b-e7a1-5e3a-9e61-0bdc25a993b2"
+                            },
+                            "type": "SetVariable",
+                            "inputs": {
+                              "name": "Problem",
+                              "value": "@{outputs('Edit_problem')}"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "Reopen": {
+                  "case": "reopen",
+                  "actions": {
+                    "Reopen_problem": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "bef1e119-8a93-5100-a7f3-f6f92fe7c1ce"
+                      },
+                      "type": "Compose",
+                      "inputs": "@if(empty(outputs('Ticket')), 'This issue no longer exists.', if(equals(outputs('Ticket')?['IsArchived'], true), 'This issue is archived.', if(not(or(outputs('Is_reporter'), outputs('Is_admin'))), 'You can only reopen your own issues.', if(not(contains(createArray('Closed', 'Ready for retest'), outputs('Current_status'))), 'Only a closed issue, or one that is ready for retest, can be reopened.', ''))))"
+                    },
+                    "Reopen_ok": {
+                      "runAfter": {
+                        "Reopen_problem": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "580b64c3-f702-5a45-904b-409d0db01298"
+                      },
+                      "type": "If",
+                      "expression": {
+                        "equals": [
+                          "@outputs('Reopen_problem')",
+                          ""
+                        ]
+                      },
+                      "actions": {
+                        "Update_ticket_reopen": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "baa492f6-410a-50c6-a02e-0a47ea573a54"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                              "connectionName": "shared_sharepointonline",
+                              "operationId": "PatchItem"
+                            },
+                            "parameters": {
+                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                              "table": "IB_Tickets",
+                              "id": "@outputs('Ticket')?['ID']",
+                              "item/Status/Value": "Reopened",
+                              "item/LastActivityOn": "@{utcNow()}"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        },
+                        "Sync_shared_reopen": {
+                          "runAfter": {
+                            "Update_ticket_reopen": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "10a75934-32b4-53b2-82ca-e5a4a21b4af6"
+                          },
+                          "type": "If",
+                          "expression": {
+                            "greater": [
+                              "@coalesce(outputs('Ticket')?['SharedItemId'], 0)",
+                              0
+                            ]
+                          },
+                          "actions": {
+                            "Sync_shared_reopen_item": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "18d4bae7-a101-521d-bada-e145c3a8fd2a"
+                              },
+                              "type": "OpenApiConnection",
+                              "inputs": {
+                                "host": {
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                  "connectionName": "shared_sharepointonline",
+                                  "operationId": "PatchItem"
                                 },
-                                "message": {
-                                  "title": "message",
-                                  "x-ms-dynamically-added": true,
-                                  "type": "string"
+                                "parameters": {
+                                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                  "table": "IB_SharedIssues",
+                                  "id": "@int(coalesce(outputs('Ticket')?['SharedItemId'], 0))",
+                                  "item/Status": "Reopened",
+                                  "item/LastActivityOn": "@{utcNow()}"
                                 },
-                                "ticketno": {
-                                  "title": "ticketno",
-                                  "x-ms-dynamically-added": true,
-                                  "type": "string"
+                                "authentication": "@parameters('$authentication')"
+                              }
+                            }
+                          },
+                          "else": {
+                            "actions": {}
+                          }
+                        },
+                        "Log_reopen": {
+                          "runAfter": {
+                            "Sync_shared_reopen": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "4c87a902-4df2-537c-b3c5-053eb972acc7"
+                          },
+                          "type": "AppendToArrayVariable",
+                          "inputs": {
+                            "name": "Events",
+                            "value": {
+                              "type": "Reopened",
+                              "visibility": "Reporter",
+                              "role": "@{if(and(outputs('Is_admin'), not(outputs('Is_reporter'))), 'Admin', 'Reporter')}",
+                              "content": "@{take(trim(coalesce(outputs('Payload')?['reason'], '')), 4000)}",
+                              "prev": "@{outputs('Current_status')}",
+                              "next": "Reopened",
+                              "file": "",
+                              "sizeKb": 0,
+                              "initial": false
+                            }
+                          }
+                        }
+                      },
+                      "else": {
+                        "actions": {
+                          "Reopen_invalid": {
+                            "runAfter": {},
+                            "metadata": {
+                              "operationMetadataId": "684853ed-acb9-55af-af3c-ebb09040abcf"
+                            },
+                            "type": "SetVariable",
+                            "inputs": {
+                              "name": "Problem",
+                              "value": "@{outputs('Reopen_problem')}"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "Archive": {
+                  "case": "archive",
+                  "actions": {
+                    "Archive_problem": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "fa5fad98-a73f-59d8-bbf9-e58185ea649d"
+                      },
+                      "type": "Compose",
+                      "inputs": "@if(not(outputs('Is_admin')), 'Only administrators can archive issues.', if(empty(outputs('Ticket')), 'This issue no longer exists.', if(equals(equals(outputs('Payload')?['archived'], true), equals(outputs('Ticket')?['IsArchived'], true)), 'The issue is already in that state. Reload the list.', '')))"
+                    },
+                    "Archive_ok": {
+                      "runAfter": {
+                        "Archive_problem": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "644e3981-214b-50fe-bdef-b62e6efb7649"
+                      },
+                      "type": "If",
+                      "expression": {
+                        "equals": [
+                          "@outputs('Archive_problem')",
+                          ""
+                        ]
+                      },
+                      "actions": {
+                        "Archive_or_restore": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "0ff1da25-3062-59ce-8d1f-a5838285f8d8"
+                          },
+                          "type": "If",
+                          "expression": {
+                            "equals": [
+                              "@equals(outputs('Payload')?['archived'], true)",
+                              true
+                            ]
+                          },
+                          "actions": {
+                            "Update_ticket_archive": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "11dc2d60-a87a-505c-905b-6e14ab0338ed"
+                              },
+                              "type": "OpenApiConnection",
+                              "inputs": {
+                                "host": {
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                  "connectionName": "shared_sharepointonline",
+                                  "operationId": "PatchItem"
                                 },
-                                "ticketid": {
-                                  "title": "ticketid",
-                                  "x-ms-dynamically-added": true,
-                                  "type": "string"
+                                "parameters": {
+                                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                  "table": "IB_Tickets",
+                                  "id": "@outputs('Ticket')?['ID']",
+                                  "item/IsArchived": true,
+                                  "item/SharedItemId": 0,
+                                  "item/LastActivityOn": "@{utcNow()}"
+                                },
+                                "authentication": "@parameters('$authentication')"
+                              }
+                            },
+                            "Remove_shared": {
+                              "runAfter": {
+                                "Update_ticket_archive": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "metadata": {
+                                "operationMetadataId": "7dd1fd9f-9c62-53b9-90d1-97726a5a8d4f"
+                              },
+                              "type": "If",
+                              "expression": {
+                                "greater": [
+                                  "@coalesce(outputs('Ticket')?['SharedItemId'], 0)",
+                                  0
+                                ]
+                              },
+                              "actions": {
+                                "Delete_shared_archived": {
+                                  "runAfter": {},
+                                  "metadata": {
+                                    "operationMetadataId": "f5cb6a21-c20f-55ac-a9f3-941a88f5152b"
+                                  },
+                                  "type": "OpenApiConnection",
+                                  "inputs": {
+                                    "host": {
+                                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                      "connectionName": "shared_sharepointonline",
+                                      "operationId": "DeleteItem"
+                                    },
+                                    "parameters": {
+                                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                      "table": "IB_SharedIssues",
+                                      "id": "@int(coalesce(outputs('Ticket')?['SharedItemId'], 0))"
+                                    },
+                                    "authentication": "@parameters('$authentication')"
+                                  }
+                                },
+                                "Shared_gone_ok": {
+                                  "runAfter": {
+                                    "Delete_shared_archived": [
+                                      "Succeeded",
+                                      "Failed",
+                                      "Skipped",
+                                      "TimedOut"
+                                    ]
+                                  },
+                                  "metadata": {
+                                    "operationMetadataId": "e7bec183-77da-5b93-95a0-c792e24e9516"
+                                  },
+                                  "type": "Compose",
+                                  "inputs": "@true"
+                                }
+                              },
+                              "else": {
+                                "actions": {}
+                              }
+                            },
+                            "Log_archive": {
+                              "runAfter": {
+                                "Remove_shared": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "metadata": {
+                                "operationMetadataId": "9b1ec5a5-3d99-5738-8c4b-a001f6da524a"
+                              },
+                              "type": "AppendToArrayVariable",
+                              "inputs": {
+                                "name": "Events",
+                                "value": {
+                                  "type": "Archived",
+                                  "visibility": "Reporter",
+                                  "role": "@{if(and(outputs('Is_admin'), not(outputs('Is_reporter'))), 'Admin', 'Reporter')}",
+                                  "content": "Archived the issue. It is kept, but no longer shown in the active lists.",
+                                  "prev": "",
+                                  "next": "",
+                                  "file": "",
+                                  "sizeKb": 0,
+                                  "initial": false
+                                }
+                              }
+                            }
+                          },
+                          "else": {
+                            "actions": {
+                              "Recreate_shared": {
+                                "runAfter": {},
+                                "metadata": {
+                                  "operationMetadataId": "bc6d8166-8b04-5f96-9cdf-07c40e7de6fb"
+                                },
+                                "type": "OpenApiConnection",
+                                "inputs": {
+                                  "host": {
+                                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                    "connectionName": "shared_sharepointonline",
+                                    "operationId": "PostItem"
+                                  },
+                                  "parameters": {
+                                    "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                    "table": "IB_SharedIssues",
+                                    "item/Title": "@{coalesce(outputs('Ticket')?['Title'], '')}",
+                                    "item/TicketNo": "@{coalesce(outputs('Ticket')?['TicketNo'], '')}",
+                                    "item/Summary": "@{take(coalesce(outputs('Ticket')?['Description'], ''), 1000)}",
+                                    "item/Application": "@{coalesce(outputs('Ticket')?['Application'], '')}",
+                                    "item/Section": "@{coalesce(outputs('Ticket')?['Section'], '')}",
+                                    "item/Status": "@{outputs('Current_status')}",
+                                    "item/Severity": "@{coalesce(outputs('Ticket')?['Severity']?['Value'], '')}",
+                                    "item/Priority": "@{coalesce(outputs('Ticket')?['Priority']?['Value'], '')}",
+                                    "item/Resolution": "@{coalesce(outputs('Ticket')?['Resolution'], '')}",
+                                    "item/ReportedOn": "@{outputs('Ticket')?['Created']}",
+                                    "item/LastActivityOn": "@{utcNow()}",
+                                    "item/IsArchived": false
+                                  },
+                                  "authentication": "@parameters('$authentication')"
+                                }
+                              },
+                              "Update_ticket_restore": {
+                                "runAfter": {
+                                  "Recreate_shared": [
+                                    "Succeeded"
+                                  ]
+                                },
+                                "metadata": {
+                                  "operationMetadataId": "9f26307b-5b05-5ef2-bff0-5e9657492690"
+                                },
+                                "type": "OpenApiConnection",
+                                "inputs": {
+                                  "host": {
+                                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                    "connectionName": "shared_sharepointonline",
+                                    "operationId": "PatchItem"
+                                  },
+                                  "parameters": {
+                                    "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                    "table": "IB_Tickets",
+                                    "id": "@outputs('Ticket')?['ID']",
+                                    "item/IsArchived": false,
+                                    "item/SharedItemId": "@body('Recreate_shared')?['ID']",
+                                    "item/LastActivityOn": "@{utcNow()}"
+                                  },
+                                  "authentication": "@parameters('$authentication')"
+                                }
+                              },
+                              "Log_restore": {
+                                "runAfter": {
+                                  "Update_ticket_restore": [
+                                    "Succeeded"
+                                  ]
+                                },
+                                "metadata": {
+                                  "operationMetadataId": "538d351c-9c89-5a01-aeba-0d77075cf4f8"
+                                },
+                                "type": "AppendToArrayVariable",
+                                "inputs": {
+                                  "name": "Events",
+                                  "value": {
+                                    "type": "System",
+                                    "visibility": "Reporter",
+                                    "role": "@{if(and(outputs('Is_admin'), not(outputs('Is_reporter'))), 'Admin', 'Reporter')}",
+                                    "content": "Restored the issue from the archive.",
+                                    "prev": "",
+                                    "next": "",
+                                    "file": "",
+                                    "sizeKb": 0,
+                                    "initial": false
+                                  }
                                 }
                               }
                             }
@@ -1029,46 +1992,322 @@
                       },
                       "else": {
                         "actions": {
-                          "Respond_comment_invalid": {
+                          "Archive_invalid": {
                             "runAfter": {},
                             "metadata": {
-                              "operationMetadataId": "6f13079f-f564-57b2-a111-f5a164f1175d"
+                              "operationMetadataId": "74ae5e9c-4105-5e77-9c3f-e1a47ad90e6e"
                             },
-                            "type": "Response",
-                            "kind": "PowerApp",
+                            "type": "SetVariable",
                             "inputs": {
-                              "statusCode": 200,
-                              "body": {
-                                "ok": "no",
-                                "message": "@{outputs('Comment_problem')}",
-                                "ticketno": "",
-                                "ticketid": ""
+                              "name": "Problem",
+                              "value": "@{outputs('Archive_problem')}"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "Delete": {
+                  "case": "delete",
+                  "actions": {
+                    "Delete_problem": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "18bba9b9-b7b8-564f-bb64-e690f734a990"
+                      },
+                      "type": "Compose",
+                      "inputs": "@if(not(outputs('Is_admin')), 'Only administrators can delete issues.', if(empty(outputs('Ticket')), 'This issue no longer exists.', if(not(equals(toUpper(trim(coalesce(outputs('Payload')?['confirm'], ''))), toUpper(coalesce(outputs('Ticket')?['TicketNo'], '')))), 'Type the issue number to confirm.', '')))"
+                    },
+                    "Delete_ok": {
+                      "runAfter": {
+                        "Delete_problem": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "c3e3b391-4b3c-5170-bf68-7e5ef2dbe308"
+                      },
+                      "type": "If",
+                      "expression": {
+                        "equals": [
+                          "@outputs('Delete_problem')",
+                          ""
+                        ]
+                      },
+                      "actions": {
+                        "Get_ticket_comments": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "65ea23e2-a686-5ad2-894e-5e56ba7e38ce"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                              "connectionName": "shared_sharepointonline",
+                              "operationId": "GetItems"
+                            },
+                            "parameters": {
+                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                              "table": "IB_TicketComments",
+                              "$filter": "TicketId eq @{outputs('Ticket')?['ID']}",
+                              "$top": 5000
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        },
+                        "For_each_ticket_comment": {
+                          "runAfter": {
+                            "Get_ticket_comments": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "61349e71-7b90-5150-b090-3e1c3dee2f46"
+                          },
+                          "type": "Foreach",
+                          "foreach": "@body('Get_ticket_comments')?['value']",
+                          "actions": {
+                            "Delete_ticket_comment": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "7b245120-7f76-5989-bef3-21447d5a7f06"
                               },
-                              "schema": {
-                                "type": "object",
-                                "properties": {
-                                  "ok": {
-                                    "title": "ok",
-                                    "x-ms-dynamically-added": true,
-                                    "type": "string"
-                                  },
-                                  "message": {
-                                    "title": "message",
-                                    "x-ms-dynamically-added": true,
-                                    "type": "string"
-                                  },
-                                  "ticketno": {
-                                    "title": "ticketno",
-                                    "x-ms-dynamically-added": true,
-                                    "type": "string"
-                                  },
-                                  "ticketid": {
-                                    "title": "ticketid",
-                                    "x-ms-dynamically-added": true,
-                                    "type": "string"
-                                  }
-                                }
+                              "type": "OpenApiConnection",
+                              "inputs": {
+                                "host": {
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                  "connectionName": "shared_sharepointonline",
+                                  "operationId": "DeleteItem"
+                                },
+                                "parameters": {
+                                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                  "table": "IB_TicketComments",
+                                  "id": "@items('For_each_ticket_comment')?['ID']"
+                                },
+                                "authentication": "@parameters('$authentication')"
                               }
+                            }
+                          },
+                          "runtimeConfiguration": {
+                            "concurrency": {
+                              "repetitions": 1
+                            }
+                          }
+                        },
+                        "Remove_shared_deleted": {
+                          "runAfter": {
+                            "For_each_ticket_comment": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "ae095255-76ad-5486-a7a4-600af7efc5c2"
+                          },
+                          "type": "If",
+                          "expression": {
+                            "greater": [
+                              "@coalesce(outputs('Ticket')?['SharedItemId'], 0)",
+                              0
+                            ]
+                          },
+                          "actions": {
+                            "Delete_shared_deleted": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "a93ecc5b-c2d1-5626-a9df-4b0049170473"
+                              },
+                              "type": "OpenApiConnection",
+                              "inputs": {
+                                "host": {
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                  "connectionName": "shared_sharepointonline",
+                                  "operationId": "DeleteItem"
+                                },
+                                "parameters": {
+                                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                  "table": "IB_SharedIssues",
+                                  "id": "@int(coalesce(outputs('Ticket')?['SharedItemId'], 0))"
+                                },
+                                "authentication": "@parameters('$authentication')"
+                              }
+                            },
+                            "Shared_deleted_ok": {
+                              "runAfter": {
+                                "Delete_shared_deleted": [
+                                  "Succeeded",
+                                  "Failed",
+                                  "Skipped",
+                                  "TimedOut"
+                                ]
+                              },
+                              "metadata": {
+                                "operationMetadataId": "e1e212b6-8cc5-5e07-8968-fb90cf3834db"
+                              },
+                              "type": "Compose",
+                              "inputs": "@true"
+                            }
+                          },
+                          "else": {
+                            "actions": {}
+                          }
+                        },
+                        "Delete_ticket": {
+                          "runAfter": {
+                            "Remove_shared_deleted": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "8974278f-2836-5ad8-9248-810b258ac1aa"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                              "connectionName": "shared_sharepointonline",
+                              "operationId": "DeleteItem"
+                            },
+                            "parameters": {
+                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                              "table": "IB_Tickets",
+                              "id": "@outputs('Ticket')?['ID']"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        }
+                      },
+                      "else": {
+                        "actions": {
+                          "Delete_invalid": {
+                            "runAfter": {},
+                            "metadata": {
+                              "operationMetadataId": "c4a182af-fae9-5704-8d33-bd4df4e4da09"
+                            },
+                            "type": "SetVariable",
+                            "inputs": {
+                              "name": "Problem",
+                              "value": "@{outputs('Delete_problem')}"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "Attach": {
+                  "case": "attach",
+                  "actions": {
+                    "Attach_problem": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "0faa3efa-f2e5-5747-b550-76d69679e5c4"
+                      },
+                      "type": "Compose",
+                      "inputs": "@if(or(empty(trim(coalesce(triggerBody()?['file']?['name'], ''))), empty(string(coalesce(triggerBody()?['file']?['contentBytes'], '')))), 'Choose a file first.', if(empty(outputs('Ticket')), 'This issue no longer exists.', if(not(or(outputs('Is_reporter'), outputs('Is_admin'))), 'You can only add files to your own issues.', if(equals(outputs('Ticket')?['IsArchived'], true), 'This issue is archived.', if(greater(div(add(div(mul(length(string(coalesce(triggerBody()?['file']?['contentBytes'], ''))), 3), 4), 1023), 1024), 10240), 'The file is larger than 10 MB.', '')))))"
+                    },
+                    "Attach_ok": {
+                      "runAfter": {
+                        "Attach_problem": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "f422db7c-8780-599e-bc1a-eaa0718d6065"
+                      },
+                      "type": "If",
+                      "expression": {
+                        "equals": [
+                          "@outputs('Attach_problem')",
+                          ""
+                        ]
+                      },
+                      "actions": {
+                        "Add_attachment": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "9d7d3f75-e3da-5b51-9859-e96d778582eb"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                              "connectionName": "shared_sharepointonline",
+                              "operationId": "CreateAttachment"
+                            },
+                            "parameters": {
+                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                              "table": "IB_Tickets",
+                              "itemId": "@{outputs('Ticket')?['ID']}",
+                              "displayName": "@{trim(coalesce(triggerBody()?['file']?['name'], ''))}",
+                              "body": "@triggerBody()?['file']?['contentBytes']"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        },
+                        "Touch_ticket_attach": {
+                          "runAfter": {
+                            "Add_attachment": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "b851c664-7d4e-539d-9d54-b7a746ee4e50"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                              "connectionName": "shared_sharepointonline",
+                              "operationId": "PatchItem"
+                            },
+                            "parameters": {
+                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                              "table": "IB_Tickets",
+                              "id": "@outputs('Ticket')?['ID']",
+                              "item/LastActivityOn": "@{utcNow()}"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        },
+                        "Log_attachment": {
+                          "runAfter": {
+                            "Touch_ticket_attach": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "b2b0eb37-d11e-5328-be09-f05763b5515d"
+                          },
+                          "type": "AppendToArrayVariable",
+                          "inputs": {
+                            "name": "Events",
+                            "value": {
+                              "type": "Attachment",
+                              "visibility": "Reporter",
+                              "role": "@{if(and(outputs('Is_admin'), not(outputs('Is_reporter'))), 'Admin', 'Reporter')}",
+                              "content": "@{if(equals(outputs('Payload')?['initial'], true), 'Attached a file with the report.', 'Added a file.')}",
+                              "prev": "",
+                              "next": "",
+                              "file": "@{trim(coalesce(triggerBody()?['file']?['name'], ''))}",
+                              "sizeKb": "@div(add(div(mul(length(string(coalesce(triggerBody()?['file']?['contentBytes'], ''))), 3), 4), 1023), 1024)",
+                              "initial": "@equals(outputs('Payload')?['initial'], true)"
+                            }
+                          }
+                        }
+                      },
+                      "else": {
+                        "actions": {
+                          "Attach_invalid": {
+                            "runAfter": {},
+                            "metadata": {
+                              "operationMetadataId": "b46465b9-b678-56d2-aff3-8a9565625310"
+                            },
+                            "type": "SetVariable",
+                            "inputs": {
+                              "name": "Problem",
+                              "value": "@{outputs('Attach_problem')}"
                             }
                           }
                         }
@@ -1079,49 +2318,461 @@
               },
               "default": {
                 "actions": {
-                  "Respond_unknown": {
+                  "Unknown_action": {
                     "runAfter": {},
                     "metadata": {
-                      "operationMetadataId": "07b8d264-3c0b-5655-93de-0c23a7feb660"
+                      "operationMetadataId": "ece56700-45ed-512d-8479-dfe940489e15"
                     },
-                    "type": "Response",
-                    "kind": "PowerApp",
+                    "type": "SetVariable",
                     "inputs": {
-                      "statusCode": 200,
-                      "body": {
-                        "ok": "no",
-                        "message": "Unknown action.",
-                        "ticketno": "",
-                        "ticketid": ""
+                      "name": "Problem",
+                      "value": "Unknown action."
+                    }
+                  }
+                }
+              },
+              "description": "create svarer selv; de andre saetter Problem og Events og svares efter Switch."
+            },
+            "Log_events": {
+              "runAfter": {
+                "Action": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "fcc523f1-fb7a-5c51-967d-993b4bda41cc"
+              },
+              "type": "If",
+              "expression": {
+                "greater": [
+                  "@length(variables('Events'))",
+                  0
+                ]
+              },
+              "actions": {
+                "Ensure_event_reporter": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "f9e4e11d-f93c-537c-8fdb-7463e6d059c7"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "connectionName": "shared_sharepointonline",
+                      "operationId": "HttpRequest"
+                    },
+                    "parameters": {
+                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                      "parameters/method": "POST",
+                      "parameters/uri": "_api/web/ensureuser",
+                      "parameters/headers": {
+                        "Accept": "application/json;odata=nometadata",
+                        "Content-Type": "application/json;odata=nometadata"
                       },
-                      "schema": {
-                        "type": "object",
-                        "properties": {
-                          "ok": {
-                            "title": "ok",
-                            "x-ms-dynamically-added": true,
-                            "type": "string"
+                      "parameters/body": "{\"logonName\": \"i:0#.f|membership|@{toLower(coalesce(outputs('Ticket')?['ReporterEmail'], ''))}\"}"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "For_each_admin_id": {
+                  "runAfter": {
+                    "Ensure_event_reporter": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "9adeb81c-ae71-5e3e-9d64-a9cf866f7de5"
+                  },
+                  "type": "Foreach",
+                  "foreach": "@body('Select_admins')",
+                  "actions": {
+                    "Ensure_event_admin": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "8ae7a1dc-8044-58a4-a3d9-62bbd0186ecb"
+                      },
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "connectionName": "shared_sharepointonline",
+                          "operationId": "HttpRequest"
+                        },
+                        "parameters": {
+                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                          "parameters/method": "POST",
+                          "parameters/uri": "_api/web/ensureuser",
+                          "parameters/headers": {
+                            "Accept": "application/json;odata=nometadata",
+                            "Content-Type": "application/json;odata=nometadata"
                           },
-                          "message": {
-                            "title": "message",
-                            "x-ms-dynamically-added": true,
-                            "type": "string"
-                          },
-                          "ticketno": {
-                            "title": "ticketno",
-                            "x-ms-dynamically-added": true,
-                            "type": "string"
-                          },
-                          "ticketid": {
-                            "title": "ticketid",
-                            "x-ms-dynamically-added": true,
-                            "type": "string"
+                          "parameters/body": "{\"logonName\": \"i:0#.f|membership|@{items('For_each_admin_id')}\"}"
+                        },
+                        "authentication": "@parameters('$authentication')"
+                      }
+                    },
+                    "Remember_admin_id": {
+                      "runAfter": {
+                        "Ensure_event_admin": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "fa62c19f-2d59-5b34-a7af-749ca5bac5fe"
+                      },
+                      "type": "AppendToArrayVariable",
+                      "inputs": {
+                        "name": "AdminIds",
+                        "value": "@body('Ensure_event_admin')?['Id']"
+                      }
+                    },
+                    "Admin_id_handled": {
+                      "runAfter": {
+                        "Remember_admin_id": [
+                          "Succeeded",
+                          "Failed",
+                          "Skipped",
+                          "TimedOut"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "92b09bab-2752-56cf-9d2d-765c85d118a7"
+                      },
+                      "type": "Compose",
+                      "inputs": "@true"
+                    }
+                  },
+                  "runtimeConfiguration": {
+                    "concurrency": {
+                      "repetitions": 1
+                    }
+                  }
+                },
+                "For_each_event": {
+                  "runAfter": {
+                    "For_each_admin_id": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "e9f0309d-54ee-5f97-bb21-4ab88a7cc32c"
+                  },
+                  "type": "Foreach",
+                  "foreach": "@variables('Events')",
+                  "actions": {
+                    "Create_comment": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "83a4ccbc-53fd-5f77-9eb0-51af12d7e61d"
+                      },
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "connectionName": "shared_sharepointonline",
+                          "operationId": "PostItem"
+                        },
+                        "parameters": {
+                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                          "table": "IB_TicketComments",
+                          "item/Title": "@{outputs('Ticket')?['TicketNo']}",
+                          "item/TicketId": "@outputs('Ticket')?['ID']",
+                          "item/TicketNo": "@{outputs('Ticket')?['TicketNo']}",
+                          "item/AuthorEmail": "@{outputs('Caller')}",
+                          "item/AuthorName": "@{take(coalesce(triggerOutputs()?['headers']?['x-ms-user-name'], ''), 255)}",
+                          "item/AuthorRole/Value": "@{items('For_each_event')?['role']}",
+                          "item/EventType/Value": "@{items('For_each_event')?['type']}",
+                          "item/Visibility/Value": "@{items('For_each_event')?['visibility']}",
+                          "item/Content": "@{items('For_each_event')?['content']}",
+                          "item/PreviousStatus": "@{items('For_each_event')?['prev']}",
+                          "item/NewStatus": "@{items('For_each_event')?['next']}",
+                          "item/EventOn": "@{utcNow()}",
+                          "item/FileName": "@{items('For_each_event')?['file']}",
+                          "item/FileSizeKb": "@items('For_each_event')?['sizeKb']",
+                          "item/AtSubmission": "@items('For_each_event')?['initial']"
+                        },
+                        "authentication": "@parameters('$authentication')"
+                      }
+                    },
+                    "Set_comment_id": {
+                      "runAfter": {
+                        "Create_comment": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "b7f04380-5dba-52b5-a900-308901fd0d9a"
+                      },
+                      "type": "SetVariable",
+                      "inputs": {
+                        "name": "CommentId",
+                        "value": "@body('Create_comment')?['ID']"
+                      }
+                    },
+                    "Break_comment_inheritance": {
+                      "runAfter": {
+                        "Set_comment_id": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "76f73092-5a10-5be1-8dc0-9c6b893c6152"
+                      },
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "connectionName": "shared_sharepointonline",
+                          "operationId": "HttpRequest"
+                        },
+                        "parameters": {
+                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                          "parameters/method": "POST",
+                          "parameters/uri": "_api/web/lists/GetByTitle('IB_TicketComments')/items(@{variables('CommentId')})/breakroleinheritance(copyRoleAssignments=true,clearSubscopes=true)",
+                          "parameters/headers": {
+                            "Accept": "application/json;odata=nometadata",
+                            "Content-Type": "application/json;odata=nometadata"
                           }
+                        },
+                        "authentication": "@parameters('$authentication')"
+                      }
+                    },
+                    "Grant_event_reporter": {
+                      "runAfter": {
+                        "Break_comment_inheritance": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "46740498-283b-5239-8396-3d07a4665470"
+                      },
+                      "type": "If",
+                      "expression": {
+                        "equals": [
+                          "@items('For_each_event')?['visibility']",
+                          "Reporter"
+                        ]
+                      },
+                      "actions": {
+                        "Grant_comment_reporter_read": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "8c600048-01f4-503a-9a0f-256080c1f52f"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                              "connectionName": "shared_sharepointonline",
+                              "operationId": "HttpRequest"
+                            },
+                            "parameters": {
+                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                              "parameters/method": "POST",
+                              "parameters/uri": "_api/web/lists/GetByTitle('IB_TicketComments')/items(@{variables('CommentId')})/roleassignments/addroleassignment(principalid=@{body('Ensure_event_reporter')?['Id']},roledefid=1073741826)",
+                              "parameters/headers": {
+                                "Accept": "application/json;odata=nometadata",
+                                "Content-Type": "application/json;odata=nometadata"
+                              }
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        }
+                      },
+                      "else": {
+                        "actions": {}
+                      }
+                    },
+                    "For_each_event_admin": {
+                      "runAfter": {
+                        "Grant_event_reporter": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "ff008d7a-e02a-59ce-8706-588942725dc9"
+                      },
+                      "type": "Foreach",
+                      "foreach": "@variables('AdminIds')",
+                      "actions": {
+                        "Grant_event_admin": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "f05ce001-e7e1-504f-8d41-3f48e74c1a3e"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                              "connectionName": "shared_sharepointonline",
+                              "operationId": "HttpRequest"
+                            },
+                            "parameters": {
+                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                              "parameters/method": "POST",
+                              "parameters/uri": "_api/web/lists/GetByTitle('IB_TicketComments')/items(@{variables('CommentId')})/roleassignments/addroleassignment(principalid=@{items('For_each_event_admin')},roledefid=1073741827)",
+                              "parameters/headers": {
+                                "Accept": "application/json;odata=nometadata",
+                                "Content-Type": "application/json;odata=nometadata"
+                              }
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        },
+                        "Admin_event_handled": {
+                          "runAfter": {
+                            "Grant_event_admin": [
+                              "Succeeded",
+                              "Failed",
+                              "Skipped",
+                              "TimedOut"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "be4d867d-c1b4-5aa6-9f67-6288cae0bca0"
+                          },
+                          "type": "Compose",
+                          "inputs": "@true"
+                        }
+                      }
+                    }
+                  },
+                  "runtimeConfiguration": {
+                    "concurrency": {
+                      "repetitions": 1
+                    }
+                  }
+                }
+              },
+              "else": {
+                "actions": {}
+              }
+            },
+            "Respond": {
+              "runAfter": {
+                "Log_events": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "808b4ff1-4d03-5099-a110-c3406764ebe4"
+              },
+              "type": "If",
+              "expression": {
+                "not": {
+                  "equals": [
+                    "@toLower(coalesce(triggerBody()?['text'], ''))",
+                    "create"
+                  ]
+                }
+              },
+              "actions": {
+                "Respond_done": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "f8e8eb95-d687-5f9e-9616-c90fa9e5e120"
+                  },
+                  "type": "Response",
+                  "kind": "PowerApp",
+                  "inputs": {
+                    "statusCode": 200,
+                    "body": {
+                      "ok": "@{if(empty(variables('Problem')), 'yes', 'no')}",
+                      "message": "@{variables('Problem')}",
+                      "ticketno": "@{if(empty(variables('Problem')), outputs('Ticket')?['TicketNo'], '')}",
+                      "ticketid": "@{if(empty(variables('Problem')), outputs('Ticket')?['ID'], '')}"
+                    },
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "ok": {
+                          "title": "ok",
+                          "x-ms-dynamically-added": true,
+                          "type": "string"
+                        },
+                        "message": {
+                          "title": "message",
+                          "x-ms-dynamically-added": true,
+                          "type": "string"
+                        },
+                        "ticketno": {
+                          "title": "ticketno",
+                          "x-ms-dynamically-added": true,
+                          "type": "string"
+                        },
+                        "ticketid": {
+                          "title": "ticketid",
+                          "x-ms-dynamically-added": true,
+                          "type": "string"
                         }
                       }
                     }
                   }
                 }
+              },
+              "else": {
+                "actions": {}
+              }
+            },
+            "Notify_reporter": {
+              "runAfter": {
+                "Respond": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "7cc5c4eb-3e22-5cda-8c38-5cb82513083b"
+              },
+              "type": "If",
+              "expression": {
+                "not": {
+                  "equals": [
+                    "@variables('MailSubject')",
+                    ""
+                  ]
+                }
+              },
+              "actions": {
+                "Send_mail_to_reporter": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "d325a652-ee86-5854-bfdf-d07fb0f18f5b"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                      "connectionName": "shared_office365",
+                      "operationId": "SendEmailV2"
+                    },
+                    "parameters": {
+                      "emailMessage/To": "@{toLower(coalesce(outputs('Ticket')?['ReporterEmail'], ''))}",
+                      "emailMessage/Subject": "@{variables('MailSubject')}",
+                      "emailMessage/Body": "<div style=\"font-family: Segoe UI, Arial, sans-serif; font-size: 14px\">@{variables('MailBody')}</div>",
+                      "emailMessage/Importance": "Normal"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Mail_handled": {
+                  "runAfter": {
+                    "Send_mail_to_reporter": [
+                      "Succeeded",
+                      "Failed",
+                      "Skipped",
+                      "TimedOut"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "ca642bc4-2edd-5629-aec4-f8a2b0222b4e"
+                  },
+                  "type": "Compose",
+                  "inputs": "@true"
+                }
+              },
+              "else": {
+                "actions": {}
               }
             }
           }
@@ -1285,7 +2936,7 @@
                 "statusCode": 200,
                 "body": {
                   "ok": "no",
-                  "message": "Something went wrong on the server. Nothing was saved - please try again.",
+                  "message": "@{if(contains(createArray('create', 'comment'), toLower(coalesce(triggerBody()?['text'], ''))), 'Something went wrong on the server. Nothing was saved - please try again.', 'Something went wrong on the server. Reload the issue to see what was saved, and try again.')}",
                   "ticketno": "",
                   "ticketid": ""
                 },
