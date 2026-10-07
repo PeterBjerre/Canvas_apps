@@ -255,6 +255,17 @@ LOAD_ACTIVITY = (
     "Set(varIbActBusy, false)"
 )
 
+# Vedhaeftningerne er SharePoint-vedhaeftninger paa sagens raekke: de
+# hentes med brugerens egen forbindelse og kun, hvis brugeren maa laese
+# raekken. Foerst naar fanen vaelges.
+LOAD_FILES = (
+    "Set(varIbFilesBusy, true);\n"
+    f"Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp({cfg.L_TICKETS}, ID = varIbSelId).Attachments); "
+    "false, true));\n"
+    "Set(varIbFilesFor, varIbSelId);\n"
+    "Set(varIbFilesBusy, false)"
+)
+
 # Den aabne sag hentes igen efter en aendring - een LookUp paa ID - og
 # skrives tilbage i listerne, saa raekken i oversigten passer. Er sagen
 # vaek (slettet af en anden admin), lukkes popuppen.
@@ -267,24 +278,19 @@ RELOAD_SEL = (
     "        RemoveIf(colIbAll, Id = varIbSelId);\n"
     "        Set(varIbDetailOn, false),\n"
     f"        Set(varIbSel, {_row('r', shared=False)});\n"
-    "        Set(varIbFiles, r.Attachments);\n"
-    "        Set(varIbFilesFor, varIbSelId);\n"
+    # r.Attachments kan ikke laeses fra With's LookUp - compile: "The
+    # specified column is not accessible in this context" (issue #133).
+    # Er fanen aaben, hentes filerne igen med LOAD_FILES' egen LookUp;
+    # ellers hentes de foerst, naar fanen vaelges.
+    "        If(varIbTab = \"files\",\n"
+    + "".join("            " + l + "\n" for l in LOAD_FILES.split("\n")) +
+    "        , Set(varIbFilesFor, -1));\n"
     "        UpdateIf(colIbMine, Id = varIbSelId, varIbSel);\n"
     "        UpdateIf(colIbAll, Id = varIbSelId, varIbSel)\n"
     "    )\n"
     ")"
 )
 
-# Vedhaeftningerne er SharePoint-vedhaeftninger paa sagens raekke: de
-# hentes med brugerens egen forbindelse og kun, hvis brugeren maa laese
-# raekken. Foerst naar fanen vaelges.
-LOAD_FILES = (
-    "Set(varIbFilesBusy, true);\n"
-    f"Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp({cfg.L_TICKETS}, ID = varIbSelId).Attachments); "
-    "false, true));\n"
-    "Set(varIbFilesFor, varIbSelId);\n"
-    "Set(varIbFilesBusy, false)"
-)
 
 
 # Skemaerne for samlingerne. If(false, ...): kun skemaet (check_layout
