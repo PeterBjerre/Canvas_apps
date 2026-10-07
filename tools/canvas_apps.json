@@ -61,13 +61,26 @@
     "tilstand uden at aendre filen."
   ],
   "single_apps": "retired",
+  "_features_kommentar": [
+    "FEATURE FLAGS - eet sted pr. miljoe (issue #114).",
+    "",
+    "En app med 'feature' under 'apps' bygges KUN i et miljoe, hvor",
+    "environments.<miljoe>.features.<navn> er true. Ellers findes den",
+    "ikke: ingen skaerm, intet punkt i sidebaren, intet dyblink og ingen",
+    "datakilder i appen - og flowet bag den kaldes derfor heller ikke.",
+    "",
+    "  issue_board  Issue Board (udviklings- og testfasen). Slaas fra ved",
+    "               at fjerne linjen eller saette den til false og bygge",
+    "               og deploye igen. Data i SharePoint roeres ikke."
+  ],
   "nav_order": [
     "hub",
     "functionallocation",
     "vhplan",
     "material",
     "equipment",
-    "kks"
+    "kks",
+    "issueboard"
   ],
   "apps": {
     "hub": {
@@ -130,6 +143,17 @@
         "assemble_screen.py"
       ]
     },
+    "issueboard": {
+      "folder": "Issue Board",
+      "screen": "ScreenIssueBoard",
+      "prefix": "Ib",
+      "nav_label": "Issue Board",
+      "feature": "issue_board",
+      "scripts": [
+        "generate_app_onstart.py",
+        "assemble_screen.py"
+      ]
+    },
     "biosap": {
       "folder": "BIO SAP App",
       "screen": null,
@@ -147,6 +171,9 @@
       "_navn": "Bioenergy Solutions DEV, solution BIO SAP",
       "environment_id": "e0f8f822-d16a-e878-ba4e-fb42bc617e47",
       "environment_category": "prod",
+      "features": {
+        "issue_board": true
+      },
       "apps": {
         "hub": {
           "navn": "Masterdata Hub",

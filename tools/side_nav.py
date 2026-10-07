@@ -268,9 +268,14 @@ def _message_button(p, suffix, compact):
                   tooltip='"Message SAP maintenance"')
 
 
-def _launch(key):
+def _launch(key, current=None):
+    """NAV_PRE[key] er en formel foer Navigate - eller en funktion af den
+    skaerm, man kommer FRA (issue #114: Issue Board vil vide, hvor man var,
+    saa det kan foreslaa Application)."""
     if SCREENS is not None:
         pre = NAV_PRE.get(key)
+        if callable(pre):
+            pre = pre(current)
         return f"{CLOSE}; " + (pre + "; " if pre else "") + f"Navigate({SCREENS[key]}, ScreenTransition.None)"
     url = env.play_url(key)
     return f'{CLOSE}; Launch("{url}" & {theme_query("?")}, {{ }}, LaunchTarget.Replace)'
@@ -310,7 +315,7 @@ def _column(p, suffix, w, current, is_open, help_on, help_action):
         items.append(_image(
             n(f"Nav{key[0].upper()}{key[1:]}"),
             _item_svg(w, icon, label if is_open else None, cur, tok), w, ITEM_H,
-            CLOSE if cur else _launch(key),
+            CLOSE if cur else _launch(key, current),
             f'"{label}' + (' (current app)"' if cur else '"'),
             tooltip=None if is_open else f'"{label}"', hover=not cur))
     top = group(f"con{p}NavTop{suffix}", [brand, toggle] + items, gap=2, width=w,
