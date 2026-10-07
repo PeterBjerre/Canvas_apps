@@ -2190,6 +2190,40 @@ def rule_34(ctx):
                         f"de koerer samtidig. Skriv skemaet som If(false, ClearCollect({col}, ...))")
 
 
+def _formulas(ctx):
+    """(ejer, egenskab, formel) for hver kontrol og for skaermen selv."""
+    for _p, name, body in ctx.all_nodes:
+        for key, val in (body.get("Properties") or {}).items():
+            if isinstance(val, str):
+                yield name, key, val
+    for key, val in (ctx.screen.get("Properties") or {}).items():
+        if isinstance(val, str):
+            yield "<skaermen>", key, val
+
+
+def rule_35(ctx):
+    """Index i stedet for Last(FirstN( og First(LastN( (issue #165)"""
+    # App checker (IndexedAccessViaCopy, Medium): Last(FirstN(t, n)) og
+    # First(LastN(t, n)) bygger en kopi af tabellen op til n raekker for at
+    # returnere een post. Index(t, n) laeser posten direkte. 52 fund i KKS-
+    # skaermens knapgitre og soegelister ved deployet i issue #165.
+    #
+    # Index fejler, naar n er uden for 1..CountRows(t), hvor de gamle former
+    # klemte til en kant. Kan n komme udenfor, saa skriv
+    # Index(t, Min(CountRows(t), n)) - eller Max(1, CountRows(t) - n + 1)
+    # for First(LastN(.
+    pat = re.compile(r"\b(?:Last\(\s*FirstN|First\(\s*LastN)\s*\(")
+    for owner, key, val in _formulas(ctx):
+        for m in pat.finditer(val):
+            # tekst i en streng eller kommentar er ikke et kald
+            if fx.open_string(val[:m.start()]):
+                continue
+            ctx.problems.append(
+                f"[35] {owner}.{key}: {m.group(0).rstrip('(')}(...)) kopierer "
+                f"tabellen - brug Index(t, n) (App checker: IndexedAccessViaCopy)")
+            break
+
+
 RULES = [
     Rule('0', 'Hvert kontrolnavn findes kun een gang', rule_0),
     Rule('1', 'Ingen kontrol-til-kontrol hoejdereferencer', rule_1),
@@ -2233,6 +2267,7 @@ RULES = [
     Rule('19', 'AccessibleLabel maa ikke vaere kontrollens navn', rule_19),
     Rule('20', 'Flere UAFHAENGIGE hentninger i kaede -> Concurrent', rule_20),
     Rule('34', 'OnStart maa ikke toemme en samling, skaermens OnVisible fylder', rule_34),
+    Rule('35', 'Index i stedet for Last(FirstN( og First(LastN( (issue #165)', rule_35),
 ]
 
 
