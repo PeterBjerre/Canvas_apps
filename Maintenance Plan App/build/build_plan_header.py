@@ -7,7 +7,7 @@ import build_help as bh
 import layout_tokens as lay
 from build_helpers import (child_name, text_min_height, text_ctrl, group, button, text_input, number_input,
                            themed_dropdown, field_cell, col_width, badge, card, grow,
-                           column_grid, text_px, fit_button_width, ICON_W)
+                           row_n, text_px, fit_button_width, ICON_W)
 
 DM_PLAN = "If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)"
 # Linjen vises, naar planen er gemt og laast - paa ALLE bredder (issue #123).
@@ -403,10 +403,13 @@ def build_plan_header():
     numFirstCallYear = number_input("numVhpFirstCallYear", "varVhpPlan.FirstCallYear", min_v=2020, max_v=2100,
                                     required_formula=REQ_PLAN, display_mode=DM_PLAN, label="\"First call, year\"")
 
-    # KOLONNE-ORDEN (issue #54). Felterne udfyldes oppefra og ned i hver
-    # kolonne, foer naeste kolonne begynder - Plan Type, Maintenance
-    # Strategy og Plant staar under hinanden i kolonne 1. Foer stod de fire
-    # og fire paa raekker.
+    # RAEKKE-ORDEN (issue #142). Planhovedet er fire kolonner og to raekker:
+    #   Raekke 1: Plan Type | Status | Plant | Plan Text
+    #   Raekke 2: Sort Field | Cycle | Unit | First Call
+    # Cycle, Unit og First Call er een planlaegningsgruppe og staar samlet i
+    # raekke 2. Foer (issue #54, #113) blev felterne lagt i kolonne-orden.
+    # Hver raekke er en row_n, saa felterne under braekpunktet stables i
+    # netop denne laeseraekkefoelge - ogsaa tab-raekkefoelgen foelger den.
     CW = PLAN_CW
     PLAN_COLS = 4
     FC_CELL = col_width(CW, PLAN_COLS)
@@ -431,21 +434,25 @@ def build_plan_header():
     cellStrategy.props["Visible"] = LIVE_IS_STRATEGY
     cellStrategy.vis = LIVE_IS_STRATEGY
 
-    grid = column_grid("conVhpPlanGrid", [
-        [cell("conVhpCellPlanType", "Plan Type", drpPlanType, "PlanType", True),
-         cell("conVhpCellPlant", "Plant", drpPlant, "Plant", True),
-         cellStrategy],
-        [cell("conVhpCellStatus", "Status", drpStatus, "Status", True),
-         cell("conVhpCellPlanText", "Plan Text", txtPlanText, "PlanText", True)],
-        # Cycle og Unit har byttet plads (issue #113): Unit staar i kolonne 3,
-        # Cycle oeverst i kolonne 4. Hele cellen flytter (etiket, stjerne,
-        # validering); kontrollerne og deres formler er de samme.
-        [cell("conVhpCellSortField", "Sort Field", drpSortField, "SortField"),
-         cell("conVhpCellUnit", "Unit", drpUnit, "Unit", True)],
-        [cell("conVhpCellCycle", "Cycle", numCycle, "Cycle", True),
-         cell("conVhpCellFirstCall", "First Call (dd / mm / yyyy)", firstCallRow,
-              "FirstCall", True)],
-    ], container_w=CW, row_gap=10)
+    row1 = row_n("conVhpPlanRow1", [
+        cell("conVhpCellPlanType", "Plan Type", drpPlanType, "PlanType", True),
+        cell("conVhpCellStatus", "Status", drpStatus, "Status", True),
+        cell("conVhpCellPlant", "Plant", drpPlant, "Plant", True),
+        cell("conVhpCellPlanText", "Plan Text", txtPlanText, "PlanText", True),
+    ], container_w=CW)
+    row2 = row_n("conVhpPlanRow2", [
+        cell("conVhpCellSortField", "Sort Field", drpSortField, "SortField"),
+        cell("conVhpCellCycle", "Cycle", numCycle, "Cycle", True),
+        cell("conVhpCellUnit", "Unit", drpUnit, "Unit", True),
+        cell("conVhpCellFirstCall", "First Call (dd / mm / yyyy)", firstCallRow,
+             "FirstCall", True),
+    ], container_w=CW)
+    # Maintenance Strategy vises kun for plantypen Strategy. Den staar da i
+    # sin egen raekke under de to faste raekker, i kolonne 1, saa de otte
+    # felters orden og placering aldrig flytter sig. Gruppens hoejde
+    # taeller kun synlige boern, saa sektionen vokser, naar feltet vises.
+    grid = group("conVhpPlanGrid", [row1, row2, cellStrategy],
+                 direction="Vertical", gap=10, align_items="Stretch")
 
     planMeta = text_ctrl(
         "txtVhpPlanMeta",
