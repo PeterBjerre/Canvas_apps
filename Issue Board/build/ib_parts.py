@@ -1346,7 +1346,7 @@ def _files_panel():
         "AccessibleLabel": '"Preview of " & ThisItem.DisplayName',
         "BorderColor": C_CARD_BORDER, "BorderStyle": "BorderStyle.Solid", "BorderThickness": "1",
         "Height": "44", "Image": "ThisItem.Value", "ImagePosition": "ImagePosition.Fill",
-        "OnSelect": "false", "TabIndex": "-1", **lay.radius(6),
+        "OnSelect": "false", "TabIndex": "0", **lay.radius(6),
         "Visible": is_img, "Width": "44", "X": "0", "Y": "8",
     }, h=44, vis=is_img)
     kind = text_ctrl("txtIbFileKind", f"Upper(Left({ext}, 4))", size=lay.SIZE_MICRO,

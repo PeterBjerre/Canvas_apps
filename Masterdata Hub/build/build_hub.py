@@ -147,7 +147,7 @@ def _image(name, image, width, height, onselect=None, label='""', hover=None):
             "TabIndex": "0",
         })
     else:
-        props.update({"OnSelect": "false", "TabIndex": "-1"})
+        props.update({"OnSelect": "false", "TabIndex": "0"})
     return Ctrl(name, "Image", props=props, h=height)
 
 
@@ -442,7 +442,7 @@ def build_new_menu():
         "Height": "App.Height",
         "Image": '""',
         "OnSelect": MENU_CLOSE,
-        "TabIndex": "-1",
+        "TabIndex": "0",
         "Visible": MENU_OPEN,
         "Width": "App.Width",
         "X": "0",
@@ -836,7 +836,7 @@ def build_closed_peek():
         "Height": "App.Height",
         "Image": '""',
         "OnSelect": close,
-        "TabIndex": "-1",
+        "TabIndex": "0",
         "Visible": PEEK_OPEN,
         "Width": "App.Width",
         "X": "0",
