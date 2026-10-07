@@ -238,3 +238,13 @@ def test_admin_scope_and_actions_follow_is_admin():
     assert f"{IS_ADMIN} && !varIbAllLoaded" in P.LOAD_ALL
     assert f"IbCanManage = !varIbSelShared && {IS_ADMIN};" in P.FORMULAS
     assert "IbCanEdit = " in P.FORMULAS and f'varIbSel.Status = "{cfg.STATUS_EDITABLE}"' in P.FORMULAS
+
+
+def test_attachments_are_never_read_from_a_with_record():
+    # Issue #133: Studio afviser r.Attachments fra With({ r: LookUp(...) })
+    # med "The specified column is not accessible in this context". Filerne
+    # hentes kun med LookUp(...).Attachments direkte (LOAD_FILES).
+    text = open(os.path.join(ROOT, "BIO SAP App", "ScreenIssueBoard.pa.yaml"),
+                encoding="utf-8").read()
+    bad = re.findall(r"\b(?!att)\w+\.Attachments\b", text)
+    assert not bad, bad
