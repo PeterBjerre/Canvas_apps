@@ -68,8 +68,9 @@ ITEM_DIRTY = (
     "        Trim(inpVhpItemShortText.Text & \"\") <> Trim(it.ShortText & \"\") ||\n"
     "        (drpVhpItemMainWorkCenter.Selected.Value & \"\") <> (it.MainWorkCenter & \"\") ||\n"
     "        (drpVhpItemActivityType.Selected.Value & \"\") <> (it.ActivityType & \"\") ||\n"
-    "        tglVhpItemRevision.Value <> !IsBlank(it.Revision) ||\n"
-    "        (drpVhpItemNonFlowStatus.Selected.Value & \"\") <> (it.NonFlowUserStatus & \"\") ||\n"
+    # Revision og Non Flow (issue #141): en tom kladde er uroert = gemt.
+    "        (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||\n"
+    "        (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & \"\") <> (it.NonFlowUserStatus & \"\")) ||\n"
     f"        ({FL_CODE} & \"\") <> (it.FunctionalLocation & \"\") ||\n"
     "        Trim(inpVhpItemInitials.Text & \"\") <> Trim(it.Initials & \"\")\n"
     "    )\n"
