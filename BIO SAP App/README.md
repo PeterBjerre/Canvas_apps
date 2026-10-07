@@ -24,6 +24,7 @@ Baggrunden for beslutningen står i
 | `ScreenEquipment` | Equipments |
 | `ScreenMaterial` | Materials |
 | `ScreenKks` | KKS-opslaget. En **opslagsskærm**: ingen anmodninger, så hubben åbner den ikke, og den har intet `?reqid=`. Den henter nøglerne én gang, første gang den vises. Se [`../KKS App/README.md`](../KKS%20App/README.md) |
+| `ScreenIssueBoard` | Issue Board (issue #114): testernes sager — *My issues*, *Shared issues* (anonym), ny sag og kommentarer. Også en opslagsskærm. Bygges **kun** når `features.issue_board` er slået til for miljøet i `tools/canvas_apps.json`; ellers findes skærmen, menupunktet og datakilderne ikke. Lister og flow: `sharepoint/provision/Provision-IssueBoard.ps1` og `BioSap-IssueBoard-Submit` |
 
 Hver domæneskærm har én kontrol mere end i den enkelte app: ventespinneren.
 Antallet pr. skærm skrives ud af `build/check_combined.py` ved hvert build
@@ -114,6 +115,10 @@ fra en af de fem enkeltapps — skriver den `AppUrl` =
    `BioSap-TaskListAttachment`, `BioSap-Material-ReadInvoice` (fakturaimporten,
    [`docs/34`](../docs/34-faktura-import.md) — flowet og Office Scriptet skal
    oprettes først)
+
+   *Kun med Issue Board slået til (issue #114):* listerne `IB_Tickets`,
+   `IB_TicketComments`, `IB_AppSections`, `IB_SharedIssues` og flowet
+   `BioSap-IssueBoard-Submit`.
 3. **Sæt app-id'et** under `biosap` i `tools/canvas_apps.json`. Det står i
    Studio-URL'en (`…%2Fapps%2F<app_id>`).
 4. **Deploy:**

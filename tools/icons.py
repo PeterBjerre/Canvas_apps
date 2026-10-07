@@ -71,6 +71,11 @@ def hub_paths(hx):
 # deler farve med hubben.
 KKS = "M3 6h11M3 11h7M3 16h5M15.5 11.5a3.5 3.5 0 1 1 0 7a3.5 3.5 0 1 1 0-7ZM18.1 18.1 21 21"
 
+# Issue Board (issue #114): en billet med perforering - en sag, man har
+# meldt og foelger. Heller ikke et domaene, saa samme farve som hubben.
+ISSUE_BOARD = ("M4 6h16a1 1 0 0 1 1 1v3a2 2 0 0 0 0 4v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-3"
+               "a2 2 0 0 0 0-4V7a1 1 0 0 1 1-1Z M15 6.5v2M15 11v2M15 15.5v2")
+
 # Et ikon, der skal spejles vandret, tegnes med denne transform om
 # stien (viewBox 24). Bruges af Measuring Points lineal, saa den peger
 # samme vej som Equipments skruenoegle (issue #70).
@@ -85,6 +90,7 @@ DOMAIN = {
     "material":           (MATERIAL,            "domain-mat",          False),
     "vhplan":             (MAINTENANCE_PLAN,    "domain-vhp",          False),
     "kks":                (KKS,                 "text-muted",         False),
+    "issueboard":         (ISSUE_BOARD,         "text-muted",         False),
 }
 
 

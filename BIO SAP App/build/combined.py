@@ -65,13 +65,19 @@ _OWN = [
     ("equipment", "Eq", "Dom"),
     ("material", "Mat", "Dom"),
     ("kks", "Kks", None),
+    ("issueboard", "Ib", None),
 ]
 # OPSLAGSSKAERME: ingen anmodninger, intet MD_RequestIndex, intet ?reqid=.
 # Hubben aabner dem ikke, og de klargoeres ikke af open_block - de henter
-# deres data een gang, foerste gang de vises (KKS App/build/kks_parts.py).
-LOOKUPS = {"kks"}
+# deres data een gang, foerste gang de vises (KKS App/build/kks_parts.py,
+# Issue Board/build/ib_parts.py).
+_LOOKUPS = {"kks", "issueboard"}
 DOMAINS = []
 for _key, _tag, _rename in _OWN:
+    # Feature-flag (issue #114): en app, der er slaaet fra i miljoeet, er
+    # ikke i env.APP_ORDER og bliver ikke en skaerm.
+    if _key not in env.APP_ORDER:
+        continue
     _d = {"key": _key, "folder": env.APPS[_key]["folder"],
           "screen": env.APPS[_key]["screen"], "tag": _tag}
     if _rename:
@@ -82,6 +88,8 @@ if {d["key"] for d in DOMAINS} != set(env.screen_apps()):
                      "samme apps: %s" % sorted({d["key"] for d in DOMAINS}
                                               ^ set(env.screen_apps())))
 BY_KEY = {d["key"]: d for d in DOMAINS}
+# Kun de opslagsskaerme, der er bygget i miljoeet (feature-flag).
+LOOKUPS = {k for k in _LOOKUPS if k in BY_KEY}
 
 # side_nav.SCREENS og StartScreen.
 SCREENS = {d["key"]: d["screen"] for d in DOMAINS}
