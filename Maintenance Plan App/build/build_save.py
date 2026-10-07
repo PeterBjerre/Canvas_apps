@@ -753,7 +753,7 @@ def _step_notes():
         f"                Patch(\n                    {sn.LIST},\n"
         f"                    If(IsBlank(s), Defaults({sn.LIST}), s),\n"
         "                    {\n"
-        "                        Title: varVhpPlanKey,\n"
+        "                        RequestNo: varVhpPlanKey,\n"
         "                        RequestGuid: varVhpRequestGuid,\n"
         "                        PlanId: varVhpPlanSpId,\n"
         "                        Note: varVhpNoteSelf,\n"
