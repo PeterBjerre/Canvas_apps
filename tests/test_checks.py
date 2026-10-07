@@ -136,6 +136,39 @@ def test_layout_rule_33_prefix_follows_type(tmp_path):
     assert rc == 1 and "[33]" in out
 
 
+# Issue #165: Studios App checker. De fire moenstre, den meldte, skal
+# byggeriet afvise, foer de naar Studio.
+def test_layout_rule_35_indexed_access_via_copy(tmp_path):
+    def plant(t):
+        return t.replace("=LayoutRank",
+                         "=If(IsBlank(First(LastN(colEqRows, 2))), 0, 0) + LayoutRank", 1)
+    rc, out = _layout(tmp_path, plant)
+    assert rc == 1 and "[35]" in out and "IndexedAccessViaCopy" in out, out
+
+
+def test_layout_rule_36_countrows_gallery_allitems(tmp_path):
+    def plant(t):
+        return t.replace("=LayoutRank", "=CountRows(galEqRows.AllItems) * 0 + LayoutRank", 1)
+    rc, out = _layout(tmp_path, plant)
+    assert rc == 1 and "[36]" in out and "galEqRows.AllItemsCount" in out, out
+
+
+def test_layout_rule_37_image_without_tab_stop(tmp_path):
+    def plant(t):
+        return re.sub(r"(imgEqTitleIcon:\n(?:.*\n)*?\s+TabIndex: \|-\n\s+)=0",
+                      r"\1=-1", t, count=1)
+    rc, out = _layout(tmp_path, plant)
+    assert rc == 1 and "[37] imgEqTitleIcon" in out, out
+
+
+def test_layout_rule_38_empty_accessible_label(tmp_path):
+    def plant(t):
+        return re.sub(r"(imgEqTitleIcon:\n\s+Control: Image\n\s+Properties:\n"
+                      r"\s+AccessibleLabel: \|-\n\s+)=[^\n]+", r'\1=""', t, count=1)
+    rc, out = _layout(tmp_path, plant)
+    assert rc == 1 and "[38] imgEqTitleIcon" in out, out
+
+
 def test_color_guard_finds_rgba(tmp_path, monkeypatch):
     import build_all
     app = tmp_path / "X" / "build"
