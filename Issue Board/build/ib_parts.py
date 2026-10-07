@@ -56,7 +56,8 @@ from gen_screen import (Ctrl, C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_DIVIDER, C_I
                         C_INFO_FG, C_INVALID_FG, C_MUTED, C_MUTED_BG, C_MODAL_BG, C_OVERLAY,
                         C_PRIMARY, C_PRIMARY_SOFT, C_TITLE, C_TRANSPARENT, C_WARN_BG,
                         C_WARN_FG)
-from build_helpers import (button, card, checkbox_theme, concurrent, fit_button_width, group,
+from build_helpers import (button, card, checkbox_theme, concurrent, confirm_modal,
+                           fit_button_width, group,
                            grow, icon_on_mobile, label_row, loading_overlay, row_hit, row_rule,
                            text_ctrl, text_input, themed_dropdown, top_bar, ICON_W)
 from permissions import IS_ADMIN, ADMIN_LIST, ADMIN_GROUP
@@ -788,6 +789,29 @@ def _upload(picker, ticket_id, initial, dup_check=None):
 
 
 UP_FAILED = "Filter(colIbUp, !IsBlank(Msg))"
+
+# Formularen tom igen efter en indsendt sag. Variablerne foerst - Default
+# paa Application og Section laeser dem.
+CLEAR_FORM = ('Set(varIbFormApp, "");\nSet(varIbFormSection, "");\nSet(varIbMore, false);\n'
+              + RESET_FORM)
+
+# Den nye sag i View mode - som et klik paa raekken (OPEN_ROW), men fra
+# colIbMine paa flowets ID. Er den ikke i listen (hentningen fejlede),
+# staar sagsnummeret stadig i beskeden.
+SHOW_NEW = (
+    "Set(varIbSelId, Value(varIbRes.ticketid));\n"
+    "Set(varIbSel, LookUp(colIbMine, Id = varIbSelId));\n"
+    "If(\n"
+    "    !IsBlank(varIbSel),\n"
+    "    Set(varIbSelShared, false);\n"
+    '    Set(varIbTab, "details");\n'
+    "    Set(varIbInternal, false);\n"
+    "    Set(varIbFilesFor, -1);\n"
+    "    Reset(inpIbComment);\n"
+    "    " + LOAD_ACTIVITY.replace("\n", "\n    ") + ";\n"
+    "    Set(varIbDetailOn, true)\n"
+    ")"
+)
 UP_FAILED_TEXT = f'Concat({UP_FAILED}, Name & " (" & Msg & ")", "; ")'
 
 SUBMIT = (
@@ -824,9 +848,15 @@ SUBMIT = (
     f"    {RELOAD_MINE};\n"
     "    Set(varIbSharedLoaded, false);\n"
     "    Set(varIbAllLoaded, false);\n"
-    "    Set(varIbFormOn, false);\n"
     '    Set(varIbScope, "mine");\n'
     '    Set(varIbState, "open");\n'
+    # Foerst nu lukkes og nulstilles formularen - sagen findes, og
+    # rettighederne er sat, foer flowet svarer ok (issue #135).
+    "    Set(varIbFormOn, false);\n"
+    "    " + CLEAR_FORM.replace("\n", "\n    ") + ";\n"
+    # Den nye sag vises med det samme: den aabnes fra den friske liste, saa
+    # et aktivt filter eller en soegning ikke kan skjule den.
+    "    " + SHOW_NEW.replace("\n", "\n    ") + ";\n"
     "    If(\n"
     f"        CountRows({UP_FAILED}) > 0,\n"
     '        Notify("Issue " & varIbRes.ticketno & " has been submitted, but these files were not '
@@ -834,7 +864,9 @@ SUBMIT = (
     '        Notify("Thank you. Issue " & varIbRes.ticketno & " has been submitted.", '
     "NotificationType.Success)\n"
     "    ),\n"
-    '    Notify("The issue could not be submitted. " & varIbRes.message, NotificationType.Error)\n'
+    # Fejler det, bliver popuppen staaende med det indtastede (issue #135).
+    '    Notify("The issue could not be submitted. " & Coalesce(varIbRes.message, "Please try again."), '
+    "NotificationType.Error)\n"
     ");\n"
     "Set(varIbBusy, false)"
 )
@@ -872,7 +904,8 @@ SAVE_EDIT = (
     "    Set(varIbFormOn, false);\n"
     "    Set(varIbDetailOn, true);\n"
     '    Notify("Your changes have been saved.", NotificationType.Success),\n'
-    '    Notify("The changes could not be saved. " & varIbRes.message, NotificationType.Error)\n'
+    '    Notify("The changes could not be saved. " & Coalesce(varIbRes.message, "Please try again."), '
+    "NotificationType.Error)\n"
     ");\n"
     "Set(varIbBusy, false)"
 )
@@ -944,8 +977,64 @@ def _attachments(name, label):
     }, h=90)
 
 
+def _differs(ctrl, field):
+    return f"Trim({ctrl}.Text) <> Trim({SEL_REF}.{field})"
+
+
+# Har brugeren skrevet noget, der ikke er gemt? Ny sag: noget udfyldt ud
+# over den Application, skaermen selv foreslog. Edit: noget aendret i
+# forhold til sagen. Admin-felterne taeller kun for en admin - kun han
+# ser dem (issue #135).
+_TEXTS = [("inpIbOther", "Other"), ("inpIbTitle", "Title"), ("inpIbDesc", "Description"),
+          ("inpIbSteps", "Steps"), ("inpIbExpected", "Expected"), ("inpIbActual", "Actual"),
+          ("inpIbRelated", "RelatedNo")]
+FORM_DIRTY = (
+    "If(\n"
+    f"    {EDITING},\n"
+    f"    varIbFormApp <> {SEL_REF}.Application || varIbFormSection <> {SEL_REF}.Section ||\n"
+    + "".join(f"    {_differs(c, f)} ||\n" for c, f in _TEXTS) +
+    f'    Coalesce(drpIbSeverity.Selected.Value, "") <> If(IsBlank({SEL_REF}.Severity), '
+    f'"{cfg.SEVERITY_DEFAULT}", {SEL_REF}.Severity) ||\n'
+    f"    ({IS_ADMIN} && (\n"
+    f'        Coalesce(drpIbStatus.Selected.Value, "") <> {SEL_REF}.Status ||\n'
+    f'        Coalesce(drpIbPriority.Selected.Value, "") <> Coalesce({SEL_REF}.Priority, '
+    f'"{cfg.PRIORITY_DEFAULT}") ||\n'
+    f"        If(IsBlank(drpIbAssignee.Selected), {SEL_REF}.AssignedEmail, "
+    f"drpIbAssignee.Selected.Email) <> {SEL_REF}.AssignedEmail ||\n"
+    f'        {_differs("inpIbResolution", "Resolution")})),\n'
+    '    Coalesce(varIbFormApp, "") <> IbFrom || !IsBlank(varIbFormSection) ||\n'
+    + "".join(f"    !IsBlank(Trim({c}.Text)) ||\n" for c, _f in _TEXTS) +
+    f'    Coalesce(drpIbSeverity.Selected.Value, "{cfg.SEVERITY_DEFAULT}") <> "{cfg.SEVERITY_DEFAULT}" ||\n'
+    "    CountRows(attIbNewFiles.Attachments) > 0\n"
+    ")"
+)
+
+# Close er formularens eneste vej ud (Cancel er fjernet, issue #135). Med
+# noget usagt spoerges der foerst - samme bekraeftelse som "New request"
+# i VH-planen (build_helpers.confirm_modal). Ikke mens et kald koerer.
+CLOSE_ASK = (
+    "If(\n"
+    "    !varIbBusy,\n"
+    "    If(\n"
+    "        " + FORM_DIRTY.replace("\n", "\n        ") + ",\n"
+    "        Set(varIbDiscardOn, true),\n"
+    "        " + CLOSE_FORM.replace("\n", "\n        ") + "\n"
+    "    )\n"
+    ")"
+)
+
+
+def build_discard():
+    return confirm_modal(
+        "IbDiscard", "varIbDiscardOn", "Discard unsaved changes?",
+        f'If({EDITING}, "Your changes to " & {SEL_REF}.TicketNo & " have not been saved. '
+        'They are lost if you close.", "The issue has not been submitted. What you have '
+        'entered is lost if you close.")',
+        "Discard and close", CLOSE_FORM, "btnIbDiscardConfirm", icon=None)
+
+
 def build_form():
-    head = _head("IbForm", f'If({EDITING}, "Edit " & {SEL_REF}.TicketNo, "New issue")', CLOSE_FORM)
+    head = _head("IbForm", f'If({EDITING}, "Edit " & {SEL_REF}.TicketNo, "New issue")', CLOSE_ASK)
     intro = text_ctrl("txtIbFormIntro",
                       f'If({EDITING}, "Edit mode. Change what is needed and select Save changes - '
                       'every change is recorded in the activity.", '
@@ -1089,18 +1178,21 @@ def build_form():
                         '(at least 4 characters) and what happened."',
                         size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true",
                         visible=f"!({VALID})")
-    cancel = button("btnIbFormCancel", '"Cancel"', CLOSE_FORM,
-                    width=fit_button_width('"Cancel"'), height=36)
+    # Submit er footerens eneste handling (issue #135). OnSelect tjekker
+    # selv, at intet kald koerer, og at felterne er gyldige - et hurtigt
+    # dobbeltklik naar ikke at sende sagen to gange.
     submit = button("btnIbFormSubmit", f'If({EDITING}, "Save changes", "Submit issue")',
-                    f"If(\n    {EDITING},\n    {SAVE_EDIT},\n    {SUBMIT}\n)", primary=True,
+                    f"If(\n    !varIbBusy && ({VALID}),\n    If(\n        {EDITING},\n        "
+                    + SAVE_EDIT.replace("\n", "\n        ") + ",\n        "
+                    + SUBMIT.replace("\n", "\n        ") + "\n    )\n)", primary=True,
                     width=fit_button_width('"Save changes"') + ICON_W, height=36,
                     icon=f'If({EDITING}, "Save", "Send")',
                     display_mode=f"If(({VALID}) && !varIbBusy, DisplayMode.Edit, DisplayMode.Disabled)")
-    footer = group("conIbFormFooter", [cancel, submit], direction="Horizontal", gap=8,
+    footer = group("conIbFormFooter", [submit], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
     kids = [head, intro, where, sec_hint, other_f, title_f, similar, desc_f, more, details,
             files, manage, context, missing, footer]
-    return [_popup("IbForm", kids, FORM_ON, width=FORM_W)]
+    return [_popup("IbForm", kids, FORM_ON, width=FORM_W), *build_discard()]
 
 
 # ---------------------------------------------------------------------------
@@ -1174,6 +1266,7 @@ DELETE = _run(
     "RemoveIf(colIbAll, Id = varIbSelId);\n"
     "Set(varIbSharedLoaded, false);\n"
     "Set(varIbDelOn, false);\n"
+    "Set(varIbDiscardOn, false);\n"
     "Set(varIbDetailOn, false);\n"
     f'Notify({SEL}.TicketNo & " has been deleted permanently.", NotificationType.Success)',
     "The issue could not be deleted.")
