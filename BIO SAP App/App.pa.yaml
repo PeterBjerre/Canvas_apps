@@ -2454,9 +2454,12 @@ App:
 
       colKksBaseQ = If(IsBlank(varKksQuery), colKksBase, Filter(colKksBase, varKksQuery in Code || varKksQuery in Description));
 
-      // Bogstaverne: funktionsnoeglens er HOME-sektionens 25 koder, de to andres
-      // de bogstaver, der har raekker.
-      colKksL1Keys = If(KksHasL3, Sort(Distinct(Filter(colKksScope, L1 = "HOME"), Code), Value), Sort(Distinct(colKksScope, L1), Value));
+      // Bogstaverne (issue #164): kun de bogstaver, der har mindst een gruppe
+      // (niveau 2) i den valgte noegletype - regnet af samme betingelse som
+      // colKksL2Keys, i hukommelsen, pr. type. Et bogstav uden grupper (fx
+      // funktionsnoeglen D, der ikke bruges, eller komponentnoeglen -A) vises
+      // ikke; raekken findes stadig i ALL og i soegningen.
+      colKksL1Keys = Sort(Distinct(Filter(colKksScope, L1 <> "HOME" && Len(P2) = 2 && StartsWith(P2, L1)), L1), Value);
 
       colKksL2Keys = Sort(Distinct(Filter(colKksBaseQ, varKksL1 <> "ALL" && Len(P2) = 2 && StartsWith(P2, varKksL1)), P2), Value);
 
