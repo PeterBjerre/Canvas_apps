@@ -651,24 +651,25 @@ def build_popup():
 
     # Kortet: en bruger = fast, toned flade. Automatisk/system og det,
     # der venter = stiplet kant uden flade.
+    # Kortet er kun en flade bag raekkens tekster - ingen handling (det goer
+    # btnMdAprExpand ovenpaa). Det var en klassisk knap i View-tilstand, som
+    # stod som et tomt tabstop. Nu er det en moderne tekst uden tekst, som
+    # Issue Boards aktivitetskort (txtIbActBg), med samme fyld, stiplede kant
+    # og hjoerner (issue #161).
     solid = f'ThisItem.Human && ThisItem.State <> "Pending"'
     row_bg = f"If(({d_or_x}) && {solid}, {C_MUTED_BG}, {C_TRANSPARENT})"
-    card = Ctrl(n("btn", "Card"), "Classic/Button", props={
-        "BorderColor": f"If({solid}, {C_TRANSPARENT}, {C_CARD_BORDER})",
-        "BorderStyle": "BorderStyle.Dashed",
-        "BorderThickness": f"If({solid}, 0, 1)", "Color": C_TRANSPARENT,
-        "Fill": row_bg, "HoverFill": row_bg, "PressedFill": row_bg,
-        "HoverBorderColor": f"If({solid}, {C_TRANSPARENT}, {C_CARD_BORDER})",
-        "PressedBorderColor": f"If({solid}, {C_TRANSPARENT}, {C_CARD_BORDER})",
-        "HoverColor": C_TRANSPARENT, "PressedColor": C_TRANSPARENT,
-        "DisplayMode": "DisplayMode.View",
-        "Height": f"If({_is('X')}, If(ThisItem.IsLast, {ROW_H - 4}, {ROW_H}), If({is_open}, {ROW_H - 4}, {ROW_H - 8}))",
-        "Width": f"{TW} - 38", "X": "38", "Y": f"If({_is('X')}, 0, 4)",
-        "RadiusTopLeft": f"If({_is('X')}, 0, 8)", "RadiusTopRight": f"If({_is('X')}, 0, 8)",
-        "RadiusBottomLeft": f"If({_is('X')}, If(ThisItem.IsLast, 8, 0), If({is_open}, 0, 8))",
-        "RadiusBottomRight": f"If({_is('X')}, If(ThisItem.IsLast, 8, 0), If({is_open}, 0, 8))",
-        "TabIndex": "0", "Text": '""', "Visible": d_or_x,
-    }, h=ROW_H - 8, vis=d_or_x)
+    card = text_ctrl(n("txt", "Card"), '""', size=lay.SIZE_MICRO,
+                     height=f"If({_is('X')}, If(ThisItem.IsLast, {ROW_H - 4}, {ROW_H}), If({is_open}, {ROW_H - 4}, {ROW_H - 8}))",
+                     width=f"{TW} - 38", fill=row_bg, accessible='"Stage card"', visible=d_or_x,
+                     extra={
+                         "X": "38", "Y": f"If({_is('X')}, 0, 4)",
+                         "BorderColor": f"If({solid}, {C_TRANSPARENT}, {C_CARD_BORDER})",
+                         "BorderStyle": "BorderStyle.Dashed",
+                         "BorderThickness": f"If({solid}, 0, 1)",
+                         "RadiusTopLeft": f"If({_is('X')}, 0, 8)", "RadiusTopRight": f"If({_is('X')}, 0, 8)",
+                         "RadiusBottomLeft": f"If({_is('X')}, If(ThisItem.IsLast, 8, 0), If({is_open}, 0, 8))",
+                         "RadiusBottomRight": f"If({_is('X')}, If(ThisItem.IsLast, 8, 0), If({is_open}, 0, 8))",
+                     })
     rail = Ctrl(n("img", "Rail"), "Image", props={
         "AccessibleLabel": '"Approval timeline"', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
         "Fill": C_TRANSPARENT, "Height": str(ROW_H), "Image": _rail_svg(),
