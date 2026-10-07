@@ -83,6 +83,27 @@ def _function_keys():
             "FlFunctionKeys =\n    %s;" % (len(keys), body))
 
 
+# Listerne, der kun har vaerdien X (Atex, TRM assignment): afkrydsning.
+X_LISTS = {lid for lid in {r["List"] for r in R["lists"]}
+           if [r["Value"] for r in R["lists"] if r["List"] == lid] == ["X"]}
+
+
+def editor_kind(col):
+    """Feltets editor i formularen (issue #166, FL59):
+      ro     skrivebeskyttet (StrIndicator, ABC Indic. ...)
+      check  afkrydsning, gemmer X eller intet (X-listerne og
+             "<klasse> assignment")
+      list   dropdown mod listen
+      text   tekst med maks.-laengde"""
+    if not col["Editable"]:
+        return "ro"
+    if col["List"] in X_LISTS or (not col["List"] and col["Field"].endswith(" ASSIGNMENT")):
+        return "check"
+    if col["List"]:
+        return "list"
+    return "text"
+
+
 def formulas_block():
     parts = [tok.formula(), lay.formula(), perm.formula()]
     parts.append(_table(
@@ -94,9 +115,10 @@ def formulas_block():
         ["List", "Ord", "Value", "UValue"],
         "Dropdown-listerne (FL31, FL35, FL37-FL47). UValue er til FL54."))
     parts.append(_table(
-        "colFlColumns", R["columns"],
-        ["Cls", "Ord", "Column", "Field", "Editable", "List", "MaxLen"],
-        "Kolonnerne pr. klasse og deres editor (FL58-FL61, FL_SPOOL_COLUMNS)."))
+        "colFlColumns", [dict(c, Kind=editor_kind(c)) for c in R["columns"]],
+        ["Cls", "Ord", "Column", "Field", "Editable", "List", "MaxLen", "Section", "Kind"],
+        "Kolonnerne pr. klasse, deres sektion paa skaermen og deres editor "
+        "(FL58-FL61, FL_SPOOL_COLUMNS)."))
     parts.append(_table("colFlAggregate", R["aggregate"], ["Key", "Cls"],
                         "ClassDeterminationAggregateKey (FL17, FL18)."))
     parts.append(_table("colFlComponent", R["component"], ["Key", "Cls"],

@@ -41,10 +41,10 @@ node tools/fl/harness.js test   # testmatrixen + differentialtest
 ```
 
 `plan` folder `validateSpoolFields` ud til en **flad, ordnet tjekliste pr.
-klasse**: 541 tjek i 17 klasser. Det er den liste, Power Fx'en evaluerer.
+klasse**: 522 tjek i 18 klasser. Det er den liste, Power Fx'en evaluerer.
 `test` gør tre ting:
 
-1. Den kører testmatrixen (nedenfor, 108 sager) gennem **originalen** og
+1. Den kører testmatrixen (nedenfor, 110 sager) gennem **originalen** og
    sammenligner med det forventede.
 2. Den kører samme sager gennem den **flade evaluator**, som er en
    linje-for-linje-model af appens Power Fx, og kræver ordret samme
@@ -109,10 +109,10 @@ ellers fra standardkolonnerne, ellers er det feltnavnet med versaler
 | FL30 | `Char`-tabellen: klassens felter med tal-`MaxLength` | `:806-828`, `:1183-1190` | `<felt>: Max N characters.` | Fejl | Tjek `MAX` i `colFlPlan` | `fl_validation.py` `spool_issues` (`MAX`); `generate_app_onstart.py` `colFlPlan` |
 | FL31 | `Char`-tabellen: `Dropdown`-felter skal matche listen | `:1192-1197` | `<felt>: Value must match dropdown options.` | Fejl | Tjek `DROP` | `fl_validation.py` `spool_issues` (`DROP`), `in_list_bad`; `generate_app_onstart.py` `colFlLists` |
 | FL32 | Description er påkrævet (stamdata) | `:203-213`, `:1236-1238` | `Description: Required field.` | Fejl | Tjek `REQ` | `fl_validation.py` `spool_issues` (`REQ`) |
-| FL33 | Stamdata-længder: Manufacturer 30, Description 40, Model Number 20, Manufacturer Part/Serial Number 30, Sort Field 30, Room 8, Warranty Start/End 10 | `:203-213`, `:1240-1242` | `<felt>: Max N characters.` | Fejl | Tjek `MAX` | `fl_validation.py` `spool_issues` (`MAX`) |
-| FL34 | Warranty Start/End: `DD.MM.YYYY` eller `YYYYMMDD`, og en rigtig dato | `:179`, `:1244-1246`, `:1440-1462` | `<felt>: Use DD.MM.YYYY or YYYYMMDD.` | Fejl | Tjek `DATE` - ren aritmetik, ikke `Date()`, se PX4 | `fl_validation.py` `date_bad` |
-| FL35 | Faste værdier: Atex/Risiko/Asbestos/PTW = X, ABC Indic. = A, StrIndicator ∈ KKS/AKS/ROS/KKSKV/KKSKA, TRM assignment = X | `:149-157`, `:1249-1257` | `<felt>: Allowed values: X.` (listen ordret) | Fejl | Tjek `ALLOW` | `fl_validation.py` `spool_issues` (`ALLOW`) |
-| FL36 | Trinliste pr. klasse (`CLASS_STEP_RULES`, `DEFAULT` for ukendte) | `:181-201`, `:1222-1229` | – | Afledt | Foldet ind i `colFlPlan` af harnessen | `fl_rules.generated.json` `plan` → `generate_app_onstart.py` `colFlPlan` |
+| FL33 | Stamdata-længder: Manufacturer 30, Description 40, Model Number 20, Manufacturer Part/Serial Number 30, Sort Field 30, Room 8, Warranty Start/End 10. Længderne er også feltets `MaxLength` i formularen (issue #166, `resolveMaxLengthForField`) | `:203-213`, `:1240-1242` | `<felt>: Max N characters.` | Fejl | Tjek `MAX` | `fl_validation.py` `spool_issues` (`MAX`) |
+| FL34 | Warranty Start/End: **kun** `DD.MM.YYYY`, og en rigtig dato. `YYYYMMDD` godtages ikke længere (issue #166). Feltet viser formatet som pladsholder | `:179`, `runMasterDataValidation`, `isValidWarrantyDate` | `<felt>: Use DD.MM.YYYY.` | Fejl | Tjek `DATE` - ren aritmetik, ikke `Date()`, se PX4 | `fl_validation.py` `date_bad` |
+| FL35 | Faste værdier: Atex = X, ABC Indic. = A, StrIndicator ∈ KKS/AKS/ROS/KKSKV/KKSKA, TRM assignment = X. Risiko, Asbestos og PTW er ikke i appen og valideres ikke (issue #166) | `:149-157`, `:1249-1257` | `<felt>: Allowed values: X.` (listen ordret) | Fejl | Tjek `ALLOW` | `fl_validation.py` `spool_issues` (`ALLOW`) |
+| FL36 | Trinliste pr. klasse (`CLASS_STEP_RULES`, `DEFAULT` for ukendte). Klasserne er dem, KKS-nøglerne kan give, plus alle i `FL_SPOOL_COLUMNS` - dvs. også **RBR** (issue #166), som endnu ingen KKS-nøgle peger på | `:181-201`, `:1222-1229` | – | Afledt | Foldet ind i `colFlPlan` af harnessen | `fl_rules.generated.json` `plan` → `generate_app_onstart.py` `colFlPlan` |
 | FL37 | `Design_pressure_`: Design pressure maks. **8**, tegn `0-9 . , - / +`; uom mod `Design_pressure_uom` | `:216-218`, `:1260-1263` | `Max 8 characters.` / `Invalid value format.` / `Value must match dropdown options.` | Fejl | `MAX`, `RGX NUMSIGN`, `DROP` | `fl_validation.py` `spool_issues`, `rgx_bad` (`NUMSIGN`) |
 | FL38 | `Operating_pressure_`: maks. 12, samme tegn; uom mod `Design_pressure_uom` | `:219-221`, `:1265-1268` | som FL37 | Fejl | samme | `fl_validation.py` `spool_issues`, `rgx_bad` |
 | FL39 | `Design_temperature_`: maks. 8; uom mod `Design_Temp_uom` | `:222-224`, `:1270-1273` | som FL37 | Fejl | samme | `fl_validation.py` `spool_issues`, `rgx_bad` |
@@ -122,7 +122,7 @@ ellers fra standardkolonnerne, ellers er det feltnavnet med versaler
 | FL43 | `Typekreds`: Typekredse mod `TypekredsTabel` | `:1285-1287` | `Typekredse: Value must match dropdown options.` | Fejl | `DROP` | `fl_validation.py` `spool_issues` (`DROP`) |
 | FL44 | `TestMethod`: Test Method og Test Method 2 mod `TestMethod` | `:1289-1292` | `<felt>: Value must match dropdown options.` | Fejl | `DROP` | `fl_validation.py` `spool_issues` (`DROP`) |
 | FL45 | `TRMNEW`: EX-Marking maks. 30 | `:231-233`, `:1295` | `EX-Marking: Max 30 characters.` | Fejl | `MAX` | `fl_validation.py` `spool_issues` (`MAX`) |
-| FL46 | `TRMNEW`: Safety Critical Equipment mod klassens egen `SCEq`-kolonne (ingen kolonne = intet tjek) | `:879-902`, `:1297`, `:1405-1407` | `Safety Critical Equipment: Value must match dropdown options.` | Fejl | `DROP` mod klassens liste | `fl_validation.py` `spool_issues` (`DROP`, klassens SCEq-liste) |
+| FL46 | `TRMNEW`: Safety Critical Equipment mod klassens egen `SCEq`-kolonne (ingen kolonne = intet tjek). `MAF` er ingen klasse: dens kolonne lægges under GIV (`SCE_COLUMN_INTO_CLASS`, issue #166) | `:879-902`, `:1297`, `:1405-1407` | `Safety Critical Equipment: Value must match dropdown options.` | Fejl | `DROP` mod klassens liste | `fl_validation.py` `spool_issues` (`DROP`, klassens SCEq-liste) |
 | FL47 | `TRMNEW`, kun MKP og NO CLASS: Fire Classification mod `FireClassification`, Fire Sealing Type mod `Table20` | `:1299-1302` | `FIRE CLASSIFICATION: …` / `FIRE SEALING TYPE: Value must match dropdown options.` | Fejl | `DROP` | `fl_validation.py` `spool_issues` (`DROP`) |
 | FL48 | `TRMNEW`: udfyldt EX-Marking, SCE, Fire Classification, Fire Sealing Type eller Fire Sealing Product → TRM assignment = X og ABC Indic. = A. Ellers ryddes TRM assignment (ABC bliver). Sker **efter** tjekkene | `:1304-1313` | – | Afledt | Skrives i `colFlVals` efter meddelelsestabellen | `fl_validation.py` `TRM_SET`; `generate_app_onstart.py` `colFlTrmClasses` |
 | FL49 | MKP og aggregat `UE`: TRM assignment = X | `:1315-1321` | – | Afledt | samme | `fl_validation.py` `TRM_SET` (`Ue`) |
@@ -134,7 +134,7 @@ ellers fra standardkolonnerne, ellers er det feltnavnet med versaler
 | FL55 | Beskedformat `<etiket>: <besked>`; identiske beskeder én gang; feltets første besked vises ved feltet | `:1166-1177`, `:1464-1473`, `:2157-2186` | – | Afledt | `GroupBy(RowGuid, Msg)` + `Min(Ord)` | `fl_validation.py` `DEDUPE`, `field_issue` |
 | FL56 | Værdier trimmes; en tom værdi fjerner feltet | `:582-606` | – | Afledt | `RemoveIf` + `Collect` kun ved ikke-tom | `fl_parts.py` `set_val_fx` |
 | FL57 | Afledte felter: StrIndicator = KKS-type, Long text = Description som standard, User status = status med versaler, System status = `LOCAL`, Info = første fejl/advarsel, SAP status | `:2079-2096`, `:2205-2242` | – | Afledt | `Switch` i `val_fx()` | `fl_parts.py` `_display_val` |
-| FL58 | Skrivebeskyttede kolonner: Class, SAP status, Info, StrIndicator, Str. Indicator, User status, System status | `:115-123`, `:2137-2139` | – | Afledt | `Editable` i `colFlColumns` | `generate_app_onstart.py` `colFlColumns` (`Editable`); `fl_parts.py` `txtFlDetRo` |
+| FL58 | Skrivebeskyttede kolonner: Class, SAP status, Info, StrIndicator, Str. Indicator, User status, System status og ABC Indic. (sættes af TRM-automatikken, FL48 - issue #166) | `:115-123`, `:2137-2139` | – | Afledt | `Editable` i `colFlColumns` | `generate_app_onstart.py` `colFlColumns` (`Editable`); `fl_parts.py` `txtFlDetRo` |
 | FL59 | Editor: dropdown når feltet har en liste (også de faste lister), ellers tekst med maks.-længde (Char, FL 40, Description 40). En ugyldig gemt værdi vises stadig | `:2098-2135`, `:2188-2197` | – | Afledt | `drpFlDetVal` / `inpFlDetVal`, `MaxLength` | `fl_parts.py` `inpFlDetVal`, `drpFlDetVal`, `DD_ITEMS` |
 | FL60 | Kolonnerne pr. klasse fra `FL_SPOOL_COLUMNS`. Kompakt visning: #, FL, Description, StrIndicator, Class, Info (SAP status skjult) | `:65-73`, `:1905-1958`, `:2036-2054` | – | Afledt | `colFlColumns`; kompakt tabel | `generate_app_onstart.py` `colFlColumns`; `fl_parts.py` `build_classes`, `C_SPEC` |
 | FL61 | Detaljeruden: alle klassens kolonner med editor og besked; "Show empty"/"Hide empty" (standard: skjul tomme uden besked) | `:1960-2034` | – | Afledt | `galFlDetail`, `varFlShowEmpty` | `fl_parts.py` `build_detail`, `DET_ITEMS`, `btnFlDetEmpty` |
@@ -183,7 +183,7 @@ anderledes, så det ikke forsvinder i stilhed:
 | Design pressure | Maks. 12 | Maks. **8** i trinet (Char siger 12 - begge tjekkes, 8 bider først) |
 | Voltage [V] i TAF | `^[0-9.,]*$` | Samme; ELF/KAB `^[0-9,]*$` |
 | Fire Sealing Product | Maks. 30 i TRMNEW | Intet længdetjek (ikke i JS) |
-| Warranty-dato | `^\d{8}$` = DDMMYYYY via `IsDate` | `YYYYMMDD` |
+| Warranty-dato | `^\d{8}$` = DDMMYYYY via `IsDate` | Kun `DD.MM.YYYY` (issue #166) |
 | Test Method 2 | Accepteres, når Test Method er tom | Tjekkes altid |
 | TRM ryddet | TRM og ABC ryddes | Kun TRM ryddes |
 | Klasse ved nøglefejl | Klassen skrives alligevel | Ingen klasse i key18-grenen |
@@ -259,9 +259,11 @@ Fx) skal give ordret det samme, ellers er testen rød. Sager med samme
 | T32b | FL32 | ugyldig | `SSV10 LAC10AB001` | (tom) |  | invalid | MKP | Description required before Ready for SAP. · Description: Required field. |
 | T33a | FL33 | gyldig | `SSV10 LAC10AB001` | Pumpe | Manufacturer=`mmmmmmmmmmmmmmmmmmmmmmmmmmmmmm`; Room=`R1234567` | valid | MKP | - |
 | T33b | FL33 | ugyldig | `SSV10 LAC10AB001` | Pumpe | Manufacturer=`mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm`; Room=`R12345678` | invalid | MKP | Manufacturer: Max 30 characters. · Room: Max 8 characters. |
-| T34a | FL34 | gyldig | `SSV10 LAC10AB001` | Pumpe | Warranty Start=`29.02.2024`; Warranty End=`20241231` | valid | MKP | - |
-| T34b | FL34 | ugyldig | `SSV10 LAC10AB001` | Pumpe | Warranty Start=`20230229`; Warranty End=`2024-12-31` | invalid | MKP | Warranty Start: Use DD.MM.YYYY or YYYYMMDD. · Warranty End: Use DD.MM.YYYY or YYYYMMDD. |
-| T35a | FL35 | gyldig | `SSV10 LAC10AB001` | Pumpe | Atex=`x`; ABC Indic.=`A`; PTW=`X` | valid | MKP | - |
+| T34a | FL34 | gyldig | `SSV10 LAC10AB001` | Pumpe | Warranty Start=`29.02.2024`; Warranty End=`31.12.2024` | valid | MKP | - |
+| T34b | FL34 | ugyldig | `SSV10 LAC10AB001` | Pumpe | Warranty Start=`20241231`; Warranty End=`2024-12-31` | invalid | MKP | Warranty Start: Use DD.MM.YYYY. · Warranty End: Use DD.MM.YYYY. |
+| T34c | FL34 | ugyldig | `SSV10 LAC10AB001` | Pumpe | Warranty Start=`29.02.2023`; Warranty End=`31.04.2024` | invalid | MKP | Warranty Start: Use DD.MM.YYYY. · Warranty End: Use DD.MM.YYYY. |
+| T35a | FL35 | gyldig | `SSV10 LAC10AB001` | Pumpe | Atex=`x`; ABC Indic.=`A` | valid | MKP | - |
+| T35c | FL35 | gyldig | `SSV10 LAC10AB001` | Pumpe | Risiko=`Y`; Asbestos=`Y`; PTW=`Y` | valid | MKP | - |
 | T35b | FL35 | ugyldig | `SSV10 LAC10AB001` | Pumpe | Atex=`Y`; ABC Indic.=`B` | invalid | MKP | Atex: Allowed values: X. · ABC Indic.: Allowed values: A. |
 | T36a | FL36 | gyldig | `SSV10 LAC1234` | Pumpe | EX-Marking=`eeeeeeeeeeeeeeeeeeeeeeeeeeeeeee` | valid | KAB | - |
 | T36b | FL36 | ugyldig | `SSV10 LAC10AB001 -B01` | Pumpe | EX-Marking=`eeeeeeeeeeeeeeeeeeeeeeeeeeeeeee` | invalid | GIV | EX-Marking: Max 30 characters. |
