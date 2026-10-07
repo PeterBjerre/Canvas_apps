@@ -1419,7 +1419,7 @@ def build_detail():
         "Height": gal_h, "Items": "colIbActivity", "LayoutMinWidth": "0",
         "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
         "ShowScrollbar": "true", "TabIndex": "0", "TemplatePadding": "0",
-        "TemplateSize": "60", "Width": "Parent.Width", "WrapCount": "1",
+        "TemplateSize": "60", "Width": "Parent.Width",
     }, children=[bg, actor, when, body], h=gal_h, vis="!varIbActBusy")
     act_state = text_ctrl("txtIbActState",
                           'If(varIbActBusy, "Loading activity...", '
