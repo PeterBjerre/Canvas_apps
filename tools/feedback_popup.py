@@ -102,6 +102,9 @@ SUBJECT_FX = (f'"SAP maintenance - " & Switch({SEL}.Kind, '
               f'"R", {SEL}.TypeName & " request " & {SEL}.Code, '
               f'"G", {SEL}.Label, "question")')
 
+# Typografien for en valgmulighed - i listen og i den lukkede vaelger.
+ROW_TEXT_SIZE = lay.SIZE_BODY
+ROW_TEXT_PX = 7     # gennemsnitlig tegnbredde i den stoerrelse (til _fit)
 CHEVRON_DOWN = "M6 9l6 6 6-6"
 CHEVRON_UP = "M6 15l6-6 6 6"
 
@@ -164,7 +167,11 @@ def _subject_picker(n):
         "Visible": is_req, "Width": "20",
     }, h=20, vis=is_req)
     label = f'If({has}, {SEL}.Label, "Pick a subject or request")'
-    size = lay.if_below("Tablet", str(lay.SIZE_INPUT_MOBILE), str(lay.SIZE_INPUT))
+    # Den valgte vaerdi har samme typografi som teksten i den udfoldede
+    # liste (SubjectRow: SIZE_BODY, normal vaegt, samme tegnbredde i _fit) -
+    # paa alle skaermbredder (issue #140). Knappen er ikke et tekstfelt, saa
+    # iOS-zoom-reglen bag SIZE_INPUT_MOBILE gaelder ikke her.
+    size = str(ROW_TEXT_SIZE)
     btn = Ctrl(n("btn", "Subject"), "Classic/Button", props={
         "Align": "Align.Left",
         "BorderColor": C_TRANSPARENT, "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
@@ -181,7 +188,7 @@ def _subject_picker(n):
         "PressedFill": C_TRANSPARENT,
         "Size": size,
         "TabIndex": "0",
-        "Text": _fit(label, "Self.Width"),
+        "Text": _fit(label, "Self.Width", ROW_TEXT_PX),
         "VerticalAlign": "VerticalAlign.Middle",
     }, h=34)
     chevron = Ctrl(n("img", "SubjectChevron"), "Image", props={
@@ -248,8 +255,8 @@ def _subject_picker(n):
     }, h=20, vis=f'{kind} = "R"')
     text_x = f'If({kind} = "R", 40, 12)'
     text_w = f"Parent.TemplateWidth - {text_x} - 12"
-    row_text = text_ctrl(n("txt", "SubjectRow"), _fit("ThisItem.Label", "Self.Width", 7),
-                         size=13, color=f'If({kind} = "E", {C_MUTED}, {C_TITLE})',
+    row_text = text_ctrl(n("txt", "SubjectRow"), _fit("ThisItem.Label", "Self.Width", ROW_TEXT_PX),
+                         size=ROW_TEXT_SIZE, color=f'If({kind} = "E", {C_MUTED}, {C_TITLE})',
                          height=20, wrap="false", visible=f'{kind} <> "H"',
                          width=text_w, extra={"X": text_x, "Y": str((ROW_H - 20) // 2)})
     # weight er et udtryk, ikke et navn

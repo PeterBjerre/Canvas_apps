@@ -1526,6 +1526,11 @@ def rule_10(ctx):
         # ModernButton har ingen TabIndex - compile: "Unknown property
         # 'TabIndex' for control type 'ModernButton'" (issue #79).
         "ModernButton": ("TabIndex",),
+        # Den moderne Attachments-kontrol har ingen af den klassiskes
+        # tekst-, kant- og polstringsegenskaber (issue #134).
+        "ModernAttachments": ("NoAttachmentsText", "BorderColor", "BorderThickness",
+                              "PaddingBottom", "PaddingLeft", "PaddingRight",
+                              "PaddingTop", "TabIndex"),
     }
     # Nogle egenskaber afhaenger ogsaa af varianten. Et Gallery med
     # Variant: VariableHeight har ingen WrapCount - compile: "Unknown
@@ -1535,7 +1540,7 @@ def rule_10(ctx):
         ("Gallery", "VariableHeight"): ("WrapCount",),
     }
     for p_, name, body in all_nodes:
-        ctl = (body.get("Control") or "").strip()
+        ctl = (body.get("Control") or "").strip().split("@")[0]
         bad = UNSUPPORTED.get(ctl, ()) + UNSUPPORTED_BY_VARIANT.get(
             (ctl, (body.get("Variant") or "").strip()), ())
         if not bad:
@@ -1976,6 +1981,18 @@ def rule_16(ctx):
     # Elleve falske fund ville laere nogen at springe advarsler over, og
     # saa gaar regel 15's rigtige fund samme vej.
 
+
+def rule_16b(ctx):
+    """Ingen klassisk Attachments-kontrol (issue #134)"""
+    # Al dokumentupload er den moderne Attachments-kontrol fra
+    # tools/doc_upload.py - een oplevelse i hele appen. Fem klassiske
+    # kontroller stod hver med sin egen tekst og sit eget loft.
+    for p_, name, body in ctx.all_nodes:
+        if (body.get("Control") or "").strip().split("@")[0] == "Attachments":
+            ctx.problems.append(f"[16b] {name}: klassisk Attachments - byg den med "
+                                f"doc_upload.picker (ModernAttachments)")
+
+
 def rule_33(ctx):
     """Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4)"""
     all_nodes = ctx.all_nodes
@@ -1987,7 +2004,7 @@ def rule_33(ctx):
               "ModernTextInput": "inp", "ModernNumberInput": "num",
               "ModernDatePicker": "dte", "Classic/DropDown": "drp",
               "ModernCombobox": "cmb", "ModernCheckbox": "chk",
-              "ModernToggle": "tgl"}
+              "ModernToggle": "tgl", "ModernAttachments": "att"}
     for p_, name, body in all_nodes:
         want = PREFIX.get((body.get("Control") or "").strip().split("@")[0])
         if want and not re.match(want + r"[A-Z]", name):
@@ -2211,6 +2228,7 @@ RULES = [
     Rule('21', 'ButtonAppearance.Secondary', rule_21),
     Rule('22', 'Concurrent med en indbyrdes afhaengighed', rule_22),
     Rule('16', 'Ingen Classic/DropDown', rule_16),
+    Rule('16b', 'Ingen klassisk Attachments-kontrol (issue #134)', rule_16b),
     Rule('33', 'Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4)', rule_33),
     Rule('18', 'Enhver Gallery skal have TabIndex', rule_18),
     Rule('19', 'AccessibleLabel maa ikke vaere kontrollens navn', rule_19),

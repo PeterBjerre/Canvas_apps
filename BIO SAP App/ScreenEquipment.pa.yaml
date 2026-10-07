@@ -7391,7 +7391,10 @@ Screens:
             Image: |-
                 =""
             OnSelect: |-
-                =If(LayoutRank < 2, Set(varEqDetailsId, Blank()); Set(varEqDocsId, Blank()))
+                =If(LayoutRank < 2, If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDetailsId, Blank()); Set(varEqDocsId, Blank());
+                Reset(attEqPicker);
+                Clear(colEqAttUp);
+                Set(varEqAttRemove, Blank())))
             TabIndex: |-
                 =-1
             Visible: |-
@@ -9570,7 +9573,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =192 + 14 + (If(((Min(760, App.Width - 32)) - 36) >= (195) + (175) + (164) + 16, 36, (36) + 8 + (36) + 8 + (36))) + 14 + (Min(Max(CountRows(Filter(colEqAttachments, RowId = varEqDocsId)), 1) * 34, 340)) + If(IfError(CountRows(Filter(colEqAttachments, RowId = varEqDocsId)) = 0, false), 14 + (36), 0)
+                =68 + 14 + (Min(48 + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 0 + (If(attEqPicker.AttachmentsCount = 0, 112, 112 + Min(attEqPicker.AttachmentsCount, 4) * 36)), 0) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0) + If((IfError(Coalesce(varEqAttBusy, false), false) || CountRows(colEqAttUp) > 0), 12 + (34), 0) + If(!IsBlank(varEqAttRemove), 12 + (96), 0) + 12 + (CountRows(Filter(colEqAttachments, RowId = varEqDocsId)) * 40) + If(IfError(CountRows(Filter(colEqAttachments, RowId = varEqDocsId)) = 0, false), 12 + (36), 0) + If(!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 32 - 14))
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -9669,7 +9672,7 @@ Screens:
                         Size: |-
                             =17
                         Text: |-
-                            ="Documents - " & Coalesce(LookUp(colEqRows, RowId = varEqDocsId).ItemKey, "")
+                            ="Documents · " & Coalesce(LookUp(colEqRows, RowId = varEqDocsId).ItemKey, "")
                         Width: |-
                             =Max(0, (((Min(760, App.Width - 32)) - 18 - 18)) - ((84) + 12) - 2)
                         Wrap: |-
@@ -9691,6 +9694,8 @@ Screens:
                             =1
                         Color: |-
                             =C.'text-primary'
+                        DisplayMode: |-
+                            =If(IfError(Coalesce(varEqAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)
                         Font: |-
                             =Font.'Segoe UI'
                         FontWeight: |-
@@ -9700,7 +9705,10 @@ Screens:
                         Layout: |-
                             =ButtonLayout.TextOnly
                         OnSelect: |-
-                            =Set(varEqDocsId, Blank())
+                            =Set(varEqDocsId, Blank());
+                            Reset(attEqPicker);
+                            Clear(colEqAttUp);
+                            Set(varEqAttRemove, Blank())
                         RadiusBottomLeft: |-
                             =10
                         RadiusBottomRight: |-
@@ -9717,36 +9725,7 @@ Screens:
                             =VerticalAlign.Middle
                         Width: |-
                             =84
-            - attEqPicker:
-                Control: Attachments@2.3.0
-                Properties:
-                  AccessibleLabel: |-
-                      ="Select documents"
-                  BorderColor: |-
-                      =C.'border-default'
-                  BorderThickness: |-
-                      =1
-                  DisplayMode: |-
-                      =If(IsBlank(varEqDocsId), DisplayMode.Disabled, DisplayMode.Edit)
-                  Height: |-
-                      =110
-                  MaxAttachmentSize: |-
-                      =10
-                  MaxAttachments: |-
-                      =10
-                  NoAttachmentsText: |-
-                      ="Drag documents here, or browse"
-                  PaddingBottom: |-
-                      =5
-                  PaddingLeft: |-
-                      =5
-                  PaddingRight: |-
-                      =5
-                  PaddingTop: |-
-                      =5
-                  Width: |-
-                      =Parent.Width
-            - conEqAttActions:
+            - conEqAttBody:
                 Control: GroupContainer
                 Variant: AutoLayout
                 Properties:
@@ -9757,203 +9736,401 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =If(((Min(760, App.Width - 32)) - 36) >= (195) + (175) + (164) + 16, 36, (36) + 8 + (36) + 8 + (36))
+                      =Min(48 + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 0 + (If(attEqPicker.AttachmentsCount = 0, 112, 112 + Min(attEqPicker.AttachmentsCount, 4) * 36)), 0) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0) + If((IfError(Coalesce(varEqAttBusy, false), false) || CountRows(colEqAttUp) > 0), 12 + (34), 0) + If(!IsBlank(varEqAttRemove), 12 + (96), 0) + 12 + (CountRows(Filter(colEqAttachments, RowId = varEqDocsId)) * 40) + If(IfError(CountRows(Filter(colEqAttachments, RowId = varEqDocsId)) = 0, false), 12 + (36), 0) + If(!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 32 - 14)
                   LayoutAlignItems: |-
-                      =If(((Min(760, App.Width - 32)) - 36) >= (195) + (175) + (164) + 16, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                      =LayoutAlignItems.Stretch
                   LayoutDirection: |-
-                      =If(((Min(760, App.Width - 32)) - 36) >= (195) + (175) + (164) + 16, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                      =LayoutDirection.Vertical
                   LayoutGap: |-
-                      =8
+                      =12
                   LayoutMinWidth: |-
                       =0
                   LayoutOverflowX: |-
                       =LayoutOverflow.Hide
                   LayoutOverflowY: |-
-                      =LayoutOverflow.Hide
+                      =LayoutOverflow.Scroll
                   Width: |-
                       =Parent.Width
                 Children:
-                  - btnEqAttUpload:
-                      Control: ModernButton
+                  - attEqPicker:
+                      Control: ModernAttachments@1.3.0
                       Properties:
                         AccessibleLabel: |-
-                            ="Upload to SharePoint"
-                        Align: |-
-                            =Align.Center
-                        AlignInContainer: |-
-                            =AlignInContainer.Center
-                        BasePaletteColor: |-
-                            =C.'color-brand-primary'
-                        Color: |-
-                            =C.'text-on-primary'
+                            ="Choose documents to upload"
                         DisplayMode: |-
-                            =If(IsBlank(varEqDocsId), DisplayMode.Disabled, DisplayMode.Edit)
+                            =If(IfError(Coalesce(varEqAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)
+                        Height: |-
+                            =If(Self.AttachmentsCount = 0, 112, 112 + Min(Self.AttachmentsCount, 4) * 36)
+                        Items: |-
+                            =Blank()
+                        MaxAttachmentSize: |-
+                            =10
+                        MaxAttachments: |-
+                            =10
+                        OnError: |-
+                            =Notify("This file could not be added. You can add up to 10 files of up to 10 MB each.", NotificationType.Error)
+                        Visible: |-
+                            =(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted")
+                        Width: |-
+                            =Parent.Width
+                  - txtEqAttLimits:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Up to 10 files at a time, 10 MB each."
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-muted'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
                         Font: |-
                             =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
+                        Height: |-
+                            =18
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =12
+                        Text: |-
+                            ="Up to 10 files at a time, 10 MB each."
+                        Visible: |-
+                            =(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted")
+                        Wrap: |-
+                            =true
+                  - conEqAttActions:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
                         Height: |-
                             =36
-                        Layout: |-
-                            =ButtonLayout.TextOnly
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Center
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =8
+                        LayoutJustifyContent: |-
+                            =LayoutJustifyContent.End
                         LayoutMinWidth: |-
-                            =If(((Min(760, App.Width - 32)) - 36) >= (195) + (175) + (164) + 16, 195, 0)
-                        OnSelect: |-
-                            =If(
-                                IsBlank(LookUp(colEqRows, RowId = varEqDocsId).ItemKey),
-                                Notify("Save the row first - the folder is named after the row key.", NotificationType.Warning),
-                            
-                                If(
-                                    CountRows(attEqPicker.Attachments) = 0,
-                                    Notify("Choose one or more files first.", NotificationType.Warning),
-                            
-                                    ClearCollect(
-                                        colEqAttUp,
-                                        ForAll(
-                                            attEqPicker.Attachments As F,
-                                            {
-                                                Name: F.Name,
-                                                Ok: IfError(
-                                                    Lower(
-                                                        Text(
-                                                            'BioSap-TaskListAttachment'.Run(
-                                                                LookUp(colEqRows, RowId = varEqDocsId).ItemKey,
-                                                                { file: { contentBytes: F.Value, name: F.Name } }
-                                                            ).flowrunsuccess
-                                                        )
-                                                    ) = "true",
-                                                    false
-                                                )
-                                            }
-                                        )
-                                    );
-                                    Reset(attEqPicker);
-                            
-                                    Set(
-                                        varEqAttJson,
-                                        'BioSap-GetSubmittedAttachments'.Run("TaskListDocuments/" & LookUp(colEqRows, RowId = varEqDocsId).ItemKey).files
-                                    );
-                                    RemoveIf(colEqAttachments, RowId = varEqDocsId);
-                                    Collect(
-                                        colEqAttachments,
-                                        ForAll(
-                                            ParseJSON(Coalesce(varEqAttJson, "[]")) As J,
-                                            {
-                                                RowId: varEqDocsId,
-                                                FileName: Text(J.Name),
-                                                FileUrl: Text(J.Link),
-                                                Identifier: Text(J.Identifier),
-                                                Selected: false
-                                            }
-                                        )
-                                    );
-                                    With(
-                                        { n: CountRows(Filter(colEqAttachments, RowId = varEqDocsId)) },
-                                        Patch(
-                                            EquipmentItems,
-                                            LookUp(EquipmentItems, ID = varEqDocsId),
-                                            { FileCount: n }
-                                        );
-                                        UpdateIf(
-                                            colEqRows,
-                                            RowId = varEqDocsId,
-                                            { FileCount: n }
-                                        )
-                                    );
-                            
-                                    If(
-                                        CountRows(Filter(colEqAttUp, Ok = false)) > 0,
-                                        Notify(
-                                            "SharePoint refused: " &
-                                            Concat(Filter(colEqAttUp, Ok = false), Name, ", "),
-                                            NotificationType.Error
-                                        ),
-                                        Notify("Document(s) uploaded.", NotificationType.Success)
-                                    )
-                                )
-                            )
-                        RadiusBottomLeft: |-
-                            =10
-                        RadiusBottomRight: |-
-                            =10
-                        RadiusTopLeft: |-
-                            =10
-                        RadiusTopRight: |-
-                            =10
-                        Size: |-
-                            =14
-                        Text: |-
-                            ="Upload to SharePoint"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         Width: |-
-                            =195
-                  - btnEqAttRefresh:
-                      Control: ModernButton
+                            =Parent.Width
+                      Children:
+                        - btnEqAttRefresh:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Refresh the document list"
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-default'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'text-primary'
+                              DisplayMode: |-
+                                  =If(IsBlank(varEqDocsId) || IfError(Coalesce(varEqAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =36
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
+                              LayoutMinWidth: |-
+                                  =91
+                              OnSelect: |-
+                                  =If(
+                                      IsBlank(LookUp(colEqRows, RowId = varEqDocsId).ItemKey),
+                                      Notify("Save the row first - the folder is named after the row key.", NotificationType.Warning),
+                                  
+                                      Set(varEqAttBusy, true);
+                                      Set(
+                                          varEqAttJson,
+                                          'BioSap-GetSubmittedAttachments'.Run("TaskListDocuments/" & LookUp(colEqRows, RowId = varEqDocsId).ItemKey).files
+                                      );
+                                      RemoveIf(colEqAttachments, RowId = varEqDocsId);
+                                      Collect(
+                                          colEqAttachments,
+                                          ForAll(
+                                              ParseJSON(Coalesce(varEqAttJson, "[]")) As J,
+                                              {
+                                                  RowId: varEqDocsId,
+                                                  FileName: Text(J.Name),
+                                                  FileUrl: Text(J.Link),
+                                                  Identifier: Text(J.Identifier),
+                                                  Selected: false
+                                              }
+                                          )
+                                      );
+                                      With(
+                                          { n: CountRows(Filter(colEqAttachments, RowId = varEqDocsId)) },
+                                          Patch(
+                                              EquipmentItems,
+                                              LookUp(EquipmentItems, ID = varEqDocsId),
+                                              { FileCount: n }
+                                          );
+                                          UpdateIf(
+                                              colEqRows,
+                                              RowId = varEqDocsId,
+                                              { FileCount: n }
+                                          )
+                                      );
+                                      Set(varEqAttBusy, false)
+                                  )
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  ="Refresh"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Width: |-
+                                  =91
+                        - btnEqAttUpload:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Upload the chosen files"
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              Color: |-
+                                  =C.'text-on-primary'
+                              DisplayMode: |-
+                                  =If(IfError(Coalesce(varEqAttBusy, false), false) || attEqPicker.AttachmentsCount = 0 || attEqPicker.IsUploading, DisplayMode.Disabled, DisplayMode.Edit)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =36
+                              Icon: |-
+                                  ="ArrowUpload"
+                              Layout: |-
+                                  =ButtonLayout.IconBefore
+                              LayoutMinWidth: |-
+                                  =110
+                              OnSelect: |-
+                                  =If(
+                                      IsBlank(LookUp(colEqRows, RowId = varEqDocsId).ItemKey),
+                                      Notify("Save the row first - the folder is named after the row key.", NotificationType.Warning),
+                                  
+                                      CountRows(attEqPicker.Attachments) = 0,
+                                      Notify("Choose one or more files first.", NotificationType.Warning),
+                                  
+                                      Set(varEqAttBusy, true);
+                                      If(CountRows(Filter(colEqAttUp, !Ok)) = 0, Clear(colEqAttUp));
+                                      With(
+                                          { done: Filter(colEqAttUp, Ok).Name },
+                                          RemoveIf(colEqAttUp, !Ok);
+                                          Collect(
+                                              colEqAttUp,
+                                              ForAll(
+                                                  Filter(attEqPicker.Attachments As P, !(P.Name in done)) As F,
+                                                  {
+                                                      Name: F.Name,
+                                                      Ok: IfError(
+                                                          Lower(
+                                                              Text(
+                                                                  'BioSap-TaskListAttachment'.Run(
+                                                                      LookUp(colEqRows, RowId = varEqDocsId).ItemKey,
+                                                                      { file: { contentBytes: F.Value, name: F.Name } }
+                                                                  ).flowrunsuccess
+                                                              )
+                                                          ) = "true",
+                                                          false
+                                                      )
+                                                  }
+                                              )
+                                          )
+                                      );
+                                      If(CountRows(Filter(colEqAttUp, !Ok)) = 0, Reset(attEqPicker));
+                                  
+                                      Set(
+                                          varEqAttJson,
+                                          'BioSap-GetSubmittedAttachments'.Run("TaskListDocuments/" & LookUp(colEqRows, RowId = varEqDocsId).ItemKey).files
+                                      );
+                                      RemoveIf(colEqAttachments, RowId = varEqDocsId);
+                                      Collect(
+                                          colEqAttachments,
+                                          ForAll(
+                                              ParseJSON(Coalesce(varEqAttJson, "[]")) As J,
+                                              {
+                                                  RowId: varEqDocsId,
+                                                  FileName: Text(J.Name),
+                                                  FileUrl: Text(J.Link),
+                                                  Identifier: Text(J.Identifier),
+                                                  Selected: false
+                                              }
+                                          )
+                                      );
+                                      With(
+                                          { n: CountRows(Filter(colEqAttachments, RowId = varEqDocsId)) },
+                                          Patch(
+                                              EquipmentItems,
+                                              LookUp(EquipmentItems, ID = varEqDocsId),
+                                              { FileCount: n }
+                                          );
+                                          UpdateIf(
+                                              colEqRows,
+                                              RowId = varEqDocsId,
+                                              { FileCount: n }
+                                          )
+                                      );
+                                      Set(varEqAttBusy, false);
+                                  
+                                      If(
+                                          CountRows(Filter(colEqAttUp, !Ok)) > 0,
+                                          Notify(
+                                              "Not uploaded: " &
+                                              Concat(Filter(colEqAttUp, !Ok), Name, ", ") &
+                                              ". Select Upload again to retry.",
+                                              NotificationType.Error
+                                          ),
+                                          Notify("Document(s) uploaded.", NotificationType.Success)
+                                      )
+                                  )
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  ="Upload"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Visible: |-
+                                  =(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted")
+                              Width: |-
+                                  =110
+                  - txtEqAttStatus:
+                      Control: ModernText
                       Properties:
                         AccessibleLabel: |-
-                            ="Refresh documents"
-                        Align: |-
-                            =Align.Center
-                        AlignInContainer: |-
-                            =AlignInContainer.Center
-                        Appearance: |-
-                            =ButtonAppearance.Outline
+                            =If(
+                                IfError(Coalesce(varEqAttBusy, false), false),
+                                "Working... please wait.",
+                                CountRows(Filter(colEqAttUp, !Ok)) > 0,
+                                "Not uploaded: " & Concat(Filter(colEqAttUp, !Ok), Name, ", ") &
+                                    ". Select Upload again to retry - files already uploaded are skipped.",
+                                CountRows(colEqAttUp) > 0,
+                                "Uploaded: " & Concat(colEqAttUp, Name, ", "),
+                                ""
+                            )
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =If(IfError(Coalesce(varEqAttBusy, false), false), C.'text-muted', CountRows(Filter(colEqAttUp, !Ok)) > 0, C.'state-error-fg', C.'state-ok-fg')
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =34
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =12
+                        Text: |-
+                            =If(
+                                IfError(Coalesce(varEqAttBusy, false), false),
+                                "Working... please wait.",
+                                CountRows(Filter(colEqAttUp, !Ok)) > 0,
+                                "Not uploaded: " & Concat(Filter(colEqAttUp, !Ok), Name, ", ") &
+                                    ". Select Upload again to retry - files already uploaded are skipped.",
+                                CountRows(colEqAttUp) > 0,
+                                "Uploaded: " & Concat(colEqAttUp, Name, ", "),
+                                ""
+                            )
+                        Visible: |-
+                            =(IfError(Coalesce(varEqAttBusy, false), false) || CountRows(colEqAttUp) > 0)
+                        Wrap: |-
+                            =true
+                  - conEqAttRemove:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
                         BorderColor: |-
                             =C.'border-default'
                         BorderThickness: |-
                             =1
-                        Color: |-
-                            =C.'text-primary'
-                        DisplayMode: |-
-                            =If(IsBlank(varEqDocsId), DisplayMode.Disabled, DisplayMode.Edit)
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
+                        DropShadow: |-
+                            =DropShadow.None
+                        Fill: |-
+                            =C.'state-info-bg'
+                        FillPortions: |-
+                            =0
                         Height: |-
-                            =36
-                        Layout: |-
-                            =ButtonLayout.TextOnly
+                            =96
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Stretch
+                        LayoutDirection: |-
+                            =LayoutDirection.Vertical
+                        LayoutGap: |-
+                            =8
                         LayoutMinWidth: |-
-                            =If(((Min(760, App.Width - 32)) - 36) >= (195) + (175) + (164) + 16, 175, 0)
-                        OnSelect: |-
-                            =If(
-                                IsBlank(LookUp(colEqRows, RowId = varEqDocsId).ItemKey),
-                                Notify("Save the row first - the folder is named after the row key.", NotificationType.Warning),
-                            
-                                Set(
-                                    varEqAttJson,
-                                    'BioSap-GetSubmittedAttachments'.Run("TaskListDocuments/" & LookUp(colEqRows, RowId = varEqDocsId).ItemKey).files
-                                );
-                                RemoveIf(colEqAttachments, RowId = varEqDocsId);
-                                Collect(
-                                    colEqAttachments,
-                                    ForAll(
-                                        ParseJSON(Coalesce(varEqAttJson, "[]")) As J,
-                                        {
-                                            RowId: varEqDocsId,
-                                            FileName: Text(J.Name),
-                                            FileUrl: Text(J.Link),
-                                            Identifier: Text(J.Identifier),
-                                            Selected: false
-                                        }
-                                    )
-                                );
-                                With(
-                                    { n: CountRows(Filter(colEqAttachments, RowId = varEqDocsId)) },
-                                    Patch(
-                                        EquipmentItems,
-                                        LookUp(EquipmentItems, ID = varEqDocsId),
-                                        { FileCount: n }
-                                    );
-                                    UpdateIf(
-                                        colEqRows,
-                                        RowId = varEqDocsId,
-                                        { FileCount: n }
-                                    )
-                                )
-                            )
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        PaddingBottom: |-
+                            =10
+                        PaddingLeft: |-
+                            =12
+                        PaddingRight: |-
+                            =12
+                        PaddingTop: |-
+                            =10
                         RadiusBottomLeft: |-
                             =10
                         RadiusBottomRight: |-
@@ -9962,139 +10139,399 @@ Screens:
                             =10
                         RadiusTopRight: |-
                             =10
-                        Size: |-
-                            =14
-                        Text: |-
-                            ="Refresh documents"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
+                        Visible: |-
+                            =!IsBlank(varEqAttRemove)
                         Width: |-
-                            =175
-                  - btnEqAttRemove:
-                      Control: ModernButton
+                            =Parent.Width
+                      Children:
+                        - txtEqAttRemoveAsk:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  =Self.Text
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =36
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  ="Remove " & varEqAttRemove & " from SharePoint? This cannot be undone."
+                              Wrap: |-
+                                  =true
+                        - conEqAttRemoveBtns:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =32
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Center
+                              LayoutDirection: |-
+                                  =LayoutDirection.Horizontal
+                              LayoutGap: |-
+                                  =8
+                              LayoutJustifyContent: |-
+                                  =LayoutJustifyContent.End
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              Width: |-
+                                  =Parent.Width
+                            Children:
+                              - btnEqAttRemoveCancel:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Cancel"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =32
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
+                                        =86
+                                    OnSelect: |-
+                                        =Set(varEqAttRemove, Blank())
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="Cancel"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =86
+                              - btnEqAttRemoveConfirm:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Remove " & varEqAttRemove
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-error'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'state-error-fg'
+                                    DisplayMode: |-
+                                        =If(IfError(Coalesce(varEqAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =32
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
+                                        =89
+                                    OnSelect: |-
+                                        =Set(varEqAttBusy, true);
+                                        With(
+                                            { d: LookUp(colEqAttachments, RowId = varEqDocsId && FileName = varEqAttRemove) },
+                                            If(
+                                                IsBlank(d.Identifier) ||
+                                                    IfError('BioSap-DeleteSubmittedAttachments'.Run(d.Identifier); true, false),
+                                                RemoveIf(colEqAttachments, RowId = varEqDocsId && FileName = d.FileName);
+                                                Notify(d.FileName & " removed.", NotificationType.Success),
+                                                Notify(d.FileName & " could not be removed. Try again.", NotificationType.Error)
+                                            )
+                                        );
+                                        Set(varEqAttRemove, Blank());
+                                        Set(varEqAttBusy, false)
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="Remove"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =89
+                  - galEqAttachments:
+                      Control: Gallery
+                      Variant: Vertical
                       Properties:
                         AccessibleLabel: |-
-                            ="Remove document"
-                        Align: |-
-                            =Align.Center
-                        AlignInContainer: |-
-                            =AlignInContainer.Center
-                        Appearance: |-
-                            =ButtonAppearance.Outline
-                        BorderColor: |-
-                            =C.'border-error'
-                        BorderThickness: |-
+                            ="Documents on the selected row"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =CountRows(Filter(colEqAttachments, RowId = varEqDocsId)) * 40
+                        Items: |-
+                            =Sort(Filter(colEqAttachments, RowId = varEqDocsId), FileName)
+                        LayoutMinWidth: |-
+                            =0
+                        LoadingSpinner: |-
+                            =LoadingSpinner.None
+                        Selectable: |-
+                            =false
+                        ShowScrollbar: |-
+                            =false
+                        TabIndex: |-
+                            =0
+                        TemplatePadding: |-
+                            =2
+                        TemplateSize: |-
+                            =38
+                        Width: |-
+                            =Parent.Width
+                        WrapCount: |-
                             =1
-                        Color: |-
-                            =C.'state-error-fg'
-                        DisplayMode: |-
-                            =If(IsBlank(varEqDocsId), DisplayMode.Disabled, DisplayMode.Edit)
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
-                        Height: |-
-                            =36
-                        Layout: |-
-                            =ButtonLayout.TextOnly
-                        LayoutMinWidth: |-
-                            =If(((Min(760, App.Width - 32)) - 36) >= (195) + (175) + (164) + 16, 164, 0)
-                        OnSelect: |-
-                            =If(
-                                CountRows(Filter(colEqAttachments, RowId = varEqDocsId, Selected = true)) = 0,
-                                Notify("Select one or more documents first.", NotificationType.Warning),
-                            
-                                ForAll(
-                                    Filter(colEqAttachments, RowId = varEqDocsId, Selected = true) As D,
-                                    If(
-                                        !IsBlank(D.Identifier),
-                                        'BioSap-DeleteSubmittedAttachments'.Run(D.Identifier)
-                                    )
-                                );
-                                RemoveIf(colEqAttachments, RowId = varEqDocsId, Selected = true);
-                                Notify("Document(s) removed.", NotificationType.Success)
-                            )
-                        RadiusBottomLeft: |-
-                            =10
-                        RadiusBottomRight: |-
-                            =10
-                        RadiusTopLeft: |-
-                            =10
-                        RadiusTopRight: |-
-                            =10
-                        Size: |-
-                            =14
-                        Text: |-
-                            ="Remove document"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
-                        Width: |-
-                            =164
-            - galEqAttachments:
-                Control: Gallery
-                Variant: Vertical
-                Properties:
-                  AccessibleLabel: |-
-                      ="Documents on the selected row"
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  Fill: |-
-                      =RGBA(0, 0, 0, 0)
-                  FillPortions: |-
-                      =0
-                  Height: |-
-                      =Min(Max(CountRows(Filter(colEqAttachments, RowId = varEqDocsId)), 1) * 34, 340)
-                  Items: |-
-                      =Sort(Filter(colEqAttachments, RowId = varEqDocsId), FileName)
-                  LayoutMinWidth: |-
-                      =0
-                  LoadingSpinner: |-
-                      =LoadingSpinner.None
-                  Selectable: |-
-                      =true
-                  ShowScrollbar: |-
-                      =true
-                  TabIndex: |-
-                      =0
-                  TemplatePadding: |-
-                      =2
-                  TemplateSize: |-
-                      =32
-                  Width: |-
-                      =Parent.Width
-                  WrapCount: |-
-                      =1
-                Children:
-                  - chkEqAttSel:
-                      Control: ModernCheckbox
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Select document"
-                        BasePaletteColor: |-
-                            =C.'color-brand-primary'
-                        Color: |-
-                            =C.'text-primary'
-                        Default: |-
-                            =ThisItem.Selected
-                        Font: |-
-                            =Font.'Segoe UI'
-                        Height: |-
-                            =24
-                        Label: |-
-                            =""
-                        OnCheck: |-
-                            =Patch(colEqAttachments, ThisItem, { Selected: true })
-                        OnUncheck: |-
-                            =Patch(colEqAttachments, ThisItem, { Selected: false })
-                        Size: |-
-                            =13
-                        Width: |-
-                            =30
-                        X: |-
-                            =0 + 0 + 0
-                        Y: |-
-                            =0 + 0 + ((((32) - 2) - 0 - 0) - (24)) / 2
-                  - txtEqAttName:
+                      Children:
+                        - txtEqAttType:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  =Self.Text
+                              Align: |-
+                                  =Align.Center
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-muted'
+                              Fill: |-
+                                  =C.'bg-muted'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =24
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              RadiusBottomLeft: |-
+                                  =6
+                              RadiusBottomRight: |-
+                                  =6
+                              RadiusTopLeft: |-
+                                  =6
+                              RadiusTopRight: |-
+                                  =6
+                              Size: |-
+                                  =11
+                              Text: |-
+                                  =If(IsBlank(Find(".", ThisItem.FileName)), "FILE", Upper(Left(Last(Split(ThisItem.FileName, ".")).Value, 4)))
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Width: |-
+                                  =44
+                              Wrap: |-
+                                  =false
+                              X: |-
+                                  =0 + 0 + 0
+                              Y: |-
+                                  =0 + 0 + ((((38) - 2) - 0 - 0) - (24)) / 2
+                        - txtEqAttName:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  =Self.Text
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =28
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  =ThisItem.FileName
+                              Width: |-
+                                  =Max(0, (((((Min(760, App.Width - 32)) - 18 - 18) - 18) - 2 * 2 - 0 - 40)) - ((44) + 10) - ((71) + 10) - (If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), (40) + 10, 0)) - 2)
+                              Wrap: |-
+                                  =false
+                              X: |-
+                                  =0 + 0 + 0 + (44) + 10
+                              Y: |-
+                                  =0 + 0 + ((((38) - 2) - 0 - 0) - (28)) / 2
+                        - btnEqAttOpen:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Open or download " & ThisItem.FileName
+                              Align: |-
+                                  =Align.Center
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-default'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'text-primary'
+                              DisplayMode: |-
+                                  =If(IsBlank(ThisItem.FileUrl), DisplayMode.Disabled, DisplayMode.Edit)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =32
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
+                              OnSelect: |-
+                                  =Launch(ThisItem.FileUrl, { }, LaunchTarget.New)
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  ="Open"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Width: |-
+                                  =71
+                              X: |-
+                                  =0 + 0 + 0 + (44) + 10 + (Max(0, (((((Min(760, App.Width - 32)) - 18 - 18) - 18) - 2 * 2 - 0 - 40)) - ((44) + 10) - ((71) + 10) - (If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), (40) + 10, 0)) - 2)) + 10
+                              Y: |-
+                                  =0 + 0 + ((((38) - 2) - 0 - 0) - (32)) / 2
+                        - btnEqAttRemove:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Remove " & ThisItem.FileName
+                              Align: |-
+                                  =Align.Center
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-error'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'state-error-fg'
+                              DisplayMode: |-
+                                  =If(IfError(Coalesce(varEqAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =32
+                              Icon: |-
+                                  ="Delete"
+                              Layout: |-
+                                  =ButtonLayout.IconOnly
+                              OnSelect: |-
+                                  =Set(varEqAttRemove, ThisItem.FileName)
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  ="Remove"
+                              Tooltip: |-
+                                  ="Remove " & ThisItem.FileName
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Visible: |-
+                                  =(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted")
+                              Width: |-
+                                  =40
+                              X: |-
+                                  =0 + 0 + 0 + (44) + 10 + (Max(0, (((((Min(760, App.Width - 32)) - 18 - 18) - 18) - 2 * 2 - 0 - 40)) - ((44) + 10) - ((71) + 10) - (If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), (40) + 10, 0)) - 2)) + 10 + (71) + 10
+                              Y: |-
+                                  =0 + 0 + ((((38) - 2) - 0 - 0) - (32)) / 2
+                  - txtEqAttEmpty:
                       Control: ModernText
                       Properties:
                         AccessibleLabel: |-
@@ -10104,13 +10541,13 @@ Screens:
                         BorderThickness: |-
                             =0
                         Color: |-
-                            =C.'text-primary'
+                            =C.'text-muted'
                         Fill: |-
                             =RGBA(0, 0, 0, 0)
                         Font: |-
                             =Font.'Segoe UI'
                         Height: |-
-                            =28
+                            =36
                         PaddingBottom: |-
                             =0
                         PaddingLeft: |-
@@ -10122,97 +10559,48 @@ Screens:
                         Size: |-
                             =13
                         Text: |-
-                            =ThisItem.FileName
-                        Width: |-
-                            =Max(0, ((((Min(760, App.Width - 32)) - 18 - 18) - 2 * 2 - 18 - 40)) - ((30) + 10) - ((80) + 10) - 2)
+                            =If(
+                                IsBlank(LookUp(colEqRows, RowId = varEqDocsId).ItemKey),
+                                "Save the row first - the folder is named after the row key.",
+                                "No documents in " & "TaskListDocuments/" & LookUp(colEqRows, RowId = varEqDocsId).ItemKey & " yet."
+                            )
+                        Visible: |-
+                            =IfError(CountRows(Filter(colEqAttachments, RowId = varEqDocsId)) = 0, false)
                         Wrap: |-
-                            =false
-                        X: |-
-                            =0 + 0 + 0 + (30) + 10
-                        Y: |-
-                            =0 + 0 + ((((32) - 2) - 0 - 0) - (28)) / 2
-                  - btnEqAttOpen:
-                      Control: ModernButton
+                            =true
+                  - txtEqAttReadOnly:
+                      Control: ModernText
                       Properties:
                         AccessibleLabel: |-
-                            ="Open"
-                        Align: |-
-                            =Align.Center
-                        Appearance: |-
-                            =ButtonAppearance.Outline
-                        BorderColor: |-
-                            =C.'border-default'
+                            ="Read only. You can open the documents, but not add or remove them."
+                        BorderStyle: |-
+                            =BorderStyle.None
                         BorderThickness: |-
-                            =1
+                            =0
                         Color: |-
-                            =C.'text-primary'
+                            =C.'text-muted'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
                         Font: |-
                             =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
                         Height: |-
-                            =30
-                        Layout: |-
-                            =ButtonLayout.TextOnly
-                        OnSelect: |-
-                            =Launch(ThisItem.FileUrl, { }, LaunchTarget.New)
-                        RadiusBottomLeft: |-
-                            =10
-                        RadiusBottomRight: |-
-                            =10
-                        RadiusTopLeft: |-
-                            =10
-                        RadiusTopRight: |-
-                            =10
+                            =18
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
                         Size: |-
-                            =14
+                            =12
                         Text: |-
-                            ="Open"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
-                        Width: |-
-                            =80
-                        X: |-
-                            =0 + 0 + 0 + (30) + 10 + (Max(0, ((((Min(760, App.Width - 32)) - 18 - 18) - 2 * 2 - 18 - 40)) - ((30) + 10) - ((80) + 10) - 2)) + 10
-                        Y: |-
-                            =0 + 0 + ((((32) - 2) - 0 - 0) - (30)) / 2
-            - txtEqAttEmpty:
-                Control: ModernText
-                Properties:
-                  AccessibleLabel: |-
-                      =Self.Text
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  BorderThickness: |-
-                      =0
-                  Color: |-
-                      =C.'text-muted'
-                  Fill: |-
-                      =RGBA(0, 0, 0, 0)
-                  Font: |-
-                      =Font.'Segoe UI'
-                  Height: |-
-                      =36
-                  PaddingBottom: |-
-                      =0
-                  PaddingLeft: |-
-                      =0
-                  PaddingRight: |-
-                      =0
-                  PaddingTop: |-
-                      =0
-                  Size: |-
-                      =13
-                  Text: |-
-                      =If(
-                          IsBlank(LookUp(colEqRows, RowId = varEqDocsId).ItemKey),
-                          "Save the row first - the folder is named after the row key.",
-                          "No documents in " & "TaskListDocuments/" & LookUp(colEqRows, RowId = varEqDocsId).ItemKey & " yet."
-                      )
-                  Visible: |-
-                      =IfError(CountRows(Filter(colEqAttachments, RowId = varEqDocsId)) = 0, false)
-                  Wrap: |-
-                      =true
+                            ="Read only. You can open the documents, but not add or remove them."
+                        Visible: |-
+                            =!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted")
+                        Wrap: |-
+                            =true
       - imgEqNavScrim:
           Control: Image
           Properties:
@@ -11397,11 +11785,11 @@ Screens:
                                     PressedFill: |-
                                         =RGBA(0, 0, 0, 0)
                                     Size: |-
-                                        =If(LayoutRank < 2, 16, 14)
+                                        =13
                                     TabIndex: |-
                                         =0
                                     Text: |-
-                                        =With({t: If(!IsBlank(gblFbSel.Kind), gblFbSel.Label, "Pick a subject or request"), c: RoundDown((Self.Width) / 7.5, 0)}, If(Len(t) > c, Left(t, Max(1, c - 3)) & "...", t))
+                                        =With({t: If(!IsBlank(gblFbSel.Kind), gblFbSel.Label, "Pick a subject or request"), c: RoundDown((Self.Width) / 7, 0)}, If(Len(t) > c, Left(t, Max(1, c - 3)) & "...", t))
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
