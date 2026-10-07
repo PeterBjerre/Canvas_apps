@@ -560,11 +560,15 @@ def _is(kind):
     return f'ThisItem.Kind = "{kind}"'
 
 
-def _number_badge(name):
+def number_badge(name, rec=R):
     """The request number as the request app shows it (build_helpers.
     number_badge): a 88 x 26 pill in the domain's colour on a 12 % tint
     of it. The colour follows the request's domain - the same tokens as
-    the hub's domain icons (hub_config.DOMAINS)."""
+    the hub's domain icons (hub_config.DOMAINS).
+
+    rec: the record with Domain and RequestNo - the popup's request
+    (varMdAprReq) or a gallery row (ThisItem, the hub table, issue #178)."""
+    R = rec
     col = ("Switch(" + R + ".Domain.Value, " +
            ", ".join(f'"{d["key"]}", {ref_hex(d["token"])}' for d in DOMAINS) +
            f', {ref_hex("text-muted")})')
@@ -769,7 +773,7 @@ def build_popup():
                       size=lay.SIZE_CARD_TITLE, weight="Semibold", height=26, wrap="false",
                       width=f"If({IS_TIMELINE}, {tw_t}, {tw_a})")
     title.props["LayoutMinWidth"] = str(min(tw_a, tw_t))
-    no_badge = _number_badge(n("img", "No"))
+    no_badge = number_badge(n("img", "No"))
     spacer = grow(text_ctrl(n("txt", "HeadGap"), '""', size=lay.SIZE_MICRO, height=20,
                             accessible='"Spacer"'))
     btnClose = button(n("btn", "Close"), '"Close"', CLOSE, width=84, height=32)
