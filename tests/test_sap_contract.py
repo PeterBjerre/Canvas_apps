@@ -383,14 +383,22 @@ def _vba_string_consts():
     return consts
 
 
+# Felter, appen ikke viser eller skriver laengere (issue #166). Opretteren
+# laeser dem stadig, saa anmodninger, der allerede har dem i
+# SpoolValuesJson, oprettes som foer.
+RETIRED_FL_FIELDS = {"RISIKO", "ASBESTOS", "PTW", "SUPERIOR FL"}
+
+
 def test_fl_app_fields_exist():
     """Feltnavnene i VhpConfig (FLF_*) er appens - ellers er vaerdien bare tom."""
     rules = load(ROOT, "Functional Location App", "build", "fl_rules.generated.json")
     fields = {c["Field"] for c in rules["columns"]}
     consts = {k: v for k, v in _vba_string_consts().items() if k.startswith("FLF_")}
     assert len(consts) >= 16
-    missing = {k: v for k, v in consts.items() if v not in fields}
+    missing = {k: v for k, v in consts.items() if v not in fields and v not in RETIRED_FL_FIELDS}
     assert not missing, missing
+    # Og de udgaaede felter er faktisk ude af appen.
+    assert not RETIRED_FL_FIELDS & fields, sorted(RETIRED_FL_FIELDS & fields)
 
 
 def test_fl_screen_ids_are_spools():
@@ -445,14 +453,14 @@ def test_fl_characteristics_are_app_fields():
         elif cls in by_class:
             fields = by_class[cls]
         else:
-            # SPOOL kender klassen, appen goer ikke (RBR). Raekkerne er
-            # ufarlige - appen sender aldrig klassen.
+            # SPOOL kender klassen, appen goer ikke. RBR var den sidste - den
+            # er med siden issue #166.
             not_in_app.add(cls)
             continue
         if field.upper() not in fields:
             missing.append((cls, field))
     assert not missing, missing
-    assert not_in_app <= {"RBR"}, sorted(not_in_app)
+    assert not not_in_app, sorted(not_in_app)
 
 
 def test_fl_receipt_folder_is_provisioned():

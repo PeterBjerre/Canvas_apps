@@ -92,7 +92,7 @@ function loadOriginals() {
 //   ALLOW som DROP, indbygget liste                   "Allowed values: X."
 //   REQ   vaerdi tom                                  "Required field."
 //   RGX   vaerdi udfyldt og ikke moenster List        "Invalid value format."
-//   DATE  vaerdi udfyldt og ikke gyldig dato          "Use DD.MM.YYYY or YYYYMMDD."
+//   DATE  vaerdi udfyldt og ikke gyldig dato          "Use DD.MM.YYYY." (issue #166)
 //   UE    klasse MKP, key12=UE, vaerdi tom            "Required when aggregate key is UE."
 //   UEFP  som UE og key17=FP                          "Required for UE/FP."
 //   KKS   syntaksfejl paa FL                          KKS-motorens besked
@@ -128,6 +128,11 @@ function buildPlan(o) {
   const classes = new Set(["NO CLASS", "KAB", "ELF"]);
   Object.values(rd.componentMap).forEach((c) => classes.add(c));
   Object.values(rd.aggregateMap).forEach((c) => classes.add(c));
+  // Og alle klasser med egne kolonner i FL_SPOOL_COLUMNS (issue #166: RBR).
+  // RBR har kolonner, trin og karakteristikker, men ingen KKS-noegle i
+  // ClassDetermination-tabellerne peger paa den endnu - klassen bestemmes
+  // stadig KUN af KKS-koden.
+  Object.keys(o.window.FL_SPOOL_COLUMNS || {}).forEach((c) => classes.add(N(c)));
   const classList = [...classes].sort();
 
   const plan = [];
@@ -173,7 +178,7 @@ function buildPlan(o) {
       rule = "FL33";
       if (r.maxLength > 0) add(f, "MAX", r.maxLength, "", `Max ${r.maxLength} characters.`);
       rule = "FL34";
-      if (ctl.DATE_FIELD_SET.has(f)) add(f, "DATE", 0, "", "Use DD.MM.YYYY or YYYYMMDD.");
+      if (ctl.DATE_FIELD_SET.has(f)) add(f, "DATE", 0, "", "Use DD.MM.YYYY.");
     });
     Object.keys(ctl.BUILTIN_ALLOWED_VALUES_BY_FIELD).forEach((f) => {
       const allowed = ctl.BUILTIN_ALLOWED_VALUES_BY_FIELD[f];
@@ -229,8 +234,28 @@ function buildPlan(o) {
                 Num: 0, List: "", Msg: "" });
   }
 
-  // Kolonnerne i klassetabellen og detaljeruden (resolveSpoolColumns) med
-  // hver kolonnes editor (renderSpoolEditor).
+  // Kolonnerne i klassetabellen og formularen (resolveSpoolColumns) med
+  // hver kolonnes editor (renderSpoolEditor) og dens SEKTION paa skaermen
+  // (issue #166, docs/31 FL60):
+  //   Status  laeses af raekkelisten, ikke af formularen (SAP status, Info ...)
+  //   Master  stamdata: FL, Description og Verify_Master_Data_FL's felter
+  //           (MASTERDATA_FIELD_RULES og BUILTIN_ALLOWED_VALUES_BY_FIELD)
+  //   TRM     tillaegsklassen TRM (Char-tabellen) og "TRM assignment"
+  //   Ext     tillaegsklasserne GIV_EXT og WCM og "GIV_EXT assignment"
+  //   Class   resten: klassens egne karakteristikker
+  const charByClass = ctl.state.spoolRules.charByClass || {};
+  const STATUS = new Set(["SAP STATUS", "INFO", "CLASS", "USER STATUS", "SYSTEM STATUS"]);
+  const MASTER = new Set(["FUNCTIONAL LOCATION", "DESCRIPTION", "STR. INDICATOR",
+    ...Object.keys(ctl.MASTERDATA_FIELD_RULES), ...Object.keys(ctl.BUILTIN_ALLOWED_VALUES_BY_FIELD)]);
+  const ADDON = { TRM: "TRM", GIV_EXT: "Ext", WCM: "Ext" };
+  const sectionOf = (f) => {
+    if (STATUS.has(f)) return "Status";
+    const assign = f.endsWith(" ASSIGNMENT") ? f.slice(0, -" ASSIGNMENT".length) : "";
+    if (ADDON[assign]) return ADDON[assign];
+    if (MASTER.has(f)) return "Master";
+    for (const k of Object.keys(ADDON)) if ((charByClass[k] || {})[f]) return ADDON[k];
+    return "Class";
+  };
   const columns = [];
   for (const C of classList) {
     ctl.resolveSpoolColumns(C).forEach((col, i) => {
@@ -239,7 +264,8 @@ function buildPlan(o) {
       columns.push({ Cls: C, Ord: i + 1, Column: col, Field: f,
                      Editable: ctl.isEditableSpoolColumn(f),
                      List: opts.length ? listId(opts) : "",
-                     MaxLen: ctl.resolveMaxLengthForField(C, f) });
+                     MaxLen: ctl.resolveMaxLengthForField(C, f),
+                     Section: sectionOf(f) });
     });
   }
 
@@ -294,8 +320,8 @@ function flatValidate(rowsIn, P, o) {
   // Power Fx-udgaven af datotjekket - ren aritmetik, se fl_validation.py.
   const dateOk = (v) => {
     let y, m, d;
-    if (/^\d{8}$/.test(v)) { y = +v.slice(0, 4); m = +v.slice(4, 6); d = +v.slice(6, 8); }
-    else if (/^\d{2}\.\d{2}\.\d{4}$/.test(v)) { d = +v.slice(0, 2); m = +v.slice(3, 5); y = +v.slice(6, 10); }
+    // Kun DD.MM.YYYY (issue #166).
+    if (/^\d{2}\.\d{2}\.\d{4}$/.test(v)) { d = +v.slice(0, 2); m = +v.slice(3, 5); y = +v.slice(6, 10); }
     else return false;
     const leap = y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0);
     const dim = m === 2 ? (leap ? 29 : 28) : [4, 6, 9, 11].includes(m) ? 30 : 31;

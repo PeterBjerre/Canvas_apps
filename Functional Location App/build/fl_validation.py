@@ -237,16 +237,17 @@ def in_list_bad(v, list_id):
 # FL34 / PX4: datoen som ren aritmetik. new Date(y, m-1, d) i JS giver et
 # andet aar for y < 100, og Power Fx' Date() laegger 1900 til alt under
 # 1900 - derfor ingen af dem. Aar >= 100, maaned 1-12, dag i maaneden.
+# Kun DD.MM.YYYY (issue #166) - YYYYMMDD er ikke laengere gyldigt.
 def date_bad(v):
     return f"""With(
-    {{ c8: IsMatch({v}, "[0-9]{{8}}"), dt: IsMatch({v}, "[0-9]{{2}}\\.[0-9]{{2}}\\.[0-9]{{4}}") }},
+    {{ dt: IsMatch({v}, "[0-9]{{2}}\\.[0-9]{{2}}\\.[0-9]{{4}}") }},
     If(
-        !c8 && !dt, true,
+        !dt, true,
         With(
             {{
-                y: Value(If(c8, Left({v}, 4), Right({v}, 4))),
-                m: Value(Mid({v}, If(c8, 5, 4), 2)),
-                dd: Value(If(c8, Right({v}, 2), Left({v}, 2)))
+                y: Value(Right({v}, 4)),
+                m: Value(Mid({v}, 4, 2)),
+                dd: Value(Left({v}, 2))
             }},
             !(y >= 100 && m >= 1 && m <= 12 && dd >= 1 &&
               dd <= Switch(m, 2, If(Mod(y, 4) = 0 && (Mod(y, 100) <> 0 || Mod(y, 400) = 0), 29, 28),
