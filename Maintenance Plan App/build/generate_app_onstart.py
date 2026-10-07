@@ -206,7 +206,11 @@ def build_onstart():
 def build_formulas():
     """App.Formulas. Hver formel afsluttes med semikolon - ogsaa den sidste."""
     out = [tok.formula(), "", lay.formula(), "", perm.formula(), "", perm.approver_formula(), ""]
-    for name, expr, why in cfg.named_formulas() + build_status.formulas():
+    # De sammenklappede linjer (issue #123) - importeres her, fordi
+    # builderne foerst kan importeres, naar tools/ er paa stien.
+    import build_plan_header
+    for name, expr, why in (cfg.named_formulas() + build_status.formulas()
+                            + build_plan_header.summary_formulas()):
         if why:
             out.append(f"// {why}")
         out.append(f"{name} = {expr};")
