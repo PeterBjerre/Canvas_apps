@@ -85,15 +85,17 @@ def decided_in(log, guid, me):
 
 def has_self(guid, coll):
     """Har anmodningen en Note to self, som brugeren maa se? coll er
-    samlingen af de raekker, SharePoint gav brugeren (hub_self_refresh)."""
+    tabellen af de raekker, SharePoint gav brugeren (hub_self_refresh)."""
     return f"({guid} in {coll}.RequestGuid)"
 
 
 def hub_self_refresh(me):
     """Hubbens ene hentning af de Note to self-raekker, brugeren maa se -
     kun RequestGuid, ingen tekst. Listen giver kun ejerens egne raekker
-    (admins alle); formlen siger det samme."""
-    return (f"ClearCollect(colMdSelfNotes, If({perm.IS_ADMIN}, ShowColumns({LIST}, RequestGuid), "
+    (admins alle); formlen siger det samme. En variabel og ikke en samling:
+    den aendres aldrig efter hentningen (App checker CollectingReadOnlyTable,
+    issue #165)."""
+    return (f"Set(varMdSelfNotes, If({perm.IS_ADMIN}, ShowColumns({LIST}, RequestGuid), "
             f"ShowColumns(Filter({LIST}, OwnerEmail = {me}), RequestGuid)))")
 
 
@@ -187,7 +189,7 @@ def popup(prefix, open_var, edit, title_fx, intro_fx, a_default, s_default, show
 # ---------------------------------------------------------------------------
 def hub_may_approver(req):
     return may_approver(f"{req}.RequesterEmail", "varMdMe", f"{req}.AssignedToEmail",
-                        decided_in("colMdAprAll", f"{req}.RequestGuid", "varMdMe"))
+                        decided_in("varMdAprAll", f"{req}.RequestGuid", "varMdMe"))
 
 
 def hub_may_self(req):
@@ -198,7 +200,7 @@ def hub_has_visible(req):
     """Har anmodningen en note, brugeren maa se? Ingen kald: flaget staar
     i indeksraekken, og Note to self-raekkerne er hentet een gang."""
     return (f'({req}.Domain.Value = "MaintenancePlan" && (({req}.{FLAG} && {hub_may_approver(req)}) || '
-            f'({has_self(req + ".RequestGuid", "colMdSelfNotes")} && {hub_may_self(req)})))')
+            f'({has_self(req + ".RequestGuid", "varMdSelfNotes")} && {hub_may_self(req)})))')
 
 
 def hub_open_fx(req):
@@ -212,7 +214,7 @@ def hub_open_fx(req):
         f"Set(varMdNoteShowS, {hub_may_self(r)})",
         f'Set(varMdNoteA, If(varMdNoteShowA && {r}.{FLAG}, '
         f'Coalesce(LookUp({PLANS}, ID = {r}.SourceItemId).{COL_APPROVER}, ""), ""))',
-        f'Set(varMdNoteS, If(varMdNoteShowS && {has_self(r + ".RequestGuid", "colMdSelfNotes")}, '
+        f'Set(varMdNoteS, If(varMdNoteShowS && {has_self(r + ".RequestGuid", "varMdSelfNotes")}, '
         f'Coalesce(LookUp({LIST}, RequestGuid = {r}.RequestGuid).Note, ""), ""))',
         "Set(varMdNotesOpen, true)",
     ])
