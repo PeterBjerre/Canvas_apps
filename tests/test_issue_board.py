@@ -248,3 +248,31 @@ def test_attachments_are_never_read_from_a_with_record():
                 encoding="utf-8").read()
     bad = re.findall(r"\b(?!att)\w+\.Attachments\b", text)
     assert not bad, bad
+
+
+def test_new_issue_popup_submits_once_and_closes_only_on_success():
+    # Issue #135: Submit er footerens eneste knap og laaser sig selv; popuppen
+    # lukkes, nulstilles og sagen vises foerst, naar flowet har svaret ok.
+    import ib_parts as P
+    text = open(os.path.join(ROOT, "BIO SAP App", "ScreenIssueBoard.pa.yaml"),
+                encoding="utf-8").read()
+    assert "btnIbFormCancel" not in text
+    ok, fail = P.SUBMIT.split('NotificationType.Success)\n    ),\n')
+    assert "Set(varIbFormOn, false)" in ok and "Set(varIbFormOn, false)" not in fail
+    assert P.CLEAR_FORM.replace("\n", "\n    ") in ok
+    assert "Set(varIbDetailOn, true)" in P.SHOW_NEW and "Value(varIbRes.ticketid)" in P.SHOW_NEW
+    assert "Coalesce(varIbRes.message" in fail
+    assert P.SUBMIT.rstrip().endswith("Set(varIbBusy, false)")
+    form = {c.name: c for c in _walk_ctrls(P.build_form())}
+    submit = form["btnIbFormSubmit"].props["OnSelect"]
+    assert submit.startswith(f"If(\n    !varIbBusy && ({P.VALID}),")
+    assert form["btnIbFormClose"].props["OnSelect"] == P.CLOSE_ASK
+    assert "Set(varIbDiscardOn, true)" in P.CLOSE_ASK and "!varIbBusy" in P.CLOSE_ASK
+    assert [k.name for k in form["conIbFormFooter"].children] == ["btnIbFormSubmit"]
+    assert "btnIbDiscardConfirm" in form
+
+
+def _walk_ctrls(nodes):
+    for n in nodes:
+        yield n
+        yield from _walk_ctrls(n.children)
