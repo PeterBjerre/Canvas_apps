@@ -31,8 +31,10 @@ TRIN 2 (admin-board, redigering, vedhaeftninger, mail)
              loesning. Hver aendring bliver sin egen haendelse.
     reopen   rapportoeren (eller en admin) genaabner en lukket sag eller en
              sag, der er klar til gentest - een knap.
-    archive  kun admin: arkiver (ud af de aktive lister og ud af det delte
-             board) eller gendan.
+    archive  kun admin: arkiver (ud af de aktive lister; den delte kopi
+             bliver staaende med IsArchived = Ja, saa alle kan finde den
+             under Archived uden private oplysninger, issue #177) eller
+             gendan.
     delete   kun admin, og kun med sagsnummeret som bekraeftelse: sletter
              haendelserne, den delte kopi og sagen med dens vedhaeftninger.
     attach   en fil paa sagens egen raekke (SharePoint-vedhaeftning). Den
