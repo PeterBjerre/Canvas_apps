@@ -76,17 +76,16 @@ NARROW = below("Tablet")
 # ---------------------------------------------------------------------------
 INIT_STATE = (
     "If(\n"
-    "    IsBlank(varIbScope),\n"
-    # En admin starter paa admin-boardet (alle sager), alle andre paa
-    # deres egne. IsAdmin er een delegerbar LookUp (tools/permissions.py).
-    f'    Set(varIbScope, If({IS_ADMIN}, "all", "mine"));\n'
+    "    !IfError(varIbInit, false),\n"
+    "    Set(varIbInit, true);\n"
+    # Scopet saettes foerst efter hentningen (LOAD): IsAdmin er et opslag,
+    # og det skal ikke staa i koe foran de to forespoergsler (issue #177).
+    '    Set(varIbScope, "");\n'
     '    Set(varIbState, "open");\n'
     '    Set(varIbApp, "");\n'
     '    Set(varIbSection, "");\n'
     '    Set(varIbStatusF, "");\n'
     '    Set(varIbPriF, "");\n'
-    '    Set(varIbSevF, "");\n'
-    "    Set(varIbAssignedMe, false);\n"
     '    Set(varIbSort, "Last updated");\n'
     "    Set(varIbMe, Lower(User().Email));\n"
     '    Set(varIbTab, "details");\n'
@@ -95,9 +94,13 @@ INIT_STATE = (
     "    Set(varIbDetailOn, false);\n"
     "    Set(varIbDelOn, false);\n"
     "    Set(varIbMore, false);\n"
+    "    Set(varIbActsOn, false);\n"
     "    Set(varIbInternal, false);\n"
     "    Set(varIbFilesFor, -1);\n"
+    "    Set(varIbSelFullFor, -1);\n"
+    "    Set(varIbTried, false);\n"
     "    Set(varIbBusy, false);\n"
+    "    Set(varIbSharedBusy, false);\n"
     "    Set(varIbUploading, false);\n"
     "    Set(varIbPosting, false)\n"
     ")"
@@ -111,11 +114,16 @@ def _rank(field, pairs, fallback):
 
 STATUS_RANK = [(s, r) for s, _c, r in cfg.STATUS]
 
+# Felterne, der kun bruges i popuppen. Oversigten henter dem ikke (de er
+# lange tekster); de kommer med sagens eget opslag, naar den aabnes.
+DETAIL_ONLY = ("Steps", "Expected", "Actual", "Other", "RelatedNo", "Resolution")
 
-def _row(r, *, shared):
+
+def _row(r, *, shared, full=True):
     """Een raekke i colIbMine/colIbAll/colIbShared. De tre har SAMME skema,
     saa listen kan vaelge mellem dem med et Switch. Den anonyme kopi har
-    ingen rapportoer og ingen tildeling - felterne er tomme."""
+    ingen rapportoer og ingen tildeling - felterne er tomme. full=False:
+    oversigtens raekke - popup-felterne er tomme, til sagen aabnes."""
     if shared:
         f = {
             "Id": f"{r}.ID", "TicketNo": f'Coalesce({r}.TicketNo, "")',
@@ -149,11 +157,22 @@ def _row(r, *, shared):
             "Reporter": f'Lower(Coalesce({r}.ReporterEmail, ""))',
             "AssignedEmail": f'Lower(Coalesce({r}.AssignedToEmail, ""))',
         }
+        if not full:
+            for k in DETAIL_ONLY:
+                f[k] = '""'
         pri, st = f"{r}.Priority.Value", f"{r}.Status.Value"
     f["PriRank"] = _rank(pri, cfg.PRIORITY, 5)
     f["StatusRank"] = _rank(st, STATUS_RANK, 9)
     return "{ " + ", ".join(f"{k}: {v}" for k, v in f.items()) + " }"
 
+
+# Oversigtens kolonner i IB_Tickets - ShowColumns giver SharePoint et
+# $select, saa de lange tekster (trin, forventet/faktisk resultat,
+# loesning) ikke hentes for hver sag (issue #177).
+OVERVIEW_COLS = ["ID", "Title", "TicketNo", "Description", "Application", "Section", "Severity",
+                 "Priority", "Status", "AssignedToName", "ReporterEmail", "AssignedToEmail",
+                 "Created", "LastActivityOn", "IsArchived"]
+_SHOW = ", ".join(OVERVIEW_COLS)
 
 # Hentningerne. Hver sammenligner med en global variabel eller en konstant,
 # saa SharePoint udfoerer filteret og sorteringen (check_layout regel 30).
@@ -161,57 +180,60 @@ FETCH_SECTIONS = (f"ForAll(Filter({cfg.L_SECTIONS}, IsActive = true) As r, "
                   '{ Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), '
                   "AppOrder: Coalesce(r.AppOrder, 0), SectionOrder: Coalesce(r.SectionOrder, 0), "
                   'ScreenKey: Coalesce(r.ScreenKey, "") })')
-FETCH_MINE = (f"ForAll(Sort(Filter({cfg.L_TICKETS}, ReporterEmail = varIbMe), LastActivityOn, "
-              f"SortOrder.Descending) As r, {_row('r', shared=False)})")
+FETCH_MINE = (f"ForAll(ShowColumns(Sort(Filter({cfg.L_TICKETS}, ReporterEmail = varIbMe), LastActivityOn, "
+              f"SortOrder.Descending), {_SHOW}) As r, {_row('r', shared=False, full=False)})")
 FETCH_SHARED = (f"ForAll(Sort({cfg.L_SHARED}, LastActivityOn, SortOrder.Descending) As r, "
                 f"{_row('r', shared=True)})")
 # Admin-boardet: alle sager, brugeren har ret til at laese. For en admin er
-# det alle (Contribute paa hver raekke); for andre ville det kun vaere deres
-# egne - scopet vises kun for admins.
-FETCH_ALL = (f"ForAll(Sort({cfg.L_TICKETS}, LastActivityOn, SortOrder.Descending) As r, "
-             f"{_row('r', shared=False)})")
+# det alle (Contribute paa hver raekke). En admins egne sager er en del af
+# dem, saa de hentes IKKE en gang til (IbMine filtrerer i hukommelsen).
+FETCH_ALL = (f"ForAll(ShowColumns(Sort({cfg.L_TICKETS}, LastActivityOn, SortOrder.Descending), "
+             f"{_SHOW}) As r, {_row('r', shared=False, full=False)})")
 
 RELOAD_MINE = f"Set(varIbMineFailed, IfError(ClearCollect(colIbMine, {FETCH_MINE}); false, true))"
+RELOAD_ALL = f"Set(varIbAllFailed, IfError(ClearCollect(colIbAll, {FETCH_ALL}); false, true))"
+# Den ene liste, brugeren har: en admin alle sager, alle andre deres egne.
+RELOAD_MAIN = (f"If({IS_ADMIN}, {RELOAD_ALL}; Set(varIbMineFailed, false), "
+               f"{RELOAD_MINE}; Set(varIbAllFailed, false))")
 
+# FLASKEHALSEN (issue #177): foer hentede en admin konfigurationen og sine
+# egne sager (Concurrent) og FOERST DEREFTER alle sager - to runder mod
+# IB_Tickets efter hinanden, hvor den foerste var en delmaengde af den
+# anden - og IsAdmin blev slaaet op foran det hele. Nu er det een runde:
+# konfigurationen og den ene liste samtidig.
 LOAD = (
     "If(\n"
     "    !varIbLoaded,\n"
     "    Set(varIbLoading, true);\n"
     "    " + concurrent(
         f"Set(varIbCfgFailed, IfError(ClearCollect(colIbSections, {FETCH_SECTIONS}); false, true))",
-        RELOAD_MINE, indent=4) + ";\n"
-    "    Set(varIbLoaded, !varIbCfgFailed && !varIbMineFailed);\n"
+        RELOAD_MAIN, indent=4) + ";\n"
+    "    Set(varIbLoaded, !varIbCfgFailed && !varIbMineFailed && !varIbAllFailed);\n"
     "    Set(varIbLoading, false)\n"
     ")"
 )
 
+# Den anonyme liste: kun for "All issues" (almindelig bruger) og forslagene
+# i New issue. Den har sin egen ventevariabel, saa den ikke laegger
+# ventespinneren hen over formularen.
 LOAD_SHARED = (
     "If(\n"
     "    !varIbSharedLoaded,\n"
-    "    Set(varIbLoading, true);\n"
+    "    Set(varIbSharedBusy, true);\n"
     f"    Set(varIbSharedFailed, IfError(ClearCollect(colIbShared, {FETCH_SHARED}); false, true));\n"
     "    Set(varIbSharedLoaded, !varIbSharedFailed);\n"
-    "    Set(varIbLoading, false)\n"
+    "    Set(varIbSharedBusy, false)\n"
     ")"
 )
 
-LOAD_ALL = (
-    "If(\n"
-    f"    {IS_ADMIN} && !varIbAllLoaded,\n"
-    "    Set(varIbLoading, true);\n"
-    f"    Set(varIbAllFailed, IfError(ClearCollect(colIbAll, {FETCH_ALL}); false, true));\n"
-    "    Set(varIbAllLoaded, !varIbAllFailed);\n"
-    "    Set(varIbLoading, false)\n"
-    ")"
-)
+SET_SCOPE = f'If(IsBlank(varIbScope), Set(varIbScope, If({IS_ADMIN}, "all", "mine")))'
 
-RETRY = ("Set(varIbLoaded, false);\nSet(varIbSharedLoaded, false);\nSet(varIbAllLoaded, false);\n"
-         + LOAD + ';\nIf(varIbScope = "shared", ' + LOAD_SHARED + ")"
-         + ';\nIf(varIbScope = "all", ' + LOAD_ALL + ")")
+RETRY = ("Set(varIbLoaded, false);\nSet(varIbSharedLoaded, false);\n"
+         + LOAD + ";\n" + SET_SCOPE + ';\nIf(varIbScope = "shared", ' + LOAD_SHARED + ")")
 
 
 def on_visible():
-    return INIT_STATE + ";\n" + LOAD + ';\nIf(varIbScope = "all", ' + LOAD_ALL + ")"
+    return INIT_STATE + ";\n" + LOAD + ";\n" + SET_SCOPE
 
 
 def _initials(email):
@@ -233,14 +255,17 @@ LOAD_ACTIVITY = (
     "Set(varIbActFailed, IfError(ClearCollect(\n"
     "    colIbActivity,\n"
     '    { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", '
-    f'{_initials("varIbSel.Reporter")}), Body: "Reported the issue.", At: varIbSel.CreatedOn, '
-    'Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },\n'
+    f'{_initials("varIbSel.Reporter")}), Role: "User", Body: "Reported the issue.", '
+    'At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },\n'
     f"    ForAll(Sort(Filter({cfg.L_COMMENTS}, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,\n"
     '        With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), '
     'role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },\n'
     "            { Kind: k,\n"
-    '              Actor: If(role = "System", "System", who = varIbMe, "You", '
-    f'{_initials("who")} & If(role = "Admin", " (admin)", "")),\n'
+    # Rollen staar i sit eget maerke ved siden af (User, Admin, System) -
+    # ikke laengere som " (admin)" efter initialerne (issue #177).
+    '              Actor: If(role = "System", "Issue Board", who = varIbMe, "You", '
+    f'{_initials("who")}),\n'
+    '              Role: Switch(role, "Admin", "Admin", "System", "System", "User"),\n'
     f"              Body: If(k in {STATUS_EVENTS} && !IsBlank(r.NewStatus), "
     '"Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & '
     'If(IsBlank(r.Content), ".", ". " & r.Content),\n'
@@ -280,6 +305,7 @@ RELOAD_SEL = (
     "        RemoveIf(colIbAll, Id = varIbSelId);\n"
     "        Set(varIbDetailOn, false),\n"
     f"        Set(varIbSel, {_row('r', shared=False)});\n"
+    "        Set(varIbSelFullFor, varIbSelId);\n"
     # r.Attachments kan ikke laeses fra With's LookUp - compile: "The
     # specified column is not accessible in this context" (issue #133).
     # Er fanen aaben, hentes filerne igen med LOAD_FILES' egen LookUp;
@@ -293,6 +319,42 @@ RELOAD_SEL = (
     ")"
 )
 
+# Naar en sag aabnes: sagens egen raekke (de lange tekster, som oversigten
+# ikke hentede) og dens Activity SAMTIDIG - to opslag paa ID, ikke to i
+# koe. Popuppen staar allerede fremme med det, oversigten havde.
+# Vedhaeftningerne hentes foerst, naar fanen vaelges (LOAD_FILES).
+LOAD_OPEN = (
+    "Set(varIbSelRow, Blank());\n"
+    + concurrent(
+        f"Set(varIbSelRow, IfError(LookUp({cfg.L_TICKETS}, ID = varIbSelId), Blank()))",
+        LOAD_ACTIVITY) + ";\n"
+    "If(\n"
+    "    !IsBlank(varIbSelRow) && varIbSelRow.ID = varIbSelId,\n"
+    f"    Set(varIbSel, {_row('varIbSelRow', shared=False)});\n"
+    "    Set(varIbSelFullFor, varIbSelId);\n"
+    "    UpdateIf(colIbMine, Id = varIbSelId, varIbSel);\n"
+    "    UpdateIf(colIbAll, Id = varIbSelId, varIbSel)\n"
+    ")"
+)
+
+
+def open_ticket(rec, shared):
+    """Aabn en sag i View mode. rec: raekken; shared: sand for den anonyme
+    kopi (ingen Activity, ingen filer, ingen handlinger)."""
+    return (
+        f"Set(varIbSel, {rec});\n"
+        "Set(varIbSelId, varIbSel.Id);\n"
+        f"Set(varIbSelShared, {shared});\n"
+        'Set(varIbTab, "details");\n'
+        "Set(varIbInternal, false);\n"
+        "Set(varIbActsOn, false);\n"
+        "Set(varIbFilesFor, -1);\n"
+        "Reset(inpIbComment);\n"
+        "Clear(colIbActivity);\n"
+        "Set(varIbDetailOn, true);\n"
+        "If(!varIbSelShared, " + LOAD_OPEN + ")"
+    )
+
 
 
 # Skemaerne for samlingerne. If(false, ...): kun skemaet (check_layout
@@ -305,7 +367,7 @@ ROW = {"Id": "0", "TicketNo": '""', "Title": '""', "Description": '""', "Steps":
        "StatusRank": "0"}
 SEC = {"Application": '""', "Section": '""', "AppOrder": "0", "SectionOrder": "0",
        "ScreenKey": '""'}
-ACT = {"Kind": '""', "Actor": '""', "Body": '""', "At": "Now()", "Internal": "false",
+ACT = {"Kind": '""', "Actor": '""', "Role": '""', "Body": '""', "At": "Now()", "Internal": "false",
        "IsSystem": "false", "File": '""', "SizeKb": "0", "Initial": "false"}
 ADMINS = {"Email": '""', "Name": '""'}
 UPLOAD = {"Name": '""', "Msg": '""'}
@@ -336,6 +398,11 @@ def _table(values):
 REOPENABLE_FX = _table(cfg.REOPENABLE)
 
 # ---------------------------------------------------------------------------
+# Fliser og den anonyme kopi: "Updated" kun, naar sagen er aendret mere end
+# saa mange minutter efter indmeldingen - flowets egen opsaetning (nummer,
+# delt kopi, filerne med indmeldingen) er ikke en aendring.
+UPDATED_AFTER_MIN = 5
+
 FORMULAS = f'''// Issue Board (Issue Board/build/ib_parts.py). Samlingerne hentes i
 // skaermens OnVisible; alt herunder regnes i hukommelsen.
 // Applications i konfigurationens raekkefoelge.
@@ -346,7 +413,17 @@ IbOtherNeeded = varIbFormApp = "{cfg.OTHER}" || varIbFormSection = "{cfg.OTHER}"
 // Den Application, skaermen man kom fra, hoerer til (gblNavFrom saettes af
 // sidebaren). Kun naar konfigurationen siger det - ellers intet gaet.
 IbFrom = Coalesce(LookUp(colIbSections, ScreenKey = gblNavFrom && !IsBlank(gblNavFrom)).Application, "");
-IbFailed = IfError(varIbCfgFailed, false) || IfError(varIbMineFailed, false) || (varIbScope = "shared" && IfError(varIbSharedFailed, false)) || (varIbScope = "all" && IfError(varIbAllFailed, false));
+IbFailed = IfError(varIbCfgFailed, false) || IfError(varIbMineFailed, false) || IfError(varIbAllFailed, false) || (varIbScope = "shared" && IfError(varIbSharedFailed, false));
+// En admin henter kun colIbAll (alle sager); hans egne er en del af dem og
+// hentes ikke en gang til. Alle andre har colIbMine.
+IbMine = If({IS_ADMIN}, Filter(colIbAll, Reporter = varIbMe), colIbMine);
+// Scopet: All issues (admin: alle sager; ellers den anonyme liste), My
+// issues og - for admin - Assigned to me. Filtrene regnes oven paa det.
+IbScopeRows = Switch(varIbScope, "shared", colIbShared, "all", colIbAll, "assigned", Filter(colIbAll, AssignedEmail = varIbMe), IbMine);
+// Updated vises kun efter en reel aendring: en haendelse efter
+// indmeldingen (ikke filerne, der kom med den). Den anonyme kopi har ingen
+// Activity - der taeller kun en aendring mere end {UPDATED_AFTER_MIN} minutter efter.
+IbSelUpdatedOn = If(varIbSelShared, If(DateDiff(varIbSel.CreatedOn, varIbSel.UpdatedOn, TimeUnit.Minutes) >= {UPDATED_AFTER_MIN}, varIbSel.UpdatedOn, Blank()), Max(Filter(colIbActivity, Kind <> "Reported" && !Initial), At));
 // Hvad maa brugeren paa den aabne sag? EET sted for knapperne - og samme
 // regler som flowet BioSap-IssueBoard-Submit, der afgoer det paa serveren.
 // En anonym (delt) sag kan ingen aendre herfra.
@@ -399,14 +476,19 @@ RESET_FORM = ("Reset(drpIbFormApp);\nReset(drpIbFormSection);\nReset(inpIbOther)
               "Reset(inpIbRelated);\nReset(drpIbSeverity);\nReset(attIbNewFiles);\n"
               "Reset(drpIbStatus);\nReset(drpIbPriority);\nReset(drpIbAssignee);\nReset(inpIbResolution)")
 
+# Formularen staar fremme med det samme. Forslagene til lignende sager
+# kommer bagefter - for en almindelig bruger fra den anonyme liste, som
+# hentes uden ventespinner hen over formularen; en admin har dem allerede
+# i colIbAll (issue #177).
 OPEN_FORM = (
-    LOAD_SHARED + ";\n"
     'Set(varIbFormMode, "new");\n'
     "Set(varIbFormApp, IbFrom);\n"
     'Set(varIbFormSection, "");\n'
     "Set(varIbMore, false);\n"
+    "Set(varIbTried, false);\n"
     + RESET_FORM + ";\n"
-    "Set(varIbFormOn, true)"
+    "Set(varIbFormOn, true);\n"
+    f"If(!{IS_ADMIN}, " + LOAD_SHARED + ")"
 )
 
 # Admins til "Assigned to" - samme liste som IsAdmin, hentet een gang og
@@ -453,11 +535,13 @@ def build_bar():
 # Filtre
 # ---------------------------------------------------------------------------
 CARD_W = f"({SHELL_W} - 2 * {lay.CARD_PAD})"
+SEG_H = 34
 
 
 def _seg(name, label, selected, onselect, width, accessible):
     """Et segment i en kontakt: valgt = fyldt, ikke valgt = kant."""
-    b = button(name, f'"{label}"', onselect, width=width, height=34, accessible=accessible)
+    b = button(name, label if label.startswith("If(") else f'"{label}"', onselect, width=width,
+               height=SEG_H, accessible=accessible)
     b.props["Appearance"] = f"If({selected}, ButtonAppearance.Primary, ButtonAppearance.Outline)"
     b.props["BasePaletteColor"] = C_PRIMARY
     b.props["BorderColor"] = f"If({selected}, {C_PRIMARY}, {C_CARD_BORDER})"
@@ -468,61 +552,99 @@ def _seg(name, label, selected, onselect, width, accessible):
     return b
 
 
-def _switch_group(name, segs):
-    w = sum(int(s.props["Width"]) for s in segs) + 4 * (len(segs) - 1)
-    g = group(name, segs, direction="Horizontal", gap=4, height=34, width=str(w),
-              align_items="Center")
-    g.props["LayoutMinWidth"] = str(w)
-    return g
-
-
-def _filter_dd(name, all_text, values, var, label):
+def _filter_dd(name, all_text, values, var, label, display_mode=None):
     """En filterliste: "All ..." foerst og derefter vaerdierne."""
     return themed_dropdown(name, _table([all_text] + list(values)),
                            f'If(IsBlank({var}), "{all_text}", {var})', label=label,
+                           display_mode=display_mode,
                            onchange=f'Set({var}, If(Self.Selected.Value = "{all_text}", "", '
                                     "Self.Selected.Value))")
 
 
-ADMIN_ALL = f'{IS_ADMIN} && varIbScope = "all"'
+# Scopet "All issues": for en admin alle sager (colIbAll), for alle andre
+# den anonyme liste (colIbShared) - saa kan alle finde ogsaa de arkiverede
+# sager, uden at se hvem der meldte dem (issue #177).
+SCOPE_ALL = 'varIbScope in ["all", "shared"]'
+ADMIN_BOARD = f'{IS_ADMIN} && varIbScope in ["all", "assigned"]'
+FILTERED = ("!IsBlank(varIbApp) || !IsBlank(varIbSection) || !IsBlank(varIbStatusF) || "
+            "!IsBlank(varIbPriF) || !IsBlank(Trim(inpIbSearch.Text))")
+CLEAR_FILTERS = ('Set(varIbApp, "");\nSet(varIbSection, "");\nSet(varIbStatusF, "");\n'
+                 'Set(varIbPriF, "");\nReset(inpIbSearch);\nReset(drpIbFltApp);\n'
+                 "Reset(drpIbFltSection);\nReset(drpIbFltStatus);\nReset(drpIbFltPriority)")
+
+# Kontakternes bredder paa en bred skaerm. Paa en smal deler segmenterne
+# kortets bredde.
+SCOPE_W = {"btnIbScopeAll": 96, "btnIbScopeMine": 100, "btnIbScopeAssigned": 128}
+STATE_W = {"btnIbStateOpen": 76, "btnIbStateClosed": 84, "btnIbStateArchived": 92}
+SCOPE_ADMIN_W = sum(SCOPE_W.values()) + 2 * 4
+SCOPE_USER_W = SCOPE_W["btnIbScopeAll"] + SCOPE_W["btnIbScopeMine"] + 4
+STATE_ALL_W = sum(STATE_W.values()) + 2 * 4
+TOP_OK = f"({CARD_W}) >= {SCOPE_ADMIN_W + 16 + STATE_ALL_W}"
 
 
 def build_filters():
-    all_seg = _seg("btnIbScopeAll", "All issues", 'varIbScope = "all"',
-                   'Set(varIbScope, "all");\n' + LOAD_ALL, 96,
-                   '"Show all issues (administrators)"')
-    all_seg.props["Visible"] = IS_ADMIN
-    all_seg.vis = IS_ADMIN
-    scope = _switch_group("conIbScope", [
-        all_seg,
-        _seg("btnIbScopeMine", "My issues", 'varIbScope = "mine"',
-             'Set(varIbScope, "mine")', 104, '"Show my issues"'),
-        _seg("btnIbScopeShared", "Shared issues", 'varIbScope = "shared"',
-             'Set(varIbScope, "shared");\n' + LOAD_SHARED, 120,
-             '"Show shared issues from all testers, without names"'),
-    ])
-    # "All issues" staar der kun for en admin - saa er gruppen bredere.
-    w_all = int(scope.props["Width"])
-    w_user = w_all - 96 - 4
-    scope.props["Width"] = f"If({IS_ADMIN}, {w_all}, {w_user})"
+    n_scope = f"If({IS_ADMIN}, 3, 2)"
+    narrow_scope = f"(({CARD_W}) - 4 * ({n_scope} - 1)) / {n_scope}"
+    all_seg = _seg("btnIbScopeAll", "All issues", SCOPE_ALL,
+                   f'If({IS_ADMIN}, Set(varIbScope, "all"), Set(varIbScope, "shared");\n'
+                   + LOAD_SHARED + ")",
+                   SCOPE_W["btnIbScopeAll"],
+                   f'If({IS_ADMIN}, "Show all issues", '
+                   '"Show all issues from all testers, without names")')
+    mine_seg = _seg("btnIbScopeMine", "My issues", 'varIbScope = "mine"',
+                    'Set(varIbScope, "mine")', SCOPE_W["btnIbScopeMine"],
+                    '"Show the issues you reported"')
+    asg_seg = _seg("btnIbScopeAssigned", f'If({NARROW}, "Assigned", "Assigned to me")',
+                   'varIbScope = "assigned"', 'Set(varIbScope, "assigned")',
+                   SCOPE_W["btnIbScopeAssigned"], '"Show the issues assigned to me"')
+    asg_seg.props["Visible"] = IS_ADMIN
+    asg_seg.vis = IS_ADMIN
+    for s in (all_seg, mine_seg, asg_seg):
+        s.props["Width"] = f"If({TOP_OK}, {SCOPE_W[s.name]}, {narrow_scope})"
+        s.props["LayoutMinWidth"] = s.props["Width"]
+    scope = group("conIbScope", [all_seg, mine_seg, asg_seg], direction="Horizontal", gap=4,
+                  height=SEG_H, align_items="Center",
+                  width=f"If({TOP_OK}, If({IS_ADMIN}, {SCOPE_ADMIN_W}, {SCOPE_USER_W}), {CARD_W})")
     scope.props["LayoutMinWidth"] = scope.props["Width"]
-    state = _switch_group("conIbState", [
-        _seg("btnIbStateOpen", "Open", 'varIbState = "open"', 'Set(varIbState, "open")', 76,
-             '"Show open issues"'),
-        _seg("btnIbStateClosed", "Closed", 'varIbState = "closed"', 'Set(varIbState, "closed")', 84,
-             '"Show closed issues"'),
-        _seg("btnIbStateArchived", "Archived", 'varIbState = "archived"',
-             'Set(varIbState, "archived")', 92, '"Show archived issues"'),
-    ])
-    top_w = w_all + 16 + int(state.props["Width"])
-    top_ok = f"({CARD_W}) >= {top_w}"
-    top = group("conIbSwitches", [scope, state], direction="Horizontal", gap=16,
-                height=f"If({top_ok}, 34, 34 + 8 + 34)", align_items="Start")
-    top.props["LayoutDirection"] = f"If({top_ok}, LayoutDirection.Horizontal, LayoutDirection.Vertical)"
-    top.props["LayoutGap"] = f"If({top_ok}, 16, 8)"
 
+    states = [("btnIbStateOpen", "Open", "open", '"Show open issues"'),
+              ("btnIbStateClosed", "Closed", "closed", '"Show closed issues"'),
+              ("btnIbStateArchived", "Archived", "archived", '"Show archived issues"')]
+    segs = []
+    for name, label, key, acc in states:
+        s = _seg(name, label, f'varIbState = "{key}"', f'Set(varIbState, "{key}")', STATE_W[name],
+                 acc)
+        s.props["Width"] = f"If({TOP_OK}, {STATE_W[name]}, (({CARD_W}) - 8) / 3)"
+        s.props["LayoutMinWidth"] = s.props["Width"]
+        segs.append(s)
+    state = group("conIbState", segs, direction="Horizontal", gap=4, height=SEG_H,
+                  align_items="Center", width=f"If({TOP_OK}, {STATE_ALL_W}, {CARD_W})")
+    state.props["LayoutMinWidth"] = state.props["Width"]
+    top = group("conIbSwitches", [scope, state], direction="Horizontal", gap=16,
+                height=f"If({TOP_OK}, {SEG_H}, {SEG_H} + 8 + {SEG_H})", align_items="Start")
+    top.props["LayoutDirection"] = f"If({TOP_OK}, LayoutDirection.Horizontal, LayoutDirection.Vertical)"
+    top.props["LayoutGap"] = f"If({TOP_OK}, 16, 8)"
+
+    # Soegning og sortering paa een linje; under hinanden paa en telefon.
     search = text_input("inpIbSearch", '""', placeholder='"Search number, title or description"',
                         label='"Search issues"')
+    # Listen filtreres i hukommelsen - et lille ophold, saa den ikke regnes
+    # om for hvert tegn.
+    search.props["TriggerOutput"] = "TriggerOutput.Delayed"
+    drp_sort = themed_dropdown("drpIbSort", '["Last updated", "Newest", "Oldest", "Priority", "Status"]',
+                               "varIbSort", label='"Sort issues"',
+                               onchange="Set(varIbSort, Self.Selected.Value)")
+    sort_w = 160
+    ok1 = f"({CARD_W}) >= {sort_w + 8 + 280}"
+    drp_sort.props["Width"] = f"If({ok1}, {sort_w}, {CARD_W})"
+    drp_sort.props["LayoutMinWidth"] = f"If({ok1}, {sort_w}, 0)"
+    search.props["Width"] = f"If({ok1}, {CARD_W} - {sort_w + 8}, {CARD_W})"
+    row = group("conIbFltRow", [search, drp_sort], direction="Horizontal", gap=8,
+                height=f"If({ok1}, 36, 2 * 36 + 8)")
+    row.props["LayoutDirection"] = f"If({ok1}, LayoutDirection.Horizontal, LayoutDirection.Vertical)"
+
+    # Application og den afhaengige Section, status og prioritet: fire paa
+    # een linje, ellers to og to.
     app_items = ('Ungroup(Table({ x: Table({ Application: "All applications" }) }, '
                  "{ x: IbApps }), x)")
     drp_app = themed_dropdown("drpIbFltApp", app_items,
@@ -539,51 +661,33 @@ def build_filters():
                               display_mode="If(IsBlank(varIbApp), DisplayMode.Disabled, DisplayMode.Edit)",
                               onchange=('Set(varIbSection, If(Self.Selected.Section = "All sections", '
                                         '"", Self.Selected.Section))'))
-    drp_sort = themed_dropdown("drpIbSort", '["Last updated", "Newest", "Priority", "Status"]',
-                               "varIbSort", label='"Sort issues"',
-                               onchange="Set(varIbSort, Self.Selected.Value)")
-    # Soegefeltet tager resten; de tre lister har faste bredder. Er der
-    # ikke plads paa een linje, staar alt under hinanden i fuld bredde.
-    widths = {"drpIbFltApp": 210, "drpIbFltSection": 210, "drpIbSort": 150}
-    fixed = sum(widths.values()) + 3 * 8 + 220
-    ok = f"({CARD_W}) >= {fixed}"
-    for c in (drp_app, drp_sec, drp_sort):
-        c.props["Width"] = f"If({ok}, {widths[c.name]}, {CARD_W})"
-        c.props["LayoutMinWidth"] = f"If({ok}, {widths[c.name]}, 0)"
-    search.props["Width"] = f"If({ok}, {CARD_W} - {fixed - 220}, {CARD_W})"
-    row = group("conIbFltRow", [search, drp_app, drp_sec, drp_sort], direction="Horizontal",
-                gap=8, height=f"If({ok}, 36, 4 * 36 + 3 * 8)")
-    row.props["LayoutDirection"] = f"If({ok}, LayoutDirection.Horizontal, LayoutDirection.Vertical)"
-
-    # Anden raekke: status, prioritet, alvor - og for admin "Assigned to me".
-    drp_status = _filter_dd("drpIbFltStatus", "All statuses", [s for s, _c, _r in cfg.STATUS],
-                            "varIbStatusF", '"Filter by status"')
+    # Status: Closed er sin egen kontakt, saa listen er de aabne trin. Under
+    # Closed er der kun een status - listen er da laast.
+    drp_status = _filter_dd("drpIbFltStatus", "All statuses",
+                            [s for s, _c, _r in cfg.STATUS if s != cfg.STATUS_CLOSED],
+                            "varIbStatusF", '"Filter by status"',
+                            display_mode='If(varIbState = "closed", DisplayMode.Disabled, DisplayMode.Edit)')
     drp_pri = _filter_dd("drpIbFltPriority", "All priorities", [p for p, _r in cfg.PRIORITY],
                          "varIbPriF", '"Filter by priority"')
-    drp_sev = _filter_dd("drpIbFltSeverity", "All severities", cfg.SEVERITY,
-                         "varIbSevF", '"Filter by severity"')
-    mine_seg = _seg("btnIbAssignedMe", "Assigned to me", "varIbAssignedMe",
-                    "Set(varIbAssignedMe, !varIbAssignedMe)", 136,
-                    'If(varIbAssignedMe, "Show all assignments", "Show only issues assigned to me")')
-    mine_seg.props["Height"] = "36"
-    mine_seg.h = 36
-    mine_seg.props["Visible"] = ADMIN_ALL
-    mine_seg.vis = ADMIN_ALL
-    widths2 = {"drpIbFltStatus": 180, "drpIbFltPriority": 170, "drpIbFltSeverity": 170,
-               "btnIbAssignedMe": 136}
-    fixed2 = sum(widths2.values()) + 3 * 8
-    ok2 = f"({CARD_W}) >= {fixed2}"
-    for c in (drp_status, drp_pri, drp_sev, mine_seg):
-        c.props["Width"] = f"If({ok2}, {widths2[c.name]}, {CARD_W})"
-        c.props["LayoutMinWidth"] = f"If({ok2}, {widths2[c.name]}, 0)"
-    row2 = group("conIbFltRow2", [drp_status, drp_pri, drp_sev, mine_seg], direction="Horizontal",
-                 gap=8, height=f"If({ok2}, 36, If({ADMIN_ALL}, 4 * 36 + 3 * 8, 3 * 36 + 2 * 8))")
-    row2.props["LayoutDirection"] = f"If({ok2}, LayoutDirection.Horizontal, LayoutDirection.Vertical)"
+    ok4 = f"({CARD_W}) >= {4 * 150 + 3 * 8}"
+    half = f"(({CARD_W}) - 8) / 2"
+    quarter = f"(({CARD_W}) - 24) / 4"
+    # To og to paa en smal skaerm: hver liste er halvdelen af kortet.
+    for c in (drp_app, drp_sec, drp_status, drp_pri):
+        c.props["Width"] = f"If({ok4}, {quarter}, {half})"
+        c.props["LayoutMinWidth"] = "0"
+    pair_a = group("conIbFltPairA", [drp_app, drp_sec], direction="Horizontal", gap=8,
+                   height=36, width=f"If({ok4}, {half}, {CARD_W})")
+    pair_b = group("conIbFltPairB", [drp_status, drp_pri], direction="Horizontal", gap=8,
+                   height=36, width=f"If({ok4}, {half}, {CARD_W})")
+    row2 = group("conIbFltRow2", [pair_a, pair_b], direction="Horizontal", gap=8,
+                 height=f"If({ok4}, 36, 2 * 36 + 8)")
+    row2.props["LayoutDirection"] = f"If({ok4}, LayoutDirection.Horizontal, LayoutDirection.Vertical)"
 
     note = text_ctrl("txtIbSharedNote",
-                     '"Shared issues are anonymous: they never show who reported them, '
-                     'and comments stay private."',
-                     size=lay.SIZE_SMALL, color=C_INFO_FG, height=34, wrap="true",
+                     '"All issues from all testers are anonymous here: you see what was reported '
+                     'and its status, never who reported it, the comments or the files."',
+                     size=lay.SIZE_SMALL, color=C_INFO_FG, height=50, wrap="true",
                      visible='varIbScope = "shared"',
                      extra={"Fill": C_INFO_BG, "PaddingLeft": "12", "PaddingRight": "12",
                             "PaddingTop": "8", **lay.radius(10)})
@@ -591,43 +695,47 @@ def build_filters():
 
 
 # ---------------------------------------------------------------------------
-# Listen
+# Oversigten: fliser i et gitter (issue #177)
 # ---------------------------------------------------------------------------
-ROW_H = 68
-ROW_PAD = 12
 NO_W = 96
-GAL_ROWS = 10
-OPEN_ROW = (
-    "Set(varIbSel, ThisItem);\n"
-    "Set(varIbSelId, ThisItem.Id);\n"
-    'Set(varIbSelShared, varIbScope = "shared");\n'
-    'Set(varIbTab, "details");\n'
-    "Set(varIbInternal, false);\n"
-    "Set(varIbFilesFor, -1);\n"
-    "Reset(inpIbComment);\n"
-    "Clear(colIbActivity);\n"
-    "Set(varIbDetailOn, true);\n"
-    "If(!varIbSelShared, " + LOAD_ACTIVITY + ")"
-)
+TILE_MIN_W = 240
+TILE_H = 196
+TILE_M = 6          # luft om hver flise - 12 px mellem to
+TILE_PAD = 14       # flisens indre polstring
+TILE_CHIP_W = 112
+TILE_PRI_W = 80
+# Antal kolonner: saa mange fliser paa mindst TILE_MIN_W, der kan staa.
+TILE_COLS = f"Max(1, RoundDown(({CARD_W}) / {TILE_MIN_W}, 0))"
+# Galleriet er saa hoejt som raekkerne - hoejst det, der er plads til paa
+# skaermen (mindst to raekker); resten scroller i galleriet.
+TILE_ROWS = f"RoundUp(galIbList.AllItemsCount / {TILE_COLS}, 0)"
+TILE_MAX_ROWS = f"Max(2, RoundDown((App.Height - 280) / {TILE_H}, 0))"
+
+# Den rigtige sag, naar man trykker paa en anonym kopi af sin EGEN sag: saa
+# faar man den fulde visning med Activity og filer.
+OWN_OF_SHARED = 'If(varIbScope = "shared", LookUp(colIbMine, TicketNo = ThisItem.TicketNo))'
+OPEN_TILE = ("With(\n    { own: " + OWN_OF_SHARED + " },\n"
+             + "".join("    " + l + "\n" for l in open_ticket(
+                 "If(IsBlank(own), ThisItem, own)",
+                 'varIbScope = "shared" && IsBlank(own)').split("\n"))
+             + ")")
 
 LIST_ITEMS = (
     "With(\n"
-    '    { q: Trim(inpIbSearch.Text), t: Switch(varIbScope, "shared", colIbShared, "all", colIbAll, '
-    "colIbMine) },\n"
+    "    { q: Trim(inpIbSearch.Text) },\n"
     "    With(\n"
-    "        { f: Filter(t,\n"
+    "        { f: Filter(IbScopeRows,\n"
     f'              Switch(varIbState, "closed", !Archived && Status = "{cfg.STATUS_CLOSED}", '
     f'"archived", Archived, !Archived && Status <> "{cfg.STATUS_CLOSED}"),\n'
     "              IsBlank(varIbApp) || Application = varIbApp,\n"
     "              IsBlank(varIbSection) || Section = varIbSection,\n"
-    "              IsBlank(varIbStatusF) || Status = varIbStatusF,\n"
+    '              IsBlank(varIbStatusF) || varIbState = "closed" || Status = varIbStatusF,\n'
     "              IsBlank(varIbPriF) || Priority = varIbPriF,\n"
-    "              IsBlank(varIbSevF) || Severity = varIbSevF,\n"
-    f"              !(varIbAssignedMe && {ADMIN_ALL}) || AssignedEmail = varIbMe,\n"
     "              IsBlank(q) || q in TicketNo || q in Title || q in Description) },\n"
     "        Switch(\n"
     "            varIbSort,\n"
     '            "Newest", SortByColumns(f, "CreatedOn", SortOrder.Descending),\n'
+    '            "Oldest", SortByColumns(f, "CreatedOn", SortOrder.Ascending),\n'
     '            "Priority", SortByColumns(f, "PriRank", SortOrder.Ascending, "UpdatedOn", SortOrder.Descending),\n'
     '            "Status", SortByColumns(f, "StatusRank", SortOrder.Ascending, "UpdatedOn", SortOrder.Descending),\n'
     '            SortByColumns(f, "UpdatedOn", SortOrder.Descending)\n'
@@ -636,52 +744,101 @@ LIST_ITEMS = (
     ")"
 )
 
-WHEN = 'Text(ThisItem.UpdatedOn, "dd mmm yyyy")'
+DATE_FMT = '"dd mmm yyyy"'
+DATETIME_FMT = '"dd mmm yyyy hh:mm"'
+TILE_UPDATED = f"DateDiff(ThisItem.CreatedOn, ThisItem.UpdatedOn, TimeUnit.Minutes) >= {UPDATED_AFTER_MIN}"
+PRIORITY_TONE = {"Urgent": "error", "High": "warn", "Normal": "neutral", "Low": "neutral"}
+
+
+def _priority_tokens(expr):
+    def sw(part):
+        body = ", ".join(f'"{p}", {_t("state-" + PRIORITY_TONE[p] + "-" + part)}'
+                         for p, _r in cfg.PRIORITY)
+        return f"Switch({expr}, {body}, {_t('state-neutral-' + part)})"
+    return sw("fg"), sw("bg")
+
+
+# Hvem - kun det, brugeren maa se (anonymiteten er uaendret): en admin ser
+# rapportoerens initialer paa andres sager og tildelingen; rapportoeren ser
+# tildelingen paa sin egen sag; paa den anonyme liste staar der kun
+# "Reported by you" paa ens egne sager - aldrig andres initialer.
+TILE_PEOPLE = (
+    f'If(varIbScope = "shared", If(IsBlank({OWN_OF_SHARED}), "", "Reported by you"), '
+    f'If({IS_ADMIN} && ThisItem.Reporter <> varIbMe, {_initials("ThisItem.Reporter")} & "  ·  ", "") & '
+    'If(IsBlank(ThisItem.Assigned), "Unassigned", "To " & ThisItem.Assigned))'
+)
 
 
 def build_list():
     tw = "Parent.TemplateWidth"
-    no = text_ctrl("txtIbRowNo", "ThisItem.TicketNo", size=lay.SIZE_BODY, weight="Semibold",
-                   color=C_PRIMARY, height=20, width=NO_W, visible=at_least("Tablet"),
-                   extra={"X": str(ROW_PAD), "Y": "12"})
-    title_x = if_below("Tablet", str(ROW_PAD), str(ROW_PAD + NO_W + 8))
-    title = text_ctrl("txtIbRowTitle", "ThisItem.Title", size=lay.SIZE_INPUT, weight="Semibold",
-                      height=21, width=f"{tw} - ({title_x}) - {ROW_PAD} - {CHIP_W} - 12",
-                      extra={"X": title_x, "Y": "11"})
-    meta = text_ctrl(
-        "txtIbRowMeta",
-        f'If({NARROW}, ThisItem.TicketNo & "  ·  ", "") & ThisItem.Application & "  ·  " & '
-        'ThisItem.Section & If(IsBlank(ThisItem.Severity), "", "  ·  " & ThisItem.Severity) & '
-        f'"  ·  Updated " & {WHEN} & '
-        'If(varIbScope = "all", "  ·  " & If(IsBlank(ThisItem.Assigned), "Unassigned", '
-        '"Assigned to " & ThisItem.Assigned), "")',
-        size=lay.SIZE_SMALL, color=C_MUTED, height=18,
-        width=f"{tw} - {2 * ROW_PAD} - {CHIP_W} - 12", extra={"X": str(ROW_PAD), "Y": "40"})
-    chip = _chip("txtIbRowStatus", "ThisItem.Status", "ThisItem.Archived",
-                 x=f"{tw} - {ROW_PAD} - {CHIP_W}", y="11")
-    pri = text_ctrl("txtIbRowPriority",
-                    'If(IsBlank(ThisItem.Priority), "", ThisItem.Priority & " priority")',
-                    size=lay.SIZE_SMALL, color=C_MUTED, height=18, align="Right", width=CHIP_W,
-                    visible=at_least("Tablet"),
-                    extra={"X": f"{tw} - {ROW_PAD} - {CHIP_W}", "Y": "40"})
-    rule = row_rule("rctIbRowRule", ROW_H)
-    hit = row_hit("btnIbRowOpen", OPEN_ROW,
-                  '"Open " & ThisItem.TicketNo & " - " & ThisItem.Title', tw, ROW_H - 1)
-    gal_h = f"Max(1, Min(galIbList.AllItemsCount, {GAL_ROWS})) * {ROW_H}"
+    th = TILE_H
+    inner = f"{tw} - {2 * (TILE_M + TILE_PAD)}"
+    x0 = str(TILE_M + TILE_PAD)
+    bg = text_ctrl("txtIbTileBg", '""', size=lay.SIZE_MICRO, height=th - 2 * TILE_M,
+                   width=f"{tw} - {2 * TILE_M}", accessible='"Issue tile"',
+                   fill=f"If(ThisItem.Archived, {C_MUTED_BG}, {C_APP_BG})",
+                   extra={"X": str(TILE_M), "Y": str(TILE_M), **lay.radius(lay.RADIUS_CARD),
+                          "BorderColor": C_CARD_BORDER, "BorderStyle": "BorderStyle.Solid",
+                          "BorderThickness": "1"})
+    no = text_ctrl("txtIbTileNo", "ThisItem.TicketNo", size=lay.SIZE_BODY, weight="Semibold",
+                   color=C_PRIMARY, height=20, width=f"{inner} - {TILE_CHIP_W} - 8",
+                   extra={"X": x0, "Y": str(TILE_M + TILE_PAD + 2)})
+    chip = _chip("txtIbTileStatus", "ThisItem.Status", "ThisItem.Archived",
+                 x=f"{tw} - {TILE_M + TILE_PAD} - {TILE_CHIP_W}", y=str(TILE_M + TILE_PAD),
+                 width=TILE_CHIP_W)
+    title = text_ctrl("txtIbTileTitle", "ThisItem.Title", size=lay.SIZE_INPUT, weight="Semibold",
+                      height=40, width=inner, wrap="true",
+                      extra={"X": x0, "Y": "50", "VerticalAlign": "VerticalAlign.Top"})
+    where = text_ctrl("txtIbTileWhere", 'ThisItem.Application & "  ·  " & ThisItem.Section',
+                      size=lay.SIZE_SMALL, color=C_MUTED, height=18, width=inner,
+                      extra={"X": x0, "Y": "96"})
+    dates = text_ctrl("txtIbTileDates",
+                      f'"Reported " & Text(ThisItem.CreatedOn, {DATE_FMT}) & '
+                      f'If({TILE_UPDATED}, "  ·  Updated " & Text(ThisItem.UpdatedOn, {DATE_FMT}), "")',
+                      size=lay.SIZE_SMALL, color=C_MUTED, height=34, width=inner, wrap="true",
+                      extra={"X": x0, "Y": "116", "VerticalAlign": "VerticalAlign.Top"})
+    bottom_y = th - TILE_M - TILE_PAD - 22
+    pfg, pbg = _priority_tokens("ThisItem.Priority")
+    pri = text_ctrl("txtIbTilePriority", "ThisItem.Priority", size=lay.SIZE_MICRO,
+                    weight="Semibold", height=22, width=TILE_PRI_W, align="Center", color=pfg,
+                    fill=pbg, accessible='"Priority: " & Self.Text',
+                    visible="!IsBlank(ThisItem.Priority)",
+                    extra={"X": x0, "Y": str(bottom_y), "VerticalAlign": "VerticalAlign.Middle",
+                           **lay.radius(11)})
+    people = text_ctrl("txtIbTilePeople", TILE_PEOPLE, size=lay.SIZE_SMALL, color=C_MUTED,
+                       height=18, align="Right", width=f"{inner} - {TILE_PRI_W} - 8",
+                       extra={"X": f"{x0} + {TILE_PRI_W} + 8", "Y": str(bottom_y + 2)})
+    hit = row_hit("btnIbTileOpen", OPEN_TILE,
+                  '"Open " & ThisItem.TicketNo & " - " & ThisItem.Title & ", " & '
+                  'If(ThisItem.Archived, "Archived", ThisItem.Status)',
+                  f"{tw} - {2 * TILE_M}", th - 2 * TILE_M, radius=lay.RADIUS_CARD,
+                  hover_border=True)
+    hit.props["X"] = str(TILE_M)
+    hit.props["Y"] = str(TILE_M)
+    gal_h = f"Max(1, Min({TILE_ROWS}, {TILE_MAX_ROWS})) * {TILE_H}"
     gal = Ctrl("galIbList", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Issues"',
         "BorderStyle": "BorderStyle.None", "Fill": C_CARD_BG, "FillPortions": "0",
         "Height": gal_h, "Items": LIST_ITEMS, "LayoutMinWidth": "0",
         "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
         "ShowScrollbar": "true", "TabIndex": "0", "TemplatePadding": "0",
-        "TemplateSize": str(ROW_H), "Width": "Parent.Width", "WrapCount": "1",
-    }, children=[no, title, meta, chip, pri, rule, hit], h=gal_h,
+        "TemplateSize": str(TILE_H), "Width": "Parent.Width", "WrapCount": TILE_COLS,
+    }, children=[bg, no, chip, title, where, dates, pri, people, hit], h=gal_h,
         vis="galIbList.AllItemsCount > 0")
 
-    count = text_ctrl("txtIbCount",
-                      'galIbList.AllItemsCount & If(galIbList.AllItemsCount = 1, '
-                      '" issue", " issues")',
-                      size=lay.SIZE_BODY, weight="Semibold", color=C_MUTED, height=20)
+    state_word = 'Switch(varIbState, "closed", " closed", "archived", " archived", " open")'
+    count = grow(text_ctrl(
+        "txtIbCount",
+        f'With({{ n: galIbList.AllItemsCount }}, n & {state_word} & If(n = 1, " issue", " issues") & '
+        f'If({FILTERED}, If(n = 1, " matches", " match") & " the filters", ""))',
+        size=lay.SIZE_BODY, weight="Semibold", color=C_MUTED, height=20))
+    clear = button("btnIbClearFlt", '"Clear filters"', CLEAR_FILTERS,
+                   width=fit_button_width('"Clear filters"', size=lay.SIZE_SMALL), height=30,
+                   visible=FILTERED, accessible='"Clear all filters and the search"')
+    clear.props["Size"] = str(lay.SIZE_SMALL)
+    clear.props["LayoutMinWidth"] = clear.props["Width"]
+    count_row = group("conIbCountRow", [count, clear], direction="Horizontal", gap=8, height=30,
+                      align_items="Center")
     # Admin-boardets taellere: det, der venter paa en admin.
     open_all = f'!Archived && Status <> "{cfg.STATUS_CLOSED}"'
     counts = text_ctrl(
@@ -689,23 +846,29 @@ def build_list():
         f'CountIf(colIbAll, {open_all}) & " open  ·  " & '
         f'CountIf(colIbAll, !Archived && Status = "{cfg.STATUS_NEW}") & " new  ·  " & '
         f'CountIf(colIbAll, {open_all} && IsBlank(AssignedEmail)) & " unassigned  ·  " & '
-        f'CountIf(colIbAll, {open_all} && AssignedEmail = varIbMe) & " assigned to you"',
-        size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true", visible=ADMIN_ALL)
+        f'CountIf(colIbAll, {open_all} && AssignedEmail = varIbMe) & " assigned to you  ·  " & '
+        'CountIf(colIbAll, Archived) & " archived"',
+        size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true", visible=ADMIN_BOARD)
+    loading = 'varIbLoading || (varIbScope = "shared" && varIbSharedBusy)'
     empty_fx = (
-        'If(varIbLoading, "Loading issues...", '
+        f'If({loading}, "Loading issues...", '
         "IbFailed, \"The issues could not be loaded. Check your connection and try again.\", "
-        'varIbScope = "mine" && IsEmpty(colIbMine), '
+        'varIbScope = "mine" && IsEmpty(IbMine), '
         '"You have not reported any issues yet. Use New issue to report one.", '
         'varIbScope = "all" && IsEmpty(colIbAll), "No issues have been reported yet.", '
-        'varIbScope = "shared" && IsEmpty(colIbShared), "No issues have been shared yet.", '
-        '"No issues match the filters.")')
+        'varIbScope = "assigned" && IsEmpty(Filter(colIbAll, AssignedEmail = varIbMe)), '
+        '"No issues are assigned to you.", '
+        'varIbScope = "shared" && IsEmpty(colIbShared), "No issues have been reported yet.", '
+        f'{FILTERED}, "No issues match the filters. Clear the filters to see more.", '
+        'Switch(varIbState, "closed", "There are no closed issues here.", "archived", '
+        '"There are no archived issues here.", "There are no open issues here."))')
     empty = text_ctrl("txtIbEmpty", empty_fx, size=lay.SIZE_BODY, height=40, wrap="true",
                       color=f"If(IbFailed, {C_INVALID_FG}, {C_MUTED})",
                       visible="galIbList.AllItemsCount = 0")
     retry = button("btnIbRetry", '"Retry"', RETRY, width=fit_button_width('"Retry"'), height=36,
                    visible="IbFailed && !varIbLoading", accessible='"Load the issues again"')
     retry.props["AlignInContainer"] = "AlignInContainer.Start"
-    return card("conIbListCard", [count, counts, gal, empty, retry], gap=8)
+    return card("conIbListCard", [count_row, counts, gal, empty, retry], gap=8)
 
 
 # ---------------------------------------------------------------------------
@@ -796,17 +959,33 @@ UP_FAILED = "Filter(colIbUp, !IsBlank(Msg))"
 CLEAR_FORM = ('Set(varIbFormApp, "");\nSet(varIbFormSection, "");\nSet(varIbMore, false);\n'
               + RESET_FORM)
 
-# Den nye sag i View mode - som et klik paa raekken (OPEN_ROW), men fra
-# colIbMine paa flowets ID. Er den ikke i listen (hentningen fejlede),
-# staar sagsnummeret stadig i beskeden.
-SHOW_NEW = (
+# Den nye sag ind i listen: EET opslag paa flowets ID - ikke hele listen
+# forfra (issue #177). Fejler opslaget, hentes listen som foer.
+ADD_NEW = (
     "Set(varIbSelId, Value(varIbRes.ticketid));\n"
-    "Set(varIbSel, LookUp(colIbMine, Id = varIbSelId));\n"
+    f"Set(varIbSelRow, IfError(LookUp({cfg.L_TICKETS}, ID = varIbSelId), Blank()));\n"
+    "If(\n"
+    "    IsBlank(varIbSelRow),\n"
+    f"    {RELOAD_MAIN},\n"
+    f"    Set(varIbNew, {_row('varIbSelRow', shared=False)});\n"
+    f"    If({IS_ADMIN},\n"
+    "        RemoveIf(colIbAll, Id = varIbSelId); Collect(colIbAll, varIbNew),\n"
+    "        RemoveIf(colIbMine, Id = varIbSelId); Collect(colIbMine, varIbNew))\n"
+    ")"
+)
+
+# Den nye sag i View mode - som et tryk paa flisen, men fra listen paa
+# flowets ID, og raekken er allerede hel. Er den ikke i listen (hentningen
+# fejlede), staar sagsnummeret stadig i beskeden.
+SHOW_NEW = (
+    "Set(varIbSel, LookUp(IbMine, Id = varIbSelId));\n"
     "If(\n"
     "    !IsBlank(varIbSel),\n"
     "    Set(varIbSelShared, false);\n"
+    "    Set(varIbSelFullFor, varIbSelId);\n"
     '    Set(varIbTab, "details");\n'
     "    Set(varIbInternal, false);\n"
+    "    Set(varIbActsOn, false);\n"
     "    Set(varIbFilesFor, -1);\n"
     "    Reset(inpIbComment);\n"
     "    " + LOAD_ACTIVITY.replace("\n", "\n    ") + ";\n"
@@ -846,9 +1025,8 @@ SUBMIT = (
     + ";\n"
     "        Set(varIbUploading, false)\n"
     "    );\n"
-    f"    {RELOAD_MINE};\n"
+    "    " + ADD_NEW.replace("\n", "\n    ") + ";\n"
     "    Set(varIbSharedLoaded, false);\n"
-    "    Set(varIbAllLoaded, false);\n"
     '    Set(varIbScope, "mine");\n'
     '    Set(varIbState, "open");\n'
     # Foerst nu lukkes og nulstilles formularen - sagen findes, og
@@ -917,7 +1095,8 @@ SIMILAR_ITEMS = (
     "    FirstN(\n"
     "        SortByColumns(\n"
     "            Filter(\n"
-    "                ForAll(Filter(colIbShared, !Archived) As S,\n"
+    # En admin har alle sager i colIbAll; alle andre den anonyme liste.
+    f"                ForAll(Filter(If({IS_ADMIN}, colIbAll, colIbShared), !Archived) As S,\n"
     "                    { TicketNo: S.TicketNo, Title: S.Title, Status: S.Status, Archived: S.Archived,\n"
     "                      Where: S.Application & \"  ·  \" & S.Section, Row: S,\n"
     "                      Hits: CountRows(Filter(w, Word in S.Title)),\n"
@@ -1072,9 +1251,9 @@ def build_form():
                         height=18, width=f"{tw} - 16 - {CHIP_W} - 8", extra={"X": "8", "Y": "23"})
     s_chip = _chip("txtIbSimStatus", "ThisItem.Status", "ThisItem.Archived",
                    x=f"{tw} - {CHIP_W} - 4", y="10")
-    s_hit = row_hit("btnIbSimOpen",
-                    "Set(varIbSel, ThisItem.Row);\nSet(varIbSelId, ThisItem.Row.Id);\n"
-                    'Set(varIbSelShared, true);\nSet(varIbTab, "details");\nSet(varIbDetailOn, true)',
+    # Altid den anonyme visning: formularen er aaben bagved, og intet herfra
+    # maa kunne aendre en sag (Edit ville overskrive formularen).
+    s_hit = row_hit("btnIbSimOpen", open_ticket("ThisItem.Row", "true"),
                     '"Open shared issue " & ThisItem.TicketNo & " - " & ThisItem.Title',
                     tw, SIM_ROW_H - 2, radius=8)
     sim_h = f"galIbSimilar.AllItemsCount * {SIM_ROW_H}"
