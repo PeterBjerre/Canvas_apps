@@ -5,7 +5,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_MUTED, C_INFO_FG,
                         C_INFO_BG, C_VALID_FG, C_VALID_BG, C_INVALID_FG,
                         C_INVALID_BG, C_NEUTRAL_BG, C_NEUTRAL_FG, C_INPUT_BG, SHELL_W,
                         EDITOR_W, RAIL_W, SPLIT_GAP, C_TRANSPARENT, C_MODAL_BG,
-                        C_PRIMARY_SOFT, C_PRIMARY, C_MUTED_BG)
+                        C_PRIMARY_SOFT, C_PRIMARY, C_MUTED_BG, C_WARN_FG)
 from design_tokens import ref_hex
 import layout_tokens as lay
 import icons
@@ -155,6 +155,10 @@ FL_LAST_VAR = "varVhpFlLast"
 # Det valgte resultat. Soegningen saetter den til det FOERSTE svar (issue
 # #72); comboboksens DefaultSelectedItems laeser den foer itemets gemte FL.
 FL_PICK_VAR = "varVhpFlPick"
+# Mindste soegelaengde i Item Editor (issue #144): 8 tegn (trimmet), foer
+# Search - og soegeraekken (Enter) - kan bruges. Kun her; Equipments,
+# Materials og de andre FL-soegninger beholder build_flsearch.MIN_SEARCH_LEN.
+FL_MIN_LEN = 8
 
 # REVISION OG NON FLOW USER STATUS ER SEGMENTEREDE VALG (issue #141).
 # Knapper har ingen Value, saa valget staar i en KLADDE-variabel pr. felt:
@@ -572,7 +576,19 @@ def build_item_editor():
                   "Clear(colVhpObjDraft)"),
         display_mode=DM_ITEM, required_formula=REQ_ITEM, label="Functional location",
         width=FL_W, trail=[btnObjList], stack_search=True, col_w=EDITOR_COL_W,
-        stack_cond=f"({below('Tablet')} || ({EDITOR_CW}) < {TWO_COL_MIN})")
+        stack_cond=f"({below('Tablet')} || ({EDITOR_CW}) < {TWO_COL_MIN})",
+        min_len=FL_MIN_LEN)
+
+    # For kort soegetekst (issue #144): en kort besked under feltet, saa
+    # laenge der er skrevet noget, men faerre end FL_MIN_LEN tegn. Laeser
+    # comboboksens SearchText direkte - ikke FL_QUERY_VAR, som timeren kun
+    # opdaterer, naar der staar noget, og som derfor kan vaere foraeldet.
+    fl_typed = f"Len(Trim({FL_COMBO}.SearchText))"
+    flTooShort = text_ctrl(
+        "txtVhpFlTooShort",
+        f'"Enter at least {FL_MIN_LEN} characters to search."',
+        size=12, color=C_WARN_FG, height=18, wrap="false",
+        visible=f"!{FL_BUSY_VAR} && {fl_typed} > 0 && {fl_typed} < {FL_MIN_LEN}")
 
     # Soegningens status UNDER feltet - som i Materials (issue #72): "6
     # Functional Locations found for SSV13 HFC10AJ010. Select one from the
@@ -590,7 +606,7 @@ def build_item_editor():
     # (Tooltip). Er der intet at vaelge og intet valgt, er den deaktiveret.
     # Bredden er regnet af den bredeste tekst, den kan faa.
     flBlock = group("conVhpItemFlBlock",
-                    [flLabelRow, flHint, flPicker, flMsg],
+                    [flLabelRow, flHint, flPicker, flTooShort, flMsg],
                     direction="Vertical", gap=6, width=FL_W, fill_portions=0,
                     align_in_container="Start")
 

@@ -1059,7 +1059,8 @@ def build_list():
         b.props["Visible"] = f"{at_least('Desktop')} && {below('Wide')} && ({b.props['Visible']})"
     for b in (*actions, *c_actions, timeline):
         icons.hit_radius(b.props)
-    for b in (*actions, *c_actions):
+    # Edit saetter selv hover/tryk - ingen, naar den er deaktiveret (#138).
+    for b in (del_btn, c_del):
         b.props["HoverFill"] = C_ROW_HOVER
         b.props["PressedFill"] = C_ROW_HOVER
     c_base = f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {TL_W} - 8 - 80"
@@ -1152,6 +1153,15 @@ def _owner_buttons(act, suffix):
                                        opacity=icons.DISABLED_OPACITY) + "\n)"),
                   TL_W, TL_W, onselect=act, label=f'"Edit " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
     edit.props["DisplayMode"] = f"If({can_edit}, DisplayMode.Edit, DisplayMode.Disabled)"
+    # DEAKTIVERET EDIT ER KUN ET FALMET IKON (issue #138). Ingen ramme,
+    # flade, hover, tryk eller fokus, naar Edit ikke kan bruges - kun den
+    # graa blyant med nedsat opacitet. Aktiv Edit er uaendret.
+    edit.props["DisabledBorderColor"] = C_TRANSPARENT
+    edit.props["DisabledFill"] = C_TRANSPARENT
+    edit.props["HoverFill"] = f"If({can_edit}, {C_ROW_HOVER}, {C_TRANSPARENT})"
+    edit.props["PressedFill"] = f"If({can_edit}, {C_ROW_HOVER}, {C_TRANSPARENT})"
+    edit.props["FocusedBorderThickness"] = f"If({can_edit}, 2, 0)"
+    edit.props["TabIndex"] = f"If({can_edit}, 0, -1)"
     edit.props["Tooltip"] = f'If({can_edit}, "Edit request", {EDIT_LOCKED_TIP})'
     dele = _image("btnMdRowDelete" + suffix,
                   _svg_uri(_icon_svg(icons.DELETE, _hx("state-error-fg"), size=ACTION_GLYPH, box=TL_W)),
