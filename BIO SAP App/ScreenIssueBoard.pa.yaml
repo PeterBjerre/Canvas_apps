@@ -8,20 +8,19 @@ Screens:
           If(false, ClearCollect(colIbAll, { Id: 0, TicketNo: "", Title: "", Description: "", Steps: "", Expected: "", Actual: "", Application: "", Section: "", Other: "", RelatedNo: "", Severity: "", Priority: "", Status: "", Resolution: "", Assigned: "", CreatedOn: Now(), UpdatedOn: Now(), Archived: false, Reporter: "", AssignedEmail: "", PriRank: 0, StatusRank: 0 }));
           If(false, ClearCollect(colIbShared, { Id: 0, TicketNo: "", Title: "", Description: "", Steps: "", Expected: "", Actual: "", Application: "", Section: "", Other: "", RelatedNo: "", Severity: "", Priority: "", Status: "", Resolution: "", Assigned: "", CreatedOn: Now(), UpdatedOn: Now(), Archived: false, Reporter: "", AssignedEmail: "", PriRank: 0, StatusRank: 0 }));
           If(false, ClearCollect(colIbSections, { Application: "", Section: "", AppOrder: 0, SectionOrder: 0, ScreenKey: "" }));
-          If(false, ClearCollect(colIbActivity, { Kind: "", Actor: "", Body: "", At: Now(), Internal: false, IsSystem: false, File: "", SizeKb: 0, Initial: false }));
+          If(false, ClearCollect(colIbActivity, { Kind: "", Actor: "", Role: "", Body: "", At: Now(), Internal: false, IsSystem: false, File: "", SizeKb: 0, Initial: false }));
           If(false, ClearCollect(colIbAdmins, { Email: "", Name: "" }));
           If(false, ClearCollect(colIbUp, { Name: "", Msg: "" }));
           
           If(
-              IsBlank(varIbScope),
-              Set(varIbScope, If(IsAdmin, "all", "mine"));
+              !IfError(varIbInit, false),
+              Set(varIbInit, true);
+              Set(varIbScope, "");
               Set(varIbState, "open");
               Set(varIbApp, "");
               Set(varIbSection, "");
               Set(varIbStatusF, "");
               Set(varIbPriF, "");
-              Set(varIbSevF, "");
-              Set(varIbAssignedMe, false);
               Set(varIbSort, "Last updated");
               Set(varIbMe, Lower(User().Email));
               Set(varIbTab, "details");
@@ -30,9 +29,13 @@ Screens:
               Set(varIbDetailOn, false);
               Set(varIbDelOn, false);
               Set(varIbMore, false);
+              Set(varIbActsOn, false);
               Set(varIbInternal, false);
               Set(varIbFilesFor, -1);
+              Set(varIbSelFullFor, -1);
+              Set(varIbTried, false);
               Set(varIbBusy, false);
+              Set(varIbSharedBusy, false);
               Set(varIbUploading, false);
               Set(varIbPosting, false)
           );
@@ -41,18 +44,12 @@ Screens:
               Set(varIbLoading, true);
               Concurrent(
                   Set(varIbCfgFailed, IfError(ClearCollect(colIbSections, ForAll(Filter(IB_AppSections, IsActive = true) As r, { Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), AppOrder: Coalesce(r.AppOrder, 0), SectionOrder: Coalesce(r.SectionOrder, 0), ScreenKey: Coalesce(r.ScreenKey, "") })); false, true)),
-                  Set(varIbMineFailed, IfError(ClearCollect(colIbMine, ForAll(Sort(Filter(IB_Tickets, ReporterEmail = varIbMe), LastActivityOn, SortOrder.Descending) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true))
+                  If(IsAdmin, Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true)); Set(varIbMineFailed, false), Set(varIbMineFailed, IfError(ClearCollect(colIbMine, ForAll(ShowColumns(Sort(Filter(IB_Tickets, ReporterEmail = varIbMe), LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true)); Set(varIbAllFailed, false))
               );
-              Set(varIbLoaded, !varIbCfgFailed && !varIbMineFailed);
+              Set(varIbLoaded, !varIbCfgFailed && !varIbMineFailed && !varIbAllFailed);
               Set(varIbLoading, false)
           );
-          If(varIbScope = "all", If(
-              IsAdmin && !varIbAllLoaded,
-              Set(varIbLoading, true);
-              Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
-              Set(varIbAllLoaded, !varIbAllFailed);
-              Set(varIbLoading, false)
-          ))
+          If(IsBlank(varIbScope), Set(varIbScope, If(IsAdmin, "all", "mine")))
     Children:
       - conIbRoot:
           Control: GroupContainer
@@ -305,30 +302,23 @@ Screens:
                               OnSelect: |-
                                   =Set(varIbLoaded, false);
                                   Set(varIbSharedLoaded, false);
-                                  Set(varIbAllLoaded, false);
                                   If(
                                       !varIbLoaded,
                                       Set(varIbLoading, true);
                                       Concurrent(
                                           Set(varIbCfgFailed, IfError(ClearCollect(colIbSections, ForAll(Filter(IB_AppSections, IsActive = true) As r, { Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), AppOrder: Coalesce(r.AppOrder, 0), SectionOrder: Coalesce(r.SectionOrder, 0), ScreenKey: Coalesce(r.ScreenKey, "") })); false, true)),
-                                          Set(varIbMineFailed, IfError(ClearCollect(colIbMine, ForAll(Sort(Filter(IB_Tickets, ReporterEmail = varIbMe), LastActivityOn, SortOrder.Descending) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true))
+                                          If(IsAdmin, Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true)); Set(varIbMineFailed, false), Set(varIbMineFailed, IfError(ClearCollect(colIbMine, ForAll(ShowColumns(Sort(Filter(IB_Tickets, ReporterEmail = varIbMe), LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true)); Set(varIbAllFailed, false))
                                       );
-                                      Set(varIbLoaded, !varIbCfgFailed && !varIbMineFailed);
+                                      Set(varIbLoaded, !varIbCfgFailed && !varIbMineFailed && !varIbAllFailed);
                                       Set(varIbLoading, false)
                                   );
+                                  If(IsBlank(varIbScope), Set(varIbScope, If(IsAdmin, "all", "mine")));
                                   If(varIbScope = "shared", If(
                                       !varIbSharedLoaded,
-                                      Set(varIbLoading, true);
+                                      Set(varIbSharedBusy, true);
                                       Set(varIbSharedFailed, IfError(ClearCollect(colIbShared, ForAll(Sort(IB_SharedIssues, LastActivityOn, SortOrder.Descending) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Summary, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity, ""), Priority: Coalesce(r.Priority, ""), Status: Coalesce(r.Status, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: "", CreatedOn: Coalesce(r.ReportedOn, r.Created), UpdatedOn: Coalesce(r.LastActivityOn, r.ReportedOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: "", AssignedEmail: "", PriRank: Switch(r.Priority, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
                                       Set(varIbSharedLoaded, !varIbSharedFailed);
-                                      Set(varIbLoading, false)
-                                  ));
-                                  If(varIbScope = "all", If(
-                                      IsAdmin && !varIbAllLoaded,
-                                      Set(varIbLoading, true);
-                                      Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
-                                      Set(varIbAllLoaded, !varIbAllFailed);
-                                      Set(varIbLoading, false)
+                                      Set(varIbSharedBusy, false)
                                   ))
                               RadiusBottomLeft: |-
                                   =10
@@ -374,17 +364,11 @@ Screens:
                               LayoutMinWidth: |-
                                   =If(LayoutRank < 2, 40, 133)
                               OnSelect: |-
-                                  =If(
-                                      !varIbSharedLoaded,
-                                      Set(varIbLoading, true);
-                                      Set(varIbSharedFailed, IfError(ClearCollect(colIbShared, ForAll(Sort(IB_SharedIssues, LastActivityOn, SortOrder.Descending) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Summary, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity, ""), Priority: Coalesce(r.Priority, ""), Status: Coalesce(r.Status, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: "", CreatedOn: Coalesce(r.ReportedOn, r.Created), UpdatedOn: Coalesce(r.LastActivityOn, r.ReportedOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: "", AssignedEmail: "", PriRank: Switch(r.Priority, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
-                                      Set(varIbSharedLoaded, !varIbSharedFailed);
-                                      Set(varIbLoading, false)
-                                  );
-                                  Set(varIbFormMode, "new");
+                                  =Set(varIbFormMode, "new");
                                   Set(varIbFormApp, IbFrom);
                                   Set(varIbFormSection, "");
                                   Set(varIbMore, false);
+                                  Set(varIbTried, false);
                                   Reset(drpIbFormApp);
                                   Reset(drpIbFormSection);
                                   Reset(inpIbOther);
@@ -400,7 +384,14 @@ Screens:
                                   Reset(drpIbPriority);
                                   Reset(drpIbAssignee);
                                   Reset(inpIbResolution);
-                                  Set(varIbFormOn, true)
+                                  Set(varIbFormOn, true);
+                                  If(!IsAdmin, If(
+                                      !varIbSharedLoaded,
+                                      Set(varIbSharedBusy, true);
+                                      Set(varIbSharedFailed, IfError(ClearCollect(colIbShared, ForAll(Sort(IB_SharedIssues, LastActivityOn, SortOrder.Descending) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Summary, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity, ""), Priority: Coalesce(r.Priority, ""), Status: Coalesce(r.Status, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: "", CreatedOn: Coalesce(r.ReportedOn, r.Created), UpdatedOn: Coalesce(r.LastActivityOn, r.ReportedOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: "", AssignedEmail: "", PriRank: Switch(r.Priority, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
+                                      Set(varIbSharedLoaded, !varIbSharedFailed);
+                                      Set(varIbSharedBusy, false)
+                                  ))
                               RadiusBottomLeft: |-
                                   =10
                               RadiusBottomRight: |-
@@ -497,7 +488,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =36 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 604, 34, 34 + 8 + 34)) + 12 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 814, 36, 4 * 36 + 3 * 8)) + 12 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 680, 36, If(IsAdmin && varIbScope = "all", 4 * 36 + 3 * 8, 3 * 36 + 2 * 8))) + If(varIbScope = "shared", 12 + (34), 0)
+                            =36 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 34, 34 + 8 + 34)) + 12 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 448, 36, 2 * 36 + 8)) + 12 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 624, 36, 2 * 36 + 8)) + If(varIbScope = "shared", 12 + (50), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -540,13 +531,13 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 604, 34, 34 + 8 + 34)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 34, 34 + 8 + 34)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Start
                               LayoutDirection: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 604, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 604, 16, 8)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 16, 8)
                               LayoutMinWidth: |-
                                   =0
                               LayoutOverflowX: |-
@@ -575,33 +566,33 @@ Screens:
                                     LayoutGap: |-
                                         =4
                                     LayoutMinWidth: |-
-                                        =If(IsAdmin, 328, 228)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, If(IsAdmin, 332, 200), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
                                     LayoutOverflowX: |-
                                         =LayoutOverflow.Hide
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If(IsAdmin, 328, 228)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, If(IsAdmin, 332, 200), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
                                   Children:
                                     - btnIbScopeAll:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Show all issues (administrators)"
+                                              =If(IsAdmin, "Show all issues", "Show all issues from all testers, without names")
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
                                               =AlignInContainer.Center
                                           Appearance: |-
-                                              =If(varIbScope = "all", ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                              =If(varIbScope in ["all", "shared"], ButtonAppearance.Primary, ButtonAppearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
-                                              =If(varIbScope = "all", C.'color-brand-primary', C.'border-default')
+                                              =If(varIbScope in ["all", "shared"], C.'color-brand-primary', C.'border-default')
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =If(varIbScope = "all", C.'text-on-primary', C.'text-primary')
+                                              =If(varIbScope in ["all", "shared"], C.'text-on-primary', C.'text-primary')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           FontWeight: |-
@@ -611,16 +602,16 @@ Screens:
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           LayoutMinWidth: |-
-                                              =96
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 96, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 4 * (If(IsAdmin, 3, 2) - 1)) / If(IsAdmin, 3, 2))
                                           OnSelect: |-
-                                              =Set(varIbScope, "all");
+                                              =If(IsAdmin, Set(varIbScope, "all"), Set(varIbScope, "shared");
                                               If(
-                                                  IsAdmin && !varIbAllLoaded,
-                                                  Set(varIbLoading, true);
-                                                  Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
-                                                  Set(varIbAllLoaded, !varIbAllFailed);
-                                                  Set(varIbLoading, false)
-                                              )
+                                                  !varIbSharedLoaded,
+                                                  Set(varIbSharedBusy, true);
+                                                  Set(varIbSharedFailed, IfError(ClearCollect(colIbShared, ForAll(Sort(IB_SharedIssues, LastActivityOn, SortOrder.Descending) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Summary, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity, ""), Priority: Coalesce(r.Priority, ""), Status: Coalesce(r.Status, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: "", CreatedOn: Coalesce(r.ReportedOn, r.Created), UpdatedOn: Coalesce(r.LastActivityOn, r.ReportedOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: "", AssignedEmail: "", PriRank: Switch(r.Priority, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
+                                                  Set(varIbSharedLoaded, !varIbSharedFailed);
+                                                  Set(varIbSharedBusy, false)
+                                              ))
                                           RadiusBottomLeft: |-
                                               =10
                                           RadiusBottomRight: |-
@@ -635,15 +626,13 @@ Screens:
                                               ="All issues"
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
-                                          Visible: |-
-                                              =IsAdmin
                                           Width: |-
-                                              =96
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 96, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 4 * (If(IsAdmin, 3, 2) - 1)) / If(IsAdmin, 3, 2))
                                     - btnIbScopeMine:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Show my issues"
+                                              ="Show the issues you reported"
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
@@ -667,7 +656,7 @@ Screens:
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           LayoutMinWidth: |-
-                                              =104
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 100, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 4 * (If(IsAdmin, 3, 2) - 1)) / If(IsAdmin, 3, 2))
                                           OnSelect: |-
                                               =Set(varIbScope, "mine")
                                           RadiusBottomLeft: |-
@@ -685,26 +674,26 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =104
-                                    - btnIbScopeShared:
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 100, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 4 * (If(IsAdmin, 3, 2) - 1)) / If(IsAdmin, 3, 2))
+                                    - btnIbScopeAssigned:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Show shared issues from all testers, without names"
+                                              ="Show the issues assigned to me"
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
                                               =AlignInContainer.Center
                                           Appearance: |-
-                                              =If(varIbScope = "shared", ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                              =If(varIbScope = "assigned", ButtonAppearance.Primary, ButtonAppearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
-                                              =If(varIbScope = "shared", C.'color-brand-primary', C.'border-default')
+                                              =If(varIbScope = "assigned", C.'color-brand-primary', C.'border-default')
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =If(varIbScope = "shared", C.'text-on-primary', C.'text-primary')
+                                              =If(varIbScope = "assigned", C.'text-on-primary', C.'text-primary')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           FontWeight: |-
@@ -714,16 +703,9 @@ Screens:
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           LayoutMinWidth: |-
-                                              =120
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 128, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 4 * (If(IsAdmin, 3, 2) - 1)) / If(IsAdmin, 3, 2))
                                           OnSelect: |-
-                                              =Set(varIbScope, "shared");
-                                              If(
-                                                  !varIbSharedLoaded,
-                                                  Set(varIbLoading, true);
-                                                  Set(varIbSharedFailed, IfError(ClearCollect(colIbShared, ForAll(Sort(IB_SharedIssues, LastActivityOn, SortOrder.Descending) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Summary, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity, ""), Priority: Coalesce(r.Priority, ""), Status: Coalesce(r.Status, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: "", CreatedOn: Coalesce(r.ReportedOn, r.Created), UpdatedOn: Coalesce(r.LastActivityOn, r.ReportedOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: "", AssignedEmail: "", PriRank: Switch(r.Priority, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
-                                                  Set(varIbSharedLoaded, !varIbSharedFailed);
-                                                  Set(varIbLoading, false)
-                                              )
+                                              =Set(varIbScope, "assigned")
                                           RadiusBottomLeft: |-
                                               =10
                                           RadiusBottomRight: |-
@@ -735,11 +717,13 @@ Screens:
                                           Size: |-
                                               =12
                                           Text: |-
-                                              ="Shared issues"
+                                              =If(LayoutRank < 2, "Assigned", "Assigned to me")
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
+                                          Visible: |-
+                                              =IsAdmin
                                           Width: |-
-                                              =120
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 128, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 4 * (If(IsAdmin, 3, 2) - 1)) / If(IsAdmin, 3, 2))
                               - conIbState:
                                   Control: GroupContainer
                                   Variant: AutoLayout
@@ -759,13 +743,13 @@ Screens:
                                     LayoutGap: |-
                                         =4
                                     LayoutMinWidth: |-
-                                        =260
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 260, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
                                     LayoutOverflowX: |-
                                         =LayoutOverflow.Hide
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =260
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 260, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
                                   Children:
                                     - btnIbStateOpen:
                                         Control: ModernButton
@@ -795,7 +779,7 @@ Screens:
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           LayoutMinWidth: |-
-                                              =76
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 76, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 3)
                                           OnSelect: |-
                                               =Set(varIbState, "open")
                                           RadiusBottomLeft: |-
@@ -813,7 +797,7 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =76
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 76, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 3)
                                     - btnIbStateClosed:
                                         Control: ModernButton
                                         Properties:
@@ -842,7 +826,7 @@ Screens:
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           LayoutMinWidth: |-
-                                              =84
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 84, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 3)
                                           OnSelect: |-
                                               =Set(varIbState, "closed")
                                           RadiusBottomLeft: |-
@@ -860,7 +844,7 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =84
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 84, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 3)
                                     - btnIbStateArchived:
                                         Control: ModernButton
                                         Properties:
@@ -889,7 +873,7 @@ Screens:
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           LayoutMinWidth: |-
-                                              =92
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 92, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 3)
                                           OnSelect: |-
                                               =Set(varIbState, "archived")
                                           RadiusBottomLeft: |-
@@ -907,7 +891,7 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =92
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 92, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 3)
                         - conIbFltRow:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -919,11 +903,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 814, 36, 4 * 36 + 3 * 8)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 448, 36, 2 * 36 + 8)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 814, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 448, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =8
                               LayoutMinWidth: |-
@@ -974,108 +958,12 @@ Screens:
                                         =10
                                     Size: |-
                                         =If(LayoutRank < 2, 16, 14)
+                                    TriggerOutput: |-
+                                        =TriggerOutput.Delayed
                                     ValidationState: |-
                                         =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                     Width: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 814, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 594, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
-                              - drpIbFltApp:
-                                  Control: ModernDropdown
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Filter by application"
-                                    Appearance: |-
-                                        =Appearance.FilledDarker
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderStyle: |-
-                                        =BorderStyle.Solid
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =C.'input-fg'
-                                    Default: |-
-                                        =LookUp(Ungroup(Table({ x: Table({ Application: "All applications" }) }, { x: IbApps }), x) As _dd, _dd.Application = (If(IsBlank(varIbApp), "All applications", varIbApp)))
-                                    Fill: |-
-                                        =C.'input-bg'
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =36
-                                    ItemDisplayText: |-
-                                        =ThisItem.Application
-                                    Items: |-
-                                        =Ungroup(Table({ x: Table({ Application: "All applications" }) }, { x: IbApps }), x)
-                                    LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 814, 210, 0)
-                                    OnChange: |-
-                                        =Set(varIbApp, If(Self.Selected.Application = "All applications", "", Self.Selected.Application));
-                                        Set(varIbSection, "");
-                                        Reset(drpIbFltSection)
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =If(LayoutRank < 2, 16, 14)
-                                    ValidationState: |-
-                                        =If(false && IsBlank(Self.Selected.Application), ValidationState.Error, ValidationState.None)
-                                    Width: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 814, 210, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
-                              - drpIbFltSection:
-                                  Control: ModernDropdown
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Filter by section"
-                                    Appearance: |-
-                                        =If((If(IsBlank(varIbApp), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderStyle: |-
-                                        =BorderStyle.Solid
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =If((If(IsBlank(varIbApp), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                    Default: |-
-                                        =LookUp(Ungroup(Table({ x: Table({ Section: "All sections" }) }, { x: ShowColumns(IbFilterSections, Section) }), x) As _dd, _dd.Section = (If(IsBlank(varIbSection), "All sections", varIbSection)))
-                                    DisplayMode: |-
-                                        =If((If(IsBlank(varIbApp), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                                    Fill: |-
-                                        =If(If(IsBlank(varIbApp), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =36
-                                    ItemDisplayText: |-
-                                        =ThisItem.Section
-                                    Items: |-
-                                        =Ungroup(Table({ x: Table({ Section: "All sections" }) }, { x: ShowColumns(IbFilterSections, Section) }), x)
-                                    LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 814, 210, 0)
-                                    OnChange: |-
-                                        =Set(varIbSection, If(Self.Selected.Section = "All sections", "", Self.Selected.Section))
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =If(LayoutRank < 2, 16, 14)
-                                    ValidationState: |-
-                                        =If(false && IsBlank(Self.Selected.Section), ValidationState.Error, ValidationState.None)
-                                    Width: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 814, 210, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 448, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 168, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
                               - drpIbSort:
                                   Control: ModernDropdown
                                   Properties:
@@ -1094,7 +982,7 @@ Screens:
                                     Color: |-
                                         =C.'input-fg'
                                     Default: |-
-                                        =LookUp(["Last updated", "Newest", "Priority", "Status"] As _dd, _dd.Value = (varIbSort))
+                                        =LookUp(["Last updated", "Newest", "Oldest", "Priority", "Status"] As _dd, _dd.Value = (varIbSort))
                                     Fill: |-
                                         =C.'input-bg'
                                     Font: |-
@@ -1104,9 +992,9 @@ Screens:
                                     ItemDisplayText: |-
                                         =ThisItem.Value
                                     Items: |-
-                                        =["Last updated", "Newest", "Priority", "Status"]
+                                        =["Last updated", "Newest", "Oldest", "Priority", "Status"]
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 814, 150, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 448, 160, 0)
                                     OnChange: |-
                                         =Set(varIbSort, Self.Selected.Value)
                                     RadiusBottomLeft: |-
@@ -1122,7 +1010,7 @@ Screens:
                                     ValidationState: |-
                                         =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                     Width: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 814, 150, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 448, 160, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
                         - conIbFltRow2:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -1134,11 +1022,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 680, 36, If(IsAdmin && varIbScope = "all", 4 * 36 + 3 * 8, 3 * 36 + 2 * 8))
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 624, 36, 2 * 36 + 8)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 680, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 624, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =8
                               LayoutMinWidth: |-
@@ -1150,201 +1038,259 @@ Screens:
                               Width: |-
                                   =Parent.Width
                             Children:
-                              - drpIbFltStatus:
-                                  Control: ModernDropdown
+                              - conIbFltPairA:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        ="Filter by status"
-                                    Appearance: |-
-                                        =Appearance.FilledDarker
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =C.'border-default'
                                     BorderStyle: |-
-                                        =BorderStyle.Solid
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =C.'input-fg'
-                                    Default: |-
-                                        =LookUp(["All statuses", "New", "Reopened", "Triaged", "In progress", "Ready for retest", "Closed"] As _dd, _dd.Value = (If(IsBlank(varIbStatusF), "All statuses", varIbStatusF)))
-                                    Fill: |-
-                                        =C.'input-bg'
-                                    Font: |-
-                                        =Font.'Segoe UI'
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
                                     Height: |-
                                         =36
-                                    ItemDisplayText: |-
-                                        =ThisItem.Value
-                                    Items: |-
-                                        =["All statuses", "New", "Reopened", "Triaged", "In progress", "Ready for retest", "Closed"]
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Horizontal
+                                    LayoutGap: |-
+                                        =8
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 680, 180, 0)
-                                    OnChange: |-
-                                        =Set(varIbStatusF, If(Self.Selected.Value = "All statuses", "", Self.Selected.Value))
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =If(LayoutRank < 2, 16, 14)
-                                    ValidationState: |-
-                                        =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 680, 180, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
-                              - drpIbFltPriority:
-                                  Control: ModernDropdown
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 624, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
+                                  Children:
+                                    - drpIbFltApp:
+                                        Control: ModernDropdown
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Filter by application"
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
+                                          BorderColor: |-
+                                              =C.'border-default'
+                                          BorderStyle: |-
+                                              =BorderStyle.Solid
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =C.'input-fg'
+                                          Default: |-
+                                              =LookUp(Ungroup(Table({ x: Table({ Application: "All applications" }) }, { x: IbApps }), x) As _dd, _dd.Application = (If(IsBlank(varIbApp), "All applications", varIbApp)))
+                                          Fill: |-
+                                              =C.'input-bg'
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =36
+                                          ItemDisplayText: |-
+                                              =ThisItem.Application
+                                          Items: |-
+                                              =Ungroup(Table({ x: Table({ Application: "All applications" }) }, { x: IbApps }), x)
+                                          LayoutMinWidth: |-
+                                              =0
+                                          OnChange: |-
+                                              =Set(varIbApp, If(Self.Selected.Application = "All applications", "", Self.Selected.Application));
+                                              Set(varIbSection, "");
+                                              Reset(drpIbFltSection)
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Size: |-
+                                              =If(LayoutRank < 2, 16, 14)
+                                          ValidationState: |-
+                                              =If(false && IsBlank(Self.Selected.Application), ValidationState.Error, ValidationState.None)
+                                          Width: |-
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 624, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 24) / 4, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 2)
+                                    - drpIbFltSection:
+                                        Control: ModernDropdown
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Filter by section"
+                                          Appearance: |-
+                                              =If((If(IsBlank(varIbApp), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
+                                          BorderColor: |-
+                                              =C.'border-default'
+                                          BorderStyle: |-
+                                              =BorderStyle.Solid
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =If((If(IsBlank(varIbApp), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                          Default: |-
+                                              =LookUp(Ungroup(Table({ x: Table({ Section: "All sections" }) }, { x: ShowColumns(IbFilterSections, Section) }), x) As _dd, _dd.Section = (If(IsBlank(varIbSection), "All sections", varIbSection)))
+                                          DisplayMode: |-
+                                              =If((If(IsBlank(varIbApp), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                          Fill: |-
+                                              =If(If(IsBlank(varIbApp), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =36
+                                          ItemDisplayText: |-
+                                              =ThisItem.Section
+                                          Items: |-
+                                              =Ungroup(Table({ x: Table({ Section: "All sections" }) }, { x: ShowColumns(IbFilterSections, Section) }), x)
+                                          LayoutMinWidth: |-
+                                              =0
+                                          OnChange: |-
+                                              =Set(varIbSection, If(Self.Selected.Section = "All sections", "", Self.Selected.Section))
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Size: |-
+                                              =If(LayoutRank < 2, 16, 14)
+                                          ValidationState: |-
+                                              =If(false && IsBlank(Self.Selected.Section), ValidationState.Error, ValidationState.None)
+                                          Width: |-
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 624, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 24) / 4, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 2)
+                              - conIbFltPairB:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        ="Filter by priority"
-                                    Appearance: |-
-                                        =Appearance.FilledDarker
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =C.'border-default'
                                     BorderStyle: |-
-                                        =BorderStyle.Solid
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =C.'input-fg'
-                                    Default: |-
-                                        =LookUp(["All priorities", "Urgent", "High", "Normal", "Low"] As _dd, _dd.Value = (If(IsBlank(varIbPriF), "All priorities", varIbPriF)))
-                                    Fill: |-
-                                        =C.'input-bg'
-                                    Font: |-
-                                        =Font.'Segoe UI'
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
                                     Height: |-
                                         =36
-                                    ItemDisplayText: |-
-                                        =ThisItem.Value
-                                    Items: |-
-                                        =["All priorities", "Urgent", "High", "Normal", "Low"]
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Horizontal
+                                    LayoutGap: |-
+                                        =8
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 680, 170, 0)
-                                    OnChange: |-
-                                        =Set(varIbPriF, If(Self.Selected.Value = "All priorities", "", Self.Selected.Value))
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =If(LayoutRank < 2, 16, 14)
-                                    ValidationState: |-
-                                        =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 680, 170, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
-                              - drpIbFltSeverity:
-                                  Control: ModernDropdown
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Filter by severity"
-                                    Appearance: |-
-                                        =Appearance.FilledDarker
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderStyle: |-
-                                        =BorderStyle.Solid
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =C.'input-fg'
-                                    Default: |-
-                                        =LookUp(["All severities", "Blocker", "Major", "Minor", "Cosmetic"] As _dd, _dd.Value = (If(IsBlank(varIbSevF), "All severities", varIbSevF)))
-                                    Fill: |-
-                                        =C.'input-bg'
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =36
-                                    ItemDisplayText: |-
-                                        =ThisItem.Value
-                                    Items: |-
-                                        =["All severities", "Blocker", "Major", "Minor", "Cosmetic"]
-                                    LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 680, 170, 0)
-                                    OnChange: |-
-                                        =Set(varIbSevF, If(Self.Selected.Value = "All severities", "", Self.Selected.Value))
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =If(LayoutRank < 2, 16, 14)
-                                    ValidationState: |-
-                                        =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
-                                    Width: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 680, 170, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
-                              - btnIbAssignedMe:
-                                  Control: ModernButton
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =If(varIbAssignedMe, "Show all assignments", "Show only issues assigned to me")
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    Appearance: |-
-                                        =If(varIbAssignedMe, ButtonAppearance.Primary, ButtonAppearance.Outline)
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =If(varIbAssignedMe, C.'color-brand-primary', C.'border-default')
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =If(varIbAssignedMe, C.'text-on-primary', C.'text-primary')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =36
-                                    Layout: |-
-                                        =ButtonLayout.TextOnly
-                                    LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 680, 136, 0)
-                                    OnSelect: |-
-                                        =Set(varIbAssignedMe, !varIbAssignedMe)
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =12
-                                    Text: |-
-                                        ="Assigned to me"
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Visible: |-
-                                        =IsAdmin && varIbScope = "all"
-                                    Width: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 680, 136, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 624, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
+                                  Children:
+                                    - drpIbFltStatus:
+                                        Control: ModernDropdown
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Filter by status"
+                                          Appearance: |-
+                                              =If((If(varIbState = "closed", DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
+                                          BorderColor: |-
+                                              =C.'border-default'
+                                          BorderStyle: |-
+                                              =BorderStyle.Solid
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =If((If(varIbState = "closed", DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                          Default: |-
+                                              =LookUp(["All statuses", "New", "Reopened", "Triaged", "In progress", "Ready for retest"] As _dd, _dd.Value = (If(IsBlank(varIbStatusF), "All statuses", varIbStatusF)))
+                                          DisplayMode: |-
+                                              =If((If(varIbState = "closed", DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                          Fill: |-
+                                              =If(If(varIbState = "closed", DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =36
+                                          ItemDisplayText: |-
+                                              =ThisItem.Value
+                                          Items: |-
+                                              =["All statuses", "New", "Reopened", "Triaged", "In progress", "Ready for retest"]
+                                          LayoutMinWidth: |-
+                                              =0
+                                          OnChange: |-
+                                              =Set(varIbStatusF, If(Self.Selected.Value = "All statuses", "", Self.Selected.Value))
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Size: |-
+                                              =If(LayoutRank < 2, 16, 14)
+                                          ValidationState: |-
+                                              =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
+                                          Width: |-
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 624, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 24) / 4, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 2)
+                                    - drpIbFltPriority:
+                                        Control: ModernDropdown
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Filter by priority"
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
+                                          BorderColor: |-
+                                              =C.'border-default'
+                                          BorderStyle: |-
+                                              =BorderStyle.Solid
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =C.'input-fg'
+                                          Default: |-
+                                              =LookUp(["All priorities", "Urgent", "High", "Normal", "Low"] As _dd, _dd.Value = (If(IsBlank(varIbPriF), "All priorities", varIbPriF)))
+                                          Fill: |-
+                                              =C.'input-bg'
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =36
+                                          ItemDisplayText: |-
+                                              =ThisItem.Value
+                                          Items: |-
+                                              =["All priorities", "Urgent", "High", "Normal", "Low"]
+                                          LayoutMinWidth: |-
+                                              =0
+                                          OnChange: |-
+                                              =Set(varIbPriF, If(Self.Selected.Value = "All priorities", "", Self.Selected.Value))
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Size: |-
+                                              =If(LayoutRank < 2, 16, 14)
+                                          ValidationState: |-
+                                              =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
+                                          Width: |-
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 624, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 24) / 4, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 2)
                         - txtIbSharedNote:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Shared issues are anonymous: they never show who reported them, and comments stay private."
+                                  ="All issues from all testers are anonymous here: you see what was reported and its status, never who reported it, the comments or the files."
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -1356,7 +1302,7 @@ Screens:
                               Font: |-
                                   =Font.'Segoe UI'
                               Height: |-
-                                  =34
+                                  =50
                               PaddingBottom: |-
                                   =0
                               PaddingLeft: |-
@@ -1376,7 +1322,7 @@ Screens:
                               Size: |-
                                   =12
                               Text: |-
-                                  ="Shared issues are anonymous: they never show who reported them, and comments stay private."
+                                  ="All issues from all testers are anonymous here: you see what was reported and its status, never who reported it, the comments or the files."
                               Visible: |-
                                   =varIbScope = "shared"
                               Wrap: |-
@@ -1396,7 +1342,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =56 + If(IsAdmin && varIbScope = "all", 8 + (34), 0) + If(galIbList.AllItemsCount > 0, 8 + (Max(1, Min(galIbList.AllItemsCount, 10)) * 68), 0) + If(galIbList.AllItemsCount = 0, 8 + (40), 0) + If(IbFailed && !varIbLoading, 8 + (36), 0)
+                            =66 + If(IsAdmin && varIbScope in ["all", "assigned"], 8 + (34), 0) + If(galIbList.AllItemsCount > 0, 8 + (Max(1, Min(RoundUp(galIbList.AllItemsCount / Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0)), 0), Max(2, RoundDown((App.Height - 280) / 196, 0)))) * 196), 0) + If(galIbList.AllItemsCount = 0, 8 + (40), 0) + If(IbFailed && !varIbLoading, 8 + (36), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -1428,39 +1374,127 @@ Screens:
                         Width: |-
                             =Parent.Width
                       Children:
-                        - txtIbCount:
-                            Control: ModernText
+                        - conIbCountRow:
+                            Control: GroupContainer
+                            Variant: AutoLayout
                             Properties:
-                              AccessibleLabel: |-
-                                  =Self.Text
                               BorderStyle: |-
                                   =BorderStyle.None
-                              BorderThickness: |-
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
                                   =0
-                              Color: |-
-                                  =C.'text-muted'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
                               Height: |-
-                                  =20
-                              PaddingBottom: |-
+                                  =30
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Center
+                              LayoutDirection: |-
+                                  =LayoutDirection.Horizontal
+                              LayoutGap: |-
+                                  =8
+                              LayoutMinWidth: |-
                                   =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =13
-                              Text: |-
-                                  =galIbList.AllItemsCount & If(galIbList.AllItemsCount = 1, " issue", " issues")
-                              Wrap: |-
-                                  =false
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              Width: |-
+                                  =Parent.Width
+                            Children:
+                              - txtIbCount:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =Self.Text
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    FillPortions: |-
+                                        =0
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =20
+                                    LayoutMinWidth: |-
+                                        =0
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =With({ n: galIbList.AllItemsCount }, n & Switch(varIbState, "closed", " closed", "archived", " archived", " open") & If(n = 1, " issue", " issues") & If(!IsBlank(varIbApp) || !IsBlank(varIbSection) || !IsBlank(varIbStatusF) || !IsBlank(varIbPriF) || !IsBlank(Trim(inpIbSearch.Text)), If(n = 1, " matches", " match") & " the filters", ""))
+                                    Width: |-
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18)) - (If(!IsBlank(varIbApp) || !IsBlank(varIbSection) || !IsBlank(varIbStatusF) || !IsBlank(varIbPriF) || !IsBlank(Trim(inpIbSearch.Text)), (111) + 8, 0)) - 2)
+                                    Wrap: |-
+                                        =false
+                              - btnIbClearFlt:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Clear all filters and the search"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =30
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
+                                        =111
+                                    OnSelect: |-
+                                        =Set(varIbApp, "");
+                                        Set(varIbSection, "");
+                                        Set(varIbStatusF, "");
+                                        Set(varIbPriF, "");
+                                        Reset(inpIbSearch);
+                                        Reset(drpIbFltApp);
+                                        Reset(drpIbFltSection);
+                                        Reset(drpIbFltStatus);
+                                        Reset(drpIbFltPriority)
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =12
+                                    Text: |-
+                                        ="Clear filters"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Visible: |-
+                                        =!IsBlank(varIbApp) || !IsBlank(varIbSection) || !IsBlank(varIbStatusF) || !IsBlank(varIbPriF) || !IsBlank(Trim(inpIbSearch.Text))
+                                    Width: |-
+                                        =111
                         - txtIbAdminCounts:
                             Control: ModernText
                             Properties:
@@ -1489,9 +1523,9 @@ Screens:
                               Size: |-
                                   =12
                               Text: |-
-                                  =CountIf(colIbAll, !Archived && Status <> "Closed") & " open  ·  " & CountIf(colIbAll, !Archived && Status = "New") & " new  ·  " & CountIf(colIbAll, !Archived && Status <> "Closed" && IsBlank(AssignedEmail)) & " unassigned  ·  " & CountIf(colIbAll, !Archived && Status <> "Closed" && AssignedEmail = varIbMe) & " assigned to you"
+                                  =CountIf(colIbAll, !Archived && Status <> "Closed") & " open  ·  " & CountIf(colIbAll, !Archived && Status = "New") & " new  ·  " & CountIf(colIbAll, !Archived && Status <> "Closed" && IsBlank(AssignedEmail)) & " unassigned  ·  " & CountIf(colIbAll, !Archived && Status <> "Closed" && AssignedEmail = varIbMe) & " assigned to you  ·  " & CountIf(colIbAll, Archived) & " archived"
                               Visible: |-
-                                  =IsAdmin && varIbScope = "all"
+                                  =IsAdmin && varIbScope in ["all", "assigned"]
                               Wrap: |-
                                   =true
                         - galIbList:
@@ -1507,23 +1541,22 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =Max(1, Min(galIbList.AllItemsCount, 10)) * 68
+                                  =Max(1, Min(RoundUp(galIbList.AllItemsCount / Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0)), 0), Max(2, RoundDown((App.Height - 280) / 196, 0)))) * 196
                               Items: |-
                                   =With(
-                                      { q: Trim(inpIbSearch.Text), t: Switch(varIbScope, "shared", colIbShared, "all", colIbAll, colIbMine) },
+                                      { q: Trim(inpIbSearch.Text) },
                                       With(
-                                          { f: Filter(t,
+                                          { f: Filter(IbScopeRows,
                                                 Switch(varIbState, "closed", !Archived && Status = "Closed", "archived", Archived, !Archived && Status <> "Closed"),
                                                 IsBlank(varIbApp) || Application = varIbApp,
                                                 IsBlank(varIbSection) || Section = varIbSection,
-                                                IsBlank(varIbStatusF) || Status = varIbStatusF,
+                                                IsBlank(varIbStatusF) || varIbState = "closed" || Status = varIbStatusF,
                                                 IsBlank(varIbPriF) || Priority = varIbPriF,
-                                                IsBlank(varIbSevF) || Severity = varIbSevF,
-                                                !(varIbAssignedMe && IsAdmin && varIbScope = "all") || AssignedEmail = varIbMe,
                                                 IsBlank(q) || q in TicketNo || q in Title || q in Description) },
                                           Switch(
                                               varIbSort,
                                               "Newest", SortByColumns(f, "CreatedOn", SortOrder.Descending),
+                                              "Oldest", SortByColumns(f, "CreatedOn", SortOrder.Ascending),
                                               "Priority", SortByColumns(f, "PriRank", SortOrder.Ascending, "UpdatedOn", SortOrder.Descending),
                                               "Status", SortByColumns(f, "StatusRank", SortOrder.Ascending, "UpdatedOn", SortOrder.Descending),
                                               SortByColumns(f, "UpdatedOn", SortOrder.Descending)
@@ -1543,15 +1576,62 @@ Screens:
                               TemplatePadding: |-
                                   =0
                               TemplateSize: |-
-                                  =68
+                                  =196
                               Visible: |-
                                   =galIbList.AllItemsCount > 0
                               Width: |-
                                   =Parent.Width
                               WrapCount: |-
-                                  =1
+                                  =Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0))
                             Children:
-                              - txtIbRowNo:
+                              - txtIbTileBg:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Issue tile"
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderStyle: |-
+                                        =BorderStyle.Solid
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =If(ThisItem.Archived, C.'bg-muted', C.'bg-app')
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =184
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    RadiusBottomLeft: |-
+                                        =14
+                                    RadiusBottomRight: |-
+                                        =14
+                                    RadiusTopLeft: |-
+                                        =14
+                                    RadiusTopRight: |-
+                                        =14
+                                    Size: |-
+                                        =11
+                                    Text: |-
+                                        =""
+                                    Width: |-
+                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =6
+                                    Y: |-
+                                        =6
+                              - txtIbTileNo:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
@@ -1582,93 +1662,15 @@ Screens:
                                         =13
                                     Text: |-
                                         =ThisItem.TicketNo
-                                    Visible: |-
-                                        =LayoutRank >= 2
                                     Width: |-
-                                        =96
+                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 40 - 112 - 8
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =12
+                                        =20
                                     Y: |-
-                                        =12
-                              - txtIbRowTitle:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =Self.Text
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =21
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =14
-                                    Text: |-
-                                        =ThisItem.Title
-                                    Width: |-
-                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - (If(LayoutRank < 2, 12, 116)) - 12 - 124 - 12
-                                    Wrap: |-
-                                        =false
-                                    X: |-
-                                        =If(LayoutRank < 2, 12, 116)
-                                    Y: |-
-                                        =11
-                              - txtIbRowMeta:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =Self.Text
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-muted'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =18
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =12
-                                    Text: |-
-                                        =If(LayoutRank < 2, ThisItem.TicketNo & "  ·  ", "") & ThisItem.Application & "  ·  " & ThisItem.Section & If(IsBlank(ThisItem.Severity), "", "  ·  " & ThisItem.Severity) & "  ·  Updated " & Text(ThisItem.UpdatedOn, "dd mmm yyyy") & If(varIbScope = "all", "  ·  " & If(IsBlank(ThisItem.Assigned), "Unassigned", "Assigned to " & ThisItem.Assigned), "")
-                                    Width: |-
-                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 24 - 124 - 12
-                                    Wrap: |-
-                                        =false
-                                    X: |-
-                                        =12
-                                    Y: |-
-                                        =40
-                              - txtIbRowStatus:
+                                        =22
+                              - txtIbTileStatus:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
@@ -1712,14 +1714,184 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =124
+                                        =112
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12 - 124
+                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 20 - 112
                                     Y: |-
+                                        =20
+                              - txtIbTileTitle:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =Self.Text
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =40
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        =ThisItem.Title
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Top
+                                    Width: |-
+                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 40
+                                    Wrap: |-
+                                        =true
+                                    X: |-
+                                        =20
+                                    Y: |-
+                                        =50
+                              - txtIbTileWhere:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =Self.Text
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =18
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =12
+                                    Text: |-
+                                        =ThisItem.Application & "  ·  " & ThisItem.Section
+                                    Width: |-
+                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 40
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =20
+                                    Y: |-
+                                        =96
+                              - txtIbTileDates:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =Self.Text
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =34
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =12
+                                    Text: |-
+                                        ="Reported " & Text(ThisItem.CreatedOn, "dd mmm yyyy") & If(DateDiff(ThisItem.CreatedOn, ThisItem.UpdatedOn, TimeUnit.Minutes) >= 5, "  ·  Updated " & Text(ThisItem.UpdatedOn, "dd mmm yyyy"), "")
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Top
+                                    Width: |-
+                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 40
+                                    Wrap: |-
+                                        =true
+                                    X: |-
+                                        =20
+                                    Y: |-
+                                        =116
+                              - txtIbTilePriority:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Priority: " & Self.Text
+                                    Align: |-
+                                        =Align.Center
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =Switch(ThisItem.Priority, "Urgent", C.'state-error-fg', "High", C.'state-warn-fg', "Normal", C.'state-neutral-fg', "Low", C.'state-neutral-fg', C.'state-neutral-fg')
+                                    Fill: |-
+                                        =Switch(ThisItem.Priority, "Urgent", C.'state-error-bg', "High", C.'state-warn-bg', "Normal", C.'state-neutral-bg', "Low", C.'state-neutral-bg', C.'state-neutral-bg')
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =22
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    RadiusBottomLeft: |-
                                         =11
-                              - txtIbRowPriority:
+                                    RadiusBottomRight: |-
+                                        =11
+                                    RadiusTopLeft: |-
+                                        =11
+                                    RadiusTopRight: |-
+                                        =11
+                                    Size: |-
+                                        =11
+                                    Text: |-
+                                        =ThisItem.Priority
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Visible: |-
+                                        =!IsBlank(ThisItem.Priority)
+                                    Width: |-
+                                        =80
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =20
+                                    Y: |-
+                                        =154
+                              - txtIbTilePeople:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
@@ -1749,41 +1921,16 @@ Screens:
                                     Size: |-
                                         =12
                                     Text: |-
-                                        =If(IsBlank(ThisItem.Priority), "", ThisItem.Priority & " priority")
-                                    Visible: |-
-                                        =LayoutRank >= 2
+                                        =If(varIbScope = "shared", If(IsBlank(If(varIbScope = "shared", LookUp(colIbMine, TicketNo = ThisItem.TicketNo))), "", "Reported by you"), If(IsAdmin && ThisItem.Reporter <> varIbMe, Upper(First(Split(ThisItem.Reporter, "@")).Value) & "  ·  ", "") & If(IsBlank(ThisItem.Assigned), "Unassigned", "To " & ThisItem.Assigned))
                                     Width: |-
-                                        =124
+                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 40 - 80 - 8
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12 - 124
+                                        =20 + 80 + 8
                                     Y: |-
-                                        =40
-                              - rctIbRowRule:
-                                  Control: Rectangle
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Row divider"
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Fill: |-
-                                        =C.'border-subtle'
-                                    Height: |-
-                                        =1
-                                    OnSelect: |-
-                                        =false
-                                    TabIndex: |-
-                                        =0
-                                    Width: |-
-                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40)
-                                    X: |-
-                                        =0
-                                    Y: |-
-                                        =67
-                              - btnIbRowOpen:
+                                        =156
+                              - btnIbTileOpen:
                                   Control: Classic/Button
                                   Properties:
                                     BorderColor: |-
@@ -1801,66 +1948,82 @@ Screens:
                                     FocusedBorderThickness: |-
                                         =2
                                     Height: |-
-                                        =67
+                                        =184
                                     HoverBorderColor: |-
-                                        =RGBA(0, 0, 0, 0)
+                                        =C.'color-brand-primary'
                                     HoverColor: |-
                                         =RGBA(0, 0, 0, 0)
                                     HoverFill: |-
                                         =C.'row-hover'
                                     OnSelect: |-
-                                        =Set(varIbSel, ThisItem);
-                                        Set(varIbSelId, ThisItem.Id);
-                                        Set(varIbSelShared, varIbScope = "shared");
-                                        Set(varIbTab, "details");
-                                        Set(varIbInternal, false);
-                                        Set(varIbFilesFor, -1);
-                                        Reset(inpIbComment);
-                                        Clear(colIbActivity);
-                                        Set(varIbDetailOn, true);
-                                        If(!varIbSelShared, Set(varIbActBusy, true);
-                                        Set(varIbActFailed, IfError(ClearCollect(
-                                            colIbActivity,
-                                            { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
-                                            ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
-                                                With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
-                                                    { Kind: k,
-                                                      Actor: If(role = "System", "System", who = varIbMe, "You", Upper(First(Split(who, "@")).Value) & If(role = "Admin", " (admin)", "")),
-                                                      Body: If(k in ["StatusChange", "Closed", "Reopened"] && !IsBlank(r.NewStatus), "Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & If(IsBlank(r.Content), ".", ". " & r.Content),
-                                                            k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),
-                                                            Coalesce(r.Content, "")),
-                                                      At: Coalesce(r.EventOn, r.Created),
-                                                      Internal: r.Visibility.Value = "Internal",
-                                                      IsSystem: k <> "Comment",
-                                                      File: Coalesce(r.FileName, ""),
-                                                      SizeKb: Coalesce(r.FileSizeKb, 0),
-                                                      Initial: atSub })))
-                                        ; false, true));
-                                        Set(varIbActBusy, false))
+                                        =With(
+                                            { own: If(varIbScope = "shared", LookUp(colIbMine, TicketNo = ThisItem.TicketNo)) },
+                                            Set(varIbSel, If(IsBlank(own), ThisItem, own));
+                                            Set(varIbSelId, varIbSel.Id);
+                                            Set(varIbSelShared, varIbScope = "shared" && IsBlank(own));
+                                            Set(varIbTab, "details");
+                                            Set(varIbInternal, false);
+                                            Set(varIbActsOn, false);
+                                            Set(varIbFilesFor, -1);
+                                            Reset(inpIbComment);
+                                            Clear(colIbActivity);
+                                            Set(varIbDetailOn, true);
+                                            If(!varIbSelShared, Set(varIbSelRow, Blank());
+                                            Concurrent(
+                                                Set(varIbSelRow, IfError(LookUp(IB_Tickets, ID = varIbSelId), Blank())),
+                                                Set(varIbActBusy, true);
+                                            Set(varIbActFailed, IfError(ClearCollect(
+                                                colIbActivity,
+                                                { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
+                                                ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
+                                                    With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
+                                                        { Kind: k,
+                                                          Actor: If(role = "System", "Issue Board", who = varIbMe, "You", Upper(First(Split(who, "@")).Value)),
+                                                          Role: Switch(role, "Admin", "Admin", "System", "System", "User"),
+                                                          Body: If(k in ["StatusChange", "Closed", "Reopened"] && !IsBlank(r.NewStatus), "Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & If(IsBlank(r.Content), ".", ". " & r.Content),
+                                                                k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),
+                                                                Coalesce(r.Content, "")),
+                                                          At: Coalesce(r.EventOn, r.Created),
+                                                          Internal: r.Visibility.Value = "Internal",
+                                                          IsSystem: k <> "Comment",
+                                                          File: Coalesce(r.FileName, ""),
+                                                          SizeKb: Coalesce(r.FileSizeKb, 0),
+                                                          Initial: atSub })))
+                                            ; false, true));
+                                            Set(varIbActBusy, false)
+                                            );
+                                            If(
+                                                !IsBlank(varIbSelRow) && varIbSelRow.ID = varIbSelId,
+                                                Set(varIbSel, { Id: varIbSelRow.ID, TicketNo: Coalesce(varIbSelRow.TicketNo, ""), Title: Coalesce(varIbSelRow.Title, ""), Description: Coalesce(varIbSelRow.Description, ""), Steps: Coalesce(varIbSelRow.ReproSteps, ""), Expected: Coalesce(varIbSelRow.ExpectedResult, ""), Actual: Coalesce(varIbSelRow.ActualResult, ""), Application: Coalesce(varIbSelRow.Application, ""), Section: Coalesce(varIbSelRow.Section, ""), Other: Coalesce(varIbSelRow.OtherContext, ""), RelatedNo: Coalesce(varIbSelRow.RelatedRequestNo, ""), Severity: Coalesce(varIbSelRow.Severity.Value, ""), Priority: Coalesce(varIbSelRow.Priority.Value, ""), Status: Coalesce(varIbSelRow.Status.Value, "New"), Resolution: Coalesce(varIbSelRow.Resolution, ""), Assigned: Coalesce(varIbSelRow.AssignedToName, ""), CreatedOn: varIbSelRow.Created, UpdatedOn: Coalesce(varIbSelRow.LastActivityOn, varIbSelRow.Created), Archived: Coalesce(varIbSelRow.IsArchived, false), Reporter: Lower(Coalesce(varIbSelRow.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(varIbSelRow.AssignedToEmail, "")), PriRank: Switch(varIbSelRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbSelRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                                Set(varIbSelFullFor, varIbSelId);
+                                                UpdateIf(colIbMine, Id = varIbSelId, varIbSel);
+                                                UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
+                                            ))
+                                        )
                                     PressedBorderColor: |-
-                                        =RGBA(0, 0, 0, 0)
+                                        =C.'color-brand-primary'
                                     PressedColor: |-
                                         =RGBA(0, 0, 0, 0)
                                     PressedFill: |-
                                         =C.'row-pressed'
                                     RadiusBottomLeft: |-
-                                        =0
+                                        =14
                                     RadiusBottomRight: |-
-                                        =0
+                                        =14
                                     RadiusTopLeft: |-
-                                        =0
+                                        =14
                                     RadiusTopRight: |-
-                                        =0
+                                        =14
                                     TabIndex: |-
                                         =0
                                     Text: |-
-                                        ="Open " & ThisItem.TicketNo & " - " & ThisItem.Title
+                                        ="Open " & ThisItem.TicketNo & " - " & ThisItem.Title & ", " & If(ThisItem.Archived, "Archived", ThisItem.Status)
                                     Width: |-
-                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40)
+                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12
                                     X: |-
-                                        =0
+                                        =6
                                     Y: |-
-                                        =0
+                                        =6
                         - txtIbEmpty:
                             Control: ModernText
                             Properties:
@@ -1889,7 +2052,7 @@ Screens:
                               Size: |-
                                   =13
                               Text: |-
-                                  =If(varIbLoading, "Loading issues...", IbFailed, "The issues could not be loaded. Check your connection and try again.", varIbScope = "mine" && IsEmpty(colIbMine), "You have not reported any issues yet. Use New issue to report one.", varIbScope = "all" && IsEmpty(colIbAll), "No issues have been reported yet.", varIbScope = "shared" && IsEmpty(colIbShared), "No issues have been shared yet.", "No issues match the filters.")
+                                  =If(varIbLoading || (varIbScope = "shared" && varIbSharedBusy), "Loading issues...", IbFailed, "The issues could not be loaded. Check your connection and try again.", varIbScope = "mine" && IsEmpty(IbMine), "You have not reported any issues yet. Use New issue to report one.", varIbScope = "all" && IsEmpty(colIbAll), "No issues have been reported yet.", varIbScope = "assigned" && IsEmpty(Filter(colIbAll, AssignedEmail = varIbMe)), "No issues are assigned to you.", varIbScope = "shared" && IsEmpty(colIbShared), "No issues have been reported yet.", !IsBlank(varIbApp) || !IsBlank(varIbSection) || !IsBlank(varIbStatusF) || !IsBlank(varIbPriF) || !IsBlank(Trim(inpIbSearch.Text)), "No issues match the filters. Clear the filters to see more.", Switch(varIbState, "closed", "There are no closed issues here.", "archived", "There are no archived issues here.", "There are no open issues here."))
                               Visible: |-
                                   =galIbList.AllItemsCount = 0
                               Wrap: |-
@@ -1922,30 +2085,23 @@ Screens:
                               OnSelect: |-
                                   =Set(varIbLoaded, false);
                                   Set(varIbSharedLoaded, false);
-                                  Set(varIbAllLoaded, false);
                                   If(
                                       !varIbLoaded,
                                       Set(varIbLoading, true);
                                       Concurrent(
                                           Set(varIbCfgFailed, IfError(ClearCollect(colIbSections, ForAll(Filter(IB_AppSections, IsActive = true) As r, { Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), AppOrder: Coalesce(r.AppOrder, 0), SectionOrder: Coalesce(r.SectionOrder, 0), ScreenKey: Coalesce(r.ScreenKey, "") })); false, true)),
-                                          Set(varIbMineFailed, IfError(ClearCollect(colIbMine, ForAll(Sort(Filter(IB_Tickets, ReporterEmail = varIbMe), LastActivityOn, SortOrder.Descending) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true))
+                                          If(IsAdmin, Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true)); Set(varIbMineFailed, false), Set(varIbMineFailed, IfError(ClearCollect(colIbMine, ForAll(ShowColumns(Sort(Filter(IB_Tickets, ReporterEmail = varIbMe), LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true)); Set(varIbAllFailed, false))
                                       );
-                                      Set(varIbLoaded, !varIbCfgFailed && !varIbMineFailed);
+                                      Set(varIbLoaded, !varIbCfgFailed && !varIbMineFailed && !varIbAllFailed);
                                       Set(varIbLoading, false)
                                   );
+                                  If(IsBlank(varIbScope), Set(varIbScope, If(IsAdmin, "all", "mine")));
                                   If(varIbScope = "shared", If(
                                       !varIbSharedLoaded,
-                                      Set(varIbLoading, true);
+                                      Set(varIbSharedBusy, true);
                                       Set(varIbSharedFailed, IfError(ClearCollect(colIbShared, ForAll(Sort(IB_SharedIssues, LastActivityOn, SortOrder.Descending) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Summary, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity, ""), Priority: Coalesce(r.Priority, ""), Status: Coalesce(r.Status, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: "", CreatedOn: Coalesce(r.ReportedOn, r.Created), UpdatedOn: Coalesce(r.LastActivityOn, r.ReportedOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: "", AssignedEmail: "", PriRank: Switch(r.Priority, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
                                       Set(varIbSharedLoaded, !varIbSharedFailed);
-                                      Set(varIbLoading, false)
-                                  ));
-                                  If(varIbScope = "all", If(
-                                      IsAdmin && !varIbAllLoaded,
-                                      Set(varIbLoading, true);
-                                      Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
-                                      Set(varIbAllLoaded, !varIbAllFailed);
-                                      Set(varIbLoading, false)
+                                      Set(varIbSharedBusy, false)
                                   ))
                               RadiusBottomLeft: |-
                                   =10
@@ -5627,7 +5783,7 @@ Screens:
                                       FirstN(
                                           SortByColumns(
                                               Filter(
-                                                  ForAll(Filter(colIbShared, !Archived) As S,
+                                                  ForAll(Filter(If(IsAdmin, colIbAll, colIbShared), !Archived) As S,
                                                       { TicketNo: S.TicketNo, Title: S.Title, Status: S.Status, Archived: S.Archived,
                                                         Where: S.Application & "  ·  " & S.Section, Row: S,
                                                         Hits: CountRows(Filter(w, Word in S.Title)),
@@ -5847,10 +6003,46 @@ Screens:
                                         =C.'row-hover'
                                     OnSelect: |-
                                         =Set(varIbSel, ThisItem.Row);
-                                        Set(varIbSelId, ThisItem.Row.Id);
+                                        Set(varIbSelId, varIbSel.Id);
                                         Set(varIbSelShared, true);
                                         Set(varIbTab, "details");
-                                        Set(varIbDetailOn, true)
+                                        Set(varIbInternal, false);
+                                        Set(varIbActsOn, false);
+                                        Set(varIbFilesFor, -1);
+                                        Reset(inpIbComment);
+                                        Clear(colIbActivity);
+                                        Set(varIbDetailOn, true);
+                                        If(!varIbSelShared, Set(varIbSelRow, Blank());
+                                        Concurrent(
+                                            Set(varIbSelRow, IfError(LookUp(IB_Tickets, ID = varIbSelId), Blank())),
+                                            Set(varIbActBusy, true);
+                                        Set(varIbActFailed, IfError(ClearCollect(
+                                            colIbActivity,
+                                            { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
+                                            ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
+                                                With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
+                                                    { Kind: k,
+                                                      Actor: If(role = "System", "Issue Board", who = varIbMe, "You", Upper(First(Split(who, "@")).Value)),
+                                                      Role: Switch(role, "Admin", "Admin", "System", "System", "User"),
+                                                      Body: If(k in ["StatusChange", "Closed", "Reopened"] && !IsBlank(r.NewStatus), "Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & If(IsBlank(r.Content), ".", ". " & r.Content),
+                                                            k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),
+                                                            Coalesce(r.Content, "")),
+                                                      At: Coalesce(r.EventOn, r.Created),
+                                                      Internal: r.Visibility.Value = "Internal",
+                                                      IsSystem: k <> "Comment",
+                                                      File: Coalesce(r.FileName, ""),
+                                                      SizeKb: Coalesce(r.FileSizeKb, 0),
+                                                      Initial: atSub })))
+                                        ; false, true));
+                                        Set(varIbActBusy, false)
+                                        );
+                                        If(
+                                            !IsBlank(varIbSelRow) && varIbSelRow.ID = varIbSelId,
+                                            Set(varIbSel, { Id: varIbSelRow.ID, TicketNo: Coalesce(varIbSelRow.TicketNo, ""), Title: Coalesce(varIbSelRow.Title, ""), Description: Coalesce(varIbSelRow.Description, ""), Steps: Coalesce(varIbSelRow.ReproSteps, ""), Expected: Coalesce(varIbSelRow.ExpectedResult, ""), Actual: Coalesce(varIbSelRow.ActualResult, ""), Application: Coalesce(varIbSelRow.Application, ""), Section: Coalesce(varIbSelRow.Section, ""), Other: Coalesce(varIbSelRow.OtherContext, ""), RelatedNo: Coalesce(varIbSelRow.RelatedRequestNo, ""), Severity: Coalesce(varIbSelRow.Severity.Value, ""), Priority: Coalesce(varIbSelRow.Priority.Value, ""), Status: Coalesce(varIbSelRow.Status.Value, "New"), Resolution: Coalesce(varIbSelRow.Resolution, ""), Assigned: Coalesce(varIbSelRow.AssignedToName, ""), CreatedOn: varIbSelRow.Created, UpdatedOn: Coalesce(varIbSelRow.LastActivityOn, varIbSelRow.Created), Archived: Coalesce(varIbSelRow.IsArchived, false), Reporter: Lower(Coalesce(varIbSelRow.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(varIbSelRow.AssignedToEmail, "")), PriRank: Switch(varIbSelRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbSelRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                            Set(varIbSelFullFor, varIbSelId);
+                                            UpdateIf(colIbMine, Id = varIbSelId, varIbSel);
+                                            UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
+                                        ))
                                     PressedBorderColor: |-
                                         =RGBA(0, 0, 0, 0)
                                     PressedColor: |-
@@ -7509,6 +7701,7 @@ Screens:
                                                       RemoveIf(colIbAll, Id = varIbSelId);
                                                       Set(varIbDetailOn, false),
                                                       Set(varIbSel, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                                      Set(varIbSelFullFor, varIbSelId);
                                                       If(varIbTab = "files",
                                                           Set(varIbFilesBusy, true);
                                                           Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp(IB_Tickets, ID = varIbSelId).Attachments); false, true));
@@ -7522,11 +7715,12 @@ Screens:
                                               Set(varIbActBusy, true);
                                               Set(varIbActFailed, IfError(ClearCollect(
                                                   colIbActivity,
-                                                  { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
+                                                  { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
                                                   ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
                                                       With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
                                                           { Kind: k,
-                                                            Actor: If(role = "System", "System", who = varIbMe, "You", Upper(First(Split(who, "@")).Value) & If(role = "Admin", " (admin)", "")),
+                                                            Actor: If(role = "System", "Issue Board", who = varIbMe, "You", Upper(First(Split(who, "@")).Value)),
+                                                            Role: Switch(role, "Admin", "Admin", "System", "System", "User"),
                                                             Body: If(k in ["StatusChange", "Closed", "Reopened"] && !IsBlank(r.NewStatus), "Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & If(IsBlank(r.Content), ".", ". " & r.Content),
                                                                   k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),
                                                                   Coalesce(r.Content, "")),
@@ -7579,9 +7773,17 @@ Screens:
                                                   );
                                                   Set(varIbUploading, false)
                                               );
-                                              Set(varIbMineFailed, IfError(ClearCollect(colIbMine, ForAll(Sort(Filter(IB_Tickets, ReporterEmail = varIbMe), LastActivityOn, SortOrder.Descending) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
+                                              Set(varIbSelId, Value(varIbRes.ticketid));
+                                              Set(varIbSelRow, IfError(LookUp(IB_Tickets, ID = varIbSelId), Blank()));
+                                              If(
+                                                  IsBlank(varIbSelRow),
+                                                  If(IsAdmin, Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true)); Set(varIbMineFailed, false), Set(varIbMineFailed, IfError(ClearCollect(colIbMine, ForAll(ShowColumns(Sort(Filter(IB_Tickets, ReporterEmail = varIbMe), LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true)); Set(varIbAllFailed, false)),
+                                                  Set(varIbNew, { Id: varIbSelRow.ID, TicketNo: Coalesce(varIbSelRow.TicketNo, ""), Title: Coalesce(varIbSelRow.Title, ""), Description: Coalesce(varIbSelRow.Description, ""), Steps: Coalesce(varIbSelRow.ReproSteps, ""), Expected: Coalesce(varIbSelRow.ExpectedResult, ""), Actual: Coalesce(varIbSelRow.ActualResult, ""), Application: Coalesce(varIbSelRow.Application, ""), Section: Coalesce(varIbSelRow.Section, ""), Other: Coalesce(varIbSelRow.OtherContext, ""), RelatedNo: Coalesce(varIbSelRow.RelatedRequestNo, ""), Severity: Coalesce(varIbSelRow.Severity.Value, ""), Priority: Coalesce(varIbSelRow.Priority.Value, ""), Status: Coalesce(varIbSelRow.Status.Value, "New"), Resolution: Coalesce(varIbSelRow.Resolution, ""), Assigned: Coalesce(varIbSelRow.AssignedToName, ""), CreatedOn: varIbSelRow.Created, UpdatedOn: Coalesce(varIbSelRow.LastActivityOn, varIbSelRow.Created), Archived: Coalesce(varIbSelRow.IsArchived, false), Reporter: Lower(Coalesce(varIbSelRow.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(varIbSelRow.AssignedToEmail, "")), PriRank: Switch(varIbSelRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbSelRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                                  If(IsAdmin,
+                                                      RemoveIf(colIbAll, Id = varIbSelId); Collect(colIbAll, varIbNew),
+                                                      RemoveIf(colIbMine, Id = varIbSelId); Collect(colIbMine, varIbNew))
+                                              );
                                               Set(varIbSharedLoaded, false);
-                                              Set(varIbAllLoaded, false);
                                               Set(varIbScope, "mine");
                                               Set(varIbState, "open");
                                               Set(varIbFormOn, false);
@@ -7603,23 +7805,25 @@ Screens:
                                               Reset(drpIbPriority);
                                               Reset(drpIbAssignee);
                                               Reset(inpIbResolution);
-                                              Set(varIbSelId, Value(varIbRes.ticketid));
-                                              Set(varIbSel, LookUp(colIbMine, Id = varIbSelId));
+                                              Set(varIbSel, LookUp(IbMine, Id = varIbSelId));
                                               If(
                                                   !IsBlank(varIbSel),
                                                   Set(varIbSelShared, false);
+                                                  Set(varIbSelFullFor, varIbSelId);
                                                   Set(varIbTab, "details");
                                                   Set(varIbInternal, false);
+                                                  Set(varIbActsOn, false);
                                                   Set(varIbFilesFor, -1);
                                                   Reset(inpIbComment);
                                                   Set(varIbActBusy, true);
                                                   Set(varIbActFailed, IfError(ClearCollect(
                                                       colIbActivity,
-                                                      { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
+                                                      { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
                                                       ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
                                                           With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
                                                               { Kind: k,
-                                                                Actor: If(role = "System", "System", who = varIbMe, "You", Upper(First(Split(who, "@")).Value) & If(role = "Admin", " (admin)", "")),
+                                                                Actor: If(role = "System", "Issue Board", who = varIbMe, "You", Upper(First(Split(who, "@")).Value)),
+                                                                Role: Switch(role, "Admin", "Admin", "System", "System", "User"),
                                                                 Body: If(k in ["StatusChange", "Closed", "Reopened"] && !IsBlank(r.NewStatus), "Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & If(IsBlank(r.Content), ".", ". " & r.Content),
                                                                       k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),
                                                                       Coalesce(r.Content, "")),
@@ -8449,6 +8653,7 @@ Screens:
                                               RemoveIf(colIbAll, Id = varIbSelId);
                                               Set(varIbDetailOn, false),
                                               Set(varIbSel, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                              Set(varIbSelFullFor, varIbSelId);
                                               If(varIbTab = "files",
                                                   Set(varIbFilesBusy, true);
                                                   Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp(IB_Tickets, ID = varIbSelId).Attachments); false, true));
@@ -8462,11 +8667,12 @@ Screens:
                                       Set(varIbActBusy, true);
                                       Set(varIbActFailed, IfError(ClearCollect(
                                           colIbActivity,
-                                          { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
+                                          { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
                                           ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
                                               With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
                                                   { Kind: k,
-                                                    Actor: If(role = "System", "System", who = varIbMe, "You", Upper(First(Split(who, "@")).Value) & If(role = "Admin", " (admin)", "")),
+                                                    Actor: If(role = "System", "Issue Board", who = varIbMe, "You", Upper(First(Split(who, "@")).Value)),
+                                                    Role: Switch(role, "Admin", "Admin", "System", "System", "User"),
                                                     Body: If(k in ["StatusChange", "Closed", "Reopened"] && !IsBlank(r.NewStatus), "Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & If(IsBlank(r.Content), ".", ". " & r.Content),
                                                           k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),
                                                           Coalesce(r.Content, "")),
@@ -8547,6 +8753,7 @@ Screens:
                                               RemoveIf(colIbAll, Id = varIbSelId);
                                               Set(varIbDetailOn, false),
                                               Set(varIbSel, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                              Set(varIbSelFullFor, varIbSelId);
                                               If(varIbTab = "files",
                                                   Set(varIbFilesBusy, true);
                                                   Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp(IB_Tickets, ID = varIbSelId).Attachments); false, true));
@@ -8560,11 +8767,12 @@ Screens:
                                       Set(varIbActBusy, true);
                                       Set(varIbActFailed, IfError(ClearCollect(
                                           colIbActivity,
-                                          { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
+                                          { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
                                           ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
                                               With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
                                                   { Kind: k,
-                                                    Actor: If(role = "System", "System", who = varIbMe, "You", Upper(First(Split(who, "@")).Value) & If(role = "Admin", " (admin)", "")),
+                                                    Actor: If(role = "System", "Issue Board", who = varIbMe, "You", Upper(First(Split(who, "@")).Value)),
+                                                    Role: Switch(role, "Admin", "Admin", "System", "System", "User"),
                                                     Body: If(k in ["StatusChange", "Closed", "Reopened"] && !IsBlank(r.NewStatus), "Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & If(IsBlank(r.Content), ".", ". " & r.Content),
                                                           k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),
                                                           Coalesce(r.Content, "")),
@@ -10035,11 +10243,12 @@ Screens:
                                             Set(varIbActBusy, true);
                                             Set(varIbActFailed, IfError(ClearCollect(
                                                 colIbActivity,
-                                                { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
+                                                { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
                                                 ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
                                                     With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
                                                         { Kind: k,
-                                                          Actor: If(role = "System", "System", who = varIbMe, "You", Upper(First(Split(who, "@")).Value) & If(role = "Admin", " (admin)", "")),
+                                                          Actor: If(role = "System", "Issue Board", who = varIbMe, "You", Upper(First(Split(who, "@")).Value)),
+                                                          Role: Switch(role, "Admin", "Admin", "System", "System", "User"),
                                                           Body: If(k in ["StatusChange", "Closed", "Reopened"] && !IsBlank(r.NewStatus), "Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & If(IsBlank(r.Content), ".", ". " & r.Content),
                                                                 k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),
                                                                 Coalesce(r.Content, "")),
@@ -10523,6 +10732,7 @@ Screens:
                                                     RemoveIf(colIbAll, Id = varIbSelId);
                                                     Set(varIbDetailOn, false),
                                                     Set(varIbSel, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                                    Set(varIbSelFullFor, varIbSelId);
                                                     If(varIbTab = "files",
                                                         Set(varIbFilesBusy, true);
                                                         Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp(IB_Tickets, ID = varIbSelId).Attachments); false, true));
@@ -10536,11 +10746,12 @@ Screens:
                                             Set(varIbActBusy, true);
                                             Set(varIbActFailed, IfError(ClearCollect(
                                                 colIbActivity,
-                                                { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
+                                                { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
                                                 ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
                                                     With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
                                                         { Kind: k,
-                                                          Actor: If(role = "System", "System", who = varIbMe, "You", Upper(First(Split(who, "@")).Value) & If(role = "Admin", " (admin)", "")),
+                                                          Actor: If(role = "System", "Issue Board", who = varIbMe, "You", Upper(First(Split(who, "@")).Value)),
+                                                          Role: Switch(role, "Admin", "Admin", "System", "System", "User"),
                                                           Body: If(k in ["StatusChange", "Closed", "Reopened"] && !IsBlank(r.NewStatus), "Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & If(IsBlank(r.Content), ".", ". " & r.Content),
                                                                 k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),
                                                                 Coalesce(r.Content, "")),

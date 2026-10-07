@@ -2494,7 +2494,20 @@ App:
       // sidebaren). Kun naar konfigurationen siger det - ellers intet gaet.
       IbFrom = Coalesce(LookUp(colIbSections, ScreenKey = gblNavFrom && !IsBlank(gblNavFrom)).Application, "");
 
-      IbFailed = IfError(varIbCfgFailed, false) || IfError(varIbMineFailed, false) || (varIbScope = "shared" && IfError(varIbSharedFailed, false)) || (varIbScope = "all" && IfError(varIbAllFailed, false));
+      IbFailed = IfError(varIbCfgFailed, false) || IfError(varIbMineFailed, false) || IfError(varIbAllFailed, false) || (varIbScope = "shared" && IfError(varIbSharedFailed, false));
+
+      // En admin henter kun colIbAll (alle sager); hans egne er en del af dem og
+      // hentes ikke en gang til. Alle andre har colIbMine.
+      IbMine = If(IsAdmin, Filter(colIbAll, Reporter = varIbMe), colIbMine);
+
+      // Scopet: All issues (admin: alle sager; ellers den anonyme liste), My
+      // issues og - for admin - Assigned to me. Filtrene regnes oven paa det.
+      IbScopeRows = Switch(varIbScope, "shared", colIbShared, "all", colIbAll, "assigned", Filter(colIbAll, AssignedEmail = varIbMe), IbMine);
+
+      // Updated vises kun efter en reel aendring: en haendelse efter
+      // indmeldingen (ikke filerne, der kom med den). Den anonyme kopi har ingen
+      // Activity - der taeller kun en aendring mere end 5 minutter efter.
+      IbSelUpdatedOn = If(varIbSelShared, If(DateDiff(varIbSel.CreatedOn, varIbSel.UpdatedOn, TimeUnit.Minutes) >= 5, varIbSel.UpdatedOn, Blank()), Max(Filter(colIbActivity, Kind <> "Reported" && !Initial), At));
 
       // Hvad maa brugeren paa den aabne sag? EET sted for knapperne - og samme
       // regler som flowet BioSap-IssueBoard-Submit, der afgoer det paa serveren.
