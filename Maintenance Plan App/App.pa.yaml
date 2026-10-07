@@ -433,14 +433,16 @@ App:
           VhpStepOpsDone && IsBlank(VhpValidationErrors);
 
       // Plan Headers sammenklappede linje (issue #123): chips, bredde og hoejde.
-      VhpPlanSummary = With({ mw: If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 128) },
-      With({ l1: "PLANT", l2: "PLAN TEXT", l3: If((varVhpPlan.PlanType = "Strategy"), "STRATEGY", "CYCLE"), l4: "FIRST CALL",
-          v1: Coalesce(varVhpPlan.Plant, ""), v2: Coalesce(varVhpPlan.PlanText, ""), v3: If((varVhpPlan.PlanType = "Strategy"), Coalesce(varVhpPlan.Strategy, ""), "Every " & Text(varVhpPlan.Cycle) & " " & varVhpPlan.Unit), v4: Text(varVhpPlan.FirstCallDay) & "/" & Text(varVhpPlan.FirstCallMonth) & "/" & Text(varVhpPlan.FirstCallYear) },
-      With({ d1: If(Len(v1) = 0, "", 30 + Len(l1) * 7 + Len(v1) * 7.4 <= mw, v1, Left(v1, Max(0, RoundDown((mw - 38 - Len(l1) * 7) / 7.4, 0))) & "…"),
-          d2: If(Len(v2) = 0, "", 30 + Len(l2) * 7 + Len(v2) * 7.4 <= mw, v2, Left(v2, Max(0, RoundDown((mw - 38 - Len(l2) * 7) / 7.4, 0))) & "…"),
-          d3: If(Len(v3) = 0, "", 30 + Len(l3) * 7 + Len(v3) * 7.4 <= mw, v3, Left(v3, Max(0, RoundDown((mw - 38 - Len(l3) * 7) / 7.4, 0))) & "…"),
-          d4: If(Len(v4) = 0, "", 30 + Len(l4) * 7 + Len(v4) * 7.4 <= mw, v4, Left(v4, Max(0, RoundDown((mw - 38 - Len(l4) * 7) / 7.4, 0))) & "…") },
-      With({ w1: If(Len(d1) = 0, 0, 30 + Len(l1) * 7 + Len(d1) * 7.4), w2: If(Len(d2) = 0, 0, 30 + Len(l2) * 7 + Len(d2) * 7.4), w3: If(Len(d3) = 0, 0, 30 + Len(l3) * 7 + Len(d3) * 7.4), w4: If(Len(d4) = 0, 0, 30 + Len(l4) * 7 + Len(d4) * 7.4) },
+      VhpPlanSummary = With({ mw: RoundDown(If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 128), 0) },
+      With({ l1: "PLANT", l2: "PLAN TEXT", l3: If((varVhpPlan.PlanType = "Strategy"), "STRATEGY", "CYCLE"), l4: "FIRST CALL", l5: "STATUS", l6: "SORT FIELD",
+          v1: Coalesce(varVhpPlan.Plant, ""), v2: Coalesce(varVhpPlan.PlanText, ""), v3: If((varVhpPlan.PlanType = "Strategy"), Coalesce(varVhpPlan.Strategy, ""), Coalesce(varVhpPlan.Cycle, 0) <= 0 || IsBlank(varVhpPlan.Unit), "", "Every " & Text(varVhpPlan.Cycle) & " " & varVhpPlan.Unit), v4: If(IsBlank(varVhpPlan.FirstCallDay) || IsBlank(varVhpPlan.FirstCallMonth) || IsBlank(varVhpPlan.FirstCallYear), "", Text(varVhpPlan.FirstCallDay, "00") & "/" & Text(varVhpPlan.FirstCallMonth, "00") & "/" & Text(varVhpPlan.FirstCallYear, "0")), v5: Coalesce(varVhpPlan.Status, ""), v6: Coalesce(varVhpPlan.SortField, "") },
+      With({ d1: If(Len(v1) = 0, "", 34 + Len(l1) * 7 + Len(v1) * 8 <= mw, v1, Left(v1, Max(0, RoundDown((mw - 42 - Len(l1) * 7) / 8, 0))) & "…"),
+          d2: If(Len(v2) = 0, "", 34 + Len(l2) * 7 + Len(v2) * 8 <= mw, v2, Left(v2, Max(0, RoundDown((mw - 42 - Len(l2) * 7) / 8, 0))) & "…"),
+          d3: If(Len(v3) = 0, "", 34 + Len(l3) * 7 + Len(v3) * 8 <= mw, v3, Left(v3, Max(0, RoundDown((mw - 42 - Len(l3) * 7) / 8, 0))) & "…"),
+          d4: If(Len(v4) = 0, "", 34 + Len(l4) * 7 + Len(v4) * 8 <= mw, v4, Left(v4, Max(0, RoundDown((mw - 42 - Len(l4) * 7) / 8, 0))) & "…"),
+          d5: If(Len(v5) = 0, "", 34 + Len(l5) * 7 + Len(v5) * 8 <= mw, v5, Left(v5, Max(0, RoundDown((mw - 42 - Len(l5) * 7) / 8, 0))) & "…"),
+          d6: If(Len(v6) = 0, "", 34 + Len(l6) * 7 + Len(v6) * 8 <= mw, v6, Left(v6, Max(0, RoundDown((mw - 42 - Len(l6) * 7) / 8, 0))) & "…") },
+      With({ w1: If(Len(d1) = 0, 0, 34 + Len(l1) * 7 + Len(d1) * 8), w2: If(Len(d2) = 0, 0, 34 + Len(l2) * 7 + Len(d2) * 8), w3: If(Len(d3) = 0, 0, 34 + Len(l3) * 7 + Len(d3) * 8), w4: If(Len(d4) = 0, 0, 34 + Len(l4) * 7 + Len(d4) * 8), w5: If(Len(d5) = 0, 0, 34 + Len(l5) * 7 + Len(d5) * 8), w6: If(Len(d6) = 0, 0, 34 + Len(l6) * 7 + Len(d6) * 8) },
       With({ x1: 0, r1: 0, c1: If(w1 = 0, 0, w1 + 8) },
       With({ x2: If(w2 > 0 && c1 > 0 && c1 + w2 > mw, 0, c1), r2: r1 + If(w2 > 0 && c1 > 0 && c1 + w2 > mw, 1, 0) },
       With({ c2: If(w2 = 0, x2, x2 + w2 + 8) },
@@ -448,45 +450,37 @@ App:
       With({ c3: If(w3 = 0, x3, x3 + w3 + 8) },
       With({ x4: If(w4 > 0 && c3 > 0 && c3 + w4 > mw, 0, c3), r4: r3 + If(w4 > 0 && c3 > 0 && c3 + w4 > mw, 1, 0) },
       With({ c4: If(w4 = 0, x4, x4 + w4 + 8) },
+      With({ x5: If(w5 > 0 && c4 > 0 && c4 + w5 > mw, 0, c4), r5: r4 + If(w5 > 0 && c4 > 0 && c4 + w5 > mw, 1, 0) },
+      With({ c5: If(w5 = 0, x5, x5 + w5 + 8) },
+      With({ x6: If(w6 > 0 && c5 > 0 && c5 + w6 > mw, 0, c5), r6: r5 + If(w6 > 0 && c5 > 0 && c5 + w6 > mw, 1, 0) },
+      With({ c6: If(w6 = 0, x6, x6 + w6 + 8) },
       {
-          Svg: "data:image/svg+xml;utf8," & EncodeUrl(
-              "<svg xmlns='http://www.w3.org/2000/svg' height='" & (r4 * 36 + 32) & "' width='" & Max(If(w1 = 0, 0, x1 + w1), If(w2 = 0, 0, x2 + w2), If(w3 = 0, 0, x3 + w3), If(w4 = 0, 0, x4 + w4), 1) & "'>" &
-              If(w1 = 0, "", "<rect x='" & (x1 + 1) & "' y='" & (r1 * 36 + 2) & "' rx='14' width='" & (w1 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                  "<text x='" & (x1 + 14) & "' y='" & (r1 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l1, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                  "<text x='" & (x1 + 20 + Len(l1) * 7) & "' y='" & (r1 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(d1, "&", "&amp;"), "<", "&lt;") & "</text>") &
-              If(w2 = 0, "", "<rect x='" & (x2 + 1) & "' y='" & (r2 * 36 + 2) & "' rx='14' width='" & (w2 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                  "<text x='" & (x2 + 14) & "' y='" & (r2 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l2, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                  "<text x='" & (x2 + 20 + Len(l2) * 7) & "' y='" & (r2 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(d2, "&", "&amp;"), "<", "&lt;") & "</text>") &
-              If(w3 = 0, "", "<rect x='" & (x3 + 1) & "' y='" & (r3 * 36 + 2) & "' rx='14' width='" & (w3 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                  "<text x='" & (x3 + 14) & "' y='" & (r3 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l3, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                  "<text x='" & (x3 + 20 + Len(l3) * 7) & "' y='" & (r3 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(d3, "&", "&amp;"), "<", "&lt;") & "</text>") &
-              If(w4 = 0, "", "<rect x='" & (x4 + 1) & "' y='" & (r4 * 36 + 2) & "' rx='14' width='" & (w4 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                  "<text x='" & (x4 + 14) & "' y='" & (r4 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l4, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                  "<text x='" & (x4 + 20 + Len(l4) * 7) & "' y='" & (r4 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(d4, "&", "&amp;"), "<", "&lt;") & "</text>") &
-              "</svg>"
-          ),
-          W: Max(If(w1 = 0, 0, x1 + w1), If(w2 = 0, 0, x2 + w2), If(w3 = 0, 0, x3 + w3), If(w4 = 0, 0, x4 + w4), 1),
-          H: r4 * 36 + 32,
-          Label: If(w1 = 0, "", l1 & " " & v1 & ". ") &
-              If(w2 = 0, "", l2 & " " & v2 & ". ") &
-              If(w3 = 0, "", l3 & " " & v3 & ". ") &
-              If(w4 = 0, "", l4 & " " & v4 & ". ")
+          Html: "<style>html,body{margin:0;padding:0;overflow:hidden}.s{padding:2px 0;font-family:Segoe UI,sans-serif}.r{display:flex;height:28px;white-space:nowrap}.r+.r{margin-top:8px}.c{flex:none;box-sizing:border-box;height:28px;line-height:26px;padding:0 13px;border:1px solid " & C.'hex-border-default' & ";border-radius:14px;background:" & C.'hex-state-neutral-bg' & ";color:" & C.'hex-text-primary' & ";font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis}.c+.c{margin-left:8px}.c b{font-size:10px;font-weight:600;letter-spacing:.5px;margin-right:6px;color:" & C.'hex-text-muted' & "}</style><div class='s'><div class='r'>" &
+              If(w1 = 0, "", "<span class='c' style='width:" & w1 & "px'><b>" & Substitute(Substitute(l1, "&", "&amp;"), "<", "&lt;") & "</b>" & Substitute(Substitute(d1, "&", "&amp;"), "<", "&lt;") & "</span>") &
+              If(w2 = 0, "", If(r2 > r1, "</div><div class='r'>", "") & "<span class='c' style='width:" & w2 & "px'><b>" & Substitute(Substitute(l2, "&", "&amp;"), "<", "&lt;") & "</b>" & Substitute(Substitute(d2, "&", "&amp;"), "<", "&lt;") & "</span>") &
+              If(w3 = 0, "", If(r3 > r2, "</div><div class='r'>", "") & "<span class='c' style='width:" & w3 & "px'><b>" & Substitute(Substitute(l3, "&", "&amp;"), "<", "&lt;") & "</b>" & Substitute(Substitute(d3, "&", "&amp;"), "<", "&lt;") & "</span>") &
+              If(w4 = 0, "", If(r4 > r3, "</div><div class='r'>", "") & "<span class='c' style='width:" & w4 & "px'><b>" & Substitute(Substitute(l4, "&", "&amp;"), "<", "&lt;") & "</b>" & Substitute(Substitute(d4, "&", "&amp;"), "<", "&lt;") & "</span>") &
+              If(w5 = 0, "", If(r5 > r4, "</div><div class='r'>", "") & "<span class='c' style='width:" & w5 & "px'><b>" & Substitute(Substitute(l5, "&", "&amp;"), "<", "&lt;") & "</b>" & Substitute(Substitute(d5, "&", "&amp;"), "<", "&lt;") & "</span>") &
+              If(w6 = 0, "", If(r6 > r5, "</div><div class='r'>", "") & "<span class='c' style='width:" & w6 & "px'><b>" & Substitute(Substitute(l6, "&", "&amp;"), "<", "&lt;") & "</b>" & Substitute(Substitute(d6, "&", "&amp;"), "<", "&lt;") & "</span>") &
+              "</div></div>",
+          W: Max(If(w1 = 0, 0, x1 + w1), If(w2 = 0, 0, x2 + w2), If(w3 = 0, 0, x3 + w3), If(w4 = 0, 0, x4 + w4), If(w5 = 0, 0, x5 + w5), If(w6 = 0, 0, x6 + w6), 1),
+          H: r6 * 36 + 32
       }
-      )))))))))));
+      )))))))))))))));
 
       // Item Editorens sammenklappede linje for det valgte item (issue #123).
-      VhpItemSummary = With({ it: LookUp(colVhpItems, ItemId = varVhpActiveItemId), mw: If(LayoutRank < 2, (If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36), (If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36) - 128) },
+      VhpItemSummary = With({ it: LookUp(colVhpItems, ItemId = varVhpActiveItemId), mw: RoundDown(If(LayoutRank < 2, (If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36), (If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36) - 128), 0) },
       With({ l1: "ITEM", l2: "WORK CENTER", l3: "ACTIVITY", l4: "FUNC. LOC.", l5: "OBJECTS", l6: "REVISION", l7: "INITIALS", l8: "NON FLOW",
           v1: Coalesce(it.ShortText, ""), v2: Coalesce(it.MainWorkCenter, ""), v3: Coalesce(it.ActivityType, ""), v4: Coalesce(it.FunctionalLocation, ""), v5: With({ n: CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) }, If(n = 0, "", Text(n))), v6: If(IsBlank(it.Revision), "", "Yes"), v7: Coalesce(it.Initials, ""), v8: Coalesce(it.NonFlowUserStatus, "") },
-      With({ d1: If(Len(v1) = 0, "", 30 + Len(l1) * 7 + Len(v1) * 7.4 <= mw, v1, Left(v1, Max(0, RoundDown((mw - 38 - Len(l1) * 7) / 7.4, 0))) & "…"),
-          d2: If(Len(v2) = 0, "", 30 + Len(l2) * 7 + Len(v2) * 7.4 <= mw, v2, Left(v2, Max(0, RoundDown((mw - 38 - Len(l2) * 7) / 7.4, 0))) & "…"),
-          d3: If(Len(v3) = 0, "", 30 + Len(l3) * 7 + Len(v3) * 7.4 <= mw, v3, Left(v3, Max(0, RoundDown((mw - 38 - Len(l3) * 7) / 7.4, 0))) & "…"),
-          d4: If(Len(v4) = 0, "", 30 + Len(l4) * 7 + Len(v4) * 7.4 <= mw, v4, Left(v4, Max(0, RoundDown((mw - 38 - Len(l4) * 7) / 7.4, 0))) & "…"),
-          d5: If(Len(v5) = 0, "", 30 + Len(l5) * 7 + Len(v5) * 7.4 <= mw, v5, Left(v5, Max(0, RoundDown((mw - 38 - Len(l5) * 7) / 7.4, 0))) & "…"),
-          d6: If(Len(v6) = 0, "", 30 + Len(l6) * 7 + Len(v6) * 7.4 <= mw, v6, Left(v6, Max(0, RoundDown((mw - 38 - Len(l6) * 7) / 7.4, 0))) & "…"),
-          d7: If(Len(v7) = 0, "", 30 + Len(l7) * 7 + Len(v7) * 7.4 <= mw, v7, Left(v7, Max(0, RoundDown((mw - 38 - Len(l7) * 7) / 7.4, 0))) & "…"),
-          d8: If(Len(v8) = 0, "", 30 + Len(l8) * 7 + Len(v8) * 7.4 <= mw, v8, Left(v8, Max(0, RoundDown((mw - 38 - Len(l8) * 7) / 7.4, 0))) & "…") },
-      With({ w1: If(Len(d1) = 0, 0, 30 + Len(l1) * 7 + Len(d1) * 7.4), w2: If(Len(d2) = 0, 0, 30 + Len(l2) * 7 + Len(d2) * 7.4), w3: If(Len(d3) = 0, 0, 30 + Len(l3) * 7 + Len(d3) * 7.4), w4: If(Len(d4) = 0, 0, 30 + Len(l4) * 7 + Len(d4) * 7.4), w5: If(Len(d5) = 0, 0, 30 + Len(l5) * 7 + Len(d5) * 7.4), w6: If(Len(d6) = 0, 0, 30 + Len(l6) * 7 + Len(d6) * 7.4), w7: If(Len(d7) = 0, 0, 30 + Len(l7) * 7 + Len(d7) * 7.4), w8: If(Len(d8) = 0, 0, 30 + Len(l8) * 7 + Len(d8) * 7.4) },
+      With({ d1: If(Len(v1) = 0, "", 34 + Len(l1) * 7 + Len(v1) * 8 <= mw, v1, Left(v1, Max(0, RoundDown((mw - 42 - Len(l1) * 7) / 8, 0))) & "…"),
+          d2: If(Len(v2) = 0, "", 34 + Len(l2) * 7 + Len(v2) * 8 <= mw, v2, Left(v2, Max(0, RoundDown((mw - 42 - Len(l2) * 7) / 8, 0))) & "…"),
+          d3: If(Len(v3) = 0, "", 34 + Len(l3) * 7 + Len(v3) * 8 <= mw, v3, Left(v3, Max(0, RoundDown((mw - 42 - Len(l3) * 7) / 8, 0))) & "…"),
+          d4: If(Len(v4) = 0, "", 34 + Len(l4) * 7 + Len(v4) * 8 <= mw, v4, Left(v4, Max(0, RoundDown((mw - 42 - Len(l4) * 7) / 8, 0))) & "…"),
+          d5: If(Len(v5) = 0, "", 34 + Len(l5) * 7 + Len(v5) * 8 <= mw, v5, Left(v5, Max(0, RoundDown((mw - 42 - Len(l5) * 7) / 8, 0))) & "…"),
+          d6: If(Len(v6) = 0, "", 34 + Len(l6) * 7 + Len(v6) * 8 <= mw, v6, Left(v6, Max(0, RoundDown((mw - 42 - Len(l6) * 7) / 8, 0))) & "…"),
+          d7: If(Len(v7) = 0, "", 34 + Len(l7) * 7 + Len(v7) * 8 <= mw, v7, Left(v7, Max(0, RoundDown((mw - 42 - Len(l7) * 7) / 8, 0))) & "…"),
+          d8: If(Len(v8) = 0, "", 34 + Len(l8) * 7 + Len(v8) * 8 <= mw, v8, Left(v8, Max(0, RoundDown((mw - 42 - Len(l8) * 7) / 8, 0))) & "…") },
+      With({ w1: If(Len(d1) = 0, 0, 34 + Len(l1) * 7 + Len(d1) * 8), w2: If(Len(d2) = 0, 0, 34 + Len(l2) * 7 + Len(d2) * 8), w3: If(Len(d3) = 0, 0, 34 + Len(l3) * 7 + Len(d3) * 8), w4: If(Len(d4) = 0, 0, 34 + Len(l4) * 7 + Len(d4) * 8), w5: If(Len(d5) = 0, 0, 34 + Len(l5) * 7 + Len(d5) * 8), w6: If(Len(d6) = 0, 0, 34 + Len(l6) * 7 + Len(d6) * 8), w7: If(Len(d7) = 0, 0, 34 + Len(l7) * 7 + Len(d7) * 8), w8: If(Len(d8) = 0, 0, 34 + Len(l8) * 7 + Len(d8) * 8) },
       With({ x1: 0, r1: 0, c1: If(w1 = 0, 0, w1 + 8) },
       With({ x2: If(w2 > 0 && c1 > 0 && c1 + w2 > mw, 0, c1), r2: r1 + If(w2 > 0 && c1 > 0 && c1 + w2 > mw, 1, 0) },
       With({ c2: If(w2 = 0, x2, x2 + w2 + 8) },
@@ -503,60 +497,34 @@ App:
       With({ x8: If(w8 > 0 && c7 > 0 && c7 + w8 > mw, 0, c7), r8: r7 + If(w8 > 0 && c7 > 0 && c7 + w8 > mw, 1, 0) },
       With({ c8: If(w8 = 0, x8, x8 + w8 + 8) },
       {
-          Svg: "data:image/svg+xml;utf8," & EncodeUrl(
-              "<svg xmlns='http://www.w3.org/2000/svg' height='" & (r8 * 36 + 32) & "' width='" & Max(If(w1 = 0, 0, x1 + w1), If(w2 = 0, 0, x2 + w2), If(w3 = 0, 0, x3 + w3), If(w4 = 0, 0, x4 + w4), If(w5 = 0, 0, x5 + w5), If(w6 = 0, 0, x6 + w6), If(w7 = 0, 0, x7 + w7), If(w8 = 0, 0, x8 + w8), 1) & "'>" &
-              If(w1 = 0, "", "<rect x='" & (x1 + 1) & "' y='" & (r1 * 36 + 2) & "' rx='14' width='" & (w1 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                  "<text x='" & (x1 + 14) & "' y='" & (r1 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l1, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                  "<text x='" & (x1 + 20 + Len(l1) * 7) & "' y='" & (r1 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(d1, "&", "&amp;"), "<", "&lt;") & "</text>") &
-              If(w2 = 0, "", "<rect x='" & (x2 + 1) & "' y='" & (r2 * 36 + 2) & "' rx='14' width='" & (w2 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                  "<text x='" & (x2 + 14) & "' y='" & (r2 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l2, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                  "<text x='" & (x2 + 20 + Len(l2) * 7) & "' y='" & (r2 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(d2, "&", "&amp;"), "<", "&lt;") & "</text>") &
-              If(w3 = 0, "", "<rect x='" & (x3 + 1) & "' y='" & (r3 * 36 + 2) & "' rx='14' width='" & (w3 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                  "<text x='" & (x3 + 14) & "' y='" & (r3 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l3, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                  "<text x='" & (x3 + 20 + Len(l3) * 7) & "' y='" & (r3 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(d3, "&", "&amp;"), "<", "&lt;") & "</text>") &
-              If(w4 = 0, "", "<rect x='" & (x4 + 1) & "' y='" & (r4 * 36 + 2) & "' rx='14' width='" & (w4 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                  "<text x='" & (x4 + 14) & "' y='" & (r4 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l4, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                  "<text x='" & (x4 + 20 + Len(l4) * 7) & "' y='" & (r4 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(d4, "&", "&amp;"), "<", "&lt;") & "</text>") &
-              If(w5 = 0, "", "<rect x='" & (x5 + 1) & "' y='" & (r5 * 36 + 2) & "' rx='14' width='" & (w5 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                  "<text x='" & (x5 + 14) & "' y='" & (r5 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l5, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                  "<text x='" & (x5 + 20 + Len(l5) * 7) & "' y='" & (r5 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(d5, "&", "&amp;"), "<", "&lt;") & "</text>") &
-              If(w6 = 0, "", "<rect x='" & (x6 + 1) & "' y='" & (r6 * 36 + 2) & "' rx='14' width='" & (w6 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                  "<text x='" & (x6 + 14) & "' y='" & (r6 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l6, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                  "<text x='" & (x6 + 20 + Len(l6) * 7) & "' y='" & (r6 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(d6, "&", "&amp;"), "<", "&lt;") & "</text>") &
-              If(w7 = 0, "", "<rect x='" & (x7 + 1) & "' y='" & (r7 * 36 + 2) & "' rx='14' width='" & (w7 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                  "<text x='" & (x7 + 14) & "' y='" & (r7 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l7, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                  "<text x='" & (x7 + 20 + Len(l7) * 7) & "' y='" & (r7 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(d7, "&", "&amp;"), "<", "&lt;") & "</text>") &
-              If(w8 = 0, "", "<rect x='" & (x8 + 1) & "' y='" & (r8 * 36 + 2) & "' rx='14' width='" & (w8 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                  "<text x='" & (x8 + 14) & "' y='" & (r8 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l8, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                  "<text x='" & (x8 + 20 + Len(l8) * 7) & "' y='" & (r8 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(d8, "&", "&amp;"), "<", "&lt;") & "</text>") &
-              "</svg>"
-          ),
+          Html: "<style>html,body{margin:0;padding:0;overflow:hidden}.s{padding:2px 0;font-family:Segoe UI,sans-serif}.r{display:flex;height:28px;white-space:nowrap}.r+.r{margin-top:8px}.c{flex:none;box-sizing:border-box;height:28px;line-height:26px;padding:0 13px;border:1px solid " & C.'hex-border-default' & ";border-radius:14px;background:" & C.'hex-state-neutral-bg' & ";color:" & C.'hex-text-primary' & ";font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis}.c+.c{margin-left:8px}.c b{font-size:10px;font-weight:600;letter-spacing:.5px;margin-right:6px;color:" & C.'hex-text-muted' & "}</style><div class='s'><div class='r'>" &
+              If(w1 = 0, "", "<span class='c' style='width:" & w1 & "px'><b>" & Substitute(Substitute(l1, "&", "&amp;"), "<", "&lt;") & "</b>" & Substitute(Substitute(d1, "&", "&amp;"), "<", "&lt;") & "</span>") &
+              If(w2 = 0, "", If(r2 > r1, "</div><div class='r'>", "") & "<span class='c' style='width:" & w2 & "px'><b>" & Substitute(Substitute(l2, "&", "&amp;"), "<", "&lt;") & "</b>" & Substitute(Substitute(d2, "&", "&amp;"), "<", "&lt;") & "</span>") &
+              If(w3 = 0, "", If(r3 > r2, "</div><div class='r'>", "") & "<span class='c' style='width:" & w3 & "px'><b>" & Substitute(Substitute(l3, "&", "&amp;"), "<", "&lt;") & "</b>" & Substitute(Substitute(d3, "&", "&amp;"), "<", "&lt;") & "</span>") &
+              If(w4 = 0, "", If(r4 > r3, "</div><div class='r'>", "") & "<span class='c' style='width:" & w4 & "px'><b>" & Substitute(Substitute(l4, "&", "&amp;"), "<", "&lt;") & "</b>" & Substitute(Substitute(d4, "&", "&amp;"), "<", "&lt;") & "</span>") &
+              If(w5 = 0, "", If(r5 > r4, "</div><div class='r'>", "") & "<span class='c' style='width:" & w5 & "px'><b>" & Substitute(Substitute(l5, "&", "&amp;"), "<", "&lt;") & "</b>" & Substitute(Substitute(d5, "&", "&amp;"), "<", "&lt;") & "</span>") &
+              If(w6 = 0, "", If(r6 > r5, "</div><div class='r'>", "") & "<span class='c' style='width:" & w6 & "px'><b>" & Substitute(Substitute(l6, "&", "&amp;"), "<", "&lt;") & "</b>" & Substitute(Substitute(d6, "&", "&amp;"), "<", "&lt;") & "</span>") &
+              If(w7 = 0, "", If(r7 > r6, "</div><div class='r'>", "") & "<span class='c' style='width:" & w7 & "px'><b>" & Substitute(Substitute(l7, "&", "&amp;"), "<", "&lt;") & "</b>" & Substitute(Substitute(d7, "&", "&amp;"), "<", "&lt;") & "</span>") &
+              If(w8 = 0, "", If(r8 > r7, "</div><div class='r'>", "") & "<span class='c' style='width:" & w8 & "px'><b>" & Substitute(Substitute(l8, "&", "&amp;"), "<", "&lt;") & "</b>" & Substitute(Substitute(d8, "&", "&amp;"), "<", "&lt;") & "</span>") &
+              "</div></div>",
           W: Max(If(w1 = 0, 0, x1 + w1), If(w2 = 0, 0, x2 + w2), If(w3 = 0, 0, x3 + w3), If(w4 = 0, 0, x4 + w4), If(w5 = 0, 0, x5 + w5), If(w6 = 0, 0, x6 + w6), If(w7 = 0, 0, x7 + w7), If(w8 = 0, 0, x8 + w8), 1),
-          H: r8 * 36 + 32,
-          Label: If(w1 = 0, "", l1 & " " & v1 & ". ") &
-              If(w2 = 0, "", l2 & " " & v2 & ". ") &
-              If(w3 = 0, "", l3 & " " & v3 & ". ") &
-              If(w4 = 0, "", l4 & " " & v4 & ". ") &
-              If(w5 = 0, "", l5 & " " & v5 & ". ") &
-              If(w6 = 0, "", l6 & " " & v6 & ". ") &
-              If(w7 = 0, "", l7 & " " & v7 & ". ") &
-              If(w8 = 0, "", l8 & " " & v8 & ". ")
+          H: r8 * 36 + 32
       }
       )))))))))))))))))));
 
       // Tasklist and Operations' sammenklappede linje for det valgte item (issue #123).
-      VhpOpsSummary = With({ ops: Filter(colVhpOperations, ItemId = varVhpActiveItemId), mw: If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 128) },
+      VhpOpsSummary = With({ ops: Filter(colVhpOperations, ItemId = varVhpActiveItemId), mw: RoundDown(If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 128), 0) },
       With({ l1: "TASK LIST", l2: "OPERATIONS", l3: "WORK (H)", l4: "DURATION (H)", l5: "PEOPLE", l6: "COST", l7: "MATERIALS", l8: "DOCUMENTS",
           v1: Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistName, ""), v2: With({ n: CountRows(ops) }, If(n = 0, "", Text(n))), v3: With({ t: Sum(ops, WorkHours) }, If(Coalesce(t, 0) = 0, "", Text(t, "[$-en-US]#,##0.##"))), v4: With({ t: Sum(ops, DurationHours) }, If(Coalesce(t, 0) = 0, "", Text(t, "[$-en-US]#,##0.##"))), v5: With({ t: Sum(ops, Persons) }, If(Coalesce(t, 0) = 0, "", Text(t, "[$-en-US]#,##0.##"))), v6: With({ t: Sum(ops, Cost) }, If(Coalesce(t, 0) = 0, "", Text(t, "[$-en-US]#,##0.00"))), v7: With({ n: CountRows(Filter(colVhpMaterials, ItemId = varVhpActiveItemId)) }, If(n = 0, "", Text(n))), v8: With({ n: CountRows(Filter(colVhpAttachments, ItemId = varVhpActiveItemId)) }, If(n = 0, "", Text(n))) },
-      With({ d1: If(Len(v1) = 0, "", 30 + Len(l1) * 7 + Len(v1) * 7.4 <= mw, v1, Left(v1, Max(0, RoundDown((mw - 38 - Len(l1) * 7) / 7.4, 0))) & "…"),
-          d2: If(Len(v2) = 0, "", 30 + Len(l2) * 7 + Len(v2) * 7.4 <= mw, v2, Left(v2, Max(0, RoundDown((mw - 38 - Len(l2) * 7) / 7.4, 0))) & "…"),
-          d3: If(Len(v3) = 0, "", 30 + Len(l3) * 7 + Len(v3) * 7.4 <= mw, v3, Left(v3, Max(0, RoundDown((mw - 38 - Len(l3) * 7) / 7.4, 0))) & "…"),
-          d4: If(Len(v4) = 0, "", 30 + Len(l4) * 7 + Len(v4) * 7.4 <= mw, v4, Left(v4, Max(0, RoundDown((mw - 38 - Len(l4) * 7) / 7.4, 0))) & "…"),
-          d5: If(Len(v5) = 0, "", 30 + Len(l5) * 7 + Len(v5) * 7.4 <= mw, v5, Left(v5, Max(0, RoundDown((mw - 38 - Len(l5) * 7) / 7.4, 0))) & "…"),
-          d6: If(Len(v6) = 0, "", 30 + Len(l6) * 7 + Len(v6) * 7.4 <= mw, v6, Left(v6, Max(0, RoundDown((mw - 38 - Len(l6) * 7) / 7.4, 0))) & "…"),
-          d7: If(Len(v7) = 0, "", 30 + Len(l7) * 7 + Len(v7) * 7.4 <= mw, v7, Left(v7, Max(0, RoundDown((mw - 38 - Len(l7) * 7) / 7.4, 0))) & "…"),
-          d8: If(Len(v8) = 0, "", 30 + Len(l8) * 7 + Len(v8) * 7.4 <= mw, v8, Left(v8, Max(0, RoundDown((mw - 38 - Len(l8) * 7) / 7.4, 0))) & "…") },
-      With({ w1: If(Len(d1) = 0, 0, 30 + Len(l1) * 7 + Len(d1) * 7.4), w2: If(Len(d2) = 0, 0, 30 + Len(l2) * 7 + Len(d2) * 7.4), w3: If(Len(d3) = 0, 0, 30 + Len(l3) * 7 + Len(d3) * 7.4), w4: If(Len(d4) = 0, 0, 30 + Len(l4) * 7 + Len(d4) * 7.4), w5: If(Len(d5) = 0, 0, 30 + Len(l5) * 7 + Len(d5) * 7.4), w6: If(Len(d6) = 0, 0, 30 + Len(l6) * 7 + Len(d6) * 7.4), w7: If(Len(d7) = 0, 0, 30 + Len(l7) * 7 + Len(d7) * 7.4), w8: If(Len(d8) = 0, 0, 30 + Len(l8) * 7 + Len(d8) * 7.4) },
+      With({ d1: If(Len(v1) = 0, "", 34 + Len(l1) * 7 + Len(v1) * 8 <= mw, v1, Left(v1, Max(0, RoundDown((mw - 42 - Len(l1) * 7) / 8, 0))) & "…"),
+          d2: If(Len(v2) = 0, "", 34 + Len(l2) * 7 + Len(v2) * 8 <= mw, v2, Left(v2, Max(0, RoundDown((mw - 42 - Len(l2) * 7) / 8, 0))) & "…"),
+          d3: If(Len(v3) = 0, "", 34 + Len(l3) * 7 + Len(v3) * 8 <= mw, v3, Left(v3, Max(0, RoundDown((mw - 42 - Len(l3) * 7) / 8, 0))) & "…"),
+          d4: If(Len(v4) = 0, "", 34 + Len(l4) * 7 + Len(v4) * 8 <= mw, v4, Left(v4, Max(0, RoundDown((mw - 42 - Len(l4) * 7) / 8, 0))) & "…"),
+          d5: If(Len(v5) = 0, "", 34 + Len(l5) * 7 + Len(v5) * 8 <= mw, v5, Left(v5, Max(0, RoundDown((mw - 42 - Len(l5) * 7) / 8, 0))) & "…"),
+          d6: If(Len(v6) = 0, "", 34 + Len(l6) * 7 + Len(v6) * 8 <= mw, v6, Left(v6, Max(0, RoundDown((mw - 42 - Len(l6) * 7) / 8, 0))) & "…"),
+          d7: If(Len(v7) = 0, "", 34 + Len(l7) * 7 + Len(v7) * 8 <= mw, v7, Left(v7, Max(0, RoundDown((mw - 42 - Len(l7) * 7) / 8, 0))) & "…"),
+          d8: If(Len(v8) = 0, "", 34 + Len(l8) * 7 + Len(v8) * 8 <= mw, v8, Left(v8, Max(0, RoundDown((mw - 42 - Len(l8) * 7) / 8, 0))) & "…") },
+      With({ w1: If(Len(d1) = 0, 0, 34 + Len(l1) * 7 + Len(d1) * 8), w2: If(Len(d2) = 0, 0, 34 + Len(l2) * 7 + Len(d2) * 8), w3: If(Len(d3) = 0, 0, 34 + Len(l3) * 7 + Len(d3) * 8), w4: If(Len(d4) = 0, 0, 34 + Len(l4) * 7 + Len(d4) * 8), w5: If(Len(d5) = 0, 0, 34 + Len(l5) * 7 + Len(d5) * 8), w6: If(Len(d6) = 0, 0, 34 + Len(l6) * 7 + Len(d6) * 8), w7: If(Len(d7) = 0, 0, 34 + Len(l7) * 7 + Len(d7) * 8), w8: If(Len(d8) = 0, 0, 34 + Len(l8) * 7 + Len(d8) * 8) },
       With({ x1: 0, r1: 0, c1: If(w1 = 0, 0, w1 + 8) },
       With({ x2: If(w2 > 0 && c1 > 0 && c1 + w2 > mw, 0, c1), r2: r1 + If(w2 > 0 && c1 > 0 && c1 + w2 > mw, 1, 0) },
       With({ c2: If(w2 = 0, x2, x2 + w2 + 8) },
@@ -573,44 +541,18 @@ App:
       With({ x8: If(w8 > 0 && c7 > 0 && c7 + w8 > mw, 0, c7), r8: r7 + If(w8 > 0 && c7 > 0 && c7 + w8 > mw, 1, 0) },
       With({ c8: If(w8 = 0, x8, x8 + w8 + 8) },
       {
-          Svg: "data:image/svg+xml;utf8," & EncodeUrl(
-              "<svg xmlns='http://www.w3.org/2000/svg' height='" & (r8 * 36 + 32) & "' width='" & Max(If(w1 = 0, 0, x1 + w1), If(w2 = 0, 0, x2 + w2), If(w3 = 0, 0, x3 + w3), If(w4 = 0, 0, x4 + w4), If(w5 = 0, 0, x5 + w5), If(w6 = 0, 0, x6 + w6), If(w7 = 0, 0, x7 + w7), If(w8 = 0, 0, x8 + w8), 1) & "'>" &
-              If(w1 = 0, "", "<rect x='" & (x1 + 1) & "' y='" & (r1 * 36 + 2) & "' rx='14' width='" & (w1 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                  "<text x='" & (x1 + 14) & "' y='" & (r1 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l1, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                  "<text x='" & (x1 + 20 + Len(l1) * 7) & "' y='" & (r1 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(d1, "&", "&amp;"), "<", "&lt;") & "</text>") &
-              If(w2 = 0, "", "<rect x='" & (x2 + 1) & "' y='" & (r2 * 36 + 2) & "' rx='14' width='" & (w2 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                  "<text x='" & (x2 + 14) & "' y='" & (r2 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l2, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                  "<text x='" & (x2 + 20 + Len(l2) * 7) & "' y='" & (r2 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(d2, "&", "&amp;"), "<", "&lt;") & "</text>") &
-              If(w3 = 0, "", "<rect x='" & (x3 + 1) & "' y='" & (r3 * 36 + 2) & "' rx='14' width='" & (w3 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                  "<text x='" & (x3 + 14) & "' y='" & (r3 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l3, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                  "<text x='" & (x3 + 20 + Len(l3) * 7) & "' y='" & (r3 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(d3, "&", "&amp;"), "<", "&lt;") & "</text>") &
-              If(w4 = 0, "", "<rect x='" & (x4 + 1) & "' y='" & (r4 * 36 + 2) & "' rx='14' width='" & (w4 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                  "<text x='" & (x4 + 14) & "' y='" & (r4 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l4, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                  "<text x='" & (x4 + 20 + Len(l4) * 7) & "' y='" & (r4 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(d4, "&", "&amp;"), "<", "&lt;") & "</text>") &
-              If(w5 = 0, "", "<rect x='" & (x5 + 1) & "' y='" & (r5 * 36 + 2) & "' rx='14' width='" & (w5 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                  "<text x='" & (x5 + 14) & "' y='" & (r5 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l5, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                  "<text x='" & (x5 + 20 + Len(l5) * 7) & "' y='" & (r5 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(d5, "&", "&amp;"), "<", "&lt;") & "</text>") &
-              If(w6 = 0, "", "<rect x='" & (x6 + 1) & "' y='" & (r6 * 36 + 2) & "' rx='14' width='" & (w6 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                  "<text x='" & (x6 + 14) & "' y='" & (r6 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l6, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                  "<text x='" & (x6 + 20 + Len(l6) * 7) & "' y='" & (r6 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(d6, "&", "&amp;"), "<", "&lt;") & "</text>") &
-              If(w7 = 0, "", "<rect x='" & (x7 + 1) & "' y='" & (r7 * 36 + 2) & "' rx='14' width='" & (w7 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                  "<text x='" & (x7 + 14) & "' y='" & (r7 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l7, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                  "<text x='" & (x7 + 20 + Len(l7) * 7) & "' y='" & (r7 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(d7, "&", "&amp;"), "<", "&lt;") & "</text>") &
-              If(w8 = 0, "", "<rect x='" & (x8 + 1) & "' y='" & (r8 * 36 + 2) & "' rx='14' width='" & (w8 - 2) & "' height='28' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/>" &
-                  "<text x='" & (x8 + 14) & "' y='" & (r8 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='10' font-weight='600' letter-spacing='.5' fill='" & C.'hex-text-muted' & "'>" & Substitute(Substitute(l8, "&", "&amp;"), "<", "&lt;") & "</text>" &
-                  "<text x='" & (x8 + 20 + Len(l8) * 7) & "' y='" & (r8 * 36 + 20) & "' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Substitute(Substitute(d8, "&", "&amp;"), "<", "&lt;") & "</text>") &
-              "</svg>"
-          ),
+          Html: "<style>html,body{margin:0;padding:0;overflow:hidden}.s{padding:2px 0;font-family:Segoe UI,sans-serif}.r{display:flex;height:28px;white-space:nowrap}.r+.r{margin-top:8px}.c{flex:none;box-sizing:border-box;height:28px;line-height:26px;padding:0 13px;border:1px solid " & C.'hex-border-default' & ";border-radius:14px;background:" & C.'hex-state-neutral-bg' & ";color:" & C.'hex-text-primary' & ";font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis}.c+.c{margin-left:8px}.c b{font-size:10px;font-weight:600;letter-spacing:.5px;margin-right:6px;color:" & C.'hex-text-muted' & "}</style><div class='s'><div class='r'>" &
+              If(w1 = 0, "", "<span class='c' style='width:" & w1 & "px'><b>" & Substitute(Substitute(l1, "&", "&amp;"), "<", "&lt;") & "</b>" & Substitute(Substitute(d1, "&", "&amp;"), "<", "&lt;") & "</span>") &
+              If(w2 = 0, "", If(r2 > r1, "</div><div class='r'>", "") & "<span class='c' style='width:" & w2 & "px'><b>" & Substitute(Substitute(l2, "&", "&amp;"), "<", "&lt;") & "</b>" & Substitute(Substitute(d2, "&", "&amp;"), "<", "&lt;") & "</span>") &
+              If(w3 = 0, "", If(r3 > r2, "</div><div class='r'>", "") & "<span class='c' style='width:" & w3 & "px'><b>" & Substitute(Substitute(l3, "&", "&amp;"), "<", "&lt;") & "</b>" & Substitute(Substitute(d3, "&", "&amp;"), "<", "&lt;") & "</span>") &
+              If(w4 = 0, "", If(r4 > r3, "</div><div class='r'>", "") & "<span class='c' style='width:" & w4 & "px'><b>" & Substitute(Substitute(l4, "&", "&amp;"), "<", "&lt;") & "</b>" & Substitute(Substitute(d4, "&", "&amp;"), "<", "&lt;") & "</span>") &
+              If(w5 = 0, "", If(r5 > r4, "</div><div class='r'>", "") & "<span class='c' style='width:" & w5 & "px'><b>" & Substitute(Substitute(l5, "&", "&amp;"), "<", "&lt;") & "</b>" & Substitute(Substitute(d5, "&", "&amp;"), "<", "&lt;") & "</span>") &
+              If(w6 = 0, "", If(r6 > r5, "</div><div class='r'>", "") & "<span class='c' style='width:" & w6 & "px'><b>" & Substitute(Substitute(l6, "&", "&amp;"), "<", "&lt;") & "</b>" & Substitute(Substitute(d6, "&", "&amp;"), "<", "&lt;") & "</span>") &
+              If(w7 = 0, "", If(r7 > r6, "</div><div class='r'>", "") & "<span class='c' style='width:" & w7 & "px'><b>" & Substitute(Substitute(l7, "&", "&amp;"), "<", "&lt;") & "</b>" & Substitute(Substitute(d7, "&", "&amp;"), "<", "&lt;") & "</span>") &
+              If(w8 = 0, "", If(r8 > r7, "</div><div class='r'>", "") & "<span class='c' style='width:" & w8 & "px'><b>" & Substitute(Substitute(l8, "&", "&amp;"), "<", "&lt;") & "</b>" & Substitute(Substitute(d8, "&", "&amp;"), "<", "&lt;") & "</span>") &
+              "</div></div>",
           W: Max(If(w1 = 0, 0, x1 + w1), If(w2 = 0, 0, x2 + w2), If(w3 = 0, 0, x3 + w3), If(w4 = 0, 0, x4 + w4), If(w5 = 0, 0, x5 + w5), If(w6 = 0, 0, x6 + w6), If(w7 = 0, 0, x7 + w7), If(w8 = 0, 0, x8 + w8), 1),
-          H: r8 * 36 + 32,
-          Label: If(w1 = 0, "", l1 & " " & v1 & ". ") &
-              If(w2 = 0, "", l2 & " " & v2 & ". ") &
-              If(w3 = 0, "", l3 & " " & v3 & ". ") &
-              If(w4 = 0, "", l4 & " " & v4 & ". ") &
-              If(w5 = 0, "", l5 & " " & v5 & ". ") &
-              If(w6 = 0, "", l6 & " " & v6 & ". ") &
-              If(w7 = 0, "", l7 & " " & v7 & ". ") &
-              If(w8 = 0, "", l8 & " " & v8 & ". ")
+          H: r8 * 36 + 32
       }
       )))))))))))))))))));
     OnError: |

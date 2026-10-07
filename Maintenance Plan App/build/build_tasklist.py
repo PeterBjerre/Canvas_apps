@@ -23,6 +23,7 @@ MUT_HEX = ref_hex("text-muted")
 BG_HEX = ref_hex("bg-muted")
 PRI_HEX = ref_hex("text-primary")
 import build_attflows
+import doc_upload as du
 
 # Flowkontrakten staar i tools/attflows.py; kun rudens egne navne
 # og dens refresh_fx() staar i build_attflows.py.
@@ -430,29 +431,35 @@ ATT_OPS = "Sort(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Value(Ope
 ATT_LINKED = "\";\" & varVhpAttOpNo & \";\" in Coalesce(ThisItem.OperationsKey, \";\")"
 
 
+# Maa der laegges op, slettes og kobles? Ikke i View-tilstand, og ikke
+# naar operationerne er gemt og laast (OPS_LOCKED) - koblingen gemmes med
+# operationerne, og Save er spaerret, saa laenge de er laast (issue #134).
+def _att_edit():
+    return f"(!IfError(varVhpViewOnly, false) && !{OPS_LOCKED})"
+
+
+# Luk dokumentpopuppen: glem de valgte filer og omgangens svar.
+ATT_CLOSE = 'Set(varVhpAttOpNo, "");\n' + att.close_fx()
+
+
 def _attachments_modal():
     """Dokumenter for EEN operation - aabnet fra operationens Docs-knap.
 
-    Det var fanen Attachments med en afkrydsning pr. operation i hver
-    dokumentraekke. Nu staar popup'en for een operation (issue #54):
-    listen er itemets dokumenter, og "This operation" kobler et dokument
-    til operationen eller fra den. Et dokument uden operationer hoerer til
-    hele itemet, som foer - koblingen er stadig OperationsKey ";0010;0020;".
+    Listen er itemets dokumenter, og afkrydsningen kobler et dokument til
+    operationen eller fra den. Et dokument uden operationer hoerer til hele
+    itemet - koblingen er stadig OperationsKey ";0010;0020;".
 
     Et dokument, der uploades HERFRA, kobles til operationen med det samme:
-    colVhpAttUp er, hvad flowet svarede paa hver fil ved uploaden."""
-    picker = Ctrl(att.picker, "Attachments@2.3.0", props={
-        "AccessibleLabel": '"Choose documents"',
-        "BorderColor": C_CARD_BORDER,
-        "BorderThickness": "1",
-        "Height": "96",
-        "MaxAttachments": "10",
-        "MaxAttachmentSize": "50",
-        "NoAttachmentsText": '"Drop documents here, or browse"',
-        "PaddingBottom": "5", "PaddingLeft": "5",
-        "PaddingRight": "5", "PaddingTop": "5",
-        "Width": "Parent.Width",
-    }, h=96)
+    colVhpAttUp er, hvad flowet svarede paa hver fil ved uploaden.
+
+    Opbygningen (issue #134) er den faelles i tools/doc_upload.py: den
+    moderne Attachments-kontrol, een Upload, og pr. dokument filtype, Open
+    og Remove."""
+    edit = _att_edit()
+    pick = du.picker(att.picker, '"Choose documents for operation " & varVhpAttOpNo', 10, 50,
+                     visible=edit,
+                     display_mode=f"If({att.busy}, DisplayMode.Disabled, DisplayMode.Edit)")
+    limits = du.limits_text("txtVhpAttLimits", 10, 50, visible=edit)
 
     link_new = (
         "UpdateIf(\n"
@@ -462,29 +469,23 @@ def _attachments_modal():
         "        !(\";\" & varVhpAttOpNo & \";\" in Coalesce(OperationsKey, \";\")),\n"
         "    { OperationsKey: Coalesce(OperationsKey, \";\") & varVhpAttOpNo & \";\" }\n"
         ")")
-    btnUpload = button("btnVhpAttUpload", '"Upload"',
-                       "Clear(colVhpAttUp);\n" + att.upload_fx() + ";\n" + link_new,
-                       primary=True, width=fit_button_width('"Upload"') + ICON_W,
-                       icon="ArrowUpload")
+    btnUpload = du.upload_button("btnVhpAttUpload", att.picker,
+                                 att.upload_fx() + ";\n" + link_new, att.busy, visible=edit)
     btnRefresh = button("btnVhpAttRefresh", '"Refresh"', att.refresh_button_fx(),
-                        width=fit_button_width('"Refresh"'))
-    btnRemove = button(
-        "btnVhpRemoveAttachment", '"Remove document"',
-        att.delete_fx(), danger=True, width=fit_button_width('"Remove document"'))
-    actions = group("conVhpAttActions", [btnUpload, btnRefresh, btnRemove],
-                    direction="Horizontal", gap=8, height=36, align_items="Center")
+                        width=fit_button_width('"Refresh"'), height=36,
+                        accessible='"Refresh the document list"',
+                        display_mode=f"If({att.busy}, DisplayMode.Disabled, DisplayMode.Edit)")
+    btnRefresh.props["LayoutMinWidth"] = btnRefresh.props["Width"]
+    actions = group("conVhpAttActions", [btnRefresh, btnUpload],
+                    direction="Horizontal", gap=8, height=36, justify="End",
+                    align_items="Center")
+    status = du.status_text("txtVhpAttStatus", att)
+    confirm = du.remove_confirm("VhpAtt", att)
 
-    chkSel = Ctrl("chkVhpAttSel", "ModernCheckbox", props=checkbox_theme({
-        "AccessibleLabel": '"Select document"',
-        "Default": "ThisItem.Selected",
-        "Height": "24",
-        "Label": '""',
-        "OnCheck": "Patch(colVhpAttachments, ThisItem, { Selected: true })",
-        "OnUncheck": "Patch(colVhpAttachments, ThisItem, { Selected: false })",
-        "Width": "30",
-    }), h=24)
-    txtName = text_ctrl("txtVhpAttName", "ThisItem.FileName", size=13, height=30,
-                        width=190, wrap="false")
+    file = "ThisItem.FileName"
+    badge_ = du.type_badge("txtVhpAttType", file)
+    txtName = grow(text_ctrl("txtVhpAttName", file, size=13, height=30, wrap="false"))
+    wide = at_least("Tablet")
     txtScope = text_ctrl(
         "txtVhpAttScope",
         (
@@ -493,12 +494,15 @@ def _attachments_modal():
             "    \"Whole item\",\n"
             "    \"Ops: \" & Substitute(Mid(ThisItem.OperationsKey, 2), \";\", \" \")\n"
             ")"
-        ), size=12, color=C_MUTED, height=30, width=120, wrap="false")
+        ), size=12, color=C_MUTED, height=30, width=110, wrap="false", visible=wide)
     chkLink = Ctrl("chkVhpAttOp", "ModernCheckbox", props=checkbox_theme({
-        "AccessibleLabel": '"Attach to operation " & varVhpAttOpNo',
+        "AccessibleLabel": '"Attach " & ThisItem.FileName & " to operation " & varVhpAttOpNo',
         "Default": ATT_LINKED,
+        "DisplayMode": f"If({edit} && !{att.busy}, DisplayMode.Edit, DisplayMode.View)",
         "Height": "24",
-        "Label": '"This operation"',
+        # Paa en telefon er der ikke plads til ordene - noten over listen
+        # siger, hvad boksen goer.
+        "Label": f'If({wide}, "This operation", "")',
         "OnCheck": (
             "With(\n"
             "    { fn: ThisItem.FileName },\n"
@@ -521,31 +525,35 @@ def _attachments_modal():
             "    )\n"
             ")"
         ),
-        "Width": "130",
+        "Width": f"If({wide}, 130, 32)",
     }), h=24)
+    chkLink.props["LayoutMinWidth"] = chkLink.props["Width"]
+    link = du.open_button("btnVhpAttOpen", "ThisItem.FileUrl", file)
+    rem = du.remove_button("btnVhpAttRemove", att, file, edit)
 
-    row = group("conVhpAttRow", pin_widths([chkSel, txtName, txtScope, chkLink]),
-                direction="Horizontal", gap=10, height="Parent.TemplateHeight - 2",
+    row = group("conVhpAttRow", pin_widths([badge_, txtName, txtScope, chkLink, link, rem]),
+                direction="Horizontal", gap=8, height="Parent.TemplateHeight - 2",
                 align_items="Center", width="Parent.TemplateWidth")
 
-    ATT_ROWS = 6
-    gal_h = ATT_ROWS * (ATT_ROW_H + 2)
+    # Hele listen staar i galleriet; er der flere, end popuppen kan vise,
+    # scroller popuppens indhold - ikke galleriet i den.
+    gal_h = f"CountRows({ATT_ACTIVE}) * {du.ROW_H}"
     gallery = Ctrl("galVhpAttachments", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Documents for active item"',
         "BorderStyle": "BorderStyle.None",
         "Fill": C_CARD_BG,
         "FillPortions": "0",
-        "Height": str(gal_h),
+        "Height": gal_h,
         # Filnavnet er noeglen paa raekken - der ER ingen LineId paa
         # dokumenterne.
         "Items": f"Sort({ATT_ACTIVE}, FileName)",
         "LayoutMinWidth": "0",
         "LoadingSpinner": "LoadingSpinner.None",
-        "Selectable": "true",
-        "ShowScrollbar": "true",
+        "Selectable": "false",
+        "ShowScrollbar": "false",
         "TabIndex": "0",
         "TemplatePadding": "2",
-        "TemplateSize": str(ATT_ROW_H),
+        "TemplateSize": str(du.ROW_H - 2),
         "Width": "Parent.Width",
         "WrapCount": "1",
     }, children=[row], h=gal_h)
@@ -556,12 +564,24 @@ def _attachments_modal():
                       visible=f"IfError(CountRows({ATT_ACTIVE}) = 0, false)")
 
     note = text_ctrl("txtVhpAttNote",
-                     '"Tick This operation to attach a document to the operation. '
-                     'A document with no operations belongs to the whole item."',
-                     size=12, color=C_MUTED, height=32, wrap="true")
+                     '"Tick the box on a document to attach it to operation " & varVhpAttOpNo & '
+                     '". A document with no operations belongs to the whole item."',
+                     size=12, color=C_MUTED, height=32, wrap="true",
+                     visible=f"{edit} && CountRows({ATT_ACTIVE}) > 0")
+    ro = du.readonly_note("txtVhpAttReadOnly", f"!{edit}")
 
-    return _modal("VhpAtt", '"Documents - operation " & varVhpAttOpNo', ATT_OPEN,
-                  'Set(varVhpAttOpNo, "")', [picker, actions, note, gallery, empty])
+    # Popuppen: 20 + 20 luft til skaermkanten, 18 + 18 polstring, hovedet
+    # (32) og afstanden (12) - resten er indholdet.
+    body = du.capped_body("conVhpAttBody",
+                          [pick, limits, actions, status, confirm, note, gallery, empty, ro],
+                          "App.Height - 40 - 36 - 32 - 12")
+    modal = _modal("VhpAtt", '"Documents · Operation " & varVhpAttOpNo', ATT_OPEN,
+                   ATT_CLOSE, [body])
+    # Close er den eneste vej ud - men ikke midt i en upload.
+    for c in modal.children[0].children:
+        if c.name == "btnVhpAttClose":
+            c.props["DisplayMode"] = f"If({att.busy}, DisplayMode.Disabled, DisplayMode.Edit)"
+    return modal
 
 
 OPM_OPEN = "!IsBlank(varVhpOpMNo)"
@@ -928,7 +948,7 @@ def build_tasklist_section():
     # DEN SAMMENKLAPPEDE LINJE (issue #103, #123) - Plan Headers chips:
     # tasklisten og de vigtigste tal, ikke hele tabellen. Paa alle bredder;
     # layoutet er den navngivne formel VhpOpsSummary (ops_summary_fx).
-    summary = summary_chips("imgVhpOpsSummary", "VhpOpsSummary", OPS_SUMMARY_VIS)
+    summary = summary_chips("htmVhpOpsSummary", "VhpOpsSummary", OPS_SUMMARY_VIS)
     # Foldet ud: hvad der mangler, foer sektionen kan gemmes.
     attention = text_ctrl(
         "txtVhpOpsAttention",
