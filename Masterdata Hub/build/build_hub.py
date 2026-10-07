@@ -291,17 +291,23 @@ PEEK_OPEN = "IfError(varMdClosedPeek, false)"
 # Tabellens kolonner. EEN kilde til bredderne, saa overskriften og raekken
 # ikke kan komme til at staa forskudt.
 #
-# RAEKKEFOELGE OG BREDDER (issue #163): Domain | Plant | Request | Requester
-# | Approval | Status | Updated | Actions. Tallene er MINDSTEBREDDER, som
-# passer i den smalleste brede skaerm (App.Width 1600). Den frie bredde
-# deles: Request faar halvdelen op til REQ_GROW_CAP, saa den ikke tager
-# hele tabellen; resten gaar i enheder til Plant (1), Requester (1),
-# Status (2) og Updated (2), hoejst UNIT_CAP pr. enhed. Er der stadig
-# bredde til overs, staar den efter Actions. Approval og Actions er faste:
-# striben og ikonerne har en fast bredde.
+# RAEKKEFOELGE OG BREDDER (issue #178): Domain | Plant | Request ID |
+# Request | Requester | Approval | Status | Updated | Actions. Tallene er
+# MINDSTEBREDDER, som passer i den smalleste brede skaerm (App.Width
+# 1600, AVAIL = 1382). Request ID er nummer-pillen fra anmodningsappen
+# (88 px) og Request kun titlen - foer stod de i een kolonne som
+# "EQ-000912 -  Titel".
+#
+# AL den frie bredde deles nu paa ALLE kolonner efter vaegtene i
+# GROW_UNITS - uden loft og uden at Request faar det hele (issue #163 gav
+# Request hoejst +300 px og lod resten staa tomt efter Actions). Saa
+# fylder tabellen hele kortets bredde paa enhver brede skaerm, og der er
+# aldrig vandret overloeb: summen af bredderne er AVAIL. Approval og
+# Actions har en fast tegning (striben, ikonerne); deres ekstra bredde
+# staar som luft til hoejre for tegningen i kolonnen.
 DOM_TEXT = 156
-COLS = [("DOMAIN", 168), ("PLANT", 72), ("REQUEST", 260), ("REQUESTER", 88), ("APPROVAL", 270),
-        ("STATUS", 140), ("UPDATED", 88), ("ACTIONS", 156)]
+COLS = [("DOMAIN", 160), ("PLANT", 72), ("REQUEST ID", 96), ("REQUEST", 150), ("REQUESTER", 72),
+        ("APPROVAL", 270), ("STATUS", 140), ("UPDATED", 80), ("ACTIONS", 156)]
 CW = dict(COLS)
 TL_W = 28
 GAP = 16
@@ -313,15 +319,13 @@ FIXED = sum(w for _, w in COLS) + GAP * (len(COLS) - 1) + 2 * ROW_PAD
 # scrollbar fra.
 AVAIL = f"({SHELL_W} - 36 - 4 - {SCROLLBAR_W} - {GALLERY_RESERVE})"
 FREE = f"Max(0, {AVAIL} - {FIXED})"
-REQ_GROW_CAP = 300
-REQ_GROW = f"Min({REQ_GROW_CAP}, {FREE} / 2)"
-UNIT_CAP = 40
-GROW_UNITS = {"PLANT": 1, "REQUESTER": 1, "STATUS": 2, "UPDATED": 2}
-UNIT = f"Min({UNIT_CAP}, ({FREE} - {REQ_GROW}) / {sum(GROW_UNITS.values())})"
-CWF = {k: v for k, v in COLS}
-CWF["REQUEST"] = f"({CW['REQUEST']} + {REQ_GROW})"
-for _k, _n in GROW_UNITS.items():
-    CWF[_k] = f"({CW[_k]} + {_n} * {UNIT})" if _n > 1 else f"({CW[_k]} + {UNIT})"
+GROW_UNITS = {"DOMAIN": 1, "PLANT": 1, "REQUEST ID": 1, "REQUEST": 5, "REQUESTER": 1,
+              "APPROVAL": 2, "STATUS": 2, "UPDATED": 1, "ACTIONS": 1}
+if set(GROW_UNITS) != set(CW):
+    raise SystemExit("build_hub: GROW_UNITS skal have en vaegt for hver kolonne")
+UNIT = f"({FREE} / {sum(GROW_UNITS.values())})"
+CWF = {k: (f"({CW[k]} + {UNIT})" if GROW_UNITS[k] == 1 else f"({CW[k]} + {GROW_UNITS[k]} * {UNIT})")
+       for k in CW}
 
 ROW_H = 52
 GAL_ROWS = 14
@@ -344,8 +348,6 @@ INITIALS = 'Upper(First(Split(Coalesce(ThisItem.RequesterEmail, "?@"), "@")).Val
 # aktivitet sit historik-ur og noter Fluents notesblok.
 ICON_HISTORY = icons.HISTORY
 ICON_NOTE = icons.NOTE
-
-NO_W = 120
 
 # Hvert statusikon skal have en status - og omvendt.
 if set(STATUS_ICON) != {s[0] for s in STATUS}:
@@ -996,14 +998,19 @@ def build_list():
     # linjer, SAP-nummeret, naar det findes, og hvem der sidst roerte den.
     # Ingen nye kald - det er kolonner i MD_RequestIndex, som galleriet
     # alligevel henter.
-    no = text_ctrl("txtMdRowNo", f'ThisItem.{COL_NO} & " -"', size=13, weight="Semibold",
-                   height=20, width=NO_W, wrap="false",
-                   accessible=f"ThisItem.{COL_NO}")
-    # Titlen paa een linje; en lang titel afkortes med ellipse (Wrap false).
-    txt = text_ctrl("txtMdRowText", "ThisItem.ShortText", size=13, color=C_MUTED, height=20,
-                    width=f"{CWF['REQUEST']} - {NO_W} - 8", wrap="false")
-    main = group("conMdRowMain", [no, txt], direction="Horizontal", gap=8, width=CWF["REQUEST"],
-                 height=20, align_items="Center")
+    #
+    # REQUEST ID OG REQUEST ER TO KOLONNER (issue #178). Nummeret er den
+    # samme pille som i anmodningsappens sidehoved (approval_flow.
+    # number_badge = build_helpers.number_badge) i domaenets farve, og
+    # nummeret staar uaendret - kun bindestregen MELLEM nummer og titel er
+    # vaek. Pillen staar til venstre i sin kolonne; kolonnens ekstra bredde
+    # er luft efter den.
+    no_badge = approval_flow.number_badge("imgMdRowNo", rec="ThisItem")
+    no = group("conMdRowNo", [no_badge], direction="Horizontal", gap=0, width=CWF["REQUEST ID"],
+               height=26, align_items="Center")
+    # Kun titlen, paa een linje; en lang titel afkortes med ellipse (Wrap false).
+    main = text_ctrl("txtMdRowText", "ThisItem.ShortText", size=13, height=20,
+                     width=CWF["REQUEST"], wrap="false")
     req = text_ctrl("txtMdRowReq", INITIALS, size=13, height=20, width=CWF["REQUESTER"], wrap="false",
                     accessible='"Requested by " & Coalesce(ThisItem.RequesterName, ThisItem.RequesterEmail)')
 
@@ -1012,6 +1019,9 @@ def build_list():
 
     approval = _image("imgMdRowApproval", _svg_uri(approval_flow.row_svg()), CW["APPROVAL"], 30,
                       label='"Approval progress"')
+    # Striben har en fast tegning; kolonnen kan vaere bredere (issue #178).
+    approval = group("conMdRowApr", [approval], direction="Horizontal", gap=0,
+                     width=CWF["APPROVAL"], height=30, align_items="Center")
 
     st_icon = _image("imgMdRowStatus", _svg_uri(
         "Switch(\n    ThisItem.Status.Value,\n    " +
@@ -1036,7 +1046,7 @@ def build_list():
     edit_btn, del_btn = _owner_buttons(_open_action("edit"), "")
     actions = [edit_btn, del_btn]
 
-    row = group("conMdRow", [dom, plant, main, req, approval, stat, when],
+    row = group("conMdRow", [dom, plant, no, main, req, approval, stat, when],
                 direction="Horizontal", gap=GAP, height="Parent.TemplateHeight - 1",
                 align_items="Center", width="Parent.TemplateWidth", fill=C_CARD_BG,
                 pad=(0, ROW_PAD, 0, ROW_PAD), visible=at_least("Wide"))
@@ -1055,9 +1065,9 @@ def build_list():
     hit = row_hit("btnMdRowHit", act,
                   f'"Open " & ThisItem.{COL_NO} & " - " & ThisItem.ShortText',
                   "Parent.TemplateWidth", "Parent.TemplateHeight - 1")
-    strip_x = (f"{ROW_PAD} + {CWF['DOMAIN']} + {GAP} + {CWF['PLANT']} + {GAP} + {CWF['REQUEST']} + {GAP} + "
-               f"{CWF['REQUESTER']} + {GAP}")
-    tl_x = (f"{strip_x} + {CW['APPROVAL']} + {GAP} + {CWF['STATUS']} + {GAP} + {CWF['UPDATED']} + {GAP}")
+    strip_x = (f"{ROW_PAD} + {CWF['DOMAIN']} + {GAP} + {CWF['PLANT']} + {GAP} + {CWF['REQUEST ID']} + {GAP} + "
+               f"{CWF['REQUEST']} + {GAP} + {CWF['REQUESTER']} + {GAP}")
+    tl_x = (f"{strip_x} + {CWF['APPROVAL']} + {GAP} + {CWF['STATUS']} + {GAP} + {CWF['UPDATED']} + {GAP}")
     timeline = _image("imgMdRowTimeline", _svg_uri(_icon_svg(ICON_HISTORY, _hx("text-muted"), size=ACTION_GLYPH, box=TL_W)), TL_W,
                       TL_W, onselect=approval_flow.timeline_fx(),
                       label=f'"Activity for " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
