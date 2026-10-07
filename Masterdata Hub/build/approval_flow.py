@@ -128,12 +128,17 @@ NOT_STARTED = (
 # foerst: rammer listen appens data row limit, er det de AELDSTE
 # beslutninger, der mangler - og for en raekke uden beslutninger i
 # samlingen spoerges der saa direkte, som foer.
+#
+# EN VARIABEL, IKKE EN SAMLING (issue #165): tabellen hentes paany ved
+# hver visning, men aendres aldrig imellem. App checker meldte samlingen
+# (CollectingReadOnlyTable) - en samling koster ekstra sporing, som en
+# variabel ikke har. Samme kald, samme tidspunkt, samme raekker.
 LOG_LIMIT = 500   # appens Data row limit (som build_hub.ROW_LIMIT)
-LOG_REFRESH = ('ClearCollect(colMdAprAll, SortByColumns(Filter(MD_ApprovalLog, '
+LOG_REFRESH = ('Set(varMdAprAll, SortByColumns(Filter(MD_ApprovalLog, '
                'Stage = "System" || Stage = "Cost" || Stage = "Quality"), "ID", '
                'SortOrder.Descending))')
-ROW_LOG = ('With({ c: Filter(colMdAprAll, RequestGuid = ThisItem.RequestGuid) }, '
-           f'If(IsEmpty(c) && CountRows(colMdAprAll) >= {LOG_LIMIT}, '
+ROW_LOG = ('With({ c: Filter(varMdAprAll, RequestGuid = ThisItem.RequestGuid) }, '
+           f'If(IsEmpty(c) && CountRows(varMdAprAll) >= {LOG_LIMIT}, '
            'Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c))')
 
 
@@ -345,7 +350,7 @@ NOTE_STAGE = "N"
 
 def _notes_row():
     show_a = f"{R}.{sn.FLAG} && {sn.hub_may_approver(R)}"
-    show_s = f"{sn.has_self(R + '.RequestGuid', 'colMdSelfNotes')} && {sn.hub_may_self(R)}"
+    show_s = f"{sn.has_self(R + '.RequestGuid', 'varMdSelfNotes')} && {sn.hub_may_self(R)}"
     which = (f'Concat(Filter(Table({{ v: If({show_a}, "{sn.T_APPROVER}", "") }}, '
              f'{{ v: If({show_s}, "{sn.T_SELF}", "") }}), !IsBlank(v)), v, " and ")')
     rec = _rec(Kind=_q("D"), Stage=_q(NOTE_STAGE),

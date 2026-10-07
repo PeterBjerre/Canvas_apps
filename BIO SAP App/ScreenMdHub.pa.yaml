@@ -22,8 +22,8 @@ Screens:
                       'MD_RequestIndex'
                   )
               ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe })),
-              ClearCollect(colMdAprAll, SortByColumns(Filter(MD_ApprovalLog, Stage = "System" || Stage = "Cost" || Stage = "Quality"), "ID", SortOrder.Descending)),
-              ClearCollect(colMdSelfNotes, If(IsAdmin, ShowColumns(VHP_NoteToSelf, RequestGuid), ShowColumns(Filter(VHP_NoteToSelf, OwnerEmail = varMdMe), RequestGuid)))
+              Set(varMdAprAll, SortByColumns(Filter(MD_ApprovalLog, Stage = "System" || Stage = "Cost" || Stage = "Quality"), "ID", SortOrder.Descending)),
+              Set(varMdSelfNotes, If(IsAdmin, ShowColumns(VHP_NoteToSelf, RequestGuid), ShowColumns(Filter(VHP_NoteToSelf, OwnerEmail = varMdMe), RequestGuid)))
           )
     Children:
       - conMdRoot:
@@ -2651,7 +2651,7 @@ Screens:
                                         ="data:image/svg+xml;utf8," & EncodeUrl(If(
                                             !(ThisItem.Domain.Value = "MaintenancePlan" && ThisItem.Status.Value <> "Kladde"), "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='30' viewBox='0 0 270 30'><text x='4' y='19' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
                                             With(
-                                                { L: With({ c: Filter(colMdAprAll, RequestGuid = ThisItem.RequestGuid) }, If(IsEmpty(c) && CountRows(colMdAprAll) >= 500, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c)) },
+                                                { L: With({ c: Filter(varMdAprAll, RequestGuid = ThisItem.RequestGuid) }, If(IsEmpty(c) && CountRows(varMdAprAll) >= 500, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c)) },
                                                 With({a: With({T: ForAll(GroupBy(Filter(L, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
                                             n > 0 && n >= Max(1, ThisItem.ItemCount) && k = n, "Skipped",
@@ -3321,7 +3321,7 @@ Screens:
                                         ="data:image/svg+xml;utf8," & EncodeUrl(If(
                                             !(ThisItem.Domain.Value = "MaintenancePlan" && ThisItem.Status.Value <> "Kladde"), "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='30' viewBox='0 0 270 30'><text x='4' y='19' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
                                             With(
-                                                { L: With({ c: Filter(colMdAprAll, RequestGuid = ThisItem.RequestGuid) }, If(IsEmpty(c) && CountRows(colMdAprAll) >= 500, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c)) },
+                                                { L: With({ c: Filter(varMdAprAll, RequestGuid = ThisItem.RequestGuid) }, If(IsEmpty(c) && CountRows(varMdAprAll) >= 500, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c)) },
                                                 With({a: With({T: ForAll(GroupBy(Filter(L, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
                                             n > 0 && n >= Max(1, ThisItem.ItemCount) && k = n, "Skipped",
@@ -3649,7 +3649,7 @@ Screens:
                                         Set(varMdAprMode, "A");
                                         Set(varMdAprOpen, true);
                                         Set(varMdAprReq, ThisItem);
-                                        Set(varMdAprNote, If(varMdAprReq.HasApproverNote && (Lower(Coalesce(varMdAprReq.RequesterEmail, "")) = varMdMe || IsAdmin || IsApprover || Lower(Coalesce(varMdAprReq.AssignedToEmail, "")) = varMdMe || !IsBlank(LookUp(colMdAprAll, RequestGuid = varMdAprReq.RequestGuid && DecidedByEmail = varMdMe))), Coalesce(LookUp(MaintenancePlans, ID = varMdAprReq.SourceItemId).NoteToApprover, ""), ""));
+                                        Set(varMdAprNote, If(varMdAprReq.HasApproverNote && (Lower(Coalesce(varMdAprReq.RequesterEmail, "")) = varMdMe || IsAdmin || IsApprover || Lower(Coalesce(varMdAprReq.AssignedToEmail, "")) = varMdMe || !IsBlank(LookUp(varMdAprAll, RequestGuid = varMdAprReq.RequestGuid && DecidedByEmail = varMdMe))), Coalesce(LookUp(MaintenancePlans, ID = varMdAprReq.SourceItemId).NoteToApprover, ""), ""));
                                         ClearCollect(colMdAprLog, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid));
                                         ClearCollect(colMdAprLatest, ForAll(GroupBy(Filter(colMdAprLog, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))));
                                         Collect(colMdAprLatest, ForAll(GroupBy(Filter(colMdAprLog, Stage = "Cost"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))));
@@ -3799,7 +3799,7 @@ Screens:
                                         Set(varMdAprReq, ThisItem);
                                         ClearCollect(colMdAprLog, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid));
                                         ClearCollect(colMdAprRows, { Kind: "D", Stage: "T", Title: Upper(First(Split(Coalesce(varMdAprReq.RequesterEmail, "unknown"), "@")).Value), State: "Done", Label: "Created", Rule: "", Cur: false, Sub: "", Act: "Created the request", Stamp: Text(varMdAprReq.Created, "dd-mm-yyyy hh:mm"), Human: true });
-                                        If(varMdAprReq.Domain.Value = "MaintenancePlan" && ((varMdAprReq.HasApproverNote && (Lower(Coalesce(varMdAprReq.RequesterEmail, "")) = varMdMe || IsAdmin || IsApprover || Lower(Coalesce(varMdAprReq.AssignedToEmail, "")) = varMdMe || !IsBlank(LookUp(colMdAprAll, RequestGuid = varMdAprReq.RequestGuid && DecidedByEmail = varMdMe)))) || ((varMdAprReq.RequestGuid in colMdSelfNotes.RequestGuid) && (Lower(Coalesce(varMdAprReq.RequesterEmail, "")) = varMdMe || IsAdmin))), With({ p: LookUp(MaintenancePlans, ID = varMdAprReq.SourceItemId) }, Collect(colMdAprRows, { Kind: "D", Stage: "N", Title: Upper(First(Split(Coalesce(Coalesce(p.SubmittedBy, varMdAprReq.RequesterEmail), "unknown"), "@")).Value), State: "Note", Label: "Notes", Rule: "", Cur: false, Sub: Concat(Filter(Table({ v: If(varMdAprReq.HasApproverNote && (Lower(Coalesce(varMdAprReq.RequesterEmail, "")) = varMdMe || IsAdmin || IsApprover || Lower(Coalesce(varMdAprReq.AssignedToEmail, "")) = varMdMe || !IsBlank(LookUp(colMdAprAll, RequestGuid = varMdAprReq.RequestGuid && DecidedByEmail = varMdMe))), "Note to approver", "") }, { v: If((varMdAprReq.RequestGuid in colMdSelfNotes.RequestGuid) && (Lower(Coalesce(varMdAprReq.RequesterEmail, "")) = varMdMe || IsAdmin), "Note to self", "") }), !IsBlank(v)), v, " and ") & " - select to read", Act: "Added submission notes", Stamp: Text(p.SubmittedOn, "dd-mm-yyyy hh:mm"), Human: true })));
+                                        If(varMdAprReq.Domain.Value = "MaintenancePlan" && ((varMdAprReq.HasApproverNote && (Lower(Coalesce(varMdAprReq.RequesterEmail, "")) = varMdMe || IsAdmin || IsApprover || Lower(Coalesce(varMdAprReq.AssignedToEmail, "")) = varMdMe || !IsBlank(LookUp(varMdAprAll, RequestGuid = varMdAprReq.RequestGuid && DecidedByEmail = varMdMe)))) || ((varMdAprReq.RequestGuid in varMdSelfNotes.RequestGuid) && (Lower(Coalesce(varMdAprReq.RequesterEmail, "")) = varMdMe || IsAdmin))), With({ p: LookUp(MaintenancePlans, ID = varMdAprReq.SourceItemId) }, Collect(colMdAprRows, { Kind: "D", Stage: "N", Title: Upper(First(Split(Coalesce(Coalesce(p.SubmittedBy, varMdAprReq.RequesterEmail), "unknown"), "@")).Value), State: "Note", Label: "Notes", Rule: "", Cur: false, Sub: Concat(Filter(Table({ v: If(varMdAprReq.HasApproverNote && (Lower(Coalesce(varMdAprReq.RequesterEmail, "")) = varMdMe || IsAdmin || IsApprover || Lower(Coalesce(varMdAprReq.AssignedToEmail, "")) = varMdMe || !IsBlank(LookUp(varMdAprAll, RequestGuid = varMdAprReq.RequestGuid && DecidedByEmail = varMdMe))), "Note to approver", "") }, { v: If((varMdAprReq.RequestGuid in varMdSelfNotes.RequestGuid) && (Lower(Coalesce(varMdAprReq.RequesterEmail, "")) = varMdMe || IsAdmin), "Note to self", "") }), !IsBlank(v)), v, " and ") & " - select to read", Act: "Added submission notes", Stamp: Text(p.SubmittedOn, "dd-mm-yyyy hh:mm"), Human: true })));
                                         Collect(colMdAprRows, ForAll(SortByColumns(colMdAprLog, "DecidedOn"), { Kind: "D", Stage: "T", Title: Upper(First(Split(Coalesce(DecidedByEmail, "unknown"), "@")).Value), State: Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned"), Label: Switch(Decision, "AdminEdit", "Admin edit", "AdminDelete", "Admin delete", Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", "AdminEdit", "Admin", "AdminDelete", "Admin", "Returned")), Rule: "", Cur: false, Sub: With({ n: If(!IsBlank(Comment), Substitute(Comment, Char(10), " "), Coalesce(Detail, "")) }, If(IsBlank(ItemText), n, ItemText & If(IsBlank(n), "", "  ·  " & n))), Act: Switch(Stage, "System", "System approval", "Cost", "Cost approval", "Quality", "Quality review", "SapCreated", "Creation in SAP", "Admin", "Admin change", Stage), Stamp: Text(DecidedOn, "dd-mm-yyyy hh:mm"), Human: "@" in Coalesce(DecidedByEmail, "") }));
                                         If(!IsBlank(varMdAprReq.SapObjectNo), Collect(colMdAprRows, { Kind: "D", Stage: "T", Title: "SAP", State: "Done", Label: "Created", Rule: "", Cur: false, Sub: "SAP " & varMdAprReq.SapObjectNo, Act: "Created in SAP", Stamp: "", Human: false }));
                                         If(varMdAprReq.IsOpen && !IsBlank(varMdAprReq.AssignedToEmail), Collect(colMdAprRows, { Kind: "D", Stage: "T", Title: Upper(First(Split(Coalesce(varMdAprReq.AssignedToEmail, "unknown"), "@")).Value), State: "In progress", Label: "Waiting", Rule: "", Cur: false, Sub: "", Act: "Assigned to", Stamp: "", Human: true }));
@@ -3850,10 +3850,10 @@ Screens:
                                         =ImagePosition.Fit
                                     OnSelect: |-
                                         =Set(varMdNoteReq, ThisItem);
-                                        Set(varMdNoteShowA, (Lower(Coalesce(varMdNoteReq.RequesterEmail, "")) = varMdMe || IsAdmin || IsApprover || Lower(Coalesce(varMdNoteReq.AssignedToEmail, "")) = varMdMe || !IsBlank(LookUp(colMdAprAll, RequestGuid = varMdNoteReq.RequestGuid && DecidedByEmail = varMdMe))));
+                                        Set(varMdNoteShowA, (Lower(Coalesce(varMdNoteReq.RequesterEmail, "")) = varMdMe || IsAdmin || IsApprover || Lower(Coalesce(varMdNoteReq.AssignedToEmail, "")) = varMdMe || !IsBlank(LookUp(varMdAprAll, RequestGuid = varMdNoteReq.RequestGuid && DecidedByEmail = varMdMe))));
                                         Set(varMdNoteShowS, (Lower(Coalesce(varMdNoteReq.RequesterEmail, "")) = varMdMe || IsAdmin));
                                         Set(varMdNoteA, If(varMdNoteShowA && varMdNoteReq.HasApproverNote, Coalesce(LookUp(MaintenancePlans, ID = varMdNoteReq.SourceItemId).NoteToApprover, ""), ""));
-                                        Set(varMdNoteS, If(varMdNoteShowS && (varMdNoteReq.RequestGuid in colMdSelfNotes.RequestGuid), Coalesce(LookUp(VHP_NoteToSelf, RequestGuid = varMdNoteReq.RequestGuid).Note, ""), ""));
+                                        Set(varMdNoteS, If(varMdNoteShowS && (varMdNoteReq.RequestGuid in varMdSelfNotes.RequestGuid), Coalesce(LookUp(VHP_NoteToSelf, RequestGuid = varMdNoteReq.RequestGuid).Note, ""), ""));
                                         Set(varMdNotesOpen, true)
                                     PressedFill: |-
                                         =C.'row-hover'
@@ -3870,7 +3870,7 @@ Screens:
                                     Tooltip: |-
                                         ="View notes"
                                     Visible: |-
-                                        =(ThisItem.Domain.Value = "MaintenancePlan" && ((ThisItem.HasApproverNote && (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe || IsAdmin || IsApprover || Lower(Coalesce(ThisItem.AssignedToEmail, "")) = varMdMe || !IsBlank(LookUp(colMdAprAll, RequestGuid = ThisItem.RequestGuid && DecidedByEmail = varMdMe)))) || ((ThisItem.RequestGuid in colMdSelfNotes.RequestGuid) && (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe || IsAdmin))))
+                                        =(ThisItem.Domain.Value = "MaintenancePlan" && ((ThisItem.HasApproverNote && (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe || IsAdmin || IsApprover || Lower(Coalesce(ThisItem.AssignedToEmail, "")) = varMdMe || !IsBlank(LookUp(varMdAprAll, RequestGuid = ThisItem.RequestGuid && DecidedByEmail = varMdMe)))) || ((ThisItem.RequestGuid in varMdSelfNotes.RequestGuid) && (Lower(Coalesce(ThisItem.RequesterEmail, "")) = varMdMe || IsAdmin))))
                                     Width: |-
                                         =28
                                     X: |-
@@ -7170,10 +7170,10 @@ Screens:
                                   =C.'row-hover'
                               OnSelect: |-
                                   =If(ThisItem.Kind = "D" && ThisItem.Stage = "N", Set(varMdNoteReq, varMdAprReq);
-                                  Set(varMdNoteShowA, (Lower(Coalesce(varMdNoteReq.RequesterEmail, "")) = varMdMe || IsAdmin || IsApprover || Lower(Coalesce(varMdNoteReq.AssignedToEmail, "")) = varMdMe || !IsBlank(LookUp(colMdAprAll, RequestGuid = varMdNoteReq.RequestGuid && DecidedByEmail = varMdMe))));
+                                  Set(varMdNoteShowA, (Lower(Coalesce(varMdNoteReq.RequesterEmail, "")) = varMdMe || IsAdmin || IsApprover || Lower(Coalesce(varMdNoteReq.AssignedToEmail, "")) = varMdMe || !IsBlank(LookUp(varMdAprAll, RequestGuid = varMdNoteReq.RequestGuid && DecidedByEmail = varMdMe))));
                                   Set(varMdNoteShowS, (Lower(Coalesce(varMdNoteReq.RequesterEmail, "")) = varMdMe || IsAdmin));
                                   Set(varMdNoteA, If(varMdNoteShowA && varMdNoteReq.HasApproverNote, Coalesce(LookUp(MaintenancePlans, ID = varMdNoteReq.SourceItemId).NoteToApprover, ""), ""));
-                                  Set(varMdNoteS, If(varMdNoteShowS && (varMdNoteReq.RequestGuid in colMdSelfNotes.RequestGuid), Coalesce(LookUp(VHP_NoteToSelf, RequestGuid = varMdNoteReq.RequestGuid).Note, ""), ""));
+                                  Set(varMdNoteS, If(varMdNoteShowS && (varMdNoteReq.RequestGuid in varMdSelfNotes.RequestGuid), Coalesce(LookUp(VHP_NoteToSelf, RequestGuid = varMdNoteReq.RequestGuid).Note, ""), ""));
                                   Set(varMdNotesOpen, true), If(ThisItem.Kind = "X" || IfError(varMdAprExp, 0) = ThisItem.Idx, Set(varMdAprExp, 0); Set(varMdAprExtra, 0), Set(varMdAprExp, ThisItem.Idx); Set(varMdAprExtra, With({t: If(Len(ThisItem.Act) > RoundDown((((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12 - (If(ThisItem.Human, 70, 48) + Min(Len(ThisItem.Title) * 8 + 4, ((((Min(720, App.Width - 24) - 32) - 20) - 92 - 10 - 12) - 48) / 2) + 8)) / 6.6, 0), ThisItem.Act & "  ·  ", "") & ThisItem.Stamp & If(IsBlank(ThisItem.Stamp) || IsBlank(ThisItem.Sub), "", "  ·  ") & ThisItem.Sub, c: RoundDown((((Min(720, App.Width - 24) - 32) - 20) - 56) / 5.8, 0)}, RoundUp(Len(t) / (2 * c), 0)))))
                               PressedBorderColor: |-
                                   =RGBA(0, 0, 0, 0)
