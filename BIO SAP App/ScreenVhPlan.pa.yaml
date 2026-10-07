@@ -6550,6 +6550,8 @@ Screens:
                             Control: GroupContainer
                             Variant: AutoLayout
                             Properties:
+                              AlignInContainer: |-
+                                  =If(LayoutRank >= 3 && (!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId && Status = "valid")) > 0 && !IfError(varVhpItemEditing, false)), AlignInContainer.Start, AlignInContainer.SetByContainer)
                               BorderColor: |-
                                   =If(IfError(varVhpFocusStep = 2, false), C.'color-brand-primary', C.'border-default')
                               BorderThickness: |-
