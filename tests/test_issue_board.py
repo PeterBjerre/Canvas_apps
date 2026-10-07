@@ -246,7 +246,7 @@ def test_attachments_are_never_read_from_a_with_record():
     # hentes kun med LookUp(...).Attachments direkte (LOAD_FILES).
     text = open(os.path.join(ROOT, "BIO SAP App", "ScreenIssueBoard.pa.yaml"),
                 encoding="utf-8").read()
-    bad = re.findall(r"\b(?!att)\w+\.Attachments\b", text)
+    bad = re.findall(r"\b(?!att|Self\b)\w+\.Attachments\b", text)
     assert not bad, bad
 
 

@@ -14,13 +14,15 @@ Open-knap.
 
 HVAD DER STAAR NU
 -----------------
-Den MODERNE Attachments-kontrol (ModernAttachments, preview). Den har
-selv filvaelgeren, drag-and-drop paa web, flere filer, filtype-ikoner og
-fejl ved for store filer - og den viser IKKE drag-and-drop paa mobil,
-hvor enhedens filvaelger bruges. Derfor staar der ingen instruktion om
-at traekke filer i vores egen tekst: kun loftet.
+Den KLASSISKE Attachments-kontrol (Attachments@2.3.0), bygget eet sted.
+Issue #134 brugte den moderne (ModernAttachments), men den kender
+Studio ikke i dette miljoe: "Unknown control type 'ModernAttachments'"
+(issue #165). Den moderne virker desuden kun inde i en formular (MS
+Learn), og vores upload sker gennem et flow uden formular. Den klassiske
+kompilerede og virkede foer #134, saa den er tilbage - med #134's faelles
+tekst, hoejde, Upload-knap, status og liste.
 
-Kontrollen staar med Items = Blank(): den holder de VALGTE filer, ikke de
+Kontrollen holder de VALGTE filer, ikke de
 gemte. De gemte ligger i dokumentbiblioteket (tools/attflows.py) og ikke
 i en listes Attachments-kolonne, og en samling kan kontrollen ikke vise
 som gemte filer. Listen under kontrollen er derfor stadig et galleri -
@@ -34,7 +36,7 @@ from gen_screen import (Ctrl, C_MUTED, C_MUTED_BG, C_INVALID_FG, C_VALID_FG, C_C
 import layout_tokens as lay
 from build_helpers import text_ctrl, button, group, grow, fit_button_width, ICON_W
 
-CONTROL = "ModernAttachments@1.3.0"
+CONTROL = "Attachments@2.3.0"
 
 # Dropfladen uden filer, og hvad hver valgt fil laegger til. Hoejden
 # foelger indholdet; over fire filer scroller kontrollen selv.
@@ -51,21 +53,25 @@ REMOVE_W = 40
 def picker_height(ref):
     """Hoejden som udtryk - ref er "Self" i kontrollen og navnet i
     foraelderens regnestykke."""
-    return (f"If({ref}.AttachmentsCount = 0, {PICKER_H}, {PICKER_H} + "
-            f"Min({ref}.AttachmentsCount, {PICKER_MAX_FILES_SHOWN}) * {PICKER_FILE_H})")
+    return (f"If(CountRows({ref}.Attachments) = 0, {PICKER_H}, {PICKER_H} + "
+            f"Min(CountRows({ref}.Attachments), {PICKER_MAX_FILES_SHOWN}) * {PICKER_FILE_H})")
 
 
 def picker(name, label, max_files, max_mb, display_mode=None, visible=None):
-    """Den moderne Attachments-kontrol - kun egenskaber, typen kender."""
+    """Den klassiske Attachments-kontrol - kun egenskaber, typen kender
+    (de samme som foer #134, som kompilerede)."""
     props = {
         "AccessibleLabel": label,
+        "BorderColor": C_CARD_BORDER,
+        "BorderThickness": "1",
         "Height": picker_height("Self"),
-        # Blank: kontrollen holder de filer, der er VALGT, ikke de gemte.
-        "Items": "Blank()",
-        "MaxAttachments": str(max_files),
         "MaxAttachmentSize": str(max_mb),
-        "OnError": (f'Notify("This file could not be added. You can add up to {max_files} '
-                    f'files of up to {max_mb} MB each.", NotificationType.Error)'),
+        "MaxAttachments": str(max_files),
+        "NoAttachmentsText": '"Select files to upload"',
+        "PaddingBottom": "5",
+        "PaddingLeft": "5",
+        "PaddingRight": "5",
+        "PaddingTop": "5",
         "Width": "Parent.Width",
     }
     if display_mode:
@@ -85,15 +91,14 @@ def limits_text(name, max_files, max_mb, extra="", visible=None):
 
 def upload_button(name, picker_name, onselect, busy, base_mode="DisplayMode.Edit",
                   visible=None):
-    """Den ene upload-handling. Spaerret, mens intet er valgt, mens
-    kontrollen laeser filerne ind, og mens et flow koerer - saa et dobbelt-
-    tryk ikke sender filerne to gange."""
+    """Den ene upload-handling. Spaerret, mens intet er valgt, og mens et
+    flow koerer - saa et dobbelt-tryk ikke sender filerne to gange."""
     text = '"Upload"'
     b = button(name, text, onselect, primary=True,
                width=fit_button_width(text) + ICON_W, height=36, icon="ArrowUpload",
                accessible='"Upload the chosen files"', visible=visible,
-               display_mode=(f"If({busy} || {picker_name}.AttachmentsCount = 0 || "
-                             f"{picker_name}.IsUploading, DisplayMode.Disabled, {base_mode})"))
+               display_mode=(f"If({busy} || CountRows({picker_name}.Attachments) = 0, "
+                             f"DisplayMode.Disabled, {base_mode})"))
     b.props["LayoutMinWidth"] = b.props["Width"]
     return b
 
