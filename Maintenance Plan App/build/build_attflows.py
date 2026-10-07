@@ -23,6 +23,8 @@ class VhPlanPane(attflows.Pane):
     key_pred = "ItemId = varVhpActiveItemId"
     collection = "colVhpAttachments"
     up_collection = "colVhpAttUp"
+    busy_var = "varVhpAttBusy"
+    remove_var = "varVhpAttRemove"
     not_saved = ("Save the plan before attaching documents - the folder is "
                  "named after the item.")
     empty_pre = "No documents in "
