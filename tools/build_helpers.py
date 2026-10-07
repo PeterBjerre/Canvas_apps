@@ -1005,8 +1005,14 @@ PAGE_ICON = 32
 def page_icon(name, key, size=PAGE_ICON):
     """Domaenets ikon til sideoverskriften (issue #74) - det SAMME ikon som i
     sidebaren og paa hubbens flise (tools/icons.py), i domaenets farve, i
-    en svagt tonet firkant. Pynt: ingen tab stop, tom etiket."""
+    en svagt tonet firkant.
+
+    Etiketten er sidens navn (sidebarens tekst for noeglen): Studios App
+    checker godtager ikke en tom etiket paa et billede (AccessibleLabelNeeded,
+    issue #165), og det er netop det, ikonet viser."""
     import icons
+    import env_config as env
+    page = (env.APPS.get(key) or {}).get("nav_label") or key
     color = '" & %s & "' % ref_hex_expr(icons.token(key))
     inner = icons.stroke_svg(key, color, size=20,
                              hx=lambda tk: '" & %s & "' % ref_hex_expr(tk))
@@ -1016,7 +1022,7 @@ def page_icon(name, key, size=PAGE_ICON):
            "fill-opacity='0.12'/><g transform='translate(%g %g)'>%s</g></svg>"
            % (size, size, size, size, size, size, color, pad, pad, inner))
     return Ctrl(name, "Image", props={
-        "AccessibleLabel": '""',
+        "AccessibleLabel": f'"{page}"',
         "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0",
         "Height": str(size),
@@ -1396,7 +1402,7 @@ def row_rule(name, template_size):
     graa kantfarve. Nu er galleriet i fladens farve (table_surface), og
     stregen er her."""
     return Ctrl(name, "Rectangle", props={
-        "AccessibleLabel": '""', "BorderStyle": "BorderStyle.None",
+        "AccessibleLabel": '"Row divider"', "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0", "Fill": C_DIVIDER, "Height": "1",
         "OnSelect": "false", "TabIndex": "0",
         "Width": "Parent.TemplateWidth", "X": "0", "Y": str(template_size - 1),

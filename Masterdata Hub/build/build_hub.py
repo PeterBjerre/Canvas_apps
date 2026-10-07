@@ -126,7 +126,8 @@ ACTION_GLYPH = 20
 
 
 def _image(name, image, width, height, onselect=None, label='""', hover=None):
-    """Et billede. Uden onselect er det pynt: ingen tab stop, tom etiket."""
+    """Et billede. Uden onselect er det pynt, men App checker kraever alligevel
+    et tab stop og en etiket (issue #165) - giv label=."""
     props = {
         "AccessibleLabel": label,
         "BorderStyle": "BorderStyle.None",
@@ -351,6 +352,13 @@ def _switch(field_index, fallback, quote=False):
              for s in STATUS]
     return "Switch(\n    ThisItem.Status.Value,\n    " + ",\n    ".join(parts) + \
            f",\n    {fallback}\n)"
+
+
+# Etiketterne paa raekkernes domaene- og statusikoner (issue #165): App
+# checker godtager ikke en tom etiket paa et billede (AccessibleLabelNeeded).
+# Ikonet viser domaenet og statussen - det samme, teksten ved siden af siger.
+DOMAIN_LABEL = _domain_switch(lambda d: f'"{d["name"]}"', '"Request"')
+STATUS_LABEL = '"Status: " & ' + _switch(1, '"Unknown"', quote=True)
 
 
 # ---------------------------------------------------------------------------
@@ -852,7 +860,7 @@ def build_closed_peek():
                   _svg_uri(_domain_switch(
                       lambda d: _icon_svg(d["icon"], _hx(d["token"]), size=20,
                                           mirror=d.get("mirror", False)), '""')),
-                  20, 20)
+                  20, 20, label=DOMAIN_LABEL)
     icon.props["X"] = "8"
     icon.props["Y"] = str((PEEK_ROW_H - 20) // 2)
     line1 = text_ctrl("txtMdPeekNo",
@@ -964,7 +972,7 @@ def build_list():
                       _svg_uri(_domain_switch(
                           lambda d: _icon_svg(d["icon"], _hx(d["token"]), size=24,
                                               mirror=d.get("mirror", False)), '""')),
-                      24, 24)
+                      24, 24, label=DOMAIN_LABEL)
     dom_name = text_ctrl("txtMdRowDomain",
                          _domain_switch(lambda d: f'"{d["name"]}"', '"?"'),
                          size=13, height=20, width=DOM_TEXT - 24 - 12, wrap="false")
@@ -998,7 +1006,7 @@ def build_list():
         ",\n    ".join(f'"{k}", {_icon_svg(path, _hx(tok), size=22)}'
                        for k, (path, tok) in STATUS_ICON.items()) +
         f',\n    {_icon_svg(STATUS_ICON["Kladde"][0], _hx("state-neutral-fg"), size=22)}\n)'),
-        22, 22)
+        22, 22, label=STATUS_LABEL)
     st_lbl = text_ctrl("txtMdRowStatus", _switch(1, '"Unknown"', quote=True), size=13,
                        height=20, width=f"{CWF['STATUS']} - 22 - 10", wrap="false")
     st_top = group("conMdRowStatTop", [st_icon, st_lbl], direction="Horizontal", gap=10,
@@ -1084,7 +1092,8 @@ def build_list():
     # tone igennem den; peger man direkte paa zonen, toner den sig selv
     # med den samme row-hover, saa feltet ikke springer tilbage til hvid.
     # Zonen fanger stadig klik mellem ikonerne (onselect false).
-    zone = _image("imgMdRowActionsZone", '""', zone_w, 34, onselect="false", hover=C_ROW_HOVER)
+    zone = _image("imgMdRowActionsZone", '""', zone_w, 34, onselect="false", hover=C_ROW_HOVER,
+                  label='"Row actions"')
     zone.props["PressedFill"] = C_ROW_HOVER
     zone.props["X"] = if_below("Wide", f"{c_base} - 44", f"{tl_x} - 4")
     zone.props["Y"] = if_below("Wide", "4", "(Parent.TemplateHeight - 1 - 34) / 2")
@@ -1203,14 +1212,16 @@ def _compact_row(act):
     dom_icon = _image("imgMdRowDomainC",
                       _svg_uri(_domain_switch(
                           lambda d: _icon_svg(d["icon"], _hx(d["token"]), size=20,
-                                              mirror=d.get("mirror", False)), '""')), 20, 20)
+                                              mirror=d.get("mirror", False)), '""')), 20, 20,
+                      label=DOMAIN_LABEL)
     no = grow(text_ctrl("txtMdRowNoC", f"ThisItem.{COL_NO}", size=14, weight="Semibold",
                         height=22, wrap="false"))
     st_icon = _image("imgMdRowStatusC", _svg_uri(
         "Switch(\n    ThisItem.Status.Value,\n    " +
         ",\n    ".join(f'"{k}", {_icon_svg(path, _hx(tok), size=18)}'
                        for k, (path, tok) in STATUS_ICON.items()) +
-        f',\n    {_icon_svg(STATUS_ICON["Kladde"][0], _hx("state-neutral-fg"), size=18)}\n)'), 18, 18)
+        f',\n    {_icon_svg(STATUS_ICON["Kladde"][0], _hx("state-neutral-fg"), size=18)}\n)'), 18, 18,
+        label=STATUS_LABEL)
     st_lbl = text_ctrl("txtMdRowStatusC", _switch(1, '"Unknown"', quote=True), size=12,
                        height=20, width=96, wrap="false")
     line1 = group("conMdRowLineC1", [dom_icon, no, st_icon, st_lbl], direction="Horizontal", gap=8,

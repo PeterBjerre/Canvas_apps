@@ -160,7 +160,7 @@ def _subject_picker(n):
     is_req = f'{SEL}.Kind = "R"'
 
     icon = Ctrl(n("img", "SubjectIcon"), "Image", props={
-        "AccessibleLabel": '""', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+        "AccessibleLabel": '"Choose a subject or request"', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
         "Fill": C_TRANSPARENT, "Height": "20", "Image": _icon_fx(f"{SEL}.Domain"),
         "ImagePosition": "ImagePosition.Fit", "OnSelect": toggle, "TabIndex": "0",
         "Visible": is_req, "Width": "20",
@@ -191,7 +191,7 @@ def _subject_picker(n):
         "VerticalAlign": "VerticalAlign.Middle",
     }, h=34)
     chevron = Ctrl(n("img", "SubjectChevron"), "Image", props={
-        "AccessibleLabel": '""', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+        "AccessibleLabel": f'If({PICK}, "Collapse list", "Expand list")', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
         "Fill": C_TRANSPARENT, "Height": "20",
         "Image": (f'"data:image/svg+xml;utf8," & EncodeUrl(If({PICK}, '
                   f'"{_chevron_svg(CHEVRON_UP)}", "{_chevron_svg(CHEVRON_DOWN)}"))'),
@@ -242,12 +242,12 @@ def _subject_picker(n):
                      visible=f'{kind} = "H"',
                      width="Parent.TemplateWidth - 24", extra={"X": "12", "Y": str(ROW_H - 22)})
     accent = Ctrl(n("rct", "SubjectAccent"), "Rectangle", props={
-        "AccessibleLabel": '""', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+        "AccessibleLabel": '"Selected"', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
         "Fill": _accent_fx("ThisItem.Domain"), "Height": "24", "OnSelect": "false",
         "TabIndex": "0", "Visible": selected, "Width": "3", "X": "0", "Y": str((ROW_H - 24) // 2),
     }, h=24, vis=selected)
     row_icon = Ctrl(n("img", "SubjectRowIcon"), "Image", props={
-        "AccessibleLabel": '""', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+        "AccessibleLabel": 'Coalesce(ThisItem.TypeName, "Request")', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
         "Fill": C_TRANSPARENT, "Height": "20", "Image": _icon_fx("ThisItem.Domain"),
         "ImagePosition": "ImagePosition.Fit", "OnSelect": "false", "TabIndex": "0",
         "Visible": f'{kind} = "R"', "Width": "20", "X": "12", "Y": str((ROW_H - 20) // 2),
