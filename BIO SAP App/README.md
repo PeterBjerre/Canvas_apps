@@ -24,7 +24,7 @@ Baggrunden for beslutningen står i
 | `ScreenEquipment` | Equipments |
 | `ScreenMaterial` | Materials |
 | `ScreenKks` | KKS-opslaget. En **opslagsskærm**: ingen anmodninger, så hubben åbner den ikke, og den har intet `?reqid=`. Den henter nøglerne én gang, første gang den vises. Se [`../KKS App/README.md`](../KKS%20App/README.md) |
-| `ScreenIssueBoard` | Issue Board (issue #114): testernes sager — *My issues*, *Shared issues* (anonym), ny sag og kommentarer. Også en opslagsskærm. Bygges **kun** når `features.issue_board` er slået til for miljøet i `tools/canvas_apps.json`; ellers findes skærmen, menupunktet og datakilderne ikke. Lister og flow: `sharepoint/provision/Provision-IssueBoard.ps1` og `BioSap-IssueBoard-Submit` |
+| `ScreenIssueBoard` | Issue Board (issue #114): testernes sager — *My issues*, *Shared issues* (anonym), for admins *All issues* (admin-boardet), ny sag, redigering, kommentarer, interne noter, vedhæftninger, arkivering og sletning. Også en opslagsskærm. Se [Issue Board](#issue-board-issue-114) nedenfor. Bygges **kun** når `features.issue_board` er slået til for miljøet i `tools/canvas_apps.json`; ellers findes skærmen, menupunktet og datakilderne ikke. Lister og flow: `sharepoint/provision/Provision-IssueBoard.ps1` og `BioSap-IssueBoard-Submit` |
 
 Hver domæneskærm har én kontrol mere end i den enkelte app: ventespinneren.
 Antallet pr. skærm skrives ud af `build/check_combined.py` ved hvert build
@@ -118,7 +118,7 @@ fra en af de fem enkeltapps — skriver den `AppUrl` =
 
    *Kun med Issue Board slået til (issue #114):* listerne `IB_Tickets`,
    `IB_TicketComments`, `IB_AppSections`, `IB_SharedIssues` og flowet
-   `BioSap-IssueBoard-Submit`.
+   `BioSap-IssueBoard-Submit` samt `UserAndGroups` (admins).
 3. **Sæt app-id'et** under `biosap` i `tools/canvas_apps.json`. Det står i
    Studio-URL'en (`…%2Fapps%2F<app_id>`).
 4. **Deploy:**
@@ -164,6 +164,56 @@ fra en af de fem enkeltapps — skriver den `AppUrl` =
    med de fem apps.
 9. **Materials → Import invoice:** testplanen i
    [`docs/34`](../docs/34-faktura-import.md#testplan).
+
+## Issue Board (issue #114)
+
+Et midlertidigt sags- og feedbacksystem til udviklings- og testfasen. Koden
+står i `Issue Board/build/` (`ib_config.py` har navne, lister og regler),
+listerne i `sharepoint/provision/Provision-IssueBoard.ps1` og flowet i
+`solution/BIOSAP/src/Workflows/BioSap-IssueBoard-Submit-*.json`.
+
+- **Sikkerhed:** appen læser med brugerens egen forbindelse, og alt, der
+  ændrer noget, går gennem flowet. Flowet tjekker admin (`UserAndGroups`,
+  Title = Admin) og rapportør på serveren for hver handling. Rettighederne
+  sidder på hver række: rapportøren *Read*, admins *Contribute*. En intern
+  note får ingen rettighed for rapportøren.
+- **Handlinger i flowet:** `create`, `comment` (også interne noter), `edit`
+  (rapportøren mens sagen er *New*; admin altid, inkl. status, prioritet,
+  tildeling og løsning), `reopen`, `archive` (og gendan), `delete` (kun med
+  sagsnummeret) og `attach`. Hver ændring bliver sin egen række i
+  `IB_TicketComments`.
+- **Vedhæftninger** er SharePoint-vedhæftninger på sagens række i
+  `IB_Tickets`, så de arver rækkens rettigheder. De vises aldrig på det delte
+  board.
+- **Mail** går kun til rapportøren: når en admin svarer synligt, når sagen er
+  *Ready for retest*, og når den er *Closed*.
+- **Det delte board** (`IB_SharedIssues`) holdes ajour af flowet. En arkiveret
+  sag fjernes fra det; gendannes den, kommer den tilbage.
+
+### Fjernelse før produktion
+
+- [ ] Sæt `features.issue_board` til `false` (eller fjern linjen) for miljøet
+  i `tools/canvas_apps.json`, byg og deploy. Så er skærmen, menupunktet,
+  deeplinket og alle formlerne væk.
+- [ ] Slet `ScreenIssueBoard` i Studio, hvis den står der fra et tidligere
+  deploy (deploy fjerner ikke skærme).
+- [ ] Fjern datakilderne `IB_Tickets`, `IB_TicketComments`, `IB_AppSections`,
+  `IB_SharedIssues` og flowet `BioSap-IssueBoard-Submit` i Studio.
+  `UserAndGroups` bliver; resten af appen bruger den.
+- [ ] Slå flowet `BioSap-IssueBoard-Submit` fra, og slet det fra solution
+  (inkl. `RootComponent` i `Solution.xml`). Det fjerner også mailene; der er
+  ingen andre notifikationer.
+- [ ] Eksportér de fire `IB_*`-lister, inkl. vedhæftninger på `IB_Tickets`,
+  hvis historikken skal gemmes. Slet derefter listerne (`IB_SharedIssues` er
+  den anonyme kopi; den har intet, der ikke også står i `IB_Tickets`).
+- [ ] Fjern flowkontoens Full Control på listerne, hvis den er givet andre
+  steder end på de slettede lister.
+- [ ] Der er ingen miljøvariabler og ingen egne forbindelser at rydde op i:
+  flowet bruger `BioSap-SiteUrl` og forbindelserne `orsted_BioSapSharePointConn`
+  og `orsted_BioSapOutlookConn`, som resten af BIO SAP også bruger.
+- [ ] Fjern `Issue Board/`, `sharepoint/provision/Provision-IssueBoard.ps1`,
+  `sharepoint/seed/IB_AppSections.csv`, `tests/test_issue_board.py`,
+  `issueboard` i `tools/canvas_apps.json` og ikonet i `tools/icons.py`.
 
 ## Byg
 
