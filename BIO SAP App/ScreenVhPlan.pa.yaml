@@ -4072,44 +4072,33 @@ Screens:
                                                 AccessibleLabel: |-
                                                     ="Status, required"
                                                 Appearance: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                                    =If((DisplayMode.Disabled) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                                 BasePaletteColor: |-
                                                     =C.'color-brand-primary'
                                                 BorderColor: |-
-                                                    =If(
-                                                        varVhpPlanValidated && IsBlank(Self.Selected.Value),
-                                                        C.'border-error',
-                                                        If(IsBlank(Self.Selected.Value), C.'border-default', C.'border-ok')
-                                                    )
+                                                    =C.'border-default'
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
                                                     =1
                                                 Color: |-
-                                                    =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                                    =If((DisplayMode.Disabled) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                                 Default: |-
                                                     =LookUp(colVhpPlanStatusOptions As _dd, _dd.Value = (Coalesce(varVhpPlan.Status, "New")))
                                                 DisplayMode: |-
-                                                    =If((If(varVhpViewOnly, DisplayMode.View, If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If((If(varVhpViewOnly, DisplayMode.View, If((DisplayMode.Disabled) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
-                                                    =If(If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                    =If(DisplayMode.Disabled = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =36
                                                 ItemDisplayText: |-
-                                                    =If(ThisItem.Value = "New" || ThisItem.Value = varVhpPlan.Status, ThisItem.Value, ThisItem.Value & " (not available)")
+                                                    =ThisItem.Value
                                                 Items: |-
                                                     =colVhpPlanStatusOptions
                                                 LayoutMinWidth: |-
                                                     =0
-                                                OnChange: |-
-                                                    =If(
-                                                        !IsBlank(Self.Selected.Value) && Self.Selected.Value <> "New" &&
-                                                            Self.Selected.Value <> varVhpPlan.Status,
-                                                        Reset(Self);
-                                                        Notify("Only New is available when creating a maintenance plan.", NotificationType.Information)
-                                                    )
                                                 RadiusBottomLeft: |-
                                                     =10
                                                 RadiusBottomRight: |-
@@ -4121,7 +4110,7 @@ Screens:
                                                 Size: |-
                                                     =If(LayoutRank < 2, 16, 14)
                                                 ValidationState: |-
-                                                    =If(varVhpPlanValidated && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
+                                                    =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =Parent.Width
                                           - txtVhpCellStatusHint:
@@ -5564,7 +5553,6 @@ Screens:
                                                 { isStrat: drpVhpPlanType.Selected.Key = "Strategy" },
                                                 If(
                                                     IsBlank(drpVhpPlant.Selected.Value) ||
-                                                    IsBlank(drpVhpStatus.Selected.Value) ||
                                                     IsBlank(drpVhpPlanType.Selected.Key) ||
                                                     (isStrat && IsBlank(drpVhpStrategy.Selected.Key)) ||
                                                     IsBlank(Trim(inpVhpPlanText.Text)) || Len(Trim(inpVhpPlanText.Text)) > 40 ||
@@ -5581,7 +5569,7 @@ Screens:
                                                         varVhpPlan,
                                                         {
                                                             Plant: drpVhpPlant.Selected.Value,
-                                                            Status: drpVhpStatus.Selected.Value,
+                                                            Status: Coalesce(drpVhpStatus.Selected.Value, varVhpPlan.Status, "New"),
                                                             PlanType: drpVhpPlanType.Selected.Key,
                                                             Strategy: If(isStrat, drpVhpStrategy.Selected.Key, ""),
                                                             PlanText: Trim(inpVhpPlanText.Text),
