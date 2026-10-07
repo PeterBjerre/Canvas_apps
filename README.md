@@ -104,6 +104,7 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 | [`docs/34-sap-oprettelse.md`](docs/34-sap-oprettelse.md) | **Vejen til SAP:** SAP Opretter (Excel + GUI Scripting), én JSON-ordre pr. plan i et synkroniseret bibliotek, kvittering tilbage; sikkerhed, fejl, afprøvning |
 | [`docs/35-flow-sap-ordre.md`](docs/35-flow-sap-ordre.md) | De to flows til docs/34, trin for trin: ordren ud, kvitteringen tilbage, rettigheder |
 | [`docs/36-fl-sap-oprettelse.md`](docs/36-fl-sap-oprettelse.md) | FL-anmodninger i samme opretter: SPOOL-arkets GUI-script porteret, JSON-ordre pr. anmodning, de to FL-flows |
+| [`docs/38-modern-controls-audit.md`](docs/38-modern-controls-audit.md) | Audit af klassiske vs. moderne kontroller i BIO SAP App: hvad er migreret, hvad bliver og hvorfor, kandidater til Peter (#161) |
 
 ## Kode og artefakter
 
