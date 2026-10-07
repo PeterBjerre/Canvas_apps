@@ -86,7 +86,7 @@ SEARCH_CODE = "?search"
 SEARCH_HINT = "  -  press Enter to search"
 
 
-def items_fx(results, busy_var, last_var):
+def items_fx(results, busy_var, last_var, min_len=None):
     """Comboboksens Items: resultaterne - plus en soegeraekke, naar der er
     skrevet nok til en ny soegning.
 
@@ -104,7 +104,7 @@ def items_fx(results, busy_var, last_var):
         f"                  Display: q & \"{SEARCH_HINT}\",\n"
         "                  Maintainable: true, Level: \"\" },\n"
         f"            n: CountRows({results}),\n"
-        f"            ask: Len(q) >= {fl.MIN_SEARCH_LEN} && !{busy_var} &&\n"
+        f"            ask: Len(q) >= {min_len or fl.MIN_SEARCH_LEN} && !{busy_var} &&\n"
         f"                 Upper(q) <> Upper(Coalesce({last_var}, \"\")),\n"
         f"            narrow: CountRows({results}) > 0 && !IsBlank({last_var}) &&\n"
         f"                    StartsWith(Upper(q), Upper({last_var}))\n"
@@ -224,7 +224,7 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
               last_var, pick_var, default_items, display_mode, on_select=None,
               on_clear=None, required_formula="false", width="Parent.Width",
               label="Functional location", trail=(), stack_search=False, col_w=None, stack_cond=None,
-              lock=None):
+              lock=None, min_len=None):
     """Raekken [combobox][Search][spinner] og dens timer - som EEN container.
 
     prefix     navnepraefikset (Vhp, Dom) - knap, spinner og timer faar det
@@ -237,11 +237,16 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
     on_clear   ryd det gemte valg - koeres, naar en ny soegning starter
     lock       udtryk, der goer vaelgeren utilgaengelig, mens det er sandt
                (Materials' No BOM Item, issue #101) - se _lock_combo
+    min_len    mindste antal tegn (trimmet) foer der kan soeges - baade med
+               Search og med soegeraekken (Enter). Standard er
+               build_flsearch.MIN_SEARCH_LEN; kun VH-planens Item Editor
+               saetter sin egen (8, issue #144)
     """
+    n_min = min_len or fl.MIN_SEARCH_LEN
     query = f"Coalesce({combo}.SearchText, {query_var})"
     search = fl.search_action(
         combo, results, msg_var, raw_var=raw_var, busy_var=busy_var,
-        query_expr=query, last_var=last_var,
+        query_expr=query, last_var=last_var, min_len=n_min,
         # Det gamle valg er vaek, i samme oejeblik en ny soegning starter -
         # ogsaa hvis den ikke finder noget.
         on_start=f'Set({pick_var}, ""); Reset({combo})' + (f"; {on_clear}" if on_clear else ""),
@@ -261,7 +266,7 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
     # raekken bar, i stedet for at gemme et valg.
     search_enter = fl.search_action(
         combo, results, msg_var, raw_var=raw_var, busy_var=busy_var,
-        query_expr=query_var, last_var=last_var,
+        query_expr=query_var, last_var=last_var, min_len=n_min,
         on_start=f'Set({pick_var}, ""); Reset({combo})' + (f"; {on_clear}" if on_clear else ""),
         on_found=(f"Set({pick_var}, First({results}).Code);\n"
                   f"                    Reset({combo})"))
@@ -280,7 +285,7 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
     # "transparent background" - og deaktiveret tegnede Fluent den sort med
     # graa tekst i moerk tilstand.
     cmb = Ctrl(combo, "ModernCombobox", props=input_theme({
-        "AccessibleLabel": (f'"{label} - type at least {fl.MIN_SEARCH_LEN} '
+        "AccessibleLabel": (f'"{label} - type at least {n_min} '
                             f'characters, then Search or Enter"'),
         "BorderColor": border_rule(
             f'(IsBlank(Self.Selected.Code) || Self.Selected.Code = "{SEARCH_CODE}")',
@@ -290,10 +295,11 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
         "DefaultSelectedItems": default_items,
         "DelayOutput": "false",
         "Height": str(HEIGHT),
-        "InputTextPlaceholder": PLACEHOLDER,
+        "InputTextPlaceholder": (PLACEHOLDER if n_min == fl.MIN_SEARCH_LEN
+                                 else f'"At least {n_min} characters, e.g. SSV13 HFC10"'),
         "IsSearchable": "true",
         "ItemDisplayText": "ThisItem.Display",
-        "Items": items_fx(results, busy_var, last_var),
+        "Items": items_fx(results, busy_var, last_var, n_min),
         "LayoutMinWidth": "0",
         "OnChange": on_change,
         # Samme hjoerner som alle andre felter (text_input, dropdown ...).
@@ -307,7 +313,7 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
         _lock_combo(cmb, lock)
     grow(cmb)
 
-    too_short = f"Len(Trim({query})) < {fl.MIN_SEARCH_LEN}"
+    too_short = f"Len(Trim({query})) < {n_min}"
     if lock:
         too_short = f"{lock} || {too_short}"
     btn = button(f"btn{prefix}FlSearch", '"Search"', search,
