@@ -831,7 +831,9 @@ def build_tasklist_section():
             "        Set(varVhpTasklistPickerOpen, true)\n"
             "    )\n"
             ")"
-        ), primary=True, display_mode=DM_ITEM, icon="Add",
+        # Sekundaer outline som Manual operation (issue #157): Save er
+        # sektionens eneste primaere, blaa handling.
+        ), display_mode=DM_ITEM, icon="Add",
         accessible="\"Add lines from the tasklist\"",
         tooltip="\"Add operation lines from the selected tasklist\"")
 
