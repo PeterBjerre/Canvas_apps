@@ -119,6 +119,226 @@ Screens:
             Y: |-
                 =If(LayoutRank >= 2, 0, 52)
           Children:
+            - conKksHeader:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  Fill: |-
+                      =C.'bg-app'
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =If(LayoutRank >= 2, 25 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)))) * 1 + 0), 0)
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Stretch
+                  LayoutDirection: |-
+                      =LayoutDirection.Vertical
+                  LayoutGap: |-
+                      =10
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =24
+                  PaddingRight: |-
+                      =34
+                  PaddingTop: |-
+                      =14
+                  Visible: |-
+                      =LayoutRank >= 2
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - conKksBar:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)))) * 1 + 0
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Center
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =10
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Visible: |-
+                            =LayoutRank >= 2
+                        Width: |-
+                            =Parent.Width
+                      Children:
+                        - imgKksTitleIcon:
+                            Control: Image
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="KKS lookup"
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Height: |-
+                                  =32
+                              Image: |-
+                                  ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='" & C.'hex-text-muted' & "' fill-opacity='0.12'/><g transform='translate(6 6)'><svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 6h11M3 11h7M3 16h5M15.5 11.5a3.5 3.5 0 1 1 0 7a3.5 3.5 0 1 1 0-7ZM18.1 18.1 21 21'/></g></svg></g></svg>")
+                              ImagePosition: |-
+                                  =ImagePosition.Fit
+                              LayoutMinWidth: |-
+                                  =32
+                              OnSelect: |-
+                                  =false
+                              TabIndex: |-
+                                  =0
+                              Visible: |-
+                                  =LayoutRank >= 2
+                              Width: |-
+                                  =32
+                        - conKksBarLeft:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Stretch
+                              LayoutDirection: |-
+                                  =LayoutDirection.Vertical
+                              LayoutGap: |-
+                                  =2
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              Width: |-
+                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - 2)
+                            Children:
+                              - txtKksTitle:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="KKS Lookup"
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =33
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =22
+                                    Text: |-
+                                        ="KKS Lookup"
+                                    Visible: |-
+                                        =LayoutRank >= 2
+                                    Wrap: |-
+                                        =false
+                              - txtKksSub:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Find KKS codes by function, aggregate or component."
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        ="Find KKS codes by function, aggregate or component."
+                                    Visible: |-
+                                        =LayoutRank >= 2
+                                    Wrap: |-
+                                        =false
+                  - conKksHeaderRule:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        Fill: |-
+                            =C.'border-subtle'
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =1
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Stretch
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =8
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Visible: |-
+                            =LayoutRank >= 2
+                        Width: |-
+                            =Parent.Width
             - conKksBody:
                 Control: GroupContainer
                 Variant: AutoLayout
@@ -132,7 +352,7 @@ Screens:
                   FillPortions: |-
                       =1
                   Height: |-
-                      =Parent.Height
+                      =Parent.Height - (If(LayoutRank >= 2, 25 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)))) * 1 + 0), 0))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -152,7 +372,7 @@ Screens:
                   PaddingRight: |-
                       =16
                   PaddingTop: |-
-                      =14
+                      =16
                   Width: |-
                       =Parent.Width
                 Children:

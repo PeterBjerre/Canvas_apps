@@ -30,12 +30,12 @@ raekke. Det, der er lavet om:
   * Teksterne er engelske som i resten af BIO SAP. Vejledningens egne
     beskrivelser er data og staar paa dansk, som i kilden.
 """
-from gen_screen import (Ctrl, C_APP_BG, C_CARD_BG, C_DISABLED_BG, C_DIVIDER, C_INFO_BG,
+from gen_screen import (Ctrl, C_CARD_BG, C_DISABLED_BG, C_DIVIDER, C_INFO_BG,
                         C_INFO_FG, C_INVALID_FG, C_MUTED, C_MUTED_BG, C_PRIMARY,
                         C_PRIMARY_SOFT, C_MODAL_BG, C_TRANSPARENT, C_WHITE)
 from build_helpers import (border_rule, button, card, concurrent, fit_button_width, flow_row, group, grow,
                            input_theme, loading_overlay, row_hit, row_rule, text_ctrl,
-                           text_modal, themed_dropdown)
+                           text_modal, themed_dropdown, top_bar, app_frame)
 from fl_picker import BUSY_W, SEARCH_W, busy_box, HEIGHT as SEARCH_H, ROW_PAD as SEARCH_PAD, _timer
 import layout_tokens as lay
 from layout_tokens import SHELL_W, SCROLLBAR_W, GALLERY_RESERVE
@@ -294,31 +294,32 @@ def _link(b, here):
     return b
 
 
-def build_bar():
-    sub = "Switch(\n    varKksKey,\n    " + ",\n    ".join(
-        f'"{k}", "{s}"' for k, _t, s in cfg.KEYS[1:]) + f',\n    "{cfg.KEYS[0][2]}"\n)'
-    title = text_ctrl("txtKksTitle", f'"{cfg.TITLE}"', size=28, weight="Semibold", height=40)
-    subtitle = text_ctrl("txtKksSub", sub, size=lay.SIZE_INPUT, color=C_MUTED, height=24)
-    return group("conKksTitleBlock", [title, subtitle], direction="Vertical", gap=6,
-                 fill=C_TRANSPARENT)
-
-
+# Sideoverskriften - den SAMME som paa de andre sider (issue #164):
+# build_helpers.top_bar med domaeneikonet fra sidebaren (tools/icons.py,
+# noeglen "kks") i rammen build_helpers.app_frame. Foer stod skaermen i sin
+# egen ramme uden overskrift. Titel og undertitel staar i kks_config.
 def build_header():
-    """Titlen i et kort oeverst - ikke en bjaelke med streg under."""
-    return card("conKksHeaderCard", [build_bar()], gap=0, pad_y=16)
+    return top_bar(P, f'"{cfg.TITLE}"', f'"{cfg.SUBTITLE}"', [], icon=cfg.APP_KEY)
 
 
 def frame(header, body):
-    """Siden uden titelkort: sidebjaelken har titlen. Samme
-    mal som build_helpers.app_frame, saa check_layout regel 23 holder."""
-    main = group("conKksBody", body, direction="Vertical", gap=16,
-                 height="Parent.Height", fill_portions=1,
-                 overflow_y="Scroll", fill=C_APP_BG,
-                 pad=(lay.HEADER_PAD_T, lay.PAGE_PAD_R, lay.BODY_PAD_B, lay.PAGE_PAD_L))
-    root = group("conKksRoot", [main], direction="Vertical", gap=0,
-                 height=lay.ROOT_H, width=lay.ROOT_W, fill=C_APP_BG)
-    root.props["X"] = lay.ROOT_X
-    root.props["Y"] = lay.ROOT_Y
+    """Rammen er app_frame som paa de andre sider: overskriften staar fast,
+    kroppen scroller.
+
+    Under Tablet viser top_bar hverken ikon, titel eller undertitel - dem
+    viser mobilens topbjaelke (tools/side_nav.py) - og KKS-siden har ingen
+    handlingsknapper i bjaelken. Headeren ville da vaere et tomt baand, saa
+    den er skjult paa mobil, og kroppen faar hoejden. Hoejden afhaenger
+    stadig kun af skaermbredden (check_layout regel 23b)."""
+    root = app_frame(P, header, body)
+    head, main = root.children
+    wide = lay.at_least("Tablet")
+    head.h = f"If({wide}, {head.h}, 0)"
+    head.props["Height"] = head.h
+    head.vis = wide
+    for c in head.children:
+        c.vis = wide
+    main.props["Height"] = f"Parent.Height - ({head.h})"
     return root
 
 
