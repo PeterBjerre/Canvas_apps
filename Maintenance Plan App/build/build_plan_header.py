@@ -338,28 +338,19 @@ def build_plan_header():
     drpPlant = themed_dropdown("drpVhpPlant", "colVhpPlantCodes",
                                "LookUp(colVhpPlantCodes, Value = varVhpPlan.Plant).Value",
                                required_formula=REQ_PLAN, display_mode=DM_PLAN)
-    # STATUS (issue #113). En ny plan kan kun oprettes som New. Change og
-    # Deleted (SharePoints valg i MaintenanceItems.Status) staar stadig i
-    # listen, men en ModernDropdown kan ikke deaktivere enkelte valg. De er
-    # derfor maerket "(not available)" i teksten, og OnChange saetter et
-    # forsoeg paa at vaelge dem tilbage til Default.
+    # STATUS (issue #113, #137). En plan oprettes altid som New, og feltet
+    # kan ikke aendres: det er altid laast (Disabled -> View i input_theme,
+    # saa listen aldrig foldes ud). Change og Deleted (SharePoints valg i
+    # MaintenanceItems.Status) staar stadig i Items til senere brug, men
+    # kan ikke vaelges.
     # Default er New, naar planen ingen status har (ny plan). En gemt plan
-    # beholder sin status: varVhpPlan.Status er det gemte (build_load), og
-    # den gemte vaerdi forbliver valgbar og vises uden maerkning.
+    # beholder sin status: varVhpPlan.Status er det gemte (build_load).
+    # ItemDisplayText er ThisItem.Value (themed_dropdown) - den maa ikke
+    # laese variabler (issue #133): Studio afviser det, og listen blev tom
+    # med kun et flueben (issue #137).
     drpStatus = themed_dropdown("drpVhpStatus", "colVhpPlanStatusOptions",
                          'Coalesce(varVhpPlan.Status, "New")',
-                         required_formula=REQ_PLAN, display_mode=DM_PLAN,
-                         onchange=(
-                             'If(\n'
-                             '    !IsBlank(Self.Selected.Value) && Self.Selected.Value <> "New" &&\n'
-                             '        Self.Selected.Value <> varVhpPlan.Status,\n'
-                             '    Reset(Self);\n'
-                             '    Notify("Only New is available when creating a maintenance plan.", '
-                             'NotificationType.Information)\n'
-                             ')'))
-    drpStatus.props["ItemDisplayText"] = (
-        'If(ThisItem.Value = "New" || ThisItem.Value = varVhpPlan.Status, ThisItem.Value, '
-        'ThisItem.Value & " (not available)")')
+                         display_mode="DisplayMode.Disabled")
 
     # --- Plantype og strategi ------------------------------------------------
     drpPlanType = themed_dropdown("drpVhpPlanType", "colVhpPlanTypeOptions",
@@ -470,7 +461,6 @@ def build_plan_header():
             "        { isStrat: drpVhpPlanType.Selected.Key = \"Strategy\" },\n"
             "        If(\n"
             "            IsBlank(drpVhpPlant.Selected.Value) ||\n"
-            "            IsBlank(drpVhpStatus.Selected.Value) ||\n"
             "            IsBlank(drpVhpPlanType.Selected.Key) ||\n"
             "            (isStrat && IsBlank(drpVhpStrategy.Selected.Key)) ||\n"
             "            IsBlank(Trim(inpVhpPlanText.Text)) || Len(Trim(inpVhpPlanText.Text)) > 40 ||\n"
@@ -491,7 +481,9 @@ def build_plan_header():
             "                varVhpPlan,\n"
             "                {\n"
             "                    Plant: drpVhpPlant.Selected.Value,\n"
-            "                    Status: drpVhpStatus.Selected.Value,\n"
+            # Feltet er laast (issue #137): New, eller den gemte status.
+            # Coalesce, saa en tom valgliste aldrig blokerer gemning.
+            "                    Status: Coalesce(drpVhpStatus.Selected.Value, varVhpPlan.Status, \"New\"),\n"
             "                    PlanType: drpVhpPlanType.Selected.Key,\n"
             "                    Strategy: If(isStrat, drpVhpStrategy.Selected.Key, \"\"),\n"
             "                    PlanText: Trim(inpVhpPlanText.Text),\n"
