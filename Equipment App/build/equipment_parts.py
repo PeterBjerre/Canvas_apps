@@ -9,23 +9,27 @@ Materials og staar i tools/domain_parts.py. Her staar kun det, der er
 Equipments: hvilke felter, i hvilken raekkefoelge, og hvilke kolonner
 listen viser.
 
-FORMULAREN - I KOLONNE-ORDEN, SOM eq.png
----------------------------------------
+FORMULAREN - I RAEKKE-ORDEN (issue #160)
+----------------------------------------
     Equipment Form  * Required
-    [ Type          ][ Manufacturer     ][ Class data        ][ Warranty from ]
-    [ Plant         ][ Type designation ][ Room coordinates  ][ Warranty to   ]
-    [ Description   ][ Serial number    ][ Placement text    ][ Documentation ]
-    [ Equipment type][ Func. location   ]
+    [ Plant         ][ Func. location   ][ Description       ][ Equipment type ]
+    [ Type          ][ Manufacturer     ][ Type designation  ][ Serial number  ]
+    [ Class data    ][ Placement text   ][ Room coordinates  ][ Documentation  ]
+    [ Warranty from ][ Warranty to      ]
     (Plant: X) (Row status: ...)   [Save draft][Save][New row]
+
+Raekke 1 er organisationen (Plant foerst, saa funktionspladsen), raekke 2
+identifikationen, raekke 3 placeringen og dokumenterne (dokumenter kan
+foerst tilfoejes, naar raekken er gemt), raekke 4 garantien i kronologisk
+orden. Hver raekke er sin egen container, der ombryder til to og een
+kolonne, saa laese- og tab-raekkefoelgen er den samme paa desktop, tablet
+og mobil (felterne har TabIndex 0 og foelger containerens orden).
 
 Equipment number, Func. loc. 1 og Functional location 2 er fjernet fra
 formularen (issue #94). FL-soegningen er den eneste maade at vaelge en
 funktionsplads paa, og udstyrsnummeret er SAP's - det vises stadig i
 listen og i detaljerne (domain_config.READ_FIELDS). En gemt raekke
 slettes med ikonet i listens Actions-kolonne, ikke fra formularen.
-
-Paa en tablet staar kolonne 1 og 2 side om side over 3 og 4; paa en
-telefon under hinanden.
 
 Dokumenttype og dokumentlink er IKKE felter: dokumenterne ligger i
 biblioteket (dokumentpopuppen), ikke som et link paa raekken - se
@@ -36,14 +40,18 @@ import domain_config as cfg
 import domain_parts as dp
 from build_helpers import card
 
-# eq.png's fire kolonner. FL, TEXT, DOCS og PLANT er de celler, der ikke er
-# et almindeligt felt fra SECTIONS.
+# Skaermens raekkefoelge - issue #160's, fire celler pr. raekke. FL, TEXT,
+# DOCS og PLANT er de celler, der ikke er et almindeligt felt fra SECTIONS.
 SPECIAL = {"FL", "TEXT", "DOCS", "PLANT"}
-COLUMNS = [
-    ["RequestType", "PLANT", "TEXT", "EquipmentCategory"],
-    ["Manufacturer", "TypeDesignation", "SerialNumber", "FL"],
-    ["ClassData", "RoomCoordinates", "Placement"],
-    ["WarrantyStart", "WarrantyEnd", "DOCS"],
+FORM_ORDER = [
+    # Organisation - Plant foerst, saa funktionspladsen
+    "PLANT", "FL", "TEXT", "EquipmentCategory",
+    # Identifikation af udstyret
+    "RequestType", "Manufacturer", "TypeDesignation", "SerialNumber",
+    # Placering og dokumenter
+    "ClassData", "Placement", "RoomCoordinates", "DOCS",
+    # Garanti - fra foer til
+    "WarrantyStart", "WarrantyEnd",
 ]
 NOT_IN_GRID = {cfg.FL_FIELD}
 
@@ -62,12 +70,13 @@ def _cell(key):
 
 
 def build_form():
-    dp.check_form_order([k for col in COLUMNS for k in col], SPECIAL, NOT_IN_GRID)
+    dp.check_form_order(FORM_ORDER, SPECIAL, NOT_IN_GRID)
     head = dp.form_head("Equipment Form")
-    grid = dp.grid_columns("conDomGrid", [[_cell(k) for k in col] for col in COLUMNS])
+    rows = dp.grid_rows("conDomGrid", [_cell(k) for k in FORM_ORDER])
+    # Soegningens svar under den foerste raekke - den med FL i.
+    rows.insert(1, dp.build_fl_msg())
     buttons = dp.form_buttons(dp.save_row_fx, "Save row", "New row")
-    return card("conDomFormCard",
-                [head, grid, dp.build_fl_msg()] + dp.form_footer(buttons))
+    return card("conDomFormCard", [head] + rows + dp.form_footer(buttons))
 
 
 # ---------------------------------------------------------------------------
