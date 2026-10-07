@@ -31,6 +31,7 @@ import app_yaml
 import design_tokens as tok
 import layout_tokens as lay
 import permissions as perm
+import display_text as dt
 import fl_config as cfg
 from fl_validation import CALC_SCHEMA
 
@@ -105,7 +106,7 @@ def editor_kind(col):
 
 
 def formulas_block():
-    parts = [tok.formula(), lay.formula(), perm.formula()]
+    parts = [tok.formula(), lay.formula(), perm.formula(), dt.formula()]
     parts.append(_table(
         "colFlPlan", R["plan"],
         ["Cls", "Ord", "Rule", "Field", "Label", "Chk", "Num", "List", "Msg"],

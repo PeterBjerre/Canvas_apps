@@ -551,7 +551,7 @@
                           "type": "Select",
                           "inputs": {
                             "from": "@body('Filter_ops')",
-                            "select": "@concat('- ', coalesce(item()?['OperationShortText'], ''), ': ', string(coalesce(item()?['Price'], 0)), ' kr.')"
+                            "select": "@concat('- ', coalesce(item()?['OperationShortText'], ''), ': ', string(coalesce(item()?['Price'], 0)), ' DKK')"
                           },
                           "runAfter": {
                             "Filter_prev_rows": [
@@ -599,7 +599,7 @@
                                       "item/Decision": "Skipped",
                                       "item/DecidedByEmail": "system",
                                       "item/DecidedOn": "@utcNow()",
-                                      "item/Detail": "@concat(string(outputs('Total')), ' kr. (grænse ', string(outputs('Threshold')), ' kr.)')",
+                                      "item/Detail": "@concat(string(outputs('Total')), ' DKK (threshold ', string(outputs('Threshold')), ' DKK)')",
                                       "item/ItemGuid": "@outputs('ItemGuid')",
                                       "item/ItemText": "@concat(coalesce(items('For_each_item')?['Title'], ''), ' - ', coalesce(items('For_each_item')?['FunctionalLocation'], ''))",
                                       "item/Amount": "@outputs('Total')"
@@ -631,7 +631,7 @@
                                       "item/Decision": "Skipped",
                                       "item/DecidedByEmail": "system",
                                       "item/DecidedOn": "@utcNow()",
-                                      "item/Detail": "godkendt tidligere",
+                                      "item/Detail": "Approved earlier",
                                       "item/ItemGuid": "@outputs('ItemGuid')",
                                       "item/ItemText": "@concat(coalesce(items('For_each_item')?['Title'], ''), ' - ', coalesce(items('For_each_item')?['FunctionalLocation'], ''))",
                                       "item/Amount": "@outputs('Total')"
@@ -655,17 +655,17 @@
                                   },
                                   "parameters": {
                                     "approvalType": "CustomResponse",
-                                    "WebhookApprovalCreationInput/title": "@concat('Omkostningsgodkendelse - ', triggerBody()?['PlanID'], ' - ', coalesce(items('For_each_item')?['Title'], ''))",
+                                    "WebhookApprovalCreationInput/title": "@concat('Cost approval - ', triggerBody()?['PlanID'], ' - ', coalesce(items('For_each_item')?['Title'], ''))",
                                     "WebhookApprovalCreationInput/assignedTo": "@outputs('Final_approver')",
-                                    "WebhookApprovalCreationInput/details": "@concat('**Plan:** ', triggerBody()?['PlanID'], ' - ', coalesce(triggerBody()?['Title'], ''), '\n\n**Værk:** ', coalesce(triggerBody()?['PlantsInitial/Value'], ''), '\n\n**Item:** ', coalesce(items('For_each_item')?['Title'], ''), '\n\n**Funktionsplads:** ', coalesce(items('For_each_item')?['FunctionalLocation'], ''), '\n\n**Omkostning pr. udførelse:** ', string(outputs('Total')), ' kr. (grænse ', string(outputs('Threshold')), ' kr.)', '\n\n**Operationer:**\n', join(take(body('Select_op_lines'), 15), decodeUriComponent('%0A')), '\n\n**Rekvirent:** ', coalesce(triggerBody()?['Author/DisplayName'], ''))",
+                                    "WebhookApprovalCreationInput/details": "@concat('**Plan:** ', triggerBody()?['PlanID'], ' - ', coalesce(triggerBody()?['Title'], ''), '\n\n**Plant:** ', coalesce(triggerBody()?['PlantsInitial/Value'], ''), '\n\n**Item:** ', coalesce(items('For_each_item')?['Title'], ''), '\n\n**Functional location:** ', coalesce(items('For_each_item')?['FunctionalLocation'], ''), '\n\n**Cost per execution:** ', string(outputs('Total')), ' DKK (threshold ', string(outputs('Threshold')), ' DKK)', '\n\n**Operations:**\n', join(take(body('Select_op_lines'), 15), decodeUriComponent('%0A')), '\n\n**Requester:** ', coalesce(triggerBody()?['Author/DisplayName'], ''))",
                                     "WebhookApprovalCreationInput/responseOptions": [
-                                      "Godkend",
-                                      "Send retur"
+                                      "Approve",
+                                      "Return"
                                     ],
                                     "WebhookApprovalCreationInput/enableNotifications": true,
                                     "WebhookApprovalCreationInput/enableReassignment": true,
                                     "WebhookApprovalCreationInput/itemLink": "@coalesce(first(outputs('Get_request_index')?['body/value'])?['AppUrl'], parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)'))",
-                                    "WebhookApprovalCreationInput/itemLinkDescription": "Åbn planen i appen"
+                                    "WebhookApprovalCreationInput/itemLinkDescription": "Open the plan in the app"
                                   },
                                   "authentication": "@parameters('$authentication')"
                                 },
@@ -677,8 +677,8 @@
                                 "type": "If",
                                 "expression": {
                                   "equals": [
-                                    "@body('Start_and_wait_for_an_approval')?['outcome']",
-                                    "Godkend"
+                                    "@contains(createArray('Approve', 'Godkend'), body('Start_and_wait_for_an_approval')?['outcome'])",
+                                    true
                                   ]
                                 },
                                 "actions": {
@@ -701,7 +701,7 @@
                                         "item/Decision": "Approve",
                                         "item/DecidedByEmail": "@first(body('Start_and_wait_for_an_approval')?['responses'])?['responder']?['email']",
                                         "item/DecidedOn": "@utcNow()",
-                                        "item/Detail": "omkostning",
+                                        "item/Detail": "Cost",
                                         "item/Comment": "@first(body('Start_and_wait_for_an_approval')?['responses'])?['comments']",
                                         "item/ItemGuid": "@outputs('ItemGuid')",
                                         "item/ItemText": "@concat(coalesce(items('For_each_item')?['Title'], ''), ' - ', coalesce(items('For_each_item')?['FunctionalLocation'], ''))",
@@ -737,7 +737,7 @@
                                           "item/Decision": "Return",
                                           "item/DecidedByEmail": "@first(body('Start_and_wait_for_an_approval')?['responses'])?['responder']?['email']",
                                           "item/DecidedOn": "@utcNow()",
-                                          "item/Detail": "omkostning",
+                                          "item/Detail": "Cost",
                                           "item/Comment": "@first(body('Start_and_wait_for_an_approval')?['responses'])?['comments']",
                                           "item/ItemGuid": "@outputs('ItemGuid')",
                                           "item/ItemText": "@concat(coalesce(items('For_each_item')?['Title'], ''), ' - ', coalesce(items('For_each_item')?['FunctionalLocation'], ''))",
@@ -772,7 +772,7 @@
                                     "item/Decision": "Timeout",
                                     "item/DecidedByEmail": "system",
                                     "item/DecidedOn": "@utcNow()",
-                                    "item/Detail": "@concat('intet svar fra ', outputs('Final_approver'))",
+                                    "item/Detail": "@concat('No response from ', outputs('Final_approver'))",
                                     "item/ItemGuid": "@outputs('ItemGuid')",
                                     "item/ItemText": "@concat(coalesce(items('For_each_item')?['Title'], ''), ' - ', coalesce(items('For_each_item')?['FunctionalLocation'], ''))",
                                     "item/Amount": "@outputs('Total')"
@@ -795,8 +795,8 @@
                                   },
                                   "parameters": {
                                     "emailMessage/To": "@outputs('Final_approver')",
-                                    "emailMessage/Subject": "@concat('Påmindelse: VH-plan ', triggerBody()?['PlanID'], ' venter på din godkendelse')",
-                                    "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">Omkostningsgodkendelsen af item '@{items('For_each_item')?['Title']}' i VH-plan @{triggerBody()?['PlanID']} er ikke besvaret. Svar i Teams under Approvals eller i mailen fra Power Automate.</p>",
+                                    "emailMessage/Subject": "@concat('Reminder: maintenance plan ', triggerBody()?['PlanID'], ' is waiting for your approval')",
+                                    "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">The cost approval of item '@{items('For_each_item')?['Title']}' in maintenance plan @{triggerBody()?['PlanID']} has not been answered. Respond in Teams under Approvals or in the email from Power Automate.</p>",
                                     "emailMessage/Importance": "Normal"
                                   },
                                   "authentication": "@parameters('$authentication')"
@@ -995,7 +995,7 @@
                                           "Value": "AfventerInfo"
                                         },
                                         "item/StatusStep": 3,
-                                        "item/LastActionBy": "omkostningsgodkendelsen",
+                                        "item/LastActionBy": "Cost approval",
                                         "item/LastActionOn": "@utcNow()"
                                       },
                                       "authentication": "@parameters('$authentication')"
@@ -1028,8 +1028,8 @@
                                   },
                                   "parameters": {
                                     "emailMessage/To": "@triggerBody()?['Author/Email']",
-                                    "emailMessage/Subject": "@concat('VH-plan ', triggerBody()?['PlanID'], ' sendt retur - ret og indsend igen')",
-                                    "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">VH-plan @{triggerBody()?['PlanID']} (@{triggerBody()?['Title']}) er sendt retur fra omkostningsgodkendelsen:</p><p style=\"font-family: Arial, sans-serif; white-space: pre-line;\">@{replace(replace(replace(outputs('Return_comment'), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</p><p style=\"font-family: Arial, sans-serif;\">Ret planen i appen og indsend igen.</p>",
+                                    "emailMessage/Subject": "@concat('Maintenance plan ', triggerBody()?['PlanID'], ' returned - correct it and submit again')",
+                                    "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">Maintenance plan @{triggerBody()?['PlanID']} (@{triggerBody()?['Title']}) was returned by the cost approval:</p><p style=\"font-family: Arial, sans-serif; white-space: pre-line;\">@{replace(replace(replace(outputs('Return_comment'), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</p><p style=\"font-family: Arial, sans-serif;\">Correct the plan in the app and submit it again.</p>",
                                     "emailMessage/Importance": "Normal"
                                   },
                                   "authentication": "@parameters('$authentication')"
@@ -1093,7 +1093,7 @@
                                             "Value": "UnderBehandling"
                                           },
                                           "item/StatusStep": 3,
-                                          "item/LastActionBy": "omkostningsgodkendelsen",
+                                          "item/LastActionBy": "Cost approval",
                                           "item/LastActionOn": "@utcNow()"
                                         },
                                         "authentication": "@parameters('$authentication')"
@@ -1141,7 +1141,7 @@
                               "If-Match": "*",
                               "X-HTTP-Method": "MERGE"
                             },
-                            "parameters/body": "{\"__metadata\": {\"type\": \"@{parameters('BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)')}\"}, \"Status\": \"Returned\", \"ApprovalStage\": null, \"StageRunId\": \"\", \"ReturnComment\": \"Omkostningsgodkenderen (COST) findes ikke i MD_Approver eller i Office 365.\"}"
+                            "parameters/body": "{\"__metadata\": {\"type\": \"@{parameters('BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)')}\"}, \"Status\": \"Returned\", \"ApprovalStage\": null, \"StageRunId\": \"\", \"ReturnComment\": \"The cost approver (COST) is not in MD_Approver or Office 365.\"}"
                           },
                           "authentication": "@parameters('$authentication')"
                         }
@@ -1161,8 +1161,8 @@
                           },
                           "parameters": {
                             "emailMessage/To": "@parameters('BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)')",
-                            "emailMessage/Subject": "Omkostningsgodkender mangler - VH-plan @{triggerBody()?['PlanID']}",
-                            "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">VH-plan @{triggerBody()?['PlanID']} er sendt retur: rækken COST i MD_Approver mangler eller har ingen gyldig godkender i Office 365.</p>",
+                            "emailMessage/Subject": "Cost approver missing - maintenance plan @{triggerBody()?['PlanID']}",
+                            "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">Maintenance plan @{triggerBody()?['PlanID']} was returned: the COST row in MD_Approver is missing or has no valid approver in Office 365.</p>",
                             "emailMessage/Importance": "Normal"
                           },
                           "authentication": "@parameters('$authentication')"
@@ -1197,7 +1197,7 @@
                           "If-Match": "*",
                           "X-HTTP-Method": "MERGE"
                         },
-                        "parameters/body": "{\"__metadata\": {\"type\": \"@{parameters('BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)')}\"}, \"Status\": \"Returned\", \"ApprovalStage\": null, \"StageRunId\": \"\", \"ReturnComment\": \"Planen har ingen items.\"}"
+                        "parameters/body": "{\"__metadata\": {\"type\": \"@{parameters('BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)')}\"}, \"Status\": \"Returned\", \"ApprovalStage\": null, \"StageRunId\": \"\", \"ReturnComment\": \"The plan has no items.\"}"
                       },
                       "authentication": "@parameters('$authentication')"
                     }
