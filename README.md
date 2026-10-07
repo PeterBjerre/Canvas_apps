@@ -194,6 +194,7 @@ $site = "https://<tenant>.sharepoint.com/sites/<site>"
 .\sharepoint\provision\Provision-StrategyLists.ps1           -SiteUrl $site
 .\sharepoint\provision\Provision-TasklistLists.ps1           -SiteUrl $site
 .\sharepoint\provision\Provision-StandardTaskOperations.ps1  -SiteUrl $site
+.\sharepoint\provision\Provision-PlantList.ps1               -SiteUrl $site
 .\sharepoint\provision\Provision-VHPlanColumns.ps1           -SiteUrl $site
 .\sharepoint\provision\Provision-VHPlanApproval.ps1          -SiteUrl $site
 .\sharepoint\provision\Provision-SapCreation.ps1             -SiteUrl $site
