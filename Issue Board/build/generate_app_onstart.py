@@ -2,7 +2,8 @@
 """
 Skriver ../App.pa.yaml: navngivne formler + OnStart (issue #114).
 
-App.Formulas   temaet (C), breakpoints og Issue Boards formler
+App.Formulas   temaet (C), breakpoints, IsAdmin (tools/permissions.py,
+               ordret som i de andre apps) og Issue Boards formler
                (ib_parts.FORMULAS). Ingen data.
 App.OnStart    temaet og skemaerne for samlingerne. Henter INGEN data -
                skaermens OnVisible goer det.
@@ -17,6 +18,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), "tools")
 import app_yaml
 import design_tokens as tok
 import layout_tokens as lay
+import permissions as perm
 import ib_config as cfg
 import ib_parts as P
 
@@ -24,7 +26,7 @@ OUT_DIR = os.path.join(HERE, "..")
 
 
 def formulas_block():
-    return "\n\n".join([tok.formula(), lay.formula(), P.FORMULAS])
+    return "\n\n".join([tok.formula(), lay.formula(), perm.formula(), P.FORMULAS])
 
 
 def collection_block():

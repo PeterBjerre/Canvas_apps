@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Issue Board-skaermen (issue #114, trin 1): delene, formlerne og hentningen.
+Issue Board-skaermen (issue #114, trin 1 og 2): delene, formlerne og
+hentningen.
 
     [ikon] Issue Board                              [Refresh] [+ New issue]
            Report what you find while testing ...
     +------------------------------------------------------------------+
-    | [My issues | Shared issues]   [Open | Closed | Archived]         |
+    | [All issues | My issues | Shared issues]  [Open | Closed | Archived]
     | [Search .................] [Application v] [Section v] [Sort v]  |
+    | [Status v] [Priority v] [Severity v] [Assigned to me]            |
     +------------------------------------------------------------------+
     | 12 issues                                                        |
     | ISS-000142  Save draft fails on ...                 [ New      ] |
@@ -16,15 +18,23 @@ Issue Board-skaermen (issue #114, trin 1): delene, formlerne og hentningen.
     New issue   -> popup: Application/Section, titel, lignende sager fra
                    den anonyme liste, "What happened?", flere detaljer
                    (valgfrit), Submit -> flowet.
-    En raekke   -> popup i View mode: beskrivelsen og (egne sager)
-                   Activity med kommentarer og et kommentarfelt.
+    En raekke   -> popup i View mode: beskrivelsen og (egne sager og
+                   admin) Activity og Attachments. Handlingerne staar
+                   under hovedet: Edit, Reopen, Archive/Restore, Delete -
+                   hver kun, naar brugeren maa (IbCanEdit osv.).
+    Edit        -> samme formular som New issue, udfyldt (Edit mode). En
+                   admin faar desuden status, prioritet, tildeling og
+                   loesning.
+    Delete      -> egen bekraeftelse: sagsnummeret skal skrives.
 
 SIKKERHED ER IKKE HER
 ---------------------
-Alle filtre paa skaermen er UX. Det, en bruger kan hente, afgoeres af
-rettighederne paa raekken, som flowet saetter (ib_config.py). "My issues"
-filtrerer paa ReporterEmail, saa en admin - der kan laese alle sager - ogsaa
-kun ser sine egne her; admin-boardet er trin 2.
+Alle filtre og knapper paa skaermen er UX. Det, en bruger kan hente,
+afgoeres af rettighederne paa raekken, som flowet saetter, og alt, der
+aendrer noget, gaar gennem flowet, som tjekker admin og rapportoer paa
+serveren (ib_config.py). "All issues" er kun et scope for admins - en
+almindelig bruger, der fik det, ville stadig kun kunne hente sine egne
+raekker.
 
 HENTNING
 --------
@@ -32,16 +42,24 @@ HENTNING
     skaermen vises (Concurrent, to delegerbare forespoergsler).
   * Den anonyme liste hentes foerst, naar man vaelger "Shared issues" eller
     aabner "New issue" (forslag til lignende sager).
-  * Activity hentes, naar man aabner en af sine egne sager.
+  * "All issues" (kun admin) hentes, naar scopet vaelges - for en admin
+    er det startvisningen.
+  * Activity hentes, naar man aabner en af sine egne sager (eller en
+    admin aabner en sag). Antallet af vedhaeftninger regnes af Activity;
+    selve filerne hentes foerst, naar fanen Attachments vaelges.
+  * Efter en aendring hentes kun den ene sag igen (LookUp paa ID) og
+    dens Activity - ikke hele listen.
   * Soegning, filtre og sortering regnes i hukommelsen paa de hentede
     raekker - intet kald pr. tastetryk.
 """
 from gen_screen import (Ctrl, C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_DIVIDER, C_INFO_BG,
                         C_INFO_FG, C_INVALID_FG, C_MUTED, C_MUTED_BG, C_MODAL_BG, C_OVERLAY,
-                        C_PRIMARY, C_PRIMARY_SOFT, C_TITLE, C_TRANSPARENT)
-from build_helpers import (button, card, concurrent, fit_button_width, group, grow,
-                           icon_on_mobile, label_row, loading_overlay, row_hit, row_rule,
+                        C_PRIMARY, C_PRIMARY_SOFT, C_TITLE, C_TRANSPARENT, C_WARN_BG,
+                        C_WARN_FG)
+from build_helpers import (button, card, checkbox_theme, concurrent, fit_button_width, group,
+                           grow, icon_on_mobile, label_row, loading_overlay, row_hit, row_rule,
                            text_ctrl, text_input, themed_dropdown, top_bar, ICON_W)
+from permissions import IS_ADMIN, ADMIN_LIST, ADMIN_GROUP
 from design_tokens import ref as _t
 import layout_tokens as lay
 from layout_tokens import SHELL_W, below, at_least, if_below
@@ -57,17 +75,28 @@ NARROW = below("Tablet")
 INIT_STATE = (
     "If(\n"
     "    IsBlank(varIbScope),\n"
-    '    Set(varIbScope, "mine");\n'
+    # En admin starter paa admin-boardet (alle sager), alle andre paa
+    # deres egne. IsAdmin er een delegerbar LookUp (tools/permissions.py).
+    f'    Set(varIbScope, If({IS_ADMIN}, "all", "mine"));\n'
     '    Set(varIbState, "open");\n'
     '    Set(varIbApp, "");\n'
     '    Set(varIbSection, "");\n'
+    '    Set(varIbStatusF, "");\n'
+    '    Set(varIbPriF, "");\n'
+    '    Set(varIbSevF, "");\n'
+    "    Set(varIbAssignedMe, false);\n"
     '    Set(varIbSort, "Last updated");\n'
     "    Set(varIbMe, Lower(User().Email));\n"
     '    Set(varIbTab, "details");\n'
+    '    Set(varIbFormMode, "new");\n'
     "    Set(varIbFormOn, false);\n"
     "    Set(varIbDetailOn, false);\n"
+    "    Set(varIbDelOn, false);\n"
     "    Set(varIbMore, false);\n"
+    "    Set(varIbInternal, false);\n"
+    "    Set(varIbFilesFor, -1);\n"
     "    Set(varIbBusy, false);\n"
+    "    Set(varIbUploading, false);\n"
     "    Set(varIbPosting, false)\n"
     ")"
 )
@@ -82,8 +111,9 @@ STATUS_RANK = [(s, r) for s, _c, r in cfg.STATUS]
 
 
 def _row(r, *, shared):
-    """Een raekke i colIbMine/colIbShared. De to har SAMME skema, saa
-    listen kan vaelge mellem dem med et If."""
+    """Een raekke i colIbMine/colIbAll/colIbShared. De tre har SAMME skema,
+    saa listen kan vaelge mellem dem med et Switch. Den anonyme kopi har
+    ingen rapportoer og ingen tildeling - felterne er tomme."""
     if shared:
         f = {
             "Id": f"{r}.ID", "TicketNo": f'Coalesce({r}.TicketNo, "")',
@@ -97,6 +127,7 @@ def _row(r, *, shared):
             "CreatedOn": f"Coalesce({r}.ReportedOn, {r}.Created)",
             "UpdatedOn": f"Coalesce({r}.LastActivityOn, {r}.ReportedOn, {r}.Created)",
             "Archived": f"Coalesce({r}.IsArchived, false)",
+            "Reporter": '""', "AssignedEmail": '""',
         }
         pri, st = f"{r}.Priority", f"{r}.Status"
     else:
@@ -113,6 +144,8 @@ def _row(r, *, shared):
             "CreatedOn": f"{r}.Created",
             "UpdatedOn": f"Coalesce({r}.LastActivityOn, {r}.Created)",
             "Archived": f"Coalesce({r}.IsArchived, false)",
+            "Reporter": f'Lower(Coalesce({r}.ReporterEmail, ""))',
+            "AssignedEmail": f'Lower(Coalesce({r}.AssignedToEmail, ""))',
         }
         pri, st = f"{r}.Priority.Value", f"{r}.Status.Value"
     f["PriRank"] = _rank(pri, cfg.PRIORITY, 5)
@@ -130,6 +163,11 @@ FETCH_MINE = (f"ForAll(Sort(Filter({cfg.L_TICKETS}, ReporterEmail = varIbMe), La
               f"SortOrder.Descending) As r, {_row('r', shared=False)})")
 FETCH_SHARED = (f"ForAll(Sort({cfg.L_SHARED}, LastActivityOn, SortOrder.Descending) As r, "
                 f"{_row('r', shared=True)})")
+# Admin-boardet: alle sager, brugeren har ret til at laese. For en admin er
+# det alle (Contribute paa hver raekke); for andre ville det kun vaere deres
+# egne - scopet vises kun for admins.
+FETCH_ALL = (f"ForAll(Sort({cfg.L_TICKETS}, LastActivityOn, SortOrder.Descending) As r, "
+             f"{_row('r', shared=False)})")
 
 RELOAD_MINE = f"Set(varIbMineFailed, IfError(ClearCollect(colIbMine, {FETCH_MINE}); false, true))"
 
@@ -155,37 +193,97 @@ LOAD_SHARED = (
     ")"
 )
 
-RETRY = ("Set(varIbLoaded, false);\nSet(varIbSharedLoaded, false);\n" + LOAD
-         + ';\nIf(varIbScope = "shared", ' + LOAD_SHARED + ")")
+LOAD_ALL = (
+    "If(\n"
+    f"    {IS_ADMIN} && !varIbAllLoaded,\n"
+    "    Set(varIbLoading, true);\n"
+    f"    Set(varIbAllFailed, IfError(ClearCollect(colIbAll, {FETCH_ALL}); false, true));\n"
+    "    Set(varIbAllLoaded, !varIbAllFailed);\n"
+    "    Set(varIbLoading, false)\n"
+    ")"
+)
+
+RETRY = ("Set(varIbLoaded, false);\nSet(varIbSharedLoaded, false);\nSet(varIbAllLoaded, false);\n"
+         + LOAD + ';\nIf(varIbScope = "shared", ' + LOAD_SHARED + ")"
+         + ';\nIf(varIbScope = "all", ' + LOAD_ALL + ")")
 
 
 def on_visible():
-    return INIT_STATE + ";\n" + LOAD
+    return INIT_STATE + ";\n" + LOAD + ';\nIf(varIbScope = "all", ' + LOAD_ALL + ")"
 
+
+def _initials(email):
+    """Brugerens id (delen foer @) med store bogstaver - som MyUserId."""
+    return f'Upper(First(Split({email}, "@")).Value)'
+
+
+# Haendelser, der flytter status. Body viser "fra -> til".
+STATUS_EVENTS = '["StatusChange", "Closed", "Reopened"]'
 
 # Activity for den aabne sag. Foerste raekke er selve indmeldingen (fra
 # sagen), resten er raekkerne i IB_TicketComments - kun dem, brugeren har
-# ret til at se. Filteret paa TicketId er delegerbart (tal = variabel).
+# ret til at se: en intern note har rapportoeren ingen rettighed til, saa
+# den kommer aldrig med i hans hentning. Filteret paa TicketId er
+# delegerbart (tal = variabel); ID stiger med tiden, saa ID er raekkefoelgen
+# - ogsaa for flere haendelser, flowet skriver i samme sekund.
 LOAD_ACTIVITY = (
     "Set(varIbActBusy, true);\n"
     "Set(varIbActFailed, IfError(ClearCollect(\n"
     "    colIbActivity,\n"
-    '    { Kind: "Reported", Actor: "You", Body: "Reported the issue.", At: varIbSel.CreatedOn, '
-    "Internal: false, IsSystem: true },\n"
-    f"    ForAll(Sort(Filter({cfg.L_COMMENTS}, TicketId = varIbSelId), EventOn, SortOrder.Ascending) As r,\n"
+    '    { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", '
+    f'{_initials("varIbSel.Reporter")}), Body: "Reported the issue.", At: varIbSel.CreatedOn, '
+    'Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },\n'
+    f"    ForAll(Sort(Filter({cfg.L_COMMENTS}, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,\n"
     '        With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), '
-    'role: Coalesce(r.AuthorRole.Value, "") },\n'
+    'role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },\n'
     "            { Kind: k,\n"
     '              Actor: If(role = "System", "System", who = varIbMe, "You", '
-    'Upper(First(Split(who, "@")).Value) & If(role = "Admin", " (admin)", "")),\n'
-    '              Body: If(k = "StatusChange", "Status changed from " & Coalesce(r.PreviousStatus, "-") & '
-    '" to " & Coalesce(r.NewStatus, "-") & If(IsBlank(r.Content), ".", ". " & r.Content), '
-    'Coalesce(r.Content, "")),\n'
+    f'{_initials("who")} & If(role = "Admin", " (admin)", "")),\n'
+    f"              Body: If(k in {STATUS_EVENTS} && !IsBlank(r.NewStatus), "
+    '"Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & '
+    'If(IsBlank(r.Content), ".", ". " & r.Content),\n'
+    '                    k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & '
+    'If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),\n'
+    '                    Coalesce(r.Content, "")),\n'
     "              At: Coalesce(r.EventOn, r.Created),\n"
     '              Internal: r.Visibility.Value = "Internal",\n'
-    '              IsSystem: k <> "Comment" })))\n'
+    '              IsSystem: k <> "Comment",\n'
+    '              File: Coalesce(r.FileName, ""),\n'
+    "              SizeKb: Coalesce(r.FileSizeKb, 0),\n"
+    "              Initial: atSub })))\n"
     "; false, true));\n"
     "Set(varIbActBusy, false)"
+)
+
+# Den aabne sag hentes igen efter en aendring - een LookUp paa ID - og
+# skrives tilbage i listerne, saa raekken i oversigten passer. Er sagen
+# vaek (slettet af en anden admin), lukkes popuppen.
+RELOAD_SEL = (
+    "With(\n"
+    f"    {{ r: LookUp({cfg.L_TICKETS}, ID = varIbSelId) }},\n"
+    "    If(\n"
+    "        IsBlank(r),\n"
+    "        RemoveIf(colIbMine, Id = varIbSelId);\n"
+    "        RemoveIf(colIbAll, Id = varIbSelId);\n"
+    "        Set(varIbDetailOn, false),\n"
+    f"        Set(varIbSel, {_row('r', shared=False)});\n"
+    "        Set(varIbFiles, r.Attachments);\n"
+    "        Set(varIbFilesFor, varIbSelId);\n"
+    "        UpdateIf(colIbMine, Id = varIbSelId, varIbSel);\n"
+    "        UpdateIf(colIbAll, Id = varIbSelId, varIbSel)\n"
+    "    )\n"
+    ")"
+)
+
+# Vedhaeftningerne er SharePoint-vedhaeftninger paa sagens raekke: de
+# hentes med brugerens egen forbindelse og kun, hvis brugeren maa laese
+# raekken. Foerst naar fanen vaelges.
+LOAD_FILES = (
+    "Set(varIbFilesBusy, true);\n"
+    f"Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp({cfg.L_TICKETS}, ID = varIbSelId).Attachments); "
+    "false, true));\n"
+    "Set(varIbFilesFor, varIbSelId);\n"
+    "Set(varIbFilesBusy, false)"
 )
 
 
@@ -195,16 +293,20 @@ ROW = {"Id": "0", "TicketNo": '""', "Title": '""', "Description": '""', "Steps":
        "Expected": '""', "Actual": '""', "Application": '""', "Section": '""', "Other": '""',
        "RelatedNo": '""', "Severity": '""', "Priority": '""', "Status": '""',
        "Resolution": '""', "Assigned": '""', "CreatedOn": "Now()", "UpdatedOn": "Now()",
-       "Archived": "false", "PriRank": "0", "StatusRank": "0"}
+       "Archived": "false", "Reporter": '""', "AssignedEmail": '""', "PriRank": "0",
+       "StatusRank": "0"}
 SEC = {"Application": '""', "Section": '""', "AppOrder": "0", "SectionOrder": "0",
        "ScreenKey": '""'}
 ACT = {"Kind": '""', "Actor": '""', "Body": '""', "At": "Now()", "Internal": "false",
-       "IsSystem": "false"}
+       "IsSystem": "false", "File": '""', "SizeKb": "0", "Initial": "false"}
+ADMINS = {"Email": '""', "Name": '""'}
+UPLOAD = {"Name": '""', "Msg": '""'}
 
 
 def collections():
-    return [("colIbMine", ROW), ("colIbShared", ROW), ("colIbSections", SEC),
-            ("colIbActivity", ACT)]
+    return [("colIbMine", ROW), ("colIbAll", ROW), ("colIbShared", ROW),
+            ("colIbSections", SEC), ("colIbActivity", ACT), ("colIbAdmins", ADMINS),
+            ("colIbUp", UPLOAD)]
 
 
 # ---------------------------------------------------------------------------
@@ -218,6 +320,13 @@ APPS_FX = ('ForAll(Distinct(SortByColumns(colIbSections, "AppOrder", SortOrder.A
 FORM_SECTIONS_FX = ('SortByColumns(Filter(colIbSections, Application = varIbFormApp), '
                     '"SectionOrder", SortOrder.Ascending)')
 
+def _table(values):
+    """En literal tabel: ["a", "b"]."""
+    return "[" + ", ".join(f'"{v}"' for v in values) + "]"
+
+
+REOPENABLE_FX = _table(cfg.REOPENABLE)
+
 # ---------------------------------------------------------------------------
 FORMULAS = f'''// Issue Board (Issue Board/build/ib_parts.py). Samlingerne hentes i
 // skaermens OnVisible; alt herunder regnes i hukommelsen.
@@ -229,7 +338,18 @@ IbOtherNeeded = varIbFormApp = "{cfg.OTHER}" || varIbFormSection = "{cfg.OTHER}"
 // Den Application, skaermen man kom fra, hoerer til (gblNavFrom saettes af
 // sidebaren). Kun naar konfigurationen siger det - ellers intet gaet.
 IbFrom = Coalesce(LookUp(colIbSections, ScreenKey = gblNavFrom && !IsBlank(gblNavFrom)).Application, "");
-IbFailed = IfError(varIbCfgFailed, false) || IfError(varIbMineFailed, false) || (varIbScope = "shared" && IfError(varIbSharedFailed, false));'''
+IbFailed = IfError(varIbCfgFailed, false) || IfError(varIbMineFailed, false) || (varIbScope = "shared" && IfError(varIbSharedFailed, false)) || (varIbScope = "all" && IfError(varIbAllFailed, false));
+// Hvad maa brugeren paa den aabne sag? EET sted for knapperne - og samme
+// regler som flowet BioSap-IssueBoard-Submit, der afgoer det paa serveren.
+// En anonym (delt) sag kan ingen aendre herfra.
+IbSelMine = !varIbSelShared && varIbSel.Reporter = varIbMe;
+IbCanEdit = !varIbSelShared && !varIbSel.Archived && ({IS_ADMIN} || (IbSelMine && varIbSel.Status = "{cfg.STATUS_EDITABLE}"));
+IbCanReopen = !varIbSelShared && !varIbSel.Archived && ({IS_ADMIN} || IbSelMine) && varIbSel.Status in {REOPENABLE_FX};
+IbCanManage = !varIbSelShared && {IS_ADMIN};
+IbCanComment = !varIbSelShared && !varIbSel.Archived;
+// Antallet af filer paa sagen - af Activity, saa fanen kan vise det uden
+// at hente filerne.
+IbFileCount = CountRows(Filter(colIbActivity, Kind = "Attachment"));'''
 
 
 # ---------------------------------------------------------------------------
@@ -266,16 +386,45 @@ def _chip(name, status_expr, archived_expr, x=None, y=None, width=CHIP_W):
 # ---------------------------------------------------------------------------
 # Bjaelken
 # ---------------------------------------------------------------------------
+RESET_FORM = ("Reset(drpIbFormApp);\nReset(drpIbFormSection);\nReset(inpIbOther);\nReset(inpIbTitle);\n"
+              "Reset(inpIbDesc);\nReset(inpIbSteps);\nReset(inpIbExpected);\nReset(inpIbActual);\n"
+              "Reset(inpIbRelated);\nReset(drpIbSeverity);\nReset(attIbNewFiles);\n"
+              "Reset(drpIbStatus);\nReset(drpIbPriority);\nReset(drpIbAssignee);\nReset(inpIbResolution)")
+
 OPEN_FORM = (
     LOAD_SHARED + ";\n"
+    'Set(varIbFormMode, "new");\n'
     "Set(varIbFormApp, IbFrom);\n"
     'Set(varIbFormSection, "");\n'
     "Set(varIbMore, false);\n"
-    "Reset(drpIbFormApp);\nReset(drpIbFormSection);\nReset(inpIbOther);\nReset(inpIbTitle);\n"
-    "Reset(inpIbDesc);\nReset(inpIbSteps);\nReset(inpIbExpected);\nReset(inpIbActual);\n"
-    "Reset(inpIbRelated);\nReset(drpIbSeverity);\n"
+    + RESET_FORM + ";\n"
     "Set(varIbFormOn, true)"
 )
+
+# Admins til "Assigned to" - samme liste som IsAdmin, hentet een gang og
+# kun af en admin, der aabner Edit.
+LOAD_ADMINS = (
+    "If(\n"
+    f"    {IS_ADMIN} && !IfError(varIbAdminsLoaded, false),\n"
+    "    Set(varIbAdminsLoaded, !IfError(ClearCollect(colIbAdmins,\n"
+    f'        ForAll(Filter({ADMIN_LIST}, Title = "{ADMIN_GROUP}") As a,\n'
+    f'            {{ Email: Lower(Coalesce(a.Member, "")), Name: {_initials("Coalesce(a.Member, " + chr(34) * 2 + ")")} }})); false, true))\n'
+    ")"
+)
+
+# Edit: formularen udfyldes fra sagen. View-popuppen lukkes imens og
+# aabnes igen, naar man gemmer eller fortryder.
+OPEN_EDIT = (
+    'Set(varIbFormMode, "edit");\n'
+    "Set(varIbFormApp, varIbSel.Application);\n"
+    "Set(varIbFormSection, varIbSel.Section);\n"
+    "Set(varIbMore, true);\n"
+    + LOAD_ADMINS + ";\n"
+    + RESET_FORM + ";\n"
+    "Set(varIbDetailOn, false);\n"
+    "Set(varIbFormOn, true)"
+)
+CLOSE_FORM = 'Set(varIbFormOn, false);\nIf(varIbFormMode = "edit", Set(varIbDetailOn, true))'
 
 
 def build_bar():
@@ -319,14 +468,36 @@ def _switch_group(name, segs):
     return g
 
 
+def _filter_dd(name, all_text, values, var, label):
+    """En filterliste: "All ..." foerst og derefter vaerdierne."""
+    return themed_dropdown(name, _table([all_text] + list(values)),
+                           f'If(IsBlank({var}), "{all_text}", {var})', label=label,
+                           onchange=f'Set({var}, If(Self.Selected.Value = "{all_text}", "", '
+                                    "Self.Selected.Value))")
+
+
+ADMIN_ALL = f'{IS_ADMIN} && varIbScope = "all"'
+
+
 def build_filters():
+    all_seg = _seg("btnIbScopeAll", "All issues", 'varIbScope = "all"',
+                   'Set(varIbScope, "all");\n' + LOAD_ALL, 96,
+                   '"Show all issues (administrators)"')
+    all_seg.props["Visible"] = IS_ADMIN
+    all_seg.vis = IS_ADMIN
     scope = _switch_group("conIbScope", [
+        all_seg,
         _seg("btnIbScopeMine", "My issues", 'varIbScope = "mine"',
              'Set(varIbScope, "mine")', 104, '"Show my issues"'),
         _seg("btnIbScopeShared", "Shared issues", 'varIbScope = "shared"',
              'Set(varIbScope, "shared");\n' + LOAD_SHARED, 120,
              '"Show shared issues from all testers, without names"'),
     ])
+    # "All issues" staar der kun for en admin - saa er gruppen bredere.
+    w_all = int(scope.props["Width"])
+    w_user = w_all - 96 - 4
+    scope.props["Width"] = f"If({IS_ADMIN}, {w_all}, {w_user})"
+    scope.props["LayoutMinWidth"] = scope.props["Width"]
     state = _switch_group("conIbState", [
         _seg("btnIbStateOpen", "Open", 'varIbState = "open"', 'Set(varIbState, "open")', 76,
              '"Show open issues"'),
@@ -335,7 +506,7 @@ def build_filters():
         _seg("btnIbStateArchived", "Archived", 'varIbState = "archived"',
              'Set(varIbState, "archived")', 92, '"Show archived issues"'),
     ])
-    top_w = int(scope.props["Width"]) + 16 + int(state.props["Width"])
+    top_w = w_all + 16 + int(state.props["Width"])
     top_ok = f"({CARD_W}) >= {top_w}"
     top = group("conIbSwitches", [scope, state], direction="Horizontal", gap=16,
                 height=f"If({top_ok}, 34, 34 + 8 + 34)", align_items="Start")
@@ -376,6 +547,31 @@ def build_filters():
                 gap=8, height=f"If({ok}, 36, 4 * 36 + 3 * 8)")
     row.props["LayoutDirection"] = f"If({ok}, LayoutDirection.Horizontal, LayoutDirection.Vertical)"
 
+    # Anden raekke: status, prioritet, alvor - og for admin "Assigned to me".
+    drp_status = _filter_dd("drpIbFltStatus", "All statuses", [s for s, _c, _r in cfg.STATUS],
+                            "varIbStatusF", '"Filter by status"')
+    drp_pri = _filter_dd("drpIbFltPriority", "All priorities", [p for p, _r in cfg.PRIORITY],
+                         "varIbPriF", '"Filter by priority"')
+    drp_sev = _filter_dd("drpIbFltSeverity", "All severities", cfg.SEVERITY,
+                         "varIbSevF", '"Filter by severity"')
+    mine_seg = _seg("btnIbAssignedMe", "Assigned to me", "varIbAssignedMe",
+                    "Set(varIbAssignedMe, !varIbAssignedMe)", 136,
+                    'If(varIbAssignedMe, "Show all assignments", "Show only issues assigned to me")')
+    mine_seg.props["Height"] = "36"
+    mine_seg.h = 36
+    mine_seg.props["Visible"] = ADMIN_ALL
+    mine_seg.vis = ADMIN_ALL
+    widths2 = {"drpIbFltStatus": 180, "drpIbFltPriority": 170, "drpIbFltSeverity": 170,
+               "btnIbAssignedMe": 136}
+    fixed2 = sum(widths2.values()) + 3 * 8
+    ok2 = f"({CARD_W}) >= {fixed2}"
+    for c in (drp_status, drp_pri, drp_sev, mine_seg):
+        c.props["Width"] = f"If({ok2}, {widths2[c.name]}, {CARD_W})"
+        c.props["LayoutMinWidth"] = f"If({ok2}, {widths2[c.name]}, 0)"
+    row2 = group("conIbFltRow2", [drp_status, drp_pri, drp_sev, mine_seg], direction="Horizontal",
+                 gap=8, height=f"If({ok2}, 36, If({ADMIN_ALL}, 4 * 36 + 3 * 8, 3 * 36 + 2 * 8))")
+    row2.props["LayoutDirection"] = f"If({ok2}, LayoutDirection.Horizontal, LayoutDirection.Vertical)"
+
     note = text_ctrl("txtIbSharedNote",
                      '"Shared issues are anonymous: they never show who reported them, '
                      'and comments stay private."',
@@ -383,7 +579,7 @@ def build_filters():
                      visible='varIbScope = "shared"',
                      extra={"Fill": C_INFO_BG, "PaddingLeft": "12", "PaddingRight": "12",
                             "PaddingTop": "8", **lay.radius(10)})
-    return card("conIbFilterCard", [top, row, note], gap=12)
+    return card("conIbFilterCard", [top, row, row2, note], gap=12)
 
 
 # ---------------------------------------------------------------------------
@@ -398,6 +594,9 @@ OPEN_ROW = (
     "Set(varIbSelId, ThisItem.Id);\n"
     'Set(varIbSelShared, varIbScope = "shared");\n'
     'Set(varIbTab, "details");\n'
+    "Set(varIbInternal, false);\n"
+    "Set(varIbFilesFor, -1);\n"
+    "Reset(inpIbComment);\n"
     "Clear(colIbActivity);\n"
     "Set(varIbDetailOn, true);\n"
     "If(!varIbSelShared, " + LOAD_ACTIVITY + ")"
@@ -405,13 +604,18 @@ OPEN_ROW = (
 
 LIST_ITEMS = (
     "With(\n"
-    '    { q: Trim(inpIbSearch.Text), t: If(varIbScope = "shared", colIbShared, colIbMine) },\n'
+    '    { q: Trim(inpIbSearch.Text), t: Switch(varIbScope, "shared", colIbShared, "all", colIbAll, '
+    "colIbMine) },\n"
     "    With(\n"
     "        { f: Filter(t,\n"
     f'              Switch(varIbState, "closed", !Archived && Status = "{cfg.STATUS_CLOSED}", '
     f'"archived", Archived, !Archived && Status <> "{cfg.STATUS_CLOSED}"),\n'
     "              IsBlank(varIbApp) || Application = varIbApp,\n"
     "              IsBlank(varIbSection) || Section = varIbSection,\n"
+    "              IsBlank(varIbStatusF) || Status = varIbStatusF,\n"
+    "              IsBlank(varIbPriF) || Priority = varIbPriF,\n"
+    "              IsBlank(varIbSevF) || Severity = varIbSevF,\n"
+    f"              !(varIbAssignedMe && {ADMIN_ALL}) || AssignedEmail = varIbMe,\n"
     "              IsBlank(q) || q in TicketNo || q in Title || q in Description) },\n"
     "        Switch(\n"
     "            varIbSort,\n"
@@ -440,7 +644,9 @@ def build_list():
         "txtIbRowMeta",
         f'If({NARROW}, ThisItem.TicketNo & "  ·  ", "") & ThisItem.Application & "  ·  " & '
         'ThisItem.Section & If(IsBlank(ThisItem.Severity), "", "  ·  " & ThisItem.Severity) & '
-        f'"  ·  Updated " & {WHEN}',
+        f'"  ·  Updated " & {WHEN} & '
+        'If(varIbScope = "all", "  ·  " & If(IsBlank(ThisItem.Assigned), "Unassigned", '
+        '"Assigned to " & ThisItem.Assigned), "")',
         size=lay.SIZE_SMALL, color=C_MUTED, height=18,
         width=f"{tw} - {2 * ROW_PAD} - {CHIP_W} - 12", extra={"X": str(ROW_PAD), "Y": "40"})
     chip = _chip("txtIbRowStatus", "ThisItem.Status", "ThisItem.Archived",
@@ -468,11 +674,21 @@ def build_list():
                       'CountRows(galIbList.AllItems) & If(CountRows(galIbList.AllItems) = 1, '
                       '" issue", " issues")',
                       size=lay.SIZE_BODY, weight="Semibold", color=C_MUTED, height=20)
+    # Admin-boardets taellere: det, der venter paa en admin.
+    open_all = f'!Archived && Status <> "{cfg.STATUS_CLOSED}"'
+    counts = text_ctrl(
+        "txtIbAdminCounts",
+        f'CountIf(colIbAll, {open_all}) & " open  ·  " & '
+        f'CountIf(colIbAll, !Archived && Status = "{cfg.STATUS_NEW}") & " new  ·  " & '
+        f'CountIf(colIbAll, {open_all} && IsBlank(AssignedEmail)) & " unassigned  ·  " & '
+        f'CountIf(colIbAll, {open_all} && AssignedEmail = varIbMe) & " assigned to you"',
+        size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true", visible=ADMIN_ALL)
     empty_fx = (
         'If(varIbLoading, "Loading issues...", '
         "IbFailed, \"The issues could not be loaded. Check your connection and try again.\", "
         'varIbScope = "mine" && IsEmpty(colIbMine), '
         '"You have not reported any issues yet. Use New issue to report one.", '
+        'varIbScope = "all" && IsEmpty(colIbAll), "No issues have been reported yet.", '
         'varIbScope = "shared" && IsEmpty(colIbShared), "No issues have been shared yet.", '
         '"No issues match the filters.")')
     empty = text_ctrl("txtIbEmpty", empty_fx, size=lay.SIZE_BODY, height=40, wrap="true",
@@ -481,7 +697,7 @@ def build_list():
     retry = button("btnIbRetry", '"Retry"', RETRY, width=fit_button_width('"Retry"'), height=36,
                    visible="IbFailed && !varIbLoading", accessible='"Load the issues again"')
     retry.props["AlignInContainer"] = "AlignInContainer.Start"
-    return card("conIbListCard", [count, gal, empty, retry], gap=8)
+    return card("conIbListCard", [count, counts, gal, empty, retry], gap=8)
 
 
 # ---------------------------------------------------------------------------
@@ -543,6 +759,31 @@ LAYOUT_FX = (f'Left("Opened from " & {PAGE_FX} & " · " & LayoutContext & " layo
 CLIENT_FX = 'Left(Host.OSType & " · " & Host.BrowserUserAgent, 250)'
 FALLBACK = '{ ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }'
 
+
+def _upload(picker, ticket_id, initial, dup_check=None):
+    """Hver valgt fil gennem flowet (handlingen attach) - som dokument-
+    ruden (tools/attflows.py): ForAll giver een tabel, og ClearCollect
+    skriver den i eet kald. Msg er tom, naar filen kom igennem, ellers
+    grunden. dup_check: udtryk, der er sandt, naar F.Name allerede findes."""
+    run = (f"IfError({cfg.FLOW}.Run(\n"
+           f'                \"{cfg.ACT_ATTACH}\",\n'
+           f"                JSON({{ ticketId: {ticket_id}, initial: {initial} }}),\n"
+           "                { file: { contentBytes: F.Value, name: F.Name } }\n"
+           f"            ), {FALLBACK})")
+    msg = (f'With({{ res: {run} }}, If(res.ok = "yes", "", Coalesce(res.message, "not saved")))')
+    if dup_check:
+        msg = f'If({dup_check}, "a file with this name is already attached", {msg})'
+    return (
+        "ClearCollect(\n"
+        "    colIbUp,\n"
+        f"    ForAll({picker}.Attachments As F, {{ Name: F.Name, Msg: {msg} }})\n"
+        ")"
+    )
+
+
+UP_FAILED = "Filter(colIbUp, !IsBlank(Msg))"
+UP_FAILED_TEXT = f'Concat({UP_FAILED}, Name & " (" & Msg & ")", "; ")'
+
 SUBMIT = (
     "Set(varIbBusy, true);\n"
     f"Set(varIbRes, IfError({cfg.FLOW}.Run(\n"
@@ -564,14 +805,68 @@ SUBMIT = (
     f"), {FALLBACK}));\n"
     "If(\n"
     '    varIbRes.ok = "yes",\n'
+    # Filerne foerst nu: de laegges paa den raekke, flowet lige har oprettet
+    # og laast. Fejler en fil, er sagen stadig meldt - beskeden siger hvilke.
+    "    Clear(colIbUp);\n"
+    "    If(\n"
+    "        CountRows(attIbNewFiles.Attachments) > 0,\n"
+    "        Set(varIbUploading, true);\n"
+    "        " + _upload("attIbNewFiles", "Value(varIbRes.ticketid)", "true").replace("\n", "\n        ")
+    + ";\n"
+    "        Set(varIbUploading, false)\n"
+    "    );\n"
     f"    {RELOAD_MINE};\n"
     "    Set(varIbSharedLoaded, false);\n"
+    "    Set(varIbAllLoaded, false);\n"
     "    Set(varIbFormOn, false);\n"
     '    Set(varIbScope, "mine");\n'
     '    Set(varIbState, "open");\n'
-    '    Notify("Thank you. Issue " & varIbRes.ticketno & " has been submitted.", '
-    "NotificationType.Success),\n"
+    "    If(\n"
+    f"        CountRows({UP_FAILED}) > 0,\n"
+    '        Notify("Issue " & varIbRes.ticketno & " has been submitted, but these files were not '
+    f'attached: " & {UP_FAILED_TEXT} & ". Open the issue to try again.", NotificationType.Warning),\n'
+    '        Notify("Thank you. Issue " & varIbRes.ticketno & " has been submitted.", '
+    "NotificationType.Success)\n"
+    "    ),\n"
     '    Notify("The issue could not be submitted. " & varIbRes.message, NotificationType.Error)\n'
+    ");\n"
+    "Set(varIbBusy, false)"
+)
+
+# Edit: rapportoeren sender felterne; en admin desuden status, prioritet,
+# tildeling og loesning. Flowet afgoer, hvad der maa aendres, og skriver
+# een haendelse pr. aendring.
+SAVE_EDIT = (
+    "Set(varIbBusy, true);\n"
+    f"Set(varIbRes, IfError({cfg.FLOW}.Run(\n"
+    f'    "{cfg.ACT_EDIT}",\n'
+    "    JSON({\n"
+    "        ticketId: varIbSelId,\n"
+    "        title: Trim(inpIbTitle.Text),\n"
+    "        description: Trim(inpIbDesc.Text),\n"
+    "        steps: Trim(inpIbSteps.Text),\n"
+    "        expected: Trim(inpIbExpected.Text),\n"
+    "        actual: Trim(inpIbActual.Text),\n"
+    "        application: varIbFormApp,\n"
+    "        section: varIbFormSection,\n"
+    '        other: If(IbOtherNeeded, Trim(inpIbOther.Text), ""),\n'
+    "        relatedNo: Trim(inpIbRelated.Text),\n"
+    f'        severity: Coalesce(drpIbSeverity.Selected.Value, "{cfg.SEVERITY_DEFAULT}"),\n'
+    "        status: Coalesce(drpIbStatus.Selected.Value, varIbSel.Status),\n"
+    f'        priority: Coalesce(drpIbPriority.Selected.Value, varIbSel.Priority, "{cfg.PRIORITY_DEFAULT}"),\n'
+    '        assignee: Coalesce(drpIbAssignee.Selected.Email, ""),\n'
+    "        resolution: Trim(inpIbResolution.Text)\n"
+    "    })\n"
+    f"), {FALLBACK}));\n"
+    "If(\n"
+    '    varIbRes.ok = "yes",\n'
+    "    " + RELOAD_SEL.replace("\n", "\n    ") + ";\n"
+    "    " + LOAD_ACTIVITY.replace("\n", "\n    ") + ";\n"
+    "    Set(varIbSharedLoaded, false);\n"
+    "    Set(varIbFormOn, false);\n"
+    "    Set(varIbDetailOn, true);\n"
+    '    Notify("Your changes have been saved.", NotificationType.Success),\n'
+    '    Notify("The changes could not be saved. " & varIbRes.message, NotificationType.Error)\n'
     ");\n"
     "Set(varIbBusy, false)"
 )
@@ -615,11 +910,41 @@ def _pair(name, a, b, inner=FORM_IN):
     return g
 
 
+EDITING = 'varIbFormMode = "edit"'
+
+
+def _dflt(field, empty='""'):
+    """Feltets Default: sagens vaerdi i Edit, ellers tomt."""
+    return f"If({EDITING}, {SEL_REF}.{field}, {empty})"
+
+
+SEL_REF = "varIbSel"
+
+
+def _attachments(name, label):
+    """Vaelg filer - samme kontrol og samme loft som dokumentruden
+    (tools/domain_parts.py). Filerne sendes foerst, naar man trykker."""
+    return Ctrl(name, "Attachments@2.3.0", props={
+        "AccessibleLabel": label,
+        "BorderColor": C_CARD_BORDER,
+        "BorderThickness": "1",
+        "Height": "90",
+        "MaxAttachments": str(cfg.MAX_FILES),
+        "MaxAttachmentSize": str(cfg.MAX_FILE_MB),
+        "NoAttachmentsText": '"Drag screenshots or files here, or browse"',
+        "PaddingBottom": "5", "PaddingLeft": "5",
+        "PaddingRight": "5", "PaddingTop": "5",
+        "Width": "Parent.Width",
+    }, h=90)
+
+
 def build_form():
-    head = _head("IbForm", '"New issue"', "Set(varIbFormOn, false)")
+    head = _head("IbForm", f'If({EDITING}, "Edit " & {SEL_REF}.TicketNo, "New issue")', CLOSE_FORM)
     intro = text_ctrl("txtIbFormIntro",
+                      f'If({EDITING}, "Edit mode. Change what is needed and select Save changes - '
+                      'every change is recorded in the activity.", '
                       '"Tell us what happened. Fields marked * are required. Only you and the '
-                      'administrators can see your name and the comments."',
+                      'administrators can see your name and the comments.")',
                       size=lay.SIZE_BODY, color=C_MUTED, height=40, wrap="true")
 
     app = themed_dropdown("drpIbFormApp", APPS_FX, "varIbFormApp", value_col="Application",
@@ -636,13 +961,13 @@ def build_form():
     sec_hint = text_ctrl("txtIbFormSecHint", '"Pick an application first."', size=lay.SIZE_SMALL,
                          color=C_MUTED, height=18, visible="IsBlank(varIbFormApp)")
 
-    other = text_input("inpIbOther", '""', placeholder='"Which application or part of the app?"',
+    other = text_input("inpIbOther", _dflt("Other"), placeholder='"Which application or part of the app?"',
                        max_length=250, required_formula="true",
                        label='"Describe the application or section, required"')
     other_f = _field("conIbFormOther", "Describe where it happened", other, required=True,
                      visible="IbOtherNeeded")
 
-    title = text_input("inpIbTitle", '""', placeholder='"A short summary, e.g. Save draft does nothing"',
+    title = text_input("inpIbTitle", _dflt("Title"), placeholder='"A short summary, e.g. Save draft does nothing"',
                        max_length=120, required_formula="true", label='"Title, required"')
     title_f = _field("conIbFormTitleF", "Title", title, required=True)
 
@@ -676,9 +1001,9 @@ def build_form():
     }, children=[s_no, s_title, s_where, s_chip, s_hit], h=sim_h)
     similar = group("conIbSimilar", [sim_head, sim], direction="Vertical", gap=6,
                     fill=C_INFO_BG, radius=10, pad=(10, 10, 10, 10),
-                    visible="CountRows(galIbSimilar.AllItems) > 0")
+                    visible=f"!({EDITING}) && CountRows(galIbSimilar.AllItems) > 0")
 
-    desc = text_input("inpIbDesc", '""', placeholder='"What did you do, and what went wrong?"',
+    desc = text_input("inpIbDesc", _dflt("Description"), placeholder='"What did you do, and what went wrong?"',
                       max_length=4000, required_formula="true", height=110, ttype="Multiline",
                       label='"What happened, required"')
     desc_f = _field("conIbFormDesc", "What happened?", desc, required=True)
@@ -691,42 +1016,84 @@ def build_form():
     more.props["AlignInContainer"] = "AlignInContainer.Start"
     more.props["Width"] = str(fit_button_width('"Add more details (optional)"') + ICON_W)
 
-    def area(name, label, placeholder):
-        c = text_input(name, '""', placeholder=f'"{placeholder}"', max_length=4000, height=72,
-                       ttype="Multiline", label=f'"{label}"')
+    def area(name, label, placeholder, field):
+        c = text_input(name, _dflt(field), placeholder=f'"{placeholder}"', max_length=4000,
+                       height=72, ttype="Multiline", label=f'"{label}"')
         return _field(f"con{name[3:]}F", label, c)
 
-    steps = area("inpIbSteps", "Steps to reproduce", "1. Open ... 2. Select ... 3. ...")
-    expected = area("inpIbExpected", "Expected result", "What should have happened?")
-    actual = area("inpIbActual", "Actual result", "What happened instead?")
-    related = text_input("inpIbRelated", '""', placeholder='"e.g. MP0142"', max_length=40,
-                         label='"Related request number"')
-    severity = themed_dropdown("drpIbSeverity",
-                               "[" + ", ".join(f'"{s}"' for s in cfg.SEVERITY) + "]",
-                               f'"{cfg.SEVERITY_DEFAULT}"', label='"How serious is it?"')
+    steps = area("inpIbSteps", "Steps to reproduce", "1. Open ... 2. Select ... 3. ...", "Steps")
+    expected = area("inpIbExpected", "Expected result", "What should have happened?", "Expected")
+    actual = area("inpIbActual", "Actual result", "What happened instead?", "Actual")
+    related = text_input("inpIbRelated", _dflt("RelatedNo"), placeholder='"e.g. MP0142"',
+                         max_length=40, label='"Related request number"')
+    severity = themed_dropdown("drpIbSeverity", _table(cfg.SEVERITY),
+                               f'If({EDITING} && !IsBlank({SEL_REF}.Severity), {SEL_REF}.Severity, '
+                               f'"{cfg.SEVERITY_DEFAULT}")',
+                               label='"How serious is it?"')
     extra_row = _pair("conIbFormExtra", _field("conIbFormRelated", "Related request number", related),
                       _field("conIbFormSeverity", "How serious is it?", severity))
     details = group("conIbFormMore", [steps, expected, actual, extra_row], direction="Vertical",
                     gap=12, visible="varIbMore")
 
+    # Skaermbilleder og filer - kun ved en ny sag; paa en gemt sag ligger
+    # de under fanen Attachments.
+    files = _field("conIbFormFiles", "Screenshots and files (optional)",
+                   _attachments("attIbNewFiles", '"Screenshots and files for the new issue"'),
+                   visible=f"!({EDITING})")
+
+    # Admin: livsforloebet, prioriteten, tildelingen og loesningen.
+    st = themed_dropdown("drpIbStatus", _table([s for s, _c, _r in cfg.STATUS]),
+                         f"{SEL_REF}.Status", label='"Status"')
+    pr = themed_dropdown("drpIbPriority", _table([p for p, _r in cfg.PRIORITY]),
+                         f'Coalesce({SEL_REF}.Priority, "{cfg.PRIORITY_DEFAULT}")',
+                         label='"Priority"')
+    asg_items = ('Ungroup(Table({ x: Table({ Email: "", Name: "Not assigned" }) }, '
+                 '{ x: SortByColumns(colIbAdmins, "Name", SortOrder.Ascending) }), x)')
+    asg = themed_dropdown("drpIbAssignee", asg_items,
+                          f'If(IsBlank({SEL_REF}.AssignedEmail), "Not assigned", '
+                          f'Coalesce(LookUp(colIbAdmins, Email = {SEL_REF}.AssignedEmail).Name, '
+                          f'{SEL_REF}.Assigned, "Not assigned"))',
+                          value_col="Name", label='"Assigned to"')
+    res = text_input("inpIbResolution", f"{SEL_REF}.Resolution",
+                     placeholder='"What was done - shown to the reporter and on the shared board"',
+                     max_length=4000, height=72, ttype="Multiline", label='"Resolution"')
+    manage_head = text_ctrl("txtIbManageHead", '"Administration"', size=lay.SIZE_BODY,
+                            weight="Semibold", height=20)
+    manage_hint = text_ctrl("txtIbManageHint",
+                            f'"The reporter gets an email when the status changes to {cfg.STATUS_RETEST} '
+                            f'or {cfg.STATUS_CLOSED}."',
+                            size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true")
+    manage = group("conIbManage", [
+        manage_head,
+        _pair("conIbManage1", _field("conIbFormStatus", "Status", st),
+              _field("conIbFormPriority", "Priority", pr), inner=f"({FORM_IN} - 24)"),
+        _field("conIbFormAssignee", "Assigned to", asg),
+        _field("conIbFormResolution", "Resolution", res),
+        manage_hint,
+    ], direction="Vertical", gap=12, fill=C_MUTED_BG, radius=10, pad=(12, 12, 12, 12),
+        visible=f"{EDITING} && {IS_ADMIN}")
+
     context = text_ctrl("txtIbFormContext",
                         f'"Also recorded with the issue: opened from " & {PAGE_FX} & ", " & '
                         'LayoutContext & " layout, " & Host.OSType & ", and the date and time."',
-                        size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true")
+                        size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true",
+                        visible=f"!({EDITING})")
     missing = text_ctrl("txtIbFormMissing",
                         '"To submit, pick an application and a section, and fill in the title '
                         '(at least 4 characters) and what happened."',
                         size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true",
                         visible=f"!({VALID})")
-    cancel = button("btnIbFormCancel", '"Cancel"', "Set(varIbFormOn, false)",
+    cancel = button("btnIbFormCancel", '"Cancel"', CLOSE_FORM,
                     width=fit_button_width('"Cancel"'), height=36)
-    submit = button("btnIbFormSubmit", '"Submit issue"', SUBMIT, primary=True,
-                    width=fit_button_width('"Submit issue"') + ICON_W, height=36, icon="Send",
+    submit = button("btnIbFormSubmit", f'If({EDITING}, "Save changes", "Submit issue")',
+                    f"If(\n    {EDITING},\n    {SAVE_EDIT},\n    {SUBMIT}\n)", primary=True,
+                    width=fit_button_width('"Save changes"') + ICON_W, height=36,
+                    icon=f'If({EDITING}, "Save", "Send")',
                     display_mode=f"If(({VALID}) && !varIbBusy, DisplayMode.Edit, DisplayMode.Disabled)")
     footer = group("conIbFormFooter", [cancel, submit], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
     kids = [head, intro, where, sec_hint, other_f, title_f, similar, desc_f, more, details,
-            context, missing, footer]
+            files, manage, context, missing, footer]
     return [_popup("IbForm", kids, FORM_ON, width=FORM_W)]
 
 
@@ -742,21 +1109,86 @@ ACT_W = f"({DET_IN} - {lay.SCROLLBAR_W} - {lay.GALLERY_RESERVE})"
 ACT_BODY_W = f"({ACT_W} - {2 * ACT_ROW_PAD})"
 ACT_MAX_H = 420
 
-POST = (
-    "Set(varIbPosting, true);\n"
-    f"Set(varIbRes, IfError({cfg.FLOW}.Run(\n"
-    f'    "{cfg.ACT_COMMENT}",\n'
-    "    JSON({ ticketId: varIbSelId, content: Trim(inpIbComment.Text) })\n"
-    f"), {FALLBACK}));\n"
+# Efter enhver aendring gennem flowet: sagen og dens Activity igen, og den
+# delte liste hentes forfra naeste gang, den vises.
+AFTER_CHANGE = (RELOAD_SEL + ";\n" + LOAD_ACTIVITY + ";\nSet(varIbSharedLoaded, false)")
+
+
+def _run(action, payload, ok_fx, fail_text, busy="varIbBusy"):
+    """Et kald til flowet med ventespinner og svar. ok_fx koeres kun, naar
+    flowet svarer ok - ellers staar flowets egen grund i beskeden."""
+    return (
+        f"Set({busy}, true);\n"
+        f"Set(varIbRes, IfError({cfg.FLOW}.Run(\n"
+        f'    "{action}",\n'
+        f"    JSON({payload})\n"
+        f"), {FALLBACK}));\n"
+        "If(\n"
+        '    varIbRes.ok = "yes",\n'
+        "    " + ok_fx.replace("\n", "\n    ") + ",\n"
+        f'    Notify("{fail_text} " & varIbRes.message, NotificationType.Error)\n'
+        ");\n"
+        f"Set({busy}, false)"
+    )
+
+
+POST = _run(
+    cfg.ACT_COMMENT,
+    f"{{ ticketId: varIbSelId, content: Trim(inpIbComment.Text), internal: varIbInternal && {IS_ADMIN} }}",
+    "Reset(inpIbComment);\n"
+    + LOAD_ACTIVITY + ";\n"
+    "UpdateIf(colIbMine, Id = varIbSelId, { UpdatedOn: Now() });\n"
+    "UpdateIf(colIbAll, Id = varIbSelId, { UpdatedOn: Now() });\n"
+    'Notify(If(varIbInternal, "Internal note added.", "Comment posted."), NotificationType.Success);\n'
+    "Set(varIbInternal, false);\n"
+    "Reset(chkIbInternal)",
+    "The comment could not be posted.", busy="varIbPosting")
+
+REOPEN = _run(
+    cfg.ACT_REOPEN, '{ ticketId: varIbSelId, reason: "" }',
+    AFTER_CHANGE + ";\n"
+    'Set(varIbState, "open");\n'
+    'Notify("The issue has been reopened. An administrator will look at it again.", '
+    "NotificationType.Success)",
+    "The issue could not be reopened.")
+
+ARCHIVE = _run(
+    cfg.ACT_ARCHIVE, f"{{ ticketId: varIbSelId, archived: !{SEL}.Archived }}",
+    AFTER_CHANGE + ";\n"
+    f'Notify(If({SEL}.Archived, "The issue has been archived. It is kept under Archived.", '
+    '"The issue has been restored."), NotificationType.Success)',
+    "The issue could not be changed.")
+
+# Permanent sletning: kun fra sin egen bekraeftelse, kun naar nummeret er
+# skrevet, og varIbBusy saettes, foer kaldet gaar - et dobbeltklik rammer
+# en laast knap. Flowet tjekker nummeret igen.
+DELETE = _run(
+    cfg.ACT_DELETE, "{ ticketId: varIbSelId, confirm: Trim(inpIbDelConfirm.Text) }",
+    "RemoveIf(colIbMine, Id = varIbSelId);\n"
+    "RemoveIf(colIbAll, Id = varIbSelId);\n"
+    "Set(varIbSharedLoaded, false);\n"
+    "Set(varIbDelOn, false);\n"
+    "Set(varIbDetailOn, false);\n"
+    f'Notify({SEL}.TicketNo & " has been deleted permanently.", NotificationType.Success)',
+    "The issue could not be deleted.")
+
+UPLOAD_FILES = (
     "If(\n"
-    '    varIbRes.ok = "yes",\n'
-    "    Reset(inpIbComment);\n"
-    "    " + LOAD_ACTIVITY.replace("\n", "\n    ") + ";\n"
-    "    Patch(colIbMine, LookUp(colIbMine, Id = varIbSelId), { UpdatedOn: Now() });\n"
-    '    Notify("Comment posted.", NotificationType.Success),\n'
-    '    Notify("The comment could not be posted. " & varIbRes.message, NotificationType.Error)\n'
-    ");\n"
-    "Set(varIbPosting, false)"
+    "    CountRows(attIbFiles.Attachments) = 0,\n"
+    '    Notify("Choose one or more files first.", NotificationType.Warning),\n'
+    "    Set(varIbUploading, true);\n"
+    "    " + _upload("attIbFiles", "varIbSelId", "false",
+                     dup_check="F.Name in ShowColumns(varIbFiles, DisplayName)").replace("\n", "\n    ")
+    + ";\n"
+    "    Reset(attIbFiles);\n"
+    "    " + AFTER_CHANGE.replace("\n", "\n    ") + ";\n"
+    "    Set(varIbUploading, false);\n"
+    "    If(\n"
+    f"        CountRows({UP_FAILED}) > 0,\n"
+    f'        Notify("Not attached: " & {UP_FAILED_TEXT}, NotificationType.Error),\n'
+    '        Notify("The file(s) have been attached.", NotificationType.Success)\n'
+    "    )\n"
+    ")"
 )
 
 
@@ -769,8 +1201,11 @@ def _text_block(name, label, expr, visible=None):
     return group(f"con{name}", [lab, body], direction="Vertical", gap=4, visible=visible)
 
 
-def _tab(name, label_fx, key, accessible):
-    b = button(name, label_fx, f'Set(varIbTab, "{key}")', width=132, height=32,
+TAB_W = 132
+
+
+def _tab(name, label_fx, key, accessible, onselect=None):
+    b = button(name, label_fx, onselect or f'Set(varIbTab, "{key}")', width=TAB_W, height=32,
                accessible=accessible)
     sel = f'varIbTab = "{key}"'
     b.props["Appearance"] = "ButtonAppearance.Outline"
@@ -778,8 +1213,105 @@ def _tab(name, label_fx, key, accessible):
     b.props["BorderThickness"] = f"If({sel}, 2, 1)"
     b.props["Color"] = f"If({sel}, {C_PRIMARY}, {C_TITLE})"
     b.props["Size"] = str(lay.SIZE_SMALL)
-    b.props["LayoutMinWidth"] = "132"
+    b.props["LayoutMinWidth"] = "0"
     return b
+
+
+def _actions():
+    """Handlingerne paa den aabne sag - hver kun, naar brugeren maa (de
+    navngivne formler IbCan*). Edit og Delete er kun ikoner paa en telefon."""
+    edit = icon_on_mobile(button("btnIbEdit", '"Edit"', OPEN_EDIT,
+                                 width=fit_button_width('"Edit"') + ICON_W, height=34, icon="Edit",
+                                 visible="IbCanEdit", accessible='"Edit this issue"'))
+    reopen = button("btnIbReopen", '"Reopen"', REOPEN, width=fit_button_width('"Reopen"'),
+                    height=34, visible="IbCanReopen",
+                    accessible='"Reopen this issue - the problem is still there"',
+                    display_mode="If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)")
+    archive = button("btnIbArchive", f'If({SEL}.Archived, "Restore", "Archive")', ARCHIVE,
+                     width=fit_button_width('"Restore"'), height=34, visible="IbCanManage",
+                     accessible=f'If({SEL}.Archived, "Restore this issue from the archive", '
+                                '"Archive this issue - it is kept, but leaves the active lists")',
+                     display_mode="If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)")
+    delete = icon_on_mobile(button("btnIbDelete", '"Delete"',
+                                   "Reset(inpIbDelConfirm);\nSet(varIbDelOn, true)",
+                                   width=fit_button_width('"Delete"') + ICON_W, height=34,
+                                   icon="Delete", danger=True, visible="IbCanManage",
+                                   accessible='"Delete this issue permanently"'))
+    for b in (edit, reopen, archive, delete):
+        b.props["LayoutMinWidth"] = b.props["Width"]
+    return group("conIbDetActions", [edit, reopen, archive, delete], direction="Horizontal", gap=8,
+                 height=34, align_items="Center",
+                 visible="IbCanEdit || IbCanReopen || IbCanManage")
+
+
+def _files_panel():
+    """Fanen Attachments: filerne paa sagens raekke, et lille billede af
+    billedfiler, Open, og - mens sagen ikke er arkiveret - Upload."""
+    tw = "Parent.TemplateWidth"
+    row_h = 60
+    ext = 'Lower(Last(Split(ThisItem.DisplayName, ".")).Value)'
+    is_img = f"{ext} in {_table(cfg.IMAGE_EXT)}"
+    thumb = Ctrl("imgIbFileThumb", "Image", props={
+        "AccessibleLabel": '"Preview of " & ThisItem.DisplayName',
+        "BorderColor": C_CARD_BORDER, "BorderStyle": "BorderStyle.Solid", "BorderThickness": "1",
+        "Height": "44", "Image": "ThisItem.Value", "ImagePosition": "ImagePosition.Fill",
+        "OnSelect": "false", "TabIndex": "-1", **lay.radius(6),
+        "Visible": is_img, "Width": "44", "X": "0", "Y": "8",
+    }, h=44, vis=is_img)
+    kind = text_ctrl("txtIbFileKind", f"Upper(Left({ext}, 4))", size=lay.SIZE_MICRO,
+                     weight="Semibold", color=C_MUTED, height=44, width=44, align="Center",
+                     visible=f"!({is_img})",
+                     extra={"X": "0", "Y": "8", "VerticalAlign": "VerticalAlign.Middle",
+                            "Fill": C_MUTED_BG, **lay.radius(6)})
+    open_w = fit_button_width('"Open"')
+    name = text_ctrl("txtIbFileName", "ThisItem.DisplayName", size=lay.SIZE_BODY, weight="Semibold",
+                     height=20, width=f"{tw} - 56 - {open_w} - 12",
+                     extra={"X": "56", "Y": "9"})
+    meta = text_ctrl(
+        "txtIbFileMeta",
+        'With({ e: LookUp(colIbActivity, Kind = "Attachment" && File = ThisItem.DisplayName) }, '
+        f'Upper({ext}) & If(IsBlank(e), "", "  ·  " & e.SizeKb & " KB  ·  " & e.Actor & "  ·  " & '
+        'Text(e.At, "dd mmm yyyy hh:mm") & If(e.Initial, "  ·  with the report", "  ·  added later")))',
+        size=lay.SIZE_SMALL, color=C_MUTED, height=18, width=f"{tw} - 56 - {open_w} - 12",
+        extra={"X": "56", "Y": "31"})
+    # NY fane: en fil er ikke en app, og Replace ville smide appen vaek.
+    opn = button("btnIbFileOpen", '"Open"', "Launch(ThisItem.AbsoluteUri, { }, LaunchTarget.New)",
+                 width=open_w, height=32, accessible='"Open or download " & ThisItem.DisplayName')
+    opn.props["X"] = f"{tw} - {open_w}"
+    opn.props["Y"] = "14"
+    files_items = "If(varIbFilesFor = varIbSelId, varIbFiles, FirstN(varIbFiles, 0))"
+    gal_h = f"Min(5, CountRows(galIbFiles.AllItems)) * {row_h}"
+    gal = Ctrl("galIbFiles", "Gallery", variant="Vertical", props={
+        "AccessibleLabel": '"Attachments"',
+        "BorderStyle": "BorderStyle.None", "Fill": C_TRANSPARENT, "FillPortions": "0",
+        "Height": gal_h, "Items": files_items, "LayoutMinWidth": "0",
+        "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
+        "ShowScrollbar": "true", "TabIndex": "0", "TemplatePadding": "0",
+        "TemplateSize": str(row_h), "Width": "Parent.Width", "WrapCount": "1",
+    }, children=[thumb, kind, name, meta, opn], h=gal_h,
+        vis="CountRows(galIbFiles.AllItems) > 0")
+    state = text_ctrl(
+        "txtIbFilesState",
+        'If(varIbFilesBusy, "Loading attachments...", IfError(varIbFilesFailed, false), '
+        '"The attachments could not be loaded. Select the tab again to retry.", '
+        '"No files yet. Screenshots help a lot.")',
+        size=lay.SIZE_BODY, color=f"If(IfError(varIbFilesFailed, false), {C_INVALID_FG}, {C_MUTED})",
+        height=20, wrap="true", visible="CountRows(galIbFiles.AllItems) = 0")
+    picker = _attachments("attIbFiles", '"Choose files to attach"')
+    up = button("btnIbUpload", '"Upload"', UPLOAD_FILES, primary=True,
+                width=fit_button_width('"Upload"') + ICON_W, height=36, icon="ArrowUpload",
+                accessible='"Upload the chosen files to this issue"',
+                display_mode=("If(CountRows(attIbFiles.Attachments) = 0 || varIbUploading, "
+                              "DisplayMode.Disabled, DisplayMode.Edit)"))
+    up.props["AlignInContainer"] = "AlignInContainer.End"
+    hint = text_ctrl("txtIbFilesHint",
+                     f'"Up to {cfg.MAX_FILES} files at a time, {cfg.MAX_FILE_MB} MB each. Files are '
+                     'only visible to you and the administrators - never on the shared board."',
+                     size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true")
+    adder = group("conIbFileAdd", [picker, hint, up], direction="Vertical", gap=8,
+                  visible=f"!{SEL}.Archived")
+    return group("conIbDetFiles", [state, gal, adder], direction="Vertical", gap=12,
+                 visible=f'{MINE} && varIbTab = "files"')
 
 
 def build_detail():
@@ -802,23 +1334,38 @@ def build_detail():
         f'"Severity: " & Coalesce(If(IsBlank({SEL}.Severity), Blank(), {SEL}.Severity), "-") & '
         f'"  ·  Priority: " & Coalesce(If(IsBlank({SEL}.Priority), Blank(), {SEL}.Priority), "-") & '
         f'If({MINE}, "  ·  Assigned to: " & Coalesce(If(IsBlank({SEL}.Assigned), Blank(), '
-        f'{SEL}.Assigned), "not yet assigned"), "")',
-        size=lay.SIZE_SMALL, height=18)
+        f'{SEL}.Assigned), "not yet assigned"), "") & '
+        # Kun en admin ser, hvem der meldte en andens sag.
+        f'If({MINE} && {IS_ADMIN} && !IbSelMine, "  ·  Reported by " & {_initials(SEL + ".Reporter")}, "")',
+        size=lay.SIZE_SMALL, height=34, wrap="true")
 
     shared_note = text_ctrl("txtIbDetShared",
-                            '"Shared issue. Who reported it, their details and the comments are '
-                            'private and not shown here."',
+                            '"Shared issue. Who reported it, their details, the comments and the '
+                            'files are private and not shown here."',
                             size=lay.SIZE_SMALL, color=C_INFO_FG, height=34, wrap="true",
                             visible="varIbSelShared",
                             extra={"Fill": C_INFO_BG, "PaddingLeft": "12", "PaddingRight": "12",
                                    "PaddingTop": "8", **lay.radius(10)})
+    retest = text_ctrl("txtIbDetRetest",
+                       f'"This issue is ready for retest. Please try it again - if the problem is '
+                       'still there, select Reopen."',
+                       size=lay.SIZE_SMALL, color=C_WARN_FG, height=34, wrap="true",
+                       visible=f'IbSelMine && {SEL}.Status = "{cfg.STATUS_RETEST}" && !{SEL}.Archived',
+                       extra={"Fill": C_WARN_BG, "PaddingLeft": "12", "PaddingRight": "12",
+                              "PaddingTop": "8", **lay.radius(10)})
 
     n_act = "CountRows(colIbActivity)"
     tabs = group("conIbDetTabs", [
         _tab("btnIbTabDetails", '"Description"', "details", '"Show the description"'),
         _tab("btnIbTabActivity", f'"Activity (" & {n_act} & ")"', "activity",
              '"Show the activity and comments"'),
+        _tab("btnIbTabFiles", '"Attachments (" & IbFileCount & ")"', "files",
+             '"Show the attachments"',
+             onselect='Set(varIbTab, "files");\nIf(varIbFilesFor <> varIbSelId, ' + LOAD_FILES + ")"),
     ], direction="Horizontal", gap=8, height=32, align_items="Center", visible=MINE)
+    # Tre faner skal kunne staa paa en telefon: de deler bredden.
+    for t in tabs.children:
+        t.props["Width"] = f"Min({TAB_W}, ({DET_IN} - 16) / 3)"
 
     show_details = f'varIbSelShared || varIbTab = "details"'
     blocks = [
@@ -838,21 +1385,24 @@ def build_detail():
     ]
     details = group("conIbDetDetails", blocks, direction="Vertical", gap=12, visible=show_details)
 
-    # Activity: kommentarer som flader, haendelser med stiplet kant.
+    # Activity: kommentarer som flader, haendelser med stiplet kant, interne
+    # noter i advarselsfarven - og med teksten "internal note", ikke kun farve.
     tw = "Parent.TemplateWidth"
     body_h = _lines_h("ThisItem.Body", ACT_BODY_W)
     row_h = f"(30 + {body_h} + 10)"
     bg = text_ctrl("txtIbActBg", '""', size=lay.SIZE_MICRO, height=f"{row_h} - 4", width=tw,
                    accessible='""',
-                   fill=f"If(ThisItem.IsSystem, {C_TRANSPARENT}, {C_MUTED_BG})",
+                   fill=(f"If(ThisItem.Internal, {C_WARN_BG}, ThisItem.IsSystem, {C_TRANSPARENT}, "
+                         f"{C_MUTED_BG})"),
                    extra={"X": "0", "Y": "2", **lay.radius(8),
                           "BorderColor": f"If(ThisItem.IsSystem, {C_CARD_BORDER}, {C_TRANSPARENT})",
                           "BorderStyle": "BorderStyle.Dashed",
                           "BorderThickness": "If(ThisItem.IsSystem, 1, 0)"})
     actor = text_ctrl("txtIbActActor",
-                      'ThisItem.Actor & If(ThisItem.Internal, "  ·  internal note", "")',
+                      'ThisItem.Actor & If(ThisItem.Internal, "  ·  internal note, admins only", "")',
                       size=lay.SIZE_BODY, weight="Semibold",
-                      color=f"If(ThisItem.IsSystem, {C_MUTED}, {C_TITLE})", height=20,
+                      color=(f"If(ThisItem.Internal, {C_WARN_FG}, ThisItem.IsSystem, {C_MUTED}, "
+                             f"{C_TITLE})"), height=20,
                       width=f"{tw} - {2 * ACT_ROW_PAD} - 150",
                       extra={"X": str(ACT_ROW_PAD), "Y": "8"})
     when = text_ctrl("txtIbActWhen", 'Text(ThisItem.At, "dd mmm yyyy hh:mm")',
@@ -878,29 +1428,78 @@ def build_detail():
                           height=20, wrap="true",
                           visible="varIbActBusy || IfError(varIbActFailed, false)")
 
-    comment = text_input("inpIbComment", '""', placeholder='"Write a comment for the administrators"',
+    comment = text_input("inpIbComment", '""',
+                         placeholder=(f'If(varIbInternal, "Write an internal note for the administrators", '
+                                      f'{IS_ADMIN} && !IbSelMine, "Write a reply to the reporter", '
+                                      '"Write a comment for the administrators")'),
                          max_length=2000, height=72, ttype="Multiline", label='"Comment"')
+    internal = Ctrl("chkIbInternal", "ModernCheckbox", props=checkbox_theme({
+        "AccessibleLabel": '"Internal note - only administrators can see it"',
+        "Default": "varIbInternal",
+        "Height": "24",
+        "Label": '"Internal note - only administrators can see it"',
+        "OnCheck": "Set(varIbInternal, true)",
+        "OnUncheck": "Set(varIbInternal, false)",
+        "Visible": IS_ADMIN,
+        "Width": "Parent.Width",
+    }), h=24, vis=IS_ADMIN)
     closed_hint = text_ctrl(
         "txtIbCommentHint",
-        f'If({SEL}.Status = "{cfg.STATUS_CLOSED}", '
-        '"This issue is closed. If the problem is back, say so here and an administrator will reopen it.", '
-        '"Comments are visible to you and the administrators only.")',
+        f'If(varIbInternal, "Internal notes are never shown to the reporter.", '
+        f'{SEL}.Status = "{cfg.STATUS_CLOSED}", '
+        '"This issue is closed. If the problem is back, select Reopen - or add a comment.", '
+        '"Comments are visible to the reporter and the administrators only.")',
         size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true")
-    post = button("btnIbPost", '"Post comment"', POST, primary=True,
-                  width=fit_button_width('"Post comment"') + ICON_W, height=36, icon="Send",
+    post = button("btnIbPost", 'If(varIbInternal, "Add internal note", "Post comment")', POST,
+                  primary=True, width=fit_button_width('"Add internal note"') + ICON_W, height=36,
+                  icon="Send",
                   display_mode=("If(IsBlank(Trim(inpIbComment.Text)) || varIbPosting, "
                                 "DisplayMode.Disabled, DisplayMode.Edit)"))
     post.props["AlignInContainer"] = "AlignInContainer.End"
-    composer = group("conIbComposer", [comment, closed_hint, post], direction="Vertical", gap=8,
-                     visible=f"!{SEL}.Archived")
+    composer = group("conIbComposer", [comment, internal, closed_hint, post], direction="Vertical",
+                     gap=8, visible="IbCanComment")
     activity = group("conIbDetActivity", [act_state, gal, composer], direction="Vertical", gap=12,
                      visible=f'{MINE} && varIbTab = "activity"')
 
     rule = group("conIbDetRule", [], direction="Horizontal", height=1, fill=C_DIVIDER)
-    kids = [head, meta, facts, shared_note, tabs, rule, details, activity]
+    kids = [head, meta, facts, _actions(), shared_note, retest, tabs, rule, details, activity,
+            _files_panel()]
     return [_popup("IbDet", kids, DETAIL_ON)]
+
+
+def build_delete():
+    """Permanent sletning - sin egen popup oven paa sagen. Nummeret skal
+    skrives, teksten siger, at det ikke kan fortrydes, og knappen er laast,
+    til nummeret passer, og mens kaldet koerer."""
+    del_on = "IfError(varIbDelOn, false)"
+    head = _head("IbDel", f'"Delete " & {SEL}.TicketNo & " permanently?"', "Set(varIbDelOn, false)")
+    warn = text_ctrl(
+        "txtIbDelWarn",
+        '"This cannot be undone. The issue, all its comments and activity, and its attachments '
+        'are deleted for everyone, and it disappears from the shared board. '
+        'To keep the history, archive the issue instead."',
+        size=lay.SIZE_BODY, color=C_INVALID_FG, height=58, wrap="true")
+    match = f"Upper(Trim(inpIbDelConfirm.Text)) = Upper({SEL}.TicketNo)"
+    confirm = text_input("inpIbDelConfirm", '""', placeholder=f'{SEL}.TicketNo', max_length=20,
+                         label=f'"Type " & {SEL}.TicketNo & " to confirm"')
+    confirm_f = group("conIbDelConfirmF", [
+        text_ctrl("txtIbDelConfirmLabel", f'"Type " & {SEL}.TicketNo & " to confirm"',
+                  size=lay.SIZE_BODY, weight="Semibold", height=20),
+        confirm], direction="Vertical", gap=6)
+    cancel = button("btnIbDelCancel", '"Cancel"', "Set(varIbDelOn, false)",
+                    width=fit_button_width('"Cancel"'), height=36)
+    ok = button("btnIbDelConfirm", '"Delete permanently"', DELETE, danger=True,
+                width=fit_button_width('"Delete permanently"') + ICON_W, height=36, icon="Delete",
+                accessible=f'"Delete " & {SEL}.TicketNo & " permanently"',
+                display_mode=f"If({match} && !varIbBusy, DisplayMode.Edit, DisplayMode.Disabled)")
+    footer = group("conIbDelFooter", [cancel, ok], direction="Horizontal", gap=8, height=36,
+                   justify="End", align_items="Center")
+    return [_popup("IbDel", [head, warn, confirm_f, footer], del_on, width="Min(480, App.Width - 24)")]
 
 
 def build_loading():
     return [loading_overlay("imgIbLoading", "varIbLoading", "Loading issues, please wait"),
-            loading_overlay("imgIbBusy", "varIbBusy || varIbPosting", "Sending, please wait")]
+            loading_overlay("imgIbBusy", "(varIbBusy || varIbPosting) && !varIbUploading",
+                            "Sending, please wait"),
+            loading_overlay("imgIbUploading", "varIbUploading", "Uploading files, please wait",
+                            caption="Uploading files...")]
