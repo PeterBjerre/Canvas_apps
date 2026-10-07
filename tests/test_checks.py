@@ -362,3 +362,22 @@ def test_vhp_every_rule_has_a_section():
     # Item-reglen er den eneste uden kode: "Item <id> (...): missing ...".
     assert '"Item " & Text(ItemId) & " ("' in bs.VALIDATION
     assert "Item " in bs.RULE_SECTIONS["Item"]
+
+
+def test_vhp_collapsed_summaries_use_inline_markup_only():
+    """Issue #176: de sammenklappede linjer viste kun en 1 px streg pr. chip
+    i Power Apps, da chipsene var klasser i en <style>-blok og flex-raekker.
+    Linjerne maa kun bruge inline-styles og faste positioner, og en linje
+    uden vaerdier maa ikke reservere plads."""
+    text = open(os.path.join(APP, "App.pa.yaml"), encoding="utf-8").read()
+    for name in ("VhpPlanSummary", "VhpItemSummary", "VhpOpsSummary"):
+        m = re.search(r"^      %s = (.*?)^      \)+;" % name, text, re.S | re.M)
+        assert m, name
+        fx = m.group(1)
+        assert "class=" not in fx, name
+        assert "flex" not in fx and "grid" not in fx, name
+        assert "position:relative" in fx and "position:absolute" in fx, name
+        # Det eneste <style> nulstiller html/body og staar sidst.
+        assert fx.count("<style>") == 1, name
+        assert re.search(r"</div><style>html,body\{[^}]*\}</style>\",\s*W:", fx), name
+        assert re.search(r"hh: If\(w1 > 0 \|\|.*?, 0\)", fx), name
