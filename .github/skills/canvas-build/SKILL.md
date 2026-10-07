@@ -514,6 +514,7 @@ layoutfejl bor:
 | 19 | AccessibleLabel maa ikke vaere kontrollens navn |
 | 20 | Flere UAFHAENGIGE hentninger i kaede -> Concurrent |
 | 34 | OnStart maa ikke toemme en samling, skaermens OnVisible fylder |
+| 35 | Index i stedet for Last(FirstN( og First(LastN( (issue #165) |
 <!-- rules:end -->
 
 Punkt 7 fanger den klassiske: du sletter en kontrol og glemmer en
