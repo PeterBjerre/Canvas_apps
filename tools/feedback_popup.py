@@ -102,8 +102,8 @@ SUBJECT_FX = (f'"SAP maintenance - " & Switch({SEL}.Kind, '
               f'"R", {SEL}.TypeName & " request " & {SEL}.Code, '
               f'"G", {SEL}.Label, "question")')
 
-CHEVRON_DOWN = "M6 9l6 6 6-6"
-CHEVRON_UP = "M6 15l6-6 6 6"
+CHEVRON_DOWN = icons.CHEVRON_DOWN
+CHEVRON_UP = icons.CHEVRON_UP
 
 
 def _hx(token):
@@ -126,9 +126,8 @@ def _accent_fx(domain_expr):
 
 
 def _chevron_svg(path):
-    return ("<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'>"
-            f"<path d='{path}' fill='none' stroke='{_hx('text-muted')}' stroke-width='2' "
-            "stroke-linecap='round' stroke-linejoin='round'/></svg>")
+    """Pilen - den faelles tegning og streg (tools/icons.py, issue #139)."""
+    return icons.svg(path, _hx('text-muted'), size=20)
 
 
 def _fit(text, width, px=7.5):
