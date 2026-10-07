@@ -819,7 +819,7 @@ def build_item_editor():
     # DEN SAMMENKLAPPEDE LINJE (issue #103, #123) - Plan Headers chips til
     # venstre for Edit, paa alle bredder. Chipsene og deres layout er den
     # navngivne formel VhpItemSummary (item_summary_fx).
-    summary = summary_chips("imgVhpItemSummary", "VhpItemSummary", ITEM_SUMMARY_VIS)
+    summary = summary_chips("htmVhpItemSummary", "VhpItemSummary", ITEM_SUMMARY_VIS)
     # Foldet ud: hvad der mangler, foer itemet kan klappes sammen.
     attention = text_ctrl(
         "txtVhpItemAttention",
