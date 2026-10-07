@@ -12,12 +12,17 @@ felter, i hvilken raekkefoelge, og hvilke kolonner listen viser.
 FORMULAREN
 ----------
     Spare Parts Form  * Required   [Import invoice] [No BOM Item: OFF]
-    [ FL          ][ Manufacturer ][ Model number ][ Manuf. part no.  ]
-    [ Description ][ Documentation][ Stock unit   ][ Price            ]
-    [ Price unit  ][ Delivery time][ Rec. stock   ][ Supplier         ]
-    [ Supp. part  ][ Strategic    ][ Wear part    ][ Plant            ]
-    [ Plant ]
+    [ Plant       ][ FL           ][ Description  ][ Manufacturer     ]
+    [ Model number][ Manuf. part  ][ Supplier     ][ Supp. part no.   ]
+    [ Stock unit  ][ Price        ][ Price unit   ][ Delivery time    ]
+    [ Rec. stock  ][ Strategic    ][ Wear part    ][ Documentation    ]
     (Plant: X) (Row status: ...)  [Save draft][Save row][Reset form]
+
+Raekkefoelgen er issue #159's fire grupper: organisation og identifikation,
+producent og leverandoer, lager/pris/levering, klassifikation og
+dokumentation. Hver raekke er sin egen container, der ombryder til to og
+een kolonne, saa laese- og tab-raekkefoelgen er den samme paa desktop,
+tablet og mobil (felterne har TabIndex 0 og foelger containerens orden).
 
 NO BOM ITEM
 -----------
@@ -99,15 +104,22 @@ def save_fx(status):
 # ---------------------------------------------------------------------------
 # Formularen
 # ---------------------------------------------------------------------------
-# Skaermens raekkefoelge - materials.png's. FL, TEXT, DOCS og PLANT er de
-# celler, der ikke er et almindeligt felt fra SECTIONS.
+# Skaermens raekkefoelge - issue #159's fire grupper, fire celler pr.
+# raekke. FL, TEXT, DOCS og PLANT er de celler, der ikke er et almindeligt
+# felt fra SECTIONS.
 SPECIAL = {"FL", "TEXT", "DOCS", "PLANT"}
-FORM_ORDER = ["FL", "Manufacturer", "ModelNumber", "ManufacturerPartNo",
-              "TEXT", "DOCS", "StockUnit", "Price",
-              "PriceUnit", "DeliveringTime", "RecommendedStock", "Supplier",
-              "SupplierPartNo", "StrategicPart", "WearPart", "PLANT"]
+FORM_ORDER = [
+    # Organisation og identifikation - Plant foerst
+    "PLANT", "FL", "TEXT", "Manufacturer",
+    # Producent og leverandoer
+    "ModelNumber", "ManufacturerPartNo", "Supplier", "SupplierPartNo",
+    # Lager, pris og levering
+    "StockUnit", "Price", "PriceUnit", "DeliveringTime",
+    # Klassifikation og dokumentation
+    "RecommendedStock", "StrategicPart", "WearPart", "DOCS",
+]
 # Felter, der ikke er en celle i gitteret: NoBomItem er knappen i hovedet,
-# NoBomItem er knappen i hovedet, og FL er cellen "FL".
+# og FL er cellen "FL".
 NOT_IN_GRID = {"NoBomItem", cfg.FL_FIELD}
 
 
