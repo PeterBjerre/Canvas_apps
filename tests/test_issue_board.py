@@ -214,10 +214,24 @@ def test_attachments_live_on_the_ticket_row():
     assert "file" not in trigger["required"]
 
 
-def test_archiving_removes_the_issue_from_the_shared_board():
-    archive = json.dumps(_cases()[cfg.ACT_ARCHIVE])
-    assert '"operationId": "DeleteItem"' in archive and f'"table": "{cfg.L_SHARED}"' in archive
-    assert '"item/SharedItemId": 0' in archive
+def test_archived_issues_stay_on_the_shared_board_marked_archived():
+    # Issue #177: alle skal kunne finde de arkiverede sager - uden private
+    # oplysninger. Den anonyme kopi slettes ikke, den markeres.
+    archive = _cases()[cfg.ACT_ARCHIVE]
+    text = json.dumps(archive)
+    assert '"operationId": "DeleteItem"' not in text
+    assert '"item/SharedItemId": 0' not in text
+    branch = archive["Archive_ok"]["actions"]["Archive_or_restore"]
+    patch = branch["actions"]["Archive_shared"]["actions"]["Patch_shared_archived"]
+    assert patch["inputs"]["parameters"]["table"] == cfg.L_SHARED
+    assert patch["inputs"]["parameters"]["item/IsArchived"] is True
+    restore = branch["else"]["actions"]["Restore_shared"]
+    assert restore["actions"]["Patch_shared_restored"]["inputs"]["parameters"]["item/IsArchived"] is False
+    # Sager arkiveret foer #177 har ingen kopi - den laves igen ved gendannelse.
+    assert "Recreate_shared" in restore["else"]["actions"]
+    # Den anonyme liste har stadig kun de sanerede kolonner.
+    assert not {"ReporterEmail", "ReporterName", "AssignedToEmail", "AssignedToName"} & set(
+        cfg.COLS[cfg.L_SHARED])
 
 
 def test_mail_only_goes_to_the_reporter_on_three_events():
