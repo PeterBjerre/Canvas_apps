@@ -59,6 +59,11 @@ def _navigation():
     side_nav.NAV_PRE = {
         d["key"]: f'Set(gblNavTo, "{d["tag"]}")'
         for d in cb.DOMAINS if d["key"] != "hub" and d["key"] not in cb.LOOKUPS}
+    # Issue Board vil vide, hvilken skaerm man kom fra, saa en ny sag kan
+    # faa Application udfyldt (issue #114). Noeglen er appens noegle i
+    # canvas_apps.json - den samme, IB_AppSections.ScreenKey bruger.
+    if "issueboard" in cb.BY_KEY:
+        side_nav.NAV_PRE["issueboard"] = lambda cur: f'Set(gblNavFrom, "{cur or ""}")'
 
 
 def _capture():
@@ -576,22 +581,23 @@ def build_vhplan():
 
 
 # ---------------------------------------------------------------------------
-# KKS-opslaget
+# Opslagsskaermene: KKS-opslaget og Issue Board
 # ---------------------------------------------------------------------------
-def build_kks():
+def build_lookup(key):
     """En OPSLAGSSKAERM (combined.LOOKUPS): ingen anmodning at aabne, saa
     ingen open_block. Skaermens egen OnVisible saetter tilstanden og henter
-    noeglerne foerste gang - ogsaa i den samlede app. Domaenets OnStart
-    (kun skemaerne for samlingerne) staar foran den, som i de andre
-    domaener, og ventespinneren har skaermen i forvejen."""
-    d = cb.BY_KEY["kks"]
+    data foerste gang - ogsaa i den samlede app. Domaenets OnStart (kun
+    skemaerne for samlingerne) staar foran den, som i de andre domaener,
+    og ventespinneren har skaermen i forvejen. KKS-opslaget og Issue Board
+    (issue #114) bygges ens."""
+    d = cb.BY_KEY[key]
     _navigation()
     asm = _load(d, "assemble_screen.py")
     seen, fake = _capture()
     asm.build_screen(render=fake)
     if seen["props"].get("OnVisible") != asm.P.on_visible():
-        raise SystemExit("KKS: OnVisible er ikke laengere kks_parts.on_visible() - "
-                         "ret build_kks().")
+        raise SystemExit("%s: OnVisible er ikke laengere <parts>.on_visible() - "
+                         "ret build_lookup()." % d["folder"])
     seen["props"]["OnVisible"] = (cb.domain_onstart(d) + ";\n\n"
                                   + seen["props"]["OnVisible"])
     from gen_screen import render_screen
@@ -606,7 +612,8 @@ BUILDERS = {
     "vhplan": build_vhplan,
     "equipment": lambda: build_domain_app("equipment"),
     "material": lambda: build_domain_app("material"),
-    "kks": build_kks,
+    "kks": lambda: build_lookup("kks"),
+    "issueboard": lambda: build_lookup("issueboard"),
 }
 
 

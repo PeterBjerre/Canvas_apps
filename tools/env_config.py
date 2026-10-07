@@ -130,11 +130,34 @@ def app_id(key):
     return APPS[key].get("app_id") or None
 
 
+# ---------------------------------------------------------------------------
+# FEATURE FLAGS (issue #114)
+#
+# Et flag staar under environments.<miljoe>.features i canvas_apps.json. En
+# app med "feature" under "apps" er kun med, naar dens flag er slaaet til i
+# det valgte miljoe. Er det ikke, er appen fjernet fra APP_ORDER og
+# NAV_ORDER - og dermed fra byggeriet, sidebaren, BIO SAP's skaerme og
+# dyblinkene. Det er det ENE sted, flaget laeses; ingen skaerm og ingen
+# formel spoerger selv.
+# ---------------------------------------------------------------------------
+FEATURES = dict(ENV.get("features") or {})
+
+
+def feature_on(name):
+    """Er feature-flaget slaaet til i det valgte miljoe?"""
+    return FEATURES.get(name) is True
+
+
+def _app_enabled(key):
+    flag = (_CFG.get("apps") or {}).get(key, {}).get("feature")
+    return not flag or feature_on(flag)
+
+
 # Byggeraekkefoelgen (som i canvas_apps.json - BIO SAP sidst) og
 # sidebarens raekkefoelge. Laest af build_all, check_datasources, side_nav
 # og BIO SAP App - app-listen stod foer syv steder (REVIEW.md C6).
-APP_ORDER = list(_CFG.get("apps") or {})
-NAV_ORDER = list(_CFG.get("nav_order") or [])
+APP_ORDER = [k for k in (_CFG.get("apps") or {}) if _app_enabled(k)]
+NAV_ORDER = [k for k in (_CFG.get("nav_order") or []) if k in APP_ORDER]
 
 
 def folder(key):
