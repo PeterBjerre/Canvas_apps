@@ -198,6 +198,10 @@ def _evaluate_n(expr, w, n):
     e = re.sub(r"\bLayoutRank\b", str(lay.rank_for(w)), e)
 
     e = e.replace("App.Width", str(w)).replace("App.Height", "900")
+    # En sammenklappet linjes hoejde er en NAVNGIVEN FORMEL (VH-plan,
+    # build_plan_header.summary_formula, issue #123) - chipsene ombrydes
+    # efter data. Ugunstigste tilfaelde: to raekker chips (2 x 32 + 4).
+    e = re.sub(r"\b\w+Summary\.H\b", "68", e)
 
     # Booleske testvaerdier: det ugunstigste tilfaelde er at alt er synligt.
     e = re.sub(r"varVhpPlan\.PlanType\s*=\s*\"Strategy\"", "True", e)
@@ -555,7 +559,11 @@ def rule_2_3(ctx):
         if vertical and stretch and not re.search(r"\.(Start|Center|End)\b", own_align):
             return inner
         if (not vertical) and (evaluate(props.get("FillPortions"), w, ni, no, npk) or 0) > 0:
-            return None     # platformen fordeler resten - ikke et tal her
+            # Platformen fordeler resten - men aldrig under LayoutMinWidth.
+            # Den er det ugunstigste tilfaelde, og det, tjekket skal regne
+            # med (Item Editoren ved siden af Items, issue #123).
+            mn = evaluate(props.get("LayoutMinWidth"), w, ni, no, npk)
+            return mn if mn else None
         # Parent.Width er FORAELDERENS WIDTH-EGENSKAB, ikke pladsen inden i
         # den. Her stod pladsen inden i den - og saa kunne tjekket ikke se,
         # at "Parent.Width - 545" i topbjaelken var 57 px for bredt.
