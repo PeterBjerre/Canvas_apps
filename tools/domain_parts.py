@@ -75,6 +75,7 @@ DELETE_VAR = "varDomConfirmDelete"
 from layout_tokens import SCROLLBAR_W
 import domain_config as cfg
 import attflows
+import doc_upload as du
 import messages as msg
 import admin_log as alog
 import permissions as perm
@@ -174,8 +175,14 @@ REQUIRED = "varDomValidated"
 # gap, en slack, en mindste titelbredde og en vagt, der skulle holde dem i
 # trit. Den holdt dem i trit med hinanden - men ikke med scrollbaren, og
 # derfor forsvandt hoejresiden. Se RAMMEN i tools/layout_tokens.py.
-# Dokumentpopuppens knapper haenger paa DEN raekke, popuppen er aabnet for.
-DM_DOCS = ('If(IsBlank(varDomDocsId), DisplayMode.Disabled, DisplayMode.Edit)')
+# Dokumentpopuppen haenger paa DEN raekke, den er aabnet for. Der maa
+# laegges op og slettes, naar anmodningen kan redigeres - samme laas som
+# DM_ROW (varDomViewOnly og en indsendt raekke, som SAP-processen ejer).
+# Ellers kan dokumenterne kun aabnes (issue #134).
+DOCS_EDIT = ('(!IsBlank(varDomDocsId) && !IfError(varDomViewOnly, false) && '
+             'LookUp(colDomRows, RowId = varDomDocsId).Status <> "submitted")')
+# Luk dokumentpopuppen: glem de valgte filer og omgangens svar.
+DOCS_CLOSE = "Set(varDomDocsId, Blank());\n" + att.close_fx()
 DM_SEL = ('If(IsBlank(varDomActiveRowId), DisplayMode.Disabled, DisplayMode.Edit)')
 # Ordet for anmodningen i Edit/Delete: "equipment request" / "material request".
 WHAT = f"{cfg.DOMAIN.lower()} request"
@@ -578,8 +585,9 @@ def build_backdrop():
     """Sloeret bag popupperne. EEN kontrol til begge - to ville lagre oven
     paa hinanden og goere baggrunden dobbelt saa moerk."""
     vis = "!IsBlank(varDomDetailsId) || !IsBlank(varDomDocsId)"
+    # Mens en upload koerer, lukker et tryk udenfor IKKE (issue #134).
     return tap_backdrop("conDomBackdrop", vis,
-                        "Set(varDomDetailsId, Blank()); Set(varDomDocsId, Blank())")
+                        f"If(!{att.busy}, Set(varDomDetailsId, Blank()); {DOCS_CLOSE})")
 
 
 DENIED_OTHER = ('Notify("You can only change your own requests.", '
@@ -795,61 +803,43 @@ def build_delete_confirm():
 # hedder raekkens ItemKey, og den findes foerst efter Gem.
 # ---------------------------------------------------------------------------
 def build_attachments():
-    picker = Ctrl(att.picker, "Attachments@2.3.0", props={
-        "AccessibleLabel": '"Select documents"',
-        "BorderColor": C_CARD_BORDER,
-        "BorderThickness": "1",
-        "DisplayMode": DM_DOCS,
-        "Height": "110",
-        "MaxAttachments": "10",
-        # 10 MB, ikke 50. App checker advarer ved store filer, og den har
-        # ret i mere end den siger: Attachments-kontrollen holder filen i
-        # hukommelsen som base64, og flowet sender den videre i samme form.
-        # En datablad eller en manual er langt under; 50 MB var et tal, der
-        # stod der, fordi det var stort nok - ikke fordi nogen havde valgt det.
-        "MaxAttachmentSize": "10",
-        "NoAttachmentsText": '"Drag documents here, or browse"',
-        "PaddingBottom": "5", "PaddingLeft": "5",
-        "PaddingRight": "5", "PaddingTop": "5",
-        "Width": "Parent.Width",
-    }, h=110)
+    """Dokumentpopuppen (issue #134): den moderne Attachments-kontrol,
+    een Upload, og listen over gemte filer med filtype, Open og Remove.
+    Opbygningen er den faelles i tools/doc_upload.py."""
+    edit = DOCS_EDIT
+    pick = du.picker(att.picker, '"Choose documents to upload"', 10, 10, visible=edit,
+                     display_mode=f"If({att.busy}, DisplayMode.Disabled, DisplayMode.Edit)")
+    # 10 MB, ikke 50. Kontrollen holder filen i hukommelsen som base64, og
+    # flowet sender den videre i samme form. En datablad eller en manual er
+    # langt under.
+    limits = du.limits_text("txtDomAttLimits", 10, 10, visible=edit)
+    up = du.upload_button("btnDomAttUpload", att.picker, att.upload_fx(), att.busy,
+                          visible=edit)
+    refresh = button("btnDomAttRefresh", '"Refresh"', att.refresh_button_fx(),
+                     width=fit_button_width('"Refresh"'), height=36,
+                     accessible='"Refresh the document list"',
+                     display_mode=f"If(IsBlank(varDomDocsId) || {att.busy}, "
+                                  "DisplayMode.Disabled, DisplayMode.Edit)")
+    refresh.props["LayoutMinWidth"] = refresh.props["Width"]
+    actions = group("conDomAttActions", [refresh, up], direction="Horizontal", gap=8,
+                    height=36, justify="End", align_items="Center")
+    status = du.status_text("txtDomAttStatus", att)
+    confirm = du.remove_confirm("DomAtt", att)
 
-    up = button("btnDomAttUpload", '"Upload to SharePoint"', att.upload_fx(),
-                primary=True, display_mode=DM_DOCS)
-    refresh = button("btnDomAttRefresh", '"Refresh documents"',
-                     att.refresh_button_fx(), display_mode=DM_DOCS)
-    rem = button("btnDomAttRemove", '"Remove document"', att.delete_fx(),
-                 danger=True, display_mode=DM_DOCS)
-    actions = fit_button_row("conDomAttActions", [up, refresh, rem], DOCS_INNER_W)
-
-    chk = Ctrl("chkDomAttSel", "ModernCheckbox", props=checkbox_theme({
-        "AccessibleLabel": '"Select document"',
-        "Default": "ThisItem.Selected",
-        "Height": "24",
-        "Label": '""',
-        "OnCheck": "Patch(colDomAttachments, ThisItem, { Selected: true })",
-        "OnUncheck": "Patch(colDomAttachments, ThisItem, { Selected: false })",
-        "Width": "30",
-    }), h=24)
-    name = grow(text_ctrl("txtDomAttName", "ThisItem.FileName", size=13, height=28,
-                          wrap="false"))
-    # NY fane her, og kun her. Navigation mellem apps bruger Replace, saa
-    # der ikke bliver en fane pr. klik - men et dokument er ikke en app.
-    # Replace ville smide appen vaek, og en halvudfyldt formular med den.
-    link = button("btnDomAttOpen", '"Open"',
-                  "Launch(ThisItem.FileUrl, { }, LaunchTarget.New)",
-                  width=80, height=30)
-    row = group("conDomAttRow", pin_widths([chk, name, link]),
+    file = "ThisItem.FileName"
+    badge_ = du.type_badge("txtDomAttType", file)
+    name = grow(text_ctrl("txtDomAttName", file, size=13, height=28, wrap="false"))
+    link = du.open_button("btnDomAttOpen", "ThisItem.FileUrl", file)
+    rem = du.remove_button("btnDomAttRemove", att, file, edit)
+    row = group("conDomAttRow", pin_widths([badge_, name, link, rem]),
                 direction="Horizontal", gap=10,
                 height="Parent.TemplateHeight - 2", align_items="Center",
                 width="Parent.TemplateWidth")
 
     # Filnavnet er raekkens noegle - der er INGEN LineId paa dokumenterne.
-    # VH-plan-appen sorterede paa en LineId, der ikke fandtes; Items gik i
-    # fejl, galleriet stod tomt, og filerne laa i biblioteket hele tiden.
-    # Loft paa hoejden: som popup maa den ikke vokse ud over skaermen. Ti
-    # raekker, derover scroller galleriet.
-    gal_h = f"Min(Max(CountRows({att.scope}), 1) * 34, 340)"
+    # Hele listen staar i galleriet; er der flere, end popuppen kan vise,
+    # scroller popuppens indhold (du.capped_body) - ikke galleriet i den.
+    gal_h = f"CountRows({att.scope}) * {du.ROW_H}"
     gal = Ctrl("galDomAttachments", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Documents on the selected row"',
         "BorderStyle": "BorderStyle.None",
@@ -859,11 +849,11 @@ def build_attachments():
         "Items": f"Sort({att.scope}, FileName)",
         "LayoutMinWidth": "0",
         "LoadingSpinner": "LoadingSpinner.None",
-        "Selectable": "true",
-        "ShowScrollbar": "true",
+        "Selectable": "false",
+        "ShowScrollbar": "false",
         "TabIndex": "0",
         "TemplatePadding": "2",
-        "TemplateSize": "32",
+        "TemplateSize": str(du.ROW_H - 2),
         "Width": "Parent.Width",
         "WrapCount": "1",
     }, children=[row], h=gal_h)
@@ -871,16 +861,22 @@ def build_attachments():
     empty = text_ctrl("txtDomAttEmpty", att.empty_text_fx(), size=13,
                       color=C_MUTED, height=36, wrap="true",
                       visible=f"IfError(CountRows({att.scope}) = 0, false)")
+    ro = du.readonly_note("txtDomAttReadOnly", f"!IsBlank(varDomDocsId) && !{edit}")
 
     title = grow(text_ctrl(
         "txtDomAttH",
-        '"Documents - " & Coalesce(LookUp(colDomRows, RowId = varDomDocsId).ItemKey, "")',
+        '"Documents · " & Coalesce(LookUp(colDomRows, RowId = varDomDocsId).ItemKey, "")',
         size=lay.SIZE_CARD_TITLE, weight="Semibold", height=text_min_height(lay.SIZE_CARD_TITLE), wrap="false"))
-    close = button("btnDomAttClose", '"Close"', "Set(varDomDocsId, Blank())",
-                   width=84, height=32)
+    close = button("btnDomAttClose", '"Close"', DOCS_CLOSE,
+                   width=84, height=32,
+                   display_mode=f"If({att.busy}, DisplayMode.Disabled, DisplayMode.Edit)")
     head = group("conDomAttHead", [title, close], direction="Horizontal",
                  gap=12, align_items="Center")
-    modal = group("conDomAttModal", [head, picker, actions, gal, empty],
+    # Popuppen: 18 + 18 luft, hovedet og afstanden - resten er indholdet.
+    body = du.capped_body("conDomAttBody",
+                          [pick, limits, actions, status, confirm, gal, empty, ro],
+                          f"App.Height - 40 - 36 - {head.h} - 14")
+    modal = group("conDomAttModal", [head, body],
                   direction="Vertical", gap=14,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(18, 18, 18, 18), width=DOCS_W, drop_shadow="ExtraBold",
