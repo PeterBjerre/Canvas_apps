@@ -670,7 +670,7 @@ def build_popup():
         "TabIndex": "0", "Text": '""', "Visible": d_or_x,
     }, h=ROW_H - 8, vis=d_or_x)
     rail = Ctrl(n("img", "Rail"), "Image", props={
-        "AccessibleLabel": '""', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+        "AccessibleLabel": '"Approval timeline"', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
         "Fill": C_TRANSPARENT, "Height": str(ROW_H), "Image": _rail_svg(),
         "ImagePosition": "ImagePosition.Fit", "OnSelect": "false", "TabIndex": "0",
         "Width": "32", "X": "0", "Y": "0",
@@ -680,7 +680,7 @@ def build_popup():
     # navn - i stedet for et "Current"-maerke ved siden af "In progress".
     cur_bar = text_ctrl(n("txt", "CurBar"), '""', size=lay.SIZE_MICRO, height=26, width=3,
                         fill=C_INFO_FG, visible=f"{_is('H')} && ThisItem.Cur",
-                        accessible='""',
+                        accessible='"Current stage"',
                         extra={"X": "34", "Y": str((ROW_H - 26) // 2),
                                "RadiusBottomLeft": "2", "RadiusBottomRight": "2",
                                "RadiusTopLeft": "2", "RadiusTopRight": "2"})
@@ -693,7 +693,7 @@ def build_popup():
 
     y1 = f"If({one_line}, {(ROW_H - 20) // 2}, 6)"
     person = Ctrl(n("img", "Person"), "Image", props={
-        "AccessibleLabel": '""', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+        "AccessibleLabel": '"User"', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
         "Fill": C_TRANSPARENT, "Height": str(ICON_W),
         "Image": ('"data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns=\'http://www.w3.org/2000/svg\' '
                   'width=\'24\' height=\'24\' viewBox=\'0 0 24 24\'><path d=\'' + PERSON +
@@ -770,7 +770,7 @@ def build_popup():
     title.props["LayoutMinWidth"] = str(min(tw_a, tw_t))
     no_badge = _number_badge(n("img", "No"))
     spacer = grow(text_ctrl(n("txt", "HeadGap"), '""', size=lay.SIZE_MICRO, height=20,
-                            accessible='""'))
+                            accessible='"Spacer"'))
     btnClose = button(n("btn", "Close"), '"Close"', CLOSE, width=84, height=32)
     head = group(n("con", "Head"), [title, no_badge, spacer, btnClose], direction="Horizontal",
                  gap=10, height=32, align_items="Center")

@@ -1482,7 +1482,7 @@ def build_detail():
     body_h = _lines_h("ThisItem.Body", ACT_BODY_W)
     row_h = f"(30 + {body_h} + 10)"
     bg = text_ctrl("txtIbActBg", '""', size=lay.SIZE_MICRO, height=f"{row_h} - 4", width=tw,
-                   accessible='""',
+                   accessible='"Background"',
                    fill=(f"If(ThisItem.Internal, {C_WARN_BG}, ThisItem.IsSystem, {C_TRANSPARENT}, "
                          f"{C_MUTED_BG})"),
                    extra={"X": "0", "Y": "2", **lay.radius(8),

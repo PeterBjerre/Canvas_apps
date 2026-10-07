@@ -2269,6 +2269,31 @@ def rule_37(ctx):
                 f"App checker melder 'Missing tab stop'. Saet TabIndex til 0")
 
 
+def rule_38(ctx):
+    """Billeder, figurer, tekster og inputs skal have en AccessibleLabel (issue #165)"""
+    # Studios App checker (AccessibleLabelNeeded, Error) godtager ikke en
+    # TOM etiket paa et billede, en figur eller en ModernText - heller ikke
+    # paa ren pynt (ikoner, skillestreger, baggrundslag). 69 fund i issue
+    # #165. Skaermlaeseren faar nu en kort engelsk tekst om det, den viser.
+    #
+    # Kun en tom STRENG ("") eller en manglende etiket tjekkes; en formel
+    # kan ikke regnes ud her. Classic/Button kender ikke egenskaben (regel
+    # 10), og GroupContainer, Timer og HtmlViewer meldes ikke.
+    kinds = ("Image", "Rectangle", "ModernText", "ModernButton", "ModernTextInput",
+             "ModernNumberInput", "ModernDropdown", "ModernCombobox", "ModernCheckbox",
+             "ModernDatePicker", "ModernToggle", "Attachments", "Gallery")
+    for _p, name, body in ctx.all_nodes:
+        ctl = (body.get("Control") or "").strip().split("@")[0]
+        if ctl not in kinds:
+            continue
+        acc = (body.get("Properties") or {}).get("AccessibleLabel")
+        v = None if acc is None else str(acc).strip().lstrip("=").strip()
+        if v is None or re.fullmatch(r'"\s*"', v):
+            ctx.problems.append(
+                f"[38] {name}: {ctl} uden AccessibleLabel - App checker melder "
+                f"AccessibleLabelNeeded. Giv en kort engelsk etiket om det, den viser")
+
+
 RULES = [
     Rule('0', 'Hvert kontrolnavn findes kun een gang', rule_0),
     Rule('1', 'Ingen kontrol-til-kontrol hoejdereferencer', rule_1),
@@ -2315,6 +2340,7 @@ RULES = [
     Rule('35', 'Index i stedet for Last(FirstN( og First(LastN( (issue #165)', rule_35),
     Rule('36', 'AllItemsCount i stedet for CountRows(galleri.AllItems) (issue #165)', rule_36),
     Rule('37', 'Billeder, figurer og klassiske knapper skal have TabIndex >= 0 (issue #165)', rule_37),
+    Rule('38', 'Billeder, figurer, tekster og inputs skal have en AccessibleLabel (issue #165)', rule_38),
 ]
 
 
