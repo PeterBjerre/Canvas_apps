@@ -331,11 +331,16 @@ def load_block():
         "                );\n"
         "                // Een standardarbejdsplan pr. vaerk: et item med\n"
         "                // operationer har vaerkets (trin 3 og S3 kraever den).\n"
+        # Issue #158: et gemt item (med Functional Location) faar ogsaa den
+        # foerste tasklist, saa Lines from tasklist virker med det samme i
+        # en genaabnet kladde. Det sker foer varVhpSavedJson, saa planen
+        # stadig staar som gemt. TasklistKey gemmes ikke, saa der er intet
+        # gemt valg at overskrive her.
         "                With(\n"
         "                    { tl: LookUp(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)) },\n"
         "                    UpdateIf(\n"
         "                        colVhpItems,\n"
-        "                        ItemId in colVhpOperations.ItemId,\n"
+        "                        ItemId in colVhpOperations.ItemId || !IsBlank(FunctionalLocation),\n"
         "                        { TasklistKey: Coalesce(tl.Key, \"\"), TasklistName: Coalesce(tl.Name, \"\") }\n"
         "                    )\n"
         "                );\n"

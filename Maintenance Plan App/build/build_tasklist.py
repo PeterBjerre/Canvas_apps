@@ -718,6 +718,28 @@ def build_ops_modals():
 # kontekst (issue #54). Upper paa begge sider, saa store og smaa bogstaver
 # ikke skjuler en gyldig liste.
 TL_ITEMS = "Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))"
+
+# FOERSTE TASKLIST VAELGES AUTOMATISK (issue #158). drpVhpItemTasklist har
+# ingen egen tilstand: Default slaar itemets TasklistKey op i colVhpItems,
+# og det er det felt, et manuelt valg (OnChange), Lines from tasklist,
+# Save og trin 3 laeser. Det automatiske valg skriver derfor det samme
+# felt - ikke en ekstra variabel ved siden af - og kun naar itemet har en
+# Functional Location (er gemt), og dets tasklist er tom eller ikke
+# laengere findes i listen. Et gemt eller manuelt valg, der stadig er
+# gyldigt, roeres aldrig. TL_ITEMS er den navngivne formel, dropdownen
+# selv viser - den hentes een gang og caches, saa her er intet nyt kald
+# mod SharePoint. Betingelsen staar uden om With, saa et nyt, tomt item
+# (Add item, Copy item) slet ikke evaluerer listen. Ingen tasklist: intet
+# skrives, og den tomme tilstand bevares.
+AUTO_SELECT_TL = (
+    "With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, "
+    "If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && "
+    f"(IsBlank(tlIt.TasklistKey) || IsBlank(LookUp({TL_ITEMS}, Key = tlIt.TasklistKey).Key)), "
+    f"With({{ tlFirst: First({TL_ITEMS}) }}, If(!IsBlank(tlFirst.Key), "
+    "UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, "
+    "{ TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); "
+    "Reset(drpVhpItemTasklist)))))"
+)
 OPS_SELECTED = "Filter(colVhpOperations, ItemId = varVhpActiveItemId, Selected = true)"
 
 # SAMLET SAMMEN, NAAR SEKTIONEN ER GEMT (issue #103) - Plan Headers
