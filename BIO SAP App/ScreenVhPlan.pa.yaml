@@ -1779,7 +1779,7 @@ Screens:
                                                       )
                                                   )
                                               );
-                                              Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); Reset(drpVhpItemTasklist);
+                                              Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist);
                                               Reset(drpVhpPlanType); Reset(drpVhpStrategy); Reset(drpVhpPlant); Reset(drpVhpStatus); Reset(inpVhpPlanText); Reset(drpVhpSortField); Reset(numVhpCycle); Reset(drpVhpUnit); Reset(numVhpFirstCallDay); Reset(numVhpFirstCallMonth); Reset(numVhpFirstCallYear);
                                               Notify("New request started.", NotificationType.Success))
                                           RadiusBottomLeft: |-
@@ -5888,7 +5888,7 @@ Screens:
                                                       )
                                                   )
                                               );
-                                                  Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); Reset(drpVhpItemTasklist);
+                                                  Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist);
                                                   Notify("Item " & Text(varVhpNextItemId) & " added.", NotificationType.Success)
                                               )
                                           RadiusBottomLeft: |-
@@ -6020,7 +6020,7 @@ Screens:
                                                       )
                                                   )
                                               );
-                                                      Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); Reset(drpVhpItemTasklist);
+                                                      Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist);
                                                       Notify("Item copied. Functional Location cleared on the copied item.", NotificationType.Success)
                                                   )
                                               )
@@ -6356,7 +6356,7 @@ Screens:
                                                       )
                                                   )
                                               );
-                                              Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); Reset(drpVhpItemTasklist)
+                                              Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist)
                                           PressedBorderColor: |-
                                               =C.'color-brand-primary'
                                           PressedColor: |-
@@ -6419,7 +6419,7 @@ Screens:
                                                       varVhpActiveItemId = id,
                                                       Set(varVhpActiveItemId, If(CountRows(colVhpItems) > 0, First(colVhpItems).ItemId, Blank()));
                                                       Set(varVhpItemEditing, false);
-                                                      Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); Reset(drpVhpItemTasklist)
+                                                      Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist)
                                                   );
                                                   Notify("Item " & Text(id) & " deleted.", NotificationType.Success)
                                               )
@@ -9548,7 +9548,7 @@ Screens:
                                                       )
                                                   )
                                               );
-                                              Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); Reset(drpVhpItemTasklist)
+                                              Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist)
                                           RadiusBottomLeft: |-
                                               =10
                                           RadiusBottomRight: |-
@@ -9637,6 +9637,7 @@ Screens:
                                                               NotificationType.Error
                                                           ),
                                                           Set(varVhpItemEditing, false);
+                                                          With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist)))));
                                                           Notify("Item saved: " & Trim(inpVhpItemShortText.Text) & ".", NotificationType.Success)
                                                       )
                                                   )
@@ -10427,10 +10428,14 @@ Screens:
                                               =Align.Center
                                           AlignInContainer: |-
                                               =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), 360)) + (199) + (186) + (190) + 36, AlignInContainer.End, AlignInContainer.Start)
-                                          BasePaletteColor: |-
-                                              =C.'color-brand-primary'
+                                          Appearance: |-
+                                              =ButtonAppearance.Outline
+                                          BorderColor: |-
+                                              =C.'border-default'
+                                          BorderThickness: |-
+                                              =1
                                           Color: |-
-                                              =C.'text-on-primary'
+                                              =C.'text-primary'
                                           DisplayMode: |-
                                               =If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
                                           Font: |-
@@ -18916,7 +18921,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =174 + If(LayoutRank < 2 && ((IfError(varVhpNotesEdit, false) || !IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)) && (If(IfError(varVhpNotesEdit, false), Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe, (Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe || IsAdmin)))), 462, 223)
+                      =174 + If(LayoutRank < 2 && ((IfError(varVhpNotesEdit, false) || !IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)) && (If(IfError(varVhpNotesEdit, false), Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe, (Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe || IsAdmin)))), 466, 227)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -19023,7 +19028,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =If(LayoutRank < 2 && ((IfError(varVhpNotesEdit, false) || !IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)) && (If(IfError(varVhpNotesEdit, false), Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe, (Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe || IsAdmin)))), 462, 223)
+                            =If(LayoutRank < 2 && ((IfError(varVhpNotesEdit, false) || !IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)) && (If(IfError(varVhpNotesEdit, false), Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe, (Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe || IsAdmin)))), 466, 227)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Start
                         LayoutDirection: |-
@@ -19036,6 +19041,14 @@ Screens:
                             =LayoutOverflow.Hide
                         LayoutOverflowY: |-
                             =LayoutOverflow.Hide
+                        PaddingBottom: |-
+                            =2
+                        PaddingLeft: |-
+                            =2
+                        PaddingRight: |-
+                            =2
+                        PaddingTop: |-
+                            =2
                         Width: |-
                             =(Min(760, App.Width - 24) - 36)
                       Children:
@@ -19084,7 +19097,7 @@ Screens:
                               Visible: |-
                                   =IfError(varVhpNotesEdit, false) || !IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)
                               Width: |-
-                                  =If(LayoutRank < 2 || !((IfError(varVhpNotesEdit, false) || !IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)) && (If(IfError(varVhpNotesEdit, false), Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe, (Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe || IsAdmin)))), (Min(760, App.Width - 24) - 36), ((Min(760, App.Width - 24) - 36) - 16) / 2)
+                                  =If(LayoutRank < 2 || !((IfError(varVhpNotesEdit, false) || !IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)) && (If(IfError(varVhpNotesEdit, false), Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe, (Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe || IsAdmin)))), ((Min(760, App.Width - 24) - 36) - 4), (((Min(760, App.Width - 24) - 36) - 4) - 16) / 2)
                             Children:
                               - txtVhpNoteATitle:
                                   Control: ModernText
@@ -19244,7 +19257,7 @@ Screens:
                               Visible: |-
                                   =If(IfError(varVhpNotesEdit, false), Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe, (Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe || IsAdmin))
                               Width: |-
-                                  =If(LayoutRank < 2 || !((IfError(varVhpNotesEdit, false) || !IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)) && (If(IfError(varVhpNotesEdit, false), Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe, (Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe || IsAdmin)))), (Min(760, App.Width - 24) - 36), ((Min(760, App.Width - 24) - 36) - 16) / 2)
+                                  =If(LayoutRank < 2 || !((IfError(varVhpNotesEdit, false) || !IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)) && (If(IfError(varVhpNotesEdit, false), Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe, (Lower(Coalesce(Coalesce(varVhpOwnerEmail, varVhpMe), "")) = varVhpMe || IsAdmin)))), ((Min(760, App.Width - 24) - 36) - 4), (((Min(760, App.Width - 24) - 36) - 4) - 16) / 2)
                             Children:
                               - txtVhpNoteSTitle:
                                   Control: ModernText
@@ -19808,7 +19821,7 @@ Screens:
                                     )
                                 )
                             );
-                            Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); Reset(drpVhpItemTasklist);
+                            Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist);
                             Reset(drpVhpPlanType); Reset(drpVhpStrategy); Reset(drpVhpPlant); Reset(drpVhpStatus); Reset(inpVhpPlanText); Reset(drpVhpSortField); Reset(numVhpCycle); Reset(drpVhpUnit); Reset(numVhpFirstCallDay); Reset(numVhpFirstCallMonth); Reset(numVhpFirstCallYear);
                             Notify("New request started.", NotificationType.Success)
                         RadiusBottomLeft: |-
@@ -22515,7 +22528,7 @@ Screens:
                                                 { tl: LookUp(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)) },
                                                 UpdateIf(
                                                     colVhpItems,
-                                                    ItemId in colVhpOperations.ItemId,
+                                                    ItemId in colVhpOperations.ItemId || !IsBlank(FunctionalLocation),
                                                     { TasklistKey: Coalesce(tl.Key, ""), TasklistName: Coalesce(tl.Name, "") }
                                                 )
                                             );
@@ -22572,7 +22585,7 @@ Screens:
                                     )
                                 )
                             );
-                            Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); Reset(drpVhpItemTasklist)
+                            Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist)
                         )
                     ),
                     Set(varVhpLoadFailed, true);

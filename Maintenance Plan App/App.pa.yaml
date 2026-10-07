@@ -967,7 +967,7 @@ App:
                           { tl: LookUp(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)) },
                           UpdateIf(
                               colVhpItems,
-                              ItemId in colVhpOperations.ItemId,
+                              ItemId in colVhpOperations.ItemId || !IsBlank(FunctionalLocation),
                               { TasklistKey: Coalesce(tl.Key, ""), TasklistName: Coalesce(tl.Name, "") }
                           )
                       );

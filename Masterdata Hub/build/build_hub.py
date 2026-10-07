@@ -290,28 +290,39 @@ CLOSED_LATEST = (
 PEEK_OPEN = "IfError(varMdClosedPeek, false)"
 
 # Tabellens kolonner. EEN kilde til bredderne, saa overskriften og raekken
-# ikke kan komme til at staa forskudt. Resten af bredden ligger i REQUEST,
-# som regnes af de faste.
-# Air sits after each left-aligned value, so a wide column widens the gap to its right neighbour.
+# ikke kan komme til at staa forskudt.
+#
+# RAEKKEFOELGE OG BREDDER (issue #163): Domain | Plant | Request | Requester
+# | Approval | Status | Updated | Actions. Tallene er MINDSTEBREDDER, som
+# passer i den smalleste brede skaerm (App.Width 1600). Den frie bredde
+# deles: Request faar halvdelen op til REQ_GROW_CAP, saa den ikke tager
+# hele tabellen; resten gaar i enheder til Plant (1), Requester (1),
+# Status (2) og Updated (2), hoejst UNIT_CAP pr. enhed. Er der stadig
+# bredde til overs, staar den efter Actions. Approval og Actions er faste:
+# striben og ikonerne har en fast bredde.
 DOM_TEXT = 156
-REQ_AIR = 28
-COLS = [("DOMAIN", 192), ("REQUEST", 0), ("PLANT", 64), ("REQUESTER", 84), ("APPROVAL", 270),
-        ("STATUS", 130), ("UPDATED", 84), ("ACTIONS", 160)]
+COLS = [("DOMAIN", 168), ("PLANT", 72), ("REQUEST", 260), ("REQUESTER", 88), ("APPROVAL", 270),
+        ("STATUS", 140), ("UPDATED", 88), ("ACTIONS", 156)]
 CW = dict(COLS)
 TL_W = 28
-GAP = 12
+GAP = 16
 ROW_PAD = 12
-FIXED = sum(w for _, w in COLS) + REQ_AIR + GAP * (len(COLS) - 1) + 2 * ROW_PAD
+FIXED = sum(w for _, w in COLS) + GAP * (len(COLS) - 1) + 2 * ROW_PAD
 # Bruges BAADE i listehovedet og i galleriets raekke. REGNET AF DEN BREDDE,
 # LISTEN HAR - ikke af Parent.Width, som er raekkens Width-EGENSKAB og
 # hverken traekker kortets padding, galleriets TemplatePadding eller dets
 # scrollbar fra.
 AVAIL = f"({SHELL_W} - 36 - 4 - {SCROLLBAR_W} - {GALLERY_RESERVE})"
-MAIN_CAP = 720
-MAIN_W = f"Min({MAIN_CAP}, Max(0, {AVAIL} - {FIXED}))"
-SLACK = f"Max(0, {AVAIL} - {FIXED} - {MAIN_CAP})"
-CWF = {k: v for k, v in COLS if k != "REQUEST"}
-CWF["REQUEST"] = f"({MAIN_W} + {REQ_AIR} + {SLACK})"
+FREE = f"Max(0, {AVAIL} - {FIXED})"
+REQ_GROW_CAP = 300
+REQ_GROW = f"Min({REQ_GROW_CAP}, {FREE} / 2)"
+UNIT_CAP = 40
+GROW_UNITS = {"PLANT": 1, "REQUESTER": 1, "STATUS": 2, "UPDATED": 2}
+UNIT = f"Min({UNIT_CAP}, ({FREE} - {REQ_GROW}) / {sum(GROW_UNITS.values())})"
+CWF = {k: v for k, v in COLS}
+CWF["REQUEST"] = f"({CW['REQUEST']} + {REQ_GROW})"
+for _k, _n in GROW_UNITS.items():
+    CWF[_k] = f"({CW[_k]} + {_n} * {UNIT})" if _n > 1 else f"({CW[_k]} + {UNIT})"
 
 ROW_H = 52
 GAL_ROWS = 14
@@ -982,8 +993,9 @@ def build_list():
     no = text_ctrl("txtMdRowNo", f'ThisItem.{COL_NO} & " -"', size=13, weight="Semibold",
                    height=20, width=NO_W, wrap="false",
                    accessible=f"ThisItem.{COL_NO}")
+    # Titlen paa een linje; en lang titel afkortes med ellipse (Wrap false).
     txt = text_ctrl("txtMdRowText", "ThisItem.ShortText", size=13, color=C_MUTED, height=20,
-                    width=f"{MAIN_W} - {NO_W} - 8", wrap="false")
+                    width=f"{CWF['REQUEST']} - {NO_W} - 8", wrap="false")
     main = group("conMdRowMain", [no, txt], direction="Horizontal", gap=8, width=CWF["REQUEST"],
                  height=20, align_items="Center")
     req = text_ctrl("txtMdRowReq", INITIALS, size=13, height=20, width=CWF["REQUESTER"], wrap="false",
@@ -1018,7 +1030,7 @@ def build_list():
     edit_btn, del_btn = _owner_buttons(_open_action("edit"), "")
     actions = [edit_btn, del_btn]
 
-    row = group("conMdRow", [dom, main, plant, req, approval, stat, when],
+    row = group("conMdRow", [dom, plant, main, req, approval, stat, when],
                 direction="Horizontal", gap=GAP, height="Parent.TemplateHeight - 1",
                 align_items="Center", width="Parent.TemplateWidth", fill=C_CARD_BG,
                 pad=(0, ROW_PAD, 0, ROW_PAD), visible=at_least("Wide"))
@@ -1037,7 +1049,7 @@ def build_list():
     hit = row_hit("btnMdRowHit", act,
                   f'"Open " & ThisItem.{COL_NO} & " - " & ThisItem.ShortText',
                   "Parent.TemplateWidth", "Parent.TemplateHeight - 1")
-    strip_x = (f"{ROW_PAD} + {CWF['DOMAIN']} + {GAP} + {CWF['REQUEST']} + {GAP} + {CWF['PLANT']} + {GAP} + "
+    strip_x = (f"{ROW_PAD} + {CWF['DOMAIN']} + {GAP} + {CWF['PLANT']} + {GAP} + {CWF['REQUEST']} + {GAP} + "
                f"{CWF['REQUESTER']} + {GAP}")
     tl_x = (f"{strip_x} + {CW['APPROVAL']} + {GAP} + {CWF['STATUS']} + {GAP} + {CWF['UPDATED']} + {GAP}")
     timeline = _image("imgMdRowTimeline", _svg_uri(_icon_svg(ICON_HISTORY, _hx("text-muted"), size=ACTION_GLYPH, box=TL_W)), TL_W,
@@ -1226,9 +1238,10 @@ def _compact_row(act):
                       f'If({below("Tablet")}, ' + _domain_switch(lambda d: f'"{d["name"]}"', '"?"') +
                       ' & "  \u00b7  " & ThisItem.ShortText, ThisItem.ShortText)',
                       size=13, height=18, wrap="false")
+    # Samme raekkefoelge som tabellen (issue #163): Plant lige efter domaenet.
     line3 = text_ctrl("txtMdRowMetaC",
                       _domain_switch(lambda d: f'"{d["name"]}"', '"?"') +
-                      f' & "  \u00b7  " & {INITIALS} & "  \u00b7  Plant " & ThisItem.Plant & "  \u00b7  " & {WHEN_FX} & '
+                      f' & "  \u00b7  Plant " & ThisItem.Plant & "  \u00b7  " & {INITIALS} & "  \u00b7  " & {WHEN_FX} & '
                       f'If({STUCK}, "  \u00b7  " & {STUCK_TXT}, "")',
                       size=12, color=C_MUTED, height=18, wrap="false", visible=at_least("Tablet"))
     row = group("conMdRowC", [line1, line2, line3], direction="Vertical", gap=2,
