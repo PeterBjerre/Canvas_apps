@@ -24,7 +24,7 @@ from build_helpers import (_sum_expr, row_rule, row_hit, text_input, text_ctrl, 
                            confirm_modal)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET
 from design_tokens import theme_query, ref_hex, ref as _t
-from icons import MIRROR_X
+import icons
 import approval_flow
 import submission_notes as sn
 import permissions as perm
@@ -102,16 +102,11 @@ def _svg_uri(svg_expr):
     return f'"data:image/svg+xml;utf8," & EncodeUrl({svg_expr})'
 
 
-def _glyph(path, color, x=0, y=0, size=24, width=1.8, mirror=False):
-    """Et stregikon. mirror spejler det vandret (icons.MIRROR_X) - Measuring
+def _glyph(path, color, x=0, y=0, size=24, width=None, mirror=False):
+    """Et stregikon - tools/icons.glyph (issue #139: een tegnefunktion og
+    een stregregel). mirror spejler det vandret (icons.MIRROR_X) - Measuring
     Points lineal, saa den peger samme vej som Equipments skruenoegle."""
-    s = size / 24
-    inner = f"<path d='{path}'/>"
-    if mirror:
-        inner = f"<g transform='{MIRROR_X}'>{inner}</g>"
-    return (f"<g transform='translate({x:g} {y:g}) scale({s:g})' fill='none' "
-            f"stroke='{color}' stroke-width='{width}' stroke-linecap='round' "
-            f"stroke-linejoin='round'>{inner}</g>")
+    return icons.glyph(path, color, size=size, x=x, y=y, width=width, mirror=mirror)
 
 
 def _dglyph(d, color, **kw):
@@ -119,10 +114,15 @@ def _dglyph(d, color, **kw):
     return _glyph(d["icon"], color, mirror=d.get("mirror", False), **kw)
 
 
-def _icon_svg(path, color, size=24, mirror=False):
-    return ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{size}' height='{size}' "
-            f"viewBox='0 0 {size} {size}'>" + _glyph(path, color, size=size, mirror=mirror)
-            + "</svg>" + '"')
+def _icon_svg(path, color, size=24, mirror=False, box=None, opacity=None):
+    """Ikonet som Power Fx-streng. size = den TEGNEDE stoerrelse (Image-
+    kontrollens), saa stregen bliver stroke(size). box: luft rundt om et
+    klikbart ikon (icons.svg)."""
+    return '"' + icons.svg(path, color, size=size, box=box, mirror=mirror, opacity=opacity) + '"'
+
+
+# Et klikbart ikon i en raekke: TL_W-fladen med et 20 px symbol i midten.
+ACTION_GLYPH = 20
 
 
 def _image(name, image, width, height, onselect=None, label='""', hover=None):
@@ -327,9 +327,11 @@ STUCK_TXT = f'"Stuck " & Text({_AGE}) & " d"'
 WHEN_SHORT = f'With({{ d: {_AGE} }}, If(d <= 0, "Today", Text(d) & " d ago"))'
 INITIALS = 'Upper(First(Split(Coalesce(ThisItem.RequesterEmail, "?@"), "@")).Value)'
 
-ICON_CHEVRON = "M9 6l6 6-6 6"
-ICON_CLOCK = "M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM12 7v5l3 2"
-ICON_NOTE = "M6 3h9l4 4v14H6z M14 3v5h5 M9 12h7 M9 16h5"
+# Aktivitet og noter: de faelles ikoner (tools/icons.py, issue #139). Uret
+# og dokumentet var ogsaa statusikonerne In progress og Draft - nu har
+# aktivitet sit historik-ur og noter Fluents notesblok.
+ICON_HISTORY = icons.HISTORY
+ICON_NOTE = icons.NOTE
 
 NO_W = 120
 
@@ -848,7 +850,7 @@ def build_closed_peek():
 
     icon = _image("imgMdPeekDomain",
                   _svg_uri(_domain_switch(
-                      lambda d: _icon_svg(d["icon"], _hx(d["token"]),
+                      lambda d: _icon_svg(d["icon"], _hx(d["token"]), size=20,
                                           mirror=d.get("mirror", False)), '""')),
                   20, 20)
     icon.props["X"] = "8"
@@ -960,7 +962,7 @@ def build_list():
     # DOMAIN: ikonet i domaenets farve og navnet.
     dom_icon = _image("imgMdRowDomain",
                       _svg_uri(_domain_switch(
-                          lambda d: _icon_svg(d["icon"], _hx(d["token"]),
+                          lambda d: _icon_svg(d["icon"], _hx(d["token"]), size=24,
                                               mirror=d.get("mirror", False)), '""')),
                       24, 24)
     dom_name = text_ctrl("txtMdRowDomain",
@@ -993,9 +995,9 @@ def build_list():
 
     st_icon = _image("imgMdRowStatus", _svg_uri(
         "Switch(\n    ThisItem.Status.Value,\n    " +
-        ",\n    ".join(f'"{k}", {_icon_svg(path, _hx(tok))}'
+        ",\n    ".join(f'"{k}", {_icon_svg(path, _hx(tok), size=22)}'
                        for k, (path, tok) in STATUS_ICON.items()) +
-        f',\n    {_icon_svg(STATUS_ICON["Kladde"][0], _hx("state-neutral-fg"))}\n)'),
+        f',\n    {_icon_svg(STATUS_ICON["Kladde"][0], _hx("state-neutral-fg"), size=22)}\n)'),
         22, 22)
     st_lbl = text_ctrl("txtMdRowStatus", _switch(1, '"Unknown"', quote=True), size=13,
                        height=20, width=f"{CWF['STATUS']} - 22 - 10", wrap="false")
@@ -1036,7 +1038,7 @@ def build_list():
     strip_x = (f"{ROW_PAD} + {CWF['DOMAIN']} + {GAP} + {CWF['REQUEST']} + {GAP} + {CWF['PLANT']} + {GAP} + "
                f"{CWF['REQUESTER']} + {GAP}")
     tl_x = (f"{strip_x} + {CW['APPROVAL']} + {GAP} + {CWF['STATUS']} + {GAP} + {CWF['UPDATED']} + {GAP}")
-    timeline = _image("imgMdRowTimeline", _svg_uri(_icon_svg(ICON_CLOCK, _hx("text-muted"))), TL_W,
+    timeline = _image("imgMdRowTimeline", _svg_uri(_icon_svg(ICON_HISTORY, _hx("text-muted"), size=ACTION_GLYPH, box=TL_W)), TL_W,
                       TL_W, onselect=approval_flow.timeline_fx(),
                       label=f'"Activity for " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
     timeline.props["X"] = if_below("Wide", f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {TL_W}", tl_x)
@@ -1055,6 +1057,8 @@ def build_list():
         b.props["X"] = f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {TL_W} - 8 - 80 + {i * 40}"
         b.props["Y"] = "6"
         b.props["Visible"] = f"{at_least('Desktop')} && {below('Wide')} && ({b.props['Visible']})"
+    for b in (*actions, *c_actions, timeline):
+        icons.hit_radius(b.props)
     for b in (*actions, *c_actions):
         b.props["HoverFill"] = C_ROW_HOVER
         b.props["PressedFill"] = C_ROW_HOVER
@@ -1062,10 +1066,11 @@ def build_list():
     # NOTE-IKONET (issue #115): kun naar planen har en note, brugeren maa
     # se. Bred: efter Edit/Delete. Kompakt: foran Edit. Under Desktop:
     # foran Activity, som er det eneste ikon dér.
-    notes = _image("imgMdRowNotes", _svg_uri(_icon_svg(ICON_NOTE, _hx("text-muted"))), TL_W, TL_W,
+    notes = _image("imgMdRowNotes", _svg_uri(_icon_svg(ICON_NOTE, _hx("text-muted"), size=ACTION_GLYPH, box=TL_W)), TL_W, TL_W,
                    onselect=sn.hub_open_fx("ThisItem"),
                    label=f'"View notes for " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
     notes.props["Tooltip"] = f'"{sn.TIP}"'
+    icons.hit_radius(notes.props)
     notes.props["X"] = if_below(
         "Desktop", f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {TL_W} - 8 - {TL_W}",
         if_below("Wide", f"{c_base} - 40", f"{tl_x} + {TL_W} + 12 + 80"))
@@ -1129,7 +1134,7 @@ def build_list():
 # Status fra MD_RequestIndex, som galleriet allerede har i raekken. VH-
 # planen afgoer ogsaa Edit paa indeksets status (build_load.py), saa
 # MaintenancePlans' egen status skal ikke slaas op - intet kald pr. raekke.
-EDIT_ICON = "M4 20h4L19 9l-4-4L4 16v4z M13.5 6.5l4 4"
+EDIT_ICON = icons.EDIT
 EDIT_LOCKED_TIP = '"This request can no longer be edited because it has been submitted."'
 
 
@@ -1140,13 +1145,16 @@ def _owner_buttons(act, suffix):
     can_edit = perm.may_change("ThisItem.RequesterEmail", "ThisItem.Status.Value", "varMdMe")
     edit = _image("btnMdRowEdit" + suffix,
                   _svg_uri(f"If(\n    {can_edit},\n    "
-                           + _icon_svg(EDIT_ICON, _hx("text-muted")) + ",\n    "
-                           + _icon_svg(EDIT_ICON, _hx("border-default")) + "\n)"),
+                           + _icon_svg(EDIT_ICON, _hx("text-muted"), size=ACTION_GLYPH, box=TL_W)
+                           + ",\n    "
+                           # Deaktiveret: samme ikon, falmet (icons.DISABLED_OPACITY)
+                           + _icon_svg(EDIT_ICON, _hx("text-muted"), size=ACTION_GLYPH, box=TL_W,
+                                       opacity=icons.DISABLED_OPACITY) + "\n)"),
                   TL_W, TL_W, onselect=act, label=f'"Edit " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
     edit.props["DisplayMode"] = f"If({can_edit}, DisplayMode.Edit, DisplayMode.Disabled)"
     edit.props["Tooltip"] = f'If({can_edit}, "Edit request", {EDIT_LOCKED_TIP})'
     dele = _image("btnMdRowDelete" + suffix,
-                  _svg_uri(_icon_svg("M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3", _hx("state-error-fg"))),
+                  _svg_uri(_icon_svg(icons.DELETE, _hx("state-error-fg"), size=ACTION_GLYPH, box=TL_W)),
                   TL_W, TL_W, onselect="Set(varMdDelItem, ThisItem);\nSet(varMdDeleteOpen, true)",
                   label=f'"Delete " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
     for b in (edit, dele):
@@ -1184,15 +1192,15 @@ def _compact_row(act):
     """Card row below Desktop: the essentials; the approval strip and the row itself open the details."""
     dom_icon = _image("imgMdRowDomainC",
                       _svg_uri(_domain_switch(
-                          lambda d: _icon_svg(d["icon"], _hx(d["token"]),
+                          lambda d: _icon_svg(d["icon"], _hx(d["token"]), size=20,
                                               mirror=d.get("mirror", False)), '""')), 20, 20)
     no = grow(text_ctrl("txtMdRowNoC", f"ThisItem.{COL_NO}", size=14, weight="Semibold",
                         height=22, wrap="false"))
     st_icon = _image("imgMdRowStatusC", _svg_uri(
         "Switch(\n    ThisItem.Status.Value,\n    " +
-        ",\n    ".join(f'"{k}", {_icon_svg(path, _hx(tok))}'
+        ",\n    ".join(f'"{k}", {_icon_svg(path, _hx(tok), size=18)}'
                        for k, (path, tok) in STATUS_ICON.items()) +
-        f',\n    {_icon_svg(STATUS_ICON["Kladde"][0], _hx("state-neutral-fg"))}\n)'), 18, 18)
+        f',\n    {_icon_svg(STATUS_ICON["Kladde"][0], _hx("state-neutral-fg"), size=18)}\n)'), 18, 18)
     st_lbl = text_ctrl("txtMdRowStatusC", _switch(1, '"Unknown"', quote=True), size=12,
                        height=20, width=96, wrap="false")
     line1 = group("conMdRowLineC1", [dom_icon, no, st_icon, st_lbl], direction="Horizontal", gap=8,
