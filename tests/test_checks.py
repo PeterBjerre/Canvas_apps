@@ -59,6 +59,15 @@ def test_layout_rule_1_height_references_other_control(tmp_path):
     assert rc == 1 and "[1]" in out
 
 
+def test_layout_rule_10_wrapcount_on_variable_height_gallery(tmp_path):
+    # Issue #130: compile kender ikke WrapCount paa et VariableHeight-galleri.
+    def plant(t):
+        return re.sub(r"(galEqRows:\n\s+Control: Gallery\n\s+Variant: )Vertical",
+                      r"\1VariableHeight", t, count=1)
+    rc, out = _layout(tmp_path, plant)
+    assert rc == 1 and "[10] galEqRows" in out and "WrapCount" in out, out
+
+
 def test_layout_rule_8c_app_width_comparison(tmp_path):
     def plant(t):
         return t.replace("=LayoutRank", "=If(App.Width < 900, 1, 2) + 0 * LayoutRank", 1)
