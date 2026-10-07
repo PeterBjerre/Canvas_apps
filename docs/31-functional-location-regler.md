@@ -41,10 +41,10 @@ node tools/fl/harness.js test   # testmatrixen + differentialtest
 ```
 
 `plan` folder `validateSpoolFields` ud til en **flad, ordnet tjekliste pr.
-klasse**: 541 tjek i 17 klasser. Det er den liste, Power Fx'en evaluerer.
+klasse**: 522 tjek i 18 klasser. Det er den liste, Power Fx'en evaluerer.
 `test` gør tre ting:
 
-1. Den kører testmatrixen (nedenfor, 108 sager) gennem **originalen** og
+1. Den kører testmatrixen (nedenfor, 110 sager) gennem **originalen** og
    sammenligner med det forventede.
 2. Den kører samme sager gennem den **flade evaluator**, som er en
    linje-for-linje-model af appens Power Fx, og kræver ordret samme
@@ -98,7 +98,7 @@ Filer i "Implementeret i" er under `Functional Location App/build/`.
 | FL28 | Klassefaner: rækker, der ikke er draft og har en klasse. `ALL (n)` + én fane pr. klasse, alfabetisk; rækker sorteret på FL; klasse-hjælpetekst som tooltip | `:1475-1495`, `:1632-1665`, `:2353-2357` | – | Afledt | `galFlTabs`, `galFlClassRows` | `fl_validation.py` `BUCKETS`, `TABS`; `fl_parts.py` `galFlTabs`, `galFlClassRows`, `VIEW_POS` |
 | FL29 | Feltmarkering: FL rødt ved en besked med FL/KKS/Plant/Function/Component/Equipment/BR18/Class; Description ved "Description" | `:2284-2318` | – | Afledt | `BorderColor` på de to inputs | `fl_validation.py` `status_fx` (kolonnerne FlBad/DescBad), `is_fl_issue` (exactin); `fl_parts.py` `_field_border` |
 
-### Spool-felterne pr. klasse (klassefanerne og detaljeruden)
+### Spool-felterne pr. klasse (klassefanerne og formularen)
 
 Beskeden er altid `<Etiket>: <besked>`. Etiketten kommer fra `Char`-tabellen,
 ellers fra standardkolonnerne, ellers er det feltnavnet med versaler
@@ -109,10 +109,10 @@ ellers fra standardkolonnerne, ellers er det feltnavnet med versaler
 | FL30 | `Char`-tabellen: klassens felter med tal-`MaxLength` | `:806-828`, `:1183-1190` | `<felt>: Max N characters.` | Fejl | Tjek `MAX` i `colFlPlan` | `fl_validation.py` `spool_issues` (`MAX`); `generate_app_onstart.py` `colFlPlan` |
 | FL31 | `Char`-tabellen: `Dropdown`-felter skal matche listen | `:1192-1197` | `<felt>: Value must match dropdown options.` | Fejl | Tjek `DROP` | `fl_validation.py` `spool_issues` (`DROP`), `in_list_bad`; `generate_app_onstart.py` `colFlLists` |
 | FL32 | Description er påkrævet (stamdata) | `:203-213`, `:1236-1238` | `Description: Required field.` | Fejl | Tjek `REQ` | `fl_validation.py` `spool_issues` (`REQ`) |
-| FL33 | Stamdata-længder: Manufacturer 30, Description 40, Model Number 20, Manufacturer Part/Serial Number 30, Sort Field 30, Room 8, Warranty Start/End 10 | `:203-213`, `:1240-1242` | `<felt>: Max N characters.` | Fejl | Tjek `MAX` | `fl_validation.py` `spool_issues` (`MAX`) |
-| FL34 | Warranty Start/End: `DD.MM.YYYY` eller `YYYYMMDD`, og en rigtig dato | `:179`, `:1244-1246`, `:1440-1462` | `<felt>: Use DD.MM.YYYY or YYYYMMDD.` | Fejl | Tjek `DATE` - ren aritmetik, ikke `Date()`, se PX4 | `fl_validation.py` `date_bad` |
-| FL35 | Faste værdier: Atex/Risiko/Asbestos/PTW = X, ABC Indic. = A, StrIndicator ∈ KKS/AKS/ROS/KKSKV/KKSKA, TRM assignment = X | `:149-157`, `:1249-1257` | `<felt>: Allowed values: X.` (listen ordret) | Fejl | Tjek `ALLOW` | `fl_validation.py` `spool_issues` (`ALLOW`) |
-| FL36 | Trinliste pr. klasse (`CLASS_STEP_RULES`, `DEFAULT` for ukendte) | `:181-201`, `:1222-1229` | – | Afledt | Foldet ind i `colFlPlan` af harnessen | `fl_rules.generated.json` `plan` → `generate_app_onstart.py` `colFlPlan` |
+| FL33 | Stamdata-længder: Manufacturer 30, Description 40, Model Number 20, Manufacturer Part/Serial Number 30, Sort Field 30, Room 8, Warranty Start/End 10. Længderne er også feltets `MaxLength` i formularen (issue #166, `resolveMaxLengthForField`) | `:203-213`, `:1240-1242` | `<felt>: Max N characters.` | Fejl | Tjek `MAX` | `fl_validation.py` `spool_issues` (`MAX`) |
+| FL34 | Warranty Start/End: **kun** `DD.MM.YYYY`, og en rigtig dato. `YYYYMMDD` godtages ikke længere (issue #166). Feltet viser formatet som pladsholder | `:179`, `runMasterDataValidation`, `isValidWarrantyDate` | `<felt>: Use DD.MM.YYYY.` | Fejl | Tjek `DATE` - ren aritmetik, ikke `Date()`, se PX4 | `fl_validation.py` `date_bad` |
+| FL35 | Faste værdier: Atex = X, ABC Indic. = A, StrIndicator ∈ KKS/AKS/ROS/KKSKV/KKSKA, TRM assignment = X. Risiko, Asbestos og PTW er ikke i appen og valideres ikke (issue #166) | `:149-157`, `:1249-1257` | `<felt>: Allowed values: X.` (listen ordret) | Fejl | Tjek `ALLOW` | `fl_validation.py` `spool_issues` (`ALLOW`) |
+| FL36 | Trinliste pr. klasse (`CLASS_STEP_RULES`, `DEFAULT` for ukendte). Klasserne er dem, KKS-nøglerne kan give, plus alle i `FL_SPOOL_COLUMNS` - dvs. også **RBR** (issue #166), som endnu ingen KKS-nøgle peger på | `:181-201`, `:1222-1229` | – | Afledt | Foldet ind i `colFlPlan` af harnessen | `fl_rules.generated.json` `plan` → `generate_app_onstart.py` `colFlPlan` |
 | FL37 | `Design_pressure_`: Design pressure maks. **8**, tegn `0-9 . , - / +`; uom mod `Design_pressure_uom` | `:216-218`, `:1260-1263` | `Max 8 characters.` / `Invalid value format.` / `Value must match dropdown options.` | Fejl | `MAX`, `RGX NUMSIGN`, `DROP` | `fl_validation.py` `spool_issues`, `rgx_bad` (`NUMSIGN`) |
 | FL38 | `Operating_pressure_`: maks. 12, samme tegn; uom mod `Design_pressure_uom` | `:219-221`, `:1265-1268` | som FL37 | Fejl | samme | `fl_validation.py` `spool_issues`, `rgx_bad` |
 | FL39 | `Design_temperature_`: maks. 8; uom mod `Design_Temp_uom` | `:222-224`, `:1270-1273` | som FL37 | Fejl | samme | `fl_validation.py` `spool_issues`, `rgx_bad` |
@@ -122,7 +122,7 @@ ellers fra standardkolonnerne, ellers er det feltnavnet med versaler
 | FL43 | `Typekreds`: Typekredse mod `TypekredsTabel` | `:1285-1287` | `Typekredse: Value must match dropdown options.` | Fejl | `DROP` | `fl_validation.py` `spool_issues` (`DROP`) |
 | FL44 | `TestMethod`: Test Method og Test Method 2 mod `TestMethod` | `:1289-1292` | `<felt>: Value must match dropdown options.` | Fejl | `DROP` | `fl_validation.py` `spool_issues` (`DROP`) |
 | FL45 | `TRMNEW`: EX-Marking maks. 30 | `:231-233`, `:1295` | `EX-Marking: Max 30 characters.` | Fejl | `MAX` | `fl_validation.py` `spool_issues` (`MAX`) |
-| FL46 | `TRMNEW`: Safety Critical Equipment mod klassens egen `SCEq`-kolonne (ingen kolonne = intet tjek) | `:879-902`, `:1297`, `:1405-1407` | `Safety Critical Equipment: Value must match dropdown options.` | Fejl | `DROP` mod klassens liste | `fl_validation.py` `spool_issues` (`DROP`, klassens SCEq-liste) |
+| FL46 | `TRMNEW`: Safety Critical Equipment mod klassens egen `SCEq`-kolonne (ingen kolonne = intet tjek). `MAF` er ingen klasse: dens kolonne lægges under GIV (`SCE_COLUMN_INTO_CLASS`, issue #166) | `:879-902`, `:1297`, `:1405-1407` | `Safety Critical Equipment: Value must match dropdown options.` | Fejl | `DROP` mod klassens liste | `fl_validation.py` `spool_issues` (`DROP`, klassens SCEq-liste) |
 | FL47 | `TRMNEW`, kun MKP og NO CLASS: Fire Classification mod `FireClassification`, Fire Sealing Type mod `Table20` | `:1299-1302` | `FIRE CLASSIFICATION: …` / `FIRE SEALING TYPE: Value must match dropdown options.` | Fejl | `DROP` | `fl_validation.py` `spool_issues` (`DROP`) |
 | FL48 | `TRMNEW`: udfyldt EX-Marking, SCE, Fire Classification, Fire Sealing Type eller Fire Sealing Product → TRM assignment = X og ABC Indic. = A. Ellers ryddes TRM assignment (ABC bliver). Sker **efter** tjekkene | `:1304-1313` | – | Afledt | Skrives i `colFlVals` efter meddelelsestabellen | `fl_validation.py` `TRM_SET`; `generate_app_onstart.py` `colFlTrmClasses` |
 | FL49 | MKP og aggregat `UE`: TRM assignment = X | `:1315-1321` | – | Afledt | samme | `fl_validation.py` `TRM_SET` (`Ue`) |
@@ -133,11 +133,11 @@ ellers fra standardkolonnerne, ellers er det feltnavnet med versaler
 | FL54 | Listematch: uden forskel på store og små bogstaver, trimmet, `|`-adskilte værdier skal ALLE være i listen; tom liste = intet tjek | `:1426-1438` | – | Afledt | `Split(v, "|")` + `in` | `fl_validation.py` `in_list_bad` |
 | FL55 | Beskedformat `<etiket>: <besked>`; identiske beskeder én gang; feltets første besked vises ved feltet | `:1166-1177`, `:1464-1473`, `:2157-2186` | – | Afledt | `GroupBy(RowGuid, Msg)` + `Min(Ord)` | `fl_validation.py` `DEDUPE`, `field_issue` |
 | FL56 | Værdier trimmes; en tom værdi fjerner feltet | `:582-606` | – | Afledt | `RemoveIf` + `Collect` kun ved ikke-tom | `fl_parts.py` `set_val_fx` |
-| FL57 | Afledte felter: StrIndicator = KKS-type, Long text = Description som standard, User status = status med versaler, System status = `LOCAL`, Info = første fejl/advarsel, SAP status | `:2079-2096`, `:2205-2242` | – | Afledt | `Switch` i `val_fx()` | `fl_parts.py` `_display_val` |
-| FL58 | Skrivebeskyttede kolonner: Class, SAP status, Info, StrIndicator, Str. Indicator, User status, System status | `:115-123`, `:2137-2139` | – | Afledt | `Editable` i `colFlColumns` | `generate_app_onstart.py` `colFlColumns` (`Editable`); `fl_parts.py` `txtFlDetRo` |
-| FL59 | Editor: dropdown når feltet har en liste (også de faste lister), ellers tekst med maks.-længde (Char, FL 40, Description 40). En ugyldig gemt værdi vises stadig | `:2098-2135`, `:2188-2197` | – | Afledt | `drpFlDetVal` / `inpFlDetVal`, `MaxLength` | `fl_parts.py` `inpFlDetVal`, `drpFlDetVal`, `DD_ITEMS` |
-| FL60 | Kolonnerne pr. klasse fra `FL_SPOOL_COLUMNS`. Kompakt visning: #, FL, Description, StrIndicator, Class, Info (SAP status skjult) | `:65-73`, `:1905-1958`, `:2036-2054` | – | Afledt | `colFlColumns`; kompakt tabel | `generate_app_onstart.py` `colFlColumns`; `fl_parts.py` `build_classes`, `C_SPEC` |
-| FL61 | Detaljeruden: alle klassens kolonner med editor og besked; "Show empty"/"Hide empty" (standard: skjul tomme uden besked) | `:1960-2034` | – | Afledt | `galFlDetail`, `varFlShowEmpty` | `fl_parts.py` `build_detail`, `DET_ITEMS`, `btnFlDetEmpty` |
+| FL57 | Afledte felter: StrIndicator = KKS-type, User status = status med versaler, System status = `LOCAL`, Info = første fejl/advarsel, SAP status. Formularen viser kun StrIndicator af dem (issue #166: Long text er ikke i appen, og statusfelterne står i rækkelisten) | `:2079-2096`, `:2205-2242` | – | Afledt | `Switch` i `_display_val` | `fl_parts.py` `_display_val` |
+| FL58 | Skrivebeskyttede kolonner: Class, SAP status, Info, StrIndicator, Str. Indicator, User status, System status og ABC Indic. (sættes af TRM-automatikken, FL48 - issue #166) | `:115-123`, `:2137-2139` | – | Afledt | `Editable` i `colFlColumns` | `generate_app_onstart.py` `colFlColumns` (`Editable`), `editor_kind`; `fl_parts.py` `txtFlMRo`, `txtFlCRo` |
+| FL59 | Editor: dropdown når feltet har en liste (også de faste lister), ellers tekst med maks.-længde (Char, FL 40, Description 40, stamdata FL33). En ugyldig gemt værdi vises stadig. Felter med listen `X` (Atex, TRM assignment) og *GIV_EXT assignment* er afkrydsningsfelter, der gemmer `X` eller intet; skrivebeskyttede felter er tekst (issue #166). Datofelterne har `DD.MM.YYYY` som pladsholder og hjælpetekst | `:2098-2135`, `:2188-2197` | – | Afledt | `Kind` i `colFlColumns`: `inpFl*Val` / `drpFl*Val` / `chkFl*Val` / `txtFl*Ro`, `MaxLength` | `generate_app_onstart.py` `editor_kind`; `fl_parts.py` `field_grid`, `inpFlMVal`, `drpFlCVal`, `chkFlMVal`, `DD_ITEMS`, `FIELD_HELP` |
+| FL60 | Kolonnerne pr. klasse fra `FL_SPOOL_COLUMNS`, hver med en sektion (issue #166): *Status* (kun i rækkelisten), *Master* (stamdata - ens for alle klasser), *Class* (klassens karakteristikker), *TRM* og *Ext* (GIV_EXT/WCM). Kompakt visning: #, FL, Description, StrIndicator, Class, Info (SAP status skjult) | `:65-73`, `:1905-1958`, `:2036-2054` | – | Afledt | `Section` i `colFlColumns`; kompakt tabel | `fl_rules.generated.json` `columns` (`Section`, af `harness.js plan`); `generate_app_onstart.py` `colFlColumns`; `fl_parts.py` `build_classes`, `C_SPEC` |
+| FL61 | Formularen for den valgte række (issue #166, erstatter detaljeruden): *Edit* i rækkelisten eller i klassefanen vælger rækken; en ny række vælges selv, og findes den valgte ikke mere, vælges den første. Sektion 1 *Master data*: stamdatafelterne. Sektion 2 *Class data*: grupperne *Class characteristics*, *TRM* og *GIV_EXT / WCM* for rækkens klasse - skjult, når rækken ingen klasse har. Alle felter vises altid (ingen "Show empty") | `:1960-2034` | – | Afledt | `varFlDetailRow`, `colFlDet` filtreret på `Section` | `fl_parts.py` `build_master`, `build_class_data`, `field_grid`, `DET_ITEMS`, `SELECT_FX`, `btnFlRowEdit`; `fl_validation.py` `verify_fx` (H); `assemble_screen.py` `ensure_row_part` |
 | FL62 | Verify validerer alle rækker; ændring af FL/Description og af et spool-felt validerer igen. **Appen har ingen Verify-knap** (issue #77): valideringen kører automatisk ved ny række, rettet felt, slettet række og indlæst anmodning | `:431-462`, `:570-580`, `:1014-1045` | – | Afledt | Skjult `btnFlVerify`, kaldt med `Select(btnFlVerify)` | `fl_parts.py` `REVERIFY`, `set_row_fx`; `fl_validation.py` `verify_fx` → `btnFlVerify` |
 | FL63 | Add row; Delete row (sidste række væk → ny tom række, og rækkerne valideres igen - JS'en gør det ikke, men uden Verify-knap ville Submit ellers stå låst); siden starter med én tom række | `:399`, `:423-429`, `:464-479`, `:917-935` | – | Afledt | `btnFlAddRow`, `btnFlRowDelete`, `OnVisible` | `fl_parts.py` `add_row_fx`, `btnFlAddRow`, `btnFlRowDelete`; `assemble_screen.py` `on_visible` |
 | FL64 | Export JSON: `generatedAt`, `source`, `rows`, `classBuckets`, `ruleMeta` | `:2254-2276` | – | – | Bevidst fjernet (issue #77): knappen er væk. Samme form fryses stadig som snapshot ved Submit (`fl_save.py` `payload_fx`) | – |
@@ -163,7 +163,7 @@ ellers fra standardkolonnerne, ellers er det feltnavnet med versaler
 | PX5 | `FunctionKeyDict` har 6.445 rækker (6.441 efter normalisering) - over SharePoints delegeringsgrænse (500/2000). Et `LookUp` mod SharePoint med en værdi fra en `ForAll` kan ikke delegeres (`check_layout` regel 30), så SharePoint ville kun lede i de første 500-2000 rækker, og en gyldig nøgle længere nede ville blive afvist i stilhed | Nøglerne ligger i appen, som siden har dem i `lookups.generated.js`: én streng `0ABA0ABB0…0` i `FlFunctionKeys`, slået op med `exactin` (forskel på store og små bogstaver, som `Set.has`). Separatoren er et ciffer, fordi nøglerne er rene bogstaver (byggeriet stopper, hvis det ændrer sig). Aggregat (146), komponent (139), BR18 (7) og værker (8) ligger som navngivne tabeller. `MD_FLKey` i SharePoint er seedet med de samme nøgler til flows og serverside-validering, men appen læser den ikke |
 | PX6 | SharePoint sammenligner tekst uden forskel på store og små bogstaver, `Set.has` i JS gør det med forskel | Alle nøgler i `FL_LOOKUPS` er versaler, og FL normaliseres til versaler før opslaget. Forskellen kan ikke opstå med de nuværende data |
 | PX7 | Ingen funktioner med parametre (UDF er ikke slået til) | Valideringsformlen er genereret af Python ét sted (`fl_validation.py`) og står ét sted: den skjulte `btnFlVerify`. Alle ændringer bruger `Select(btnFlVerify)` (issue #77) |
-| PX8 | Klassetabellen med 30-50 dynamiske kolonner (`mode-all`) kan ikke laves som et canvas-galleri med dynamiske kolonner uden en celle pr. felt | Kompakt tabel i fanen, og "All columns" er detaljeruden (FL61), som viser og redigerer hver kolonne. Samme felter, samme editorer, samme beskeder - kun layoutet er et andet. Se AQ4 |
+| PX8 | Klassetabellen med 30-50 dynamiske kolonner (`mode-all`) kan ikke laves som et canvas-galleri med dynamiske kolonner uden en celle pr. felt | Kompakt tabel i fanen, og "All columns" er formularen under rækkelisten (FL61, issue #166), som viser og redigerer hver kolonne i et gitter. Samme felter, samme editorer, samme beskeder - kun layoutet er et andet. Se AQ4 |
 | PX9 | Hovertooltips (`data-hint`) | `Tooltip` findes kun på interaktive kontroller (`check_layout` regel 10). Hjælpeteksten sidder derfor på en lille `?`-knap ved beskeden (`btnFlRowHint`), der også viser teksten ved klik |
 | PX10 | `Blob` + `<a download>` kan ikke laves i en canvas app | Export JSON er fjernet (issue #77). Snapshottet ved Submit har samme indhold og ligger i `PayloadJson` |
 | PX11 | Opdatering af mange SharePoint-rækker med `LookUp(Liste, ID = X.ID)` i en `ForAll` kan ikke delegeres, og `{ ID: … }`-records afvises som base-rækker i `Patch`/`Remove` (issue #32) | Anmodningens rækker hentes én gang med et delegerbart filter på `varFlRequestGuid` (`With({ ex: … })`). Base-rækkerne slås op i den tabel. Nye rækker skrives med én `Collect` |
@@ -183,7 +183,7 @@ anderledes, så det ikke forsvinder i stilhed:
 | Design pressure | Maks. 12 | Maks. **8** i trinet (Char siger 12 - begge tjekkes, 8 bider først) |
 | Voltage [V] i TAF | `^[0-9.,]*$` | Samme; ELF/KAB `^[0-9,]*$` |
 | Fire Sealing Product | Maks. 30 i TRMNEW | Intet længdetjek (ikke i JS) |
-| Warranty-dato | `^\d{8}$` = DDMMYYYY via `IsDate` | `YYYYMMDD` |
+| Warranty-dato | `^\d{8}$` = DDMMYYYY via `IsDate` | Kun `DD.MM.YYYY` (issue #166) |
 | Test Method 2 | Accepteres, når Test Method er tom | Tjekkes altid |
 | TRM ryddet | TRM og ABC ryddes | Kun TRM ryddes |
 | Klasse ved nøglefejl | Klassen skrives alligevel | Ingen klasse i key18-grenen |
@@ -259,9 +259,11 @@ Fx) skal give ordret det samme, ellers er testen rød. Sager med samme
 | T32b | FL32 | ugyldig | `SSV10 LAC10AB001` | (tom) |  | invalid | MKP | Description required before Ready for SAP. · Description: Required field. |
 | T33a | FL33 | gyldig | `SSV10 LAC10AB001` | Pumpe | Manufacturer=`mmmmmmmmmmmmmmmmmmmmmmmmmmmmmm`; Room=`R1234567` | valid | MKP | - |
 | T33b | FL33 | ugyldig | `SSV10 LAC10AB001` | Pumpe | Manufacturer=`mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm`; Room=`R12345678` | invalid | MKP | Manufacturer: Max 30 characters. · Room: Max 8 characters. |
-| T34a | FL34 | gyldig | `SSV10 LAC10AB001` | Pumpe | Warranty Start=`29.02.2024`; Warranty End=`20241231` | valid | MKP | - |
-| T34b | FL34 | ugyldig | `SSV10 LAC10AB001` | Pumpe | Warranty Start=`20230229`; Warranty End=`2024-12-31` | invalid | MKP | Warranty Start: Use DD.MM.YYYY or YYYYMMDD. · Warranty End: Use DD.MM.YYYY or YYYYMMDD. |
-| T35a | FL35 | gyldig | `SSV10 LAC10AB001` | Pumpe | Atex=`x`; ABC Indic.=`A`; PTW=`X` | valid | MKP | - |
+| T34a | FL34 | gyldig | `SSV10 LAC10AB001` | Pumpe | Warranty Start=`29.02.2024`; Warranty End=`31.12.2024` | valid | MKP | - |
+| T34b | FL34 | ugyldig | `SSV10 LAC10AB001` | Pumpe | Warranty Start=`20241231`; Warranty End=`2024-12-31` | invalid | MKP | Warranty Start: Use DD.MM.YYYY. · Warranty End: Use DD.MM.YYYY. |
+| T34c | FL34 | ugyldig | `SSV10 LAC10AB001` | Pumpe | Warranty Start=`29.02.2023`; Warranty End=`31.04.2024` | invalid | MKP | Warranty Start: Use DD.MM.YYYY. · Warranty End: Use DD.MM.YYYY. |
+| T35a | FL35 | gyldig | `SSV10 LAC10AB001` | Pumpe | Atex=`x`; ABC Indic.=`A` | valid | MKP | - |
+| T35c | FL35 | gyldig | `SSV10 LAC10AB001` | Pumpe | Risiko=`Y`; Asbestos=`Y`; PTW=`Y` | valid | MKP | - |
 | T35b | FL35 | ugyldig | `SSV10 LAC10AB001` | Pumpe | Atex=`Y`; ABC Indic.=`B` | invalid | MKP | Atex: Allowed values: X. · ABC Indic.: Allowed values: A. |
 | T36a | FL36 | gyldig | `SSV10 LAC1234` | Pumpe | EX-Marking=`eeeeeeeeeeeeeeeeeeeeeeeeeeeeeee` | valid | KAB | - |
 | T36b | FL36 | ugyldig | `SSV10 LAC10AB001 -B01` | Pumpe | EX-Marking=`eeeeeeeeeeeeeeeeeeeeeeeeeeeeeee` | invalid | GIV | EX-Marking: Max 30 characters. |
@@ -320,12 +322,12 @@ De har deres egen matrix nedenfor og efterprøves i Studio efter deploy.
 | FL27 | Musen over "Function key invalid." → `Function key is FL position 7-9 (ZZZ). It must exist in FunctionKeyDict lookup.` | Musen over "Duplicate FL." → ingen hjælpetekst |
 | FL28 | 2 MKP + 1 GIV → faner `ALL (3)`, `GIV (1)`, `MKP (2)` | Tom række → i ingen fane |
 | FL29 | "Plant key invalid." → FL-feltet rødt, Description ikke | "Description > 40." → kun Description rødt |
-| FL57 | GIV-række → StrIndicator = `KKS`, System status = `LOCAL` | Long text tom → viser Description |
-| FL58 | Detaljeruden: Remarks kan redigeres | Info/StrIndicator kan ikke redigeres |
-| FL59 | Operating pressure uom → dropdown med 10 enheder | Remarks → tekstfelt med maks. 30 |
+| FL57 | GIV-række → StrIndicator = `KKS` i Master data | Long text findes ikke i formularen |
+| FL58 | Formularen: Remarks kan redigeres | StrIndicator og ABC Indic. kan ikke redigeres |
+| FL59 | Operating pressure uom → dropdown med 10 enheder; Atex → afkrydsning, gemmer `X` | Remarks → tekstfelt med maks. 30; Warranty Start `20241231` → `Warranty Start: Use DD.MM.YYYY.` |
 | FL60 | MKP-fane → kolonnerne #, FL, Description, StrIndicator, Class, Info | SAP status vises ikke |
-| FL61 | Show empty → alle 45 MKP-kolonner | Hide empty → kun udfyldte og dem med besked |
-| FL62 | Ret FL → rækken valideres igen med det samme | Ret Remarks til 31 tegn i detaljeruden → rækken bliver straks `invalid` med `Remarks: Max 30 characters.` |
+| FL61 | MKP-række → Master data (13 felter), Class characteristics (Remarks) og TRM (6 felter) | Række med ugyldig FL → Master data, ingen klassedata og beskeden om KKS-koden |
+| FL62 | Ret FL → rækken valideres igen med det samme | Ret Remarks til 31 tegn i formularen → rækken bliver straks `invalid` med `Remarks: Max 30 characters.` |
 | FL63 | Slet eneste række → én ny tom række | Slet den ene af to dubletter → den anden mister `Duplicate FL.` med det samme (automatisk validering, issue #77) |
 | FL65 | Musen over fanen `GIV (1)` → `GIV: TRANSDUSERS` | Fanen `NO CLASS` → ingen hjælpetekst |
 | FL68 | Ingen fejl → Submit aktiv, uden at noget skal trykkes | En række `invalid` → Submit inaktiv og beskeden vist |
@@ -339,7 +341,7 @@ De har deres egen matrix nedenfor og efterprøves i Studio efter deploy.
 | AQ1 | JS-filerne lå først ikke i repoet og blev lagt ind undervejs. Er `html/*.js` den endelige udgave? | Regler, plan og test er bygget på filerne, som de ligger nu. Ændres de, skal `node tools/fl/harness.js plan` køres igen - byggeriet stopper, hvis det er glemt |
 | AQ2 | `FL_CLASSIFICATION_DATA` overskrives helt af `FL_LOOKUPS`. Er det meningen? | Appen bruger det, der faktisk gælder: `FL_LOOKUPS` |
 | AQ3 | Skal masseudtrækket (`functional-location-extract.html`, "FL;ACT_CLASS" pr. linje) også være i appen? | Ikke med. Det er en anden side |
-| AQ4 | Er detaljeruden god nok i stedet for "All columns"-tabellen? | Ja, indtil andet er besluttet (PX8) |
+| AQ4 | Er detaljeruden god nok i stedet for "All columns"-tabellen? | Besluttet i issue #166: en formular under rækkelisten med sektionerne Master data og Class data (FL61) |
 | AQ5 | Skal Equipment Numbers-reglerne fra VBA'en ind nogen steder? | Nej. De findes ikke i JS'en, og udstyr har sin egen app |
 | AQ6 | JS'en har ingen gem/indsend - den eksporterer JSON. Appens gem og indsend (FL68/FL69, `MD_RequestIndex`) er nye | Bygget efter `powerfx/04-submit-patch.fx`. Selve valideringen er uændret |
 | AQ7 | Skal key users kunne rette nøgler, lister og regler uden en ny udgave af appen? | Nej, ikke i denne udgave. Reglerne er bygget ind fra `html/*.js`, præcis som siden har dem. En ændring er: ret JS'en → `node tools/fl/harness.js plan` → byg → deploy. `MD_FLKey` er seedet, så et senere skift til SharePoint-opslag har data at stå på |

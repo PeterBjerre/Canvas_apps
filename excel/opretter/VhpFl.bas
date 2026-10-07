@@ -318,8 +318,9 @@ End Sub
 ' Rene funktioner (ogsaa i LibreOffice)
 '==============================================================================
 
-' Garantidatoen til SAP: DD.MM.YYYY. Appen tillader ogsaa YYYYMMDD
-' (docs/31, FL34). Andet gives videre, som det er - valideringen har sagt fra.
+' Garantidatoen til SAP: DD.MM.YYYY. Appen skriver kun DD.MM.YYYY (docs/31,
+' FL34, issue #166); YYYYMMDD kommer kun fra aeldre anmodninger og laves om
+' her. Andet gives videre, som det er - valideringen har sagt fra.
 Public Function SapDateText(ByVal s As String) As String
     s = Trim$(s)
     If Len(s) = 8 And VhpUtil.IsAllDigits(s) Then

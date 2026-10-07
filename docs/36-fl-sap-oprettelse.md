@@ -98,7 +98,7 @@ Porten er lavet fra `FL indberetninger udgave SPOOL V3.xlsm` (i
 | En karakteristik, der ikke fandtes, blev kun skrevet i Debug-vinduet | Advarsel i kvitteringen og under *Detaljer* | Så nogen ser det |
 | Gem uden besked blev regnet for gemt | Se efter i IL03, før rækken regnes for gemt | Kvitteringen må ikke sige "oprettet" om noget, der ikke er |
 | IL02 brugte altid strukturindikator KKS | IL02 bruger rækkens egen (KKS, KKSKV, KKSKA) | Samme som IL01 |
-| Garantidato som Excel-dato | `YYYYMMDD` laves om til `DD.MM.YYYY` | Appen tillader begge (docs/31, FL34) |
+| Garantidato som Excel-dato | `YYYYMMDD` laves om til `DD.MM.YYYY` | Appen skriver kun `DD.MM.YYYY` (docs/31, FL34, issue #166), som går uændret til SAP. Konverteringen er bevaret for ældre anmodninger med `YYYYMMDD` |
 
 **Et tomt felt bliver også tomt i SAP**, som i SPOOL. Ved IL02 betyder det, at
 en værdi, der står i SAP, men ikke i anmodningen, bliver slettet. *Detaljer*
@@ -117,8 +117,8 @@ Opretteren sammenligner uden at skelne mellem store og små bogstaver, så
 | Description | Beskrivelse (40 tegn) |
 | Manufacturer, Model Number, Manufacturer Part/Serial Number | Fanen General |
 | Room, ABC Indic., Sort Field, Warranty Start/End | Fanen Location |
-| Superior FL | Fanen Structure (kun KAB) |
-| Atex, Risiko, Asbestos, PTW (`X`) | Tilladelser ATEX, Risiko, ASBEST, PTW |
+| Superior FL | Fanen Structure (kun KAB). **Ikke i appen længere** (issue #166) - kun ældre anmodninger, der har feltet i `SpoolValuesJson`, overfører det |
+| Atex (`X`) | Tilladelse ATEX. Risiko, Asbestos og PTW er ikke i appen længere (issue #166); ældre anmodninger med dem overføres som før |
 | TRM assignment, GIV_EXT assignment (`X`) | Ekstra klasser TRM og GIV_EXT |
 | Klassens felter, TRM's og GIV_EXT's | Karakteristikker, efter tabellen *Karakteristikker* |
 
@@ -126,6 +126,17 @@ Opretteren sammenligner uden at skelne mellem store og små bogstaver, så
 dokumentfelterne (*Datasheet*, *Document number* …), *User status* og
 *Switching location*. *Detaljer* viser for hver række, hvilke udfyldte felter
 der ikke kommer med.
+
+**Efter issue #166** viser og skriver appen ikke længere *Long text*, *DLFL*,
+dokumentfelterne, *Superior FL*, vedligeholdelsesfelterne, *Risiko*,
+*Asbestos* og *PTW*. Opretteren er uændret. Konsekvenserne:
+
+- *Superior FL* (`ITOB-TPLMA`, kun KAB) sættes ikke for nye anmodninger.
+  `FillSuperior` springer et tomt felt over, så en eksisterende overordnet FL
+  i SAP røres ikke ved IL02 - den skal sættes i SAP.
+- Ved **IL02** ryddes tilladelserne og sættes igen ud fra rækken
+  (`FillPermits`). En opdatering af en FL, der i SAP har *Risiko*, *ASBEST*
+  eller *PTW*, fjerner dem altså nu - kun *ATEX* kan komme med fra appen.
 
 **Kvitteringen** har en række pr. FL: `done`, `result` (`Created` med IL01,
 `Updated` med IL02), `sapMessage` (statuslinjen efter Gem) og `lastError`.
@@ -314,7 +325,7 @@ Med *Bekræft hvert gem* slået til og DEV-anmodninger i GQ1:
 3. GIV med TRM og GIV_EXT: tre klasser, *Owner*, *EX-Marking* og to værdier i
    *Safety Critical Equipment* (værdidialogen).
 4. ELF: WCM tildeles. *Remarks* med to værdier (værdidialogen).
-5. KAB med *Superior FL*.
+5. KAB med *Superior FL* (kun en ældre anmodning - appen skriver ikke feltet efter issue #166).
 6. En klasse med mange karakteristikker, fx MKP_HE med TRM, så der skal
    bladres.
 7. En anmodning med en række, SAP afviser (fx en overordnet FL, der ikke
@@ -330,7 +341,7 @@ Med *Bekræft hvert gem* slået til og DEV-anmodninger i GQ1:
 | *Initial Entry*-vejen i SPOOL (kun mærke, beskrivelse og klasse) | Appen sender altid de fulde data | — |
 | *Switching location* (WCM) | SPOOL skriver den ikke, kun klassen WCM | Skal den med, så tilføj rækken *ELF – Switching location* i *Karakteristikker* og afprøv det i GQ1 |
 | FL-styklister (IB11), materialer (ZSCM_MATUP), dokumenter | Egne funktioner i SPOOL, ikke en del af FL-oprettelsen | SPOOL-arket |
-| RBR | Står i SPOOL's tabel, men appen kender ikke klassen | — |
+| RBR | Appen kender klassen og dens felter (issue #166), men ingen KKS-nøgle i `ClassDetermination`-tabellerne giver RBR endnu, så ingen række får den | Tilføj nøglen i SPOOL-arkets tabeller og kør `node tools/fl/harness.js plan` |
 
 ## 9. De næste typer
 

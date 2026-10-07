@@ -653,7 +653,7 @@
    },
    "vals": {
     "Warranty Start": "29.02.2024",
-    "Warranty End": "20241231"
+    "Warranty End": "31.12.2024"
    }
   },
   {
@@ -663,14 +663,32 @@
    "expect": {
     "status": "invalid",
     "exact": [
-     "Warranty Start: Use DD.MM.YYYY or YYYYMMDD.",
-     "Warranty End: Use DD.MM.YYYY or YYYYMMDD."
+     "Warranty Start: Use DD.MM.YYYY.",
+     "Warranty End: Use DD.MM.YYYY."
     ]
    },
    "vals": {
-    "Warranty Start": "20230229",
+    "Warranty Start": "20241231",
     "Warranty End": "2024-12-31"
-   }
+   },
+   "note": "issue #166: YYYYMMDD godtages ikke laengere"
+  },
+  {
+   "id": "T34c",
+   "rule": "FL34",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "invalid",
+    "exact": [
+     "Warranty Start: Use DD.MM.YYYY.",
+     "Warranty End: Use DD.MM.YYYY."
+    ]
+   },
+   "vals": {
+    "Warranty Start": "29.02.2023",
+    "Warranty End": "31.04.2024"
+   },
+   "note": "rigtigt format, men datoen findes ikke"
   },
   {
    "id": "T35a",
@@ -681,9 +699,22 @@
    },
    "vals": {
     "Atex": "x",
-    "ABC Indic.": "A",
-    "PTW": "X"
+    "ABC Indic.": "A"
    }
+  },
+  {
+   "id": "T35c",
+   "rule": "FL35",
+   "fl": "SSV10 LAC10AB001",
+   "expect": {
+    "status": "valid"
+   },
+   "vals": {
+    "Risiko": "Y",
+    "Asbestos": "Y",
+    "PTW": "Y"
+   },
+   "note": "issue #166: Risiko, Asbestos og PTW er ikke i appen og valideres ikke"
   },
   {
    "id": "T35b",
