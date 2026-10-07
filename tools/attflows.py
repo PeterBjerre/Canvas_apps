@@ -93,11 +93,13 @@ class Pane(object):
     Det er forretningsforskelle, ikke stilforskelle, og de skal blive ved
     at vaere synlige hver for sig. Alt det, der ER ens, staar her."""
 
-    picker = None          # navnet paa Attachments-kontrollen
+    picker = None          # navnet paa Attachments-kontrollen (moderne)
     folder = None          # udtryk: mappenavnet = raekkens noegle
     key_pred = None        # udtryk: "RowId = varDomActiveRowId"
     collection = None      # samlingen med rudens filer
     up_collection = None   # arbejdssamling til uploadsvarene
+    busy_var = None        # sand, mens et flow koerer (issue #134)
+    remove_var = None      # filnavnet, der venter paa "Remove" (issue #134)
     not_saved = None       # beskeden, naar raekken ikke er gemt endnu
     empty_pre = None       # teksten foer stien, naar mappen er tom
     empty_post = None      # og efter
@@ -113,43 +115,56 @@ class Pane(object):
         return "Filter(%s, %s)" % (self.collection, self.key_pred)
 
     @property
-    def selected(self):
-        return "Filter(%s, %s, Selected = true)" % (self.collection,
-                                                    self.key_pred)
+    def busy(self):
+        """Laeses ogsaa, foer variablen er sat - saa er den Blank."""
+        return "IfError(Coalesce(%s, false), false)" % self.busy_var
+
+    @property
+    def failed(self):
+        return "Filter(%s, !Ok)" % self.up_collection
 
     def refresh_fx(self, indent=0):
         raise NotImplementedError
 
-    # -- de fire knapformler ----------------------------------------------
+    # -- knapformlerne ----------------------------------------------------
     def upload_fx(self):
         """Send hver valgt fil gennem flowet, og hent listen forfra bagefter.
 
         ForAll over kontrollens Attachments - Name og Value er kolonnerne,
-        og Value ER indholdet. Det er kaldet fra den gamle app, ordret.
+        og Value ER indholdet. Den moderne Attachments-kontrol (issue #134)
+        giver den samme tabel som den klassiske.
 
-        ForAll returnerer en TABEL, og ClearCollect tager den i EET kald.
-        Her stod foer et Collect INDE i ForAll - een mutation pr. fil, som
-        App checker melder som ForAllWithMutation. Flowet koerer stadig een
-        gang pr. fil; det er kun skrivningen, der er samlet.
+        ForAll returnerer en TABEL, og Collect tager den i EET kald - ingen
+        mutation pr. fil (App checker: ForAllWithMutation). Flowet koerer
+        stadig een gang pr. fil.
 
-        Svaret bliver LAEST. Der stod foer et fast "Document(s) uploaded."
-        lige efter ForAll, uanset hvad flowet svarede - en kvittering,
-        appen selv fandt paa. flowrunsuccess samles nu pr. fil, og de
-        filer, der ikke kom igennem, staar med navn i beskeden."""
+        PROEV IGEN (issue #134). up_collection er den igangvaerende
+        omgang: en fil med Ok = true er i biblioteket. Fejler en fil,
+        bliver kontrollen IKKE nulstillet, og naeste tryk paa Upload sender
+        kun de filer, der ikke kom igennem - ingen dubletter i mappen. Foerst
+        naar alle er oppe, nulstilles kontrollen. Er der ingen fejl fra
+        sidst, er det en ny omgang, og samlingen toemmes.
+
+        Svaret bliver LAEST: flowrunsuccess samles pr. fil, og de filer,
+        der ikke kom igennem, staar med navn i beskeden og i statuslinjen."""
         return (
             "If(\n"
             f"    IsBlank({self.folder}),\n"
             f"    Notify(\"{self.not_saved}\", NotificationType.Warning),\n"
             "\n"
-            "    If(\n"
-            f"        CountRows({self.picker}.Attachments) = 0,\n"
-            "        Notify(\"Choose one or more files first.\", "
+            f"    CountRows({self.picker}.Attachments) = 0,\n"
+            "    Notify(\"Choose one or more files first.\", "
             "NotificationType.Warning),\n"
             "\n"
-            "        ClearCollect(\n"
+            f"    Set({self.busy_var}, true);\n"
+            f"    If(CountRows({self.failed}) = 0, Clear({self.up_collection}));\n"
+            f"    With(\n"
+            f"        {{ done: Filter({self.up_collection}, Ok).Name }},\n"
+            f"        RemoveIf({self.up_collection}, !Ok);\n"
+            "        Collect(\n"
             f"            {self.up_collection},\n"
             "            ForAll(\n"
-            f"                {self.picker}.Attachments As F,\n"
+            f"                Filter({self.picker}.Attachments As P, !(P.Name in done)) As F,\n"
             "                {\n"
             "                    Name: F.Name,\n"
             "                    Ok: IfError(\n"
@@ -166,21 +181,22 @@ class Pane(object):
             "                    )\n"
             "                }\n"
             "            )\n"
-            "        );\n"
-            f"        Reset({self.picker});\n"
-            "\n"
-            + self.refresh_fx(8) + ";\n"
-            "\n"
-            "        If(\n"
-            f"            CountRows(Filter({self.up_collection}, Ok = false)) > 0,\n"
-            "            Notify(\n"
-            "                \"SharePoint refused: \" &\n"
-            f"                Concat(Filter({self.up_collection}, Ok = false), "
-            "Name, \", \"),\n"
-            "                NotificationType.Error\n"
-            "            ),\n"
-            "            Notify(\"Document(s) uploaded.\", NotificationType.Success)\n"
             "        )\n"
+            "    );\n"
+            f"    If(CountRows({self.failed}) = 0, Reset({self.picker}));\n"
+            "\n"
+            + self.refresh_fx(4) + ";\n"
+            f"    Set({self.busy_var}, false);\n"
+            "\n"
+            "    If(\n"
+            f"        CountRows({self.failed}) > 0,\n"
+            "        Notify(\n"
+            "            \"Not uploaded: \" &\n"
+            f"            Concat({self.failed}, Name, \", \") &\n"
+            "            \". Select Upload again to retry.\",\n"
+            "            NotificationType.Error\n"
+            "        ),\n"
+            "        Notify(\"Document(s) uploaded.\", NotificationType.Success)\n"
             "    )\n"
             ")"
         )
@@ -191,32 +207,67 @@ class Pane(object):
             f"    IsBlank({self.folder}),\n"
             f"    Notify(\"{self.not_saved}\", NotificationType.Warning),\n"
             "\n"
-            + self.refresh_fx(4) + "\n"
+            f"    Set({self.busy_var}, true);\n"
+            + self.refresh_fx(4) + ";\n"
+            f"    Set({self.busy_var}, false)\n"
             ")"
         )
 
-    def delete_fx(self):
-        """Slet de markerede - i biblioteket, ikke kun i appen.
+    def remove_fx(self):
+        """Slet den ene fil, brugeren har bekraeftet - i biblioteket, ikke
+        kun i appen (issue #134: Remove pr. dokument i stedet for
+        afkrydsning + faelles knap).
 
         Identifier kommer fra Get-flowet. Er den tom, findes filen ikke i
-        biblioteket, og saa er der kun appens egen raekke at fjerne."""
+        biblioteket, og saa er der kun appens egen raekke at fjerne. Afviser
+        flowet, bliver raekken staaende, og beskeden siger det."""
+        row = (f"LookUp({self.collection}, {self.key_pred} && "
+               f"FileName = {self.remove_var})")
+        return (
+            f"Set({self.busy_var}, true);\n"
+            "With(\n"
+            f"    {{ d: {row} }},\n"
+            "    If(\n"
+            "        IsBlank(d.Identifier) ||\n"
+            f"            IfError({FLOW_DELETE}.Run(d.Identifier); true, false),\n"
+            f"        RemoveIf({self.collection}, {self.key_pred} && "
+            "FileName = d.FileName);\n"
+            "        Notify(d.FileName & \" removed.\", NotificationType.Success),\n"
+            "        Notify(d.FileName & \" could not be removed. Try again.\", "
+            "NotificationType.Error)\n"
+            "    )\n"
+            ");\n"
+            f"Set({self.remove_var}, Blank());\n"
+            f"Set({self.busy_var}, false)"
+        )
+
+    def close_fx(self):
+        """Luk: glem de valgte filer og omgangens svar - naeste raekke
+        starter forfra."""
+        return (f"Reset({self.picker});\nClear({self.up_collection});\n"
+                f"Set({self.remove_var}, Blank())")
+
+    def status_fx(self):
+        """Statuslinjen under kontrollen. Ordene siger tilstanden - farven
+        er kun en ekstra markering (issue #134: ikke farve alene)."""
         return (
             "If(\n"
-            f"    CountRows({self.selected}) = 0,\n"
-            "    Notify(\"Select one or more documents first.\", "
-            "NotificationType.Warning),\n"
-            "\n"
-            "    ForAll(\n"
-            f"        {self.selected} As D,\n"
-            "        If(\n"
-            "            !IsBlank(D.Identifier),\n"
-            f"            {FLOW_DELETE}.Run(D.Identifier)\n"
-            "        )\n"
-            "    );\n"
-            f"    RemoveIf({self.collection}, {self.key_pred}, Selected = true);\n"
-            "    Notify(\"Document(s) removed.\", NotificationType.Success)\n"
+            f"    {self.busy},\n"
+            "    \"Working... please wait.\",\n"
+            f"    CountRows({self.failed}) > 0,\n"
+            f"    \"Not uploaded: \" & Concat({self.failed}, Name, \", \") &\n"
+            "        \". Select Upload again to retry - files already uploaded are skipped.\",\n"
+            f"    CountRows({self.up_collection}) > 0,\n"
+            f"    \"Uploaded: \" & Concat({self.up_collection}, Name, \", \"),\n"
+            "    \"\"\n"
             ")"
         )
+
+    def status_color_fx(self, ok, bad, muted):
+        return (f"If({self.busy}, {muted}, CountRows({self.failed}) > 0, {bad}, {ok})")
+
+    def status_visible(self):
+        return f"({self.busy} || CountRows({self.up_collection}) > 0)"
 
     def empty_text_fx(self):
         """Teksten, naar der ingen raekker er.
@@ -245,6 +296,8 @@ class DomainPane(Pane):
     key_pred = "RowId = varDomDocsId"
     collection = "colDomAttachments"
     up_collection = "colDomAttUp"
+    busy_var = "varDomAttBusy"
+    remove_var = "varDomAttRemove"
     not_saved = "Save the row first - the folder is named after the row key."
     empty_pre = "No documents in "
     empty_post = " yet."
