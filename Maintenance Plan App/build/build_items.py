@@ -14,7 +14,7 @@ from build_helpers import (checkbox_theme, row_hit, text_ctrl, group, button,
                            button_row, text_input, themed_dropdown, label_row,
                            field_cell, col_width, card, HINTS_ON, grow,
                            fit_button_width, column_grid, ICON_SAVE, ICON_W,
-                           mark_done, bool_toggle, border_rule, row_n)
+                           mark_done, segmented, border_rule, row_n)
 from build_plan_header import (section_header, help_panel, summary_chips, summary_formula,
                                summary_width, collapse_footer)
 import build_help as bh
@@ -156,12 +156,30 @@ FL_LAST_VAR = "varVhpFlLast"
 # #72); comboboksens DefaultSelectedItems laeser den foer itemets gemte FL.
 FL_PICK_VAR = "varVhpFlPick"
 
+# REVISION OG NON FLOW USER STATUS ER SEGMENTEREDE VALG (issue #141).
+# Knapper har ingen Value, saa valget staar i en KLADDE-variabel pr. felt:
+# Blank = uroert, og saa gaelder itemets gemte vaerdi. Reset (nyt item,
+# andet item, Reset-knappen) er derfor bare Set(..., Blank()) - der er
+# intet at indlaese. Save og "usavede aendringer" laeser REV_ON og NF_VAL.
+#
+# Non Flow-kladden er en post { Value }, fordi IsBlank("") er sand: en
+# tekst kunne ikke skelne "None valgt" fra "uroert". En gemt vaerdi, der
+# hverken er tom eller ZBOW (historisk), staar derfor uroert, til brugeren
+# selv vaelger None eller ZBOW.
+ACTIVE_REV = "LookUp(colVhpItems, ItemId = varVhpActiveItemId).Revision"
+ACTIVE_NF = "LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus"
+REV_ON = f"Coalesce(varVhpItemRevPick, !IsBlank({ACTIVE_REV}))"
+NF_VAL = f'If(IsBlank(varVhpItemNfPick), {ACTIVE_NF} & "", varVhpItemNfPick.Value & "")'
+# SAP-koden, der gemmes for ZBOW - samme vaerdi som valget i SharePoint-
+# kolonnen MaintenanceItems.NonFlowUserStatus.
+NF_ZBOW = '"ZBOW"'
+
 RESET_EDITOR_CONTROLS = (
     f"Set({FL_QUERY_VAR}, \"\"); Set({FL_LAST_VAR}, \"\"); Set({FL_PICK_VAR}, \"\"); "
     f"Reset({FL_COMBO}); "
     "Reset(inpVhpItemShortText); "
-    "Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Reset(tglVhpItemRevision); "
-    "Reset(inpVhpItemInitials); Reset(drpVhpItemNonFlowStatus); "
+    "Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); "
+    "Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); "
     "Reset(drpVhpItemTasklist)"
 )
 
@@ -599,23 +617,16 @@ def build_item_editor():
     txtShort = text_input("inpVhpItemShortText",
                           "LookUp(colVhpItems, ItemId = varVhpActiveItemId).ShortText", max_length=40,
                           required_formula=REQ_ITEM, display_mode=DM_ITEM)
-    # REVISION ER EN TOGGLE (issue #54). SharePoint-kolonnen RevisionMark
-    # har eet valg - "REV - General Revision Mark" - saa et felt med en
-    # liste var et ja/nej i forklaedning. Taendt = det ene valg, slukket =
-    # tomt; vaerdien, der gemmes, er den samme som foer.
-    #
-    # Classic/Toggle, fordi den moderne toggle ikke er brugt i dette miljoe;
-    # den klassiske staar i den gamle VH-plan-app og kompilerer. Den har
-    # ingen AccessibleLabel (samme fejl som Classic/Button, issue #57) -
-    # Tooltip bruges i stedet.
-    # Kompakt kontakt (issue #73) - build_helpers.bool_toggle, den samme
-    # stil for alle ja/nej-felter. "Yes"/"No" og intet andet; hvad "Yes"
-    # betyder, staar i tooltip'en og i feltets hjaelpetekst.
-    tglRevision = bool_toggle(
-        "tglVhpItemRevision",
-        "!IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Revision)",
-        display_mode=DM_ITEM,
-        tooltip='"Revision: outage work (" & First(colVhpRevisionOptions).Value & ")"')
+    # REVISION (issue #54, #141). SharePoint-kolonnen RevisionMark har eet
+    # valg - "REV - General Revision Mark" - saa feltet er et ja/nej: Yes =
+    # det ene valg, No = tomt; vaerdien, der gemmes, er den samme som foer.
+    # Issue #141: et segmenteret valg [ No | Yes ] i stedet for kontakten,
+    # saa begge muligheder kan ses (build_helpers.segmented).
+    REV_TIP = '"Revision: outage work (" & First(colVhpRevisionOptions).Value & ")"'
+    segRevision = segmented("conVhpItemRevisionSeg", [
+        ("No", "No", f"!{REV_ON}", "Set(varVhpItemRevPick, false)", REV_TIP),
+        ("Yes", "Yes", REV_ON, "Set(varVhpItemRevPick, true)", REV_TIP),
+    ], display_mode=DM_ITEM, label="Revision")
     # "Orsted Responsible" er fjernet (issue #54) - Initials er nok.
     # Kolonnen OrstedResponsible paa itemet bliver staaende: Save skriver
     # stadig indsenderen som ansvarlig i SharePoint (build_save.py), og en
@@ -660,15 +671,27 @@ def build_item_editor():
         "\"... (open to read all)\", " + LT + "), \"No long text yet\")")
     mark_done(btnLongText, HAS_LT)
 
-    # NON FLOW USER STATUS (issue #112). Valgfri. Valgene er SharePoint-
-    # kolonnens (sp_config.colVhpNonFlowStatusOptions) og vises som "ZBOW -
-    # Bowtie"; det, der gemmes, er koden. "(none)" staar oeverst, saa et
-    # valg kan fjernes igen.
-    NF = "LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus"
-    drpNonFlow = themed_dropdown(
-        "drpVhpItemNonFlowStatus", "colVhpNonFlowStatusOptions",
-        f'LookUp(colVhpNonFlowStatusOptions, Value = Coalesce({NF}, "")).Display',
-        display_col="Display", display_mode=DM_ITEM)
+    # NON FLOW USER STATUS (issue #112, #141). Valgfri. Et segmenteret valg
+    # [ None | ZBOW ]: None gemmer tom vaerdi (det, "(none)" gjorde), ZBOW
+    # gemmer SAP-koden. Har itemet en ANDEN, historisk kode, er ingen af
+    # dem valgt; koden vises under valget og gemmes uaendret, til brugeren
+    # selv vaelger None eller ZBOW (NF_VAL).
+    NF_DESC = ("Coalesce(LookUp(colVhpNonFlowStatusOptions, Value = " + NF_ZBOW + ").Display, "
+               + NF_ZBOW + ")")
+    segNonFlow = segmented("conVhpItemNonFlowSeg", [
+        ("None", "None", f"Len({NF_VAL}) = 0", 'Set(varVhpItemNfPick, { Value: "" })',
+         '"No non flow user status"'),
+        ("Zbow", "ZBOW", f"{NF_VAL} = {NF_ZBOW}", "Set(varVhpItemNfPick, { Value: " + NF_ZBOW + " })",
+         NF_DESC),
+    ], display_mode=DM_ITEM, label="Non Flow User Status")
+    NF_OTHER = f"(Len({NF_VAL}) > 0 && {NF_VAL} <> {NF_ZBOW})"
+    nfOther = text_ctrl(
+        "txtVhpItemNonFlowOther",
+        ('"Saved status: " & Coalesce(LookUp(colVhpNonFlowStatusOptions, Value = '
+         f'{NF_VAL}).Display, {NF_VAL}) & ". Kept until you choose None or ZBOW."'),
+        size=12, color=C_MUTED, height=32, wrap="true", visible=NF_OTHER)
+    nfBlock = group("conVhpItemNonFlowBlock", [segNonFlow, nfOther], direction="Vertical",
+                    gap=4)
 
     # KOLONNE-ORDEN (issue #54, #72): oppefra og ned i kolonne 1, saa
     # kolonne 2 - og Functional Location i fuld bredde under dem.
@@ -698,11 +721,11 @@ def build_item_editor():
          cell("conVhpCellItemMwc", "Main Work Center", drpMwc, "MainWorkCenter", True)],
         [cell("conVhpCellItemLongText", "Item Long Text", btnLongText, "ItemLongText"),
          cell("conVhpCellItemAct", "Maintenance Activity Type", drpAct, "ActivityType", True)],
-        [cell("conVhpCellItemRevision", "Revision", tglRevision, "Revision"),
+        [cell("conVhpCellItemRevision", "Revision", segRevision, "Revision"),
          cell("conVhpCellItemInitials", "Initials", txtInitials, "Initials", True)],
     ], container_w=CW, row_gap=12)
     # Samme celle som de andre felter, i tredje kolonnes bredde.
-    nfCell = cell("conVhpCellItemNonFlow", "Non Flow User Status", drpNonFlow,
+    nfCell = cell("conVhpCellItemNonFlow", "Non Flow User Status", nfBlock,
                   "NonFlowUserStatus")
     flRow = row_n("conVhpItemFlRow", [flBlock, nfCell], container_w=CW)
 
@@ -747,9 +770,9 @@ def build_item_editor():
             "                    MainWorkCenter: drpVhpItemMainWorkCenter.Selected.Value,\n"
             "                    ActivityType: drpVhpItemActivityType.Selected.Value,\n"
             "                    ObjectList: Concat(Sort(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), Code), Code, \"; \"),\n"
-            "                    Revision: If(tglVhpItemRevision.Value, First(colVhpRevisionOptions).Value, \"\"),\n"
+            f"                    Revision: If({REV_ON}, First(colVhpRevisionOptions).Value, \"\"),\n"
             "                    Initials: Upper(Trim(inpVhpItemInitials.Text)),\n"
-            "                    NonFlowUserStatus: Coalesce(drpVhpItemNonFlowStatus.Selected.Value, \"\"),\n"
+            f"                    NonFlowUserStatus: {NF_VAL},\n"
 
             "                    Status: \"valid\"\n"
             "                }\n"
