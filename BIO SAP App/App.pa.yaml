@@ -2537,6 +2537,22 @@ App:
       KksHeadL3 = If(IsBlank(varKksL3), "", Coalesce(LookUp(colKksScope, Upper(Code) = varKksL3, Description), ""));
 
       KksTitle = If(varKksL1 = "ALL", "All sections" & If(IsBlank(varKksQuery), "", " - search results"), varKksL1 & If(IsBlank(varKksL2) && IsBlank(varKksL3) && !IsBlank(KksHeadL1), " - " & Upper(Left(Lower(KksHeadL1), 1)) & Mid(Lower(KksHeadL1), 2), "") & If(IsBlank(varKksL2), "", " / " & varKksL2 & If(IsBlank(varKksL3) && !IsBlank(KksHeadL2), " - " & Upper(Left(Lower(KksHeadL2), 1)) & Mid(Lower(KksHeadL2), 2), "")) & If(IsBlank(varKksL3), "", " / " & varKksL3 & If(!IsBlank(KksHeadL3), " - " & Upper(Left(Lower(KksHeadL3), 1)) & Mid(Lower(KksHeadL3), 2), "")) & If(IsBlank(varKksQuery), "", " - search results"));
+
+      // Issue Board (Issue Board/build/ib_parts.py). Samlingerne hentes i
+      // skaermens OnVisible; alt herunder regnes i hukommelsen.
+      // Applications i konfigurationens raekkefoelge.
+      IbApps = ForAll(Distinct(SortByColumns(colIbSections, "AppOrder", SortOrder.Ascending, "SectionOrder", SortOrder.Ascending), Application) As a, { Application: a.Value });
+
+      IbFilterSections = SortByColumns(Filter(colIbSections, Application = varIbApp), "SectionOrder", SortOrder.Ascending);
+
+      // "Other" i Application eller Section kraever en beskrivelse.
+      IbOtherNeeded = varIbFormApp = "Other" || varIbFormSection = "Other";
+
+      // Den Application, skaermen man kom fra, hoerer til (gblNavFrom saettes af
+      // sidebaren). Kun naar konfigurationen siger det - ellers intet gaet.
+      IbFrom = Coalesce(LookUp(colIbSections, ScreenKey = gblNavFrom && !IsBlank(gblNavFrom)).Application, "");
+
+      IbFailed = IfError(varIbCfgFailed, false) || IfError(varIbMineFailed, false) || (varIbScope = "shared" && IfError(varIbSharedFailed, false));
     OnError: |
       =Trace(
           "Unhandled error",
@@ -2584,6 +2600,7 @@ App:
           "equipment", ScreenEquipment,
           "material", ScreenMaterial,
           "kks", ScreenKks,
+          "issueboard", ScreenIssueBoard,
           ScreenMdHub
       )
     Theme: |-
