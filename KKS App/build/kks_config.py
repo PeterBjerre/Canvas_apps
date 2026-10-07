@@ -27,7 +27,8 @@ sys.path.insert(0, os.path.join(ROOT, "tools"))
 # --- appen ------------------------------------------------------------
 APP_KEY = "kks"
 SCREEN = "ScreenKks"
-TITLE = "KKS lookup"
+TITLE = "KKS Lookup"
+SUBTITLE = "Find KKS codes by function, aggregate or component."
 
 # --- listerne, som de hedder naar de er tilfoejet som datakilder -------
 # Power Fx binder paa VISNINGSNAVN: Title hedder Code i MD_KksFunctionKey
