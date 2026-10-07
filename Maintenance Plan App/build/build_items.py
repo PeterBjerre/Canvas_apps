@@ -8,6 +8,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_MUTED, C_INFO_FG,
                         C_PRIMARY_SOFT, C_PRIMARY, C_MUTED_BG)
 from design_tokens import ref_hex
 import layout_tokens as lay
+import icons
 from layout_tokens import if_below, at_least, below, fits, TWO_COL_MIN
 from build_helpers import (checkbox_theme, row_hit, text_ctrl, group, button,
                            button_row, text_input, themed_dropdown, label_row,
@@ -466,9 +467,10 @@ def _obj_list_button(n_obj):
             f'"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'{w}\' height=\'{h}\' '
             f'viewBox=\'0 0 {w} {h}\'><rect x=\'0.5\' y=\'0.5\' width=\'{w - 1}\' '
             f'height=\'{h - 1}\' rx=\'{lay.RADIUS_INPUT}\' fill=\'none\' stroke=\'" & {edge} & "\'/>'
-            f'<g transform=\'translate({x0} {h // 2 - 7})\' fill=\'none\' stroke-width=\'1.6\' '
-            f'stroke-linecap=\'round\' stroke=\'" & {ink} & "\'>'
-            f'<path d=\'M5 2h9M5 7h9M5 12h9\'/><path d=\'M1 2h.01M1 7h.01M1 12h.01\'/></g>'
+            # Listeikonet er det faelles (tools/icons.LIST, issue #139) - samme
+            # tegning og streg som Fluents TextBulletListLtr paa hubbens "All".
+            + icons.glyph(icons.LIST, "#", size=16, x=x0 - 1, y=h // 2 - 8).replace(
+                "'#'", "'\" & " + ink + " & \"'")
             + (f'<text x=\'{(w + 22) // 2}\' y=\'{h // 2 + 5}\' text-anchor=\'middle\' '
                f'font-family=\'Segoe UI, sans-serif\' font-size=\'14\' font-weight=\'600\' '
                f'fill=\'" & {ink} & "\'>" & {label} & "</text>' if label else '')
