@@ -25,12 +25,13 @@ from gen_screen import (Ctrl, C_OVERLAY, C_MODAL_BG, C_PRIMARY_SOFT, C_MUTED, C_
                         C_WARN_FG, C_WARN_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_VALID_FG, C_VALID_BG,
                         C_INVALID_FG, C_INVALID_BG, C_CARD_BORDER, C_ROW_HOVER, C_ROW_PRESSED)
 from build_helpers import group, text_ctrl, button, grow, spinner_svg, row_hit, text_px, text_input
-from hub_config import DOMAINS, STATUS
+from hub_config import DOMAINS
 from design_tokens import ref_hex
 import icons
 import layout_tokens as lay
 import admin_log as alog
 import submission_notes as sn
+import display_text as dt
 from layout_tokens import if_below, at_least
 
 OPEN = "IfError(varMdAprOpen, false)"
@@ -262,8 +263,9 @@ def _who(email):
 
 def _by(text):
     """LastActionBy er en e-mail, naar appen skrev den, og et navn, naar et
-    flow gjorde ("Quality review", "SAP"). Kun e-mailen goeres til id."""
-    return f'If("@" in Coalesce({text}, ""), {_who(text)}, {text})'
+    flow gjorde ("Quality review", "SAP"). Kun e-mailen goeres til id;
+    navnet vises paa engelsk (aeldre raekker: "systemgodkendelsen", #162)."""
+    return f'If("@" in Coalesce({text}, ""), {_who(text)}, {dt.log(text)})'
 
 
 # Trinets navn i aktivitetsloggen. Stage-vaerdierne er dem, flowene og
@@ -278,14 +280,19 @@ def _decision_rows(stage, tbl, timeline=False):
              f'"{alog.EDIT}", "Admin", "{alog.DELETE}", "Admin", "Returned")')
     label = (f'Switch(Decision, "{alog.EDIT}", "Admin edit", "{alog.DELETE}", "Admin delete", '
              f'{state})')
-    note = ('If(!IsBlank(Comment), Substitute(Comment, Char(10), " "), Coalesce(Detail, ""))')
+    # Detail (og ItemText) er flowets tekst og vises paa engelsk (#162).
+    # Comment er godkenderens egen tekst og vises som den er - undtagen naar
+    # flowet har skrevet sin egen tekst i begge (fx en FL-fejl).
+    note = ('If(!IsBlank(Comment) && Comment <> Coalesce(Detail, ""), '
+            f'Substitute(Comment, Char(10), " "), {dt.log("Detail")})')
+    item = dt.log("ItemText")
     if timeline:
         act = ("Switch(Stage, " + ", ".join(f'"{k}", "{v}"' for k, v in STAGE_ACT.items()) +
                ", Stage)")
         sub = (f'With({{ n: {note} }}, If(IsBlank(ItemText), n, '
-               'ItemText & If(IsBlank(n), "", "  ·  " & n)))')
+               f'{item} & If(IsBlank(n), "", "  ·  " & n)))')
     else:
-        act = '"Whole plan"' if stage == "Quality" else 'Coalesce(ItemText, "")'
+        act = '"Whole plan"' if stage == "Quality" else item
         sub = note
     rec = _rec(Kind=_q("D"), Stage=_q(stage), Title=_who("DecidedByEmail"), State=state,
                Label=label, Sub=sub, Act=act, Stamp=f"Text(DecidedOn, {STAMP})",
@@ -336,9 +343,8 @@ IS_TIMELINE = 'IfError(varMdAprMode, "") = "T"'
 
 
 def _status_label(value):
-    """Den engelske etiket for en statusvaerdi - hubbens eget ordforraad."""
-    return ("Switch(" + value + ", " +
-            ", ".join(f'"{k}", "{label}"' for k, label, *_r in STATUS) + f", {value})")
+    """Den engelske etiket for en statusvaerdi (tools/display_text.py)."""
+    return dt.status(value)
 
 
 # NOTERNE VED INDSENDELSEN (issue #115) - en haendelse i Activity, ikke en

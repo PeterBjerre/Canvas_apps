@@ -25,6 +25,7 @@ import app_yaml
 import design_tokens as tok
 import layout_tokens as lay
 import permissions as perm
+import display_text as dt
 
 
 def _fx_value(v):
@@ -205,7 +206,8 @@ def build_onstart():
 
 def build_formulas():
     """App.Formulas. Hver formel afsluttes med semikolon - ogsaa den sidste."""
-    out = [tok.formula(), "", lay.formula(), "", perm.formula(), "", perm.approver_formula(), ""]
+    out = [tok.formula(), "", lay.formula(), "", perm.formula(), "", dt.formula(), "",
+           perm.approver_formula(), ""]
     # De sammenklappede linjer (issue #123) - importeres her, fordi
     # builderne foerst kan importeres, naar tools/ er paa stien.
     import build_plan_header
