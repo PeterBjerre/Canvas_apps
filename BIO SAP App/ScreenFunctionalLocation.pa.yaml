@@ -5243,7 +5243,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =242 + 12 + (62 + If(gblFbPick, 6 + (12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(CountRows(galFlFbSubject.AllItems), 7) * 36)), 0)) + If(!gblFbPick, 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(220, Min(272, App.Height - 40 - 402))))), 0) + If(!gblFbPick, 12 + (36), 0)
+                      =242 + 12 + (62 + If(gblFbPick, 6 + (12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(galFlFbSubject.AllItemsCount, 7) * 36)), 0)) + If(!gblFbPick, 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(220, Min(272, App.Height - 40 - 402))))), 0) + If(!gblFbPick, 12 + (36), 0)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -5643,7 +5643,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =62 + If(gblFbPick, 6 + (12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(CountRows(galFlFbSubject.AllItems), 7) * 36)), 0)
+                            =62 + If(gblFbPick, 6 + (12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(galFlFbSubject.AllItemsCount, 7) * 36)), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -5863,7 +5863,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(CountRows(galFlFbSubject.AllItems), 7) * 36)
+                                  =12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(galFlFbSubject.AllItemsCount, 7) * 36)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -5990,7 +5990,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =Min(CountRows(galFlFbSubject.AllItems), 7) * 36
+                                        =Min(galFlFbSubject.AllItemsCount, 7) * 36
                                     Items: |-
                                         =With({q: Trim(inpFlFbSubjectFind.Text)},
                                             With({
