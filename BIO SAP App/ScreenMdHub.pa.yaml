@@ -6562,9 +6562,11 @@ Screens:
                         WrapCount: |-
                             =1
                       Children:
-                        - btnMdAprCard:
-                            Control: Classic/Button
+                        - txtMdAprCard:
+                            Control: ModernText
                             Properties:
+                              AccessibleLabel: |-
+                                  ="Stage card"
                               BorderColor: |-
                                   =If(ThisItem.Human && ThisItem.State <> "Pending", RGBA(0, 0, 0, 0), C.'border-default')
                               BorderStyle: |-
@@ -6572,25 +6574,21 @@ Screens:
                               BorderThickness: |-
                                   =If(ThisItem.Human && ThisItem.State <> "Pending", 0, 1)
                               Color: |-
-                                  =RGBA(0, 0, 0, 0)
-                              DisplayMode: |-
-                                  =DisplayMode.View
+                                  =C.'text-primary'
                               Fill: |-
                                   =If((ThisItem.Kind = "D" || ThisItem.Kind = "X") && ThisItem.Human && ThisItem.State <> "Pending", C.'bg-muted', RGBA(0, 0, 0, 0))
+                              Font: |-
+                                  =Font.'Segoe UI'
                               Height: |-
                                   =If(ThisItem.Kind = "X", If(ThisItem.IsLast, 44, 48), If(IfError(varMdAprExp, 0) = ThisItem.Idx, 44, 40))
-                              HoverBorderColor: |-
-                                  =If(ThisItem.Human && ThisItem.State <> "Pending", RGBA(0, 0, 0, 0), C.'border-default')
-                              HoverColor: |-
-                                  =RGBA(0, 0, 0, 0)
-                              HoverFill: |-
-                                  =If((ThisItem.Kind = "D" || ThisItem.Kind = "X") && ThisItem.Human && ThisItem.State <> "Pending", C.'bg-muted', RGBA(0, 0, 0, 0))
-                              PressedBorderColor: |-
-                                  =If(ThisItem.Human && ThisItem.State <> "Pending", RGBA(0, 0, 0, 0), C.'border-default')
-                              PressedColor: |-
-                                  =RGBA(0, 0, 0, 0)
-                              PressedFill: |-
-                                  =If((ThisItem.Kind = "D" || ThisItem.Kind = "X") && ThisItem.Human && ThisItem.State <> "Pending", C.'bg-muted', RGBA(0, 0, 0, 0))
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
                               RadiusBottomLeft: |-
                                   =If(ThisItem.Kind = "X", If(ThisItem.IsLast, 8, 0), If(IfError(varMdAprExp, 0) = ThisItem.Idx, 0, 8))
                               RadiusBottomRight: |-
@@ -6599,14 +6597,16 @@ Screens:
                                   =If(ThisItem.Kind = "X", 0, 8)
                               RadiusTopRight: |-
                                   =If(ThisItem.Kind = "X", 0, 8)
-                              TabIndex: |-
-                                  =0
+                              Size: |-
+                                  =11
                               Text: |-
                                   =""
                               Visible: |-
                                   =ThisItem.Kind = "D" || ThisItem.Kind = "X"
                               Width: |-
                                   =((Min(720, App.Width - 24) - 32) - 20) - 38
+                              Wrap: |-
+                                  =false
                               X: |-
                                   =38
                               Y: |-
