@@ -65,6 +65,7 @@ import layout_tokens as lay
 from layout_tokens import SHELL_W, below, at_least, if_below
 
 import ib_config as cfg
+import doc_upload as du
 
 P = "Ib"
 NARROW = below("Tablet")
@@ -928,20 +929,11 @@ SEL_REF = "varIbSel"
 
 
 def _attachments(name, label):
-    """Vaelg filer - samme kontrol og samme loft som dokumentruden
-    (tools/domain_parts.py). Filerne sendes foerst, naar man trykker."""
-    return Ctrl(name, "Attachments@2.3.0", props={
-        "AccessibleLabel": label,
-        "BorderColor": C_CARD_BORDER,
-        "BorderThickness": "1",
-        "Height": "90",
-        "MaxAttachments": str(cfg.MAX_FILES),
-        "MaxAttachmentSize": str(cfg.MAX_FILE_MB),
-        "NoAttachmentsText": '"Drag screenshots or files here, or browse"',
-        "PaddingBottom": "5", "PaddingLeft": "5",
-        "PaddingRight": "5", "PaddingTop": "5",
-        "Width": "Parent.Width",
-    }, h=90)
+    """Vaelg filer - den faelles moderne Attachments-kontrol
+    (tools/doc_upload.py, issue #134). Filerne sendes foerst, naar man
+    trykker; flowkaldet (_upload) laeser Name og Value som foer."""
+    return du.picker(name, label, cfg.MAX_FILES, cfg.MAX_FILE_MB,
+                     display_mode="If(varIbUploading, DisplayMode.Disabled, DisplayMode.Edit)")
 
 
 def build_form():
@@ -1307,8 +1299,8 @@ def _files_panel():
     up = button("btnIbUpload", '"Upload"', UPLOAD_FILES, primary=True,
                 width=fit_button_width('"Upload"') + ICON_W, height=36, icon="ArrowUpload",
                 accessible='"Upload the chosen files to this issue"',
-                display_mode=("If(CountRows(attIbFiles.Attachments) = 0 || varIbUploading, "
-                              "DisplayMode.Disabled, DisplayMode.Edit)"))
+                display_mode=("If(attIbFiles.AttachmentsCount = 0 || attIbFiles.IsUploading || "
+                              "varIbUploading, DisplayMode.Disabled, DisplayMode.Edit)"))
     up.props["AlignInContainer"] = "AlignInContainer.End"
     hint = text_ctrl("txtIbFilesHint",
                      f'"Up to {cfg.MAX_FILES} files at a time, {cfg.MAX_FILE_MB} MB each. Files are '
