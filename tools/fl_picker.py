@@ -156,7 +156,7 @@ def busy_box(name, visible, label="Searching..."):
         "ImagePosition": "ImagePosition.Fit",
         "LayoutMinWidth": str(w),
         "OnSelect": "false",
-        "TabIndex": "-1",
+        "TabIndex": "0",
         "Visible": visible,
         "Width": str(w),
     }, h=h, vis=visible)

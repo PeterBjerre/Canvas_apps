@@ -254,7 +254,7 @@ def _lang_picker(p, suffix, compact):
                   f"fill='{_hx('text-primary')}'>English</text>")
     c = _image(f"img{p}NavLang{suffix}", '"' + _svg_data(W, H, body) + '"', W, H,
                "false", '"Language: English"', hover=False)
-    c.props["TabIndex"] = "-1"
+    c.props["TabIndex"] = "0"
     return c
 
 def _message_button(p, suffix, compact):
@@ -422,7 +422,7 @@ def side_nav(prefix, current, help_on=None, help_action=None):
         "Height": "App.Height",
         "Image": '""',
         "OnSelect": CLOSE,
-        "TabIndex": "-1",
+        "TabIndex": "0",
         "Visible": OPEN,
         "Width": "App.Width",
         "X": "0",

@@ -529,7 +529,7 @@ def _rounded_background(c, x, y, w, h, vis, fill, border, radius):
 
     def layer(name, lx, ly, lw, lh, color, r):
         props = {"X": lx, "Y": ly, "Width": lw, "Height": lh,
-                 "Text": "\"\"", "AccessibleLabel": "\"\"",
+                 "Text": "\"\"", "AccessibleLabel": "\"Background\"",
                  "Fill": color,
                  "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
                  "PaddingTop": "0", "PaddingBottom": "0",
@@ -568,9 +568,12 @@ def _background(c, x, y, w, h, vis):
              # manglende AccessibleLabel og manglende tab stop. Uden OnSelect,
              # med TabIndex -1 og en tom etiket er den et billede, som
              # skaermlaeseren springer over - teksten staar i boernene.
+             # Issue #165: Studios App checker melder ALLIGEVEL ethvert
+             # Rectangle med TabIndex < 0 (Missing tab stop) og en tom
+             # etiket (AccessibleLabelNeeded). Derfor TabIndex 0.
              "OnSelect": "false",
-             "TabIndex": "-1",
-             "AccessibleLabel": "\"\""}
+             "TabIndex": "0",
+             "AccessibleLabel": "\"Background\""}
     if vis:
         props["Visible"] = vis
     return [Ctrl(child_name("rct", c.name, "Bg"), "Rectangle", props=props, h=h)]

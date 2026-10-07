@@ -113,7 +113,7 @@ Screens:
                             Control: Image
                             Properties:
                               AccessibleLabel: |-
-                                  =""
+                                  ="Materials"
                               AlignInContainer: |-
                                   =AlignInContainer.Center
                               BorderStyle: |-
@@ -131,7 +131,7 @@ Screens:
                               OnSelect: |-
                                   =false
                               TabIndex: |-
-                                  =-1
+                                  =0
                               Visible: |-
                                   =LayoutRank >= 2
                               Width: |-
@@ -255,7 +255,7 @@ Screens:
                                           OnSelect: |-
                                               =false
                                           TabIndex: |-
-                                              =-1
+                                              =0
                                           Width: |-
                                               =88
                               - txtMatSub:
@@ -313,7 +313,7 @@ Screens:
                                     OnSelect: |-
                                         =false
                                     TabIndex: |-
-                                        =-1
+                                        =0
                                     Visible: |-
                                         =LayoutRank >= 2
                                     Width: |-
@@ -1556,7 +1556,7 @@ Screens:
                                                       OnSelect: |-
                                                           =false
                                                       TabIndex: |-
-                                                          =-1
+                                                          =0
                                                       Visible: |-
                                                           =varMatFlBusy
                                                       Width: |-
@@ -7523,7 +7523,7 @@ Screens:
                         PressedFill: |-
                             =RGBA(0, 0, 0, 0)
                         TabIndex: |-
-                            =-1
+                            =0
                         Width: |-
                             =36
                   - imgMatTheme:
@@ -7644,7 +7644,7 @@ Screens:
                 Control: Image
                 Properties:
                   AccessibleLabel: |-
-                      =""
+                      ="Materials"
                   AlignInContainer: |-
                       =AlignInContainer.Center
                   BorderStyle: |-
@@ -7662,7 +7662,7 @@ Screens:
                   OnSelect: |-
                       =false
                   TabIndex: |-
-                      =-1
+                      =0
                   Width: |-
                       =32
             - txtMatNavTitle:
@@ -7725,7 +7725,7 @@ Screens:
                 Clear(colMatAttUp);
                 Set(varMatAttRemove, Blank())))
             TabIndex: |-
-                =-1
+                =If(LayoutRank < 2, 0, -1)
             Visible: |-
                 =!IsBlank(varMatDetailsId) || !IsBlank(varMatDocsId)
             Width: |-
@@ -11163,7 +11163,7 @@ Screens:
             PressedFill: |-
                 =RGBA(0, 0, 0, 0)
             TabIndex: |-
-                =-1
+                =0
             Visible: |-
                 =gblNavOpen
             Width: |-
@@ -11659,7 +11659,7 @@ Screens:
                         PressedFill: |-
                             =RGBA(0, 0, 0, 0)
                         TabIndex: |-
-                            =-1
+                            =0
                         Width: |-
                             =148
                   - imgMatThemeOpen:
@@ -11760,7 +11760,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =242 + 12 + (62 + If(gblFbPick, 6 + (12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(CountRows(galMatFbSubject.AllItems), 7) * 36)), 0)) + If(!gblFbPick, 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(220, Min(272, App.Height - 40 - 402))))), 0) + If(!gblFbPick, 12 + (36), 0)
+                      =242 + 12 + (62 + If(gblFbPick, 6 + (12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(galMatFbSubject.AllItemsCount, 7) * 36)), 0)) + If(!gblFbPick, 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(220, Min(272, App.Height - 40 - 402))))), 0) + If(!gblFbPick, 12 + (36), 0)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -12160,7 +12160,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =62 + If(gblFbPick, 6 + (12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(CountRows(galMatFbSubject.AllItems), 7) * 36)), 0)
+                            =62 + If(gblFbPick, 6 + (12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(galMatFbSubject.AllItemsCount, 7) * 36)), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -12260,7 +12260,7 @@ Screens:
                                   Control: Image
                                   Properties:
                                     AccessibleLabel: |-
-                                        =""
+                                        ="Choose a subject or request"
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -12276,7 +12276,7 @@ Screens:
                                     OnSelect: |-
                                         =Set(gblFbPick, !gblFbPick)
                                     TabIndex: |-
-                                        =-1
+                                        =0
                                     Visible: |-
                                         =gblFbSel.Kind = "R"
                                     Width: |-
@@ -12346,7 +12346,7 @@ Screens:
                                   Control: Image
                                   Properties:
                                     AccessibleLabel: |-
-                                        =""
+                                        =If(gblFbPick, "Collapse list", "Expand list")
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -12362,7 +12362,7 @@ Screens:
                                     OnSelect: |-
                                         =Set(gblFbPick, !gblFbPick)
                                     TabIndex: |-
-                                        =-1
+                                        =0
                                     Width: |-
                                         =20
                         - conMatFbSubjectList:
@@ -12380,7 +12380,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(CountRows(galMatFbSubject.AllItems), 7) * 36)
+                                  =12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(galMatFbSubject.AllItemsCount, 7) * 36)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -12507,7 +12507,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =Min(CountRows(galMatFbSubject.AllItems), 7) * 36
+                                        =Min(galMatFbSubject.AllItemsCount, 7) * 36
                                     Items: |-
                                         =With({q: Trim(inpMatFbSubjectFind.Text)},
                                             With({
@@ -12585,7 +12585,7 @@ Screens:
                                         Control: Rectangle
                                         Properties:
                                           AccessibleLabel: |-
-                                              =""
+                                              ="Selected"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -12597,7 +12597,7 @@ Screens:
                                           OnSelect: |-
                                               =false
                                           TabIndex: |-
-                                              =-1
+                                              =0
                                           Visible: |-
                                               =!IsBlank(gblFbSel.Kind) && ThisItem.Kind = gblFbSel.Kind && ThisItem.Label = gblFbSel.Label
                                           Width: |-
@@ -12610,7 +12610,7 @@ Screens:
                                         Control: Image
                                         Properties:
                                           AccessibleLabel: |-
-                                              =""
+                                              =Coalesce(ThisItem.TypeName, "Request")
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -12626,7 +12626,7 @@ Screens:
                                           OnSelect: |-
                                               =false
                                           TabIndex: |-
-                                              =-1
+                                              =0
                                           Visible: |-
                                               =ThisItem.Kind = "R"
                                           Width: |-
@@ -13009,7 +13009,7 @@ Screens:
             OnSelect: |-
                 =If(LayoutRank < 2, Set(varMatConfirmDelete, false))
             TabIndex: |-
-                =-1
+                =If(LayoutRank < 2, 0, -1)
             Visible: |-
                 =IfError(varMatConfirmDelete, false)
             Width: |-
@@ -13392,7 +13392,7 @@ Screens:
             OnSelect: |-
                 =If(LayoutRank < 2, Set(varMatConfirmSubmit, false))
             TabIndex: |-
-                =-1
+                =If(LayoutRank < 2, 0, -1)
             Visible: |-
                 =IfError(varMatConfirmSubmit, false)
             Width: |-
@@ -13805,7 +13805,7 @@ Screens:
             OnSelect: |-
                 =If(LayoutRank < 2, Set(varMatDeleteOpen, false))
             TabIndex: |-
-                =-1
+                =If(LayoutRank < 2, 0, -1)
             Visible: |-
                 =IfError(varMatDeleteOpen, false)
             Width: |-
@@ -14107,7 +14107,7 @@ Screens:
             ImagePosition: |-
                 =ImagePosition.Center
             TabIndex: |-
-                =-1
+                =0
             Visible: |-
                 =IfError(varMatSaving, false)
             Width: |-
@@ -14421,7 +14421,7 @@ Screens:
             Image: |-
                 =""
             TabIndex: |-
-                =-1
+                =0
             Visible: |-
                 =IfError(varMatLoading, false) || IfError(varMatLoadFailed, false)
             Width: |-
@@ -14501,7 +14501,7 @@ Screens:
                   ImagePosition: |-
                       =ImagePosition.Fit
                   TabIndex: |-
-                      =-1
+                      =0
                   Width: |-
                       =40
             - txtMatLoadTitle:

@@ -160,9 +160,9 @@ def _subject_picker(n):
     is_req = f'{SEL}.Kind = "R"'
 
     icon = Ctrl(n("img", "SubjectIcon"), "Image", props={
-        "AccessibleLabel": '""', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+        "AccessibleLabel": '"Choose a subject or request"', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
         "Fill": C_TRANSPARENT, "Height": "20", "Image": _icon_fx(f"{SEL}.Domain"),
-        "ImagePosition": "ImagePosition.Fit", "OnSelect": toggle, "TabIndex": "-1",
+        "ImagePosition": "ImagePosition.Fit", "OnSelect": toggle, "TabIndex": "0",
         "Visible": is_req, "Width": "20",
     }, h=20, vis=is_req)
     label = f'If({has}, {SEL}.Label, "Pick a subject or request")'
@@ -191,11 +191,11 @@ def _subject_picker(n):
         "VerticalAlign": "VerticalAlign.Middle",
     }, h=34)
     chevron = Ctrl(n("img", "SubjectChevron"), "Image", props={
-        "AccessibleLabel": '""', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+        "AccessibleLabel": f'If({PICK}, "Collapse list", "Expand list")', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
         "Fill": C_TRANSPARENT, "Height": "20",
         "Image": (f'"data:image/svg+xml;utf8," & EncodeUrl(If({PICK}, '
                   f'"{_chevron_svg(CHEVRON_UP)}", "{_chevron_svg(CHEVRON_DOWN)}"))'),
-        "ImagePosition": "ImagePosition.Fit", "OnSelect": toggle, "TabIndex": "-1",
+        "ImagePosition": "ImagePosition.Fit", "OnSelect": toggle, "TabIndex": "0",
         "Width": "20",
     }, h=20)
     trigger = group(n("con", "Subject"), [icon, grow(btn), chevron], direction="Horizontal",
@@ -242,14 +242,14 @@ def _subject_picker(n):
                      visible=f'{kind} = "H"',
                      width="Parent.TemplateWidth - 24", extra={"X": "12", "Y": str(ROW_H - 22)})
     accent = Ctrl(n("rct", "SubjectAccent"), "Rectangle", props={
-        "AccessibleLabel": '""', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+        "AccessibleLabel": '"Selected"', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
         "Fill": _accent_fx("ThisItem.Domain"), "Height": "24", "OnSelect": "false",
-        "TabIndex": "-1", "Visible": selected, "Width": "3", "X": "0", "Y": str((ROW_H - 24) // 2),
+        "TabIndex": "0", "Visible": selected, "Width": "3", "X": "0", "Y": str((ROW_H - 24) // 2),
     }, h=24, vis=selected)
     row_icon = Ctrl(n("img", "SubjectRowIcon"), "Image", props={
-        "AccessibleLabel": '""', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+        "AccessibleLabel": 'Coalesce(ThisItem.TypeName, "Request")', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
         "Fill": C_TRANSPARENT, "Height": "20", "Image": _icon_fx("ThisItem.Domain"),
-        "ImagePosition": "ImagePosition.Fit", "OnSelect": "false", "TabIndex": "-1",
+        "ImagePosition": "ImagePosition.Fit", "OnSelect": "false", "TabIndex": "0",
         "Visible": f'{kind} = "R"', "Width": "20", "X": "12", "Y": str((ROW_H - 20) // 2),
     }, h=20, vis=f'{kind} = "R"')
     text_x = f'If({kind} = "R", 40, 12)'
@@ -270,7 +270,7 @@ def _subject_picker(n):
     hit.vis = pickable
 
     gal_name = n("gal", "Subject")
-    gal_h = f"Min(CountRows({gal_name}.AllItems), {MAX_ROWS}) * {ROW_H}"
+    gal_h = f"Min({gal_name}.AllItemsCount, {MAX_ROWS}) * {ROW_H}"
     gal = Ctrl(gal_name, "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Subjects and your requests"',
         "BorderStyle": "BorderStyle.None", "Fill": C_TRANSPARENT, "FillPortions": "0",
