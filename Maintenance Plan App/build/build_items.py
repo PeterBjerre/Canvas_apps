@@ -1035,6 +1035,11 @@ def build_items_section():
     editor.props["Width"] = EDITOR_W
     editor.props["FillPortions"] = f"If({side}, 1, 0)"
     editor.props["LayoutMinWidth"] = f"If({side}, {EDITOR_W}, 0)"
+    # Sammenklappet (issue #136) er editoren kun saa hoej som sin linje -
+    # ellers strakte raekken den til Items-skinnens hoejde og efterlod et
+    # tomt felt under chipsene. Foldet ud straekkes den som foer.
+    editor.props["AlignInContainer"] = (f"If({side} && {ITEM_LOCKED}, AlignInContainer.Start, "
+                                        "AlignInContainer.SetByContainer)")
     # 2 px under kortene: kanten, hjoernerne og fokusringen nederst paa
     # Items og Item Editor maa ikke klippes af raekkens LayoutOverflow.Hide
     # (issue #73) - heller ikke naar Studio tegner et kort en pixel hoejere,
