@@ -1,7 +1,7 @@
 ﻿<#
 .SYNOPSIS
-    Issue Board (issue #114, trin 1): de fire lister, deres rettigheder og
-    konfigurationen af Application/Section.
+    Issue Board (issue #114, trin 1 og 2): de fire lister, deres
+    rettigheder og konfigurationen af Application/Section.
 
 .DESCRIPTION
     Et midlertidigt sags- og feedbacksystem til udviklings- og testfasen.
@@ -12,6 +12,9 @@
                         Members og Visitors. Hver raekke faar sine egne
                         rettigheder af flowet BioSap-IssueBoard-Submit:
                         rapportoeren Read, admins Contribute.
+                        Vedhaeftninger ligger som SharePoint-vedhaeftninger
+                        PAA raekken (trin 2) og arver dens rettigheder -
+                        der er intet bibliotek, der skal sikres for sig.
     IB_TicketComments   kommentarer og haendelser, een raekke pr. haendelse
                         (aldrig en samlet tekst). PRIVAT som IB_Tickets.
                         Visibility = Internal er kun for admins.
@@ -270,7 +273,13 @@ Add-Col 'IB_Tickets' 'ResolvedOn' DateTime
 Add-Col 'IB_Tickets' 'ClosedOn' DateTime
 Add-Col 'IB_Tickets' 'IsArchived' Boolean -Indexed -Description 'Arkiveret: ude af de aktive visninger, men ikke slettet (trin 2).'
 Add-Col 'IB_Tickets' 'Resolution' Note
-Add-Col 'IB_Tickets' 'SharedItemId' Number -Description 'ID i IB_SharedIssues - den anonyme kopi.'
+Add-Col 'IB_Tickets' 'SharedItemId' Number -Description 'ID i IB_SharedIssues - den anonyme kopi. 0 naar sagen er arkiveret.'
+# Trin 2: vedhaeftningerne ligger paa raekken. Det er SharePoints standard,
+# men slaas til her, saa ingen kan have slaaet det fra.
+if (-not $WhatIfOnly -and (Get-PnPList -Identity $TICKETS -ErrorAction SilentlyContinue)) {
+    Set-PnPList -Identity $TICKETS -EnableAttachments $true | Out-Null
+    Write-Host "    ~ vedhaeftninger slaaet til" -ForegroundColor Green
+}
 
 # ---------------------------------------------------------------------------
 Write-Host "`n=== $COMMENTS ===" -ForegroundColor Cyan
@@ -288,6 +297,11 @@ Add-Col 'IB_TicketComments' 'Content' Note
 Add-Col 'IB_TicketComments' 'PreviousStatus' Text
 Add-Col 'IB_TicketComments' 'NewStatus' Text
 Add-Col 'IB_TicketComments' 'EventOn' DateTime -Indexed
+# Trin 2: en Attachment-haendelse fortaeller, hvilken fil, hvor stor, og om
+# den kom med indmeldingen eller senere. Selve filen ligger paa IB_Tickets.
+Add-Col 'IB_TicketComments' 'FileName' Text -Description 'Filnavnet ved EventType = Attachment.'
+Add-Col 'IB_TicketComments' 'FileSizeKb' Number -Description 'Filens stoerrelse i KB (afrundet op).'
+Add-Col 'IB_TicketComments' 'AtSubmission' Boolean -Description 'Ja = filen kom med indmeldingen.'
 
 # ---------------------------------------------------------------------------
 Write-Host "`n=== $SECTIONS ===" -ForegroundColor Cyan
