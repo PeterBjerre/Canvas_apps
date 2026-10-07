@@ -329,3 +329,46 @@ def test_new_issue_is_added_without_reloading_the_list():
     # Formularen venter ikke paa den anonyme liste.
     assert P.OPEN_FORM.index("Set(varIbFormOn, true)") < P.OPEN_FORM.index("colIbShared")
     assert "varIbLoading" not in P.LOAD_SHARED
+
+
+def test_detail_popup_hierarchy_and_single_close():
+    import ib_parts as P
+    nodes = P.build_detail()
+    ctrls = {c.name: c for c in _walk_ctrls(nodes)}
+    modal = ctrls["conIbDetModal"]
+    # Hovedet (nummer, titel, Close) staar fast; kun kroppen scroller.
+    assert [k.name for k in modal.children] == ["conIbDetHead", "conIbDetBody"]
+    assert [k.name for k in ctrls["conIbDetHead"].children] == ["txtIbDetNo", "txtIbDetTitle",
+                                                               "btnIbDetClose"]
+    assert "Scroll" in ctrls["conIbDetBody"].props["LayoutOverflowY"]
+    body = [k.name for k in ctrls["conIbDetBody"].children]
+    order = ["conIbDetMeta", "conIbDetFacts", "conIbDetActions", "conIbActsMenu", "conIbDetRule",
+             "conIbDetTabs"]
+    assert [b for b in body if b in order] == order
+    # Ingen Cancel - Close er eneste vej ud, ogsaa i sletningen.
+    assert not [n for n in ctrls if "Cancel" in n]
+    dels = {c.name for c in _walk_ctrls(P.build_delete())}
+    assert "btnIbDelCancel" not in dels and "btnIbDelClose" in dels
+    # Archive og Delete under More actions (kun admin), Delete sidst.
+    assert [k.name for k in ctrls["conIbActsBtns"].children] == ["btnIbArchive", "btnIbDelete"]
+    assert "IbCanManage" in ctrls["conIbActsMenu"].props["Visible"]
+    assert ctrls["btnIbMoreActs"].props["Visible"] == "IbCanManage"
+    # Edit kun, naar hele raekken er hentet.
+    assert "varIbSelFullFor = varIbSelId" in ctrls["btnIbEdit"].props["DisplayMode"]
+    # Rapportoeren vises kun, hvor det var tilladt foer: You / admin / anonym.
+    rep = ctrls["txtIbFactReporter"].props["Text"]
+    assert rep.startswith('If(varIbSelShared, "Anonymous", IbSelMine, "You", IsAdmin,')
+    # Updated kun efter en reel aendring.
+    assert ctrls["conIbFactUpdated"].props["Visible"] == "!IsBlank(IbSelUpdatedOn)"
+
+
+def test_activity_shows_role_badges():
+    import ib_parts as P
+    ctrls = {c.name: c for c in _walk_ctrls(P.build_detail())}
+    assert ctrls["txtIbActRole"].props["Text"] == "ThisItem.Role"
+    assert 'Role: Switch(role, "Admin", "Admin", "System", "System", "User")' in P.LOAD_ACTIVITY
+    assert '" (admin)"' not in P.LOAD_ACTIVITY
+    # Interne noter kun for admin; Post comment laast, naar feltet er tomt.
+    assert "internal: varIbInternal && IsAdmin" in P.POST
+    assert ctrls["btnIbPost"].props["DisplayMode"].startswith("If(IsBlank(Trim(inpIbComment.Text))")
+    assert ctrls["inpIbComment"].props["TriggerOutput"] == "TriggerOutput.Keypress"

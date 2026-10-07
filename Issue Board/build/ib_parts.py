@@ -52,7 +52,7 @@ HENTNING
   * Soegning, filtre og sortering regnes i hukommelsen paa de hentede
     raekker - intet kald pr. tastetryk.
 """
-from gen_screen import (Ctrl, C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_DIVIDER, C_INFO_BG,
+from gen_screen import (Ctrl, stack_height, C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_DIVIDER, C_INFO_BG,
                         C_INFO_FG, C_INVALID_FG, C_MUTED, C_MUTED_BG, C_MODAL_BG, C_OVERLAY,
                         C_PRIMARY, C_PRIMARY_SOFT, C_TITLE, C_TRANSPARENT, C_WARN_BG,
                         C_WARN_FG)
@@ -880,35 +880,58 @@ POP_IN = f"({POP_W} - {2 * POP_PAD})"
 LINE_H = 19
 
 
-def _lines_h(text, width, px=7.2):
+def _lines_h(text, width, px=7.2, line_h=LINE_H):
     """Hoejden af en ombrudt tekst: antal linjer regnet af laengden og
     linjeskiftene. Hellere en linje luft end en klippet linje."""
     cpl = f"Max(12, RoundDown(({width}) / {px}, 0))"
     return (f"With({{ t: {text} }}, (RoundUp(Len(t) / {cpl}, 0) + "
-            f"CountRows(Split(t, Char(10))) - 1) * {LINE_H} + 2)")
+            f"CountRows(Split(t, Char(10))) - 1) * {line_h} + 2)")
 
 
-def _popup(prefix, kids, vis, width=POP_W):
-    modal = group(f"con{prefix}Modal", kids, direction="Vertical", gap=12, fill=C_MODAL_BG,
+POP_GAP = 12
+POP_MARGIN = 16
+
+
+def _popup(prefix, kids, vis, width=POP_W, foot=None):
+    """Popuppen holder sig inden for skaermen (issue #177): hovedet (titel
+    og Close) og en eventuel fod staar fast; kun indholdet imellem scroller,
+    og kun naar det ikke kan staa. Close kan altid naas.
+
+    kids[0] er hovedet; resten er indholdet."""
+    head, rest = kids[0], list(kids[1:])
+    fixed = f"({head.h})" + (f" + {POP_GAP} + ({foot.h})" if foot is not None else "")
+    room = f"App.Height - {2 * POP_MARGIN} - {2 * POP_PAD} - {POP_GAP} - {fixed}"
+    natural = stack_height(rest, POP_GAP)
+    body = group(f"con{prefix}Body", rest, direction="Vertical", gap=POP_GAP,
+                 height=f"Max(60, Min({natural}, {room}))", overflow_y="Scroll")
+    parts = [head, body] + ([foot] if foot is not None else [])
+    modal = group(f"con{prefix}Modal", parts, direction="Vertical", gap=POP_GAP, fill=C_MODAL_BG,
                   border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(POP_PAD, POP_PAD, POP_PAD, POP_PAD), width=width,
                   drop_shadow="ExtraBold", align_in_container="Center")
     backdrop = group(f"con{prefix}Backdrop", [modal], direction="Vertical", gap=0,
                      height="App.Height", width="App.Width", fill=C_OVERLAY, visible=vis,
-                     justify="Start", align_items="Center", pad=(16, 0, 16, 0),
-                     overflow_y="Scroll")
+                     justify="Center", align_items="Center",
+                     pad=(POP_MARGIN, 0, POP_MARGIN, 0))
     backdrop.props["X"] = "0"
     backdrop.props["Y"] = "0"
     return backdrop
 
 
-def _head(prefix, title_fx, close_fx, lead=()):
+def _head(prefix, title_fx, close_fx, lead=(), title_w=None):
+    """Titel og Close. title_w: titlens bredde - saa ombrydes en lang titel
+    paa op til tre linjer i stedet for at blive klippet."""
+    h = 26
+    if title_w is not None:
+        h = f"Min(3 * 23 + 2, Max(26, {_lines_h(title_fx, title_w, px=9.2, line_h=23)}))"
     title = grow(text_ctrl(f"txt{prefix}Title", title_fx, size=lay.SIZE_CARD_TITLE,
-                           weight="Semibold", height=26))
+                           weight="Semibold", height=h, wrap="true" if title_w else "false"))
     close = button(f"btn{prefix}Close", '"Close"', close_fx,
-                   width=fit_button_width('"Close"'), height=32)
+                   width=fit_button_width('"Close"'), height=32,
+                   accessible='"Close"')
+    close.props["LayoutMinWidth"] = close.props["Width"]
     return group(f"con{prefix}Head", [*lead, title, close], direction="Horizontal", gap=10,
-                 height=32, align_items="Center")
+                 height=32 if title_w is None else f"Max(32, {h})", align_items="Center")
 
 
 def _field(name, label, ctrl, required=False, visible=None):
@@ -1112,7 +1135,8 @@ SIM_ROW_H = 44
 
 
 FORM_W = "Min(680, App.Width - 24)"
-FORM_IN = f"({FORM_W} - {2 * POP_PAD})"
+# Indholdet staar i popuppens scrollende krop - scrollbaren er trukket fra.
+FORM_IN = f"({FORM_W} - {2 * POP_PAD} - {lay.SCROLLBAR_W})"
 
 
 def _pair(name, a, b, inner=FORM_IN):
@@ -1362,8 +1386,9 @@ def build_form():
     footer = group("conIbFormFooter", [submit], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
     kids = [head, intro, where, sec_hint, other_f, title_f, similar, desc_f, more, details,
-            files, manage, context, missing, footer]
-    return [_popup("IbForm", kids, FORM_ON, width=FORM_W), *build_discard()]
+            files, manage, context, missing]
+    # Foden staar fast under det, der scroller: Submit kan altid naas.
+    return [_popup("IbForm", kids, FORM_ON, width=FORM_W, foot=footer), *build_discard()]
 
 
 # ---------------------------------------------------------------------------
@@ -1372,7 +1397,7 @@ def build_form():
 DETAIL_ON = "IfError(varIbDetailOn, false)"
 SEL = "varIbSel"
 MINE = "!varIbSelShared"
-DET_IN = POP_IN
+DET_IN = f"({POP_IN} - {lay.SCROLLBAR_W})"
 ACT_ROW_PAD = 12
 ACT_W = f"({DET_IN} - {lay.SCROLLBAR_W} - {lay.GALLERY_RESERVE})"
 ACT_BODY_W = f"({ACT_W} - {2 * ACT_ROW_PAD})"
@@ -1489,29 +1514,63 @@ def _tab(name, label_fx, key, accessible, onselect=None):
 
 def _actions():
     """Handlingerne paa den aabne sag - hver kun, naar brugeren maa (de
-    navngivne formler IbCan*). Edit og Delete er kun ikoner paa en telefon."""
+    navngivne formler IbCan*). Paa en bred skaerm staar de til hoejre.
+    Archive og Delete ligger under More actions (kun admin), Delete sidst
+    og i fare-farven; selve sletningen har sin egen bekraeftelse."""
+    # Edit foerst, naar sagens hele raekke er hentet - ellers kunne de
+    # felter, oversigten ikke henter, blive gemt tomme.
+    ready = "varIbSelFullFor = varIbSelId"
     edit = icon_on_mobile(button("btnIbEdit", '"Edit"', OPEN_EDIT,
                                  width=fit_button_width('"Edit"') + ICON_W, height=34, icon="Edit",
-                                 visible="IbCanEdit", accessible='"Edit this issue"'))
+                                 visible="IbCanEdit", accessible='"Edit this issue"',
+                                 display_mode=f"If({ready} && !varIbBusy, DisplayMode.Edit, "
+                                              "DisplayMode.Disabled)"))
     reopen = button("btnIbReopen", '"Reopen"', REOPEN, width=fit_button_width('"Reopen"'),
                     height=34, visible="IbCanReopen",
                     accessible='"Reopen this issue - the problem is still there"',
                     display_mode="If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)")
-    archive = button("btnIbArchive", f'If({SEL}.Archived, "Restore", "Archive")', ARCHIVE,
-                     width=fit_button_width('"Restore"'), height=34, visible="IbCanManage",
-                     accessible=f'If({SEL}.Archived, "Restore this issue from the archive", '
-                                '"Archive this issue - it is kept, but leaves the active lists")',
-                     display_mode="If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)")
-    delete = icon_on_mobile(button("btnIbDelete", '"Delete"',
-                                   "Reset(inpIbDelConfirm);\nSet(varIbDelOn, true)",
-                                   width=fit_button_width('"Delete"') + ICON_W, height=34,
-                                   icon="Delete", danger=True, visible="IbCanManage",
-                                   accessible='"Delete this issue permanently"'))
-    for b in (edit, reopen, archive, delete):
+    more_w = fit_button_width('"More actions"') + ICON_W
+    more = icon_on_mobile(button("btnIbMoreActs", '"More actions"', "Set(varIbActsOn, !varIbActsOn)",
+                                 width=more_w, height=34,
+                                 icon='If(varIbActsOn, "ChevronUp", "MoreHorizontal")',
+                                 visible="IbCanManage",
+                                 accessible='If(varIbActsOn, "Hide more actions", '
+                                            '"More actions: archive or delete")'))
+    for b in (edit, reopen, more):
         b.props["LayoutMinWidth"] = b.props["Width"]
-    return group("conIbDetActions", [edit, reopen, archive, delete], direction="Horizontal", gap=8,
-                 height=34, align_items="Center",
-                 visible="IbCanEdit || IbCanReopen || IbCanManage")
+    row = group("conIbDetActions", [edit, reopen, more], direction="Horizontal", gap=8,
+                height=34, align_items="Center", justify="End",
+                visible="IbCanEdit || IbCanReopen || IbCanManage")
+    row.props["LayoutJustifyContent"] = (f"If({NARROW}, LayoutJustifyContent.Start, "
+                                         "LayoutJustifyContent.End)")
+
+    # More actions: en lille flade lige under knapperne.
+    archive = button("btnIbArchive", f'If({SEL}.Archived, "Restore", "Archive")',
+                     ARCHIVE + ";\nSet(varIbActsOn, false)",
+                     width=fit_button_width('"Restore"') + ICON_W, height=34,
+                     icon=f'If({SEL}.Archived, "ArrowUndo", "Archive")',
+                     accessible=f'If({SEL}.Archived, "Restore this issue from the archive", '
+                                '"Archive this issue - it is kept with its history, but leaves '
+                                'the active lists")',
+                     display_mode="If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)")
+    delete = button("btnIbDelete", '"Delete"',
+                    "Reset(inpIbDelConfirm);\nSet(varIbActsOn, false);\nSet(varIbDelOn, true)",
+                    width=fit_button_width('"Delete"') + ICON_W, height=34, icon="Delete",
+                    danger=True, accessible='"Delete this issue permanently"',
+                    display_mode="If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)")
+    for b in (archive, delete):
+        b.props["LayoutMinWidth"] = b.props["Width"]
+    btns = group("conIbActsBtns", [archive, delete], direction="Horizontal", gap=8, height=34,
+                 align_items="Center", justify="End")
+    hint = text_ctrl("txtIbActsHint",
+                     f'If({SEL}.Archived, "Restore brings the issue back to the active lists.", '
+                     '"Archive keeps the issue, its comments, activity and files, and anyone can '
+                     'still find it under Archived.") & " Delete removes it permanently for '
+                     'everyone and asks you to confirm first."',
+                     size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true")
+    menu = group("conIbActsMenu", [hint, btns], direction="Vertical", gap=8, fill=C_MUTED_BG,
+                 radius=10, pad=(10, 10, 10, 10), visible="IbCanManage && varIbActsOn")
+    return row, menu
 
 
 def _files_panel():
@@ -1584,34 +1643,94 @@ def _files_panel():
                  visible=f'{MINE} && varIbTab = "files"')
 
 
-def build_detail():
-    no = text_ctrl("txtIbDetNo", f"{SEL}.TicketNo", size=lay.SIZE_BODY, weight="Semibold",
-                   color=C_PRIMARY, height=20, width=NO_W)
-    no.props["LayoutMinWidth"] = str(NO_W)
-    head = _head("IbDet", f"{SEL}.Title", "Set(varIbDetailOn, false)", lead=[no])
+FACT_H = 40
+FACT_GAP = 12
+# Seks fakta paa een linje, naar popuppen er bred nok; ellers to og to.
+FACTS_OK = f"({DET_IN}) >= 600"
+FACT_W = f"If({FACTS_OK}, (({DET_IN}) - 5 * {FACT_GAP}) / 6, (({DET_IN}) - {FACT_GAP}) / 2)"
 
+
+def _fact(name, label, value_fx, visible=None):
+    """Et faktum: en lille etiket over vaerdien."""
+    lab = text_ctrl(f"txt{name}Label", f'"{label}"', size=lay.SIZE_MICRO, weight="Semibold",
+                    color=C_MUTED, height=16)
+    val = text_ctrl(f"txt{name}", value_fx, size=lay.SIZE_BODY, height=20,
+                    accessible=f'"{label}: " & Self.Text')
+    g = group(f"con{name}", [lab, val], direction="Vertical", gap=2, height=FACT_H, width=FACT_W,
+              visible=visible)
+    g.props["LayoutMinWidth"] = "0"
+    return g
+
+
+def _facts():
+    """Fakta om sagen som et lille gitter - ikke en lang tekststreng.
+    Hvem: kun det, brugeren maa se (samme regler som foer): rapportoeren
+    ser "You", en admin rapportoerens initialer, den anonyme visning
+    ingen."""
+    def blank_as(expr, text):
+        return f'If(IsBlank({expr}), "{text}", {expr})'
+    sev = _fact("IbFactSeverity", "Severity", blank_as(f"{SEL}.Severity", "Not set"))
+    pri = _fact("IbFactPriority", "Priority", blank_as(f"{SEL}.Priority", "Not set"))
+    asg = _fact("IbFactAssigned", "Assigned to",
+                f'If(varIbSelShared, "Not shown", {blank_as(SEL + ".Assigned", "Not assigned")})')
+    rep = _fact("IbFactReporter", "Reported by",
+                f'If(varIbSelShared, "Anonymous", IbSelMine, "You", {IS_ADMIN}, '
+                f'{_initials(SEL + ".Reporter")}, "Not shown")')
+    reported = _fact("IbFactReported", "Reported", f"Text({SEL}.CreatedOn, {DATE_FMT})")
+    # Updated kun efter en reel aendring (IbSelUpdatedOn) - den staar sidst,
+    # saa der ikke opstaar et hul, naar den ikke vises.
+    updated = _fact("IbFactUpdated", "Updated", f"Text(IbSelUpdatedOn, {DATE_FMT})",
+                    visible="!IsBlank(IbSelUpdatedOn)")
+    pair_w = f"If({FACTS_OK}, 2 * {FACT_W} + {FACT_GAP}, {DET_IN})"
+    pairs = [group(f"conIbFacts{i}", cells, direction="Horizontal", gap=FACT_GAP, height=FACT_H,
+                   width=pair_w)
+             for i, cells in enumerate([(sev, pri), (asg, rep), (reported, updated)], 1)]
+    for p in pairs:
+        p.props["LayoutMinWidth"] = "0"
+    g = group("conIbDetFacts", pairs, direction="Horizontal", gap=FACT_GAP,
+              height=f"If({FACTS_OK}, {FACT_H}, 3 * {FACT_H} + 2 * 8)")
+    g.props["LayoutDirection"] = (f"If({FACTS_OK}, LayoutDirection.Horizontal, "
+                                  "LayoutDirection.Vertical)")
+    g.props["LayoutGap"] = f"If({FACTS_OK}, {FACT_GAP}, 8)"
+    return g
+
+
+ROLE_TONE = {"User": "info", "Admin": "violet", "System": "neutral"}
+ROLE_W = 56
+
+
+def _role_tokens(expr):
+    def sw(part):
+        body = ", ".join(f'"{r}", {_t("state-" + c + "-" + part)}' for r, c in ROLE_TONE.items())
+        return f"Switch({expr}, {body}, {_t('state-neutral-' + part)})"
+    return sw("fg"), sw("bg")
+
+
+def build_detail():
+    # 1. Sagsnummeret som maerke, titlen og Close.
+    no = text_ctrl("txtIbDetNo", f"{SEL}.TicketNo", size=lay.SIZE_SMALL, weight="Semibold",
+                   color=C_PRIMARY, height=24, width=NO_W, align="Center", fill=C_MUTED_BG,
+                   extra={"VerticalAlign": "VerticalAlign.Middle", **lay.radius(12)})
+    no.props["LayoutMinWidth"] = str(NO_W)
+    close_w = fit_button_width('"Close"')
+    head = _head("IbDet", f"{SEL}.Title", "Set(varIbDetailOn, false);\nSet(varIbActsOn, false)",
+                 lead=[no], title_w=f"({POP_IN}) - {NO_W} - {close_w} - 20")
+
+    # 2. Status, Application og Section.
     chip = _chip("txtIbDetStatus", f"{SEL}.Status", f"{SEL}.Archived")
     chip.props["LayoutMinWidth"] = str(CHIP_W)
-    where = grow(text_ctrl(
-        "txtIbDetWhere",
-        f'{SEL}.Application & "  ·  " & {SEL}.Section & "  ·  Reported " & '
-        f'Text({SEL}.CreatedOn, "dd mmm yyyy") & "  ·  Updated " & Text({SEL}.UpdatedOn, "dd mmm yyyy")',
-        size=lay.SIZE_SMALL, color=C_MUTED, height=18))
+    where = grow(text_ctrl("txtIbDetWhere", f'{SEL}.Application & "  ·  " & {SEL}.Section',
+                           size=lay.SIZE_BODY, weight="Semibold", height=20))
     meta = group("conIbDetMeta", [chip, where], direction="Horizontal", gap=10, height=24,
                  align_items="Center")
-    facts = text_ctrl(
-        "txtIbDetFacts",
-        f'"Severity: " & Coalesce(If(IsBlank({SEL}.Severity), Blank(), {SEL}.Severity), "-") & '
-        f'"  ·  Priority: " & Coalesce(If(IsBlank({SEL}.Priority), Blank(), {SEL}.Priority), "-") & '
-        f'If({MINE}, "  ·  Assigned to: " & Coalesce(If(IsBlank({SEL}.Assigned), Blank(), '
-        f'{SEL}.Assigned), "not yet assigned"), "") & '
-        # Kun en admin ser, hvem der meldte en andens sag.
-        f'If({MINE} && {IS_ADMIN} && !IbSelMine, "  ·  Reported by " & {_initials(SEL + ".Reporter")}, "")',
-        size=lay.SIZE_SMALL, height=34, wrap="true")
+
+    # 3. Fakta.  4. Handlinger (og More actions).
+    facts = _facts()
+    actions, menu = _actions()
 
     shared_note = text_ctrl("txtIbDetShared",
-                            '"Shared issue. Who reported it, their details, the comments and the '
-                            'files are private and not shown here."',
+                            '"Anonymous view. Who reported it, their details, the comments and '
+                            'the files are private and not shown here."',
                             size=lay.SIZE_SMALL, color=C_INFO_FG, height=34, wrap="true",
                             visible="varIbSelShared",
                             extra={"Fill": C_INFO_BG, "PaddingLeft": "12", "PaddingRight": "12",
@@ -1624,22 +1743,29 @@ def build_detail():
                        extra={"Fill": C_WARN_BG, "PaddingLeft": "12", "PaddingRight": "12",
                               "PaddingTop": "8", **lay.radius(10)})
 
-    n_act = "CountRows(colIbActivity)"
+    # 5. Navigationen i indholdet - adskilt fra handlingerne af en streg.
+    rule = group("conIbDetRule", [], direction="Horizontal", height=1, fill=C_DIVIDER)
+    n_act = "CountRows(Filter(colIbActivity, Kind <> \"Reported\"))"
     tabs = group("conIbDetTabs", [
         _tab("btnIbTabDetails", '"Description"', "details", '"Show the description"'),
         _tab("btnIbTabActivity", f'"Activity (" & {n_act} & ")"', "activity",
-             '"Show the activity and comments"'),
+             '"Show the activity and comments, " & ' + n_act + ' & " entries"'),
         _tab("btnIbTabFiles", '"Attachments (" & IbFileCount & ")"', "files",
-             '"Show the attachments"',
+             '"Show the attachments, " & IbFileCount & " files"',
              onselect='Set(varIbTab, "files");\nIf(varIbFilesFor <> varIbSelId, ' + LOAD_FILES + ")"),
     ], direction="Horizontal", gap=8, height=32, align_items="Center", visible=MINE)
     # Tre faner skal kunne staa paa en telefon: de deler bredden.
     for t in tabs.children:
         t.props["Width"] = f"Min({TAB_W}, ({DET_IN} - 16) / 3)"
 
+    # 6. Det valgte indhold.
     show_details = f'varIbSelShared || varIbTab = "details"'
+    loading_more = text_ctrl("txtIbDetLoading", '"Loading the rest of the issue..."',
+                             size=lay.SIZE_SMALL, color=C_MUTED, height=18,
+                             visible=f"{MINE} && varIbSelFullFor <> varIbSelId")
     blocks = [
         _text_block("IbDetDesc", "Description", f"{SEL}.Description"),
+        loading_more,
         _text_block("IbDetSteps", "Steps to reproduce", f"{SEL}.Steps",
                     visible=f"!IsBlank({SEL}.Steps)"),
         _text_block("IbDetExpected", "Expected result", f"{SEL}.Expected",
@@ -1656,7 +1782,8 @@ def build_detail():
     details = group("conIbDetDetails", blocks, direction="Vertical", gap=12, visible=show_details)
 
     # Activity: kommentarer som flader, haendelser med stiplet kant, interne
-    # noter i advarselsfarven - og med teksten "internal note", ikke kun farve.
+    # noter i advarselsfarven - og med teksten "internal note", ikke kun
+    # farve. Ved hver linje et maerke: User, Admin eller System (issue #177).
     tw = "Parent.TemplateWidth"
     body_h = _lines_h("ThisItem.Body", ACT_BODY_W)
     row_h = f"(30 + {body_h} + 10)"
@@ -1668,14 +1795,22 @@ def build_detail():
                           "BorderColor": f"If(ThisItem.IsSystem, {C_CARD_BORDER}, {C_TRANSPARENT})",
                           "BorderStyle": "BorderStyle.Dashed",
                           "BorderThickness": "If(ThisItem.IsSystem, 1, 0)"})
+    rfg, rbg = _role_tokens("ThisItem.Role")
+    role = text_ctrl("txtIbActRole", "ThisItem.Role", size=lay.SIZE_MICRO, weight="Semibold",
+                     height=20, width=ROLE_W, align="Center", color=rfg, fill=rbg,
+                     accessible='"Role: " & Self.Text',
+                     extra={"X": str(ACT_ROW_PAD), "Y": "8", "VerticalAlign": "VerticalAlign.Middle",
+                            **lay.radius(10)})
+    actor_x = ACT_ROW_PAD + ROLE_W + 8
     actor = text_ctrl("txtIbActActor",
-                      'ThisItem.Actor & If(ThisItem.Internal, "  ·  internal note, admins only", "")',
+                      'ThisItem.Actor & If(ThisItem.Internal, "  ·  internal note, admins only", '
+                      'ThisItem.Kind = "Comment", "  ·  comment", "")',
                       size=lay.SIZE_BODY, weight="Semibold",
                       color=(f"If(ThisItem.Internal, {C_WARN_FG}, ThisItem.IsSystem, {C_MUTED}, "
                              f"{C_TITLE})"), height=20,
-                      width=f"{tw} - {2 * ACT_ROW_PAD} - 150",
-                      extra={"X": str(ACT_ROW_PAD), "Y": "8"})
-    when = text_ctrl("txtIbActWhen", 'Text(ThisItem.At, "dd mmm yyyy hh:mm")',
+                      width=f"{tw} - {actor_x} - {ACT_ROW_PAD} - 150",
+                      extra={"X": str(actor_x), "Y": "8"})
+    when = text_ctrl("txtIbActWhen", f"Text(ThisItem.At, {DATETIME_FMT})",
                      size=lay.SIZE_SMALL, color=C_MUTED, height=18, align="Right", width=150,
                      extra={"X": f"{tw} - {ACT_ROW_PAD} - 150", "Y": "9"})
     body = text_ctrl("txtIbActBody", "ThisItem.Body", size=lay.SIZE_BODY, wrap="true",
@@ -1690,7 +1825,7 @@ def build_detail():
         "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
         "ShowScrollbar": "true", "TabIndex": "0", "TemplatePadding": "0",
         "TemplateSize": "60", "Width": "Parent.Width",
-    }, children=[bg, actor, when, body], h=gal_h, vis="!varIbActBusy")
+    }, children=[bg, role, actor, when, body], h=gal_h, vis="!varIbActBusy")
     act_state = text_ctrl("txtIbActState",
                           'If(varIbActBusy, "Loading activity...", '
                           '"The activity could not be loaded. Close the issue and open it again.")',
@@ -1703,6 +1838,9 @@ def build_detail():
                                       f'{IS_ADMIN} && !IbSelMine, "Write a reply to the reporter", '
                                       '"Write a comment for the administrators")'),
                          max_length=2000, height=72, ttype="Multiline", label='"Comment"')
+    # Post comment laases op, mens man skriver - ikke foerst, naar feltet
+    # mister fokus (saa ville det foerste klik paa knappen gaa tabt).
+    comment.props["TriggerOutput"] = "TriggerOutput.Keypress"
     internal = Ctrl("chkIbInternal", "ModernCheckbox", props=checkbox_theme({
         "AccessibleLabel": '"Internal note - only administrators can see it"',
         "Default": "varIbInternal",
@@ -1728,11 +1866,15 @@ def build_detail():
     post.props["AlignInContainer"] = "AlignInContainer.End"
     composer = group("conIbComposer", [comment, internal, closed_hint, post], direction="Vertical",
                      gap=8, visible="IbCanComment")
-    activity = group("conIbDetActivity", [act_state, gal, composer], direction="Vertical", gap=12,
-                     visible=f'{MINE} && varIbTab = "activity"')
+    archived_hint = text_ctrl("txtIbArchivedHint",
+                              '"This issue is archived. Its history is kept, and comments are '
+                              'closed."',
+                              size=lay.SIZE_SMALL, color=C_MUTED, height=18,
+                              visible=f"{SEL}.Archived")
+    activity = group("conIbDetActivity", [act_state, gal, composer, archived_hint],
+                     direction="Vertical", gap=12, visible=f'{MINE} && varIbTab = "activity"')
 
-    rule = group("conIbDetRule", [], direction="Horizontal", height=1, fill=C_DIVIDER)
-    kids = [head, meta, facts, _actions(), shared_note, retest, tabs, rule, details, activity,
+    kids = [head, meta, facts, actions, menu, shared_note, retest, rule, tabs, details, activity,
             _files_panel()]
     return [_popup("IbDet", kids, DETAIL_ON)]
 
@@ -1740,7 +1882,7 @@ def build_detail():
 def build_delete():
     """Permanent sletning - sin egen popup oven paa sagen. Nummeret skal
     skrives, teksten siger, at det ikke kan fortrydes, og knappen er laast,
-    til nummeret passer, og mens kaldet koerer."""
+    til nummeret passer, og mens kaldet koerer. Close er eneste vej ud."""
     del_on = "IfError(varIbDelOn, false)"
     head = _head("IbDel", f'"Delete " & {SEL}.TicketNo & " permanently?"', "Set(varIbDelOn, false)")
     warn = text_ctrl(
@@ -1752,19 +1894,19 @@ def build_delete():
     match = f"Upper(Trim(inpIbDelConfirm.Text)) = Upper({SEL}.TicketNo)"
     confirm = text_input("inpIbDelConfirm", '""', placeholder=f'{SEL}.TicketNo', max_length=20,
                          label=f'"Type " & {SEL}.TicketNo & " to confirm"')
+    confirm.props["TriggerOutput"] = "TriggerOutput.Keypress"
     confirm_f = group("conIbDelConfirmF", [
         text_ctrl("txtIbDelConfirmLabel", f'"Type " & {SEL}.TicketNo & " to confirm"',
                   size=lay.SIZE_BODY, weight="Semibold", height=20),
         confirm], direction="Vertical", gap=6)
-    cancel = button("btnIbDelCancel", '"Cancel"', "Set(varIbDelOn, false)",
-                    width=fit_button_width('"Cancel"'), height=36)
     ok = button("btnIbDelConfirm", '"Delete permanently"', DELETE, danger=True,
                 width=fit_button_width('"Delete permanently"') + ICON_W, height=36, icon="Delete",
                 accessible=f'"Delete " & {SEL}.TicketNo & " permanently"',
                 display_mode=f"If({match} && !varIbBusy, DisplayMode.Edit, DisplayMode.Disabled)")
-    footer = group("conIbDelFooter", [cancel, ok], direction="Horizontal", gap=8, height=36,
+    footer = group("conIbDelFooter", [ok], direction="Horizontal", gap=8, height=36,
                    justify="End", align_items="Center")
-    return [_popup("IbDel", [head, warn, confirm_f, footer], del_on, width="Min(480, App.Width - 24)")]
+    return [_popup("IbDel", [head, warn, confirm_f], del_on, width="Min(480, App.Width - 24)",
+                   foot=footer)]
 
 
 def build_loading():
