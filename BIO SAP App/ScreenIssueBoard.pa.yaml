@@ -4667,8 +4667,41 @@ Screens:
                               Layout: |-
                                   =ButtonLayout.TextOnly
                               OnSelect: |-
-                                  =Set(varIbFormOn, false);
-                                  If(varIbFormMode = "edit", Set(varIbDetailOn, true))
+                                  =If(
+                                      !varIbBusy,
+                                      If(
+                                          If(
+                                              varIbFormMode = "edit",
+                                              varIbFormApp <> varIbSel.Application || varIbFormSection <> varIbSel.Section ||
+                                              Trim(inpIbOther.Text) <> Trim(varIbSel.Other) ||
+                                              Trim(inpIbTitle.Text) <> Trim(varIbSel.Title) ||
+                                              Trim(inpIbDesc.Text) <> Trim(varIbSel.Description) ||
+                                              Trim(inpIbSteps.Text) <> Trim(varIbSel.Steps) ||
+                                              Trim(inpIbExpected.Text) <> Trim(varIbSel.Expected) ||
+                                              Trim(inpIbActual.Text) <> Trim(varIbSel.Actual) ||
+                                              Trim(inpIbRelated.Text) <> Trim(varIbSel.RelatedNo) ||
+                                              Coalesce(drpIbSeverity.Selected.Value, "") <> If(IsBlank(varIbSel.Severity), "Minor", varIbSel.Severity) ||
+                                              (IsAdmin && (
+                                                  Coalesce(drpIbStatus.Selected.Value, "") <> varIbSel.Status ||
+                                                  Coalesce(drpIbPriority.Selected.Value, "") <> Coalesce(varIbSel.Priority, "Normal") ||
+                                                  If(IsBlank(drpIbAssignee.Selected), varIbSel.AssignedEmail, drpIbAssignee.Selected.Email) <> varIbSel.AssignedEmail ||
+                                                  Trim(inpIbResolution.Text) <> Trim(varIbSel.Resolution))),
+                                              Coalesce(varIbFormApp, "") <> IbFrom || !IsBlank(varIbFormSection) ||
+                                              !IsBlank(Trim(inpIbOther.Text)) ||
+                                              !IsBlank(Trim(inpIbTitle.Text)) ||
+                                              !IsBlank(Trim(inpIbDesc.Text)) ||
+                                              !IsBlank(Trim(inpIbSteps.Text)) ||
+                                              !IsBlank(Trim(inpIbExpected.Text)) ||
+                                              !IsBlank(Trim(inpIbActual.Text)) ||
+                                              !IsBlank(Trim(inpIbRelated.Text)) ||
+                                              Coalesce(drpIbSeverity.Selected.Value, "Minor") <> "Minor" ||
+                                              CountRows(attIbNewFiles.Attachments) > 0
+                                          ),
+                                          Set(varIbDiscardOn, true),
+                                          Set(varIbFormOn, false);
+                                          If(varIbFormMode = "edit", Set(varIbDetailOn, true))
+                                      )
+                                  )
                               RadiusBottomLeft: |-
                                   =10
                               RadiusBottomRight: |-
@@ -7397,50 +7430,6 @@ Screens:
                         Width: |-
                             =Parent.Width
                       Children:
-                        - btnIbFormCancel:
-                            Control: ModernButton
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Cancel"
-                              Align: |-
-                                  =Align.Center
-                              AlignInContainer: |-
-                                  =AlignInContainer.Center
-                              Appearance: |-
-                                  =ButtonAppearance.Outline
-                              BorderColor: |-
-                                  =C.'border-default'
-                              BorderThickness: |-
-                                  =1
-                              Color: |-
-                                  =C.'text-primary'
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
-                              Height: |-
-                                  =36
-                              Layout: |-
-                                  =ButtonLayout.TextOnly
-                              OnSelect: |-
-                                  =Set(varIbFormOn, false);
-                                  If(varIbFormMode = "edit", Set(varIbDetailOn, true))
-                              RadiusBottomLeft: |-
-                                  =10
-                              RadiusBottomRight: |-
-                                  =10
-                              RadiusTopLeft: |-
-                                  =10
-                              RadiusTopRight: |-
-                                  =10
-                              Size: |-
-                                  =14
-                              Text: |-
-                                  ="Cancel"
-                              VerticalAlign: |-
-                                  =VerticalAlign.Middle
-                              Width: |-
-                                  =86
                         - btnIbFormSubmit:
                             Control: ModernButton
                             Properties:
@@ -7468,122 +7457,173 @@ Screens:
                                   =ButtonLayout.IconBefore
                               OnSelect: |-
                                   =If(
-                                      varIbFormMode = "edit",
-                                      Set(varIbBusy, true);
-                                  Set(varIbRes, IfError('BioSap-IssueBoard-Submit'.Run(
-                                      "edit",
-                                      JSON({
-                                          ticketId: varIbSelId,
-                                          title: Trim(inpIbTitle.Text),
-                                          description: Trim(inpIbDesc.Text),
-                                          steps: Trim(inpIbSteps.Text),
-                                          expected: Trim(inpIbExpected.Text),
-                                          actual: Trim(inpIbActual.Text),
-                                          application: varIbFormApp,
-                                          section: varIbFormSection,
-                                          other: If(IbOtherNeeded, Trim(inpIbOther.Text), ""),
-                                          relatedNo: Trim(inpIbRelated.Text),
-                                          severity: Coalesce(drpIbSeverity.Selected.Value, "Minor"),
-                                          status: Coalesce(drpIbStatus.Selected.Value, varIbSel.Status),
-                                          priority: Coalesce(drpIbPriority.Selected.Value, varIbSel.Priority, "Normal"),
-                                          assignee: Coalesce(drpIbAssignee.Selected.Email, ""),
-                                          resolution: Trim(inpIbResolution.Text)
-                                      })
-                                  ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }));
-                                  If(
-                                      varIbRes.ok = "yes",
-                                      With(
-                                          { r: LookUp(IB_Tickets, ID = varIbSelId) },
+                                      !varIbBusy && (!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && (!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))),
+                                      If(
+                                          varIbFormMode = "edit",
+                                          Set(varIbBusy, true);
+                                          Set(varIbRes, IfError('BioSap-IssueBoard-Submit'.Run(
+                                              "edit",
+                                              JSON({
+                                                  ticketId: varIbSelId,
+                                                  title: Trim(inpIbTitle.Text),
+                                                  description: Trim(inpIbDesc.Text),
+                                                  steps: Trim(inpIbSteps.Text),
+                                                  expected: Trim(inpIbExpected.Text),
+                                                  actual: Trim(inpIbActual.Text),
+                                                  application: varIbFormApp,
+                                                  section: varIbFormSection,
+                                                  other: If(IbOtherNeeded, Trim(inpIbOther.Text), ""),
+                                                  relatedNo: Trim(inpIbRelated.Text),
+                                                  severity: Coalesce(drpIbSeverity.Selected.Value, "Minor"),
+                                                  status: Coalesce(drpIbStatus.Selected.Value, varIbSel.Status),
+                                                  priority: Coalesce(drpIbPriority.Selected.Value, varIbSel.Priority, "Normal"),
+                                                  assignee: Coalesce(drpIbAssignee.Selected.Email, ""),
+                                                  resolution: Trim(inpIbResolution.Text)
+                                              })
+                                          ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }));
                                           If(
-                                              IsBlank(r),
-                                              RemoveIf(colIbMine, Id = varIbSelId);
-                                              RemoveIf(colIbAll, Id = varIbSelId);
-                                              Set(varIbDetailOn, false),
-                                              Set(varIbSel, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
-                                              If(varIbTab = "files",
-                                                  Set(varIbFilesBusy, true);
-                                                  Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp(IB_Tickets, ID = varIbSelId).Attachments); false, true));
-                                                  Set(varIbFilesFor, varIbSelId);
-                                                  Set(varIbFilesBusy, false)
-                                              , Set(varIbFilesFor, -1));
-                                              UpdateIf(colIbMine, Id = varIbSelId, varIbSel);
-                                              UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
-                                          )
-                                      );
-                                      Set(varIbActBusy, true);
-                                      Set(varIbActFailed, IfError(ClearCollect(
-                                          colIbActivity,
-                                          { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
-                                          ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
-                                              With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
-                                                  { Kind: k,
-                                                    Actor: If(role = "System", "System", who = varIbMe, "You", Upper(First(Split(who, "@")).Value) & If(role = "Admin", " (admin)", "")),
-                                                    Body: If(k in ["StatusChange", "Closed", "Reopened"] && !IsBlank(r.NewStatus), "Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & If(IsBlank(r.Content), ".", ". " & r.Content),
-                                                          k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),
-                                                          Coalesce(r.Content, "")),
-                                                    At: Coalesce(r.EventOn, r.Created),
-                                                    Internal: r.Visibility.Value = "Internal",
-                                                    IsSystem: k <> "Comment",
-                                                    File: Coalesce(r.FileName, ""),
-                                                    SizeKb: Coalesce(r.FileSizeKb, 0),
-                                                    Initial: atSub })))
-                                      ; false, true));
-                                      Set(varIbActBusy, false);
-                                      Set(varIbSharedLoaded, false);
-                                      Set(varIbFormOn, false);
-                                      Set(varIbDetailOn, true);
-                                      Notify("Your changes have been saved.", NotificationType.Success),
-                                      Notify("The changes could not be saved. " & varIbRes.message, NotificationType.Error)
-                                  );
-                                  Set(varIbBusy, false),
-                                      Set(varIbBusy, true);
-                                  Set(varIbRes, IfError('BioSap-IssueBoard-Submit'.Run(
-                                      "create",
-                                      JSON({
-                                          title: Trim(inpIbTitle.Text),
-                                          description: Trim(inpIbDesc.Text),
-                                          steps: Trim(inpIbSteps.Text),
-                                          expected: Trim(inpIbExpected.Text),
-                                          actual: Trim(inpIbActual.Text),
-                                          application: varIbFormApp,
-                                          section: varIbFormSection,
-                                          other: If(IbOtherNeeded, Trim(inpIbOther.Text), ""),
-                                          relatedNo: Trim(inpIbRelated.Text),
-                                          severity: Coalesce(drpIbSeverity.Selected.Value, "Minor"),
-                                          layout: Left("Opened from " & Coalesce(If(IbFrom = "", Blank(), IbFrom), "the Issue Board") & " · " & LayoutContext & " layout · " & App.Width & " x " & App.Height, 250),
-                                          client: Left(Host.OSType & " · " & Host.BrowserUserAgent, 250)
-                                      })
-                                  ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }));
-                                  If(
-                                      varIbRes.ok = "yes",
-                                      Clear(colIbUp);
-                                      If(
-                                          CountRows(attIbNewFiles.Attachments) > 0,
-                                          Set(varIbUploading, true);
-                                          ClearCollect(
-                                              colIbUp,
-                                              ForAll(attIbNewFiles.Attachments As F, { Name: F.Name, Msg: With({ res: IfError('BioSap-IssueBoard-Submit'.Run(
-                                                          "attach",
-                                                          JSON({ ticketId: Value(varIbRes.ticketid), initial: true }),
-                                                          { file: { contentBytes: F.Value, name: F.Name } }
-                                                      ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }) }, If(res.ok = "yes", "", Coalesce(res.message, "not saved"))) })
+                                              varIbRes.ok = "yes",
+                                              With(
+                                                  { r: LookUp(IB_Tickets, ID = varIbSelId) },
+                                                  If(
+                                                      IsBlank(r),
+                                                      RemoveIf(colIbMine, Id = varIbSelId);
+                                                      RemoveIf(colIbAll, Id = varIbSelId);
+                                                      Set(varIbDetailOn, false),
+                                                      Set(varIbSel, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                                      If(varIbTab = "files",
+                                                          Set(varIbFilesBusy, true);
+                                                          Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp(IB_Tickets, ID = varIbSelId).Attachments); false, true));
+                                                          Set(varIbFilesFor, varIbSelId);
+                                                          Set(varIbFilesBusy, false)
+                                                      , Set(varIbFilesFor, -1));
+                                                      UpdateIf(colIbMine, Id = varIbSelId, varIbSel);
+                                                      UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
+                                                  )
+                                              );
+                                              Set(varIbActBusy, true);
+                                              Set(varIbActFailed, IfError(ClearCollect(
+                                                  colIbActivity,
+                                                  { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
+                                                  ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
+                                                      With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
+                                                          { Kind: k,
+                                                            Actor: If(role = "System", "System", who = varIbMe, "You", Upper(First(Split(who, "@")).Value) & If(role = "Admin", " (admin)", "")),
+                                                            Body: If(k in ["StatusChange", "Closed", "Reopened"] && !IsBlank(r.NewStatus), "Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & If(IsBlank(r.Content), ".", ". " & r.Content),
+                                                                  k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),
+                                                                  Coalesce(r.Content, "")),
+                                                            At: Coalesce(r.EventOn, r.Created),
+                                                            Internal: r.Visibility.Value = "Internal",
+                                                            IsSystem: k <> "Comment",
+                                                            File: Coalesce(r.FileName, ""),
+                                                            SizeKb: Coalesce(r.FileSizeKb, 0),
+                                                            Initial: atSub })))
+                                              ; false, true));
+                                              Set(varIbActBusy, false);
+                                              Set(varIbSharedLoaded, false);
+                                              Set(varIbFormOn, false);
+                                              Set(varIbDetailOn, true);
+                                              Notify("Your changes have been saved.", NotificationType.Success),
+                                              Notify("The changes could not be saved. " & Coalesce(varIbRes.message, "Please try again."), NotificationType.Error)
                                           );
-                                          Set(varIbUploading, false)
-                                      );
-                                      Set(varIbMineFailed, IfError(ClearCollect(colIbMine, ForAll(Sort(Filter(IB_Tickets, ReporterEmail = varIbMe), LastActivityOn, SortOrder.Descending) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
-                                      Set(varIbSharedLoaded, false);
-                                      Set(varIbAllLoaded, false);
-                                      Set(varIbFormOn, false);
-                                      Set(varIbScope, "mine");
-                                      Set(varIbState, "open");
-                                      If(
-                                          CountRows(Filter(colIbUp, !IsBlank(Msg))) > 0,
-                                          Notify("Issue " & varIbRes.ticketno & " has been submitted, but these files were not attached: " & Concat(Filter(colIbUp, !IsBlank(Msg)), Name & " (" & Msg & ")", "; ") & ". Open the issue to try again.", NotificationType.Warning),
-                                          Notify("Thank you. Issue " & varIbRes.ticketno & " has been submitted.", NotificationType.Success)
-                                      ),
-                                      Notify("The issue could not be submitted. " & varIbRes.message, NotificationType.Error)
-                                  );
-                                  Set(varIbBusy, false)
+                                          Set(varIbBusy, false),
+                                          Set(varIbBusy, true);
+                                          Set(varIbRes, IfError('BioSap-IssueBoard-Submit'.Run(
+                                              "create",
+                                              JSON({
+                                                  title: Trim(inpIbTitle.Text),
+                                                  description: Trim(inpIbDesc.Text),
+                                                  steps: Trim(inpIbSteps.Text),
+                                                  expected: Trim(inpIbExpected.Text),
+                                                  actual: Trim(inpIbActual.Text),
+                                                  application: varIbFormApp,
+                                                  section: varIbFormSection,
+                                                  other: If(IbOtherNeeded, Trim(inpIbOther.Text), ""),
+                                                  relatedNo: Trim(inpIbRelated.Text),
+                                                  severity: Coalesce(drpIbSeverity.Selected.Value, "Minor"),
+                                                  layout: Left("Opened from " & Coalesce(If(IbFrom = "", Blank(), IbFrom), "the Issue Board") & " · " & LayoutContext & " layout · " & App.Width & " x " & App.Height, 250),
+                                                  client: Left(Host.OSType & " · " & Host.BrowserUserAgent, 250)
+                                              })
+                                          ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }));
+                                          If(
+                                              varIbRes.ok = "yes",
+                                              Clear(colIbUp);
+                                              If(
+                                                  CountRows(attIbNewFiles.Attachments) > 0,
+                                                  Set(varIbUploading, true);
+                                                  ClearCollect(
+                                                      colIbUp,
+                                                      ForAll(attIbNewFiles.Attachments As F, { Name: F.Name, Msg: With({ res: IfError('BioSap-IssueBoard-Submit'.Run(
+                                                                  "attach",
+                                                                  JSON({ ticketId: Value(varIbRes.ticketid), initial: true }),
+                                                                  { file: { contentBytes: F.Value, name: F.Name } }
+                                                              ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }) }, If(res.ok = "yes", "", Coalesce(res.message, "not saved"))) })
+                                                  );
+                                                  Set(varIbUploading, false)
+                                              );
+                                              Set(varIbMineFailed, IfError(ClearCollect(colIbMine, ForAll(Sort(Filter(IB_Tickets, ReporterEmail = varIbMe), LastActivityOn, SortOrder.Descending) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
+                                              Set(varIbSharedLoaded, false);
+                                              Set(varIbAllLoaded, false);
+                                              Set(varIbScope, "mine");
+                                              Set(varIbState, "open");
+                                              Set(varIbFormOn, false);
+                                              Set(varIbFormApp, "");
+                                              Set(varIbFormSection, "");
+                                              Set(varIbMore, false);
+                                              Reset(drpIbFormApp);
+                                              Reset(drpIbFormSection);
+                                              Reset(inpIbOther);
+                                              Reset(inpIbTitle);
+                                              Reset(inpIbDesc);
+                                              Reset(inpIbSteps);
+                                              Reset(inpIbExpected);
+                                              Reset(inpIbActual);
+                                              Reset(inpIbRelated);
+                                              Reset(drpIbSeverity);
+                                              Reset(attIbNewFiles);
+                                              Reset(drpIbStatus);
+                                              Reset(drpIbPriority);
+                                              Reset(drpIbAssignee);
+                                              Reset(inpIbResolution);
+                                              Set(varIbSelId, Value(varIbRes.ticketid));
+                                              Set(varIbSel, LookUp(colIbMine, Id = varIbSelId));
+                                              If(
+                                                  !IsBlank(varIbSel),
+                                                  Set(varIbSelShared, false);
+                                                  Set(varIbTab, "details");
+                                                  Set(varIbInternal, false);
+                                                  Set(varIbFilesFor, -1);
+                                                  Reset(inpIbComment);
+                                                  Set(varIbActBusy, true);
+                                                  Set(varIbActFailed, IfError(ClearCollect(
+                                                      colIbActivity,
+                                                      { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
+                                                      ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
+                                                          With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
+                                                              { Kind: k,
+                                                                Actor: If(role = "System", "System", who = varIbMe, "You", Upper(First(Split(who, "@")).Value) & If(role = "Admin", " (admin)", "")),
+                                                                Body: If(k in ["StatusChange", "Closed", "Reopened"] && !IsBlank(r.NewStatus), "Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & If(IsBlank(r.Content), ".", ". " & r.Content),
+                                                                      k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),
+                                                                      Coalesce(r.Content, "")),
+                                                                At: Coalesce(r.EventOn, r.Created),
+                                                                Internal: r.Visibility.Value = "Internal",
+                                                                IsSystem: k <> "Comment",
+                                                                File: Coalesce(r.FileName, ""),
+                                                                SizeKb: Coalesce(r.FileSizeKb, 0),
+                                                                Initial: atSub })))
+                                                  ; false, true));
+                                                  Set(varIbActBusy, false);
+                                                  Set(varIbDetailOn, true)
+                                              );
+                                              If(
+                                                  CountRows(Filter(colIbUp, !IsBlank(Msg))) > 0,
+                                                  Notify("Issue " & varIbRes.ticketno & " has been submitted, but these files were not attached: " & Concat(Filter(colIbUp, !IsBlank(Msg)), Name & " (" & Msg & ")", "; ") & ". Open the issue to try again.", NotificationType.Warning),
+                                                  Notify("Thank you. Issue " & varIbRes.ticketno & " has been submitted.", NotificationType.Success)
+                                              ),
+                                              Notify("The issue could not be submitted. " & Coalesce(varIbRes.message, "Please try again."), NotificationType.Error)
+                                          );
+                                          Set(varIbBusy, false)
+                                      )
                                   )
                               RadiusBottomLeft: |-
                                   =10
@@ -7601,6 +7641,263 @@ Screens:
                                   =VerticalAlign.Middle
                               Width: |-
                                   =164
+      - conIbDiscardConfirmBackdrop:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Close the dialog"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =C.'overlay'
+            Height: |-
+                =App.Height
+            Image: |-
+                =""
+            OnSelect: |-
+                =If(LayoutRank < 2, Set(varIbDiscardOn, false))
+            TabIndex: |-
+                =-1
+            Visible: |-
+                =IfError(varIbDiscardOn, false)
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conIbDiscardConfirmModal:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'color-brand-primary-soft'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.ExtraBold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =162
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =18
+            PaddingRight: |-
+                =18
+            PaddingTop: |-
+                =18
+            RadiusBottomLeft: |-
+                =16
+            RadiusBottomRight: |-
+                =16
+            RadiusTopLeft: |-
+                =16
+            RadiusTopRight: |-
+                =16
+            Visible: |-
+                =IfError(varIbDiscardOn, false)
+            Width: |-
+                =Min(460, App.Width - 40)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =Max(20, (App.Height - Self.Height) / 3)
+          Children:
+            - txtIbDiscardConfirmTitle:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="Discard unsaved changes?"
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-primary'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =26
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =17
+                  Text: |-
+                      ="Discard unsaved changes?"
+                  Wrap: |-
+                      =false
+            - txtIbDiscardConfirmText:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =40
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =13
+                  Text: |-
+                      =If(varIbFormMode = "edit", "Your changes to " & varIbSel.TicketNo & " have not been saved. They are lost if you close.", "The issue has not been submitted. What you have entered is lost if you close.")
+                  Wrap: |-
+                      =true
+            - conIbDiscardConfirmFooter:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =36
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutJustifyContent: |-
+                      =LayoutJustifyContent.End
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - btnIbDiscardConfirmCancel:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-default'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varIbDiscardOn, false)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        Text: |-
+                            ="Close"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =77
+                  - btnIbDiscardConfirm:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Discard and close"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        Color: |-
+                            =C.'text-on-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varIbDiscardOn, false);
+                            Set(varIbFormOn, false);
+                            If(varIbFormMode = "edit", Set(varIbDetailOn, true))
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        Text: |-
+                            ="Discard and close"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =171
       - conIbDetBackdrop:
           Control: GroupContainer
           Variant: AutoLayout
@@ -10711,6 +11008,7 @@ Screens:
                                       RemoveIf(colIbAll, Id = varIbSelId);
                                       Set(varIbSharedLoaded, false);
                                       Set(varIbDelOn, false);
+                                      Set(varIbDiscardOn, false);
                                       Set(varIbDetailOn, false);
                                       Notify(varIbSel.TicketNo & " has been deleted permanently.", NotificationType.Success),
                                       Notify("The issue could not be deleted. " & varIbRes.message, NotificationType.Error)
