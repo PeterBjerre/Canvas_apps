@@ -344,6 +344,61 @@ def bool_toggle(name, default, display_mode=None, tooltip=None, true_text='"Yes"
     return t
 
 
+# SEGMENTERET VALG (issue #141) - DEN ene stil for et valg mellem to (eller
+# faa) muligheder, hvor begge skal kunne ses paa een gang. Hoejden er den,
+# knapperne skal vaere (mindst 30, layout-regel 25) plus skinnens 2+2 px.
+SEG_H = 34
+SEG_PAD = 2
+SEG_BTN_H = SEG_H - 2 * SEG_PAD
+SEG_GAP = 2
+SEG_SIZE = 13
+# Alle segmenter er lige brede - bredden af den laengste tekst, appen
+# bruger, plus fluebenet. Saa ser alle segmenterede felter ens ud.
+SEG_TEXTS = ("None", "ZBOW", "No", "Yes")
+
+
+def seg_button_width():
+    return max(fit_button_width('"%s"' % t, size=SEG_SIZE, min_w=0) for t in SEG_TEXTS) + ICON_W
+
+
+def segmented(name, options, display_mode=None, label=None):
+    """Segmenteret kontrol: en pilleformet skinne med een knap pr. valg.
+
+    options: liste af (suffix, tekst, on, onselect, tooltip) - tekst er en
+    ren tekst ("Yes"), on et Power Fx-udtryk for "valgt", onselect det, et
+    klik goer, og tooltip en Power Fx-tekst eller None.
+
+    Det valgte segment er UDFYLDT (primaerfarven), har hvid, halvfed tekst,
+    primaer kant OG et flueben foran teksten - saa det ikke kun er farven,
+    der siger det. De andre er kant-loese outline-knapper med daempet tekst
+    paa skinnens neutrale flade: synlige og klikbare, men uden samme vaegt.
+    Hover, fokus og deaktiveret er ModernButtons egne, ens for alle
+    segmenter. Knapperne er almindelige knapper, saa Tab/Enter/mellemrum
+    virker, og hver har sin AccessibleLabel med "selected"."""
+    w = seg_button_width()
+    kids = []
+    for suffix, text, on, onselect, tooltip in options:
+        acc = f'"{(label + ": ") if label else ""}{text}" & If({on}, ", selected", "")'
+        b = button(f"{name}{suffix}", f'"{text}"', onselect, width=w, height=SEG_BTN_H,
+                   display_mode=display_mode, accessible=acc, tooltip=tooltip)
+        b.props["Appearance"] = f"If({on}, ButtonAppearance.Primary, ButtonAppearance.Outline)"
+        b.props["BasePaletteColor"] = C_PRIMARY
+        b.props["BorderColor"] = f"If({on}, {C_PRIMARY}, {C_TRANSPARENT})"
+        b.props["BorderThickness"] = "1"
+        b.props["Color"] = f"If({on}, {C_WHITE}, {C_MUTED})"
+        b.props["FontWeight"] = f"If({on}, FontWeight.Semibold, FontWeight.Normal)"
+        b.props["Icon"] = f'If({on}, "Checkmark", "")'
+        b.props["Layout"] = f"If({on}, ButtonLayout.IconBefore, ButtonLayout.TextOnly)"
+        b.props["Size"] = str(SEG_SIZE)
+        b.props["LayoutMinWidth"] = str(w)
+        b.props.update(lay.radius(SEG_BTN_H // 2))
+        kids.append(b)
+    track_w = len(kids) * w + (len(kids) - 1) * SEG_GAP + 2 * SEG_PAD
+    return group(name, kids, direction="Horizontal", gap=SEG_GAP, width=track_w,
+                 align_items="Center", fill=C_NEUTRAL_BG, border_color=C_CARD_BORDER,
+                 radius=SEG_H // 2, pad=SEG_PAD, align_in_container="Start")
+
+
 def spinner_svg(size=64, stroke=6, delay=0.15, caption=None):
     """Hjulet - EEN tegning for hele repoet (issue #64).
 

@@ -3823,11 +3823,11 @@ Screens:
                                     PressedFill: |-
                                         =RGBA(0, 0, 0, 0)
                                     Size: |-
-                                        =If(LayoutRank < 2, 16, 14)
+                                        =13
                                     TabIndex: |-
                                         =0
                                     Text: |-
-                                        =With({t: If(!IsBlank(gblFbSel.Kind), gblFbSel.Label, "Pick a subject or request"), c: RoundDown((Self.Width) / 7.5, 0)}, If(Len(t) > c, Left(t, Max(1, c - 3)) & "...", t))
+                                        =With({t: If(!IsBlank(gblFbSel.Kind), gblFbSel.Label, "Pick a subject or request"), c: RoundDown((Self.Width) / 7, 0)}, If(Len(t) > c, Left(t, Max(1, c - 3)) & "...", t))
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
@@ -7500,8 +7500,12 @@ Screens:
                                               RemoveIf(colIbAll, Id = varIbSelId);
                                               Set(varIbDetailOn, false),
                                               Set(varIbSel, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
-                                              Set(varIbFiles, r.Attachments);
-                                              Set(varIbFilesFor, varIbSelId);
+                                              If(varIbTab = "files",
+                                                  Set(varIbFilesBusy, true);
+                                                  Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp(IB_Tickets, ID = varIbSelId).Attachments); false, true));
+                                                  Set(varIbFilesFor, varIbSelId);
+                                                  Set(varIbFilesBusy, false)
+                                              , Set(varIbFilesFor, -1));
                                               UpdateIf(colIbMine, Id = varIbSelId, varIbSel);
                                               UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
                                           )
@@ -8130,8 +8134,12 @@ Screens:
                                               RemoveIf(colIbAll, Id = varIbSelId);
                                               Set(varIbDetailOn, false),
                                               Set(varIbSel, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
-                                              Set(varIbFiles, r.Attachments);
-                                              Set(varIbFilesFor, varIbSelId);
+                                              If(varIbTab = "files",
+                                                  Set(varIbFilesBusy, true);
+                                                  Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp(IB_Tickets, ID = varIbSelId).Attachments); false, true));
+                                                  Set(varIbFilesFor, varIbSelId);
+                                                  Set(varIbFilesBusy, false)
+                                              , Set(varIbFilesFor, -1));
                                               UpdateIf(colIbMine, Id = varIbSelId, varIbSel);
                                               UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
                                           )
@@ -8224,8 +8232,12 @@ Screens:
                                               RemoveIf(colIbAll, Id = varIbSelId);
                                               Set(varIbDetailOn, false),
                                               Set(varIbSel, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
-                                              Set(varIbFiles, r.Attachments);
-                                              Set(varIbFilesFor, varIbSelId);
+                                              If(varIbTab = "files",
+                                                  Set(varIbFilesBusy, true);
+                                                  Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp(IB_Tickets, ID = varIbSelId).Attachments); false, true));
+                                                  Set(varIbFilesFor, varIbSelId);
+                                                  Set(varIbFilesBusy, false)
+                                              , Set(varIbFilesFor, -1));
                                               UpdateIf(colIbMine, Id = varIbSelId, varIbSel);
                                               UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
                                           )
@@ -10194,8 +10206,12 @@ Screens:
                                                     RemoveIf(colIbAll, Id = varIbSelId);
                                                     Set(varIbDetailOn, false),
                                                     Set(varIbSel, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
-                                                    Set(varIbFiles, r.Attachments);
-                                                    Set(varIbFilesFor, varIbSelId);
+                                                    If(varIbTab = "files",
+                                                        Set(varIbFilesBusy, true);
+                                                        Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp(IB_Tickets, ID = varIbSelId).Attachments); false, true));
+                                                        Set(varIbFilesFor, varIbSelId);
+                                                        Set(varIbFilesBusy, false)
+                                                    , Set(varIbFilesFor, -1));
                                                     UpdateIf(colIbMine, Id = varIbSelId, varIbSel);
                                                     UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
                                                 )
