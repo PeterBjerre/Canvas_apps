@@ -110,6 +110,10 @@ PANE_PAD = 12
 INPUT_H = 132
 HINT_H = 34
 INTRO_H = 40
+# Luft om de to sektioner inde i deres raekke (issue #150). Raekken skjuler
+# sit overloeb, og en container tegner sin kant paa yderkanten - uden luft
+# klippede raekken sektionernes topkant og de runde hjoerner.
+SPLIT_PAD = 2
 
 
 def _pane(prefix, key, title, hint, default, edit, show, pane_w, placeholder):
@@ -141,19 +145,23 @@ def popup(prefix, open_var, edit, title_fx, intro_fx, a_default, s_default, show
     vis = f"IfError({open_var}, false)"
     pop_w = f"Min({POP_MAX_W}, App.Width - 24)"
     inner = f"({pop_w} - {2 * PAD})"
+    # Sektionernes bredde: raekken minus dens luft paa begge sider.
+    pane_area = f"({inner} - {2 * SPLIT_PAD})"
     narrow = below("Tablet")
     both = f"(({show_a}) && ({show_s}))"
-    pane_w = f"If({narrow} || !{both}, {inner}, ({inner} - {GAP}) / 2)"
+    pane_w = f"If({narrow} || !{both}, {pane_area}, ({pane_area} - {GAP}) / 2)"
     pa, inp_a = _pane(prefix, "A", T_APPROVER, HINT_APPROVER, a_default, edit, show_a, pane_w,
                       f'If({edit}, "Optional - for example context for the approval", "No note was added.")')
     ps, inp_s = _pane(prefix, "S", T_SELF, HINT_SELF, s_default, edit, show_s, pane_w,
                       f'If({edit}, "Optional - a private reminder", "No note was added.")')
     ph = max(int(pa.h), int(ps.h))
-    row_h = f"If({narrow} && {both}, {2 * ph + GAP}, {ph})"
+    sp2 = 2 * SPLIT_PAD
+    row_h = f"If({narrow} && {both}, {2 * ph + GAP + sp2}, {ph + sp2})"
     split = group(f"con{prefix}NotesSplit", [pa, ps], direction="Horizontal", gap=GAP,
-                  height=row_h, width=inner, align_items="Start")
+                  height=row_h, width=inner, align_items="Start",
+                  pad=(SPLIT_PAD, SPLIT_PAD, SPLIT_PAD, SPLIT_PAD))
     split.props["LayoutDirection"] = f"If({narrow}, LayoutDirection.Vertical, LayoutDirection.Horizontal)"
-    split.h = 2 * ph + GAP
+    split.h = 2 * ph + GAP + sp2
 
     title = text_ctrl(f"txt{prefix}NotesTitle", title_fx, size=lay.SIZE_CARD_TITLE,
                       weight="Semibold", height=26, wrap="false")
