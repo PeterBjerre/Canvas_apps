@@ -9,8 +9,8 @@ from build_helpers import (checkbox_theme, table_surface, flow_row, text_ctrl,
                            group, button, text_input, number_input, themed_dropdown,
                            field_cell, card, pin_widths, grow, row_hit,
                            fit_button_width, fit_button_row, ICON_W, ICON_SAVE, flow_ok, mark_done)
-from build_plan_header import (section_header, help_panel, summary_chips,
-                               summary_info_button)
+from build_plan_header import (section_header, help_panel, summary_chips, summary_formula,
+                               summary_width, collapse_footer)
 from build_status import HAS_PKGS
 import build_help as bh
 from build_strategy import build_strategy_body, IS_STRATEGY
@@ -713,8 +713,8 @@ OPS_LOCKED = ("(!IsBlank(varVhpActiveItemId) && "
 # Det modsatte, skrevet ud: layout-tjekket kan ikke regne paa !( ... ).
 OPS_OPEN = ("(IsBlank(varVhpActiveItemId) || "
             "CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) = 0)")
-OPS_SUMMARY_VIS = f"({OPS_LOCKED} && {at_least('Tablet')})"
-OPS_INFO_VIS = f"({OPS_LOCKED} && {below('Tablet')})"
+# Linjen vises paa alle bredder (issue #123) - chipsene ombrydes.
+OPS_SUMMARY_VIS = OPS_LOCKED
 
 # Hvad der mangler, foer sektionen kan gemmes og klappes sammen - tom, naar
 # intet mangler. Trin 3 og 4 (build_status) for det aktive item; pakke-
@@ -730,22 +730,36 @@ OPS_ISSUE = (
     ")")
 
 
-def ops_info_modal():
-    """Telefonens laeseudsnit af den gemte sektion (btnVhpOpsInfo)."""
-    from build_helpers import text_modal
-    body = (
-        f'"Task list: " & Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistName, "") & Char(10) &\n'
-        f'"Operations: " & Text(CountRows({OPS_ACTIVE})) & Char(10) &\n'
-        f'"Work (h): " & {_TOTALS["WORK (H)"]} & Char(10) &\n'
-        f'"Duration (h): " & {_TOTALS["DUR. (H)"]} & Char(10) &\n'
-        f'"Cost: " & {_TOTALS["COST"]} & Char(10) &\n'
-        f'"Materials: " & Text(CountRows({MAT_ACTIVE})) & Char(10) &\n'
-        f'"Documents: " & Text(CountRows(Filter(colVhpAttachments, ItemId = varVhpActiveItemId)))')
-    return text_modal("VhpOpsInfo", "varVhpOpsInfoOpen", '"Tasklist and Operations"', body, 130)
+# Save/Edit-knappens bredde - linjen har resten af kortets bredde.
+OPS_SAVE_W = fit_button_width("\"Save\"", min_w=96) + ICON_W
+
+
+def ops_summary_fx():
+    """Tasklist and Operations' sammenklappede linje (issue #123) for det
+    valgte item. Tallene er operationstabellens egne (samme kolonner og
+    format som _TOTALS) og kommer fra de samme samlinger som tabellen,
+    materialeruden og dokumentruden. Et tal, der er nul, giver ingen chip."""
+    num = '"[$-en-US]#,##0.##"'
+    def tot(col, fmt=num):
+        return f'With({{ t: Sum(ops, {col}) }}, If(Coalesce(t, 0) = 0, "", Text(t, {fmt})))'
+    def cnt(tbl):
+        return f'With({{ n: CountRows({tbl}) }}, If(n = 0, "", Text(n)))'
+    segs = [('"TASK LIST"', 'Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistName, "")'),
+            ('"OPERATIONS"', cnt("ops")),
+            ('"WORK (H)"', tot("WorkHours")),
+            ('"DURATION (H)"', tot("DurationHours")),
+            ('"PEOPLE"', tot("Persons")),
+            ('"COST"', tot("Cost", '"[$-en-US]#,##0.00"')),
+            ('"MATERIALS"', cnt(MAT_ACTIVE)),
+            ('"DOCUMENTS"', cnt("Filter(colVhpAttachments, ItemId = varVhpActiveItemId)"))]
+    return summary_formula(segs, summary_width(OPS_CW, OPS_SAVE_W), bind={"ops": OPS_ACTIVE})
 
 
 def build_tasklist_section():
-    header = section_header("conVhpOpsHead", "Tasklist and Operations", "Step 3")
+    # Trin-badget (issue #123): "Valid", naar alle items har tasklist og
+    # operationer, og ingen tasklist-/operationsregel fejler.
+    header = section_header("conVhpOpsHead", "Tasklist and Operations", "Step 3",
+                            valid_fx="VhpOpsValid")
     helpPanel = help_panel("conVhpOpsHelp", "ops")
 
     # Default slaar op i den FILTREREDE liste: en tasklist fra et andet
@@ -910,25 +924,11 @@ def build_tasklist_section():
         f'If({OPS_LOCKED}, "Edit the task list and operations", "Save the task list and operations")')
     btnTlSave.vis = f"(!varVhpViewOnly || {OPS_OPEN})"
     btnTlReset.vis = f"{OPS_OPEN}"
-    save_w = fit_button_width("\"Save\"", min_w=96) + ICON_W
 
-    # DEN SAMMENKLAPPEDE LINJE - Plan Headers chips: tasklisten og de
-    # vigtigste tal, ikke hele tabellen. Summerne er tabellens egne
-    # (_TOTALS). Telefon: en knap aabner de samme vaerdier (ops_info_modal).
-    summary = summary_chips(
-        "imgVhpOpsSummary",
-        [('"TASK LIST"',
-          'Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistName, "")'),
-         ('"OPERATIONS"', f"Text(CountRows({OPS_ACTIVE}))"),
-         ('"WORK (H)"', _TOTALS["WORK (H)"]),
-         ('"COST"', _TOTALS["COST"]),
-         ('"MATERIALS"', f"Text(CountRows({MAT_ACTIVE}))")],
-        OPS_SUMMARY_VIS,
-        ('"Task list " & Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistName, "") & '
-         f'", " & Text(CountRows({OPS_ACTIVE})) & " operations"'),
-        max_w=f"{OPS_CW} - {save_w + 8}")
-    info = summary_info_button("btnVhpOpsInfo", '"Task list details"', "varVhpOpsInfoOpen",
-                               '"Show the saved task list and operations"', OPS_INFO_VIS)
+    # DEN SAMMENKLAPPEDE LINJE (issue #103, #123) - Plan Headers chips:
+    # tasklisten og de vigtigste tal, ikke hele tabellen. Paa alle bredder;
+    # layoutet er den navngivne formel VhpOpsSummary (ops_summary_fx).
+    summary = summary_chips("imgVhpOpsSummary", "VhpOpsSummary", OPS_SUMMARY_VIS)
     # Foldet ud: hvad der mangler, foer sektionen kan gemmes.
     attention = text_ctrl(
         "txtVhpOpsAttention",
@@ -937,10 +937,13 @@ def build_tasklist_section():
         visible=f"({OPS_OPEN} && !IsBlank(varVhpActiveItemId) && !varVhpViewOnly)",
         extra={"Color": f"If(IsBlank({OPS_ISSUE}), {C_MUTED}, {C_INVALID_FG})",
                "VerticalAlign": "VerticalAlign.Middle"})
-    footerInfo = grow(group("conVhpOpsFooterInfo", [summary, info, attention],
-                            direction="Vertical", gap=0, height=36, justify="Center"))
-    opsFooter = group("conVhpOpsFooter", [footerInfo, btnTlReset, btnTlSave], direction="Horizontal",
-                      gap=8, height=36, align_items="Center", justify="End")
+    footerInfo = grow(group("conVhpOpsFooterInfo", [summary, attention],
+                            direction="Vertical", gap=0, justify="Center"))
+    # Hoejden foelger linjen, naar chipsene ombrydes (issue #123).
+    opsFooter = collapse_footer(
+        group("conVhpOpsFooter", [footerInfo, btnTlReset, btnTlSave], direction="Horizontal",
+              gap=8, align_items="Center", justify="End"),
+        footerInfo, btnTlSave, OPS_LOCKED)
 
     tasklistMeta = text_ctrl(
         "txtVhpTasklistMeta",
