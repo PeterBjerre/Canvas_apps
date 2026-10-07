@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import (Ctrl, C_MUTED, C_REQUIRED, C_INFO_BG, SHELL_W, C_DISABLED_BG, C_DIVIDER,
+from gen_screen import (Ctrl, C_TRANSPARENT, C_MUTED, C_REQUIRED, C_INFO_BG, SHELL_W, C_DISABLED_BG, C_DIVIDER,
                         C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG, C_NEUTRAL_BG)
 import build_help as bh
 import layout_tokens as lay
 from build_helpers import (child_name, text_min_height, text_ctrl, group, button, text_input, number_input,
                            themed_dropdown, field_cell, col_width, badge, card, grow,
-                           column_grid, text_px, fit_button_width, ICON_W)
+                           row_n, text_px, fit_button_width, ICON_W)
 
 DM_PLAN = "If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)"
 # Linjen vises, naar planen er gemt og laast - paa ALLE bredder (issue #123).
@@ -16,16 +16,19 @@ DM_PLAN = "If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)"
 SUMMARY_VIS = "varVhpPlanLocked"
 REQ_PLAN = "varVhpPlanValidated"
 
-# Chipsenes maal. Etiketten er 10 px versaler (ca. 7 px pr. tegn med
-# bogstavafstanden), vaerdien 13 px (ca. 7,4 px pr. tegn). En chip er 32
-# hoej, og raekkerne staar CHIP_PITCH fra hinanden - samme luft lodret som
-# vandret.
+# Chipsenes maal (issue #136). En chip er 28 hoej med 2 px luft over og
+# under, og raekkerne staar CHIP_PITCH fra hinanden - 8 px luft lodret som
+# vandret. Bredden er et skoen: etiketten er 10 px versaler (ca. 7 px pr.
+# tegn med bogstavafstanden), vaerdien 13 px halvfed - 8 px pr. tegn er
+# rigeligt ogsaa til koder i versaler (FL, arbejdscentre). CHIP_PAD er
+# polstring, kant og afstanden mellem etiket og vaerdi.
 CHIP_H, CHIP_GAP, CHIP_PITCH = 32, 8, 36
+CHIP_PAD, LABEL_PX, VALUE_PX = 34, 7, 8
 
 
 def summary_formula(segs, max_w, bind=None):
-    """Den sammenklappede sektions linje (issue #54, #103, #123) som EEN
-    navngiven formel: en post { Svg, W, H, Label }.
+    """Den sammenklappede sektions linje (issue #54, #103, #123, #136) som
+    EEN navngiven formel: en post { Html, W, H }.
 
     segs: (etiket, vaerdi) - begge Power Fx-tekst. En tom vaerdi giver
     INGEN chip: ingen etiket uden vaerdi og intet tomt hul.
@@ -35,24 +38,34 @@ def summary_formula(segs, max_w, bind=None):
     stedet for at blive klippet eller skaleret ned.
     bind: {navn: udtryk} - regnes een gang (fx det aktive item).
 
+    Issue #136: linjen var et SVG-billede, og i appen stod der kun en
+    tynd streg pr. chip - teksten og chippens flade blev aldrig vist. Nu
+    er den HTML i en HtmlViewer (samme vej som operationstabellens
+    overskrift og totaler), og raekkerne skrives ud her: chippens bredde
+    og raekkeskiftene er de SAMME tal, som hoejden regnes af, saa kortet
+    omkring altid passer til det, der staar. Alle tal er hele tal - et
+    decimaltal ville blive skrevet med komma paa et dansk sprog.
+
     Formlen staar i App.Formulas, saa layoutet regnes een gang og deles af
-    billedet og af hoejderne paa kortet omkring det (H). Hoejderne maa ikke
-    laese billedets .Height (layout-tjekkets regel 1)."""
+    linjen og af hoejderne paa kortet omkring den (H). Hoejderne maa ikke
+    laese kontrollens .Height (layout-tjekkets regel 1)."""
     from design_tokens import ref_hex
     esc = lambda e: f'Substitute(Substitute({e}, "&", "&amp;"), "<", "&lt;")'
     n = len(segs)
     rng = range(1, n + 1)
     lab = ", ".join(f"l{i}: {l}" for i, (l, _v) in enumerate(segs, 1))
     val = ", ".join(f"v{i}: {v}" for i, (_l, v) in enumerate(segs, 1))
-    ell = "\u2026"
-    # Vaerdien, afkortet til pladsen.
+    ell = "…"
+    # Vaerdien, afkortet til pladsen (een tegnplads til ellipsen).
     disp = ",\n    ".join(
-        f"d{i}: If(Len(v{i}) = 0, \"\", 30 + Len(l{i}) * 7 + Len(v{i}) * 7.4 <= mw, v{i}, "
-        f"Left(v{i}, Max(0, RoundDown((mw - 38 - Len(l{i}) * 7) / 7.4, 0))) & \"{ell}\")"
+        f"d{i}: If(Len(v{i}) = 0, \"\", {CHIP_PAD} + Len(l{i}) * {LABEL_PX} + Len(v{i}) * {VALUE_PX} <= mw, v{i}, "
+        f"Left(v{i}, Max(0, RoundDown((mw - {CHIP_PAD + VALUE_PX} - Len(l{i}) * {LABEL_PX}) / {VALUE_PX}, 0))) "
+        f"& \"{ell}\")"
         for i in rng)
-    wid = ", ".join(f"w{i}: If(Len(d{i}) = 0, 0, 30 + Len(l{i}) * 7 + Len(d{i}) * 7.4)" for i in rng)
+    wid = ", ".join(f"w{i}: If(Len(d{i}) = 0, 0, {CHIP_PAD} + Len(l{i}) * {LABEL_PX} + Len(d{i}) * {VALUE_PX})"
+                    for i in rng)
     outer = dict(bind or {})
-    outer["mw"] = max_w
+    outer["mw"] = f"RoundDown({max_w}, 0)"
     opens = ["With({ " + ", ".join(f"{k}: {v}" for k, v in outer.items()) + " },",
              f"With({{ {lab},\n    {val} }},",
              f"With({{ {disp} }},",
@@ -71,39 +84,38 @@ def summary_formula(segs, max_w, bind=None):
     mut, txt = ref_hex("text-muted"), ref_hex("text-primary")
     W = "Max(" + ", ".join(f"If(w{i} = 0, 0, x{i} + w{i})" for i in rng) + ", 1)"
     H = f"r{n} * {CHIP_PITCH} + {CHIP_H}"
-    parts = [f'"<svg xmlns=\'http://www.w3.org/2000/svg\' height=\'" & ({H}) & "\' width=\'" & '
-             f'{W} & "\'>"']
+    # Raekkerne er flex-raekker med faste chipbredder - de ombrydes ikke
+    # selv; et raekkeskift staar, hvor formlen har lagt det (r stiger).
+    style = (f'"<style>html,body{{margin:0;padding:0;overflow:hidden}}'
+             f'.s{{padding:2px 0;font-family:Segoe UI,sans-serif}}'
+             f'.r{{display:flex;height:28px;white-space:nowrap}}.r+.r{{margin-top:{CHIP_PITCH - 28}px}}'
+             f'.c{{flex:none;box-sizing:border-box;height:28px;line-height:26px;padding:0 13px;'
+             f'border:1px solid " & {line} & ";border-radius:14px;background:" & {fill} & ";'
+             f'color:" & {txt} & ";font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis}}'
+             f'.c+.c{{margin-left:{CHIP_GAP}px}}'
+             f'.c b{{font-size:10px;font-weight:600;letter-spacing:.5px;margin-right:6px;color:" & {mut} & "}}'
+             f'</style><div class=\'s\'><div class=\'r\'>"')
+    parts = [style]
     for i in rng:
-        y = f"r{i} * {CHIP_PITCH}"
+        brk = f'If(r{i} > r{i - 1}, "</div><div class=\'r\'>", "") & ' if i > 1 else ""
         parts.append(
-            f'If(w{i} = 0, "", '
-            f'"<rect x=\'" & (x{i} + 1) & "\' y=\'" & ({y} + 2) & "\' rx=\'14\' width=\'" & (w{i} - 2) & '
-            f'"\' height=\'28\' fill=\'" & {fill} & "\' stroke=\'" & {line} & "\'/>" &\n            '
-            f'"<text x=\'" & (x{i} + 14) & "\' y=\'" & ({y} + 20) & "\' font-family=\'Segoe UI, sans-serif\' '
-            f'font-size=\'10\' font-weight=\'600\' letter-spacing=\'.5\' fill=\'" & {mut} & "\'>" & '
-            f'{esc("l%d" % i)} & "</text>" &\n            '
-            f'"<text x=\'" & (x{i} + 20 + Len(l{i}) * 7) & "\' y=\'" & ({y} + 20) & "\' '
-            f'font-family=\'Segoe UI, sans-serif\' font-size=\'13\' font-weight=\'600\' fill=\'" & {txt} & '
-            f'"\'>" & {esc("d%d" % i)} & "</text>")')
-    parts.append('"</svg>"')
-    label = " &\n        ".join(f'If(w{i} = 0, "", l{i} & " " & v{i} & ". ")' for i in rng)
-    body = ("{\n    Svg: \"data:image/svg+xml;utf8,\" & EncodeUrl(\n        "
-            + " &\n        ".join(parts) + "\n    ),\n"
-            f"    W: {W},\n    H: {H},\n    Label: {label}\n}}")
+            f'If(w{i} = 0, "", {brk}"<span class=\'c\' style=\'width:" & w{i} & "px\'><b>" & '
+            f'{esc("l%d" % i)} & "</b>" & {esc("d%d" % i)} & "</span>")')
+    parts.append('"</div></div>"')
+    body = ("{\n    Html: " + " &\n        ".join(parts) + ",\n"
+            f"    W: {W},\n    H: {H}\n}}")
     return "\n".join(opens) + "\n" + body + "\n" + ")" * len(opens)
 
 
 def summary_chips(name, fx, visible):
-    """Billedet, der viser summary_formula'ens post fx (et navn i
+    """HtmlViewer'en, der viser summary_formula'ens post fx (et navn i
     App.Formulas). Plan Header, Item Editor og Tasklist and Operations
     bruger den samme, saa de ser ens ud. h er fx.H: kortet omkring foelger
     linjens hoejde, naar den ombrydes."""
-    return Ctrl(name, "Image", props={
-        "AccessibleLabel": f"{fx}.Label",
-        "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
-        "Height": f"{fx}.H", "Image": f"{fx}.Svg", "ImagePosition": "ImagePosition.Fit",
-        "OnSelect": "false", "TabIndex": "-1", "Visible": visible,
-        "Width": f"{fx}.W", "AlignInContainer": "AlignInContainer.Start",
+    return Ctrl(name, "HtmlViewer", props={
+        "Fill": C_TRANSPARENT, "Height": f"{fx}.H", "HtmlText": f"{fx}.Html",
+        "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0",
+        "Visible": visible, "Width": f"{fx}.W", "AlignInContainer": "AlignInContainer.Start",
     }, h=f"{fx}.H", vis=visible)
 
 
@@ -157,13 +169,21 @@ def step_badge(name, step_label, valid_fx, attention_fx=None):
 
 
 def plan_summary_segs():
-    first = ('Text(varVhpPlan.FirstCallDay) & "/" & Text(varVhpPlan.FirstCallMonth) & "/" & '
-             'Text(varVhpPlan.FirstCallYear)')
-    cycle = (f'If({IS_STRATEGY}, Coalesce(varVhpPlan.Strategy, ""), "Every " & Text(varVhpPlan.Cycle) '
-             '& " " & varVhpPlan.Unit)')
-    return [('"PLANT"', 'Coalesce(varVhpPlan.Plant, "")'),
-            ('"PLAN TEXT"', 'Coalesce(varVhpPlan.PlanText, "")'),
-            (f'If({IS_STRATEGY}, "STRATEGY", "CYCLE")', cycle), ('"FIRST CALL"', first)]
+    """Plan Headers linje: de gemte vaerdier, der kendetegner planen.
+    Issue #136: kun vaerdier, der findes - en tom foerste kaldedato gav
+    "//", og en manglende cyklus "Every  "; nu giver de ingen chip."""
+    p = "varVhpPlan"
+    first = (f'If(IsBlank({p}.FirstCallDay) || IsBlank({p}.FirstCallMonth) || IsBlank({p}.FirstCallYear), "", '
+             f'Text({p}.FirstCallDay, "00") & "/" & Text({p}.FirstCallMonth, "00") & "/" & '
+             f'Text({p}.FirstCallYear, "0"))')
+    cycle = (f'If({IS_STRATEGY}, Coalesce({p}.Strategy, ""), '
+             f'Coalesce({p}.Cycle, 0) <= 0 || IsBlank({p}.Unit), "", '
+             f'"Every " & Text({p}.Cycle) & " " & {p}.Unit)')
+    return [('"PLANT"', f'Coalesce({p}.Plant, "")'),
+            ('"PLAN TEXT"', f'Coalesce({p}.PlanText, "")'),
+            (f'If({IS_STRATEGY}, "STRATEGY", "CYCLE")', cycle), ('"FIRST CALL"', first),
+            ('"STATUS"', f'Coalesce({p}.Status, "")'),
+            ('"SORT FIELD"', f'Coalesce({p}.SortField, "")')]
 
 
 def summary_formulas():
@@ -338,28 +358,19 @@ def build_plan_header():
     drpPlant = themed_dropdown("drpVhpPlant", "colVhpPlantCodes",
                                "LookUp(colVhpPlantCodes, Value = varVhpPlan.Plant).Value",
                                required_formula=REQ_PLAN, display_mode=DM_PLAN)
-    # STATUS (issue #113). En ny plan kan kun oprettes som New. Change og
-    # Deleted (SharePoints valg i MaintenanceItems.Status) staar stadig i
-    # listen, men en ModernDropdown kan ikke deaktivere enkelte valg. De er
-    # derfor maerket "(not available)" i teksten, og OnChange saetter et
-    # forsoeg paa at vaelge dem tilbage til Default.
+    # STATUS (issue #113, #137). En plan oprettes altid som New, og feltet
+    # kan ikke aendres: det er altid laast (Disabled -> View i input_theme,
+    # saa listen aldrig foldes ud). Change og Deleted (SharePoints valg i
+    # MaintenanceItems.Status) staar stadig i Items til senere brug, men
+    # kan ikke vaelges.
     # Default er New, naar planen ingen status har (ny plan). En gemt plan
-    # beholder sin status: varVhpPlan.Status er det gemte (build_load), og
-    # den gemte vaerdi forbliver valgbar og vises uden maerkning.
+    # beholder sin status: varVhpPlan.Status er det gemte (build_load).
+    # ItemDisplayText er ThisItem.Value (themed_dropdown) - den maa ikke
+    # laese variabler (issue #133): Studio afviser det, og listen blev tom
+    # med kun et flueben (issue #137).
     drpStatus = themed_dropdown("drpVhpStatus", "colVhpPlanStatusOptions",
                          'Coalesce(varVhpPlan.Status, "New")',
-                         required_formula=REQ_PLAN, display_mode=DM_PLAN,
-                         onchange=(
-                             'If(\n'
-                             '    !IsBlank(Self.Selected.Value) && Self.Selected.Value <> "New" &&\n'
-                             '        Self.Selected.Value <> varVhpPlan.Status,\n'
-                             '    Reset(Self);\n'
-                             '    Notify("Only New is available when creating a maintenance plan.", '
-                             'NotificationType.Information)\n'
-                             ')'))
-    drpStatus.props["ItemDisplayText"] = (
-        'If(ThisItem.Value = "New" || ThisItem.Value = varVhpPlan.Status, ThisItem.Value, '
-        'ThisItem.Value & " (not available)")')
+                         display_mode="DisplayMode.Disabled")
 
     # --- Plantype og strategi ------------------------------------------------
     drpPlanType = themed_dropdown("drpVhpPlanType", "colVhpPlanTypeOptions",
@@ -403,10 +414,13 @@ def build_plan_header():
     numFirstCallYear = number_input("numVhpFirstCallYear", "varVhpPlan.FirstCallYear", min_v=2020, max_v=2100,
                                     required_formula=REQ_PLAN, display_mode=DM_PLAN, label="\"First call, year\"")
 
-    # KOLONNE-ORDEN (issue #54). Felterne udfyldes oppefra og ned i hver
-    # kolonne, foer naeste kolonne begynder - Plan Type, Maintenance
-    # Strategy og Plant staar under hinanden i kolonne 1. Foer stod de fire
-    # og fire paa raekker.
+    # RAEKKE-ORDEN (issue #142). Planhovedet er fire kolonner og to raekker:
+    #   Raekke 1: Plan Type | Status | Plant | Plan Text
+    #   Raekke 2: Sort Field | Cycle | Unit | First Call
+    # Cycle, Unit og First Call er een planlaegningsgruppe og staar samlet i
+    # raekke 2. Foer (issue #54, #113) blev felterne lagt i kolonne-orden.
+    # Hver raekke er en row_n, saa felterne under braekpunktet stables i
+    # netop denne laeseraekkefoelge - ogsaa tab-raekkefoelgen foelger den.
     CW = PLAN_CW
     PLAN_COLS = 4
     FC_CELL = col_width(CW, PLAN_COLS)
@@ -431,28 +445,32 @@ def build_plan_header():
     cellStrategy.props["Visible"] = LIVE_IS_STRATEGY
     cellStrategy.vis = LIVE_IS_STRATEGY
 
-    grid = column_grid("conVhpPlanGrid", [
-        [cell("conVhpCellPlanType", "Plan Type", drpPlanType, "PlanType", True),
-         cell("conVhpCellPlant", "Plant", drpPlant, "Plant", True),
-         cellStrategy],
-        [cell("conVhpCellStatus", "Status", drpStatus, "Status", True),
-         cell("conVhpCellPlanText", "Plan Text", txtPlanText, "PlanText", True)],
-        # Cycle og Unit har byttet plads (issue #113): Unit staar i kolonne 3,
-        # Cycle oeverst i kolonne 4. Hele cellen flytter (etiket, stjerne,
-        # validering); kontrollerne og deres formler er de samme.
-        [cell("conVhpCellSortField", "Sort Field", drpSortField, "SortField"),
-         cell("conVhpCellUnit", "Unit", drpUnit, "Unit", True)],
-        [cell("conVhpCellCycle", "Cycle", numCycle, "Cycle", True),
-         cell("conVhpCellFirstCall", "First Call (dd / mm / yyyy)", firstCallRow,
-              "FirstCall", True)],
-    ], container_w=CW, row_gap=10)
+    row1 = row_n("conVhpPlanRow1", [
+        cell("conVhpCellPlanType", "Plan Type", drpPlanType, "PlanType", True),
+        cell("conVhpCellStatus", "Status", drpStatus, "Status", True),
+        cell("conVhpCellPlant", "Plant", drpPlant, "Plant", True),
+        cell("conVhpCellPlanText", "Plan Text", txtPlanText, "PlanText", True),
+    ], container_w=CW)
+    row2 = row_n("conVhpPlanRow2", [
+        cell("conVhpCellSortField", "Sort Field", drpSortField, "SortField"),
+        cell("conVhpCellCycle", "Cycle", numCycle, "Cycle", True),
+        cell("conVhpCellUnit", "Unit", drpUnit, "Unit", True),
+        cell("conVhpCellFirstCall", "First Call (dd / mm / yyyy)", firstCallRow,
+             "FirstCall", True),
+    ], container_w=CW)
+    # Maintenance Strategy vises kun for plantypen Strategy. Den staar da i
+    # sin egen raekke under de to faste raekker, i kolonne 1, saa de otte
+    # felters orden og placering aldrig flytter sig. Gruppens hoejde
+    # taeller kun synlige boern, saa sektionen vokser, naar feltet vises.
+    grid = group("conVhpPlanGrid", [row1, row2, cellStrategy],
+                 direction="Vertical", gap=10, align_items="Stretch")
 
     planMeta = text_ctrl(
         "txtVhpPlanMeta",
         f"If(varVhpPlanCommitted, \"Plan created \" & Text(varVhpPlanCreatedAt, \"{lay.DATETIME_FMT}\"), \"\")",
         size=12, color=C_MUTED, height=24, wrap="false", visible="!varVhpPlanLocked")
     # Linjen (issue #123): chipsene ombrydes, og kortet foelger deres hoejde.
-    summary = summary_chips("imgVhpPlanSummary", "VhpPlanSummary", SUMMARY_VIS)
+    summary = summary_chips("htmVhpPlanSummary", "VhpPlanSummary", SUMMARY_VIS)
     footerInfo = grow(group("conVhpPlanFooterInfo", [summary, planMeta], direction="Vertical",
                             gap=0, justify="Center"))
 
@@ -470,7 +488,6 @@ def build_plan_header():
             "        { isStrat: drpVhpPlanType.Selected.Key = \"Strategy\" },\n"
             "        If(\n"
             "            IsBlank(drpVhpPlant.Selected.Value) ||\n"
-            "            IsBlank(drpVhpStatus.Selected.Value) ||\n"
             "            IsBlank(drpVhpPlanType.Selected.Key) ||\n"
             "            (isStrat && IsBlank(drpVhpStrategy.Selected.Key)) ||\n"
             "            IsBlank(Trim(inpVhpPlanText.Text)) || Len(Trim(inpVhpPlanText.Text)) > 40 ||\n"
@@ -491,7 +508,9 @@ def build_plan_header():
             "                varVhpPlan,\n"
             "                {\n"
             "                    Plant: drpVhpPlant.Selected.Value,\n"
-            "                    Status: drpVhpStatus.Selected.Value,\n"
+            # Feltet er laast (issue #137): New, eller den gemte status.
+            # Coalesce, saa en tom valgliste aldrig blokerer gemning.
+            "                    Status: Coalesce(drpVhpStatus.Selected.Value, varVhpPlan.Status, \"New\"),\n"
             "                    PlanType: drpVhpPlanType.Selected.Key,\n"
             "                    Strategy: If(isStrat, drpVhpStrategy.Selected.Key, \"\"),\n"
             "                    PlanText: Trim(inpVhpPlanText.Text),\n"
