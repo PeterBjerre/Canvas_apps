@@ -166,9 +166,10 @@ COLLECTIONS = [
     ("colFlTrm", {"RowGuid": '""', "AnyTrm": "false", "Ue": "false"}),
     # FL5: de FL'er, der staar paa mere end een raekke (fl_validation.DUPS).
     ("colFlDupFl", {"FL": '""'}),
-    # Detaljeruden - regnet ved aabning og efter validering (fl_parts).
+    # Formularen for den valgte raekke (issue #166) - regnet, naar raekken
+    # vaelges, og efter hver validering (fl_parts.DET_ITEMS).
     ("colFlDet", {"Column": '""', "Field": '""', "Editable": "false", "List": '""',
-                  "MaxLen": "0", "Value": '""', "Issue": '""'}),
+                  "MaxLen": "0", "Section": '""', "Kind": '""', "Value": '""', "Issue": '""'}),
     # Raekker, brugeren har slettet. Gem fjerner KUN dem (og tomme
     # raekker) fra listen - ikke raekker, en anden har tilfoejet (D24).
     ("colFlDeleted", {"RowGuid": '""'}),
@@ -214,10 +215,9 @@ Set(varFlCanEdit, false);
 Set(varFlNextRowNo, 1);
 // Aktiv klassefane. ALL som i renderClassTabs.
 Set(varFlTab, "ALL");
-// Detaljeruden: raekkens RowGuid og den klasse, den blev aabnet i.
+// Den raekke, formularen viser (issue #166). Valideringen vaelger den
+// foerste, naar den er tom.
 Set(varFlDetailRow, "");
-Set(varFlDetailClass, "");
-Set(varFlShowEmpty, false);
 // Er der aendret noget siden sidste validering? Submit kraever false (FL68).
 Set(varFlStale, false);
 // Kun fejl ved gem/indsend - vist under Validation-tabellen (issue #77).

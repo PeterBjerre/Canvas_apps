@@ -431,8 +431,8 @@ def verify_fx(det_items):
     """btnFlVerify.OnSelect - HELE valideringen. Knappen er skjult; hver
     aendring kalder den med Select(btnFlVerify) (docs/31 PX7, issue #77).
 
-    det_items er detaljerudens raekker (fl_parts.DET_ITEMS). De regnes om
-    her, naar ruden er aaben, fordi vaerdierne og beskederne lige er aendret."""
+    det_items er formularens felter for den valgte raekke (fl_parts.DET_ITEMS).
+    De regnes om her, fordi vaerdierne og beskederne lige er aendret."""
     return ";\n\n".join([
         "// A. Dubletterne een gang (FL5)\n" + DUPS,
         "// B. Syntaks, klasse og raekkebeskeder (FL4-FL24)\n" + calc_rows(),
@@ -441,9 +441,12 @@ def verify_fx(det_items):
         "// E. Status, foerste besked og galleriets kolonner (FL25, FL26)\n" + status_fx(),
         "// F. TRM og ABC (FL48, FL49)\n" + TRM_SET,
         "// G. Klassefanerne (FL28)\n" + TABS,
-        "// H. Detaljeruden, hvis den er aaben - den viser vaerdier og\n"
-        "// beskeder, der lige er regnet om (fl_parts.DET_ITEMS).\n"
-        "If(!IsBlank(varFlDetailRow), ClearCollect(colFlDet, " + det_items + "))",
+        "// H. Formularen (issue #166): den valgte raekke - eller den foerste,\n"
+        "// naar den valgte ikke findes (slettet, ny anmodning, indlaest) -\n"
+        "// med vaerdier og beskeder, der lige er regnet om (fl_parts.DET_ITEMS).\n"
+        "If(IsBlank(LookUp(colFlRows, RowGuid = varFlDetailRow)),\n"
+        "    Set(varFlDetailRow, First(Sort(colFlRows, RowNo)).RowGuid));\n"
+        "ClearCollect(colFlDet, " + det_items + ")",
         "// I. Faerdig. varFlStale styrer Submit (FL68).\n"
         "Set(varFlStale, false)",
     ])
