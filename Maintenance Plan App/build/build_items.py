@@ -20,6 +20,7 @@ from build_plan_header import (section_header, help_panel, summary_chips, summar
 import build_help as bh
 from fl_picker import fl_picker
 import sp_config as cfg
+from build_tasklist import AUTO_SELECT_TL
 
 DM_ITEM = "If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)"
 VIEW_LOCK = "If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)"
@@ -184,6 +185,9 @@ RESET_EDITOR_CONTROLS = (
     "Reset(inpVhpItemShortText); "
     "Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); "
     "Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); "
+    # Issue #158: det aktive items foerste gyldige tasklist, hvis det er
+    # gemt og ikke har et gyldigt valg (skift af item, aabnet kladde).
+    f"{AUTO_SELECT_TL}; "
     "Reset(drpVhpItemTasklist)"
 )
 
@@ -802,6 +806,9 @@ def build_item_editor():
             "            ),\n"
             # Gemt: editoren klappes sammen (ITEM_LOCKED) - som Plan Header.
             "            Set(varVhpItemEditing, false);\n"
+            # Issue #158: itemet har nu en Functional Location - vaelg den
+            # foerste tasklist, hvis det ikke allerede har et gyldigt valg.
+            f"            {AUTO_SELECT_TL};\n"
             "            Notify(\"Item saved: \" & Trim(inpVhpItemShortText.Text) & \".\", NotificationType.Success)\n"
             "        )\n"
             "    )\n"
