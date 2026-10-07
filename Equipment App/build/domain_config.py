@@ -102,7 +102,7 @@ FL_FIELD = "FunctionalLocation"
 #
 # SEKTIONERNE ER GRUPPERING, IKKE OVERSKRIFTER. Formularen viser dem ikke
 # laengere (issue #68); raekkefoelgen paa skaermen staar i
-# equipment_parts.COLUMNS.
+# equipment_parts.FORM_ORDER.
 SECTIONS = [
     ("What should happen", [
         ("RequestType", "Type", "text", None),
