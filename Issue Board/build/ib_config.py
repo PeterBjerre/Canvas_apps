@@ -24,6 +24,30 @@ ARKITEKTUREN (trin 1)
     Appen LAESER med brugerens egen forbindelse. Rettighederne paa raekken
     er sikringen; filtrene i appen er kun UX.
 
+TRIN 2 (admin-board, redigering, vedhaeftninger, mail)
+------------------------------------------------------
+    edit     rapportoeren retter sin sag, mens den er New; en admin retter
+             altid og flytter desuden status, prioritet, tildeling og
+             loesning. Hver aendring bliver sin egen haendelse.
+    reopen   rapportoeren (eller en admin) genaabner en lukket sag eller en
+             sag, der er klar til gentest - een knap.
+    archive  kun admin: arkiver (ud af de aktive lister og ud af det delte
+             board) eller gendan.
+    delete   kun admin, og kun med sagsnummeret som bekraeftelse: sletter
+             haendelserne, den delte kopi og sagen med dens vedhaeftninger.
+    attach   en fil paa sagens egen raekke (SharePoint-vedhaeftning). Den
+             arver raekkens unikke rettigheder - rapportoeren og admins.
+    comment  som trin 1, og en admin kan skrive en intern note (Visibility
+             Internal: rapportoeren faar ingen rettighed til raekken).
+
+Flowet tjekker admin (UserAndGroups) og rapportoer paa serveren for hver
+handling. Knapperne paa skaermen (IbCanEdit osv.) er kun UX og spejler
+reglerne her.
+
+Mail (Outlook, samme forbindelse som de andre BIO SAP-flows) gaar KUN til
+rapportoeren og kun ved tre haendelser: en admin svarer synligt, sagen er
+klar til gentest, og sagen er lukket.
+
 FEATURE-FLAGET
 --------------
 tools/canvas_apps.json, environments.<miljoe>.features.issue_board. Er det
@@ -54,9 +78,11 @@ COLS = {
     L_TICKETS: ["ID", "Title", "TicketNo", "Description", "ReproSteps", "ExpectedResult",
                 "ActualResult", "Application", "Section", "OtherContext", "RelatedRequestNo",
                 "Severity", "Priority", "Status", "Resolution", "AssignedToName",
-                "ReporterEmail", "Created", "LastActivityOn", "IsArchived"],
+                "ReporterEmail", "AssignedToEmail", "Created", "LastActivityOn", "IsArchived",
+                "Attachments"],
     L_COMMENTS: ["TicketId", "AuthorEmail", "AuthorRole", "EventType", "Visibility",
-                 "Content", "PreviousStatus", "NewStatus", "EventOn"],
+                 "Content", "PreviousStatus", "NewStatus", "EventOn", "FileName", "FileSizeKb",
+                 "AtSubmission"],
     L_SECTIONS: ["Application", "Section", "AppOrder", "SectionOrder", "ScreenKey",
                  "IsActive"],
     L_SHARED: ["ID", "Title", "TicketNo", "Summary", "Application", "Section", "Status",
@@ -68,12 +94,17 @@ COLS = {
 FLOW = "'BioSap-IssueBoard-Submit'"
 ACT_CREATE = "create"
 ACT_COMMENT = "comment"
+ACT_EDIT = "edit"
+ACT_REOPEN = "reopen"
+ACT_ARCHIVE = "archive"
+ACT_DELETE = "delete"
+ACT_ATTACH = "attach"
 
 # --- ordforraadet (valgene i SharePoint) ---------------------------------
 # Livsforloebet: New -> Triaged -> In progress -> Ready for retest -> Closed,
 # og Reopened, naar en lukket sag ikke er loest. Status kan gaa baglaens,
-# saa skaermen viser et maerke, ikke en fremdriftsbjaelke. (Trin 2:
-# admin-boardet flytter status; i trin 1 saetter flowet New.)
+# saa skaermen viser et maerke, ikke en fremdriftsbjaelke. Flowet saetter
+# New; admin flytter status i Edit; rapportoeren genaabner med Reopen.
 #
 # (vaerdi, farvetoken-par, rang til sortering)
 STATUS = [
@@ -86,9 +117,15 @@ STATUS = [
 ]
 STATUS_NEW = "New"
 STATUS_CLOSED = "Closed"
+STATUS_RETEST = "Ready for retest"
+STATUS_REOPENED = "Reopened"
+# Rapportoeren maa rette sin sag, saa laenge den har denne status.
+STATUS_EDITABLE = STATUS_NEW
+# Herfra kan sagen genaabnes.
+REOPENABLE = [STATUS_CLOSED, STATUS_RETEST]
 SEVERITY = ["Blocker", "Major", "Minor", "Cosmetic"]
 SEVERITY_DEFAULT = "Minor"
-# Prioriteten saetter admin (trin 2). Flowet starter alle paa Normal.
+# Prioriteten saetter admin i Edit. Flowet starter alle paa Normal.
 PRIORITY = [("Urgent", 1), ("High", 2), ("Normal", 3), ("Low", 4)]
 PRIORITY_DEFAULT = "Normal"
 EVENT_TYPES = ["Comment", "StatusChange", "Assignment", "PriorityChange", "Attachment",
@@ -107,3 +144,9 @@ SEED_CSV = os.path.join(ROOT, "sharepoint", "seed", "IB_AppSections.csv")
 # Settings -> Data row limit). Sorteret nyeste foerst, saa det er de
 # aeldste, der falder ud.
 ROW_LIMIT = 500
+
+# Vedhaeftninger: samme loft som dokumentruden (tools/domain_parts.py) - og
+# flowet afviser over 10 MB.
+MAX_FILE_MB = 10
+MAX_FILES = 5
+IMAGE_EXT = ["png", "jpg", "jpeg", "gif", "bmp", "webp"]
