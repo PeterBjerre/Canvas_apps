@@ -473,8 +473,11 @@ def main():
     # ligesom en liste, men de er defineret i App.Formulas - fx
     # Functional Location-appens regeltabeller (colFlPlan ...).
     named = named_formulas()
+    # var* er heller ikke lister: en tabel, der hentes een gang og aldrig
+    # aendres, ligger i en variabel og ikke i en samling (App checker
+    # CollectingReadOnlyTable, issue #165) - fx hubbens varMdAprAll.
     missing = {l for l in used - set(schema)
-               if not l.startswith("col") and l not in named}
+               if not l.startswith(("col", "var")) and l not in named}
     missing_known = sorted(l for l in missing if l in prov_lists)
     missing_unknown = sorted(l for l in missing if l not in prov_lists)
 

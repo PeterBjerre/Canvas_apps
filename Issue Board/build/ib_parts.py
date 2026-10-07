@@ -667,7 +667,7 @@ def build_list():
     rule = row_rule("rctIbRowRule", ROW_H)
     hit = row_hit("btnIbRowOpen", OPEN_ROW,
                   '"Open " & ThisItem.TicketNo & " - " & ThisItem.Title', tw, ROW_H - 1)
-    gal_h = f"Max(1, Min(CountRows(galIbList.AllItems), {GAL_ROWS})) * {ROW_H}"
+    gal_h = f"Max(1, Min(galIbList.AllItemsCount, {GAL_ROWS})) * {ROW_H}"
     gal = Ctrl("galIbList", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Issues"',
         "BorderStyle": "BorderStyle.None", "Fill": C_CARD_BG, "FillPortions": "0",
@@ -676,10 +676,10 @@ def build_list():
         "ShowScrollbar": "true", "TabIndex": "0", "TemplatePadding": "0",
         "TemplateSize": str(ROW_H), "Width": "Parent.Width", "WrapCount": "1",
     }, children=[no, title, meta, chip, pri, rule, hit], h=gal_h,
-        vis="CountRows(galIbList.AllItems) > 0")
+        vis="galIbList.AllItemsCount > 0")
 
     count = text_ctrl("txtIbCount",
-                      'CountRows(galIbList.AllItems) & If(CountRows(galIbList.AllItems) = 1, '
+                      'galIbList.AllItemsCount & If(galIbList.AllItemsCount = 1, '
                       '" issue", " issues")',
                       size=lay.SIZE_BODY, weight="Semibold", color=C_MUTED, height=20)
     # Admin-boardets taellere: det, der venter paa en admin.
@@ -701,7 +701,7 @@ def build_list():
         '"No issues match the filters.")')
     empty = text_ctrl("txtIbEmpty", empty_fx, size=lay.SIZE_BODY, height=40, wrap="true",
                       color=f"If(IbFailed, {C_INVALID_FG}, {C_MUTED})",
-                      visible="CountRows(galIbList.AllItems) = 0")
+                      visible="galIbList.AllItemsCount = 0")
     retry = button("btnIbRetry", '"Retry"', RETRY, width=fit_button_width('"Retry"'), height=36,
                    visible="IbFailed && !varIbLoading", accessible='"Load the issues again"')
     retry.props["AlignInContainer"] = "AlignInContainer.Start"
@@ -1077,7 +1077,7 @@ def build_form():
                     'Set(varIbSelShared, true);\nSet(varIbTab, "details");\nSet(varIbDetailOn, true)',
                     '"Open shared issue " & ThisItem.TicketNo & " - " & ThisItem.Title',
                     tw, SIM_ROW_H - 2, radius=8)
-    sim_h = f"CountRows(galIbSimilar.AllItems) * {SIM_ROW_H}"
+    sim_h = f"galIbSimilar.AllItemsCount * {SIM_ROW_H}"
     sim = Ctrl("galIbSimilar", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Similar shared issues"',
         "BorderStyle": "BorderStyle.None", "Fill": C_TRANSPARENT, "FillPortions": "0",
@@ -1088,7 +1088,7 @@ def build_form():
     }, children=[s_no, s_title, s_where, s_chip, s_hit], h=sim_h)
     similar = group("conIbSimilar", [sim_head, sim], direction="Vertical", gap=6,
                     fill=C_INFO_BG, radius=10, pad=(10, 10, 10, 10),
-                    visible=f"!({EDITING}) && CountRows(galIbSimilar.AllItems) > 0")
+                    visible=f"!({EDITING}) && galIbSimilar.AllItemsCount > 0")
 
     desc = text_input("inpIbDesc", _dflt("Description"), placeholder='"What did you do, and what went wrong?"',
                       max_length=4000, required_formula="true", height=110, ttype="Multiline",
@@ -1346,7 +1346,7 @@ def _files_panel():
         "AccessibleLabel": '"Preview of " & ThisItem.DisplayName',
         "BorderColor": C_CARD_BORDER, "BorderStyle": "BorderStyle.Solid", "BorderThickness": "1",
         "Height": "44", "Image": "ThisItem.Value", "ImagePosition": "ImagePosition.Fill",
-        "OnSelect": "false", "TabIndex": "-1", **lay.radius(6),
+        "OnSelect": "false", "TabIndex": "0", **lay.radius(6),
         "Visible": is_img, "Width": "44", "X": "0", "Y": "8",
     }, h=44, vis=is_img)
     kind = text_ctrl("txtIbFileKind", f"Upper(Left({ext}, 4))", size=lay.SIZE_MICRO,
@@ -1371,7 +1371,7 @@ def _files_panel():
     opn.props["X"] = f"{tw} - {open_w}"
     opn.props["Y"] = "14"
     files_items = "If(varIbFilesFor = varIbSelId, varIbFiles, FirstN(varIbFiles, 0))"
-    gal_h = f"Min(5, CountRows(galIbFiles.AllItems)) * {row_h}"
+    gal_h = f"Min(5, galIbFiles.AllItemsCount) * {row_h}"
     gal = Ctrl("galIbFiles", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Attachments"',
         "BorderStyle": "BorderStyle.None", "Fill": C_TRANSPARENT, "FillPortions": "0",
@@ -1380,14 +1380,14 @@ def _files_panel():
         "ShowScrollbar": "true", "TabIndex": "0", "TemplatePadding": "0",
         "TemplateSize": str(row_h), "Width": "Parent.Width", "WrapCount": "1",
     }, children=[thumb, kind, name, meta, opn], h=gal_h,
-        vis="CountRows(galIbFiles.AllItems) > 0")
+        vis="galIbFiles.AllItemsCount > 0")
     state = text_ctrl(
         "txtIbFilesState",
         'If(varIbFilesBusy, "Loading attachments...", IfError(varIbFilesFailed, false), '
         '"The attachments could not be loaded. Select the tab again to retry.", '
         '"No files yet. Screenshots help a lot.")',
         size=lay.SIZE_BODY, color=f"If(IfError(varIbFilesFailed, false), {C_INVALID_FG}, {C_MUTED})",
-        height=20, wrap="true", visible="CountRows(galIbFiles.AllItems) = 0")
+        height=20, wrap="true", visible="galIbFiles.AllItemsCount = 0")
     picker = _attachments("attIbFiles", '"Choose files to attach"')
     up = button("btnIbUpload", '"Upload"', UPLOAD_FILES, primary=True,
                 width=fit_button_width('"Upload"') + ICON_W, height=36, icon="ArrowUpload",
@@ -1482,7 +1482,7 @@ def build_detail():
     body_h = _lines_h("ThisItem.Body", ACT_BODY_W)
     row_h = f"(30 + {body_h} + 10)"
     bg = text_ctrl("txtIbActBg", '""', size=lay.SIZE_MICRO, height=f"{row_h} - 4", width=tw,
-                   accessible='""',
+                   accessible='"Background"',
                    fill=(f"If(ThisItem.Internal, {C_WARN_BG}, ThisItem.IsSystem, {C_TRANSPARENT}, "
                          f"{C_MUTED_BG})"),
                    extra={"X": "0", "Y": "2", **lay.radius(8),

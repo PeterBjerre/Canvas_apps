@@ -128,12 +128,17 @@ NOT_STARTED = (
 # foerst: rammer listen appens data row limit, er det de AELDSTE
 # beslutninger, der mangler - og for en raekke uden beslutninger i
 # samlingen spoerges der saa direkte, som foer.
+#
+# EN VARIABEL, IKKE EN SAMLING (issue #165): tabellen hentes paany ved
+# hver visning, men aendres aldrig imellem. App checker meldte samlingen
+# (CollectingReadOnlyTable) - en samling koster ekstra sporing, som en
+# variabel ikke har. Samme kald, samme tidspunkt, samme raekker.
 LOG_LIMIT = 500   # appens Data row limit (som build_hub.ROW_LIMIT)
-LOG_REFRESH = ('ClearCollect(colMdAprAll, SortByColumns(Filter(MD_ApprovalLog, '
+LOG_REFRESH = ('Set(varMdAprAll, SortByColumns(Filter(MD_ApprovalLog, '
                'Stage = "System" || Stage = "Cost" || Stage = "Quality"), "ID", '
                'SortOrder.Descending))')
-ROW_LOG = ('With({ c: Filter(colMdAprAll, RequestGuid = ThisItem.RequestGuid) }, '
-           f'If(IsEmpty(c) && CountRows(colMdAprAll) >= {LOG_LIMIT}, '
+ROW_LOG = ('With({ c: Filter(varMdAprAll, RequestGuid = ThisItem.RequestGuid) }, '
+           f'If(IsEmpty(c) && CountRows(varMdAprAll) >= {LOG_LIMIT}, '
            'Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c))')
 
 
@@ -345,7 +350,7 @@ NOTE_STAGE = "N"
 
 def _notes_row():
     show_a = f"{R}.{sn.FLAG} && {sn.hub_may_approver(R)}"
-    show_s = f"{sn.has_self(R + '.RequestGuid', 'colMdSelfNotes')} && {sn.hub_may_self(R)}"
+    show_s = f"{sn.has_self(R + '.RequestGuid', 'varMdSelfNotes')} && {sn.hub_may_self(R)}"
     which = (f'Concat(Filter(Table({{ v: If({show_a}, "{sn.T_APPROVER}", "") }}, '
              f'{{ v: If({show_s}, "{sn.T_SELF}", "") }}), !IsBlank(v)), v, " and ")')
     rec = _rec(Kind=_q("D"), Stage=_q(NOTE_STAGE),
@@ -573,7 +578,7 @@ def _number_badge(name):
         "BorderStyle": "BorderStyle.None", "BorderThickness": "0", "Fill": C_TRANSPARENT,
         "Height": "26", "Image": f'If(IsBlank({R}.RequestNo), "", With({{ c: {col} }}, {svg}))',
         "ImagePosition": "ImagePosition.Fit", "LayoutMinWidth": "88",
-        "OnSelect": "false", "TabIndex": "-1", "Width": "88",
+        "OnSelect": "false", "TabIndex": "0", "Width": "88",
     }, h=26)
 
 
@@ -662,12 +667,12 @@ def build_popup():
         "RadiusTopLeft": f"If({_is('X')}, 0, 8)", "RadiusTopRight": f"If({_is('X')}, 0, 8)",
         "RadiusBottomLeft": f"If({_is('X')}, If(ThisItem.IsLast, 8, 0), If({is_open}, 0, 8))",
         "RadiusBottomRight": f"If({_is('X')}, If(ThisItem.IsLast, 8, 0), If({is_open}, 0, 8))",
-        "TabIndex": "-1", "Text": '""', "Visible": d_or_x,
+        "TabIndex": "0", "Text": '""', "Visible": d_or_x,
     }, h=ROW_H - 8, vis=d_or_x)
     rail = Ctrl(n("img", "Rail"), "Image", props={
-        "AccessibleLabel": '""', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+        "AccessibleLabel": '"Approval timeline"', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
         "Fill": C_TRANSPARENT, "Height": str(ROW_H), "Image": _rail_svg(),
-        "ImagePosition": "ImagePosition.Fit", "OnSelect": "false", "TabIndex": "-1",
+        "ImagePosition": "ImagePosition.Fit", "OnSelect": "false", "TabIndex": "0",
         "Width": "32", "X": "0", "Y": "0",
     }, h=ROW_H)
 
@@ -675,7 +680,7 @@ def build_popup():
     # navn - i stedet for et "Current"-maerke ved siden af "In progress".
     cur_bar = text_ctrl(n("txt", "CurBar"), '""', size=lay.SIZE_MICRO, height=26, width=3,
                         fill=C_INFO_FG, visible=f"{_is('H')} && ThisItem.Cur",
-                        accessible='""',
+                        accessible='"Current stage"',
                         extra={"X": "34", "Y": str((ROW_H - 26) // 2),
                                "RadiusBottomLeft": "2", "RadiusBottomRight": "2",
                                "RadiusTopLeft": "2", "RadiusTopRight": "2"})
@@ -688,14 +693,14 @@ def build_popup():
 
     y1 = f"If({one_line}, {(ROW_H - 20) // 2}, 6)"
     person = Ctrl(n("img", "Person"), "Image", props={
-        "AccessibleLabel": '""', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+        "AccessibleLabel": '"User"', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
         "Fill": C_TRANSPARENT, "Height": str(ICON_W),
         "Image": ('"data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns=\'http://www.w3.org/2000/svg\' '
                   'width=\'24\' height=\'24\' viewBox=\'0 0 24 24\'><path d=\'' + PERSON +
                   '\' fill=\'none\' stroke=\'" & ' + ref_hex("text-muted") +
                   ' & "\' stroke-width=\'%g\' stroke-linecap=\'round\' stroke-linejoin=\'round\'/></svg>")'
                   % icons.stroke(ICON_W)),
-        "ImagePosition": "ImagePosition.Fit", "OnSelect": "false", "TabIndex": "-1",
+        "ImagePosition": "ImagePosition.Fit", "OnSelect": "false", "TabIndex": "0",
         "Width": str(ICON_W), "X": str(LX), "Y": f"{y1} + 2",
         "Visible": f"{_is('D')} && ThisItem.Human",
     }, h=ICON_W, vis=f"{_is('D')} && ThisItem.Human")
@@ -765,7 +770,7 @@ def build_popup():
     title.props["LayoutMinWidth"] = str(min(tw_a, tw_t))
     no_badge = _number_badge(n("img", "No"))
     spacer = grow(text_ctrl(n("txt", "HeadGap"), '""', size=lay.SIZE_MICRO, height=20,
-                            accessible='""'))
+                            accessible='"Spacer"'))
     btnClose = button(n("btn", "Close"), '"Close"', CLOSE, width=84, height=32)
     head = group(n("con", "Head"), [title, no_badge, spacer, btnClose], direction="Horizontal",
                  gap=10, height=32, align_items="Center")
@@ -785,7 +790,7 @@ def build_popup():
         "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0", "Fill": C_TRANSPARENT, "Height": "110",
         "Image": spinner_svg(), "ImagePosition": "ImagePosition.Center",
-        "TabIndex": "-1", "Visible": busy, "Width": GW,
+        "TabIndex": "0", "Visible": busy, "Width": GW,
     }, h=110, vis=busy)
 
     modal = group(n("con", "Modal"), [head, sub, note, spin, gal], direction="Vertical", gap=10,
