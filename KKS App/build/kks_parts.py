@@ -240,9 +240,12 @@ colKksScope = With({{ready: varKksLoaded}}, Switch(varKksKey, "aggregate", colKk
 KksHasL3 = varKksKey = "function";
 colKksBase = If(varKksL1 = "ALL", colKksScope, Filter(colKksScope, L1 = varKksL1));
 colKksBaseQ = If(IsBlank(varKksQuery), colKksBase, Filter(colKksBase, varKksQuery in Code || varKksQuery in Description));
-// Bogstaverne: funktionsnoeglens er HOME-sektionens 25 koder, de to andres
-// de bogstaver, der har raekker.
-colKksL1Keys = If(KksHasL3, Sort(Distinct(Filter(colKksScope, L1 = "HOME"), Code), Value), Sort(Distinct(colKksScope, L1), Value));
+// Bogstaverne (issue #164): kun de bogstaver, der har mindst een gruppe
+// (niveau 2) i den valgte noegletype - regnet af samme betingelse som
+// colKksL2Keys, i hukommelsen, pr. type. Et bogstav uden grupper (fx
+// funktionsnoeglen D, der ikke bruges, eller komponentnoeglen -A) vises
+// ikke; raekken findes stadig i ALL og i soegningen.
+colKksL1Keys = Sort(Distinct(Filter(colKksScope, L1 <> "HOME" && Len(P2) = 2 && StartsWith(P2, L1)), L1), Value);
 colKksL2Keys = Sort(Distinct(Filter(colKksBaseQ, varKksL1 <> "ALL" && Len(P2) = 2 && StartsWith(P2, varKksL1)), P2), Value);
 colKksL2Rows = If(IsBlank(varKksL2), colKksBaseQ, Filter(colKksBaseQ, P2 = varKksL2));
 colKksL3Keys = Sort(Distinct(Filter(colKksL2Rows, KksHasL3 && !IsBlank(varKksL2) && Len(P3) = 3 && StartsWith(P3, varKksL2)), P3), Value);
@@ -616,16 +619,19 @@ def build_browse():
 
 
 # Et klik paa en raekke gaar til dens plads i hierarkiet og rydder
-# soegningen - ordret den oprindelige apps galKksRowsB.OnSelect.
+# soegningen - som den oprindelige apps galKksRowsB.OnSelect. Er raekkens
+# bogstav ikke i colKksL1Keys (ingen grupper, issue #164), gaar klikket til
+# ALL, og en kode, der ikke begynder med bogstavet (noterne "*" og "**"),
+# vaelger ingen gruppe - saa staar der aldrig et valg, der ikke er en knap.
 ROW_SELECT = f'''With(
     {{c: Upper(ThisItem.Code), s: ThisItem.L1}},
     With(
         {{isTop: Len(c) = 1 && !IsBlank(LookUp(colKksL1Keys, Value = c))}},
         With(
-            {{l1: If(isTop, c, If(s = "HOME", If(!IsBlank(LookUp(colKksL1Keys, Value = Left(c, 1))), Left(c, 1), "ALL"), s))}},
+            {{l1: If(isTop, c, With({{t: If(s = "HOME", Left(c, 1), s)}}, If(!IsBlank(LookUp(colKksL1Keys, Value = t)), t, "ALL")))}},
             Set(varKksL1, l1);
-            Set(varKksL2, If(l1 = "ALL" || isTop || Len(c) < 2, "", Left(c, 2)));
-            Set(varKksL3, If(l1 = "ALL" || isTop || !KksHasL3 || Len(c) < 3, "", Left(c, 3)));
+            Set(varKksL2, If(l1 = "ALL" || isTop || Len(c) < 2 || !StartsWith(c, l1), "", Left(c, 2)));
+            Set(varKksL3, If(l1 = "ALL" || isTop || !KksHasL3 || Len(c) < 3 || !StartsWith(c, l1), "", Left(c, 3)));
             {CLEAR_QUERY.replace(chr(10), chr(10) + "            ")}
         )
     )
