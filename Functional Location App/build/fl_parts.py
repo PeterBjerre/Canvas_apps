@@ -140,7 +140,8 @@ def build_bar():
                              'it can still be edited."')
     # Submit spoerger foerst (build_submit_confirm, issue #54).
     submit = _fit(button("btnFlSubmit", '"Submit"', "Set(varFlConfirmSubmit, true)",
-                         primary=True, icon=ICON_SUBMIT, display_mode=S.SUBMIT_DM))
+                         primary=True, icon=ICON_SUBMIT, display_mode=S.SUBMIT_DM),
+                  icon=bool(ICON_SUBMIT))
     submit.props["Tooltip"] = S.SUBMIT_WHY
     new = _fit(button("btnFlNew", '"New request"', NEW_FX, icon="Add"), icon=True)
     edit = _fit(button("btnFlEdit", '"Edit"', "Set(varFlViewOnly, false)", icon="Edit",
