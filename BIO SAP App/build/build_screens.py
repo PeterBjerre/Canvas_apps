@@ -378,10 +378,11 @@ def build_hub():
         x = by_app.get(dom["app"])
         if x is None:
             return None
-        return (f"Set({cb.NEW_SEQ}, Coalesce({cb.NEW_SEQ}, 0) + 1);\n"
-                "Set(gblNavigating, true);\n"
-                f'Set({cb.want_var(x["tag"])}, "new:" & {cb.NEW_SEQ});\n'
-                f"Navigate({x['screen']}, ScreenTransition.None)")
+        return ("If(\n    !IfError(gblNavigating, false),\n"
+                f"    Set({cb.NEW_SEQ}, Coalesce({cb.NEW_SEQ}, 0) + 1);\n"
+                "    Set(gblNavigating, true);\n"
+                f'    Set({cb.want_var(x["tag"])}, "new:" & {cb.NEW_SEQ});\n'
+                f"    Navigate({x['screen']}, ScreenTransition.None)\n)")
 
     def request_action(prefix):
         branches = []
@@ -395,8 +396,12 @@ def build_hub():
                 f'            Set({cb.opened_var(x["tag"])}, "");\n'
                 f'            Set({cb.want_var(x["tag"])}, "{prefix}:" & ThisItem.RequestGuid);\n'
                 f"            Navigate({x['screen']}, ScreenTransition.None)")
+        # Et klik mere, mens en anmodning allerede aabnes (dobbeltklik,
+        # eller et tryk lige foer sloeret er tegnet), goer intet (#219).
         return (
             "If(\n"
+            "    IfError(gblNavigating, false),\n"
+            "    false,\n"
             "    IsBlank(ThisItem.RequestGuid),\n"
             '    Notify("This request has no ID.", NotificationType.Error),\n'
             "    Switch(\n"
