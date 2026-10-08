@@ -3743,6 +3743,12 @@ Screens:
                                         =2
                                     Color: |-
                                         =RGBA(0, 0, 0, 0)
+                                    DisabledBorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    DisabledColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    DisabledFill: |-
+                                        =C.'row-pressed'
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     FocusedBorderColor: |-
@@ -3759,6 +3765,8 @@ Screens:
                                         =C.'row-hover'
                                     OnSelect: |-
                                         =If(
+                                            IfError(gblNavigating, false),
+                                            false,
                                             IsBlank(ThisItem.RequestGuid),
                                             Notify("This request has no ID.", NotificationType.Error),
                                             Switch(
@@ -3783,6 +3791,11 @@ Screens:
                                                     Set(varEqOpened, "");
                                                     Set(gblEqWant, "req:" & ThisItem.RequestGuid);
                                                     Navigate(ScreenEquipment, ScreenTransition.None),
+                                                "MeasuringPoint",
+                                                    Set(gblNavigating, true);
+                                                    Set(varMpOpened, "");
+                                                    Set(gblMpWant, "req:" & ThisItem.RequestGuid);
+                                                    Navigate(ScreenMeasuringPoint, ScreenTransition.None),
                                                 Notify("This kind of request has no screen in the app yet.", NotificationType.Warning)
                                             )
                                         )
@@ -3823,6 +3836,12 @@ Screens:
                                         =0
                                     Color: |-
                                         =RGBA(0, 0, 0, 0)
+                                    DisabledBorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    DisabledColor: |-
+                                        =C.'color-brand-primary'
+                                    DisabledFill: |-
+                                        =C.'row-pressed'
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     FocusedBorderColor: |-
@@ -4130,6 +4149,8 @@ Screens:
                                         =ImagePosition.Fit
                                     OnSelect: |-
                                         =If(
+                                            IfError(gblNavigating, false),
+                                            false,
                                             IsBlank(ThisItem.RequestGuid),
                                             Notify("This request has no ID.", NotificationType.Error),
                                             Switch(
@@ -4154,6 +4175,11 @@ Screens:
                                                     Set(varEqOpened, "");
                                                     Set(gblEqWant, "edit:" & ThisItem.RequestGuid);
                                                     Navigate(ScreenEquipment, ScreenTransition.None),
+                                                "MeasuringPoint",
+                                                    Set(gblNavigating, true);
+                                                    Set(varMpOpened, "");
+                                                    Set(gblMpWant, "edit:" & ThisItem.RequestGuid);
+                                                    Navigate(ScreenMeasuringPoint, ScreenTransition.None),
                                                 Notify("This kind of request has no screen in the app yet.", NotificationType.Warning)
                                             )
                                         )
@@ -4260,6 +4286,8 @@ Screens:
                                         =ImagePosition.Fit
                                     OnSelect: |-
                                         =If(
+                                            IfError(gblNavigating, false),
+                                            false,
                                             IsBlank(ThisItem.RequestGuid),
                                             Notify("This request has no ID.", NotificationType.Error),
                                             Switch(
@@ -4284,6 +4312,11 @@ Screens:
                                                     Set(varEqOpened, "");
                                                     Set(gblEqWant, "edit:" & ThisItem.RequestGuid);
                                                     Navigate(ScreenEquipment, ScreenTransition.None),
+                                                "MeasuringPoint",
+                                                    Set(gblNavigating, true);
+                                                    Set(varMpOpened, "");
+                                                    Set(gblMpWant, "edit:" & ThisItem.RequestGuid);
+                                                    Navigate(ScreenMeasuringPoint, ScreenTransition.None),
                                                 Notify("This kind of request has no screen in the app yet.", NotificationType.Warning)
                                             )
                                         )
@@ -5179,10 +5212,13 @@ Screens:
                       =ImagePosition.Fit
                   OnSelect: |-
                       =Set(varMdNewMenu, false);
-                      Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
-                      Set(gblNavigating, true);
-                      Set(gblFlWant, "new:" & gblNewSeq);
-                      Navigate(ScreenFunctionalLocation, ScreenTransition.None)
+                      If(
+                          !IfError(gblNavigating, false),
+                          Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
+                          Set(gblNavigating, true);
+                          Set(gblFlWant, "new:" & gblNewSeq);
+                          Navigate(ScreenFunctionalLocation, ScreenTransition.None)
+                      )
                   PressedFill: |-
                       =C.'bg-muted'
                   TabIndex: |-
@@ -5214,10 +5250,13 @@ Screens:
                       =ImagePosition.Fit
                   OnSelect: |-
                       =Set(varMdNewMenu, false);
-                      Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
-                      Set(gblNavigating, true);
-                      Set(gblVhpWant, "new:" & gblNewSeq);
-                      Navigate(ScreenVhPlan, ScreenTransition.None)
+                      If(
+                          !IfError(gblNavigating, false),
+                          Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
+                          Set(gblNavigating, true);
+                          Set(gblVhpWant, "new:" & gblNewSeq);
+                          Navigate(ScreenVhPlan, ScreenTransition.None)
+                      )
                   PressedFill: |-
                       =C.'bg-muted'
                   TabIndex: |-
@@ -5249,10 +5288,13 @@ Screens:
                       =ImagePosition.Fit
                   OnSelect: |-
                       =Set(varMdNewMenu, false);
-                      Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
-                      Set(gblNavigating, true);
-                      Set(gblMatWant, "new:" & gblNewSeq);
-                      Navigate(ScreenMaterial, ScreenTransition.None)
+                      If(
+                          !IfError(gblNavigating, false),
+                          Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
+                          Set(gblNavigating, true);
+                          Set(gblMatWant, "new:" & gblNewSeq);
+                          Navigate(ScreenMaterial, ScreenTransition.None)
+                      )
                   PressedFill: |-
                       =C.'bg-muted'
                   TabIndex: |-
@@ -5284,10 +5326,13 @@ Screens:
                       =ImagePosition.Fit
                   OnSelect: |-
                       =Set(varMdNewMenu, false);
-                      Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
-                      Set(gblNavigating, true);
-                      Set(gblEqWant, "new:" & gblNewSeq);
-                      Navigate(ScreenEquipment, ScreenTransition.None)
+                      If(
+                          !IfError(gblNavigating, false),
+                          Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
+                          Set(gblNavigating, true);
+                          Set(gblEqWant, "new:" & gblNewSeq);
+                          Navigate(ScreenEquipment, ScreenTransition.None)
+                      )
                   PressedFill: |-
                       =C.'bg-muted'
                   TabIndex: |-
@@ -5298,7 +5343,7 @@ Screens:
                 Control: Image
                 Properties:
                   AccessibleLabel: |-
-                      ="Measuring point - coming soon"
+                      ="New measuring point request"
                   BorderStyle: |-
                       =BorderStyle.None
                   BorderThickness: |-
@@ -5312,16 +5357,22 @@ Screens:
                   Height: |-
                       =40
                   HoverFill: |-
-                      =RGBA(0, 0, 0, 0)
+                      =C.'bg-muted'
                   Image: |-
-                      ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='274' height='40' viewBox='0 0 274 40'><g transform='translate(14 9) scale(0.916667)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.65' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g><text x='48' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>" & "Measuring point" & "</text><text x='260' y='24' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='11' fill='" & C.'hex-text-muted' & "'>" & "Coming soon" & "</text></svg>")
+                      ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='274' height='40' viewBox='0 0 274 40'><g transform='translate(14 9) scale(0.916667)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='1.65' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g><text x='48' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Measuring point" & "</text></svg>")
                   ImagePosition: |-
                       =ImagePosition.Fit
                   OnSelect: |-
                       =Set(varMdNewMenu, false);
-                      Notify("This app has not been built yet.", NotificationType.Warning)
+                      If(
+                          !IfError(gblNavigating, false),
+                          Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
+                          Set(gblNavigating, true);
+                          Set(gblMpWant, "new:" & gblNewSeq);
+                          Navigate(ScreenMeasuringPoint, ScreenTransition.None)
+                      )
                   PressedFill: |-
-                      =RGBA(0, 0, 0, 0)
+                      =C.'bg-muted'
                   TabIndex: |-
                       =0
                   Width: |-
@@ -5659,6 +5710,12 @@ Screens:
                             =2
                         Color: |-
                             =RGBA(0, 0, 0, 0)
+                        DisabledBorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        DisabledColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        DisabledFill: |-
+                            =C.'row-pressed'
                         Fill: |-
                             =RGBA(0, 0, 0, 0)
                         FocusedBorderColor: |-
@@ -5676,6 +5733,8 @@ Screens:
                         OnSelect: |-
                             =Set(varMdClosedPeek, false);
                             If(
+                                IfError(gblNavigating, false),
+                                false,
                                 IsBlank(ThisItem.RequestGuid),
                                 Notify("This request has no ID.", NotificationType.Error),
                                 Switch(
@@ -5700,6 +5759,11 @@ Screens:
                                         Set(varEqOpened, "");
                                         Set(gblEqWant, "req:" & ThisItem.RequestGuid);
                                         Navigate(ScreenEquipment, ScreenTransition.None),
+                                    "MeasuringPoint",
+                                        Set(gblNavigating, true);
+                                        Set(varMpOpened, "");
+                                        Set(gblMpWant, "req:" & ThisItem.RequestGuid);
+                                        Navigate(ScreenMeasuringPoint, ScreenTransition.None),
                                     Notify("This kind of request has no screen in the app yet.", NotificationType.Warning)
                                 )
                             )
@@ -5771,12 +5835,18 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderThickness: |-
+                =0
             Height: |-
                 =App.Height
+            HoverFill: |-
+                =C.'overlay'
             Image: |-
                 =""
             OnSelect: |-
                 =If(LayoutRank < 2, Set(varMdDeleteOpen, false))
+            PressedFill: |-
+                =C.'overlay'
             TabIndex: |-
                 =If(LayoutRank < 2, 0, -1)
             Visible: |-
@@ -6051,7 +6121,8 @@ Screens:
                                                         "FunctionalLocation", Set(gblFlStale, true),
                                                         "MaintenancePlan", Set(gblVhpStale, true),
                                                         "Equipment", Set(gblEqStale, true),
-                                                        "Material", Set(gblMatStale, true)
+                                                        "Material", Set(gblMatStale, true),
+                                                        "MeasuringPoint", Set(gblMpStale, true)
                                                     );
                                                     Notify("Request deleted.", NotificationType.Success)
                                                 )
@@ -6110,7 +6181,8 @@ Screens:
                                                                         "FunctionalLocation", Set(gblFlStale, true),
                                                                         "MaintenancePlan", Set(gblVhpStale, true),
                                                                         "Equipment", Set(gblEqStale, true),
-                                                                        "Material", Set(gblMatStale, true)
+                                                                        "Material", Set(gblMatStale, true),
+                                                                        "MeasuringPoint", Set(gblMpStale, true)
                                                                     );
                                                                     Notify("Request deleted.", NotificationType.Success)
                                                                 )
@@ -6153,7 +6225,8 @@ Screens:
                                                     "FunctionalLocation", Set(gblFlStale, true),
                                                     "MaintenancePlan", Set(gblVhpStale, true),
                                                     "Equipment", Set(gblEqStale, true),
-                                                    "Material", Set(gblMatStale, true)
+                                                    "Material", Set(gblMatStale, true),
+                                                    "MeasuringPoint", Set(gblMpStale, true)
                                                 );
                                                 Notify("Request deleted.", NotificationType.Success)
                                             )
@@ -6191,7 +6264,47 @@ Screens:
                                                     "FunctionalLocation", Set(gblFlStale, true),
                                                     "MaintenancePlan", Set(gblVhpStale, true),
                                                     "Equipment", Set(gblEqStale, true),
-                                                    "Material", Set(gblMatStale, true)
+                                                    "Material", Set(gblMatStale, true),
+                                                    "MeasuringPoint", Set(gblMpStale, true)
+                                                );
+                                                Notify("Request deleted.", NotificationType.Success)
+                                            )
+                                        ),
+                                    "MeasuringPoint",
+                                        Remove(MeasuringPointItems, Filter(MeasuringPointItems, RequestGuid = varMdDelGuid));
+                                        If(
+                                            !IsEmpty(Errors(MeasuringPointItems)),
+                                            Notify("The request could not be deleted: " & First(Errors(MeasuringPointItems)).Message, NotificationType.Error),
+                                            Remove(MD_RequestIndex, Filter(MD_RequestIndex, RequestGuid = varMdDelGuid));
+                                            If(
+                                                !IsEmpty(Errors(MD_RequestIndex)),
+                                                Notify("The request could not be deleted: " & First(Errors(MD_RequestIndex)).Message, NotificationType.Error),
+                                                If(
+                                                    (IsAdmin && !(Lower(Coalesce(varMdDelIdx.RequesterEmail, "")) = varMdMe)),
+                                                    IfError(
+                                                        Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                            Title: varMdDelKey,
+                                                            RequestGuid: varMdDelGuid,
+                                                            Stage: "Admin",
+                                                            Decision: "AdminDelete",
+                                                            Detail: Left("Request deleted (" & Coalesce(LookUp(RequestStatusLabels, Key = varMdDelIdx.Status.Value, Label), varMdDelIdx.Status.Value) & ", owner " & varMdDelIdx.RequesterEmail & ")", 255),
+                                                            Comment: "Request deleted (" & Coalesce(LookUp(RequestStatusLabels, Key = varMdDelIdx.Status.Value, Label), varMdDelIdx.Status.Value) & ", owner " & varMdDelIdx.RequesterEmail & ")",
+                                                            DecidedByEmail: Lower(User().Email),
+                                                            DecidedOn: Now()
+                                                        });
+                                                        true,
+                                                        Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                        false
+                                                    )
+                                                );
+                                                RemoveIf(colMdScope, Id = varMdDelIdx.ID);
+                                                Switch(
+                                                    varMdDelDomain,
+                                                    "FunctionalLocation", Set(gblFlStale, true),
+                                                    "MaintenancePlan", Set(gblVhpStale, true),
+                                                    "Equipment", Set(gblEqStale, true),
+                                                    "Material", Set(gblMatStale, true),
+                                                    "MeasuringPoint", Set(gblMpStale, true)
                                                 );
                                                 Notify("Request deleted.", NotificationType.Success)
                                             )
@@ -7380,6 +7493,12 @@ Screens:
                                   =2
                               Color: |-
                                   =RGBA(0, 0, 0, 0)
+                              DisabledBorderColor: |-
+                                  =RGBA(0, 0, 0, 0)
+                              DisabledColor: |-
+                                  =RGBA(0, 0, 0, 0)
+                              DisabledFill: |-
+                                  =C.'row-pressed'
                               Fill: |-
                                   =RGBA(0, 0, 0, 0)
                               FocusedBorderColor: |-
@@ -9709,6 +9828,12 @@ Screens:
                                               =2
                                           Color: |-
                                               =RGBA(0, 0, 0, 0)
+                                          DisabledBorderColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          DisabledColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          DisabledFill: |-
+                                              =C.'row-pressed'
                                           Fill: |-
                                               =RGBA(0, 0, 0, 0)
                                           FocusedBorderColor: |-
@@ -9891,12 +10016,18 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderThickness: |-
+                =0
             Height: |-
                 =App.Height
+            HoverFill: |-
+                =C.'overlay'
             Image: |-
                 ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='440' height='100' viewBox='0 0 440 100'><style>.f{opacity:0;animation:f .2s ease-out 0.15s forwards}.s{transform-origin:32px 32px;animation:s .9s linear infinite}@keyframes f{to{opacity:1}}@keyframes s{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.s{animation:none}}</style><g class='f' transform='translate(188 0)'><text x='32' y='88' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>Opening...</text><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path class='s' d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'/></g></svg>")
             ImagePosition: |-
                 =ImagePosition.Center
+            PressedFill: |-
+                =C.'overlay'
             TabIndex: |-
                 =0
             Visible: |-
