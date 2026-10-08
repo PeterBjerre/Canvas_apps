@@ -2,10 +2,16 @@
 """
 "Message us" popup - opened from the message icon in the sidebar (side_nav.py).
 
-The user writes to the SAP maintenance mailbox. The mail is composed from the
-user's own Outlook through a mailto link, so no connector is needed and the
-message is sent as the user. A mailto link cannot carry file attachments;
-the popup says so and the user adds them in Outlook.
+The user writes to the SAP maintenance mailbox. The mail is sent by the
+flow BioSap-SendFeedbackMail from the service account SVC_BioSap (issue
+#189) - the same Outlook connection reference (orsted_BioSapOutlookConn,
+embedded) as the Issue Board and approval mails. The user's own Outlook is
+never used: no mailto link, no connector of the user's. The flow writes the
+signed-in user (from Power Apps' header) at the top of the mail and sets
+Reply-To to them, so the team can answer the user directly.
+
+Files chosen in the popup go with the mail as attachments (JSON with the
+files as data URIs - the flow turns them back into binaries).
 
 The user's initials and email are read from the signed-in account.
 
@@ -38,6 +44,7 @@ from build_helpers import (group, text_ctrl, button, text_input,
 import layout_tokens as lay
 import request_index as ri
 import icons
+import doc_upload as du
 
 OPEN = "gblFbOpen"
 ME = "gblFbMe"
@@ -46,6 +53,11 @@ PICK = "gblFbPick"    # listen er foldet ud
 REQS = "colFbRequests"
 MAILBOX = "sapvedligehold@orsted.com"
 SEND_FLOW = "'BioSap-SendFeedbackMail'"
+BUSY = "gblFbBusy"    # flowet koerer - Send er spaerret, saa intet sendes to gange
+# Vedhaeftninger: faa og smaa nok til, at JSON-kaldet (base64) og mailen
+# holder sig langt under Outlook-forbindelsens graenser.
+MAX_FILES = 3
+MAX_FILE_MB = 5
 INITIALS = f'Upper(First(Split({ME}, "@")).Value)'
 
 # Brugerens egne anmodninger - aktive og historiske, nyeste foerst.
@@ -84,7 +96,8 @@ _COLLECT = (f"ClearCollect({REQS}, ForAll(FirstN(Sort(Filter('{ri.LIST}', Reques
             f'{{Code: R.{ri.COL_NO}, Title: Coalesce(R.ShortText, ""), Domain: R.Domain.Value, '
             f"TypeName: {_type_fx('R.Domain.Value')}}}))")
 
-OPEN_FX = (f"Set({ME}, Lower(User().Email)); Set({PICK}, false); {_COLLECT}; Set({OPEN}, true)")
+OPEN_FX = (f"Set({ME}, Lower(User().Email)); Set({PICK}, false); Set({BUSY}, false); "
+           f"{_COLLECT}; Set({OPEN}, true)")
 
 # Ingen tom "Request:"-linje mere (issue #116): en valgt anmodning saettes
 # ind som en kontekstblok ved afsendelse (CONTEXT_FX).
@@ -298,8 +311,9 @@ def build(p):
     n = lambda kind, base: f"{kind}{p}Fb{base}"
 
     about, find_name = _subject_picker(n)
+    files = n("att", "Files")
     reset = (f"Set({SEL}, Blank()); Set({PICK}, false); Reset({find_name}); "
-             f"Reset({n('inp', 'Message')})")
+             f"Reset({n('inp', 'Message')}); Reset({files})")
 
     title = grow(text_ctrl(n("txt", "Title"), '"Message SAP maintenance"', size=lay.SIZE_CARD_TITLE,
                            weight="Semibold", height=26, wrap="false"))
@@ -323,7 +337,11 @@ def build(p):
         grow(_field(n("con", "EmailCell"), "Email", inpEmail), min_w=0),
     ], direction="Horizontal", gap=12, height=62, align_items="Start")
 
-    msg_h = f"If({lay.below('Tablet')}, 220, Max(220, Min(272, App.Height - 40 - 402)))"
+    # Vedhaeftningsfeltet (issue #189) staar paa den gamle notes plads
+    # (36): etiket 20 + 6, vaelgeren, 6 + loftteksten 18. Beskeden giver
+    # forskellen fra sig, naar skaermen er lav.
+    extra = f"({du.picker_height(files)} + 50 - 36)"
+    msg_h = (f"If({lay.below('Tablet')}, 220, Max(160, Min(272, App.Height - 40 - 402 - {extra})))")
     inpMessage = text_input(n("inp", "Message"), TEMPLATE_FX, placeholder='"Write your message"',
                             max_length=1200, height=220, ttype="Multiline",
                             label='"Message"')
@@ -335,32 +353,40 @@ def build(p):
     message.props["Visible"] = f"!{PICK}"
     message.vis = f"!{PICK}"
 
-    note = text_ctrl(n("txt", "Note"),
-                     '"Send delivers the message from the app. Send via Outlook opens a draft where you can add attachments."',
-                     size=12, color=C_MUTED, height=36, wrap="true", visible=f"!{PICK}")
+    # Filerne gaar med mailen fra servicekontoen (issue #189) - den gamle
+    # "Send via Outlook" (mailto) er vaek.
+    picker = du.picker(files, '"Files to attach to the message"', MAX_FILES, MAX_FILE_MB,
+                       display_mode=f"If({BUSY}, DisplayMode.Disabled, DisplayMode.Edit)")
+    limits = du.limits_text(n("txt", "FileLimits"), MAX_FILES, MAX_FILE_MB)
+    attach = _field(n("con", "FilesCell"), "Attachments (optional)",
+                    group(n("con", "FilesBody"), [picker, limits], direction="Vertical", gap=6))
+    attach.props["Visible"] = f"!{PICK}"
+    attach.vis = f"!{PICK}"
 
     msg = f"{n('inp', 'Message')}.Text"
-    top = f'Left({msg}, Find("Kind regards,", {msg} & "Kind regards,") - 1)'
-    send_out = (f'Launch("mailto:{MAILBOX}?subject=" & EncodeUrl({SUBJECT_FX}) & '
-                f'"&body=" & EncodeUrl({CONTEXT_FX} & {top}));\n'
-                f"Set({OPEN}, false);\n{reset};\n"
-                'Notify("The mail is ready in Outlook. Press Send there.", NotificationType.Information)')
-    send_app = (f'IfError({SEND_FLOW}.Run("{MAILBOX}", {SUBJECT_FX}, '
-                f'Substitute({CONTEXT_FX} & {msg}, Char(10), "<br>")), '
-                'Notify("The message could not be sent.", NotificationType.Error), '
-                f'Set({OPEN}, false); {reset}; '
-                'Notify("Message sent.", NotificationType.Success))')
-    blank = (f"If(IsBlank(Trim({msg})), "
+    # Flowet sender fra SVC_BioSap og svarer {sent, message}. En afvisning
+    # (sent = "no") og en fejl i kaldet giver begge fejlbeskeden; popuppen
+    # bliver staaende med teksten, saa intet gaar tabt.
+    run = (f'{SEND_FLOW}.Run("{MAILBOX}", {SUBJECT_FX}, {CONTEXT_FX} & {msg}, '
+           f"JSON({files}.Attachments, JSONFormat.IncludeBinaryData))")
+    send_app = (f"Set({BUSY}, true);\n"
+                f"IfError(\n"
+                f"    With({{ res: {run} }},\n"
+                '        If(res.sent = "yes",\n'
+                f"            Set({OPEN}, false); {reset}; "
+                'Notify("Message sent.", NotificationType.Success),\n'
+                '            Notify("The message could not be sent. " & res.message, NotificationType.Error))),\n'
+                '    Notify("The message could not be sent.", NotificationType.Error));\n'
+                f"Set({BUSY}, false)")
+    blank = (f"If(IsBlank(Trim({msg})) || {BUSY}, "
              "DisplayMode.Disabled, DisplayMode.Edit)")
-    btnOutlook = button(n("btn", "SendOutlook"), '"Send via Outlook"', send_out,
-                        width=fit_button_width('"Send via Outlook"'), height=36, display_mode=blank)
     btnSend = button(n("btn", "Send"), '"Send"', send_app, primary=True,
                      width=fit_button_width('"Send"') + ICON_W, height=36, icon="Send",
                      display_mode=blank)
-    footer = group(n("con", "Footer"), [btnOutlook, btnSend], direction="Horizontal", gap=8,
+    footer = group(n("con", "Footer"), [btnSend], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
 
-    modal = group(n("con", "Modal"), [head, intro, who, about, message, note, footer],
+    modal = group(n("con", "Modal"), [head, intro, who, about, message, attach, footer],
                   direction="Vertical", gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT,
                   radius=lay.RADIUS_MODAL, pad=(18, 18, 18, 18),
                   width="Min(560, App.Width - 40)", drop_shadow="ExtraBold",
