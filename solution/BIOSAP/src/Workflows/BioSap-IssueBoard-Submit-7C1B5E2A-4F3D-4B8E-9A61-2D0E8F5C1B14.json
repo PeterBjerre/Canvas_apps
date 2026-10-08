@@ -1812,20 +1812,19 @@
                                   "table": "IB_Tickets",
                                   "id": "@outputs('Ticket')?['ID']",
                                   "item/IsArchived": true,
-                                  "item/SharedItemId": 0,
                                   "item/LastActivityOn": "@{utcNow()}"
                                 },
                                 "authentication": "@parameters('$authentication')"
                               }
                             },
-                            "Remove_shared": {
+                            "Archive_shared": {
                               "runAfter": {
                                 "Update_ticket_archive": [
                                   "Succeeded"
                                 ]
                               },
                               "metadata": {
-                                "operationMetadataId": "7dd1fd9f-9c62-53b9-90d1-97726a5a8d4f"
+                                "operationMetadataId": "23836583-c092-57e9-b71f-cc30d54e428d"
                               },
                               "type": "If",
                               "expression": {
@@ -1835,29 +1834,31 @@
                                 ]
                               },
                               "actions": {
-                                "Delete_shared_archived": {
+                                "Patch_shared_archived": {
                                   "runAfter": {},
                                   "metadata": {
-                                    "operationMetadataId": "f5cb6a21-c20f-55ac-a9f3-941a88f5152b"
+                                    "operationMetadataId": "a10686db-a448-53be-9f2c-385b204d4e3f"
                                   },
                                   "type": "OpenApiConnection",
                                   "inputs": {
                                     "host": {
                                       "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
                                       "connectionName": "shared_sharepointonline",
-                                      "operationId": "DeleteItem"
+                                      "operationId": "PatchItem"
                                     },
                                     "parameters": {
                                       "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
                                       "table": "IB_SharedIssues",
-                                      "id": "@int(coalesce(outputs('Ticket')?['SharedItemId'], 0))"
+                                      "id": "@int(coalesce(outputs('Ticket')?['SharedItemId'], 0))",
+                                      "item/IsArchived": true,
+                                      "item/LastActivityOn": "@{utcNow()}"
                                     },
                                     "authentication": "@parameters('$authentication')"
                                   }
                                 },
-                                "Shared_gone_ok": {
+                                "Shared_archived_ok": {
                                   "runAfter": {
-                                    "Delete_shared_archived": [
+                                    "Patch_shared_archived": [
                                       "Succeeded",
                                       "Failed",
                                       "Skipped",
@@ -1865,7 +1866,7 @@
                                     ]
                                   },
                                   "metadata": {
-                                    "operationMetadataId": "e7bec183-77da-5b93-95a0-c792e24e9516"
+                                    "operationMetadataId": "942336ea-10f5-5ee9-b16a-13161fd0c926"
                                   },
                                   "type": "Compose",
                                   "inputs": "@true"
@@ -1877,7 +1878,7 @@
                             },
                             "Log_archive": {
                               "runAfter": {
-                                "Remove_shared": [
+                                "Archive_shared": [
                                   "Succeeded"
                                 ]
                               },
@@ -1891,7 +1892,7 @@
                                   "type": "Archived",
                                   "visibility": "Reporter",
                                   "role": "@{if(and(outputs('Is_admin'), not(outputs('Is_reporter'))), 'Admin', 'Reporter')}",
-                                  "content": "Archived the issue. It is kept, but no longer shown in the active lists.",
+                                  "content": "Archived the issue. It is kept with its history and can still be found under Archived.",
                                   "prev": "",
                                   "next": "",
                                   "file": "",
@@ -1903,67 +1904,134 @@
                           },
                           "else": {
                             "actions": {
-                              "Recreate_shared": {
+                              "Restore_shared": {
                                 "runAfter": {},
                                 "metadata": {
-                                  "operationMetadataId": "bc6d8166-8b04-5f96-9cdf-07c40e7de6fb"
+                                  "operationMetadataId": "5f03e8f6-9dde-5c32-abb5-0eec3dccdc83"
                                 },
-                                "type": "OpenApiConnection",
-                                "inputs": {
-                                  "host": {
-                                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                                    "connectionName": "shared_sharepointonline",
-                                    "operationId": "PostItem"
-                                  },
-                                  "parameters": {
-                                    "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
-                                    "table": "IB_SharedIssues",
-                                    "item/Title": "@{coalesce(outputs('Ticket')?['Title'], '')}",
-                                    "item/TicketNo": "@{coalesce(outputs('Ticket')?['TicketNo'], '')}",
-                                    "item/Summary": "@{take(coalesce(outputs('Ticket')?['Description'], ''), 1000)}",
-                                    "item/Application": "@{coalesce(outputs('Ticket')?['Application'], '')}",
-                                    "item/Section": "@{coalesce(outputs('Ticket')?['Section'], '')}",
-                                    "item/Status": "@{outputs('Current_status')}",
-                                    "item/Severity": "@{coalesce(outputs('Ticket')?['Severity']?['Value'], '')}",
-                                    "item/Priority": "@{coalesce(outputs('Ticket')?['Priority']?['Value'], '')}",
-                                    "item/Resolution": "@{coalesce(outputs('Ticket')?['Resolution'], '')}",
-                                    "item/ReportedOn": "@{outputs('Ticket')?['Created']}",
-                                    "item/LastActivityOn": "@{utcNow()}",
-                                    "item/IsArchived": false
-                                  },
-                                  "authentication": "@parameters('$authentication')"
-                                }
-                              },
-                              "Update_ticket_restore": {
-                                "runAfter": {
-                                  "Recreate_shared": [
-                                    "Succeeded"
+                                "type": "If",
+                                "expression": {
+                                  "greater": [
+                                    "@coalesce(outputs('Ticket')?['SharedItemId'], 0)",
+                                    0
                                   ]
                                 },
-                                "metadata": {
-                                  "operationMetadataId": "9f26307b-5b05-5ef2-bff0-5e9657492690"
+                                "actions": {
+                                  "Patch_shared_restored": {
+                                    "runAfter": {},
+                                    "metadata": {
+                                      "operationMetadataId": "e34a24f5-3d2f-537f-9846-8d64da762c95"
+                                    },
+                                    "type": "OpenApiConnection",
+                                    "inputs": {
+                                      "host": {
+                                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                        "connectionName": "shared_sharepointonline",
+                                        "operationId": "PatchItem"
+                                      },
+                                      "parameters": {
+                                        "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                        "table": "IB_SharedIssues",
+                                        "id": "@int(coalesce(outputs('Ticket')?['SharedItemId'], 0))",
+                                        "item/IsArchived": false,
+                                        "item/LastActivityOn": "@{utcNow()}"
+                                      },
+                                      "authentication": "@parameters('$authentication')"
+                                    }
+                                  },
+                                  "Update_ticket_unarchive": {
+                                    "runAfter": {
+                                      "Patch_shared_restored": [
+                                        "Succeeded"
+                                      ]
+                                    },
+                                    "metadata": {
+                                      "operationMetadataId": "e22a0b8e-8f9a-5ea7-8544-9e155f04d38c"
+                                    },
+                                    "type": "OpenApiConnection",
+                                    "inputs": {
+                                      "host": {
+                                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                        "connectionName": "shared_sharepointonline",
+                                        "operationId": "PatchItem"
+                                      },
+                                      "parameters": {
+                                        "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                        "table": "IB_Tickets",
+                                        "id": "@outputs('Ticket')?['ID']",
+                                        "item/IsArchived": false,
+                                        "item/LastActivityOn": "@{utcNow()}"
+                                      },
+                                      "authentication": "@parameters('$authentication')"
+                                    }
+                                  }
                                 },
-                                "type": "OpenApiConnection",
-                                "inputs": {
-                                  "host": {
-                                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                                    "connectionName": "shared_sharepointonline",
-                                    "operationId": "PatchItem"
-                                  },
-                                  "parameters": {
-                                    "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
-                                    "table": "IB_Tickets",
-                                    "id": "@outputs('Ticket')?['ID']",
-                                    "item/IsArchived": false,
-                                    "item/SharedItemId": "@body('Recreate_shared')?['ID']",
-                                    "item/LastActivityOn": "@{utcNow()}"
-                                  },
-                                  "authentication": "@parameters('$authentication')"
+                                "else": {
+                                  "actions": {
+                                    "Recreate_shared": {
+                                      "runAfter": {},
+                                      "metadata": {
+                                        "operationMetadataId": "bc6d8166-8b04-5f96-9cdf-07c40e7de6fb"
+                                      },
+                                      "type": "OpenApiConnection",
+                                      "inputs": {
+                                        "host": {
+                                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                          "connectionName": "shared_sharepointonline",
+                                          "operationId": "PostItem"
+                                        },
+                                        "parameters": {
+                                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                          "table": "IB_SharedIssues",
+                                          "item/Title": "@{coalesce(outputs('Ticket')?['Title'], '')}",
+                                          "item/TicketNo": "@{coalesce(outputs('Ticket')?['TicketNo'], '')}",
+                                          "item/Summary": "@{take(coalesce(outputs('Ticket')?['Description'], ''), 1000)}",
+                                          "item/Application": "@{coalesce(outputs('Ticket')?['Application'], '')}",
+                                          "item/Section": "@{coalesce(outputs('Ticket')?['Section'], '')}",
+                                          "item/Status": "@{outputs('Current_status')}",
+                                          "item/Severity": "@{coalesce(outputs('Ticket')?['Severity']?['Value'], '')}",
+                                          "item/Priority": "@{coalesce(outputs('Ticket')?['Priority']?['Value'], '')}",
+                                          "item/Resolution": "@{coalesce(outputs('Ticket')?['Resolution'], '')}",
+                                          "item/ReportedOn": "@{outputs('Ticket')?['Created']}",
+                                          "item/LastActivityOn": "@{utcNow()}",
+                                          "item/IsArchived": false
+                                        },
+                                        "authentication": "@parameters('$authentication')"
+                                      }
+                                    },
+                                    "Update_ticket_restore": {
+                                      "runAfter": {
+                                        "Recreate_shared": [
+                                          "Succeeded"
+                                        ]
+                                      },
+                                      "metadata": {
+                                        "operationMetadataId": "9f26307b-5b05-5ef2-bff0-5e9657492690"
+                                      },
+                                      "type": "OpenApiConnection",
+                                      "inputs": {
+                                        "host": {
+                                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                          "connectionName": "shared_sharepointonline",
+                                          "operationId": "PatchItem"
+                                        },
+                                        "parameters": {
+                                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                          "table": "IB_Tickets",
+                                          "id": "@outputs('Ticket')?['ID']",
+                                          "item/IsArchived": false,
+                                          "item/SharedItemId": "@body('Recreate_shared')?['ID']",
+                                          "item/LastActivityOn": "@{utcNow()}"
+                                        },
+                                        "authentication": "@parameters('$authentication')"
+                                      }
+                                    }
+                                  }
                                 }
                               },
                               "Log_restore": {
                                 "runAfter": {
-                                  "Update_ticket_restore": [
+                                  "Restore_shared": [
                                     "Succeeded"
                                   ]
                                 },
