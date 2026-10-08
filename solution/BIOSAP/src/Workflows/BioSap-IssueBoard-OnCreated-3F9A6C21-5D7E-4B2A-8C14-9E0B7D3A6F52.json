@@ -1,0 +1,350 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapSharePointConn"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapOutlookConn"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "BioSap-SiteUrl (orsted_BioSapSiteUrl)": {
+          "defaultValue": "https://orsted.sharepoint.com/teams/BioSAPDev",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapSiteUrl"
+          }
+        }
+      },
+      "triggers": {
+        "When_an_issue_is_created": {
+          "recurrence": {
+            "interval": 1,
+            "frequency": "Minute"
+          },
+          "splitOn": "@triggerOutputs()?['body/value']",
+          "metadata": {
+            "operationMetadataId": "39ad27b4-f3f6-5687-830a-4986fbfec63f"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+              "connectionName": "shared_sharepointonline",
+              "operationId": "GetOnNewItems"
+            },
+            "parameters": {
+              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+              "table": "IB_Tickets"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Ticket_no": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "ac1905ff-32cf-5c43-8ee7-ab28db667b02"
+          },
+          "type": "Compose",
+          "inputs": "@concat('ISS-', formatNumber(int(triggerBody()?['ID']), '000000'))"
+        },
+        "Reporter": {
+          "runAfter": {
+            "Ticket_no": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "c49dd58d-4651-517d-b299-3066f35a110d"
+          },
+          "type": "Compose",
+          "inputs": "@toLower(trim(coalesce(triggerBody()?['Author']?['Email'], '')))"
+        },
+        "Reporter_name": {
+          "runAfter": {
+            "Reporter": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "0ddbc523-83b8-5015-bfd5-dad1e405c939"
+          },
+          "type": "Compose",
+          "inputs": "@take(trim(coalesce(triggerBody()?['Author']?['DisplayName'], '')), 255)"
+        },
+        "Update_ticket": {
+          "runAfter": {
+            "Reporter_name": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "960f446c-5200-5b99-8da1-21f3b3d6eb62"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+              "connectionName": "shared_sharepointonline",
+              "operationId": "PatchItem"
+            },
+            "parameters": {
+              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+              "table": "IB_Tickets",
+              "id": "@triggerBody()?['ID']",
+              "item/TicketNo": "@{outputs('Ticket_no')}",
+              "item/ReporterEmail": "@{outputs('Reporter')}",
+              "item/ReporterName": "@{outputs('Reporter_name')}",
+              "item/Status/Value": "New",
+              "item/Priority/Value": "Normal",
+              "item/IsArchived": false
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Get_admins": {
+          "runAfter": {
+            "Update_ticket": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "1e46f409-c475-5612-b850-84996f147a0c"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+              "connectionName": "shared_sharepointonline",
+              "operationId": "GetItems"
+            },
+            "parameters": {
+              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+              "table": "UserAndGroups",
+              "$filter": "Title eq 'Admin'",
+              "$top": 500
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Select_admins": {
+          "runAfter": {
+            "Get_admins": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "a36fa098-1669-52f6-804f-b2ceffa1af58"
+          },
+          "type": "Select",
+          "inputs": {
+            "from": "@body('Get_admins')?['value']",
+            "select": "@toLower(trim(coalesce(item()?['Member'], '')))"
+          }
+        },
+        "Admin_emails": {
+          "runAfter": {
+            "Select_admins": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "19110c88-a479-5c23-88a2-1da0e6ab903e"
+          },
+          "type": "Query",
+          "inputs": {
+            "from": "@body('Select_admins')",
+            "where": "@not(equals(item(), ''))"
+          }
+        },
+        "Admin_to": {
+          "runAfter": {
+            "Admin_emails": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "8619ef35-58d8-5965-8a5d-d8917302cc0c"
+          },
+          "type": "Compose",
+          "inputs": "@join(union(body('Admin_emails'), createArray()), ';')"
+        },
+        "Title_html": {
+          "runAfter": {
+            "Admin_to": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e470a3c0-ab06-51c6-a7f6-72e5baf7202c"
+          },
+          "type": "Compose",
+          "inputs": "@replace(replace(replace(take(trim(coalesce(triggerBody()?['Title'], '')), 255), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')"
+        },
+        "Description_html": {
+          "runAfter": {
+            "Title_html": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "f76fd36d-9f13-58d2-8757-0f66d9c902db"
+          },
+          "type": "Compose",
+          "inputs": "@replace(replace(replace(take(trim(coalesce(triggerBody()?['Description'], '')), 2000), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')"
+        },
+        "Mail_admins": {
+          "runAfter": {
+            "Description_html": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "14d71463-6d69-5429-b8c7-072c00a82999"
+          },
+          "type": "If",
+          "expression": {
+            "not": {
+              "equals": [
+                "@outputs('Admin_to')",
+                ""
+              ]
+            }
+          },
+          "actions": {
+            "Send_mail_to_admins": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "604cbbd6-0874-5cb9-a5f6-6dfae3286c5b"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                  "connectionName": "shared_office365",
+                  "operationId": "SendEmailV2"
+                },
+                "parameters": {
+                  "emailMessage/To": "@{outputs('Admin_to')}",
+                  "emailMessage/Subject": "[@{outputs('Ticket_no')}] New issue: @{take(trim(coalesce(triggerBody()?['Title'], '')), 200)}",
+                  "emailMessage/Body": "<div style=\"font-family: Segoe UI, Arial, sans-serif; font-size: 14px\"><p>Hi,</p><p>A new issue has been reported in the Issue Board by <b>@{replace(replace(replace(coalesce(outputs('Reporter_name'), outputs('Reporter')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</b>:</p><p><b>@{outputs('Ticket_no')} - @{outputs('Title_html')}</b><br>@{replace(replace(replace(coalesce(triggerBody()?['Application'], ''), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')} &middot; @{replace(replace(replace(coalesce(triggerBody()?['Section'], ''), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}<br>Severity: @{coalesce(triggerBody()?['Severity']?['Value'], 'Minor')}</p><blockquote style=\"white-space: pre-wrap\">@{outputs('Description_html')}</blockquote><p>Open the Issue Board in BIO SAP to triage it.</p></div>",
+                  "emailMessage/Importance": "Normal"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Admin_mail_handled": {
+              "runAfter": {
+                "Send_mail_to_admins": [
+                  "Succeeded",
+                  "Failed",
+                  "Skipped",
+                  "TimedOut"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "d6bc4e57-bd69-5cfe-a8a3-06f02676ce37"
+              },
+              "type": "Compose",
+              "inputs": "@true"
+            }
+          },
+          "else": {
+            "actions": {}
+          }
+        },
+        "Mail_reporter": {
+          "runAfter": {
+            "Mail_admins": [
+              "Succeeded",
+              "Failed",
+              "Skipped",
+              "TimedOut"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "a8a79e65-2800-5735-b480-9c38d85f2a5a"
+          },
+          "type": "If",
+          "expression": {
+            "not": {
+              "equals": [
+                "@outputs('Reporter')",
+                ""
+              ]
+            }
+          },
+          "actions": {
+            "Send_mail_to_reporter": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "1637d9f4-cf5d-5d8a-ad7a-a942b8ba6f2d"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                  "connectionName": "shared_office365",
+                  "operationId": "SendEmailV2"
+                },
+                "parameters": {
+                  "emailMessage/To": "@{outputs('Reporter')}",
+                  "emailMessage/Subject": "[@{outputs('Ticket_no')}] Your issue has been registered: @{take(trim(coalesce(triggerBody()?['Title'], '')), 200)}",
+                  "emailMessage/Body": "<div style=\"font-family: Segoe UI, Arial, sans-serif; font-size: 14px\"><p>Hi,</p><p>Thank you. Your issue <b>@{outputs('Ticket_no')} - @{outputs('Title_html')}</b> has been registered.</p><p>You get an email when an administrator replies, and when the issue is ready for retest or closed. To add screenshots or files, open the Issue Board in BIO SAP and select the paperclip on the issue.</p></div>",
+                  "emailMessage/Importance": "Normal"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Reporter_mail_handled": {
+              "runAfter": {
+                "Send_mail_to_reporter": [
+                  "Succeeded",
+                  "Failed",
+                  "Skipped",
+                  "TimedOut"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "b43b162d-c7e3-566d-aa9d-bc1f3465eb81"
+              },
+              "type": "Compose",
+              "inputs": "@true"
+            }
+          },
+          "else": {
+            "actions": {}
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}
