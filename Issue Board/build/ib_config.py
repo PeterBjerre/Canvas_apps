@@ -6,49 +6,56 @@ ordforraadet. EET sted - skaermen (ib_parts.py), provisioneringen
 (BioSap-IssueBoard-Submit) bruger de samme navne, og
 tests/test_issue_board.py holder dem i trit.
 
-ARKITEKTUREN (trin 1)
----------------------
-    app ──Run("create"|"comment", JSON)──► BioSap-IssueBoard-Submit
-                                            (flowejerens forbindelse)
-        1. opretter raekken i IB_Tickets / IB_TicketComments
-        2. bryder nedarvningen paa raekken og giver KUN
-           rapportoeren Read og admins (UserAndGroups, Title = Admin) Contribute
-        3. spejler en saneret kopi til IB_SharedIssues
-        4. svarer appen - foerst nu kan rapportoeren se sagen
+ARKITEKTUREN (issue #193 - foer: trin 1 og 2 i issue #114)
+-----------------------------------------------------------
+    app ──Patch──► IB_Tickets            brugerens egen forbindelse
+        ny sag     opretter raekken (Defaults); Created By er brugeren
+        edit       retter raekken; bagefter Run("edit", prev) - se under
 
-    IB_Tickets og IB_TicketComments har brudt nedarvning paa LISTEN, uden
-    Members og Visitors. En raekke er derfor usynlig for alle andre end
-    ejerne og flowets konto, fra den oprettes, til flowet har givet
-    rapportoeren adgang - der er intet hul.
+    IB_Tickets ──"When an item is created"──► BioSap-IssueBoard-OnCreated
+                                            (servicekontoens forbindelser)
+        1. TicketNo = ISS-000000 ud fra ID, ReporterEmail/-Name ud fra
+           Created By, Status New, Priority Normal - ogsaa hvis en
+           bruger har oprettet raekken direkte i SharePoint
+        2. mail til admins og til rapportoeren (afsender: servicekontoen)
 
-    Appen LAESER med brugerens egen forbindelse. Rettighederne paa raekken
-    er sikringen; filtrene i appen er kun UX.
+    app ──Run(handling, JSON)──► BioSap-IssueBoard-Submit
+        comment  skriver kommentaren i IB_TicketComments og giver KUN
+                 rapportoeren Read (ikke ved Internal) og admins
+                 (UserAndGroups, Title = Admin) Contribute paa raekken.
+        edit     appen har rettet sagen; flowet sammenligner raekken med
+                 vaerdierne foer (prev) og skriver een haendelse pr.
+                 aendring, stempler ResolvedOn/ClosedOn og sender mailen
+                 ved Ready for retest/Closed.
+        reopen   rapportoeren (eller en admin) genaabner en lukket sag
+                 eller en sag, der er klar til gentest.
+        archive  kun admin: arkiver eller gendan.
+        delete   kun admin, og kun med sagsnummeret som bekraeftelse:
+                 sletter haendelserne og sagen med dens vedhaeftninger.
+        attach   en fil paa sagens raekke (SharePoint-vedhaeftning) og en
+                 Attachment-haendelse i Activity. Kun rapportoeren og
+                 admins. Appen kalder den fra fanen Attachments - og
+                 papirclipsen paa flisen aabner sagen paa den fane.
 
-TRIN 2 (admin-board, redigering, vedhaeftninger, mail)
-------------------------------------------------------
-    edit     rapportoeren retter sin sag, mens den er New; en admin retter
-             altid og flytter desuden status, prioritet, tildeling og
-             loesning. Hver aendring bliver sin egen haendelse.
-    reopen   rapportoeren (eller en admin) genaabner en lukket sag eller en
-             sag, der er klar til gentest - een knap.
-    archive  kun admin: arkiver (ud af de aktive lister; den delte kopi
-             bliver staaende med IsArchived = Ja, saa alle kan finde den
-             under Archived uden private oplysninger, issue #177) eller
-             gendan.
-    delete   kun admin, og kun med sagsnummeret som bekraeftelse: sletter
-             haendelserne, den delte kopi og sagen med dens vedhaeftninger.
-    attach   en fil paa sagens egen raekke (SharePoint-vedhaeftning). Den
-             arver raekkens unikke rettigheder - rapportoeren og admins.
-    comment  som trin 1, og en admin kan skrive en intern note (Visibility
-             Internal: rapportoeren faar ingen rettighed til raekken).
+RETTIGHEDER (sharepoint/provision/Provision-IssueBoard.ps1)
+-----------------------------------------------------------
+    IB_Tickets          Members Contribute, Read all items, Edit own items;
+                        admins Design (retter alle). Ingen anonymisering:
+                        alle ser alle sager med rapportoerens navn, og
+                        vedhaeftningerne arver listen.
+    IB_TicketComments   privat liste; rettigheder paa hver raekke (flowet):
+                        kun sagens rapportoer og admins kan laese en sags
+                        kommentarer - det haandhaever SharePoint.
 
-Flowet tjekker admin (UserAndGroups) og rapportoer paa serveren for hver
-handling. Knapperne paa skaermen (IbCanEdit osv.) er kun UX og spejler
-reglerne her.
+    SharePoint haandhaever HVEM der retter en sag, ikke HVILKE felter: at
+    kun admins flytter status, prioritet og tildeling, og at rapportoeren
+    kun retter, mens sagen er New, er appens regel (knapperne IbCan* og
+    SAVE_EDIT, der laeser raekken igen foer Patch). Nummeret og
+    rapportoeren rettes af OnCreated-flowet paa serveren.
 
-Mail (Outlook, samme forbindelse som de andre BIO SAP-flows) gaar KUN til
-rapportoeren og kun ved tre haendelser: en admin svarer synligt, sagen er
-klar til gentest, og sagen er lukket.
+Mail (Outlook, samme forbindelse som de andre BIO SAP-flows): ny sag til
+admins og rapportoeren (OnCreated); til rapportoeren, naar en admin
+svarer synligt, og naar sagen er klar til gentest eller lukket (Submit).
 
 FEATURE-FLAGET
 --------------
@@ -70,7 +77,6 @@ FEATURE = "issue_board"
 L_TICKETS = "IB_Tickets"
 L_COMMENTS = "IB_TicketComments"
 L_SECTIONS = "IB_AppSections"
-L_SHARED = "IB_SharedIssues"
 
 # Kolonnerne, appen LAESER, pr. liste. Power Fx binder paa visningsnavnet;
 # provisioneringen giver alle kolonner samme interne navn og visningsnavn,
@@ -80,21 +86,19 @@ COLS = {
     L_TICKETS: ["ID", "Title", "TicketNo", "Description", "ReproSteps", "ExpectedResult",
                 "ActualResult", "Application", "Section", "OtherContext", "RelatedRequestNo",
                 "Severity", "Priority", "Status", "Resolution", "AssignedToName",
-                "ReporterEmail", "AssignedToEmail", "Created", "LastActivityOn", "IsArchived",
-                "Attachments"],
+                "ReporterEmail", "ReporterName", "AssignedToEmail", "Created", "LastActivityOn",
+                "IsArchived", "Attachments"],
     L_COMMENTS: ["TicketId", "AuthorEmail", "AuthorRole", "EventType", "Visibility",
                  "Content", "PreviousStatus", "NewStatus", "EventOn", "FileName", "FileSizeKb",
                  "AtSubmission"],
     L_SECTIONS: ["Application", "Section", "AppOrder", "SectionOrder", "ScreenKey",
                  "IsActive"],
-    L_SHARED: ["ID", "Title", "TicketNo", "Summary", "Application", "Section", "Status",
-               "Severity", "Priority", "Resolution", "ReportedOn", "LastActivityOn",
-               "IsArchived"],
 }
 
 # --- flowet ----------------------------------------------------------------
 FLOW = "'BioSap-IssueBoard-Submit'"
-ACT_CREATE = "create"
+# Nummer og mail ved en ny sag - udloeses af SharePoint, kaldes ikke af appen.
+FLOW_ON_CREATED = "BioSap-IssueBoard-OnCreated"
 ACT_COMMENT = "comment"
 ACT_EDIT = "edit"
 ACT_REOPEN = "reopen"
@@ -106,7 +110,7 @@ ACT_ATTACH = "attach"
 # Livsforloebet: New -> Triaged -> In progress -> Ready for retest -> Closed,
 # og Reopened, naar en lukket sag ikke er loest. Status kan gaa baglaens,
 # saa skaermen viser et maerke, ikke en fremdriftsbjaelke. Flowet saetter
-# New; admin flytter status i Edit; rapportoeren genaabner med Reopen.
+# New (OnCreated-flowet); admin flytter status i Edit; rapportoeren genaabner med Reopen.
 #
 # (vaerdi, farvetoken-par, rang til sortering)
 STATUS = [
@@ -127,7 +131,7 @@ STATUS_EDITABLE = STATUS_NEW
 REOPENABLE = [STATUS_CLOSED, STATUS_RETEST]
 SEVERITY = ["Blocker", "Major", "Minor", "Cosmetic"]
 SEVERITY_DEFAULT = "Minor"
-# Prioriteten saetter admin i Edit. Flowet starter alle paa Normal.
+# Prioriteten saetter admin i Edit. Alle starter paa Normal.
 PRIORITY = [("Urgent", 1), ("High", 2), ("Normal", 3), ("Low", 4)]
 PRIORITY_DEFAULT = "Normal"
 EVENT_TYPES = ["Comment", "StatusChange", "Assignment", "PriorityChange", "Attachment",

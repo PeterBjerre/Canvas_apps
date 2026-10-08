@@ -18,7 +18,12 @@
         Label:  uat (oprettes, hvis den ikke findes).
 
     HVAD DER IKKE KOMMER MED
-        Rapportoerens navn og e-mail, kommentarerne og selve filerne.
+        Rapportoerens navn og e-mail, tildelingen, kommentarerne og selve
+        filerne. Siden issue #193 staar rapportoerens navn synligt paa
+        sagen i Issue Board - men scriptet henter KUN kolonnerne i $FIELDS
+        (ingen ReporterEmail, ReporterName, AssignedTo*, Author eller
+        Editor), saa navnet kan ikke komme med. tests/test_issue_board.py
+        holder det sadan.
         REPOET ER OFFENTLIGT: alt, der sendes, kan alle laese. Scriptet
         viser hver sag, foer den sendes, og advarer, hvis teksten
         indeholder en e-mailadresse.
@@ -31,11 +36,11 @@
     SCRIPTET AENDRER INTET I SHAREPOINT
         Det laeser kun IB_Tickets. Saet selv sagen til In progress i
         Issue Board (Edit), og skriv gerne GitHub-linket som kommentar -
-        saa gaar aendringen gennem flowet og kommer i sagens Activity.
+        saa kommer aendringen i sagens Activity.
 
     ADGANG
-        Du skal vaere admin i Issue Board (UserAndGroups, Title = Admin):
-        flowet giver admins adgang til hver sag. Paa GitHub skal du bruge
+        Du skal kunne laese IB_Tickets - siden issue #193 kan alle Members
+        det (kommentarerne laeses ikke). Paa GitHub skal du bruge
         et token med Issues: Read and write paa repoet (fine-grained
         personal access token). Tokenet gemmes ALDRIG i repoet.
 

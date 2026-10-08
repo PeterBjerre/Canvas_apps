@@ -4,9 +4,7 @@ Screens:
       Fill: |-
           =C.'bg-app'
       OnVisible: |-
-          =If(false, ClearCollect(colIbMine, { Id: 0, TicketNo: "", Title: "", Description: "", Steps: "", Expected: "", Actual: "", Application: "", Section: "", Other: "", RelatedNo: "", Severity: "", Priority: "", Status: "", Resolution: "", Assigned: "", CreatedOn: Now(), UpdatedOn: Now(), Archived: false, Reporter: "", AssignedEmail: "", PriRank: 0, StatusRank: 0 }));
-          If(false, ClearCollect(colIbAll, { Id: 0, TicketNo: "", Title: "", Description: "", Steps: "", Expected: "", Actual: "", Application: "", Section: "", Other: "", RelatedNo: "", Severity: "", Priority: "", Status: "", Resolution: "", Assigned: "", CreatedOn: Now(), UpdatedOn: Now(), Archived: false, Reporter: "", AssignedEmail: "", PriRank: 0, StatusRank: 0 }));
-          If(false, ClearCollect(colIbShared, { Id: 0, TicketNo: "", Title: "", Description: "", Steps: "", Expected: "", Actual: "", Application: "", Section: "", Other: "", RelatedNo: "", Severity: "", Priority: "", Status: "", Resolution: "", Assigned: "", CreatedOn: Now(), UpdatedOn: Now(), Archived: false, Reporter: "", AssignedEmail: "", PriRank: 0, StatusRank: 0 }));
+          =If(false, ClearCollect(colIbAll, { Id: 0, TicketNo: "", Title: "", Description: "", Steps: "", Expected: "", Actual: "", Application: "", Section: "", Other: "", RelatedNo: "", Severity: "", Priority: "", Status: "", Resolution: "", Assigned: "", CreatedOn: Now(), UpdatedOn: Now(), Archived: false, Reporter: "", ReporterName: "", AssignedEmail: "", PriRank: 0, StatusRank: 0 }));
           If(false, ClearCollect(colIbSections, { Application: "", Section: "", AppOrder: 0, SectionOrder: 0, ScreenKey: "" }));
           If(false, ClearCollect(colIbActivity, { Kind: "", Actor: "", Role: "", Body: "", At: Now(), Internal: false, IsSystem: false, File: "", SizeKb: 0, Initial: false }));
           If(false, ClearCollect(colIbAdmins, { Email: "", Name: "" }));
@@ -35,8 +33,8 @@ Screens:
               Set(varIbSelFullFor, -1);
               Set(varIbTried, false);
               Set(varIbBusy, false);
-              Set(varIbSharedBusy, false);
               Set(varIbUploading, false);
+              Set(varIbSelPeek, false);
               Set(varIbPosting, false)
           );
           If(
@@ -44,9 +42,9 @@ Screens:
               Set(varIbLoading, true);
               Concurrent(
                   Set(varIbCfgFailed, IfError(ClearCollect(colIbSections, ForAll(Filter(IB_AppSections, IsActive = true) As r, { Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), AppOrder: Coalesce(r.AppOrder, 0), SectionOrder: Coalesce(r.SectionOrder, 0), ScreenKey: Coalesce(r.ScreenKey, "") })); false, true)),
-                  If(IsAdmin, Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true)); Set(varIbMineFailed, false), Set(varIbMineFailed, IfError(ClearCollect(colIbMine, ForAll(ShowColumns(Sort(Filter(IB_Tickets, ReporterEmail = varIbMe), LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true)); Set(varIbAllFailed, false))
+                  Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true))
               );
-              Set(varIbLoaded, !varIbCfgFailed && !varIbMineFailed && !varIbAllFailed);
+              Set(varIbLoaded, !varIbCfgFailed && !varIbAllFailed);
               Set(varIbLoading, false)
           );
           If(IsBlank(varIbScope), Set(varIbScope, If(IsAdmin, "all", "mine")))
@@ -301,25 +299,17 @@ Screens:
                                   =91
                               OnSelect: |-
                                   =Set(varIbLoaded, false);
-                                  Set(varIbSharedLoaded, false);
                                   If(
                                       !varIbLoaded,
                                       Set(varIbLoading, true);
                                       Concurrent(
                                           Set(varIbCfgFailed, IfError(ClearCollect(colIbSections, ForAll(Filter(IB_AppSections, IsActive = true) As r, { Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), AppOrder: Coalesce(r.AppOrder, 0), SectionOrder: Coalesce(r.SectionOrder, 0), ScreenKey: Coalesce(r.ScreenKey, "") })); false, true)),
-                                          If(IsAdmin, Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true)); Set(varIbMineFailed, false), Set(varIbMineFailed, IfError(ClearCollect(colIbMine, ForAll(ShowColumns(Sort(Filter(IB_Tickets, ReporterEmail = varIbMe), LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true)); Set(varIbAllFailed, false))
+                                          Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true))
                                       );
-                                      Set(varIbLoaded, !varIbCfgFailed && !varIbMineFailed && !varIbAllFailed);
+                                      Set(varIbLoaded, !varIbCfgFailed && !varIbAllFailed);
                                       Set(varIbLoading, false)
                                   );
-                                  If(IsBlank(varIbScope), Set(varIbScope, If(IsAdmin, "all", "mine")));
-                                  If(varIbScope = "shared", If(
-                                      !varIbSharedLoaded,
-                                      Set(varIbSharedBusy, true);
-                                      Set(varIbSharedFailed, IfError(ClearCollect(colIbShared, ForAll(Sort(IB_SharedIssues, LastActivityOn, SortOrder.Descending) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Summary, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity, ""), Priority: Coalesce(r.Priority, ""), Status: Coalesce(r.Status, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: "", CreatedOn: Coalesce(r.ReportedOn, r.Created), UpdatedOn: Coalesce(r.LastActivityOn, r.ReportedOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: "", AssignedEmail: "", PriRank: Switch(r.Priority, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
-                                      Set(varIbSharedLoaded, !varIbSharedFailed);
-                                      Set(varIbSharedBusy, false)
-                                  ))
+                                  If(IsBlank(varIbScope), Set(varIbScope, If(IsAdmin, "all", "mine")))
                               RadiusBottomLeft: |-
                                   =10
                               RadiusBottomRight: |-
@@ -379,19 +369,11 @@ Screens:
                                   Reset(inpIbActual);
                                   Reset(inpIbRelated);
                                   Reset(drpIbSeverity);
-                                  Reset(attIbNewFiles);
                                   Reset(drpIbStatus);
                                   Reset(drpIbPriority);
                                   Reset(drpIbAssignee);
                                   Reset(inpIbResolution);
-                                  Set(varIbFormOn, true);
-                                  If(!IsAdmin, If(
-                                      !varIbSharedLoaded,
-                                      Set(varIbSharedBusy, true);
-                                      Set(varIbSharedFailed, IfError(ClearCollect(colIbShared, ForAll(Sort(IB_SharedIssues, LastActivityOn, SortOrder.Descending) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Summary, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity, ""), Priority: Coalesce(r.Priority, ""), Status: Coalesce(r.Status, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: "", CreatedOn: Coalesce(r.ReportedOn, r.Created), UpdatedOn: Coalesce(r.LastActivityOn, r.ReportedOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: "", AssignedEmail: "", PriRank: Switch(r.Priority, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
-                                      Set(varIbSharedLoaded, !varIbSharedFailed);
-                                      Set(varIbSharedBusy, false)
-                                  ))
+                                  Set(varIbFormOn, true)
                               RadiusBottomLeft: |-
                                   =10
                               RadiusBottomRight: |-
@@ -488,7 +470,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =36 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 34, 34 + 8 + 34)) + 12 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 448, 36, 2 * 36 + 8)) + 12 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 624, 36, 2 * 36 + 8)) + If(varIbScope = "shared", 12 + (50), 0)
+                            =36 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 34, 34 + 8 + 34)) + 12 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 448, 36, 2 * 36 + 8)) + 12 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 624, 36, 2 * 36 + 8))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -578,21 +560,21 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              =If(IsAdmin, "Show all issues", "Show all issues from all testers, without names")
+                                              ="Show all issues from all testers"
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
                                               =AlignInContainer.Center
                                           Appearance: |-
-                                              =If(varIbScope in ["all", "shared"], ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                              =If(varIbScope = "all", ButtonAppearance.Primary, ButtonAppearance.Outline)
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
-                                              =If(varIbScope in ["all", "shared"], C.'color-brand-primary', C.'border-default')
+                                              =If(varIbScope = "all", C.'color-brand-primary', C.'border-default')
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =If(varIbScope in ["all", "shared"], C.'text-on-primary', C.'text-primary')
+                                              =If(varIbScope = "all", C.'text-on-primary', C.'text-primary')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           FontWeight: |-
@@ -604,14 +586,7 @@ Screens:
                                           LayoutMinWidth: |-
                                               =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 96, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 4 * (If(IsAdmin, 3, 2) - 1)) / If(IsAdmin, 3, 2))
                                           OnSelect: |-
-                                              =If(IsAdmin, Set(varIbScope, "all"), Set(varIbScope, "shared");
-                                              If(
-                                                  !varIbSharedLoaded,
-                                                  Set(varIbSharedBusy, true);
-                                                  Set(varIbSharedFailed, IfError(ClearCollect(colIbShared, ForAll(Sort(IB_SharedIssues, LastActivityOn, SortOrder.Descending) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Summary, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity, ""), Priority: Coalesce(r.Priority, ""), Status: Coalesce(r.Status, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: "", CreatedOn: Coalesce(r.ReportedOn, r.Created), UpdatedOn: Coalesce(r.LastActivityOn, r.ReportedOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: "", AssignedEmail: "", PriRank: Switch(r.Priority, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
-                                                  Set(varIbSharedLoaded, !varIbSharedFailed);
-                                                  Set(varIbSharedBusy, false)
-                                              ))
+                                              =Set(varIbScope, "all")
                                           RadiusBottomLeft: |-
                                               =10
                                           RadiusBottomRight: |-
@@ -1286,47 +1261,6 @@ Screens:
                                               =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                           Width: |-
                                               =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 624, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 24) / 4, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 2)
-                        - txtIbSharedNote:
-                            Control: ModernText
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="All issues from all testers are anonymous here: you see what was reported and its status, never who reported it, the comments or the files."
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'state-info-fg'
-                              Fill: |-
-                                  =C.'state-info-bg'
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              Height: |-
-                                  =50
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =12
-                              PaddingRight: |-
-                                  =12
-                              PaddingTop: |-
-                                  =8
-                              RadiusBottomLeft: |-
-                                  =10
-                              RadiusBottomRight: |-
-                                  =10
-                              RadiusTopLeft: |-
-                                  =10
-                              RadiusTopRight: |-
-                                  =10
-                              Size: |-
-                                  =12
-                              Text: |-
-                                  ="All issues from all testers are anonymous here: you see what was reported and its status, never who reported it, the comments or the files."
-                              Visible: |-
-                                  =varIbScope = "shared"
-                              Wrap: |-
-                                  =true
                   - conIbListCard:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -1663,7 +1597,7 @@ Screens:
                                     Text: |-
                                         =ThisItem.TicketNo
                                     Width: |-
-                                        =(((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 18 - 40) / (Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0))) - 2 * 0) - 40 - 112 - 8
+                                        =(((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 18 - 40) / (Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0))) - 2 * 0) - 40 - 112 - 8 - 32 - 6
                                     Wrap: |-
                                         =false
                                     X: |-
@@ -1921,7 +1855,7 @@ Screens:
                                     Size: |-
                                         =12
                                     Text: |-
-                                        =If(varIbScope = "shared", If(IsBlank(If(varIbScope = "shared", LookUp(colIbMine, TicketNo = ThisItem.TicketNo))), "", "Reported by you"), If(IsAdmin && ThisItem.Reporter <> varIbMe, Upper(First(Split(ThisItem.Reporter, "@")).Value) & "  ·  ", "") & If(IsBlank(ThisItem.Assigned), "Unassigned", "To " & ThisItem.Assigned))
+                                        =If(ThisItem.Reporter = varIbMe, "Reported by you", "By " & If(ThisItem.Reporter = varIbMe, "You", !IsBlank(ThisItem.ReporterName), ThisItem.ReporterName, Upper(First(Split(ThisItem.Reporter, "@")).Value))) & "  ·  " & If(IsBlank(ThisItem.Assigned), "Unassigned", "To " & ThisItem.Assigned)
                                     VerticalAlign: |-
                                         =VerticalAlign.Top
                                     Width: |-
@@ -1958,49 +1892,47 @@ Screens:
                                     HoverFill: |-
                                         =C.'row-hover'
                                     OnSelect: |-
-                                        =With(
-                                            { own: If(varIbScope = "shared", LookUp(colIbMine, TicketNo = ThisItem.TicketNo)) },
-                                            Set(varIbSel, If(IsBlank(own), ThisItem, own));
-                                            Set(varIbSelId, varIbSel.Id);
-                                            Set(varIbSelShared, varIbScope = "shared" && IsBlank(own));
-                                            Set(varIbTab, "details");
-                                            Set(varIbInternal, false);
-                                            Set(varIbActsOn, false);
-                                            Set(varIbFilesFor, -1);
-                                            Reset(inpIbComment);
-                                            Clear(colIbActivity);
-                                            Set(varIbDetailOn, true);
-                                            If(!varIbSelShared, Set(varIbSelRow, Blank());
-                                            Concurrent(
-                                                Set(varIbSelRow, IfError(LookUp(IB_Tickets, ID = varIbSelId), Blank())),
-                                                Set(varIbActBusy, true);
-                                            Set(varIbActFailed, IfError(ClearCollect(
-                                                colIbActivity,
-                                                { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
-                                                ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
-                                                    With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
-                                                        { Kind: k,
-                                                          Actor: If(role = "System", "Issue Board", who = varIbMe, "You", Upper(First(Split(who, "@")).Value)),
-                                                          Role: Switch(role, "Admin", "Admin", "System", "System", "User"),
-                                                          Body: If(k in ["StatusChange", "Closed", "Reopened"] && !IsBlank(r.NewStatus), "Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & If(IsBlank(r.Content), ".", ". " & r.Content),
-                                                                k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),
-                                                                Coalesce(r.Content, "")),
-                                                          At: Coalesce(r.EventOn, r.Created),
-                                                          Internal: r.Visibility.Value = "Internal",
-                                                          IsSystem: k <> "Comment",
-                                                          File: Coalesce(r.FileName, ""),
-                                                          SizeKb: Coalesce(r.FileSizeKb, 0),
-                                                          Initial: atSub })))
-                                            ; false, true));
-                                            Set(varIbActBusy, false)
-                                            );
-                                            If(
-                                                !IsBlank(varIbSelRow) && varIbSelRow.ID = varIbSelId,
-                                                Set(varIbSel, { Id: varIbSelRow.ID, TicketNo: Coalesce(varIbSelRow.TicketNo, ""), Title: Coalesce(varIbSelRow.Title, ""), Description: Coalesce(varIbSelRow.Description, ""), Steps: Coalesce(varIbSelRow.ReproSteps, ""), Expected: Coalesce(varIbSelRow.ExpectedResult, ""), Actual: Coalesce(varIbSelRow.ActualResult, ""), Application: Coalesce(varIbSelRow.Application, ""), Section: Coalesce(varIbSelRow.Section, ""), Other: Coalesce(varIbSelRow.OtherContext, ""), RelatedNo: Coalesce(varIbSelRow.RelatedRequestNo, ""), Severity: Coalesce(varIbSelRow.Severity.Value, ""), Priority: Coalesce(varIbSelRow.Priority.Value, ""), Status: Coalesce(varIbSelRow.Status.Value, "New"), Resolution: Coalesce(varIbSelRow.Resolution, ""), Assigned: Coalesce(varIbSelRow.AssignedToName, ""), CreatedOn: varIbSelRow.Created, UpdatedOn: Coalesce(varIbSelRow.LastActivityOn, varIbSelRow.Created), Archived: Coalesce(varIbSelRow.IsArchived, false), Reporter: Lower(Coalesce(varIbSelRow.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(varIbSelRow.AssignedToEmail, "")), PriRank: Switch(varIbSelRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbSelRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
-                                                Set(varIbSelFullFor, varIbSelId);
-                                                UpdateIf(colIbMine, Id = varIbSelId, varIbSel);
-                                                UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
-                                            ))
+                                        =Set(varIbSel, ThisItem);
+                                        Set(varIbSelId, varIbSel.Id);
+                                        Set(varIbSelPeek, false);
+                                        Set(varIbTab, "details");
+                                        Set(varIbInternal, false);
+                                        Set(varIbActsOn, false);
+                                        Set(varIbFilesFor, -1);
+                                        Reset(inpIbComment);
+                                        Clear(colIbActivity);
+                                        Set(varIbDetailOn, true);
+                                        Set(varIbSelRow, Blank());
+                                        Concurrent(
+                                            Set(varIbSelRow, IfError(LookUp(IB_Tickets, ID = varIbSelId), Blank())),
+                                            If(IbSeeActivity,
+                                        Set(varIbActBusy, true);
+                                        Set(varIbActFailed, IfError(ClearCollect(
+                                            colIbActivity,
+                                            { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
+                                            ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
+                                                With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
+                                                    { Kind: k,
+                                                      Actor: If(role = "System", "Issue Board", who = varIbMe, "You", Upper(First(Split(who, "@")).Value)),
+                                                      Role: Switch(role, "Admin", "Admin", "System", "System", "User"),
+                                                      Body: If(k in ["StatusChange", "Closed", "Reopened"] && !IsBlank(r.NewStatus), "Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & If(IsBlank(r.Content), ".", ". " & r.Content),
+                                                            k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),
+                                                            Coalesce(r.Content, "")),
+                                                      At: Coalesce(r.EventOn, r.Created),
+                                                      Internal: r.Visibility.Value = "Internal",
+                                                      IsSystem: k <> "Comment",
+                                                      File: Coalesce(r.FileName, ""),
+                                                      SizeKb: Coalesce(r.FileSizeKb, 0),
+                                                      Initial: atSub })))
+                                        ; false, true));
+                                        Set(varIbActBusy, false)
+                                        )
+                                        );
+                                        If(
+                                            !IsBlank(varIbSelRow) && varIbSelRow.ID = varIbSelId,
+                                            Set(varIbSel, { Id: varIbSelRow.ID, TicketNo: If(IsBlank(varIbSelRow.TicketNo), "ISS-" & Text(varIbSelRow.ID, "000000"), varIbSelRow.TicketNo), Title: Coalesce(varIbSelRow.Title, ""), Description: Coalesce(varIbSelRow.Description, ""), Steps: Coalesce(varIbSelRow.ReproSteps, ""), Expected: Coalesce(varIbSelRow.ExpectedResult, ""), Actual: Coalesce(varIbSelRow.ActualResult, ""), Application: Coalesce(varIbSelRow.Application, ""), Section: Coalesce(varIbSelRow.Section, ""), Other: Coalesce(varIbSelRow.OtherContext, ""), RelatedNo: Coalesce(varIbSelRow.RelatedRequestNo, ""), Severity: Coalesce(varIbSelRow.Severity.Value, ""), Priority: Coalesce(varIbSelRow.Priority.Value, ""), Status: Coalesce(varIbSelRow.Status.Value, "New"), Resolution: Coalesce(varIbSelRow.Resolution, ""), Assigned: Coalesce(varIbSelRow.AssignedToName, ""), CreatedOn: varIbSelRow.Created, UpdatedOn: Coalesce(varIbSelRow.LastActivityOn, varIbSelRow.Created), Archived: Coalesce(varIbSelRow.IsArchived, false), Reporter: Lower(Coalesce(varIbSelRow.ReporterEmail, "")), ReporterName: Coalesce(varIbSelRow.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbSelRow.AssignedToEmail, "")), PriRank: Switch(varIbSelRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbSelRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                            Set(varIbSelFullFor, varIbSelId);
+                                            UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
                                         )
                                     PressedBorderColor: |-
                                         =C.'color-brand-primary'
@@ -2026,6 +1958,104 @@ Screens:
                                         =6
                                     Y: |-
                                         =6
+                              - btnIbTileAttach:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Add screenshots or files to " & ThisItem.TicketNo
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =32
+                                    Icon: |-
+                                        ="Attach"
+                                    Layout: |-
+                                        =ButtonLayout.IconOnly
+                                    OnSelect: |-
+                                        =Set(varIbSel, ThisItem);
+                                        Set(varIbSelId, varIbSel.Id);
+                                        Set(varIbSelPeek, false);
+                                        Set(varIbTab, "files");
+                                        Set(varIbInternal, false);
+                                        Set(varIbActsOn, false);
+                                        Set(varIbFilesFor, -1);
+                                        Reset(inpIbComment);
+                                        Clear(colIbActivity);
+                                        Set(varIbDetailOn, true);
+                                        Set(varIbFilesBusy, true);
+                                        Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp(IB_Tickets, ID = varIbSelId).Attachments); false, true));
+                                        Set(varIbFilesFor, varIbSelId);
+                                        Set(varIbFilesBusy, false);
+                                        Set(varIbSelRow, Blank());
+                                        Concurrent(
+                                            Set(varIbSelRow, IfError(LookUp(IB_Tickets, ID = varIbSelId), Blank())),
+                                            If(IbSeeActivity,
+                                        Set(varIbActBusy, true);
+                                        Set(varIbActFailed, IfError(ClearCollect(
+                                            colIbActivity,
+                                            { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
+                                            ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
+                                                With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
+                                                    { Kind: k,
+                                                      Actor: If(role = "System", "Issue Board", who = varIbMe, "You", Upper(First(Split(who, "@")).Value)),
+                                                      Role: Switch(role, "Admin", "Admin", "System", "System", "User"),
+                                                      Body: If(k in ["StatusChange", "Closed", "Reopened"] && !IsBlank(r.NewStatus), "Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & If(IsBlank(r.Content), ".", ". " & r.Content),
+                                                            k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),
+                                                            Coalesce(r.Content, "")),
+                                                      At: Coalesce(r.EventOn, r.Created),
+                                                      Internal: r.Visibility.Value = "Internal",
+                                                      IsSystem: k <> "Comment",
+                                                      File: Coalesce(r.FileName, ""),
+                                                      SizeKb: Coalesce(r.FileSizeKb, 0),
+                                                      Initial: atSub })))
+                                        ; false, true));
+                                        Set(varIbActBusy, false)
+                                        )
+                                        );
+                                        If(
+                                            !IsBlank(varIbSelRow) && varIbSelRow.ID = varIbSelId,
+                                            Set(varIbSel, { Id: varIbSelRow.ID, TicketNo: If(IsBlank(varIbSelRow.TicketNo), "ISS-" & Text(varIbSelRow.ID, "000000"), varIbSelRow.TicketNo), Title: Coalesce(varIbSelRow.Title, ""), Description: Coalesce(varIbSelRow.Description, ""), Steps: Coalesce(varIbSelRow.ReproSteps, ""), Expected: Coalesce(varIbSelRow.ExpectedResult, ""), Actual: Coalesce(varIbSelRow.ActualResult, ""), Application: Coalesce(varIbSelRow.Application, ""), Section: Coalesce(varIbSelRow.Section, ""), Other: Coalesce(varIbSelRow.OtherContext, ""), RelatedNo: Coalesce(varIbSelRow.RelatedRequestNo, ""), Severity: Coalesce(varIbSelRow.Severity.Value, ""), Priority: Coalesce(varIbSelRow.Priority.Value, ""), Status: Coalesce(varIbSelRow.Status.Value, "New"), Resolution: Coalesce(varIbSelRow.Resolution, ""), Assigned: Coalesce(varIbSelRow.AssignedToName, ""), CreatedOn: varIbSelRow.Created, UpdatedOn: Coalesce(varIbSelRow.LastActivityOn, varIbSelRow.Created), Archived: Coalesce(varIbSelRow.IsArchived, false), Reporter: Lower(Coalesce(varIbSelRow.ReporterEmail, "")), ReporterName: Coalesce(varIbSelRow.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbSelRow.AssignedToEmail, "")), PriRank: Switch(varIbSelRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbSelRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                            Set(varIbSelFullFor, varIbSelId);
+                                            UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
+                                        )
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="Attach files"
+                                    Tooltip: |-
+                                        ="Add screenshots or files"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Visible: |-
+                                        =!ThisItem.Archived && (ThisItem.Reporter = varIbMe || IsAdmin)
+                                    Width: |-
+                                        =32
+                                    X: |-
+                                        =(((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 18 - 40) / (Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0))) - 2 * 0) - 20 - 112 - 6 - 32
+                                    Y: |-
+                                        =16
                         - txtIbEmpty:
                             Control: ModernText
                             Properties:
@@ -2054,7 +2084,7 @@ Screens:
                               Size: |-
                                   =13
                               Text: |-
-                                  =If(varIbLoading || (varIbScope = "shared" && varIbSharedBusy), "Loading issues...", IbFailed, "The issues could not be loaded. Check your connection and try again.", varIbScope = "mine" && IsEmpty(IbMine), "You have not reported any issues yet. Use New issue to report one.", varIbScope = "all" && IsEmpty(colIbAll), "No issues have been reported yet.", varIbScope = "assigned" && IsEmpty(Filter(colIbAll, AssignedEmail = varIbMe)), "No issues are assigned to you.", varIbScope = "shared" && IsEmpty(colIbShared), "No issues have been reported yet.", !IsBlank(varIbApp) || !IsBlank(varIbSection) || !IsBlank(varIbStatusF) || !IsBlank(varIbPriF) || !IsBlank(Trim(inpIbSearch.Text)), "No issues match the filters. Clear the filters to see more.", Switch(varIbState, "closed", "There are no closed issues here.", "archived", "There are no archived issues here.", "There are no open issues here."))
+                                  =If(varIbLoading, "Loading issues...", IbFailed, "The issues could not be loaded. Check your connection and try again.", varIbScope = "mine" && IsEmpty(IbMine), "You have not reported any issues yet. Use New issue to report one.", varIbScope = "all" && IsEmpty(colIbAll), "No issues have been reported yet.", varIbScope = "assigned" && IsEmpty(Filter(colIbAll, AssignedEmail = varIbMe)), "No issues are assigned to you.", !IsBlank(varIbApp) || !IsBlank(varIbSection) || !IsBlank(varIbStatusF) || !IsBlank(varIbPriF) || !IsBlank(Trim(inpIbSearch.Text)), "No issues match the filters. Clear the filters to see more.", Switch(varIbState, "closed", "There are no closed issues here.", "archived", "There are no archived issues here.", "There are no open issues here."))
                               Visible: |-
                                   =galIbList.AllItemsCount = 0
                               Wrap: |-
@@ -2086,25 +2116,17 @@ Screens:
                                   =ButtonLayout.TextOnly
                               OnSelect: |-
                                   =Set(varIbLoaded, false);
-                                  Set(varIbSharedLoaded, false);
                                   If(
                                       !varIbLoaded,
                                       Set(varIbLoading, true);
                                       Concurrent(
                                           Set(varIbCfgFailed, IfError(ClearCollect(colIbSections, ForAll(Filter(IB_AppSections, IsActive = true) As r, { Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), AppOrder: Coalesce(r.AppOrder, 0), SectionOrder: Coalesce(r.SectionOrder, 0), ScreenKey: Coalesce(r.ScreenKey, "") })); false, true)),
-                                          If(IsAdmin, Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true)); Set(varIbMineFailed, false), Set(varIbMineFailed, IfError(ClearCollect(colIbMine, ForAll(ShowColumns(Sort(Filter(IB_Tickets, ReporterEmail = varIbMe), LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true)); Set(varIbAllFailed, false))
+                                          Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true))
                                       );
-                                      Set(varIbLoaded, !varIbCfgFailed && !varIbMineFailed && !varIbAllFailed);
+                                      Set(varIbLoaded, !varIbCfgFailed && !varIbAllFailed);
                                       Set(varIbLoading, false)
                                   );
-                                  If(IsBlank(varIbScope), Set(varIbScope, If(IsAdmin, "all", "mine")));
-                                  If(varIbScope = "shared", If(
-                                      !varIbSharedLoaded,
-                                      Set(varIbSharedBusy, true);
-                                      Set(varIbSharedFailed, IfError(ClearCollect(colIbShared, ForAll(Sort(IB_SharedIssues, LastActivityOn, SortOrder.Descending) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Summary, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity, ""), Priority: Coalesce(r.Priority, ""), Status: Coalesce(r.Status, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: "", CreatedOn: Coalesce(r.ReportedOn, r.Created), UpdatedOn: Coalesce(r.LastActivityOn, r.ReportedOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: "", AssignedEmail: "", PriRank: Switch(r.Priority, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
-                                      Set(varIbSharedLoaded, !varIbSharedFailed);
-                                      Set(varIbSharedBusy, false)
-                                  ))
+                                  If(IsBlank(varIbScope), Set(varIbScope, If(IsAdmin, "all", "mine")))
                               RadiusBottomLeft: |-
                                   =10
                               RadiusBottomRight: |-
@@ -5146,7 +5168,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =68 + 12 + (Max(60, Min(86 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + If(IsBlank(varIbFormApp), 12 + (18), 0) + If(IbOtherNeeded, 12 + (62), 0) + 12 + (62) + If(!(varIbFormMode = "edit") && galIbSimilar.AllItemsCount > 0, 12 + (38 + 6 + (galIbSimilar.AllItemsCount * 44)), 0) + 12 + (136) + If(varIbMore, 12 + (0 + (98) + 12 + (98) + 12 + (98) + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62)))), 0) + If(!(varIbFormMode = "edit"), 12 + (20 + 6 + (If(CountRows(attIbNewFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbNewFiles.Attachments), 4) * 36))), 0) + If(varIbFormMode = "edit" && IsAdmin, 12 + (90 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + 12 + (62) + 12 + (98)), 0) + If(!(varIbFormMode = "edit"), 12 + (34), 0), App.Height - 32 - 36 - 12 - (32) + 12 + (36 + If(!(!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && (!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))), 8 + (With({ t: If(varIbFormMode = "edit", "To save, add ", "To submit, add ") & Concat(Filter(Table({ m: "an application", ok: !IsBlank(varIbFormApp) }, { m: "a section", ok: !IsBlank(varIbFormSection) }, { m: "where it happened", ok: !IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text)) }, { m: "a title of at least 4 characters", ok: Len(Trim(inpIbTitle.Text)) >= 4 }, { m: "what happened", ok: !IsBlank(Trim(inpIbDesc.Text)) }), !ok), m, ", ") & "." }, (RoundUp(Len(t) / Max(12, RoundDown((Min(680, App.Width - 24) - 36) / 6.6, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)), 0))))) + 12 + (36 + If(!(!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && (!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))), 8 + (With({ t: If(varIbFormMode = "edit", "To save, add ", "To submit, add ") & Concat(Filter(Table({ m: "an application", ok: !IsBlank(varIbFormApp) }, { m: "a section", ok: !IsBlank(varIbFormSection) }, { m: "where it happened", ok: !IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text)) }, { m: "a title of at least 4 characters", ok: Len(Trim(inpIbTitle.Text)) >= 4 }, { m: "what happened", ok: !IsBlank(Trim(inpIbDesc.Text)) }), !ok), m, ", ") & "." }, (RoundUp(Len(t) / Max(12, RoundDown((Min(680, App.Width - 24) - 36) / 6.6, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)), 0))
+                      =68 + 12 + (Max(60, Min(86 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + If(IsBlank(varIbFormApp), 12 + (18), 0) + If(IbOtherNeeded, 12 + (62), 0) + 12 + (62) + If(!(varIbFormMode = "edit") && galIbSimilar.AllItemsCount > 0, 12 + (38 + 6 + (galIbSimilar.AllItemsCount * 44)), 0) + 12 + (136) + If(varIbMore, 12 + (0 + (98) + 12 + (98) + 12 + (98) + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62)))), 0) + If(varIbFormMode = "edit" && IsAdmin, 12 + (90 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + 12 + (62) + 12 + (98)), 0) + If(!(varIbFormMode = "edit"), 12 + (34), 0), App.Height - 32 - 36 - 12 - (32) + 12 + (36 + If(!(!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && (!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))), 8 + (With({ t: If(varIbFormMode = "edit", "To save, add ", "To submit, add ") & Concat(Filter(Table({ m: "an application", ok: !IsBlank(varIbFormApp) }, { m: "a section", ok: !IsBlank(varIbFormSection) }, { m: "where it happened", ok: !IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text)) }, { m: "a title of at least 4 characters", ok: Len(Trim(inpIbTitle.Text)) >= 4 }, { m: "what happened", ok: !IsBlank(Trim(inpIbDesc.Text)) }), !ok), m, ", ") & "." }, (RoundUp(Len(t) / Max(12, RoundDown((Min(680, App.Width - 24) - 36) / 6.6, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)), 0))))) + 12 + (36 + If(!(!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && (!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))), 8 + (With({ t: If(varIbFormMode = "edit", "To save, add ", "To submit, add ") & Concat(Filter(Table({ m: "an application", ok: !IsBlank(varIbFormApp) }, { m: "a section", ok: !IsBlank(varIbFormSection) }, { m: "where it happened", ok: !IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text)) }, { m: "a title of at least 4 characters", ok: Len(Trim(inpIbTitle.Text)) >= 4 }, { m: "what happened", ok: !IsBlank(Trim(inpIbDesc.Text)) }), !ok), m, ", ") & "." }, (RoundUp(Len(t) / Max(12, RoundDown((Min(680, App.Width - 24) - 36) / 6.6, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)), 0))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -5299,8 +5321,7 @@ Screens:
                                               !IsBlank(Trim(inpIbExpected.Text)) ||
                                               !IsBlank(Trim(inpIbActual.Text)) ||
                                               !IsBlank(Trim(inpIbRelated.Text)) ||
-                                              Coalesce(drpIbSeverity.Selected.Value, "Minor") <> "Minor" ||
-                                              CountRows(attIbNewFiles.Attachments) > 0
+                                              Coalesce(drpIbSeverity.Selected.Value, "Minor") <> "Minor"
                                           ),
                                           Set(varIbDiscardOn, true),
                                           Set(varIbFormOn, false);
@@ -5334,7 +5355,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =Max(60, Min(86 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + If(IsBlank(varIbFormApp), 12 + (18), 0) + If(IbOtherNeeded, 12 + (62), 0) + 12 + (62) + If(!(varIbFormMode = "edit") && galIbSimilar.AllItemsCount > 0, 12 + (38 + 6 + (galIbSimilar.AllItemsCount * 44)), 0) + 12 + (136) + If(varIbMore, 12 + (0 + (98) + 12 + (98) + 12 + (98) + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62)))), 0) + If(!(varIbFormMode = "edit"), 12 + (20 + 6 + (If(CountRows(attIbNewFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbNewFiles.Attachments), 4) * 36))), 0) + If(varIbFormMode = "edit" && IsAdmin, 12 + (90 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + 12 + (62) + 12 + (98)), 0) + If(!(varIbFormMode = "edit"), 12 + (34), 0), App.Height - 32 - 36 - 12 - (32) + 12 + (36 + If(!(!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && (!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))), 8 + (With({ t: If(varIbFormMode = "edit", "To save, add ", "To submit, add ") & Concat(Filter(Table({ m: "an application", ok: !IsBlank(varIbFormApp) }, { m: "a section", ok: !IsBlank(varIbFormSection) }, { m: "where it happened", ok: !IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text)) }, { m: "a title of at least 4 characters", ok: Len(Trim(inpIbTitle.Text)) >= 4 }, { m: "what happened", ok: !IsBlank(Trim(inpIbDesc.Text)) }), !ok), m, ", ") & "." }, (RoundUp(Len(t) / Max(12, RoundDown((Min(680, App.Width - 24) - 36) / 6.6, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)), 0))))
+                            =Max(60, Min(86 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + If(IsBlank(varIbFormApp), 12 + (18), 0) + If(IbOtherNeeded, 12 + (62), 0) + 12 + (62) + If(!(varIbFormMode = "edit") && galIbSimilar.AllItemsCount > 0, 12 + (38 + 6 + (galIbSimilar.AllItemsCount * 44)), 0) + 12 + (136) + If(varIbMore, 12 + (0 + (98) + 12 + (98) + 12 + (98) + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62)))), 0) + If(varIbFormMode = "edit" && IsAdmin, 12 + (90 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + 12 + (62) + 12 + (98)), 0) + If(!(varIbFormMode = "edit"), 12 + (34), 0), App.Height - 32 - 36 - 12 - (32) + 12 + (36 + If(!(!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && (!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))), 8 + (With({ t: If(varIbFormMode = "edit", "To save, add ", "To submit, add ") & Concat(Filter(Table({ m: "an application", ok: !IsBlank(varIbFormApp) }, { m: "a section", ok: !IsBlank(varIbFormSection) }, { m: "where it happened", ok: !IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text)) }, { m: "a title of at least 4 characters", ok: Len(Trim(inpIbTitle.Text)) >= 4 }, { m: "what happened", ok: !IsBlank(Trim(inpIbDesc.Text)) }), !ok), m, ", ") & "." }, (RoundUp(Len(t) / Max(12, RoundDown((Min(680, App.Width - 24) - 36) / 6.6, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)), 0))))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -5378,7 +5399,7 @@ Screens:
                               Size: |-
                                   =13
                               Text: |-
-                                  =If(varIbFormMode = "edit", "Edit mode. Change what is needed and select Save changes - every change is recorded in the activity.", "Tell us what happened. Fields marked * are required. Only you and the administrators can see your name and the comments.")
+                                  =If(varIbFormMode = "edit", "Edit mode. Change what is needed and select Save changes - every change is recorded in the activity.", "Tell us what happened. Fields marked * are required. Everyone can see the issue and your name; only you and the administrators can see the comments. Add screenshots and files after you submit.")
                               Wrap: |-
                                   =true
                         - conIbFormWhere:
@@ -6198,7 +6219,7 @@ Screens:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Similar shared issues - is yours already reported?"
+                                        ="Similar issues - is yours already reported?"
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -6224,7 +6245,7 @@ Screens:
                                     Size: |-
                                         =12
                                     Text: |-
-                                        ="Similar shared issues - is yours already reported?"
+                                        ="Similar issues - is yours already reported?"
                                     Wrap: |-
                                         =false
                               - galIbSimilar:
@@ -6232,7 +6253,7 @@ Screens:
                                   Variant: Vertical
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Similar shared issues"
+                                        ="Similar issues"
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     Fill: |-
@@ -6247,7 +6268,7 @@ Screens:
                                             FirstN(
                                                 SortByColumns(
                                                     Filter(
-                                                        ForAll(Filter(If(IsAdmin, colIbAll, colIbShared), !Archived) As S,
+                                                        ForAll(Filter(colIbAll, !Archived) As S,
                                                             { TicketNo: S.TicketNo, Title: S.Title, Status: S.Status, Archived: S.Archived,
                                                               Where: S.Application & "  ·  " & S.Section, Row: S,
                                                               Hits: CountRows(Filter(w, Word in S.Title)),
@@ -6468,7 +6489,7 @@ Screens:
                                           OnSelect: |-
                                               =Set(varIbSel, ThisItem.Row);
                                               Set(varIbSelId, varIbSel.Id);
-                                              Set(varIbSelShared, true);
+                                              Set(varIbSelPeek, true);
                                               Set(varIbTab, "details");
                                               Set(varIbInternal, false);
                                               Set(varIbActsOn, false);
@@ -6476,10 +6497,11 @@ Screens:
                                               Reset(inpIbComment);
                                               Clear(colIbActivity);
                                               Set(varIbDetailOn, true);
-                                              If(!varIbSelShared, Set(varIbSelRow, Blank());
+                                              Set(varIbSelRow, Blank());
                                               Concurrent(
                                                   Set(varIbSelRow, IfError(LookUp(IB_Tickets, ID = varIbSelId), Blank())),
-                                                  Set(varIbActBusy, true);
+                                                  If(IbSeeActivity,
+                                              Set(varIbActBusy, true);
                                               Set(varIbActFailed, IfError(ClearCollect(
                                                   colIbActivity,
                                                   { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
@@ -6499,14 +6521,14 @@ Screens:
                                                             Initial: atSub })))
                                               ; false, true));
                                               Set(varIbActBusy, false)
+                                              )
                                               );
                                               If(
                                                   !IsBlank(varIbSelRow) && varIbSelRow.ID = varIbSelId,
-                                                  Set(varIbSel, { Id: varIbSelRow.ID, TicketNo: Coalesce(varIbSelRow.TicketNo, ""), Title: Coalesce(varIbSelRow.Title, ""), Description: Coalesce(varIbSelRow.Description, ""), Steps: Coalesce(varIbSelRow.ReproSteps, ""), Expected: Coalesce(varIbSelRow.ExpectedResult, ""), Actual: Coalesce(varIbSelRow.ActualResult, ""), Application: Coalesce(varIbSelRow.Application, ""), Section: Coalesce(varIbSelRow.Section, ""), Other: Coalesce(varIbSelRow.OtherContext, ""), RelatedNo: Coalesce(varIbSelRow.RelatedRequestNo, ""), Severity: Coalesce(varIbSelRow.Severity.Value, ""), Priority: Coalesce(varIbSelRow.Priority.Value, ""), Status: Coalesce(varIbSelRow.Status.Value, "New"), Resolution: Coalesce(varIbSelRow.Resolution, ""), Assigned: Coalesce(varIbSelRow.AssignedToName, ""), CreatedOn: varIbSelRow.Created, UpdatedOn: Coalesce(varIbSelRow.LastActivityOn, varIbSelRow.Created), Archived: Coalesce(varIbSelRow.IsArchived, false), Reporter: Lower(Coalesce(varIbSelRow.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(varIbSelRow.AssignedToEmail, "")), PriRank: Switch(varIbSelRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbSelRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                                  Set(varIbSel, { Id: varIbSelRow.ID, TicketNo: If(IsBlank(varIbSelRow.TicketNo), "ISS-" & Text(varIbSelRow.ID, "000000"), varIbSelRow.TicketNo), Title: Coalesce(varIbSelRow.Title, ""), Description: Coalesce(varIbSelRow.Description, ""), Steps: Coalesce(varIbSelRow.ReproSteps, ""), Expected: Coalesce(varIbSelRow.ExpectedResult, ""), Actual: Coalesce(varIbSelRow.ActualResult, ""), Application: Coalesce(varIbSelRow.Application, ""), Section: Coalesce(varIbSelRow.Section, ""), Other: Coalesce(varIbSelRow.OtherContext, ""), RelatedNo: Coalesce(varIbSelRow.RelatedRequestNo, ""), Severity: Coalesce(varIbSelRow.Severity.Value, ""), Priority: Coalesce(varIbSelRow.Priority.Value, ""), Status: Coalesce(varIbSelRow.Status.Value, "New"), Resolution: Coalesce(varIbSelRow.Resolution, ""), Assigned: Coalesce(varIbSelRow.AssignedToName, ""), CreatedOn: varIbSelRow.Created, UpdatedOn: Coalesce(varIbSelRow.LastActivityOn, varIbSelRow.Created), Archived: Coalesce(varIbSelRow.IsArchived, false), Reporter: Lower(Coalesce(varIbSelRow.ReporterEmail, "")), ReporterName: Coalesce(varIbSelRow.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbSelRow.AssignedToEmail, "")), PriRank: Switch(varIbSelRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbSelRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
                                                   Set(varIbSelFullFor, varIbSelId);
-                                                  UpdateIf(colIbMine, Id = varIbSelId, varIbSel);
                                                   UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
-                                              ))
+                                              )
                                           PressedBorderColor: |-
                                               =RGBA(0, 0, 0, 0)
                                           PressedColor: |-
@@ -6524,7 +6546,7 @@ Screens:
                                           TabIndex: |-
                                               =0
                                           Text: |-
-                                              ="Open shared issue " & ThisItem.TicketNo & " - " & ThisItem.Title
+                                              ="Open similar issue " & ThisItem.TicketNo & " - " & ThisItem.Title
                                           Width: |-
                                               =(((((Min(680, App.Width - 24)) - 18 - 18) - 18) - 10 - 10) - 2 * 0 - 0 - 40)
                                           X: |-
@@ -7350,99 +7372,6 @@ Screens:
                                                     =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =Parent.Width
-                        - conIbFormFiles:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =20 + 6 + (If(CountRows(attIbNewFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbNewFiles.Attachments), 4) * 36))
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
-                              LayoutDirection: |-
-                                  =LayoutDirection.Vertical
-                              LayoutGap: |-
-                                  =6
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              Visible: |-
-                                  =!(varIbFormMode = "edit")
-                              Width: |-
-                                  =Parent.Width
-                            Children:
-                              - txtIbFormFilesLbl:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Screenshots and files (optional)"
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =20
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =13
-                                    Text: |-
-                                        ="Screenshots and files (optional)"
-                                    Width: |-
-                                        =Parent.Width
-                                    Wrap: |-
-                                        =false
-                              - attIbNewFiles:
-                                  Control: Attachments@2.3.0
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Screenshots and files for the new issue"
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderThickness: |-
-                                        =1
-                                    DisplayMode: |-
-                                        =If(varIbUploading, DisplayMode.Disabled, DisplayMode.Edit)
-                                    Height: |-
-                                        =If(CountRows(Self.Attachments) = 0, 112, 112 + Min(CountRows(Self.Attachments), 4) * 36)
-                                    MaxAttachmentSize: |-
-                                        =10
-                                    MaxAttachments: |-
-                                        =5
-                                    NoAttachmentsText: |-
-                                        ="Select files to upload"
-                                    PaddingBottom: |-
-                                        =5
-                                    PaddingLeft: |-
-                                        =5
-                                    PaddingRight: |-
-                                        =5
-                                    PaddingTop: |-
-                                        =5
-                                    Width: |-
-                                        =Parent.Width
                         - conIbManage:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -7963,7 +7892,7 @@ Screens:
                                           MaxLength: |-
                                               =4000
                                           Placeholder: |-
-                                              ="What was done - shown to the reporter and on the shared board"
+                                              ="What was done - shown to everyone with the issue"
                                           RadiusBottomLeft: |-
                                               =10
                                           RadiusBottomRight: |-
@@ -8135,47 +8064,67 @@ Screens:
                                             If(
                                                 varIbFormMode = "edit",
                                                 Set(varIbBusy, true);
-                                                Set(varIbRes, IfError('BioSap-IssueBoard-Submit'.Run(
-                                                    "edit",
-                                                    JSON({
-                                                        ticketId: varIbSelId,
-                                                        title: Trim(inpIbTitle.Text),
-                                                        description: Trim(inpIbDesc.Text),
-                                                        steps: Trim(inpIbSteps.Text),
-                                                        expected: Trim(inpIbExpected.Text),
-                                                        actual: Trim(inpIbActual.Text),
-                                                        application: varIbFormApp,
-                                                        section: varIbFormSection,
-                                                        other: If(IbOtherNeeded, Trim(inpIbOther.Text), ""),
-                                                        relatedNo: Trim(inpIbRelated.Text),
-                                                        severity: Coalesce(drpIbSeverity.Selected.Value, "Minor"),
-                                                        status: Coalesce(drpIbStatus.Selected.Value, varIbSel.Status),
-                                                        priority: Coalesce(drpIbPriority.Selected.Value, varIbSel.Priority, "Normal"),
-                                                        assignee: Coalesce(drpIbAssignee.Selected.Email, ""),
-                                                        resolution: Trim(inpIbResolution.Text)
-                                                    })
-                                                ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }));
+                                                Set(varIbSaved, false);
+                                                Set(varIbCur, IfError(LookUp(IB_Tickets, ID = varIbSelId), Blank()));
                                                 If(
-                                                    varIbRes.ok = "yes",
-                                                    With(
-                                                        { r: LookUp(IB_Tickets, ID = varIbSelId) },
-                                                        If(
-                                                            IsBlank(r),
-                                                            RemoveIf(colIbMine, Id = varIbSelId);
-                                                            RemoveIf(colIbAll, Id = varIbSelId);
-                                                            Set(varIbDetailOn, false),
-                                                            Set(varIbSel, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
-                                                            Set(varIbSelFullFor, varIbSelId);
-                                                            If(varIbTab = "files",
-                                                                Set(varIbFilesBusy, true);
-                                                                Set(varIbFilesFailed, IfError(Set(varIbFiles, LookUp(IB_Tickets, ID = varIbSelId).Attachments); false, true));
-                                                                Set(varIbFilesFor, varIbSelId);
-                                                                Set(varIbFilesBusy, false)
-                                                            , Set(varIbFilesFor, -1));
-                                                            UpdateIf(colIbMine, Id = varIbSelId, varIbSel);
-                                                            UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
-                                                        )
-                                                    );
+                                                    IsBlank(varIbCur),
+                                                    Notify("The issue could not be loaded. It may have been deleted - close it and try again.", NotificationType.Error),
+                                                    !IsAdmin && (varIbCur.Status.Value <> "New" || Coalesce(varIbCur.IsArchived, false)),
+                                                    Notify("You can edit your issue only while it is New. Add a comment instead.", NotificationType.Warning),
+                                                    IfError(
+                                                        Set(varIbEdited, Patch(
+                                                            IB_Tickets,
+                                                            varIbCur,
+                                                            {
+                                                                Title: Trim(inpIbTitle.Text),
+                                                                Description: Trim(inpIbDesc.Text),
+                                                                ReproSteps: Trim(inpIbSteps.Text),
+                                                                ExpectedResult: Trim(inpIbExpected.Text),
+                                                                ActualResult: Trim(inpIbActual.Text),
+                                                                Application: varIbFormApp,
+                                                                Section: varIbFormSection,
+                                                                OtherContext: If(IbOtherNeeded, Trim(inpIbOther.Text), ""),
+                                                                RelatedRequestNo: Trim(inpIbRelated.Text),
+                                                                Severity: { Value: Coalesce(drpIbSeverity.Selected.Value, "Minor") },
+                                                                Status: { Value: If(IsAdmin, Coalesce(drpIbStatus.Selected.Value, varIbCur.Status.Value), varIbCur.Status.Value) },
+                                                                Priority: { Value: If(IsAdmin, Coalesce(drpIbPriority.Selected.Value, varIbCur.Priority.Value, "Normal"), Coalesce(varIbCur.Priority.Value, "Normal")) },
+                                                                AssignedToEmail: If(IsAdmin, Lower(Coalesce(drpIbAssignee.Selected.Email, "")), varIbCur.AssignedToEmail),
+                                                                AssignedToName: If(IsAdmin, If(IsBlank(Lower(Coalesce(drpIbAssignee.Selected.Email, ""))), "", Upper(First(Split(Lower(Coalesce(drpIbAssignee.Selected.Email, "")), "@")).Value)), varIbCur.AssignedToName),
+                                                                Resolution: If(IsAdmin, Trim(inpIbResolution.Text), varIbCur.Resolution),
+                                                                LastActivityOn: Now()
+                                                            }
+                                                        ));
+                                                        Set(varIbSaved, true),
+                                                        Notify("The changes could not be saved. " & FirstError.Message, NotificationType.Error)
+                                                    )
+                                                );
+                                                If(
+                                                    varIbSaved,
+                                                    Set(varIbRes, IfError('BioSap-IssueBoard-Submit'.Run(
+                                                        "edit",
+                                                        JSON({
+                                                            ticketId: varIbSelId,
+                                                            prev: {
+                                                                title: Coalesce(varIbCur.Title, ""),
+                                                                description: Coalesce(varIbCur.Description, ""),
+                                                                steps: Coalesce(varIbCur.ReproSteps, ""),
+                                                                expected: Coalesce(varIbCur.ExpectedResult, ""),
+                                                                actual: Coalesce(varIbCur.ActualResult, ""),
+                                                                application: Coalesce(varIbCur.Application, ""),
+                                                                section: Coalesce(varIbCur.Section, ""),
+                                                                other: Coalesce(varIbCur.OtherContext, ""),
+                                                                relatedNo: Coalesce(varIbCur.RelatedRequestNo, ""),
+                                                                severity: Coalesce(varIbCur.Severity.Value, ""),
+                                                                status: Coalesce(varIbCur.Status.Value, "New"),
+                                                                priority: Coalesce(varIbCur.Priority.Value, "Normal"),
+                                                                assignee: Lower(Coalesce(varIbCur.AssignedToEmail, "")),
+                                                                resolution: Coalesce(varIbCur.Resolution, "")
+                                                            }
+                                                        })
+                                                    ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }));
+                                                    Set(varIbSel, { Id: varIbEdited.ID, TicketNo: If(IsBlank(varIbEdited.TicketNo), "ISS-" & Text(varIbEdited.ID, "000000"), varIbEdited.TicketNo), Title: Coalesce(varIbEdited.Title, ""), Description: Coalesce(varIbEdited.Description, ""), Steps: Coalesce(varIbEdited.ReproSteps, ""), Expected: Coalesce(varIbEdited.ExpectedResult, ""), Actual: Coalesce(varIbEdited.ActualResult, ""), Application: Coalesce(varIbEdited.Application, ""), Section: Coalesce(varIbEdited.Section, ""), Other: Coalesce(varIbEdited.OtherContext, ""), RelatedNo: Coalesce(varIbEdited.RelatedRequestNo, ""), Severity: Coalesce(varIbEdited.Severity.Value, ""), Priority: Coalesce(varIbEdited.Priority.Value, ""), Status: Coalesce(varIbEdited.Status.Value, "New"), Resolution: Coalesce(varIbEdited.Resolution, ""), Assigned: Coalesce(varIbEdited.AssignedToName, ""), CreatedOn: varIbEdited.Created, UpdatedOn: Coalesce(varIbEdited.LastActivityOn, varIbEdited.Created), Archived: Coalesce(varIbEdited.IsArchived, false), Reporter: Lower(Coalesce(varIbEdited.ReporterEmail, "")), ReporterName: Coalesce(varIbEdited.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbEdited.AssignedToEmail, "")), PriRank: Switch(varIbEdited.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbEdited.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                                    Set(varIbSelFullFor, varIbSelId);
+                                                    UpdateIf(colIbAll, Id = varIbSelId, varIbSel);
                                                     Set(varIbActBusy, true);
                                                     Set(varIbActFailed, IfError(ClearCollect(
                                                         colIbActivity,
@@ -8196,58 +8145,51 @@ Screens:
                                                                   Initial: atSub })))
                                                     ; false, true));
                                                     Set(varIbActBusy, false);
-                                                    Set(varIbSharedLoaded, false);
                                                     Set(varIbFormOn, false);
                                                     Set(varIbDetailOn, true);
-                                                    Notify("Your changes have been saved.", NotificationType.Success),
-                                                    Notify("The changes could not be saved. " & Coalesce(varIbRes.message, "Please try again."), NotificationType.Error)
+                                                    If(
+                                                        varIbRes.ok = "yes",
+                                                        Notify("Your changes have been saved.", NotificationType.Success),
+                                                        Notify("Your changes have been saved, but they could not be added to the activity. " & Coalesce(varIbRes.message, ""), NotificationType.Warning)
+                                                    )
                                                 );
                                                 Set(varIbBusy, false),
                                                 Set(varIbBusy, true);
-                                                Set(varIbRes, IfError('BioSap-IssueBoard-Submit'.Run(
-                                                    "create",
-                                                    JSON({
-                                                        title: Trim(inpIbTitle.Text),
-                                                        description: Trim(inpIbDesc.Text),
-                                                        steps: Trim(inpIbSteps.Text),
-                                                        expected: Trim(inpIbExpected.Text),
-                                                        actual: Trim(inpIbActual.Text),
-                                                        application: varIbFormApp,
-                                                        section: varIbFormSection,
-                                                        other: If(IbOtherNeeded, Trim(inpIbOther.Text), ""),
-                                                        relatedNo: Trim(inpIbRelated.Text),
-                                                        severity: Coalesce(drpIbSeverity.Selected.Value, "Minor"),
-                                                        layout: Left("Opened from " & Coalesce(If(IbFrom = "", Blank(), IbFrom), "the Issue Board") & " · " & LayoutContext & " layout · " & App.Width & " x " & App.Height, 250),
-                                                        client: Left(Host.OSType & " · " & Host.BrowserUserAgent, 250)
-                                                    })
-                                                ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }));
+                                                Set(varIbSaved, false);
+                                                IfError(
+                                                    Set(varIbNewRow, Patch(
+                                                        IB_Tickets,
+                                                        Defaults(IB_Tickets),
+                                                        {
+                                                            Title: Trim(inpIbTitle.Text),
+                                                            Description: Trim(inpIbDesc.Text),
+                                                            ReproSteps: Trim(inpIbSteps.Text),
+                                                            ExpectedResult: Trim(inpIbExpected.Text),
+                                                            ActualResult: Trim(inpIbActual.Text),
+                                                            Application: varIbFormApp,
+                                                            Section: varIbFormSection,
+                                                            OtherContext: If(IbOtherNeeded, Trim(inpIbOther.Text), ""),
+                                                            RelatedRequestNo: Trim(inpIbRelated.Text),
+                                                            Severity: { Value: Coalesce(drpIbSeverity.Selected.Value, "Minor") },
+                                                            LayoutContext: Left("Opened from " & Coalesce(If(IbFrom = "", Blank(), IbFrom), "the Issue Board") & " · " & LayoutContext & " layout · " & App.Width & " x " & App.Height, 250),
+                                                            ClientContext: Left(Host.OSType & " · " & Host.BrowserUserAgent, 250),
+                                                            Priority: { Value: "Normal" },
+                                                            Status: { Value: "New" },
+                                                            ReporterEmail: varIbMe,
+                                                            ReporterName: Left(User().FullName, 255),
+                                                            LastActivityOn: Now(),
+                                                            IsArchived: false
+                                                        }
+                                                    ));
+                                                    Set(varIbSaved, true),
+                                                    Notify("The issue could not be submitted. " & FirstError.Message, NotificationType.Error)
+                                                );
                                                 If(
-                                                    varIbRes.ok = "yes",
-                                                    Clear(colIbUp);
-                                                    If(
-                                                        CountRows(attIbNewFiles.Attachments) > 0,
-                                                        Set(varIbUploading, true);
-                                                        ClearCollect(
-                                                            colIbUp,
-                                                            ForAll(attIbNewFiles.Attachments As F, { Name: F.Name, Msg: With({ res: IfError('BioSap-IssueBoard-Submit'.Run(
-                                                                        "attach",
-                                                                        JSON({ ticketId: Value(varIbRes.ticketid), initial: true }),
-                                                                        { file: { contentBytes: F.Value, name: F.Name } }
-                                                                    ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }) }, If(res.ok = "yes", "", Coalesce(res.message, "not saved"))) })
-                                                        );
-                                                        Set(varIbUploading, false)
-                                                    );
-                                                    Set(varIbSelId, Value(varIbRes.ticketid));
-                                                    Set(varIbSelRow, IfError(LookUp(IB_Tickets, ID = varIbSelId), Blank()));
-                                                    If(
-                                                        IsBlank(varIbSelRow),
-                                                        If(IsAdmin, Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true)); Set(varIbMineFailed, false), Set(varIbMineFailed, IfError(ClearCollect(colIbMine, ForAll(ShowColumns(Sort(Filter(IB_Tickets, ReporterEmail = varIbMe), LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true)); Set(varIbAllFailed, false)),
-                                                        Set(varIbNew, { Id: varIbSelRow.ID, TicketNo: Coalesce(varIbSelRow.TicketNo, ""), Title: Coalesce(varIbSelRow.Title, ""), Description: Coalesce(varIbSelRow.Description, ""), Steps: Coalesce(varIbSelRow.ReproSteps, ""), Expected: Coalesce(varIbSelRow.ExpectedResult, ""), Actual: Coalesce(varIbSelRow.ActualResult, ""), Application: Coalesce(varIbSelRow.Application, ""), Section: Coalesce(varIbSelRow.Section, ""), Other: Coalesce(varIbSelRow.OtherContext, ""), RelatedNo: Coalesce(varIbSelRow.RelatedRequestNo, ""), Severity: Coalesce(varIbSelRow.Severity.Value, ""), Priority: Coalesce(varIbSelRow.Priority.Value, ""), Status: Coalesce(varIbSelRow.Status.Value, "New"), Resolution: Coalesce(varIbSelRow.Resolution, ""), Assigned: Coalesce(varIbSelRow.AssignedToName, ""), CreatedOn: varIbSelRow.Created, UpdatedOn: Coalesce(varIbSelRow.LastActivityOn, varIbSelRow.Created), Archived: Coalesce(varIbSelRow.IsArchived, false), Reporter: Lower(Coalesce(varIbSelRow.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(varIbSelRow.AssignedToEmail, "")), PriRank: Switch(varIbSelRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbSelRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
-                                                        If(IsAdmin,
-                                                            RemoveIf(colIbAll, Id = varIbSelId); Collect(colIbAll, varIbNew),
-                                                            RemoveIf(colIbMine, Id = varIbSelId); Collect(colIbMine, varIbNew))
-                                                    );
-                                                    Set(varIbSharedLoaded, false);
+                                                    varIbSaved,
+                                                    Set(varIbSelId, varIbNewRow.ID);
+                                                    Set(varIbNew, { Id: varIbNewRow.ID, TicketNo: If(IsBlank(varIbNewRow.TicketNo), "ISS-" & Text(varIbNewRow.ID, "000000"), varIbNewRow.TicketNo), Title: Coalesce(varIbNewRow.Title, ""), Description: Coalesce(varIbNewRow.Description, ""), Steps: Coalesce(varIbNewRow.ReproSteps, ""), Expected: Coalesce(varIbNewRow.ExpectedResult, ""), Actual: Coalesce(varIbNewRow.ActualResult, ""), Application: Coalesce(varIbNewRow.Application, ""), Section: Coalesce(varIbNewRow.Section, ""), Other: Coalesce(varIbNewRow.OtherContext, ""), RelatedNo: Coalesce(varIbNewRow.RelatedRequestNo, ""), Severity: Coalesce(varIbNewRow.Severity.Value, ""), Priority: Coalesce(varIbNewRow.Priority.Value, ""), Status: Coalesce(varIbNewRow.Status.Value, "New"), Resolution: Coalesce(varIbNewRow.Resolution, ""), Assigned: Coalesce(varIbNewRow.AssignedToName, ""), CreatedOn: varIbNewRow.Created, UpdatedOn: Coalesce(varIbNewRow.LastActivityOn, varIbNewRow.Created), Archived: Coalesce(varIbNewRow.IsArchived, false), Reporter: Lower(Coalesce(varIbNewRow.ReporterEmail, "")), ReporterName: Coalesce(varIbNewRow.ReporterName, ""), AssignedEmail: Lower(Coalesce(varIbNewRow.AssignedToEmail, "")), PriRank: Switch(varIbNewRow.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(varIbNewRow.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                                    RemoveIf(colIbAll, Id = varIbSelId);
+                                                    Collect(colIbAll, varIbNew);
                                                     Set(varIbScope, "mine");
                                                     Set(varIbState, "open");
                                                     Set(varIbFormOn, false);
@@ -8264,49 +8206,40 @@ Screens:
                                                     Reset(inpIbActual);
                                                     Reset(inpIbRelated);
                                                     Reset(drpIbSeverity);
-                                                    Reset(attIbNewFiles);
                                                     Reset(drpIbStatus);
                                                     Reset(drpIbPriority);
                                                     Reset(drpIbAssignee);
                                                     Reset(inpIbResolution);
-                                                    Set(varIbSel, LookUp(IbMine, Id = varIbSelId));
-                                                    If(
-                                                        !IsBlank(varIbSel),
-                                                        Set(varIbSelShared, false);
-                                                        Set(varIbSelFullFor, varIbSelId);
-                                                        Set(varIbTab, "details");
-                                                        Set(varIbInternal, false);
-                                                        Set(varIbActsOn, false);
-                                                        Set(varIbFilesFor, -1);
-                                                        Reset(inpIbComment);
-                                                        Set(varIbActBusy, true);
-                                                        Set(varIbActFailed, IfError(ClearCollect(
-                                                            colIbActivity,
-                                                            { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
-                                                            ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
-                                                                With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
-                                                                    { Kind: k,
-                                                                      Actor: If(role = "System", "Issue Board", who = varIbMe, "You", Upper(First(Split(who, "@")).Value)),
-                                                                      Role: Switch(role, "Admin", "Admin", "System", "System", "User"),
-                                                                      Body: If(k in ["StatusChange", "Closed", "Reopened"] && !IsBlank(r.NewStatus), "Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & If(IsBlank(r.Content), ".", ". " & r.Content),
-                                                                            k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),
-                                                                            Coalesce(r.Content, "")),
-                                                                      At: Coalesce(r.EventOn, r.Created),
-                                                                      Internal: r.Visibility.Value = "Internal",
-                                                                      IsSystem: k <> "Comment",
-                                                                      File: Coalesce(r.FileName, ""),
-                                                                      SizeKb: Coalesce(r.FileSizeKb, 0),
-                                                                      Initial: atSub })))
-                                                        ; false, true));
-                                                        Set(varIbActBusy, false);
-                                                        Set(varIbDetailOn, true)
-                                                    );
-                                                    If(
-                                                        CountRows(Filter(colIbUp, !IsBlank(Msg))) > 0,
-                                                        Notify("Issue " & varIbRes.ticketno & " has been submitted, but these files were not attached: " & Concat(Filter(colIbUp, !IsBlank(Msg)), Name & " (" & Msg & ")", "; ") & ". Open the issue to try again.", NotificationType.Warning),
-                                                        Notify("Thank you. Issue " & varIbRes.ticketno & " has been submitted.", NotificationType.Success)
-                                                    ),
-                                                    Notify("The issue could not be submitted. " & Coalesce(varIbRes.message, "Please try again."), NotificationType.Error)
+                                                    Set(varIbSel, varIbNew);
+                                                    Set(varIbSelPeek, false);
+                                                    Set(varIbSelFullFor, varIbSelId);
+                                                    Set(varIbTab, "details");
+                                                    Set(varIbInternal, false);
+                                                    Set(varIbActsOn, false);
+                                                    Set(varIbFilesFor, -1);
+                                                    Reset(inpIbComment);
+                                                    Set(varIbActBusy, true);
+                                                    Set(varIbActFailed, IfError(ClearCollect(
+                                                        colIbActivity,
+                                                        { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
+                                                        ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
+                                                            With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
+                                                                { Kind: k,
+                                                                  Actor: If(role = "System", "Issue Board", who = varIbMe, "You", Upper(First(Split(who, "@")).Value)),
+                                                                  Role: Switch(role, "Admin", "Admin", "System", "System", "User"),
+                                                                  Body: If(k in ["StatusChange", "Closed", "Reopened"] && !IsBlank(r.NewStatus), "Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & If(IsBlank(r.Content), ".", ". " & r.Content),
+                                                                        k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),
+                                                                        Coalesce(r.Content, "")),
+                                                                  At: Coalesce(r.EventOn, r.Created),
+                                                                  Internal: r.Visibility.Value = "Internal",
+                                                                  IsSystem: k <> "Comment",
+                                                                  File: Coalesce(r.FileName, ""),
+                                                                  SizeKb: Coalesce(r.FileSizeKb, 0),
+                                                                  Initial: atSub })))
+                                                    ; false, true));
+                                                    Set(varIbActBusy, false);
+                                                    Set(varIbDetailOn, true);
+                                                    Notify("Thank you. Issue " & varIbNew.TicketNo & " has been submitted. To add screenshots or files, select Attachments here or the paperclip on the issue.", NotificationType.Success)
                                                 );
                                                 Set(varIbBusy, false)
                                             )
@@ -8679,7 +8612,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =36 + (Max(32, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36)) - 96 - 77 - 20) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))) + 12 + (Max(60, Min(37 + 12 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 40, 3 * 40 + 2 * 8)) + If(IbCanEdit || IbCanReopen || IbCanManage, 12 + (34), 0) + If(IbCanManage && varIbActsOn, 12 + (96), 0) + If(varIbSelShared, 12 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 12 + (34), 0) + If(!varIbSelShared, 12 + (32), 0) + If(varIbSelShared || varIbTab = "details", 12 + (0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(!varIbSelShared && varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)), 0) + If(!varIbSelShared && varIbTab = "activity", 12 + (0 + If(varIbActBusy || IfError(varIbActFailed, false), 0 + (20), 0) + If(!varIbActBusy, 12 + (Min(420, Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((Min(760, App.Width - 24) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40)))), 0) + If(IbCanComment, 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0) + If(varIbSel.Archived, 12 + (18), 0)), 0) + If(!varIbSelShared && varIbTab = "files", 12 + (0 + If(galIbFiles.AllItemsCount = 0, 0 + (20), 0) + If(galIbFiles.AllItemsCount > 0, 12 + (Min(5, galIbFiles.AllItemsCount) * 60), 0) + If(!varIbSel.Archived, 12 + (86 + (If(CountRows(attIbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFiles.Attachments), 4) * 36))), 0)), 0), App.Height - 32 - 36 - 12 - (Max(32, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36)) - 96 - 77 - 20) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))))))
+                      =36 + (Max(32, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36)) - 96 - 77 - 20) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))) + 12 + (Max(60, Min(81 + 12 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 40, 3 * 40 + 2 * 8)) + If(IbCanEdit || IbCanReopen || IbCanManage, 12 + (34), 0) + If(IbCanManage && varIbActsOn, 12 + (96), 0) + If(varIbSelPeek, 12 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 12 + (34), 0) + If(varIbTab = "details", 12 + (0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)), 0) + If(IbSeeActivity && varIbTab = "activity", 12 + (0 + If(varIbActBusy || IfError(varIbActFailed, false), 0 + (20), 0) + If(!varIbActBusy, 12 + (Min(420, Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((Min(760, App.Width - 24) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40)))), 0) + If(IbCanComment, 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0) + If(varIbSel.Archived, 12 + (18), 0)), 0) + If(varIbTab = "files", 12 + (0 + If(galIbFiles.AllItemsCount = 0, 0 + (20), 0) + If(galIbFiles.AllItemsCount > 0, 12 + (Min(5, galIbFiles.AllItemsCount) * 60), 0) + If(IbCanAttach, 12 + (86 + (If(CountRows(attIbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFiles.Attachments), 4) * 36))), 0)), 0), App.Height - 32 - 36 - 12 - (Max(32, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36)) - 96 - 77 - 20) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -8883,7 +8816,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =Max(60, Min(37 + 12 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 40, 3 * 40 + 2 * 8)) + If(IbCanEdit || IbCanReopen || IbCanManage, 12 + (34), 0) + If(IbCanManage && varIbActsOn, 12 + (96), 0) + If(varIbSelShared, 12 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 12 + (34), 0) + If(!varIbSelShared, 12 + (32), 0) + If(varIbSelShared || varIbTab = "details", 12 + (0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(!varIbSelShared && varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)), 0) + If(!varIbSelShared && varIbTab = "activity", 12 + (0 + If(varIbActBusy || IfError(varIbActFailed, false), 0 + (20), 0) + If(!varIbActBusy, 12 + (Min(420, Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((Min(760, App.Width - 24) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40)))), 0) + If(IbCanComment, 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0) + If(varIbSel.Archived, 12 + (18), 0)), 0) + If(!varIbSelShared && varIbTab = "files", 12 + (0 + If(galIbFiles.AllItemsCount = 0, 0 + (20), 0) + If(galIbFiles.AllItemsCount > 0, 12 + (Min(5, galIbFiles.AllItemsCount) * 60), 0) + If(!varIbSel.Archived, 12 + (86 + (If(CountRows(attIbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFiles.Attachments), 4) * 36))), 0)), 0), App.Height - 32 - 36 - 12 - (Max(32, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36)) - 96 - 77 - 20) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2)))))))
+                            =Max(60, Min(81 + 12 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 40, 3 * 40 + 2 * 8)) + If(IbCanEdit || IbCanReopen || IbCanManage, 12 + (34), 0) + If(IbCanManage && varIbActsOn, 12 + (96), 0) + If(varIbSelPeek, 12 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 12 + (34), 0) + If(varIbTab = "details", 12 + (0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)), 0) + If(IbSeeActivity && varIbTab = "activity", 12 + (0 + If(varIbActBusy || IfError(varIbActFailed, false), 0 + (20), 0) + If(!varIbActBusy, 12 + (Min(420, Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((Min(760, App.Width - 24) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40)))), 0) + If(IbCanComment, 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0) + If(varIbSel.Archived, 12 + (18), 0)), 0) + If(varIbTab = "files", 12 + (0 + If(galIbFiles.AllItemsCount = 0, 0 + (20), 0) + If(galIbFiles.AllItemsCount > 0, 12 + (Min(5, galIbFiles.AllItemsCount) * 60), 0) + If(IbCanAttach, 12 + (86 + (If(CountRows(attIbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFiles.Attachments), 4) * 36))), 0)), 0), App.Height - 32 - 36 - 12 - (Max(32, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36)) - 96 - 77 - 20) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2)))))))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -9365,7 +9298,7 @@ Screens:
                                                 Size: |-
                                                     =13
                                                 Text: |-
-                                                    =If(varIbSelShared, "Not shown", If(IsBlank(varIbSel.Assigned), "Not assigned", varIbSel.Assigned))
+                                                    =If(IsBlank(varIbSel.Assigned), "Not assigned", varIbSel.Assigned)
                                                 Wrap: |-
                                                     =false
                                     - conIbFactReporter:
@@ -9456,7 +9389,7 @@ Screens:
                                                 Size: |-
                                                     =13
                                                 Text: |-
-                                                    =If(varIbSelShared, "Anonymous", IbSelMine, "You", IsAdmin, Upper(First(Split(varIbSel.Reporter, "@")).Value), "Not shown")
+                                                    =If(varIbSel.Reporter = varIbMe, "You", !IsBlank(varIbSel.ReporterName), varIbSel.ReporterName, Upper(First(Split(varIbSel.Reporter, "@")).Value))
                                                 Wrap: |-
                                                     =false
                               - conIbFacts3:
@@ -9753,7 +9686,6 @@ Screens:
                                         Reset(inpIbActual);
                                         Reset(inpIbRelated);
                                         Reset(drpIbSeverity);
-                                        Reset(attIbNewFiles);
                                         Reset(drpIbStatus);
                                         Reset(drpIbPriority);
                                         Reset(drpIbAssignee);
@@ -9819,10 +9751,9 @@ Screens:
                                                 { r: LookUp(IB_Tickets, ID = varIbSelId) },
                                                 If(
                                                     IsBlank(r),
-                                                    RemoveIf(colIbMine, Id = varIbSelId);
                                                     RemoveIf(colIbAll, Id = varIbSelId);
                                                     Set(varIbDetailOn, false),
-                                                    Set(varIbSel, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                                    Set(varIbSel, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
                                                     Set(varIbSelFullFor, varIbSelId);
                                                     If(varIbTab = "files",
                                                         Set(varIbFilesBusy, true);
@@ -9830,7 +9761,6 @@ Screens:
                                                         Set(varIbFilesFor, varIbSelId);
                                                         Set(varIbFilesBusy, false)
                                                     , Set(varIbFilesFor, -1));
-                                                    UpdateIf(colIbMine, Id = varIbSelId, varIbSel);
                                                     UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
                                                 )
                                             );
@@ -9854,7 +9784,6 @@ Screens:
                                                           Initial: atSub })))
                                             ; false, true));
                                             Set(varIbActBusy, false);
-                                            Set(varIbSharedLoaded, false);
                                             Set(varIbState, "open");
                                             Notify("The issue has been reopened. An administrator will look at it again.", NotificationType.Success),
                                             Notify("The issue could not be reopened. " & varIbRes.message, NotificationType.Error)
@@ -10077,10 +10006,9 @@ Screens:
                                                       { r: LookUp(IB_Tickets, ID = varIbSelId) },
                                                       If(
                                                           IsBlank(r),
-                                                          RemoveIf(colIbMine, Id = varIbSelId);
                                                           RemoveIf(colIbAll, Id = varIbSelId);
                                                           Set(varIbDetailOn, false),
-                                                          Set(varIbSel, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                                          Set(varIbSel, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
                                                           Set(varIbSelFullFor, varIbSelId);
                                                           If(varIbTab = "files",
                                                               Set(varIbFilesBusy, true);
@@ -10088,7 +10016,6 @@ Screens:
                                                               Set(varIbFilesFor, varIbSelId);
                                                               Set(varIbFilesBusy, false)
                                                           , Set(varIbFilesFor, -1));
-                                                          UpdateIf(colIbMine, Id = varIbSelId, varIbSel);
                                                           UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
                                                       )
                                                   );
@@ -10112,7 +10039,6 @@ Screens:
                                                                 Initial: atSub })))
                                                   ; false, true));
                                                   Set(varIbActBusy, false);
-                                                  Set(varIbSharedLoaded, false);
                                                   Notify(If(varIbSel.Archived, "The issue has been archived. It is kept under Archived.", "The issue has been restored."), NotificationType.Success),
                                                   Notify("The issue could not be changed. " & varIbRes.message, NotificationType.Error)
                                               );
@@ -10185,11 +10111,11 @@ Screens:
                                               =VerticalAlign.Middle
                                           Width: |-
                                               =106
-                        - txtIbDetShared:
+                        - txtIbDetPeek:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Anonymous view. Who reported it, their details, the comments and the files are private and not shown here."
+                                  ="Read only - opened from your new report. Close it to continue your report."
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -10221,9 +10147,9 @@ Screens:
                               Size: |-
                                   =12
                               Text: |-
-                                  ="Anonymous view. Who reported it, their details, the comments and the files are private and not shown here."
+                                  ="Read only - opened from your new report. Close it to continue your report."
                               Visible: |-
-                                  =varIbSelShared
+                                  =varIbSelPeek
                               Wrap: |-
                                   =true
                         - txtIbDetRetest:
@@ -10319,8 +10245,6 @@ Screens:
                                   =LayoutOverflow.Hide
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
-                              Visible: |-
-                                  =!varIbSelShared
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -10412,13 +10336,15 @@ Screens:
                                         ="Activity (" & CountRows(Filter(colIbActivity, Kind <> "Reported")) & ")"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
+                                    Visible: |-
+                                        =IbSeeActivity
                                     Width: |-
                                         =Min(132, (((Min(760, App.Width - 24) - 36) - 18) - 16) / 3)
                               - btnIbTabFiles:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Show the attachments, " & IbFileCount & " files"
+                                        ="Show the attachments"
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -10458,7 +10384,7 @@ Screens:
                                     Size: |-
                                         =12
                                     Text: |-
-                                        ="Attachments (" & IbFileCount & ")"
+                                        ="Attachments" & If(IsBlank(IbFileCount), "", " (" & IbFileCount & ")")
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
@@ -10474,7 +10400,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(!varIbSelShared && varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)
+                                  =0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -10488,7 +10414,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Visible: |-
-                                  =varIbSelShared || varIbTab = "details"
+                                  =varIbTab = "details"
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -10613,7 +10539,7 @@ Screens:
                                     Text: |-
                                         ="Loading the rest of the issue..."
                                     Visible: |-
-                                        =!varIbSelShared && varIbSelFullFor <> varIbSelId
+                                        =varIbSelFullFor <> varIbSelId
                                     Wrap: |-
                                         =false
                               - conIbDetSteps:
@@ -11199,7 +11125,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Visible: |-
-                                  =!varIbSelShared && varIbTab = "activity"
+                                  =IbSeeActivity && varIbTab = "activity"
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -11674,7 +11600,6 @@ Screens:
                                                                 Initial: atSub })))
                                                   ; false, true));
                                                   Set(varIbActBusy, false);
-                                                  UpdateIf(colIbMine, Id = varIbSelId, { UpdatedOn: Now() });
                                                   UpdateIf(colIbAll, Id = varIbSelId, { UpdatedOn: Now() });
                                                   Notify(If(varIbInternal, "Internal note added.", "Comment posted."), NotificationType.Success);
                                                   Set(varIbInternal, false);
@@ -11742,7 +11667,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =0 + If(galIbFiles.AllItemsCount = 0, 0 + (20), 0) + If(galIbFiles.AllItemsCount > 0, 12 + (Min(5, galIbFiles.AllItemsCount) * 60), 0) + If(!varIbSel.Archived, 12 + (86 + (If(CountRows(attIbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFiles.Attachments), 4) * 36))), 0)
+                                  =0 + If(galIbFiles.AllItemsCount = 0, 0 + (20), 0) + If(galIbFiles.AllItemsCount > 0, 12 + (Min(5, galIbFiles.AllItemsCount) * 60), 0) + If(IbCanAttach, 12 + (86 + (If(CountRows(attIbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFiles.Attachments), 4) * 36))), 0)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -11756,7 +11681,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Visible: |-
-                                  =!varIbSelShared && varIbTab = "files"
+                                  =varIbTab = "files"
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -12068,7 +11993,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Visible: |-
-                                        =!varIbSel.Archived
+                                        =IbCanAttach
                                     Width: |-
                                         =Parent.Width
                                   Children:
@@ -12105,7 +12030,7 @@ Screens:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Up to 5 files at a time, 10 MB each. Files are only visible to you and the administrators - never on the shared board."
+                                              ="Up to 5 files at a time, 10 MB each. Everyone who uses the Issue Board can open the files - leave out personal data."
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -12129,7 +12054,7 @@ Screens:
                                           Size: |-
                                               =12
                                           Text: |-
-                                              ="Up to 5 files at a time, 10 MB each. Files are only visible to you and the administrators - never on the shared board."
+                                              ="Up to 5 files at a time, 10 MB each. Everyone who uses the Issue Board can open the files - leave out personal data."
                                           Wrap: |-
                                               =true
                                     - btnIbUpload:
@@ -12175,10 +12100,9 @@ Screens:
                                                       { r: LookUp(IB_Tickets, ID = varIbSelId) },
                                                       If(
                                                           IsBlank(r),
-                                                          RemoveIf(colIbMine, Id = varIbSelId);
                                                           RemoveIf(colIbAll, Id = varIbSelId);
                                                           Set(varIbDetailOn, false),
-                                                          Set(varIbSel, { Id: r.ID, TicketNo: Coalesce(r.TicketNo, ""), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
+                                                          Set(varIbSel, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: Coalesce(r.ReproSteps, ""), Expected: Coalesce(r.ExpectedResult, ""), Actual: Coalesce(r.ActualResult, ""), Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: Coalesce(r.OtherContext, ""), RelatedNo: Coalesce(r.RelatedRequestNo, ""), Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: Coalesce(r.Resolution, ""), Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) });
                                                           Set(varIbSelFullFor, varIbSelId);
                                                           If(varIbTab = "files",
                                                               Set(varIbFilesBusy, true);
@@ -12186,7 +12110,6 @@ Screens:
                                                               Set(varIbFilesFor, varIbSelId);
                                                               Set(varIbFilesBusy, false)
                                                           , Set(varIbFilesFor, -1));
-                                                          UpdateIf(colIbMine, Id = varIbSelId, varIbSel);
                                                           UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
                                                       )
                                                   );
@@ -12210,7 +12133,6 @@ Screens:
                                                                 Initial: atSub })))
                                                   ; false, true));
                                                   Set(varIbActBusy, false);
-                                                  Set(varIbSharedLoaded, false);
                                                   Set(varIbUploading, false);
                                                   If(
                                                       CountRows(Filter(colIbUp, !IsBlank(Msg))) > 0,
@@ -12470,7 +12392,7 @@ Screens:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="This cannot be undone. The issue, all its comments and activity, and its attachments are deleted for everyone, and it disappears from the shared board. To keep the history, archive the issue instead."
+                                  ="This cannot be undone. The issue, all its comments and activity, and its attachments are deleted for everyone. To keep the history, archive the issue instead."
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
@@ -12494,7 +12416,7 @@ Screens:
                               Size: |-
                                   =13
                               Text: |-
-                                  ="This cannot be undone. The issue, all its comments and activity, and its attachments are deleted for everyone, and it disappears from the shared board. To keep the history, archive the issue instead."
+                                  ="This cannot be undone. The issue, all its comments and activity, and its attachments are deleted for everyone. To keep the history, archive the issue instead."
                               Wrap: |-
                                   =true
                         - conIbDelConfirmF:
@@ -12670,9 +12592,7 @@ Screens:
                                   ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }));
                                   If(
                                       varIbRes.ok = "yes",
-                                      RemoveIf(colIbMine, Id = varIbSelId);
                                       RemoveIf(colIbAll, Id = varIbSelId);
-                                      Set(varIbSharedLoaded, false);
                                       Set(varIbDelOn, false);
                                       Set(varIbDiscardOn, false);
                                       Set(varIbDetailOn, false);
