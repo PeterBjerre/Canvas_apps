@@ -108,8 +108,57 @@ def sap_state(req):
             f'"Pending")')
 
 
+# HVILKE DOMAENER HAR ET FORLOEB (issue #204)
+#
+# VH-planen har tre godkendelsestrin og en oprettelse i SAP. Materials har
+# EET trin - systemgodkendelsen - og derefter overdragelsen til Master
+# Data. Trinene staar her, saa striben, popuppen og taellingen laeser den
+# samme liste; tidligere var "de tre trin" skrevet ind i hver af dem.
+#
+# Et domaene uden et forloeb viser "Not required" som foer.
+MAT_STAGES = [("System", "System approval", "S1")]
+DOM_STAGES = {"MaintenancePlan": STAGES, "Material": MAT_STAGES}
+# Det sidste trin - uden godkendelse; det laeses af indeksets status.
+FINAL = {
+    "MaintenancePlan": ("Creation in SAP",
+                        "Master Data creates the plan - no approval"),
+    "Material": ("Handover to Master Data",
+                 "Master Data creates the material in SAP - no approval"),
+}
+
+
+def is_mat(rec):
+    """Er anmodningen en materialeindmelding?"""
+    return f'{rec}.Domain.Value = "Material"'
+
+
 def applies(req):
-    return f'{req}.Domain.Value = "MaintenancePlan" && {req}.Status.Value <> "Kladde"'
+    doms = " || ".join(f'{req}.Domain.Value = "{d}"' for d in DOM_STAGES)
+    return f'({doms}) && {req}.Status.Value <> "Kladde"'
+
+
+# FORVENTEDE BESLUTNINGER I MATERIALS' SYSTEMTRIN
+#
+# VH-planen har een godkender pr. item, saa ItemCount ER tallet. Materials'
+# enhed er raekke GANGE system: en raekke med objekter i to systemer skal
+# godkendes to gange, og to raekker i det samme system af den samme
+# person. Antallet kan derfor ikke regnes af raekkerne.
+#
+# Flowet skriver en "Requested"-raekke i MD_ApprovalLog for hver enhed, der
+# skal svares paa, FOER der spoerges. Antallet af forskellige ItemGuid med
+# "Requested" er altsaa det, trinnet venter paa - uden en ny kolonne.
+REQUESTED = "Requested"
+
+
+def mat_expected(log):
+    return (f'Max(1, CountRows(Distinct(Filter({log}, Stage = "System" && '
+            f'Decision = "{REQUESTED}"), ItemGuid)))')
+
+
+def decided(table):
+    """Kun de raekker, der ER en beslutning. "Requested" er flowets eget
+    varsel om, at enheden er spurgt - ikke et svar."""
+    return f'Filter({table}, Decision <> "{REQUESTED}")'
 
 
 # ---------------------------------------------------------------------------
@@ -163,16 +212,15 @@ def _strip_glyph(value):
             + ', "%s")' % icons.WORKFLOW_DEFAULT)
 
 
-def row_svg():
-    """Power Fx text for the strip's SVG, or "" when the request has no approval flow."""
-    req = "ThisItem"
-    xs = [33, 99, 165, 231]
-    names = ["System", "Cost", "Quality", "SAP"]
-    var = ["a", "b", "c", "d"]
+def _strip_body(xs, names, var):
+    """Striben selv: en knude pr. trin paa en linje, farvet af tilstanden.
+
+    xs, names og var er lige lange - saa kan baade VH-planens fire trin og
+    Materials to tegnes af den samme kode (issue #204)."""
     parts = ['"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'%d\' height=\'%d\' '
              'viewBox=\'0 0 %d %d\'>"' % (STRIP_W, STRIP_H, STRIP_W, STRIP_H)]
     y = 23
-    for i in range(3):
+    for i in range(len(names) - 1):
         parts.append(
             f'"<line x1=\'{xs[i]}\' y1=\'{y}\' x2=\'{xs[i + 1]}\' y2=\'{y}\' stroke-width=\'2\' '
             f'stroke-linecap=\'round\' stroke=\'" & If({PASSED % ((var[i],) * 3)}, '
@@ -194,16 +242,37 @@ def row_svg():
             f'"<text x=\'{xs[i]}\' y=\'12\' text-anchor=\'middle\' {SVG_FONT} font-size=\'11\' '
             f'font-weight=\'600\' fill=\'" & {col} & "\'>{nm}</text>"')
     parts.append('"</svg>"')
-    body = " &\n".join(parts)
+    return " &\n".join(parts)
 
-    def pick(stage):
-        return latest("L", stage)
 
-    inner = (
-        f"With({{a: {stage_state(pick('System'), expected('System', req), 'true')}}},\n"
-        f"With({{b: {stage_state(pick('Cost'), expected('Cost', req), 'a')}}},\n"
-        f"With({{c: {stage_state(pick('Quality'), expected('Quality', req), 'b')}}},\n"
+def _vh_strip(req):
+    body = _strip_body([33, 99, 165, 231],
+                       ["System", "Cost", "Quality", "SAP"], ["a", "b", "c", "d"])
+    return (
+        f"With({{a: {stage_state(latest('L', 'System'), expected('System', req), 'true')}}},\n"
+        f"With({{b: {stage_state(latest('L', 'Cost'), expected('Cost', req), 'a')}}},\n"
+        f"With({{c: {stage_state(latest('L', 'Quality'), expected('Quality', req), 'b')}}},\n"
         f"With({{d: {sap_state(req)}}},\n{body}))))")
+
+
+def _mat_strip(req):
+    """Materials stribe: systemgodkendelsen og overdragelsen.
+
+    En indmelding UDEN strategiske raekker har ingen "Requested"-raekker i
+    loggen, og saa er der intet forloeb at vise - den staar som "Not
+    required", praecis som et domaene uden godkendelse."""
+    body = _strip_body([66, 198], ["System", "Handover"], ["a", "d"])
+    state = stage_state(decided(latest("L", "System")), mat_expected("L"), "true")
+    return (f'If(\n    CountRows(Filter(L, Stage = "System")) = 0, {NOT_STARTED},\n'
+            f"    With({{a: {state}}},\n"
+            f"    With({{d: {sap_state(req)}}},\n{body}))\n)")
+
+
+def row_svg():
+    """Power Fx text for the strip's SVG, or "" when the request has no approval flow."""
+    req = "ThisItem"
+    inner = (f"If(\n        {is_mat(req)},\n        {_mat_strip(req)},\n"
+             f"        {_vh_strip(req)}\n    )")
     return ("If(\n    !(" + applies(req) + '), ' + NOT_STARTED + ',\n'
             f"    With(\n        {{ L: {ROW_LOG} }},\n"
             f"        {inner}\n    )\n)")
@@ -306,11 +375,16 @@ def _decision_rows(stage, tbl, timeline=False):
     return f'ForAll(SortByColumns({tbl}, "DecidedOn"), {rec})'
 
 
-def _waiting_row(stage, svar):
-    n = f'CountRows(Filter(colMdAprLatest, Stage = "{stage}"))'
-    exp = expected(stage, R)
+def _waiting_row(stage, svar, n=None, exp=None, who=None):
+    """Linjen "x of y awaiting a decision" - kun naar trinet venter.
+
+    n og exp kan komme udefra: Materials enhed er raekke gange system, saa
+    antallet staar i loggen og ikke i ItemCount (mat_expected)."""
+    n = n or f'CountRows(Filter(colMdAprLatest, Stage = "{stage}"))'
+    exp = exp or expected(stage, R)
     if stage == "System":
-        rec = _rec(Kind=_q("D"), Stage=_q(stage), Title='"System manager of each item"',
+        rec = _rec(Kind=_q("D"), Stage=_q(stage),
+                   Title=_q(who or "System manager of each item"),
                    State=_q("Pending"), Label=_q("Awaiting"),
                    Sub=f'({exp} - {n}) & " of " & {exp} & " awaiting a decision"')
         return f'If({svar} = "In progress" && {n} < {exp}, Collect(colMdAprRows, {rec}))'
@@ -415,20 +489,9 @@ def timeline_fx():
     return ";\n".join(lines)
 
 
-def open_fx():
-    log = "colMdAprLog"
-    lines = [
-        "Set(varMdAprBusy, true)",
-        "Set(varMdAprExp, 0)",
-        "Set(varMdAprExtra, 0)",
-        'Set(varMdAprMode, "A")',
-        "Set(varMdAprOpen, true)",
-        f"Set({R}, ThisItem)",
-        # Note to approver (issue #115): kun naar der er en, og brugeren maa se den.
-        f'Set(varMdAprNote, If({R}.{sn.FLAG} && {sn.hub_may_approver(R)}, '
-        f'Coalesce(LookUp({sn.PLANS}, ID = {R}.SourceItemId).{sn.COL_APPROVER}, ""), ""))',
-        f"ClearCollect({log}, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid))",
-    ]
+def _vh_block(log):
+    """VH-planens forloeb i popuppen: tre trin og oprettelsen i SAP."""
+    lines = []
     for i, (stage, _t, _v) in enumerate(STAGES):
         verb = "ClearCollect" if i == 0 else "Collect"
         lines.append(f"{verb}(colMdAprLatest, {latest(log, stage)})")
@@ -451,10 +514,10 @@ def open_fx():
         lines.append("Collect(colMdAprRows, " +
                      _decision_rows(stage, f'Filter(colMdAprLatest, Stage = "{stage}")') + ")")
         lines.append(_waiting_row(stage, sv))
+    title, rule = FINAL["MaintenancePlan"]
     lines.append("Collect(colMdAprRows, " + _rec(
-        Kind=_q("H"), Stage=_q("SAP"), Title=_q("Creation in SAP"), State="varMdAprS4",
-        Label="varMdAprS4", Rule=_q("Master Data creates the plan - no approval"),
-        Cur='varMdAprCur = "SAP"') + ")")
+        Kind=_q("H"), Stage=_q("SAP"), Title=_q(title), State="varMdAprS4",
+        Label="varMdAprS4", Rule=_q(rule), Cur='varMdAprCur = "SAP"') + ")")
     lines.append(
         'If(varMdAprS4 <> "Pending", Collect(colMdAprRows, ' + _rec(
             Kind=_q("D"), Stage=_q("SAP"), Title=_q("Master Data"), State="varMdAprS4",
@@ -462,9 +525,71 @@ def open_fx():
             Act='If(varMdAprS4 = "Done", "Created the plan", "Ready - waiting for creation in SAP")',
             Sub=f'If(varMdAprS4 = "Done", "SAP " & {R}.SapObjectNo, "")')
         + "))")
-    lines.extend(INDEX_ROWS)
-    lines.append("Set(varMdAprBusy, false)")
-    return ";\n".join(lines)
+    return lines
+
+
+def _mat_block(log):
+    """Materials forloeb (issue #204): systemgodkendelsen og overdragelsen.
+
+    Samme raekkemodel som VH-planens - popuppen er den samme komponent.
+    Det, der er Materials', er enheden (raekke gange system) og at
+    antallet laeses af "Requested"-raekkerne i stedet for ItemCount."""
+    stage, title, v = MAT_STAGES[0]
+    sv = f"varMdApr{v}"
+    tbl = f'Filter(colMdAprLatest, Stage = "{stage}")'
+    exp = mat_expected(log)
+    n = f"CountRows({decided(tbl)})"
+    lines = [
+        f"ClearCollect(colMdAprLatest, {latest(log, stage)})",
+        f"Set({sv}, {stage_state(decided(tbl), exp, 'true')})",
+        # Trinene, popuppen ikke har her, maa ikke staa tilbage fra en
+        # VH-plan, brugeren saa foer.
+        'Set(varMdAprS2, "")',
+        'Set(varMdAprS3, "")',
+        f"Set(varMdAprS4, {sap_state(R)})",
+        f'Set(varMdAprCur, If({sv} = "In progress" || {sv} = "Returned", "System", '
+        'varMdAprS4 = "In progress", "SAP", ""))',
+        "ClearCollect(colMdAprRows, " + _rec(
+            Kind=_q("H"), Stage=_q(stage), Title=_q(title), State=sv, Label=sv,
+            Rule=f'"One approver per system - " & {exp} & If({exp} = 1, " approval", '
+                 '" approvals in parallel") & ", all must pass"',
+            Cur=f'varMdAprCur = "{stage}"') + ")",
+        "Collect(colMdAprRows, " + _decision_rows(stage, decided(tbl)) + ")",
+        _waiting_row(stage, sv, n=n, exp=exp, who="System manager of each system"),
+    ]
+    title, rule = FINAL["Material"]
+    lines.append("Collect(colMdAprRows, " + _rec(
+        Kind=_q("H"), Stage=_q("SAP"), Title=_q(title), State="varMdAprS4",
+        Label="varMdAprS4", Rule=_q(rule), Cur='varMdAprCur = "SAP"') + ")")
+    lines.append(
+        'If(varMdAprS4 <> "Pending", Collect(colMdAprRows, ' + _rec(
+            Kind=_q("D"), Stage=_q("SAP"), Title=_q("Master Data"), State="varMdAprS4",
+            Label='If(varMdAprS4 = "Done", "Created", "Awaiting")',
+            Act='If(varMdAprS4 = "Done", "Created the material in SAP", '
+                '"Ready - waiting for creation in SAP")',
+            Sub=f'If(varMdAprS4 = "Done", "SAP " & {R}.SapObjectNo, "")')
+        + "))")
+    return lines
+
+
+def open_fx():
+    log = "colMdAprLog"
+    head = [
+        "Set(varMdAprBusy, true)",
+        "Set(varMdAprExp, 0)",
+        "Set(varMdAprExtra, 0)",
+        'Set(varMdAprMode, "A")',
+        "Set(varMdAprOpen, true)",
+        f"Set({R}, ThisItem)",
+        # Note to approver (issue #115): kun naar der er en, og brugeren maa se den.
+        f'Set(varMdAprNote, If({R}.{sn.FLAG} && {sn.hub_may_approver(R)}, '
+        f'Coalesce(LookUp({sn.PLANS}, ID = {R}.SourceItemId).{sn.COL_APPROVER}, ""), ""))',
+        f"ClearCollect({log}, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid))",
+    ]
+    ind = lambda ls: ";\n".join("        " + l.replace("\n", "\n        ") for l in ls)
+    body = (f"If(\n    {is_mat(R)},\n{ind(_mat_block(log))},\n{ind(_vh_block(log))}\n)")
+    tail = [*INDEX_ROWS, "Set(varMdAprBusy, false)"]
+    return ";\n".join(head) + ";\n" + body + ";\n" + ";\n".join(tail)
 
 
 def strip_hits(act_width, x_expr, compact=None):

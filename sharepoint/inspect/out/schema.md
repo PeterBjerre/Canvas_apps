@@ -21,7 +21,7 @@ Udtrukket 2026-10-08 23:09 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `MaintenanceItems` | 72 | 36 |
 | `MaintenancePlans` | 50 | 40 |
 | `MainWorkCenters` | 53 | 8 |
-| `MaterialItems` | 2 | 32 |
+| `MaterialItems` | 2 | 44 |
 | `MD_ApprovalLog` | 25 | 18 |
 | `MD_Approver` | 31 | 10 |
 | `MD_FLKey` | 6733 | 9 |
@@ -584,6 +584,18 @@ Udtrukket 2026-10-08 23:09 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `WearPart` | WearPart | Text |  |  |  |
 | `LongText` | LongText | Note |  |  |  |
 | `NoBomItem` | NoBomItem | Boolean |  |  |  |
+| `IsStockItem` | IsStockItem | Boolean |  |  |  |
+| `MinStock` | MinStock | Number |  |  |  |
+| `MaxStock` | MaxStock | Number |  |  |  |
+| `StorageBin` | StorageBin | Text |  |  |  |
+| `ObjectList` | ObjectList | Note |  |  |  |
+| `ObjectListJson` | ObjectListJson | Note |  |  |  |
+| `ApprovalRequired` | ApprovalRequired | Boolean |  | x |  |
+| `Remarks` | Remarks | Note |  |  |  |
+| `MaintenanceOrderNo` | MaintenanceOrderNo | Text |  |  |  |
+| `ReplacesExisting` | ReplacesExisting | Boolean |  |  |  |
+| `ReplacedMaterialNo` | ReplacedMaterialNo | Text |  |  |  |
+| `CreatedMaterialNo` | CreatedMaterialNo | Text |  | x |  |
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |

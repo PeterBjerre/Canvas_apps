@@ -234,9 +234,9 @@ EXTRA_FORMULAS = (
 SUBMIT_STATUS = "KlarTilSAP"
 
 # --- Saved Rows og kopi (fase 3) --------------------------------------
-# EET fast layout (Q13): ingen Compact/All columns. Uden de to visninger
-# er der heller ingen varDomAllCols (tools/domain_app.py).
-LIST_VIEWS = False
+# EET fast layout (Q13): ingen Compact/All columns og ingen varDomAllCols.
+# Det er nu faelles for alle domaeneapps (#204), saa der er intet at slaa
+# fra her - pladserne staar i mp_parts.SLOTS.
 
 # Copy laver en NY raekke af en gammel. Et eksisterende maalepunktsnummer
 # maa ikke foelge med - to raekker kan ikke vaere det samme punkt.

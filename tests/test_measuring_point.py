@@ -127,8 +127,8 @@ def test_saved_rows_has_no_compact_or_all_columns():
     assert "btnMpViewCompact" not in t and "btnMpViewAll" not in t
     # Og uden de to visninger findes variablen slet ikke.
     assert "varMpAllCols" not in t
-    # Equipment og Materials har dem stadig.
-    assert "btnMatViewCompact" in _mat() and "varMatAllCols" in _mat()
+    # Efter #204 har Materials (og Equipment) dem heller ikke.
+    assert "btnMatViewCompact" not in _mat() and "varMatAllCols" not in _mat()
 
 
 def test_saved_rows_columns_are_the_ones_the_issue_asks_for():

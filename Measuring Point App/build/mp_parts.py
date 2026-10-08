@@ -312,24 +312,15 @@ UNIT = ("UNIT", "ThisItem.CharacteristicUnit", 70)
 TAG = ("PRODOS TAG", "ThisItem.ProdosTag", 110)
 DESC = (cfg.TEXT_LABEL.upper(),
         f'If(IsBlank(Trim(ThisItem.{cfg.C_TEXT})), "(no text)", ThisItem.{cfg.C_TEXT})', 130)
-# EET FAST LAYOUT (Q13): ingen Compact/All columns. Pladserne er derfor
-# (plads, None) - den anden halvdel af parret hoerer til den visning, der
-# ikke findes her. Alt det, der ikke er plads til, staar i Details.
-SLOTS = [
-    (PLANT, None),
-    (FL_C, None),
-    (MPNO, None),
-    (TYPE, None),
-    (CHAR, None),
-    (UNIT, None),
-    (TAG, None),
-]
+# EET FAST LAYOUT (Q13): ingen Compact/All columns - og efter #204 har
+# ingen af domaeneappene dem. En plads er (overskrift, udtryk,
+# mindstebredde). Alt det, der ikke er plads til, staar i Details.
+SLOTS = [PLANT, FL_C, MPNO, TYPE, CHAR, UNIT, TAG]
 
 
 def build_rows():
     return dp.build_list(SLOTS, "STATUS",
-                         "Search FL, measuring point, characteristic, PRODOS tag",
-                         views=False, fixed=True)
+                         "Search FL, measuring point, characteristic, PRODOS tag")
 
 
 # ---------------------------------------------------------------------------
