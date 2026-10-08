@@ -92,7 +92,7 @@ def test_app_calls_the_flow_with_its_trigger_inputs():
     assert schema["properties"]["text_4"]["title"] == "Context"
     # Beskeden gaar uaendret til flowet - anmodningen kommer i Context (#194).
     yaml = open(os.path.join(ROOT, "BIO SAP App", "ScreenKks.pa.yaml"), encoding="utf-8").read()
-    assert ("%s, inpKksFbMessage.Text, JSON(attKksFbFiles.Attachments, JSONFormat.IncludeBinaryData), %s)"
+    assert ("%s, inpKksFbMessage.Text, JSON(ForAll(attKksFbFiles.Attachments, {Name: ThisRecord.Name, Value: ThisRecord.Value}), JSONFormat.IncludeBinaryData), %s)"
             % (fb.SUBJECT_FX, fb.CONTEXT_FX)) in yaml
     assert "Url: Coalesce(R.AppUrl" in yaml
 
@@ -219,3 +219,11 @@ def test_mail_reuses_the_plan_mail_styling():
     for bad in ("<style", "class=", "display:flex", "<h1", "<h2", "<p>"):
         assert bad not in html, bad
     assert "Reply to this email" in html
+
+
+def test_no_json_over_a_raw_attachments_table():
+    # Attachments-tabellen har en skjult kolonne af typen Control; JSON af
+    # hele tabellen fejler i Studio-compile. Kun Name og Value maa sendes.
+    for path in glob.glob(os.path.join(ROOT, "BIO SAP App", "*.pa.yaml")):
+        text = open(path, encoding="utf-8").read()
+        assert not re.search(r"JSON\(\w+\.Attachments\b", text), path

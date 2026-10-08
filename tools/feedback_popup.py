@@ -371,8 +371,13 @@ def build(p):
     # Flowet sender fra SVC_BioSap og svarer {sent, message}. En afvisning
     # (sent = "no") og en fejl i kaldet giver begge fejlbeskeden; popuppen
     # bliver staaende med teksten, saa intet gaar tabt.
+    # Kun Name og Value: kontrollens Attachments-tabel har ogsaa en skjult
+    # kolonne af typen Control, som JSON ikke kan serialisere (compile-fejl
+    # "nested property ... of type 'Control'" ved deploy).
+    files_json = (f"JSON(ForAll({files}.Attachments, {{Name: ThisRecord.Name, Value: ThisRecord.Value}}), "
+                  "JSONFormat.IncludeBinaryData)")
     run = (f'{SEND_FLOW}.Run("{MAILBOX}", {SUBJECT_FX}, {msg}, '
-           f"JSON({files}.Attachments, JSONFormat.IncludeBinaryData), {CONTEXT_FX})")
+           f"{files_json}, {CONTEXT_FX})")
     send_app = (f"Set({BUSY}, true);\n"
                 f"IfError(\n"
                 f"    With({{ res: {run} }},\n"
