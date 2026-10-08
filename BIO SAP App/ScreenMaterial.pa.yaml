@@ -743,6 +743,7 @@ Screens:
                                   Set(varMatFReplacesExisting, false);
                                   Set(varMatFReplacedMaterialNo, "");
                                   Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
+                                  Clear(colMatObjects);
                                   Set(varMatInfo, "")
                               RadiusBottomLeft: |-
                                   =10
@@ -842,7 +843,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =36 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (164) + (160) + (228) + 24, 32, (26) + 12 + (32) + 12 + (32))) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (62) + (20 + 6 + (0 + (If(LayoutRank < 2, 84, 40)) + If(false, 0 + (1), 0))) + (62) + (62) + 60, (Max((62), (20 + 6 + (0 + (If(LayoutRank < 2, 84, 40)) + If(false, 0 + (1), 0))))) + (Max((62), (62))) + 20), (Max((62), (20 + 6 + (0 + (If(LayoutRank < 2, 84, 40)) + If(false, 0 + (1), 0))), (62), (62))) + 0)) + If(!IsBlank(varMatFlMsg), 14 + (18), 0) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + If(varMatExtraOpen, 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (166) + (62) + (62) + (62) + 60, (Max((166), (62))) + (Max((62), (62))) + 20), (Max((166), (62), (62), (62))) + 0)), 0) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If(LayoutRank < 2, 136, 419)) + (428) + 8, 36, (28) + 8 + (36))) + If(!IsBlank(varMatInfo), 14 + (18), 0)
+                            =36 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (164) + (160) + (228) + 24, 32, (26) + 12 + (32) + 12 + (32))) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (62) + (20 + 6 + (0 + (If(LayoutRank < 2, 84, 40)) + If(false, 0 + (1), 0))) + (62) + (62) + 60, (Max((62), (20 + 6 + (0 + (If(LayoutRank < 2, 84, 40)) + If(false, 0 + (1), 0))))) + (Max((62), (62))) + 20), (Max((62), (20 + 6 + (0 + (If(LayoutRank < 2, 84, 40)) + If(false, 0 + (1), 0))), (62), (62))) + 0)) + If(!IsBlank(varMatFlMsg), 14 + (18), 0) + 14 + (36 + If(CountRows(colMatObjects) = 0, 4 + (18), 0) + If(CountRows(colMatObjects) > 0, 4 + (Max(Min(CountRows(colMatObjects), 5), 1) * 32), 0)) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (62) + (62) + (62) + (62) + 60, (Max((62), (62))) + (Max((62), (62))) + 20), (Max((62), (62), (62), (62))) + 0)) + If(varMatExtraOpen, 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, (166) + (62) + (62) + (62) + 60, (Max((166), (62))) + (Max((62), (62))) + 20), (Max((166), (62), (62), (62))) + 0)), 0) + 14 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (If(LayoutRank < 2, 136, 419)) + (428) + 8, 36, (28) + 8 + (36))) + If(!IsBlank(varMatInfo), 14 + (18), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -1063,13 +1064,19 @@ Screens:
                                     LayoutMinWidth: |-
                                         =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (164) + (160) + (228) + 24, 164, 0)
                                     OnSelect: |-
-                                        =Set(varMatFNoBomItem, !varMatFNoBomItem);
-                                        If(
-                                            varMatFNoBomItem,
-                                            Set(varMatFFunctionalLocation, "");
-                                            Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
-                                            Set(varMatFlMsg, "No BOM item - a functional location is not required."),
-                                            Set(varMatFlMsg, "")
+                                        =If(
+                                            !varMatFNoBomItem && (Upper(Trim(Coalesce(varMatFStrategicPart, ""))) in ["YES", "JA", "Y", "TRUE", "1"]),
+                                            Set(varMatFlMsg, "A strategic part needs at least one functional location."),
+                                        
+                                            Set(varMatFNoBomItem, !varMatFNoBomItem);
+                                            If(
+                                                varMatFNoBomItem,
+                                                Set(varMatFFunctionalLocation, "");
+                                                Clear(colMatObjects);
+                                                Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
+                                                Set(varMatFlMsg, "No BOM item - a functional location is not required."),
+                                                Set(varMatFlMsg, "")
+                                            )
                                         )
                                     RadiusBottomLeft: |-
                                         =16
@@ -1538,14 +1545,14 @@ Screens:
                                                     Control: ModernCombobox
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          ="Functional location - type at least 7 characters, then Search or Enter"
+                                                          ="Functional location - type at least 16 characters, then Search or Enter"
                                                       Appearance: |-
                                                           =If(varMatFNoBomItem, Appearance.FilledDarker, If((If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline))
                                                       BasePaletteColor: |-
                                                           =C.'color-brand-primary'
                                                       BorderColor: |-
                                                           =If(varMatFNoBomItem, C.'border-default', If(
-                                                              varMatValidated && !varMatFNoBomItem && (IsBlank(Self.Selected.Code) || Self.Selected.Code = "?search"),
+                                                              varMatValidated && !varMatFNoBomItem && CountRows(colMatObjects) = 0 && (IsBlank(Self.Selected.Code) || Self.Selected.Code = "?search"),
                                                               C.'border-error',
                                                               If((IsBlank(Self.Selected.Code) || Self.Selected.Code = "?search"), C.'border-default', C.'border-ok')
                                                           ))
@@ -1570,7 +1577,7 @@ Screens:
                                                       Height: |-
                                                           =36
                                                       InputTextPlaceholder: |-
-                                                          =If(varMatFNoBomItem, "Not used - No BOM Item is on", "At least 7 characters, e.g. SSV13 HFC")
+                                                          =If(varMatFNoBomItem, "Not used - No BOM Item is on", "At least 16 characters, e.g. SSV13 HFC10")
                                                       IsSearchable: |-
                                                           =true
                                                       ItemDisplayText: |-
@@ -1584,7 +1591,7 @@ Screens:
                                                                             Display: q & "  -  press Enter to search",
                                                                             Maintainable: true, Level: "" },
                                                                       n: CountRows(colMatFl),
-                                                                      ask: Len(q) >= 7 && !varMatFlBusy &&
+                                                                      ask: Len(q) >= 16 && !varMatFlBusy &&
                                                                            Upper(q) <> Upper(Coalesce(varMatFlLast, "")),
                                                                       narrow: CountRows(colMatFl) > 0 && !IsBlank(varMatFlLast) &&
                                                                               StartsWith(Upper(q), Upper(varMatFlLast))
@@ -1608,9 +1615,9 @@ Screens:
                                                               With(
                                                               { q: Upper(Trim(varMatFlQuery)) },
                                                               If(
-                                                                  Len(q) < 7,
+                                                                  Len(q) < 16,
                                                                   Notify(
-                                                                      "Type at least 7 characters before searching.",
+                                                                      "Type at least 16 characters before searching.",
                                                                       NotificationType.Warning
                                                                   ),
                                                           
@@ -1688,7 +1695,7 @@ Screens:
                                                       Size: |-
                                                           =If(LayoutRank < 2, 16, 14)
                                                       ValidationState: |-
-                                                          =If(varMatValidated && !varMatFNoBomItem && IsBlank(Self.Selected.Code), ValidationState.Error, ValidationState.None)
+                                                          =If(varMatValidated && !varMatFNoBomItem && CountRows(colMatObjects) = 0 && IsBlank(Self.Selected.Code), ValidationState.Error, ValidationState.None)
                                                       Width: |-
                                                           =Max(0, ((((If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 860, If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 20) / 2), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 60) / 4))))) - (If(!varMatFlBusy, (154) + 8, 0)) - (If(varMatFlBusy, (154) + 8, 0)) - 2)
                                                 - btnMatFlSearch:
@@ -1709,7 +1716,7 @@ Screens:
                                                       Color: |-
                                                           =C.'text-primary'
                                                       DisplayMode: |-
-                                                          =If(varMatFNoBomItem || Len(Trim(Coalesce(cmbMatFl.SearchText, varMatFlQuery))) < 7, DisplayMode.Disabled, If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit))
+                                                          =If(varMatFNoBomItem || Len(Trim(Coalesce(cmbMatFl.SearchText, varMatFlQuery))) < 16, DisplayMode.Disabled, If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit))
                                                       Font: |-
                                                           =Font.'Segoe UI'
                                                       FontWeight: |-
@@ -1724,9 +1731,9 @@ Screens:
                                                           =With(
                                                               { q: Upper(Trim(Coalesce(cmbMatFl.SearchText, varMatFlQuery))) },
                                                               If(
-                                                                  Len(q) < 7,
+                                                                  Len(q) < 16,
                                                                   Notify(
-                                                                      "Type at least 7 characters before searching.",
+                                                                      "Type at least 16 characters before searching.",
                                                                       NotificationType.Warning
                                                                   ),
                                                           
@@ -2173,6 +2180,353 @@ Screens:
                                   =!IsBlank(varMatFlMsg)
                               Wrap: |-
                                   =false
+                        - conMatObjects:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =36 + If(CountRows(colMatObjects) = 0, 4 + (18), 0) + If(CountRows(colMatObjects) > 0, 4 + (Max(Min(CountRows(colMatObjects), 5), 1) * 32), 0)
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Stretch
+                              LayoutDirection: |-
+                                  =LayoutDirection.Vertical
+                              LayoutGap: |-
+                                  =4
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              Width: |-
+                                  =Parent.Width
+                            Children:
+                              - conMatObjHead:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =36
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Center
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Horizontal
+                                    LayoutGap: |-
+                                        =8
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - txtMatObjHead:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =Self.Text
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          FillPortions: |-
+                                              =0
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =20
+                                          LayoutMinWidth: |-
+                                              =0
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =13
+                                          Text: |-
+                                              ="Object list (" & Text(CountRows(colMatObjects)) & ")"
+                                          Width: |-
+                                              =Max(0, (((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18))) - ((72) + 8) - 2)
+                                          Wrap: |-
+                                              =false
+                                    - btnMatObjAdd:
+                                        Control: ModernButton
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Add the selected functional location to the object list"
+                                          Align: |-
+                                              =Align.Center
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          Appearance: |-
+                                              =ButtonAppearance.Outline
+                                          BorderColor: |-
+                                              =C.'border-default'
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =C.'text-primary'
+                                          DisplayMode: |-
+                                              =If(varMatFNoBomItem || !(Len(Trim(Coalesce(varMatFFunctionalLocation, ""))) >= 16), DisplayMode.Disabled, If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit))
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =36
+                                          Layout: |-
+                                              =ButtonLayout.TextOnly
+                                          LayoutMinWidth: |-
+                                              =72
+                                          OnSelect: |-
+                                              =If(
+                                                  IsBlank(Trim(Coalesce(varMatFFunctionalLocation, ""))),
+                                                  Set(varMatFlMsg, "Search for a functional location and select one first."),
+                                              
+                                                  CountRows(Filter(colMatObjects, Upper(Trim(Code)) = Upper(Trim(varMatFFunctionalLocation)))) > 0,
+                                                  Set(varMatFlMsg, "Already in the object list."),
+                                              
+                                                  Collect(colMatObjects, { Code: Trim(varMatFFunctionalLocation), Description: Coalesce(Coalesce(LookUp(colMatFl, Code = varMatFFunctionalLocation).Description, ""), "") });
+                                                  Set(varMatFlMsg, "Added " & Trim(varMatFFunctionalLocation) & " - " & Text(CountRows(colMatObjects)) & " in the object list.")
+                                              )
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Size: |-
+                                              =14
+                                          Text: |-
+                                              ="Add"
+                                          Tooltip: |-
+                                              ="Add the selected functional location to the object list"
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Width: |-
+                                              =72
+                              - txtMatObjEmpty:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="No functional location yet - search above and press Add."
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =18
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =12
+                                    Text: |-
+                                        ="No functional location yet - search above and press Add."
+                                    Visible: |-
+                                        =CountRows(colMatObjects) = 0
+                                    Wrap: |-
+                                        =false
+                              - galMatObjects:
+                                  Control: Gallery
+                                  Variant: Vertical
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Functional locations on this row"
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =Max(Min(CountRows(colMatObjects), 5), 1) * 32
+                                    Items: |-
+                                        =Sort(colMatObjects, Code)
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LoadingSpinner: |-
+                                        =LoadingSpinner.None
+                                    Selectable: |-
+                                        =false
+                                    ShowScrollbar: |-
+                                        =true
+                                    TabIndex: |-
+                                        =0
+                                    TemplatePadding: |-
+                                        =1
+                                    TemplateSize: |-
+                                        =32
+                                    Visible: |-
+                                        =CountRows(colMatObjects) > 0
+                                    Width: |-
+                                        =Parent.Width
+                                    WrapCount: |-
+                                        =1
+                                  Children:
+                                    - txtMatObjCode:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =Self.Text
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =20
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =13
+                                          Text: |-
+                                              =ThisItem.Code
+                                          Width: |-
+                                              =170
+                                          Wrap: |-
+                                              =false
+                                          X: |-
+                                              =0 + 0 + 0
+                                          Y: |-
+                                              =0 + 0 + (((30) - 0 - 0) - (20)) / 2
+                                    - txtMatObjDesc:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =Self.Text
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-muted'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =20
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =12
+                                          Text: |-
+                                              =Coalesce(ThisItem.Description, "")
+                                          Width: |-
+                                              =Max(0, ((((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18)) - 2 * 1 - 18 - 40)) - ((170) + 8) - ((76) + 8) - 2)
+                                          Wrap: |-
+                                              =false
+                                          X: |-
+                                              =0 + 0 + 0 + (170) + 8
+                                          Y: |-
+                                              =0 + 0 + (((30) - 0 - 0) - (20)) / 2
+                                    - btnMatObjRemove:
+                                        Control: ModernButton
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Remove " & ThisItem.Code
+                                          Align: |-
+                                              =Align.Center
+                                          Appearance: |-
+                                              =ButtonAppearance.Outline
+                                          BorderColor: |-
+                                              =C.'border-default'
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =C.'text-primary'
+                                          DisplayMode: |-
+                                              =If(varMatFNoBomItem, DisplayMode.Disabled, If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit))
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =30
+                                          Layout: |-
+                                              =ButtonLayout.TextOnly
+                                          OnSelect: |-
+                                              =RemoveIf(colMatObjects, Code = ThisItem.Code);
+                                              Set(varMatFlMsg, "Removed " & ThisItem.Code & ".")
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Size: |-
+                                              =12
+                                          Text: |-
+                                              ="Remove"
+                                          Tooltip: |-
+                                              ="Remove " & ThisItem.Code
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Width: |-
+                                              =76
+                                          X: |-
+                                              =0 + 0 + 0 + (170) + 8 + (Max(0, ((((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18)) - 2 * 1 - 18 - 40)) - ((170) + 8) - ((76) + 8) - 2)) + 8
+                                          Y: |-
+                                              =0 + 0 + (((30) - 0 - 0) - (30)) / 2
                         - conMatGrid1:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -5105,7 +5459,7 @@ Screens:
                                                           {
                                                           MaterialDescription: Trim(varMatFText),
                                                           Plant: varMatFPlant,
-                                                          FunctionalLocation: Trim(Coalesce(varMatFFunctionalLocation, "")),
+                                                          FunctionalLocation: Coalesce(First(Sort(colMatObjects, Code)).Code, ""),
                                                           NoBomItem: Coalesce(varMatFNoBomItem, false),
                                                           Manufacturer: Trim(Coalesce(varMatFManufacturer, "")),
                                                           ModelNumber: Trim(Coalesce(varMatFModelNumber, "")),
@@ -5127,6 +5481,8 @@ Screens:
                                                           MaintenanceOrderNo: Trim(Coalesce(varMatFMaintenanceOrderNo, "")),
                                                           ReplacesExisting: Coalesce(varMatFReplacesExisting, false),
                                                           ReplacedMaterialNo: Trim(Coalesce(varMatFReplacedMaterialNo, "")),
+                                                          ObjectList: Concat(Sort(colMatObjects, Code), Code, "; "),
+                                                          ObjectListJson: JSON(ForAll(Sort(colMatObjects, Code) As O, { code: O.Code, desc: O.Description }), JSONFormat.Compact),
                                                           RowStatus: { Value: "draft" },
                                                           RequesterEmail: If((!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)), Lower(varMatIdx.RequesterEmail), varMatMe),
                                                           RequesterName: If((!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)), varMatIdx.RequesterName, User().FullName)
@@ -5331,8 +5687,10 @@ Screens:
                                                   Notify("Material description and Plant are required.", NotificationType.Warning),
                                                   (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)) && !IsAdmin,
                                                   Notify("You can only change your own requests.", NotificationType.Warning),
-                                                  !varMatFNoBomItem && IsBlank(Trim(Coalesce(varMatFFunctionalLocation, ""))),
-                                                  Notify("Functional location is required - or turn on No BOM Item.", NotificationType.Warning),
+                                                  !varMatFNoBomItem && CountRows(colMatObjects) = 0,
+                                                  Notify("Add at least one functional location - or turn on No BOM Item.", NotificationType.Warning),
+                                                  (Upper(Trim(Coalesce(varMatFStrategicPart, ""))) in ["YES", "JA", "Y", "TRUE", "1"]) && CountRows(colMatObjects) = 0,
+                                                  Notify("A strategic row needs at least one functional location.", NotificationType.Warning),
                                                   Coalesce(varMatFIsStockItem, false) && (IsBlank(varMatFMinStock) || IsBlank(varMatFMaxStock)),
                                                   Notify("Min stock and max stock are required for a stock item.", NotificationType.Warning),
                                                   Coalesce(varMatFIsStockItem, false) && !IsBlank(varMatFMinStock) && !IsBlank(varMatFMaxStock) && varMatFMinStock > varMatFMaxStock,
@@ -5392,7 +5750,7 @@ Screens:
                                                           {
                                                           MaterialDescription: Trim(varMatFText),
                                                           Plant: varMatFPlant,
-                                                          FunctionalLocation: Trim(Coalesce(varMatFFunctionalLocation, "")),
+                                                          FunctionalLocation: Coalesce(First(Sort(colMatObjects, Code)).Code, ""),
                                                           NoBomItem: Coalesce(varMatFNoBomItem, false),
                                                           Manufacturer: Trim(Coalesce(varMatFManufacturer, "")),
                                                           ModelNumber: Trim(Coalesce(varMatFModelNumber, "")),
@@ -5414,6 +5772,8 @@ Screens:
                                                           MaintenanceOrderNo: Trim(Coalesce(varMatFMaintenanceOrderNo, "")),
                                                           ReplacesExisting: Coalesce(varMatFReplacesExisting, false),
                                                           ReplacedMaterialNo: Trim(Coalesce(varMatFReplacedMaterialNo, "")),
+                                                          ObjectList: Concat(Sort(colMatObjects, Code), Code, "; "),
+                                                          ObjectListJson: JSON(ForAll(Sort(colMatObjects, Code) As O, { code: O.Code, desc: O.Description }), JSONFormat.Compact),
                                                           RowStatus: { Value: "valid" },
                                                           RequesterEmail: If((!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)), Lower(varMatIdx.RequesterEmail), varMatMe),
                                                           RequesterName: If((!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)), varMatIdx.RequesterName, User().FullName)
@@ -5641,6 +6001,7 @@ Screens:
                                               Set(varMatFReplacesExisting, false);
                                               Set(varMatFReplacedMaterialNo, "");
                                               Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
+                                              Clear(colMatObjects);
                                               Set(varMatInfo, "")
                                           RadiusBottomLeft: |-
                                               =10
@@ -5715,7 +6076,7 @@ Screens:
                                  Status = Lower(drpMatStatusFilter.Selected.Value)),
                                 (drpMatPlantFilter.Selected.Value = "All plants" ||
                                  Plant = drpMatPlantFilter.Selected.Value)
-                            )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 130, 46)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1155, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)), 18, 0)) + If(!IsBlank(varMatRequestNo), 14 + (20), 0)
+                            )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 130, 46)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1171, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)), 18, 0)) + If(!IsBlank(varMatRequestNo), 14 + (20), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -5972,7 +6333,7 @@ Screens:
                                        Status = Lower(drpMatStatusFilter.Selected.Value)),
                                       (drpMatPlantFilter.Selected.Value = "All plants" ||
                                        Plant = drpMatPlantFilter.Selected.Value)
-                                  )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 130, 46)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1155, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)), 18, 0)
+                                  )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 130, 46)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1171, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)), 18, 0)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Start
                               LayoutDirection: |-
@@ -6017,7 +6378,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 3
                                     Width: |-
-                                        =If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1155, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))
+                                        =If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1171, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))
                                   Children:
                                     - txtMatHeadStatus:
                                         Control: ModernText
@@ -6086,7 +6447,7 @@ Screens:
                                           Text: |-
                                               ="FUNCTIONAL LOCATION"
                                           Width: |-
-                                              =154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5
+                                              =170 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5
                                           Wrap: |-
                                               =false
                                     - txtMatHead1:
@@ -6121,7 +6482,7 @@ Screens:
                                           Text: |-
                                               ="MATERIAL DESCRIPTION"
                                           Width: |-
-                                              =153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5
+                                              =153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5
                                           Wrap: |-
                                               =false
                                     - txtMatHead2:
@@ -6156,7 +6517,7 @@ Screens:
                                           Text: |-
                                               ="MANUFACTURER"
                                           Width: |-
-                                              =115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5
+                                              =115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5
                                           Wrap: |-
                                               =false
                                     - txtMatHead3:
@@ -6191,7 +6552,7 @@ Screens:
                                           Text: |-
                                               ="MANUFACTURER PART NO."
                                           Width: |-
-                                              =169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5
+                                              =169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5
                                           Wrap: |-
                                               =false
                                     - txtMatHead4:
@@ -6226,7 +6587,7 @@ Screens:
                                           Text: |-
                                               ="SUPPLIER"
                                           Width: |-
-                                              =100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5
+                                              =100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5
                                           Wrap: |-
                                               =false
                                     - txtMatHeadMore:
@@ -6364,6 +6725,25 @@ Screens:
                                         If(
                                             !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colMatFl, Code = ThisItem.FunctionalLocation)),
                                             Collect(colMatFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
+                                        );
+                                        Clear(colMatObjects);
+                                        If(
+                                            !IsBlank(Trim(Coalesce(ThisItem.ObjectListJson, ""))),
+                                            Collect(
+                                                colMatObjects,
+                                                ForAll(Table(ParseJSON(ThisItem.ObjectListJson)) As R,
+                                                    { Code: Text(R.Value.code), Description: Text(R.Value.desc) })
+                                            ),
+                                        
+                                            !IsBlank(Trim(Coalesce(ThisItem.ObjectList, ""))),
+                                            Collect(
+                                                colMatObjects,
+                                                ForAll(Filter(Split(ThisItem.ObjectList, ";"), !IsBlank(Trim(Value))) As S,
+                                                    { Code: Trim(S.Value), Description: "" })
+                                            ),
+                                        
+                                            !IsBlank(Trim(Coalesce(ThisItem.FunctionalLocation, ""))),
+                                            Collect(colMatObjects, { Code: Trim(ThisItem.FunctionalLocation), Description: "" })
                                         )
                                     Selectable: |-
                                         =true
@@ -6376,7 +6756,7 @@ Screens:
                                     TemplateSize: |-
                                         =If(LayoutRank < 3, 128, 44)
                                     Width: |-
-                                        =(If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1155, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18
+                                        =(If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1171, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18
                                     WrapCount: |-
                                         =1
                                   Children:
@@ -6459,11 +6839,17 @@ Screens:
                                           Size: |-
                                               =13
                                           Text: |-
-                                              =If(ThisItem.NoBomItem, "No BOM item", ThisItem.FunctionalLocation)
+                                              =If(ThisItem.NoBomItem, "No BOM item", With(
+                                                  { n: CountRows(Filter(Split(Coalesce(ThisItem.ObjectList, ""), ";"), !IsBlank(Trim(Value)))) },
+                                                  If(
+                                                      n = 0, Coalesce(ThisItem.FunctionalLocation, "-"),
+                                                      Coalesce(ThisItem.FunctionalLocation, "-") & If(n > 1, " +" & Text(n - 1), "")
+                                                  )
+                                              ))
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5
+                                              =170 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -6502,11 +6888,11 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5
+                                              =153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (170 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
                                     - txtMatCell2:
@@ -6541,11 +6927,11 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5
+                                              =115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (170 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
                                     - txtMatCell3:
@@ -6580,11 +6966,11 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5
+                                              =169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (170 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
                                     - txtMatCell4:
@@ -6619,11 +7005,11 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5
+                                              =100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (170 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
                                     - btnMatRowDocs:
@@ -6707,7 +7093,7 @@ Screens:
                                           Width: |-
                                               =64
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + 10 + 0
+                                              =0 + 0 + 0 + (90) + 6 + (170 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + 10 + 0
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - btnMatRowCopy:
@@ -6767,6 +7153,25 @@ Screens:
                                                   !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colMatFl, Code = ThisItem.FunctionalLocation)),
                                                   Collect(colMatFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
                                               );
+                                              Clear(colMatObjects);
+                                              If(
+                                                  !IsBlank(Trim(Coalesce(ThisItem.ObjectListJson, ""))),
+                                                  Collect(
+                                                      colMatObjects,
+                                                      ForAll(Table(ParseJSON(ThisItem.ObjectListJson)) As R,
+                                                          { Code: Text(R.Value.code), Description: Text(R.Value.desc) })
+                                                  ),
+                                              
+                                                  !IsBlank(Trim(Coalesce(ThisItem.ObjectList, ""))),
+                                                  Collect(
+                                                      colMatObjects,
+                                                      ForAll(Filter(Split(ThisItem.ObjectList, ";"), !IsBlank(Trim(Value))) As S,
+                                                          { Code: Trim(S.Value), Description: "" })
+                                                  ),
+                                              
+                                                  !IsBlank(Trim(Coalesce(ThisItem.FunctionalLocation, ""))),
+                                                  Collect(colMatObjects, { Code: Trim(ThisItem.FunctionalLocation), Description: "" })
+                                              );
                                               Set(varMatInfo, "Copied to a new row - not saved yet. Documents were not copied.")
                                           RadiusBottomLeft: |-
                                               =10
@@ -6789,7 +7194,7 @@ Screens:
                                           Width: |-
                                               =64
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + 10 + 0 + (64) + 4
+                                              =0 + 0 + 0 + (90) + 6 + (170 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + 10 + 0 + (64) + 4
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - btnMatRowDetails:
@@ -6840,7 +7245,7 @@ Screens:
                                           Width: |-
                                               =72
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (142) + 6 + 10 + 0
+                                              =0 + 0 + 0 + (90) + 6 + (170 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (142) + 6 + 10 + 0
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - btnMatRowOpen:
@@ -6899,6 +7304,25 @@ Screens:
                                               If(
                                                   !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colMatFl, Code = ThisItem.FunctionalLocation)),
                                                   Collect(colMatFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
+                                              );
+                                              Clear(colMatObjects);
+                                              If(
+                                                  !IsBlank(Trim(Coalesce(ThisItem.ObjectListJson, ""))),
+                                                  Collect(
+                                                      colMatObjects,
+                                                      ForAll(Table(ParseJSON(ThisItem.ObjectListJson)) As R,
+                                                          { Code: Text(R.Value.code), Description: Text(R.Value.desc) })
+                                                  ),
+                                              
+                                                  !IsBlank(Trim(Coalesce(ThisItem.ObjectList, ""))),
+                                                  Collect(
+                                                      colMatObjects,
+                                                      ForAll(Filter(Split(ThisItem.ObjectList, ";"), !IsBlank(Trim(Value))) As S,
+                                                          { Code: Trim(S.Value), Description: "" })
+                                                  ),
+                                              
+                                                  !IsBlank(Trim(Coalesce(ThisItem.FunctionalLocation, ""))),
+                                                  Collect(colMatObjects, { Code: Trim(ThisItem.FunctionalLocation), Description: "" })
                                               )
                                           RadiusBottomLeft: |-
                                               =10
@@ -6921,7 +7345,7 @@ Screens:
                                           Width: |-
                                               =60
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (142) + 6 + 10 + 0 + (72) + 4
+                                              =0 + 0 + 0 + (90) + 6 + (170 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (142) + 6 + 10 + 0 + (72) + 4
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - btnMatRowDelete:
@@ -6975,7 +7399,7 @@ Screens:
                                           Width: |-
                                               =40
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (142) + 6 + 10 + 0 + (72) + 4 + (60) + 4
+                                              =0 + 0 + 0 + (90) + 6 + (170 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1171) / 5) + 6 + (142) + 6 + 10 + 0 + (72) + 4 + (60) + 4
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - txtMatRowKeyC:
@@ -7008,11 +7432,17 @@ Screens:
                                           Size: |-
                                               =14
                                           Text: |-
-                                              =If(ThisItem.NoBomItem, "No BOM item", ThisItem.FunctionalLocation)
+                                              =If(ThisItem.NoBomItem, "No BOM item", With(
+                                                  { n: CountRows(Filter(Split(Coalesce(ThisItem.ObjectList, ""), ";"), !IsBlank(Trim(Value)))) },
+                                                  If(
+                                                      n = 0, Coalesce(ThisItem.FunctionalLocation, "-"),
+                                                      Coalesce(ThisItem.FunctionalLocation, "-") & If(n > 1, " +" & Text(n - 1), "")
+                                                  )
+                                              ))
                                           Visible: |-
                                               =LayoutRank < 3
                                           Width: |-
-                                              =Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1155, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 18) - 10 - 10)) - ((70) + 8) - 2)
+                                              =Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1171, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 18) - 10 - 10)) - ((70) + 8) - 2)
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -7067,7 +7497,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 10 + 0 + 0 + (Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1155, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 18) - 10 - 10)) - ((70) + 8) - 2)) + 8
+                                              =0 + 10 + 0 + 0 + (Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1171, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 18) - 10 - 10)) - ((70) + 8) - 2)) + 8
                                           Y: |-
                                               =0 + 8 + 0 + 0 + (((22) - 0 - 0) - (22)) / 2
                                     - txtMatRowMetaC:
@@ -7102,7 +7532,7 @@ Screens:
                                           Visible: |-
                                               =LayoutRank < 3
                                           Width: |-
-                                              =(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1155, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 18) - 10 - 10
+                                              =(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1171, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 18) - 10 - 10
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -7216,6 +7646,25 @@ Screens:
                                               If(
                                                   !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colMatFl, Code = ThisItem.FunctionalLocation)),
                                                   Collect(colMatFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
+                                              );
+                                              Clear(colMatObjects);
+                                              If(
+                                                  !IsBlank(Trim(Coalesce(ThisItem.ObjectListJson, ""))),
+                                                  Collect(
+                                                      colMatObjects,
+                                                      ForAll(Table(ParseJSON(ThisItem.ObjectListJson)) As R,
+                                                          { Code: Text(R.Value.code), Description: Text(R.Value.desc) })
+                                                  ),
+                                              
+                                                  !IsBlank(Trim(Coalesce(ThisItem.ObjectList, ""))),
+                                                  Collect(
+                                                      colMatObjects,
+                                                      ForAll(Filter(Split(ThisItem.ObjectList, ";"), !IsBlank(Trim(Value))) As S,
+                                                          { Code: Trim(S.Value), Description: "" })
+                                                  ),
+                                              
+                                                  !IsBlank(Trim(Coalesce(ThisItem.FunctionalLocation, ""))),
+                                                  Collect(colMatObjects, { Code: Trim(ThisItem.FunctionalLocation), Description: "" })
                                               )
                                           RadiusBottomLeft: |-
                                               =10
@@ -7435,6 +7884,25 @@ Screens:
                                               If(
                                                   !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colMatFl, Code = ThisItem.FunctionalLocation)),
                                                   Collect(colMatFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
+                                              );
+                                              Clear(colMatObjects);
+                                              If(
+                                                  !IsBlank(Trim(Coalesce(ThisItem.ObjectListJson, ""))),
+                                                  Collect(
+                                                      colMatObjects,
+                                                      ForAll(Table(ParseJSON(ThisItem.ObjectListJson)) As R,
+                                                          { Code: Text(R.Value.code), Description: Text(R.Value.desc) })
+                                                  ),
+                                              
+                                                  !IsBlank(Trim(Coalesce(ThisItem.ObjectList, ""))),
+                                                  Collect(
+                                                      colMatObjects,
+                                                      ForAll(Filter(Split(ThisItem.ObjectList, ";"), !IsBlank(Trim(Value))) As S,
+                                                          { Code: Trim(S.Value), Description: "" })
+                                                  ),
+                                              
+                                                  !IsBlank(Trim(Coalesce(ThisItem.FunctionalLocation, ""))),
+                                                  Collect(colMatObjects, { Code: Trim(ThisItem.FunctionalLocation), Description: "" })
                                               );
                                               Set(varMatInfo, "Copied to a new row - not saved yet. Documents were not copied.")
                                           RadiusBottomLeft: |-
@@ -8605,6 +9073,25 @@ Screens:
                             If(
                                 !IsBlank(LookUp(colMatRows, RowId = varMatDetailsId).FunctionalLocation) && IsBlank(LookUp(colMatFl, Code = LookUp(colMatRows, RowId = varMatDetailsId).FunctionalLocation)),
                                 Collect(colMatFl, { Code: LookUp(colMatRows, RowId = varMatDetailsId).FunctionalLocation, Description: "", Display: LookUp(colMatRows, RowId = varMatDetailsId).FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
+                            );
+                            Clear(colMatObjects);
+                            If(
+                                !IsBlank(Trim(Coalesce(LookUp(colMatRows, RowId = varMatDetailsId).ObjectListJson, ""))),
+                                Collect(
+                                    colMatObjects,
+                                    ForAll(Table(ParseJSON(LookUp(colMatRows, RowId = varMatDetailsId).ObjectListJson)) As R,
+                                        { Code: Text(R.Value.code), Description: Text(R.Value.desc) })
+                                ),
+                            
+                                !IsBlank(Trim(Coalesce(LookUp(colMatRows, RowId = varMatDetailsId).ObjectList, ""))),
+                                Collect(
+                                    colMatObjects,
+                                    ForAll(Filter(Split(LookUp(colMatRows, RowId = varMatDetailsId).ObjectList, ";"), !IsBlank(Trim(Value))) As S,
+                                        { Code: Trim(S.Value), Description: "" })
+                                ),
+                            
+                                !IsBlank(Trim(Coalesce(LookUp(colMatRows, RowId = varMatDetailsId).FunctionalLocation, ""))),
+                                Collect(colMatObjects, { Code: Trim(LookUp(colMatRows, RowId = varMatDetailsId).FunctionalLocation), Description: "" })
                             );
                             Set(varMatDetailsId, Blank())
                         RadiusBottomLeft: |-
@@ -12894,6 +13381,7 @@ Screens:
                                         Set(varMatFReplacesExisting, false);
                                         Set(varMatFReplacedMaterialNo, "");
                                         Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
+                                        Clear(colMatObjects);
                                         Set(varMatInfo, "")
                                     );
                                     If(
@@ -13854,6 +14342,8 @@ Screens:
                 
                             If(false, ClearCollect(colMatFl, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" }));
                 
+                            If(false, ClearCollect(colMatObjects, { Code: "", Description: "" }));
+                
                             Set(varMatMe, Lower(User().Email));
                             Set(varMatRequestNo, "");
                             Set(varMatRequestGuid, "");
@@ -13901,6 +14391,7 @@ Screens:
                             Set(varMatFReplacesExisting, false);
                             Set(varMatFReplacedMaterialNo, "");
                             Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
+                            Clear(colMatObjects);
                             Set(varMatInfo, "");
                             If(
                                 !IsBlank(gblMatReqId) && varMatRequestGuid <> gblMatReqId,
