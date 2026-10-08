@@ -94,6 +94,33 @@ C_INDEX_NO = "RequestNo"
 C_MATERIAL_NO = "MaterialNo"
 C_FILE_NAME   = "FileName"
 
+# --- planens items og operationer (issue #188) ------------------------------
+# MaintenanceItems.MaintenancePlanNo og TaskListMain.MaintenancePlanID er
+# opslag til MaintenancePlans og VISER PlanID (sharepoint/inspect/out/
+# schema.md). Studio delegerer ikke '=' paa opslagets .Id
+# (delegeringsadvarslerne i deploy-loggen), men '=' paa .Value er tekst-lighed
+# paa et underfelt, og det delegerer SharePoint (Microsoft Learn,
+# connection-sharepoint-online: complex types afgoeres af underfeltet).
+#
+# PlanID er entydig: build_save giver den "MP" & ID minus forskydning, og
+# kun naar den er tom. Er noeglen tom (en meget gammel plan), maales mod
+# "-", som ingen plan hedder: '= Blank()' ville ramme alle foraeldreloese
+# raekker, hvis plan er slettet.
+C_ITEM_PLAN = "MaintenancePlanNo"   # opslag i L_ITEMS
+C_TASK_PLAN = "MaintenancePlanID"   # opslag i L_TASKS
+PLAN_KEY_REF = 'Coalesce(varVhpPlanKey, "-")'
+
+
+def plan_cond(lst):
+    """Betingelsen <raekken hoerer til planen> for items eller operationer."""
+    col = {L_ITEMS: C_ITEM_PLAN, L_TASKS: C_TASK_PLAN}[lst]
+    return f"{col}.Value = {PLAN_KEY_REF}"
+
+
+def plan_rows(lst):
+    """Filter(<items eller operationer>, <hoerer til planen>) - delegerbart."""
+    return f"Filter({lst}, {plan_cond(lst)})"
+
 
 # ---------------------------------------------------------------------------
 # Varighed regnes, den tastes ikke

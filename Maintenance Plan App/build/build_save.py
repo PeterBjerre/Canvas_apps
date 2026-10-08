@@ -410,7 +410,7 @@ def _step_plan():
 
 def _step_items():
     """4. Items: opdatér de eksisterende, opret de nye (D7)."""
-    ex = f"Filter({cfg.L_ITEMS}, MaintenancePlanNo.Id = varVhpPlanSpId)"
+    ex = cfg.plan_rows(cfg.L_ITEMS)
     return _step("Items", (
         # En admin i en andens plan: items, som de staar nu, til loggen.
         # Kun dér - andre betaler ingen ekstra hentning.
@@ -508,7 +508,7 @@ def _step_items():
 
 def _step_ops():
     """5. Operationer - samme model som items."""
-    ex = f"Filter({cfg.L_TASKS}, MaintenancePlanID.Id = varVhpPlanSpId)"
+    ex = cfg.plan_rows(cfg.L_TASKS)
     live = f"Filter(colVhpOperations As OP, !IsBlank({M_SPID}))"
     return _step("Operations", (
         "    ClearCollect(\n"
@@ -679,9 +679,9 @@ def _step_cleanup():
         rm(cfg.L_MATERIALS, "PlanKey = varVhpPlanKey", "ID in colVhpOldMats.ID"),
         rm(cfg.L_ATTACHMENTS, "PlanKey = varVhpPlanKey", "ID in colVhpOldAtts.ID"),
         # Operationer foer items: en operation peger paa sit item.
-        rm(cfg.L_TASKS, "MaintenancePlanID.Id = varVhpPlanSpId",
+        rm(cfg.L_TASKS, cfg.plan_cond(cfg.L_TASKS),
            "!(ID in colVhpSavedOps.SpId)"),
-        rm(cfg.L_ITEMS, "MaintenancePlanNo.Id = varVhpPlanSpId",
+        rm(cfg.L_ITEMS, cfg.plan_cond(cfg.L_ITEMS),
            "!(ID in colVhpSavedItems.SpId)"),
     ]))
 

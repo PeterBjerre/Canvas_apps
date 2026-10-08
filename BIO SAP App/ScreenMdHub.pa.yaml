@@ -5865,13 +5865,13 @@ Screens:
                                             If(
                                                 !IsBlank(varMdDelKey) && !IsEmpty(Errors(MD_TasklistAttachment)),
                                                 Notify("The request could not be deleted: " & First(Errors(MD_TasklistAttachment)).Message, NotificationType.Error),
-                                                If(!IsBlank(varMdDelSp), Remove(TaskListMain, Filter(TaskListMain, MaintenancePlanID.Id = varMdDelSp)));
+                                                If(!IsBlank(varMdDelKey), Remove(TaskListMain, Filter(TaskListMain, MaintenancePlanID.Value = varMdDelKey)));
                                                 If(
-                                                    !IsBlank(varMdDelSp) && !IsEmpty(Errors(TaskListMain)),
+                                                    !IsBlank(varMdDelKey) && !IsEmpty(Errors(TaskListMain)),
                                                     Notify("The request could not be deleted: " & First(Errors(TaskListMain)).Message, NotificationType.Error),
-                                                    If(!IsBlank(varMdDelSp), Remove(MaintenanceItems, Filter(MaintenanceItems, MaintenancePlanNo.Id = varMdDelSp)));
+                                                    If(!IsBlank(varMdDelKey), Remove(MaintenanceItems, Filter(MaintenanceItems, MaintenancePlanNo.Value = varMdDelKey)));
                                                     If(
-                                                        !IsBlank(varMdDelSp) && !IsEmpty(Errors(MaintenanceItems)),
+                                                        !IsBlank(varMdDelKey) && !IsEmpty(Errors(MaintenanceItems)),
                                                         Notify("The request could not be deleted: " & First(Errors(MaintenanceItems)).Message, NotificationType.Error),
                                                         Remove(VHP_NoteToSelf, Filter(VHP_NoteToSelf, RequestGuid = varMdDelGuid));
                                                         If(

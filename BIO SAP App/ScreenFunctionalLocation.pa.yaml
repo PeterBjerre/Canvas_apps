@@ -10178,9 +10178,7 @@ Screens:
                                 !((Lower(Coalesce(varFlDelIdx.RequesterEmail, "")) = varFlMe && (varFlDelIdx.Status.Value = "Kladde")) || (IsAdmin && (varFlDelIdx.Status.Value = "Kladde" || varFlDelIdx.Status.Value = "AfventerInfo"))),
                                 If(IsAdmin, Notify("Only drafts and requests awaiting info can be deleted.", NotificationType.Warning), Notify("Only drafts can be deleted.", NotificationType.Warning)),
                                 Set(varFlDelGuid, varFlDelIdx.RequestGuid);
-                                Set(varFlDelSp, varFlDelIdx.SourceItemId);
                                 Set(varFlDelKey, varFlDelIdx.RequestNo);
-                                Set(varFlDelDomain, varFlDelIdx.Domain.Value);
                                 Remove(FunctionalLocationItems, Filter(FunctionalLocationItems, RequestGuid = varFlDelGuid));
                                 If(
                                     !IsEmpty(Errors(FunctionalLocationItems)),

@@ -809,11 +809,13 @@ App:
 
                       IfError(
                       // --- planhovedet ---------------------------------
+                      Set(varVhpPlanSpId, pl.ID);
+                      Set(varVhpPlanKey, pl.PlanID);
                       Set(
                           varVhpPlan,
                           {
                               Plant: pl.PlantsInitial.Value,
-                              Status: Coalesce(LookUp(MaintenanceItems, MaintenancePlanNo.Id = varVhpPlanSpId).Status.Value, ""),
+                              Status: Coalesce(LookUp(MaintenanceItems, MaintenancePlanNo.Value = Coalesce(varVhpPlanKey, "-")).Status.Value, ""),
                               PlanType: If(IsBlank(pl.StrategyKey), "SingleCycle", "Strategy"),
                               Strategy: Coalesce(pl.StrategyKey, ""),
                               PlanText: pl.Title,
@@ -825,8 +827,6 @@ App:
                               FirstCallYear: Year(pl.PlannedDate)
                           }
                       );
-                      Set(varVhpPlanSpId, pl.ID);
-                      Set(varVhpPlanKey, pl.PlanID);
                       Set(varVhpFlow, { Status: Coalesce(pl.Status.Value, ""), Stage: Coalesce(pl.ApprovalStage.Value, ""), ReturnComment: With({ t: Coalesce(pl.ReturnComment, "") }, With({ x: Switch(t, "omkostning", "Cost", "godkendt tidligere", "Approved earlier", "systemgodkendelsen", "System approval", "omkostningsgodkendelsen", "Cost approval", "Planen har ingen items.", "The plan has no items.", "Omkostningsgodkenderen (COST) findes ikke i MD_Approver eller i Office 365.", "The cost approver (COST) is not in MD_Approver or Office 365.", "Kvalitetsgodkenderen for værket findes ikke i MD_Approver eller i Office 365.", "The quality approver for the plant is not in MD_Approver or Office 365.", If(StartsWith(t, "opretter er 1. eller 2. godkender for system "), "Requester is 1st or 2nd approver for system " & Mid(t, 46), StartsWith(t, "intet svar fra "), "No response from " & Mid(t, 16), StartsWith(t, "kvalitetsgennemgang ("), "Quality review (" & Mid(t, 22), StartsWith(t, "kvalitet "), "Quality " & Mid(t, 10), StartsWith(t, "system "), "System " & Mid(t, 8), StartsWith(t, "SAP-plan "), "SAP plan " & Mid(t, 10), t)) }, Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(Substitute(x, " kr. (grænse ", " DKK (threshold "), " kr.)", " DKK)"), " findes ikke i systemmodellen", " is not in the system model"), " hører til ", " belongs to "), ", planen er til ", ", the plan is for "), " har ingen gyldig godkender i listen", " has no valid approver in the list"), " har ingen godkender i listen", " has no approver in the list"), " har ingen godkender, der findes i Office 365", " has no approver found in Office 365"), "(ingen kommentar)", "(no comment)"), "(Kladde, ", "(Draft, "), "(Indsendt, ", "(Submitted, "), "(UnderBehandling, ", "(In progress, "), "(AfventerInfo, ", "(Awaiting info, "), "(KlarTilSAP, ", "(Ready for SAP, "), "(OprettetISAP, ", "(Created in SAP, "), "(Afvist, ", "(Rejected, "), "(Annulleret, ", "(Cancelled, "))) });
                       Set(varVhpOwnerEmail, Lower(Coalesce(idx.RequesterEmail, "")));
                       Set(varVhpNoteApprover, If((Lower(Coalesce(idx.RequesterEmail, "")) = varVhpMe || IsAdmin || IsApprover || Lower(Coalesce(idx.AssignedToEmail, "")) = varVhpMe || !IsBlank(LookUp(MD_ApprovalLog, RequestGuid = varVhpRequestGuid && DecidedByEmail = varVhpMe))), Coalesce(pl.NoteToApprover, ""), ""));
@@ -852,7 +852,7 @@ App:
                           ClearCollect(
                               colVhpItems,
                               ForAll(
-                                  Filter(MaintenanceItems, MaintenancePlanNo.Id = varVhpPlanSpId) As IT,
+                                  Filter(MaintenanceItems, MaintenancePlanNo.Value = Coalesce(varVhpPlanKey, "-")) As IT,
                                   {
                                       ItemId: IT.ID,
                                       ShortText: IT.Title,
@@ -876,14 +876,14 @@ App:
                           ClearCollect(
                               colVhpSavedItems,
                               ForAll(
-                                  Filter(MaintenanceItems, MaintenancePlanNo.Id = varVhpPlanSpId) As IT,
+                                  Filter(MaintenanceItems, MaintenancePlanNo.Value = Coalesce(varVhpPlanKey, "-")) As IT,
                                   { LocalId: IT.ID, SpId: IT.ID, ItemKey: IT.ItemID }
                               )
                           ),
                           ClearCollect(
                               colVhpOperations,
                               ForAll(
-                                  Filter(TaskListMain, MaintenancePlanID.Id = varVhpPlanSpId) As OP,
+                                  Filter(TaskListMain, MaintenancePlanID.Value = Coalesce(varVhpPlanKey, "-")) As OP,
                                   {
                                       ItemId: OP.MaintenanceItemNo.Id,
                                       OperationNo: Text(OP.OperationNo, "0000"),
