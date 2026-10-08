@@ -163,6 +163,7 @@ FLUENT = {
     "note": "Note",
     "expand": "ChevronDown",
     "collapse": "ChevronUp",
+    "attach": "Attach",
 }
 
 # Stregen ved en given tegnet stoerrelse - se ovenfor.

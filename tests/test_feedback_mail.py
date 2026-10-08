@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Message us (issue #189): mailen sendes af flowet BioSap-SendFeedbackMail fra
+Message us (issue #189): Send koerer flowet BioSap-SendFeedbackMail fra
 servicekontoen SVC_BioSap - samme Outlook-connection reference
 (orsted_BioSapOutlookConn, embedded) som Issue Board og godkendelsesmailene.
-Aldrig fra brugerens egen Outlook (invoker eller mailto).
+Aldrig brugerens egen Outlook-forbindelse (invoker). "Send via Outlook"
+(issue #205) er et mailto-udkast og bruger ingen forbindelse.
 
     python3 -m pytest tests/test_feedback_mail.py
 """
@@ -97,33 +98,70 @@ def test_app_calls_the_flow_with_its_trigger_inputs():
     assert "Url: Coalesce(R.AppUrl" in yaml
 
 
-def test_popup_never_opens_outlook():
-    src = open(fb.__file__, encoding="utf-8").read()
-    code = src.split('"""', 2)[2]
-    assert "Launch(" not in code and "mailto:" not in code
-    yaml = "".join(open(p, encoding="utf-8").read()
-                   for p in glob.glob(os.path.join(ROOT, "BIO SAP App", "Screen*.pa.yaml")))
-    assert "mailto:" not in yaml
+def _screens():
+    return {os.path.basename(p): open(p, encoding="utf-8").read()
+            for p in glob.glob(os.path.join(ROOT, "BIO SAP App", "Screen*.pa.yaml"))}
+
+
+def _find(node, ctrl):
+    if isinstance(node, dict):
+        if ctrl in node and isinstance(node[ctrl], dict) and "Control" in node[ctrl]:
+            return node[ctrl]
+        node = list(node.values())
+    if isinstance(node, list):
+        for x in node:
+            hit = _find(x, ctrl)
+            if hit is not None:
+                return hit
+    return None
+
+
+def _prop(text, ctrl, prop):
+    """En kontrols egenskab (formlen uden =) fra den genererede YAML."""
+    import yaml
+    return _find(yaml.safe_load(text), ctrl)["Properties"][prop].lstrip("=")
+
+
+def test_send_uses_the_flow_and_outlook_is_a_separate_draft():
+    yaml = "".join(_screens().values())
     assert yaml.count("'BioSap-SendFeedbackMail'.Run(") == 7
+    # Send via Outlook (issue #205): det gamle mailto-udkast, een pr. skaerm.
+    assert yaml.count('Launch("mailto:%s?subject="' % fb.MAILBOX) == 7
+    kks = _screens()["ScreenKks.pa.yaml"]
+    send = _prop(kks, "btnKksFbSend", "OnSelect")
+    assert "mailto:" not in send and "Launch(" not in send
+    out = _prop(kks, "btnKksFbSendOutlook", "OnSelect")
+    assert "'BioSap-SendFeedbackMail'" not in out
+    # Emne, anmodning og besked kommer med - URL-kodet (UTF-8, ogsaa ae/oe/aa).
+    assert "EncodeUrl(%s)" % fb.SUBJECT_FX in out
+    assert "EncodeUrl(%s & Left(inpKksFbMessage.Text" % fb.OUTLOOK_CONTEXT_FX in out
+    # Filer forsvinder ikke i stilhed: knappen er spaerret, mens der er filer,
+    # og popuppen siger hvorfor.
+    assert "CountRows(attKksFbFiles.Attachments) > 0" in _prop(kks, "btnKksFbSendOutlook", "DisplayMode")
+    assert "can't include files" in _prop(kks, "txtKksFbOutlookNote", "Text")
+    # Send er den primaere knap og staar sidst.
+    assert kks.index("- btnKksFbSendOutlook:") < kks.index("- btnKksFbSend:")
 
 
 # ---------------------------------------------------------------------------
 # Mailens formatering (issue #194): flowets udtryk koeres paa eksempler med
 # en lille WDL-fortolker (tests/wdl_eval.py), og den faerdige HTML efterses.
 # ---------------------------------------------------------------------------
-COMPOSE = ["Caller", "Caller_name", "Mailbox", "Message_html", "Context",
+COMPOSE = ["Caller", "Context", "Caller_name", "Mailbox", "Message_html",
            "Request", "Heading", "Request_html", "Preheader"]
 HEADERS = {"x-ms-user-email": "Jane.Doe@orsted.com", "x-ms-user-name": 'Jane "JD" <Doe> & Co'}
+# Saadan kommer et navn med ae/oe/aa gennem en HTTP-header (issue #205).
+HEADERS_QM = {"x-ms-user-email": "soeren.aeboe@orsted.com", "x-ms-user-name": "S?ren ?b?"}
 REQUEST = {"Kind": "R", "Topic": "EQ-000912 \u00b7 Pump", "Code": "EQ-000912", "Type": "Equipment",
            "Title": "Pump <P-01> & \"seal\"",
            "Url": "https://apps.powerapps.com/play/e/x/a/y?domain=equipment&reqid=abc"}
 
 
-def _mail(message, context):
+def _mail(message, context, headers=HEADERS):
     actions = dict(_actions(_flow()["properties"]["definition"]["actions"]))
     body = {"text": fb.MAILBOX, "text_1": "SAP maintenance - x", "text_2": message,
-            "text_3": "[]", "text_4": json.dumps(context) if context is not None else ""}
-    ctx = wdl_eval.run(actions, COMPOSE, body, HEADERS)
+            "text_3": "[]", "text_4": json.dumps(context, ensure_ascii=False) if context is not None else ""}
+    ctx = wdl_eval.run(actions, COMPOSE, body, headers)
     html = wdl_eval.value(actions["Send_an_email_(V2)"]["inputs"]["parameters"]["emailMessage/Body"], ctx)
     return html, ctx.outputs
 
@@ -163,6 +201,49 @@ def test_message_text_is_not_translated_or_rewritten():
     html, out = _mail(msg, None)
     assert out["Message_html"] == msg
     assert msg in html
+
+
+DANISH = "\u00e6\u00f8\u00e5\u00c6\u00d8\u00c5"
+
+
+def test_danish_letters_survive_every_part_of_the_mail():
+    """Issue #205: afsender, overskrift, anmodning, besked, preheader og
+    footer bevarer ae/oe/aa. Navnet kommer fra appen (Context.Name, UTF-8 i
+    kroppen) - headeren gav "?"."""
+    name = "S\u00f8ren \u00c6b\u00f8 \u00c5gaard"
+    msg = ("Hej SAP Maintenance Team,\n\nP\u00e5 linje \u00c6 er der fejl: "
+           + DANISH + "\r\n\nVenlig hilsen,\n\n" + name)
+    ctx = dict(REQUEST, Title="R\u00f8rbro over \u00e5en", Type="Equipment", Name=name)
+    html, out = _mail(msg, ctx, HEADERS_QM)
+    assert "?" not in out["Caller_name"] and out["Caller_name"] == name
+    # Afsenderlinjen og footeren
+    assert "<strong>%s</strong>" % name in html
+    assert "answer %s directly" % name in html
+    # Beskeden med linjeskift, og preheaderen
+    assert out["Message_html"] == msg.replace("\r\n", "<br>").replace("\n", "<br>")
+    assert DANISH in out["Preheader"]
+    # Anmodningens titel
+    assert "R\u00f8rbro over \u00e5en" in out["Request_html"]
+    for s in ("S?ren", "\u00ef\u00bf\u00bd", "\ufffd"):
+        assert s not in html
+    # Generel emne med ae/oe/aa i overskriften
+    _, out = _mail("x", {"Kind": "G", "Topic": "Sp\u00f8rgsm\u00e5l", "Name": name}, HEADERS_QM)
+    assert out["Heading"] == "Sp\u00f8rgsm\u00e5l"
+
+
+def test_sender_name_falls_back_to_the_header():
+    # En gammel app uden Name i Context: headeren som foer.
+    _, out = _mail("Hi", {"Kind": "G", "Topic": "Question"})
+    assert out["Caller_name"] == "Jane &quot;JD&quot; &lt;Doe&gt; &amp; Co"
+    _, out = _mail("Hi", None)
+    assert out["Caller_name"] == "Jane &quot;JD&quot; &lt;Doe&gt; &amp; Co"
+    # Navnet fra appen escapes ogsaa.
+    _, out = _mail("Hi", {"Kind": None, "Name": "<b>X</b> & Y"})
+    assert out["Caller_name"] == "&lt;b&gt;X&lt;/b&gt; &amp; Y"
+
+
+def test_app_sends_the_user_name_in_the_context():
+    assert "Name: User().FullName" in fb.CONTEXT_FX
 
 
 def test_general_subject_gives_heading_and_no_request_section():
