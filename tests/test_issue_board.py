@@ -384,3 +384,15 @@ def test_activity_shows_role_badges():
     assert "internal: varIbInternal && IsAdmin" in P.POST
     assert ctrls["btnIbPost"].props["DisplayMode"].startswith("If(IsBlank(Trim(inpIbComment.Text))")
     assert ctrls["inpIbComment"].props["TriggerOutput"] == "TriggerOutput.Keypress"
+
+
+def test_tile_fits_its_people_line():
+    """Issue #177: flisen klipper ikke 'hvem' - linjen maa ombrydes, og den
+    staar inden for flisen."""
+    import ib_parts as P
+    tile = {c.name: c for c in _walk_ctrls([P.build_list()])}
+    people = tile["txtIbTilePeople"]
+    assert people.props["Wrap"] == "true"
+    bottom = int(people.props["Y"]) + int(people.props["Height"])
+    assert bottom <= P.TILE_H - P.TILE_M
+    assert tile["galIbList"].props["TemplateSize"] == str(P.TILE_H)

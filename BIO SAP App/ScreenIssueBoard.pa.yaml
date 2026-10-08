@@ -1342,7 +1342,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =66 + If(IsAdmin && varIbScope in ["all", "assigned"], 8 + (34), 0) + If(galIbList.AllItemsCount > 0, 8 + (Max(1, Min(RoundUp(galIbList.AllItemsCount / Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0)), 0), Max(2, RoundDown((App.Height - 280) / 196, 0)))) * 196), 0) + If(galIbList.AllItemsCount = 0, 8 + (40), 0) + If(IbFailed && !varIbLoading, 8 + (36), 0)
+                            =66 + If(IsAdmin && varIbScope in ["all", "assigned"], 8 + (34), 0) + If(galIbList.AllItemsCount > 0, 8 + (Max(1, Min(RoundUp(galIbList.AllItemsCount / Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0)), 0), Max(2, RoundDown((App.Height - 280) / 212, 0)))) * 212), 0) + If(galIbList.AllItemsCount = 0, 8 + (40), 0) + If(IbFailed && !varIbLoading, 8 + (36), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -1541,7 +1541,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =Max(1, Min(RoundUp(galIbList.AllItemsCount / Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0)), 0), Max(2, RoundDown((App.Height - 280) / 196, 0)))) * 196
+                                  =Max(1, Min(RoundUp(galIbList.AllItemsCount / Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0)), 0), Max(2, RoundDown((App.Height - 280) / 212, 0)))) * 212
                               Items: |-
                                   =With(
                                       { q: Trim(inpIbSearch.Text) },
@@ -1576,7 +1576,7 @@ Screens:
                               TemplatePadding: |-
                                   =0
                               TemplateSize: |-
-                                  =196
+                                  =212
                               Visible: |-
                                   =galIbList.AllItemsCount > 0
                               Width: |-
@@ -1602,7 +1602,7 @@ Screens:
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
-                                        =184
+                                        =200
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -1890,7 +1890,7 @@ Screens:
                                     X: |-
                                         =20
                                     Y: |-
-                                        =154
+                                        =158
                               - txtIbTilePeople:
                                   Control: ModernText
                                   Properties:
@@ -1909,7 +1909,7 @@ Screens:
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
-                                        =18
+                                        =34
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -1922,14 +1922,16 @@ Screens:
                                         =12
                                     Text: |-
                                         =If(varIbScope = "shared", If(IsBlank(If(varIbScope = "shared", LookUp(colIbMine, TicketNo = ThisItem.TicketNo))), "", "Reported by you"), If(IsAdmin && ThisItem.Reporter <> varIbMe, Upper(First(Split(ThisItem.Reporter, "@")).Value) & "  ·  ", "") & If(IsBlank(ThisItem.Assigned), "Unassigned", "To " & ThisItem.Assigned))
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Top
                                     Width: |-
                                         =(((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 18 - 40) / (Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0))) - 2 * 0) - 40 - 80 - 8
                                     Wrap: |-
-                                        =false
+                                        =true
                                     X: |-
                                         =20 + 80 + 8
                                     Y: |-
-                                        =156
+                                        =160
                               - btnIbTileOpen:
                                   Control: Classic/Button
                                   Properties:
@@ -1948,7 +1950,7 @@ Screens:
                                     FocusedBorderThickness: |-
                                         =2
                                     Height: |-
-                                        =184
+                                        =200
                                     HoverBorderColor: |-
                                         =C.'color-brand-primary'
                                     HoverColor: |-
