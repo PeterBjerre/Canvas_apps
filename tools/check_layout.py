@@ -415,6 +415,18 @@ def rule_2_3(ctx):
         if not kids:
             continue
 
+        # EN CONTAINER, DER SCROLLER, MAA VAERE LAVERE END SIT INDHOLD
+        #
+        # Det er hele meningen med LayoutOverflowY = Scroll: detaljerudens
+        # feltliste er "Min(indholdet, App.Height - 200)", saa popuppen
+        # bliver ikke hoejere end skaermen, og listen scroller i stedet.
+        # Reglen her maaler kapning som overloeb, og med nok felter i et
+        # domaene (issue #210: 28 linjer) melder den en fejl, hvor der
+        # ingen er. Et klip, der ikke kan scrolles til, fanges stadig -
+        # kun den container, der selv siger "jeg scroller", er undtaget.
+        if (props.get("LayoutOverflowY") or "").strip() == "=LayoutOverflow.Scroll":
+            continue
+
         for w in WIDTHS:
             vertical = is_vertical(props, w)
             gap = gap_at(props, w)
