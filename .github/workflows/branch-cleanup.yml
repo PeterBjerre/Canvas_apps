@@ -1,0 +1,44 @@
+# Sletter branches, der er helt merget ind i main, saa repoet ikke fyldes op
+# med gamle issue-branches. Koerer naar en PR merges, og kan startes i haanden
+# under Actions. Branches med en aaben PR, branches uden egne commits (lige
+# oprettet fra main) og branches med commits, der ikke er i main, roeres ikke.
+# En slettet branch kan gendannes fra sin PR med "Restore branch".
+name: branch-cleanup
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  cleanup:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Slet merged branches
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git fetch --prune origin
+          main_sha=$(git rev-parse origin/main)
+          for b in $(git for-each-ref --format='%(refname:strip=3)' refs/remotes/origin); do
+            case "$b" in HEAD|main) continue ;; esac
+            sha=$(git rev-parse "origin/$b")
+            # Ingen egne commits endnu: maaske lige oprettet, saa lad den staa
+            [ "$sha" = "$main_sha" ] && continue
+            # Commits, der ikke er i main: ikke faerdig, lad den staa
+            git merge-base --is-ancestor "$sha" origin/main || continue
+            # Aaben PR paa branchen: lad den staa
+            open=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$b" --state open --json number --jq length)
+            [ "$open" = "0" ] || continue
+            echo "Sletter $b"
+            git push origin --delete "$b"
+          done
