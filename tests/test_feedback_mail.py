@@ -123,10 +123,15 @@ def _prop(text, ctrl, prop):
 
 
 def test_send_uses_the_flow_and_outlook_is_a_separate_draft():
-    yaml = "".join(_screens().values())
-    assert yaml.count("'BioSap-SendFeedbackMail'.Run(") == 7
+    screens = _screens()
+    yaml = "".join(screens.values())
+    # EEN pr. skaerm - tallet regnes af skaermene, ikke skrevet af: en ny
+    # domaeneskaerm (issue #210) maa ikke braekke testen for noget, den
+    # ikke handler om.
+    n = len(screens)
+    assert yaml.count("'BioSap-SendFeedbackMail'.Run(") == n
     # Send via Outlook (issue #205): det gamle mailto-udkast, een pr. skaerm.
-    assert yaml.count('Launch("mailto:%s?subject="' % fb.MAILBOX) == 7
+    assert yaml.count('Launch("mailto:%s?subject="' % fb.MAILBOX) == n
     kks = _screens()["ScreenKks.pa.yaml"]
     send = _prop(kks, "btnKksFbSend", "OnSelect")
     assert "mailto:" not in send and "Launch(" not in send
