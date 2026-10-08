@@ -17,9 +17,10 @@ hentningen.
     | +-----------+ +-----------+ +-----------+  sagen (issue #177)    |
     +------------------------------------------------------------------+
 
-    New issue   -> popup: Application/Section, titel, lignende sager fra
-                   den anonyme liste, "What happened?", flere detaljer
-                   (valgfrit), Submit -> flowet.
+    New issue   -> popup: Application/Section, titel, lignende sager,
+                   "What happened?", flere detaljer (valgfrit), Submit ->
+                   Patch direkte i IB_Tickets (issue #193). Filer laegges
+                   paa bagefter: papirclipsen på flisen.
     En flise    -> popup i View mode: nummer, titel og Close; status,
                    Application og Section; fakta; handlingerne (Edit,
                    Reopen, More actions -> Archive/Delete); fanerne
@@ -32,21 +33,23 @@ hentningen.
 
 SIKKERHED ER IKKE HER
 ---------------------
-Alle filtre og knapper paa skaermen er UX. Det, en bruger kan hente,
-afgoeres af rettighederne paa raekken, som flowet saetter, og alt, der
-aendrer noget, gaar gennem flowet, som tjekker admin og rapportoer paa
-serveren (ib_config.py). "All issues" er for en admin alle sager; for
-alle andre er det den anonyme liste - en almindelig bruger kan stadig kun
-hente sine egne raekker i IB_Tickets.
+Alle filtre og knapper paa skaermen er UX. Siden issue #193 kan alle
+laese alle sager i IB_Tickets (ingen anonymisering), og appen opretter
+og retter sagen selv med Patch. SharePoint haandhaever, at en bruger kun
+kan rette sine egne sager, og at admins (Design paa listen) kan rette
+alle - IKKE hvilke felter: at kun en admin flytter status, prioritet og
+tildeling, og at rapportoeren kun retter, mens sagen er New, er appens
+regel. Kommentarer og haendelser (IB_TicketComments) skrives stadig af
+flowet med rettigheder paa raekken: kun rapportoeren og admins kan laese
+dem - det haandhaever SharePoint (ib_config.py).
 
 HENTNING (issue #177)
 --------
   * Konfigurationen og EEN liste hentes samtidig, foerste gang skaermen
-    vises: en admin alle sager, alle andre deres egne. Oversigten henter
-    ikke de lange tekster (ShowColumns).
-  * Den anonyme liste hentes foerst, naar en almindelig bruger vaelger
-    "All issues" eller aabner "New issue" (forslag til lignende sager).
-  * Naar en sag aabnes, hentes dens hele raekke og dens Activity samtidig.
+    vises: alle sager (issue #193 - "My issues" er et filter paa dem).
+    Oversigten henter ikke de lange tekster (ShowColumns).
+  * Naar en sag aabnes, hentes dens hele raekke og - for rapportoeren og
+    admins - dens Activity samtidig.
     Antallet af vedhaeftninger regnes af Activity; selve filerne hentes
     foerst, naar fanen Attachments vaelges.
   * Efter en aendring hentes kun den ene sag igen (LookUp paa ID) og
@@ -102,8 +105,8 @@ INIT_STATE = (
     "    Set(varIbSelFullFor, -1);\n"
     "    Set(varIbTried, false);\n"
     "    Set(varIbBusy, false);\n"
-    "    Set(varIbSharedBusy, false);\n"
     "    Set(varIbUploading, false);\n"
+    "    Set(varIbSelPeek, false);\n"
     "    Set(varIbPosting, false)\n"
     ")"
 )
@@ -121,48 +124,33 @@ STATUS_RANK = [(s, r) for s, _c, r in cfg.STATUS]
 DETAIL_ONLY = ("Steps", "Expected", "Actual", "Other", "RelatedNo", "Resolution")
 
 
-def _row(r, *, shared, full=True):
-    """Een raekke i colIbMine/colIbAll/colIbShared. De tre har SAMME skema,
-    saa listen kan vaelge mellem dem med et Switch. Den anonyme kopi har
-    ingen rapportoer og ingen tildeling - felterne er tomme. full=False:
-    oversigtens raekke - popup-felterne er tomme, til sagen aabnes."""
-    if shared:
-        f = {
-            "Id": f"{r}.ID", "TicketNo": f'Coalesce({r}.TicketNo, "")',
-            "Title": f'Coalesce({r}.Title, "")', "Description": f'Coalesce({r}.Summary, "")',
-            "Steps": '""', "Expected": '""', "Actual": '""',
-            "Application": f'Coalesce({r}.Application, "")', "Section": f'Coalesce({r}.Section, "")',
-            "Other": '""', "RelatedNo": '""',
-            "Severity": f'Coalesce({r}.Severity, "")', "Priority": f'Coalesce({r}.Priority, "")',
-            "Status": f'Coalesce({r}.Status, "{cfg.STATUS_NEW}")',
-            "Resolution": f'Coalesce({r}.Resolution, "")', "Assigned": '""',
-            "CreatedOn": f"Coalesce({r}.ReportedOn, {r}.Created)",
-            "UpdatedOn": f"Coalesce({r}.LastActivityOn, {r}.ReportedOn, {r}.Created)",
-            "Archived": f"Coalesce({r}.IsArchived, false)",
-            "Reporter": '""', "AssignedEmail": '""',
-        }
-        pri, st = f"{r}.Priority", f"{r}.Status"
-    else:
-        f = {
-            "Id": f"{r}.ID", "TicketNo": f'Coalesce({r}.TicketNo, "")',
-            "Title": f'Coalesce({r}.Title, "")', "Description": f'Coalesce({r}.Description, "")',
-            "Steps": f'Coalesce({r}.ReproSteps, "")', "Expected": f'Coalesce({r}.ExpectedResult, "")',
-            "Actual": f'Coalesce({r}.ActualResult, "")',
-            "Application": f'Coalesce({r}.Application, "")', "Section": f'Coalesce({r}.Section, "")',
-            "Other": f'Coalesce({r}.OtherContext, "")', "RelatedNo": f'Coalesce({r}.RelatedRequestNo, "")',
-            "Severity": f'Coalesce({r}.Severity.Value, "")', "Priority": f'Coalesce({r}.Priority.Value, "")',
-            "Status": f'Coalesce({r}.Status.Value, "{cfg.STATUS_NEW}")',
-            "Resolution": f'Coalesce({r}.Resolution, "")', "Assigned": f'Coalesce({r}.AssignedToName, "")',
-            "CreatedOn": f"{r}.Created",
-            "UpdatedOn": f"Coalesce({r}.LastActivityOn, {r}.Created)",
-            "Archived": f"Coalesce({r}.IsArchived, false)",
-            "Reporter": f'Lower(Coalesce({r}.ReporterEmail, ""))',
-            "AssignedEmail": f'Lower(Coalesce({r}.AssignedToEmail, ""))',
-        }
-        if not full:
-            for k in DETAIL_ONLY:
-                f[k] = '""'
-        pri, st = f"{r}.Priority.Value", f"{r}.Status.Value"
+def _row(r, *, full=True):
+    """Een raekke i colIbAll. full=False: oversigtens raekke - popup-
+    felterne er tomme, til sagen aabnes. Nummeret saettes af flowet
+    BioSap-IssueBoard-OnCreated op til et minut efter oprettelsen; indtil
+    da regnes det af ID i samme format (issue #193)."""
+    f = {
+        "Id": f"{r}.ID",
+        "TicketNo": f'If(IsBlank({r}.TicketNo), "ISS-" & Text({r}.ID, "000000"), {r}.TicketNo)',
+        "Title": f'Coalesce({r}.Title, "")', "Description": f'Coalesce({r}.Description, "")',
+        "Steps": f'Coalesce({r}.ReproSteps, "")', "Expected": f'Coalesce({r}.ExpectedResult, "")',
+        "Actual": f'Coalesce({r}.ActualResult, "")',
+        "Application": f'Coalesce({r}.Application, "")', "Section": f'Coalesce({r}.Section, "")',
+        "Other": f'Coalesce({r}.OtherContext, "")', "RelatedNo": f'Coalesce({r}.RelatedRequestNo, "")',
+        "Severity": f'Coalesce({r}.Severity.Value, "")', "Priority": f'Coalesce({r}.Priority.Value, "")',
+        "Status": f'Coalesce({r}.Status.Value, "{cfg.STATUS_NEW}")',
+        "Resolution": f'Coalesce({r}.Resolution, "")', "Assigned": f'Coalesce({r}.AssignedToName, "")',
+        "CreatedOn": f"{r}.Created",
+        "UpdatedOn": f"Coalesce({r}.LastActivityOn, {r}.Created)",
+        "Archived": f"Coalesce({r}.IsArchived, false)",
+        "Reporter": f'Lower(Coalesce({r}.ReporterEmail, ""))',
+        "ReporterName": f'Coalesce({r}.ReporterName, "")',
+        "AssignedEmail": f'Lower(Coalesce({r}.AssignedToEmail, ""))',
+    }
+    if not full:
+        for k in DETAIL_ONLY:
+            f[k] = '""'
+    pri, st = f"{r}.Priority.Value", f"{r}.Status.Value"
     f["PriRank"] = _rank(pri, cfg.PRIORITY, 5)
     f["StatusRank"] = _rank(st, STATUS_RANK, 9)
     return "{ " + ", ".join(f"{k}: {v}" for k, v in f.items()) + " }"
@@ -172,8 +160,8 @@ def _row(r, *, shared, full=True):
 # $select, saa de lange tekster (trin, forventet/faktisk resultat,
 # loesning) ikke hentes for hver sag (issue #177).
 OVERVIEW_COLS = ["ID", "Title", "TicketNo", "Description", "Application", "Section", "Severity",
-                 "Priority", "Status", "AssignedToName", "ReporterEmail", "AssignedToEmail",
-                 "Created", "LastActivityOn", "IsArchived"]
+                 "Priority", "Status", "AssignedToName", "ReporterEmail", "ReporterName",
+                 "AssignedToEmail", "Created", "LastActivityOn", "IsArchived"]
 _SHOW = ", ".join(OVERVIEW_COLS)
 
 # Hentningerne. Hver sammenligner med en global variabel eller en konstant,
@@ -182,27 +170,16 @@ FETCH_SECTIONS = (f"ForAll(Filter({cfg.L_SECTIONS}, IsActive = true) As r, "
                   '{ Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), '
                   "AppOrder: Coalesce(r.AppOrder, 0), SectionOrder: Coalesce(r.SectionOrder, 0), "
                   'ScreenKey: Coalesce(r.ScreenKey, "") })')
-FETCH_MINE = (f"ForAll(ShowColumns(Sort(Filter({cfg.L_TICKETS}, ReporterEmail = varIbMe), LastActivityOn, "
-              f"SortOrder.Descending), {_SHOW}) As r, {_row('r', shared=False, full=False)})")
-FETCH_SHARED = (f"ForAll(Sort({cfg.L_SHARED}, LastActivityOn, SortOrder.Descending) As r, "
-                f"{_row('r', shared=True)})")
-# Admin-boardet: alle sager, brugeren har ret til at laese. For en admin er
-# det alle (Contribute paa hver raekke). En admins egne sager er en del af
-# dem, saa de hentes IKKE en gang til (IbMine filtrerer i hukommelsen).
+# Alle sager - siden issue #193 kan alle laese dem. "My issues" er et
+# filter i hukommelsen (IbMine), ikke en hentning mere.
 FETCH_ALL = (f"ForAll(ShowColumns(Sort({cfg.L_TICKETS}, LastActivityOn, SortOrder.Descending), "
-             f"{_SHOW}) As r, {_row('r', shared=False, full=False)})")
+             f"{_SHOW}) As r, {_row('r', full=False)})")
 
-RELOAD_MINE = f"Set(varIbMineFailed, IfError(ClearCollect(colIbMine, {FETCH_MINE}); false, true))"
 RELOAD_ALL = f"Set(varIbAllFailed, IfError(ClearCollect(colIbAll, {FETCH_ALL}); false, true))"
-# Den ene liste, brugeren har: en admin alle sager, alle andre deres egne.
-RELOAD_MAIN = (f"If({IS_ADMIN}, {RELOAD_ALL}; Set(varIbMineFailed, false), "
-               f"{RELOAD_MINE}; Set(varIbAllFailed, false))")
+RELOAD_MAIN = RELOAD_ALL
 
-# FLASKEHALSEN (issue #177): foer hentede en admin konfigurationen og sine
-# egne sager (Concurrent) og FOERST DEREFTER alle sager - to runder mod
-# IB_Tickets efter hinanden, hvor den foerste var en delmaengde af den
-# anden - og IsAdmin blev slaaet op foran det hele. Nu er det een runde:
-# konfigurationen og den ene liste samtidig.
+# FLASKEHALSEN (issue #177): een runde - konfigurationen og den ene liste
+# samtidig, og IsAdmin staar ikke i koe foran hentningen.
 LOAD = (
     "If(\n"
     "    !varIbLoaded,\n"
@@ -210,28 +187,14 @@ LOAD = (
     "    " + concurrent(
         f"Set(varIbCfgFailed, IfError(ClearCollect(colIbSections, {FETCH_SECTIONS}); false, true))",
         RELOAD_MAIN, indent=4) + ";\n"
-    "    Set(varIbLoaded, !varIbCfgFailed && !varIbMineFailed && !varIbAllFailed);\n"
+    "    Set(varIbLoaded, !varIbCfgFailed && !varIbAllFailed);\n"
     "    Set(varIbLoading, false)\n"
-    ")"
-)
-
-# Den anonyme liste: kun for "All issues" (almindelig bruger) og forslagene
-# i New issue. Den har sin egen ventevariabel, saa den ikke laegger
-# ventespinneren hen over formularen.
-LOAD_SHARED = (
-    "If(\n"
-    "    !varIbSharedLoaded,\n"
-    "    Set(varIbSharedBusy, true);\n"
-    f"    Set(varIbSharedFailed, IfError(ClearCollect(colIbShared, {FETCH_SHARED}); false, true));\n"
-    "    Set(varIbSharedLoaded, !varIbSharedFailed);\n"
-    "    Set(varIbSharedBusy, false)\n"
     ")"
 )
 
 SET_SCOPE = f'If(IsBlank(varIbScope), Set(varIbScope, If({IS_ADMIN}, "all", "mine")))'
 
-RETRY = ("Set(varIbLoaded, false);\nSet(varIbSharedLoaded, false);\n"
-         + LOAD + ";\n" + SET_SCOPE + ';\nIf(varIbScope = "shared", ' + LOAD_SHARED + ")")
+RETRY = "Set(varIbLoaded, false);\n" + LOAD + ";\n" + SET_SCOPE
 
 
 def on_visible():
@@ -303,10 +266,9 @@ RELOAD_SEL = (
     f"    {{ r: LookUp({cfg.L_TICKETS}, ID = varIbSelId) }},\n"
     "    If(\n"
     "        IsBlank(r),\n"
-    "        RemoveIf(colIbMine, Id = varIbSelId);\n"
     "        RemoveIf(colIbAll, Id = varIbSelId);\n"
     "        Set(varIbDetailOn, false),\n"
-    f"        Set(varIbSel, {_row('r', shared=False)});\n"
+    f"        Set(varIbSel, {_row('r', )});\n"
     "        Set(varIbSelFullFor, varIbSelId);\n"
     # r.Attachments kan ikke laeses fra With's LookUp - compile: "The
     # specified column is not accessible in this context" (issue #133).
@@ -315,7 +277,6 @@ RELOAD_SEL = (
     "        If(varIbTab = \"files\",\n"
     + "".join("            " + l + "\n" for l in LOAD_FILES.split("\n")) +
     "        , Set(varIbFilesFor, -1));\n"
-    "        UpdateIf(colIbMine, Id = varIbSelId, varIbSel);\n"
     "        UpdateIf(colIbAll, Id = varIbSelId, varIbSel)\n"
     "    )\n"
     ")"
@@ -323,38 +284,43 @@ RELOAD_SEL = (
 
 # Naar en sag aabnes: sagens egen raekke (de lange tekster, som oversigten
 # ikke hentede) og dens Activity SAMTIDIG - to opslag paa ID, ikke to i
-# koe. Popuppen staar allerede fremme med det, oversigten havde.
+# koe. Popuppen staar allerede fremme med det, oversigten havde. Activity
+# hentes kun for rapportoeren og admins (IbSeeActivity): andre har ingen
+# rettighed til kommentarerne, og hentningen ville give en tom liste.
 # Vedhaeftningerne hentes foerst, naar fanen vaelges (LOAD_FILES).
 LOAD_OPEN = (
     "Set(varIbSelRow, Blank());\n"
     + concurrent(
         f"Set(varIbSelRow, IfError(LookUp({cfg.L_TICKETS}, ID = varIbSelId), Blank()))",
-        LOAD_ACTIVITY) + ";\n"
+        "If(IbSeeActivity,\n" + LOAD_ACTIVITY + "\n)") + ";\n"
     "If(\n"
     "    !IsBlank(varIbSelRow) && varIbSelRow.ID = varIbSelId,\n"
-    f"    Set(varIbSel, {_row('varIbSelRow', shared=False)});\n"
+    f"    Set(varIbSel, {_row('varIbSelRow', )});\n"
     "    Set(varIbSelFullFor, varIbSelId);\n"
-    "    UpdateIf(colIbMine, Id = varIbSelId, varIbSel);\n"
     "    UpdateIf(colIbAll, Id = varIbSelId, varIbSel)\n"
     ")"
 )
 
 
-def open_ticket(rec, shared):
-    """Aabn en sag i View mode. rec: raekken; shared: sand for den anonyme
-    kopi (ingen Activity, ingen filer, ingen handlinger)."""
+def open_ticket(rec, peek, tab="details"):
+    """Aabn en sag i View mode. rec: raekken; peek: sand, naar sagen
+    aabnes fra forslagene i New issue - kun laesning, ingen handlinger
+    (Edit ville overskrive formularen bagved). tab: fanen, der vises -
+    "files" fra papirclipsen paa flisen (issue #193)."""
+    files = tab == "files"
     return (
         f"Set(varIbSel, {rec});\n"
         "Set(varIbSelId, varIbSel.Id);\n"
-        f"Set(varIbSelShared, {shared});\n"
-        'Set(varIbTab, "details");\n'
+        f"Set(varIbSelPeek, {peek});\n"
+        f'Set(varIbTab, "{tab}");\n'
         "Set(varIbInternal, false);\n"
         "Set(varIbActsOn, false);\n"
         "Set(varIbFilesFor, -1);\n"
         "Reset(inpIbComment);\n"
         "Clear(colIbActivity);\n"
         "Set(varIbDetailOn, true);\n"
-        "If(!varIbSelShared, " + LOAD_OPEN + ")"
+        + (LOAD_FILES + ";\n" if files else "")
+        + LOAD_OPEN
     )
 
 
@@ -365,7 +331,8 @@ ROW = {"Id": "0", "TicketNo": '""', "Title": '""', "Description": '""', "Steps":
        "Expected": '""', "Actual": '""', "Application": '""', "Section": '""', "Other": '""',
        "RelatedNo": '""', "Severity": '""', "Priority": '""', "Status": '""',
        "Resolution": '""', "Assigned": '""', "CreatedOn": "Now()", "UpdatedOn": "Now()",
-       "Archived": "false", "Reporter": '""', "AssignedEmail": '""', "PriRank": "0",
+       "Archived": "false", "Reporter": '""', "ReporterName": '""', "AssignedEmail": '""',
+       "PriRank": "0",
        "StatusRank": "0"}
 SEC = {"Application": '""', "Section": '""', "AppOrder": "0", "SectionOrder": "0",
        "ScreenKey": '""'}
@@ -376,8 +343,7 @@ UPLOAD = {"Name": '""', "Msg": '""'}
 
 
 def collections():
-    return [("colIbMine", ROW), ("colIbAll", ROW), ("colIbShared", ROW),
-            ("colIbSections", SEC), ("colIbActivity", ACT), ("colIbAdmins", ADMINS),
+    return [("colIbAll", ROW), ("colIbSections", SEC), ("colIbActivity", ACT), ("colIbAdmins", ADMINS),
             ("colIbUp", UPLOAD)]
 
 
@@ -400,7 +366,7 @@ def _table(values):
 REOPENABLE_FX = _table(cfg.REOPENABLE)
 
 # ---------------------------------------------------------------------------
-# Fliser og den anonyme kopi: "Updated" kun, naar sagen er aendret mere end
+# Fliser og en sag uden Activity: "Updated" kun, naar sagen er aendret mere end
 # saa mange minutter efter indmeldingen - flowets egen opsaetning (nummer,
 # delt kopi, filerne med indmeldingen) er ikke en aendring.
 UPDATED_AFTER_MIN = 5
@@ -415,28 +381,31 @@ IbOtherNeeded = varIbFormApp = "{cfg.OTHER}" || varIbFormSection = "{cfg.OTHER}"
 // Den Application, skaermen man kom fra, hoerer til (gblNavFrom saettes af
 // sidebaren). Kun naar konfigurationen siger det - ellers intet gaet.
 IbFrom = Coalesce(LookUp(colIbSections, ScreenKey = gblNavFrom && !IsBlank(gblNavFrom)).Application, "");
-IbFailed = IfError(varIbCfgFailed, false) || IfError(varIbMineFailed, false) || IfError(varIbAllFailed, false) || (varIbScope = "shared" && IfError(varIbSharedFailed, false));
-// En admin henter kun colIbAll (alle sager); hans egne er en del af dem og
-// hentes ikke en gang til. Alle andre har colIbMine.
-IbMine = If({IS_ADMIN}, Filter(colIbAll, Reporter = varIbMe), colIbMine);
-// Scopet: All issues (admin: alle sager; ellers den anonyme liste), My
-// issues og - for admin - Assigned to me. Filtrene regnes oven paa det.
-IbScopeRows = Switch(varIbScope, "shared", colIbShared, "all", colIbAll, "assigned", Filter(colIbAll, AssignedEmail = varIbMe), IbMine);
+IbFailed = IfError(varIbCfgFailed, false) || IfError(varIbAllFailed, false);
+// Alle henter alle sager (issue #193); "My issues" er et filter paa dem.
+IbMine = Filter(colIbAll, Reporter = varIbMe);
+// Scopet: All issues, My issues og - for admin - Assigned to me. Filtrene
+// regnes oven paa det.
+IbScopeRows = Switch(varIbScope, "all", colIbAll, "assigned", Filter(colIbAll, AssignedEmail = varIbMe), IbMine);
+// Hvad maa brugeren paa den aabne sag? EET sted for knapperne. Kun
+// kommentarerne er beskyttet af SharePoint (rettigheder paa raekken i
+// IB_TicketComments); resten er appens regler (issue #193).
+IbSelMine = varIbSel.Reporter = varIbMe;
+// Activity og kommentarer: kun rapportoeren og admins.
+IbSeeActivity = IbSelMine || {IS_ADMIN};
 // Updated vises kun efter en reel aendring: en haendelse efter
-// indmeldingen (ikke filerne, der kom med den). Den anonyme kopi har ingen
-// Activity - der taeller kun en aendring mere end {UPDATED_AFTER_MIN} minutter efter.
-IbSelUpdatedOn = If(varIbSelShared, If(DateDiff(varIbSel.CreatedOn, varIbSel.UpdatedOn, TimeUnit.Minutes) >= {UPDATED_AFTER_MIN}, varIbSel.UpdatedOn, Blank()), Max(Filter(colIbActivity, Kind <> "Reported" && !Initial), At));
-// Hvad maa brugeren paa den aabne sag? EET sted for knapperne - og samme
-// regler som flowet BioSap-IssueBoard-Submit, der afgoer det paa serveren.
-// En anonym (delt) sag kan ingen aendre herfra.
-IbSelMine = !varIbSelShared && varIbSel.Reporter = varIbMe;
-IbCanEdit = !varIbSelShared && !varIbSel.Archived && ({IS_ADMIN} || (IbSelMine && varIbSel.Status = "{cfg.STATUS_EDITABLE}"));
-IbCanReopen = !varIbSelShared && !varIbSel.Archived && ({IS_ADMIN} || IbSelMine) && varIbSel.Status in {REOPENABLE_FX};
-IbCanManage = !varIbSelShared && {IS_ADMIN};
-IbCanComment = !varIbSelShared && !varIbSel.Archived;
+// indmeldingen. Uden Activity taeller kun en aendring mere end
+// {UPDATED_AFTER_MIN} minutter efter indmeldingen.
+IbSelUpdatedOn = If(IbSeeActivity, Max(Filter(colIbActivity, Kind <> "Reported" && !Initial), At), If(DateDiff(varIbSel.CreatedOn, varIbSel.UpdatedOn, TimeUnit.Minutes) >= {UPDATED_AFTER_MIN}, varIbSel.UpdatedOn, Blank()));
+IbCanEdit = !varIbSelPeek && !varIbSel.Archived && ({IS_ADMIN} || (IbSelMine && varIbSel.Status = "{cfg.STATUS_EDITABLE}"));
+IbCanReopen = !varIbSelPeek && !varIbSel.Archived && ({IS_ADMIN} || IbSelMine) && varIbSel.Status in {REOPENABLE_FX};
+IbCanManage = !varIbSelPeek && {IS_ADMIN};
+IbCanComment = !varIbSelPeek && IbSeeActivity && !varIbSel.Archived;
+// Filer paa en sag: rapportoeren og admins (flowet tjekker det igen).
+IbCanAttach = !varIbSelPeek && IbSeeActivity && !varIbSel.Archived;
 // Antallet af filer paa sagen - af Activity, saa fanen kan vise det uden
-// at hente filerne.
-IbFileCount = CountRows(Filter(colIbActivity, Kind = "Attachment"));'''
+// at hente filerne. Uden Activity: de hentede filer, naar fanen er valgt.
+IbFileCount = If(IbSeeActivity, CountRows(Filter(colIbActivity, Kind = "Attachment")), varIbFilesFor = varIbSelId, CountRows(varIbFiles), Blank());'''
 
 
 # ---------------------------------------------------------------------------
@@ -475,13 +444,11 @@ def _chip(name, status_expr, archived_expr, x=None, y=None, width=CHIP_W):
 # ---------------------------------------------------------------------------
 RESET_FORM = ("Reset(drpIbFormApp);\nReset(drpIbFormSection);\nReset(inpIbOther);\nReset(inpIbTitle);\n"
               "Reset(inpIbDesc);\nReset(inpIbSteps);\nReset(inpIbExpected);\nReset(inpIbActual);\n"
-              "Reset(inpIbRelated);\nReset(drpIbSeverity);\nReset(attIbNewFiles);\n"
+              "Reset(inpIbRelated);\nReset(drpIbSeverity);\n"
               "Reset(drpIbStatus);\nReset(drpIbPriority);\nReset(drpIbAssignee);\nReset(inpIbResolution)")
 
 # Formularen staar fremme med det samme. Forslagene til lignende sager
-# kommer bagefter - for en almindelig bruger fra den anonyme liste, som
-# hentes uden ventespinner hen over formularen; en admin har dem allerede
-# i colIbAll (issue #177).
+# kommer fra colIbAll, der allerede er hentet.
 OPEN_FORM = (
     'Set(varIbFormMode, "new");\n'
     "Set(varIbFormApp, IbFrom);\n"
@@ -489,8 +456,7 @@ OPEN_FORM = (
     "Set(varIbMore, false);\n"
     "Set(varIbTried, false);\n"
     + RESET_FORM + ";\n"
-    "Set(varIbFormOn, true);\n"
-    f"If(!{IS_ADMIN}, " + LOAD_SHARED + ")"
+    "Set(varIbFormOn, true)"
 )
 
 # Admins til "Assigned to" - samme liste som IsAdmin, hentet een gang og
@@ -563,10 +529,8 @@ def _filter_dd(name, all_text, values, var, label, display_mode=None):
                                     "Self.Selected.Value))")
 
 
-# Scopet "All issues": for en admin alle sager (colIbAll), for alle andre
-# den anonyme liste (colIbShared) - saa kan alle finde ogsaa de arkiverede
-# sager, uden at se hvem der meldte dem (issue #177).
-SCOPE_ALL = 'varIbScope in ["all", "shared"]'
+# Scopet "All issues": alle sager, med navn (issue #193).
+SCOPE_ALL = 'varIbScope = "all"'
 ADMIN_BOARD = f'{IS_ADMIN} && varIbScope in ["all", "assigned"]'
 FILTERED = ("!IsBlank(varIbApp) || !IsBlank(varIbSection) || !IsBlank(varIbStatusF) || "
             "!IsBlank(varIbPriF) || !IsBlank(Trim(inpIbSearch.Text))")
@@ -588,11 +552,8 @@ def build_filters():
     n_scope = f"If({IS_ADMIN}, 3, 2)"
     narrow_scope = f"(({CARD_W}) - 4 * ({n_scope} - 1)) / {n_scope}"
     all_seg = _seg("btnIbScopeAll", "All issues", SCOPE_ALL,
-                   f'If({IS_ADMIN}, Set(varIbScope, "all"), Set(varIbScope, "shared");\n'
-                   + LOAD_SHARED + ")",
-                   SCOPE_W["btnIbScopeAll"],
-                   f'If({IS_ADMIN}, "Show all issues", '
-                   '"Show all issues from all testers, without names")')
+                   'Set(varIbScope, "all")', SCOPE_W["btnIbScopeAll"],
+                   '"Show all issues from all testers"')
     mine_seg = _seg("btnIbScopeMine", "My issues", 'varIbScope = "mine"',
                     'Set(varIbScope, "mine")', SCOPE_W["btnIbScopeMine"],
                     '"Show the issues you reported"')
@@ -686,14 +647,7 @@ def build_filters():
                  height=f"If({ok4}, 36, 2 * 36 + 8)")
     row2.props["LayoutDirection"] = f"If({ok4}, LayoutDirection.Horizontal, LayoutDirection.Vertical)"
 
-    note = text_ctrl("txtIbSharedNote",
-                     '"All issues from all testers are anonymous here: you see what was reported '
-                     'and its status, never who reported it, the comments or the files."',
-                     size=lay.SIZE_SMALL, color=C_INFO_FG, height=50, wrap="true",
-                     visible='varIbScope = "shared"',
-                     extra={"Fill": C_INFO_BG, "PaddingLeft": "12", "PaddingRight": "12",
-                            "PaddingTop": "8", **lay.radius(10)})
-    return card("conIbFilterCard", [top, row, row2, note], gap=12)
+    return card("conIbFilterCard", [top, row, row2], gap=12)
 
 
 # ---------------------------------------------------------------------------
@@ -706,6 +660,7 @@ TILE_M = 6          # luft om hver flise - 12 px mellem to
 TILE_PAD = 14       # flisens indre polstring
 TILE_CHIP_W = 112
 TILE_PRI_W = 80
+TILE_ATT_W = 32     # papirclipsen (issue #193)
 # Antal kolonner: saa mange fliser paa mindst TILE_MIN_W, der kan staa.
 TILE_COLS = f"Max(1, RoundDown(({CARD_W}) / {TILE_MIN_W}, 0))"
 # Galleriet er saa hoejt som raekkerne - hoejst det, der er plads til paa
@@ -713,14 +668,12 @@ TILE_COLS = f"Max(1, RoundDown(({CARD_W}) / {TILE_MIN_W}, 0))"
 TILE_ROWS = f"RoundUp(galIbList.AllItemsCount / {TILE_COLS}, 0)"
 TILE_MAX_ROWS = f"Max(2, RoundDown((App.Height - 280) / {TILE_H}, 0))"
 
-# Den rigtige sag, naar man trykker paa en anonym kopi af sin EGEN sag: saa
-# faar man den fulde visning med Activity og filer.
-OWN_OF_SHARED = 'If(varIbScope = "shared", LookUp(colIbMine, TicketNo = ThisItem.TicketNo))'
-OPEN_TILE = ("With(\n    { own: " + OWN_OF_SHARED + " },\n"
-             + "".join("    " + l + "\n" for l in open_ticket(
-                 "If(IsBlank(own), ThisItem, own)",
-                 'varIbScope = "shared" && IsBlank(own)').split("\n"))
-             + ")")
+OPEN_TILE = open_ticket("ThisItem", "false")
+# Papirclipsen paa flisen (issue #193): sagen aabnes direkte paa fanen
+# Attachments, hvor filerne vises og nye laegges paa.
+OPEN_TILE_FILES = open_ticket("ThisItem", "false", tab="files")
+# Kun rapportoeren og admins kan laegge filer paa - flowet tjekker det igen.
+TILE_CAN_ATTACH = f"!ThisItem.Archived && (ThisItem.Reporter = varIbMe || {IS_ADMIN})"
 
 LIST_ITEMS = (
     "With(\n"
@@ -760,14 +713,13 @@ def _priority_tokens(expr):
     return sw("fg"), sw("bg")
 
 
-# Hvem - kun det, brugeren maa se (anonymiteten er uaendret): en admin ser
-# rapportoerens initialer paa andres sager og tildelingen; rapportoeren ser
-# tildelingen paa sin egen sag; paa den anonyme liste staar der kun
-# "Reported by you" paa ens egne sager - aldrig andres initialer.
+# Hvem: rapportoerens navn - ingen anonymisering (issue #193) - og
+# tildelingen.
+REPORTER_FX = (f'If({{r}}.Reporter = varIbMe, "You", !IsBlank({{r}}.ReporterName), {{r}}.ReporterName, '
+               f'{_initials("{r}.Reporter")})')
 TILE_PEOPLE = (
-    f'If(varIbScope = "shared", If(IsBlank({OWN_OF_SHARED}), "", "Reported by you"), '
-    f'If({IS_ADMIN} && ThisItem.Reporter <> varIbMe, {_initials("ThisItem.Reporter")} & "  ·  ", "") & '
-    'If(IsBlank(ThisItem.Assigned), "Unassigned", "To " & ThisItem.Assigned))'
+    f'If(ThisItem.Reporter = varIbMe, "Reported by you", "By " & {REPORTER_FX.format(r="ThisItem")}) & '
+    '"  ·  " & If(IsBlank(ThisItem.Assigned), "Unassigned", "To " & ThisItem.Assigned)'
 )
 
 
@@ -783,7 +735,8 @@ def build_list():
                           "BorderColor": C_CARD_BORDER, "BorderStyle": "BorderStyle.Solid",
                           "BorderThickness": "1"})
     no = text_ctrl("txtIbTileNo", "ThisItem.TicketNo", size=lay.SIZE_BODY, weight="Semibold",
-                   color=C_PRIMARY, height=20, width=f"{inner} - {TILE_CHIP_W} - 8",
+                   color=C_PRIMARY, height=20,
+                   width=f"{inner} - {TILE_CHIP_W} - 8 - {TILE_ATT_W} - 6",
                    extra={"X": x0, "Y": str(TILE_M + TILE_PAD + 2)})
     chip = _chip("txtIbTileStatus", "ThisItem.Status", "ThisItem.Archived",
                  x=f"{tw} - {TILE_M + TILE_PAD} - {TILE_CHIP_W}", y=str(TILE_M + TILE_PAD),
@@ -823,6 +776,16 @@ def build_list():
                   hover_border=True)
     hit.props["X"] = str(TILE_M)
     hit.props["Y"] = str(TILE_M)
+    # Papirclipsen (issue #193): vedhaeftninger efter oprettelsen. Den
+    # ligger OVEN PAA flisens klikflade (sidst i listen), saa klikket er
+    # dens eget: sagen aabnes paa fanen Attachments.
+    att = button("btnIbTileAttach", '"Attach files"', OPEN_TILE_FILES, width=TILE_ATT_W,
+                 height=TILE_ATT_W, icon="Attach", visible=TILE_CAN_ATTACH,
+                 accessible='"Add screenshots or files to " & ThisItem.TicketNo',
+                 tooltip='"Add screenshots or files"')
+    att.props["Layout"] = "ButtonLayout.IconOnly"
+    att.props["X"] = f"{tw} - {TILE_M + TILE_PAD} - {TILE_CHIP_W} - 6 - {TILE_ATT_W}"
+    att.props["Y"] = str(TILE_M + TILE_PAD - 4)
     gal_h = f"Max(1, Min({TILE_ROWS}, {TILE_MAX_ROWS})) * {TILE_H}"
     gal = Ctrl("galIbList", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Issues"',
@@ -831,7 +794,7 @@ def build_list():
         "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
         "ShowScrollbar": "true", "TabIndex": "0", "TemplatePadding": "0",
         "TemplateSize": str(TILE_H), "Width": "Parent.Width", "WrapCount": TILE_COLS,
-    }, children=[bg, no, chip, title, where, dates, pri, people, hit], h=gal_h,
+    }, children=[bg, no, chip, title, where, dates, pri, people, hit, att], h=gal_h,
         vis="galIbList.AllItemsCount > 0")
 
     state_word = 'Switch(varIbState, "closed", " closed", "archived", " archived", " open")'
@@ -857,7 +820,7 @@ def build_list():
         f'CountIf(colIbAll, {open_all} && AssignedEmail = varIbMe) & " assigned to you  ·  " & '
         'CountIf(colIbAll, Archived) & " archived"',
         size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true", visible=ADMIN_BOARD)
-    loading = 'varIbLoading || (varIbScope = "shared" && varIbSharedBusy)'
+    loading = "varIbLoading"
     empty_fx = (
         f'If({loading}, "Loading issues...", '
         "IbFailed, \"The issues could not be loaded. Check your connection and try again.\", "
@@ -866,7 +829,6 @@ def build_list():
         'varIbScope = "all" && IsEmpty(colIbAll), "No issues have been reported yet.", '
         'varIbScope = "assigned" && IsEmpty(Filter(colIbAll, AssignedEmail = varIbMe)), '
         '"No issues are assigned to you.", '
-        'varIbScope = "shared" && IsEmpty(colIbShared), "No issues have been reported yet.", '
         f'{FILTERED}, "No issues match the filters. Clear the filters to see more.", '
         'Switch(varIbState, "closed", "There are no closed issues here.", "archived", '
         '"There are no archived issues here.", "There are no open issues here."))')
@@ -999,132 +961,164 @@ UP_FAILED = "Filter(colIbUp, !IsBlank(Msg))"
 CLEAR_FORM = ('Set(varIbFormApp, "");\nSet(varIbFormSection, "");\nSet(varIbMore, false);\n'
               + RESET_FORM)
 
-# Den nye sag ind i listen: EET opslag paa flowets ID - ikke hele listen
-# forfra (issue #177). Fejler opslaget, hentes listen som foer.
+# Den nye sag ind i listen - Patch gav raekken tilbage, saa der er intet
+# opslag og ingen ny hentning af listen (issue #177, #193).
 ADD_NEW = (
-    "Set(varIbSelId, Value(varIbRes.ticketid));\n"
-    f"Set(varIbSelRow, IfError(LookUp({cfg.L_TICKETS}, ID = varIbSelId), Blank()));\n"
-    "If(\n"
-    "    IsBlank(varIbSelRow),\n"
-    f"    {RELOAD_MAIN},\n"
-    f"    Set(varIbNew, {_row('varIbSelRow', shared=False)});\n"
-    f"    If({IS_ADMIN},\n"
-    "        RemoveIf(colIbAll, Id = varIbSelId); Collect(colIbAll, varIbNew),\n"
-    "        RemoveIf(colIbMine, Id = varIbSelId); Collect(colIbMine, varIbNew))\n"
-    ")"
+    "Set(varIbSelId, varIbNewRow.ID);\n"
+    f"Set(varIbNew, {_row('varIbNewRow')});\n"
+    "RemoveIf(colIbAll, Id = varIbSelId);\n"
+    "Collect(colIbAll, varIbNew)"
 )
 
-# Den nye sag i View mode - som et tryk paa flisen, men fra listen paa
-# flowets ID, og raekken er allerede hel. Er den ikke i listen (hentningen
-# fejlede), staar sagsnummeret stadig i beskeden.
+# Den nye sag i View mode - som et tryk paa flisen, og raekken er hel.
 SHOW_NEW = (
-    "Set(varIbSel, LookUp(IbMine, Id = varIbSelId));\n"
-    "If(\n"
-    "    !IsBlank(varIbSel),\n"
-    "    Set(varIbSelShared, false);\n"
-    "    Set(varIbSelFullFor, varIbSelId);\n"
-    '    Set(varIbTab, "details");\n'
-    "    Set(varIbInternal, false);\n"
-    "    Set(varIbActsOn, false);\n"
-    "    Set(varIbFilesFor, -1);\n"
-    "    Reset(inpIbComment);\n"
-    "    " + LOAD_ACTIVITY.replace("\n", "\n    ") + ";\n"
-    "    Set(varIbDetailOn, true)\n"
-    ")"
+    "Set(varIbSel, varIbNew);\n"
+    "Set(varIbSelPeek, false);\n"
+    "Set(varIbSelFullFor, varIbSelId);\n"
+    'Set(varIbTab, "details");\n'
+    "Set(varIbInternal, false);\n"
+    "Set(varIbActsOn, false);\n"
+    "Set(varIbFilesFor, -1);\n"
+    "Reset(inpIbComment);\n"
+    + LOAD_ACTIVITY + ";\n"
+    "Set(varIbDetailOn, true)"
 )
 UP_FAILED_TEXT = f'Concat({UP_FAILED}, Name & " (" & Msg & ")", "; ")'
 
+# Ny sag (issue #193): appen opretter raekken selv med Patch - ikke
+# gennem flowet. Nummeret, rapportoeren (ud fra Created By) og
+# starttilstanden saettes igen paa serveren af flowet
+# BioSap-IssueBoard-OnCreated, der ogsaa sender mailen til admins og
+# rapportoeren. Filer laegges paa bagefter (papirclipsen paa flisen).
+NEW_FIELDS = (
+    "        Title: Trim(inpIbTitle.Text),\n"
+    "        Description: Trim(inpIbDesc.Text),\n"
+    "        ReproSteps: Trim(inpIbSteps.Text),\n"
+    "        ExpectedResult: Trim(inpIbExpected.Text),\n"
+    "        ActualResult: Trim(inpIbActual.Text),\n"
+    "        Application: varIbFormApp,\n"
+    "        Section: varIbFormSection,\n"
+    '        OtherContext: If(IbOtherNeeded, Trim(inpIbOther.Text), ""),\n'
+    "        RelatedRequestNo: Trim(inpIbRelated.Text),\n"
+    f'        Severity: {{ Value: Coalesce(drpIbSeverity.Selected.Value, "{cfg.SEVERITY_DEFAULT}") }},\n'
+)
 SUBMIT = (
     "Set(varIbBusy, true);\n"
-    f"Set(varIbRes, IfError({cfg.FLOW}.Run(\n"
-    f'    "{cfg.ACT_CREATE}",\n'
-    "    JSON({\n"
-    "        title: Trim(inpIbTitle.Text),\n"
-    "        description: Trim(inpIbDesc.Text),\n"
-    "        steps: Trim(inpIbSteps.Text),\n"
-    "        expected: Trim(inpIbExpected.Text),\n"
-    "        actual: Trim(inpIbActual.Text),\n"
-    "        application: varIbFormApp,\n"
-    "        section: varIbFormSection,\n"
-    '        other: If(IbOtherNeeded, Trim(inpIbOther.Text), ""),\n'
-    "        relatedNo: Trim(inpIbRelated.Text),\n"
-    f'        severity: Coalesce(drpIbSeverity.Selected.Value, "{cfg.SEVERITY_DEFAULT}"),\n'
-    f"        layout: {LAYOUT_FX},\n"
-    f"        client: {CLIENT_FX}\n"
-    "    })\n"
-    f"), {FALLBACK}));\n"
+    "Set(varIbSaved, false);\n"
+    "IfError(\n"
+    "    Set(varIbNewRow, Patch(\n"
+    f"        {cfg.L_TICKETS},\n"
+    f"        Defaults({cfg.L_TICKETS}),\n"
+    "        {\n"
+    + NEW_FIELDS.replace("\n        ", "\n            ").replace("        Title", "            Title", 1) +
+    f"            LayoutContext: {LAYOUT_FX},\n"
+    f"            ClientContext: {CLIENT_FX},\n"
+    f'            Priority: {{ Value: "{cfg.PRIORITY_DEFAULT}" }},\n'
+    f'            Status: {{ Value: "{cfg.STATUS_NEW}" }},\n'
+    "            ReporterEmail: varIbMe,\n"
+    "            ReporterName: Left(User().FullName, 255),\n"
+    "            LastActivityOn: Now(),\n"
+    "            IsArchived: false\n"
+    "        }\n"
+    "    ));\n"
+    "    Set(varIbSaved, true),\n"
+    # Fejler det, bliver popuppen staaende med det indtastede (issue #135).
+    '    Notify("The issue could not be submitted. " & FirstError.Message, NotificationType.Error)\n'
+    ");\n"
     "If(\n"
-    '    varIbRes.ok = "yes",\n'
-    # Filerne foerst nu: de laegges paa den raekke, flowet lige har oprettet
-    # og laast. Fejler en fil, er sagen stadig meldt - beskeden siger hvilke.
-    "    Clear(colIbUp);\n"
-    "    If(\n"
-    "        CountRows(attIbNewFiles.Attachments) > 0,\n"
-    "        Set(varIbUploading, true);\n"
-    "        " + _upload("attIbNewFiles", "Value(varIbRes.ticketid)", "true").replace("\n", "\n        ")
-    + ";\n"
-    "        Set(varIbUploading, false)\n"
-    "    );\n"
+    "    varIbSaved,\n"
     "    " + ADD_NEW.replace("\n", "\n    ") + ";\n"
-    "    Set(varIbSharedLoaded, false);\n"
     '    Set(varIbScope, "mine");\n'
     '    Set(varIbState, "open");\n'
-    # Foerst nu lukkes og nulstilles formularen - sagen findes, og
-    # rettighederne er sat, foer flowet svarer ok (issue #135).
+    # Foerst nu lukkes og nulstilles formularen - sagen findes (issue #135).
     "    Set(varIbFormOn, false);\n"
     "    " + CLEAR_FORM.replace("\n", "\n    ") + ";\n"
-    # Den nye sag vises med det samme: den aabnes fra den friske liste, saa
-    # et aktivt filter eller en soegning ikke kan skjule den.
+    # Den nye sag vises med det samme - et aktivt filter eller en soegning
+    # kan ikke skjule den.
     "    " + SHOW_NEW.replace("\n", "\n    ") + ";\n"
-    "    If(\n"
-    f"        CountRows({UP_FAILED}) > 0,\n"
-    '        Notify("Issue " & varIbRes.ticketno & " has been submitted, but these files were not '
-    f'attached: " & {UP_FAILED_TEXT} & ". Open the issue to try again.", NotificationType.Warning),\n'
-    '        Notify("Thank you. Issue " & varIbRes.ticketno & " has been submitted.", '
-    "NotificationType.Success)\n"
-    "    ),\n"
-    # Fejler det, bliver popuppen staaende med det indtastede (issue #135).
-    '    Notify("The issue could not be submitted. " & Coalesce(varIbRes.message, "Please try again."), '
-    "NotificationType.Error)\n"
+    '    Notify("Thank you. Issue " & varIbNew.TicketNo & " has been submitted. To add screenshots '
+    'or files, select Attachments here or the paperclip on the issue.", NotificationType.Success)\n'
     ");\n"
     "Set(varIbBusy, false)"
 )
 
-# Edit: rapportoeren sender felterne; en admin desuden status, prioritet,
-# tildeling og loesning. Flowet afgoer, hvad der maa aendres, og skriver
-# een haendelse pr. aendring.
+# Edit (issue #193): appen retter sagen selv med Patch - rapportoeren
+# felterne, mens sagen er New; en admin desuden status, prioritet,
+# tildeling og loesning. Raekken hentes foerst (varIbCur), saa en admins
+# aendring imens ikke overskrives, og saa reglerne tjekkes paa det, der
+# staar i SharePoint nu. Bagefter faar flowet vaerdierne FOER (prev): det
+# sammenligner med raekken, som den staar nu, skriver een haendelse pr.
+# aendring i Activity og sender mailen ved Ready for retest/Closed.
+ASG_EMAIL = 'Lower(Coalesce(drpIbAssignee.Selected.Email, ""))'
 SAVE_EDIT = (
     "Set(varIbBusy, true);\n"
-    f"Set(varIbRes, IfError({cfg.FLOW}.Run(\n"
-    f'    "{cfg.ACT_EDIT}",\n'
-    "    JSON({\n"
-    "        ticketId: varIbSelId,\n"
-    "        title: Trim(inpIbTitle.Text),\n"
-    "        description: Trim(inpIbDesc.Text),\n"
-    "        steps: Trim(inpIbSteps.Text),\n"
-    "        expected: Trim(inpIbExpected.Text),\n"
-    "        actual: Trim(inpIbActual.Text),\n"
-    "        application: varIbFormApp,\n"
-    "        section: varIbFormSection,\n"
-    '        other: If(IbOtherNeeded, Trim(inpIbOther.Text), ""),\n'
-    "        relatedNo: Trim(inpIbRelated.Text),\n"
-    f'        severity: Coalesce(drpIbSeverity.Selected.Value, "{cfg.SEVERITY_DEFAULT}"),\n'
-    "        status: Coalesce(drpIbStatus.Selected.Value, varIbSel.Status),\n"
-    f'        priority: Coalesce(drpIbPriority.Selected.Value, varIbSel.Priority, "{cfg.PRIORITY_DEFAULT}"),\n'
-    '        assignee: Coalesce(drpIbAssignee.Selected.Email, ""),\n'
-    "        resolution: Trim(inpIbResolution.Text)\n"
-    "    })\n"
-    f"), {FALLBACK}));\n"
+    "Set(varIbSaved, false);\n"
+    f"Set(varIbCur, IfError(LookUp({cfg.L_TICKETS}, ID = varIbSelId), Blank()));\n"
     "If(\n"
-    '    varIbRes.ok = "yes",\n'
-    "    " + RELOAD_SEL.replace("\n", "\n    ") + ";\n"
+    "    IsBlank(varIbCur),\n"
+    '    Notify("The issue could not be loaded. It may have been deleted - close it and try again.", '
+    "NotificationType.Error),\n"
+    f'    !{IS_ADMIN} && (varIbCur.Status.Value <> "{cfg.STATUS_EDITABLE}" || Coalesce(varIbCur.IsArchived, false)),\n'
+    '    Notify("You can edit your issue only while it is New. Add a comment instead.", '
+    "NotificationType.Warning),\n"
+    "    IfError(\n"
+    "        Set(varIbEdited, Patch(\n"
+    f"            {cfg.L_TICKETS},\n"
+    "            varIbCur,\n"
+    "            {\n"
+    + NEW_FIELDS.replace("        ", "                ") +
+    f"                Status: {{ Value: If({IS_ADMIN}, Coalesce(drpIbStatus.Selected.Value, varIbCur.Status.Value), "
+    "varIbCur.Status.Value) },\n"
+    f"                Priority: {{ Value: If({IS_ADMIN}, Coalesce(drpIbPriority.Selected.Value, "
+    f'varIbCur.Priority.Value, "{cfg.PRIORITY_DEFAULT}"), Coalesce(varIbCur.Priority.Value, '
+    f'"{cfg.PRIORITY_DEFAULT}")) }},\n'
+    f"                AssignedToEmail: If({IS_ADMIN}, {ASG_EMAIL}, varIbCur.AssignedToEmail),\n"
+    f'                AssignedToName: If({IS_ADMIN}, If(IsBlank({ASG_EMAIL}), "", '
+    f"{_initials(ASG_EMAIL)}), varIbCur.AssignedToName),\n"
+    f"                Resolution: If({IS_ADMIN}, Trim(inpIbResolution.Text), varIbCur.Resolution),\n"
+    "                LastActivityOn: Now()\n"
+    "            }\n"
+    "        ));\n"
+    "        Set(varIbSaved, true),\n"
+    '        Notify("The changes could not be saved. " & FirstError.Message, NotificationType.Error)\n'
+    "    )\n"
+    ");\n"
+    "If(\n"
+    "    varIbSaved,\n"
+    f"    Set(varIbRes, IfError({cfg.FLOW}.Run(\n"
+    f'        "{cfg.ACT_EDIT}",\n'
+    "        JSON({\n"
+    "            ticketId: varIbSelId,\n"
+    "            prev: {\n"
+    '                title: Coalesce(varIbCur.Title, ""),\n'
+    '                description: Coalesce(varIbCur.Description, ""),\n'
+    '                steps: Coalesce(varIbCur.ReproSteps, ""),\n'
+    '                expected: Coalesce(varIbCur.ExpectedResult, ""),\n'
+    '                actual: Coalesce(varIbCur.ActualResult, ""),\n'
+    '                application: Coalesce(varIbCur.Application, ""),\n'
+    '                section: Coalesce(varIbCur.Section, ""),\n'
+    '                other: Coalesce(varIbCur.OtherContext, ""),\n'
+    '                relatedNo: Coalesce(varIbCur.RelatedRequestNo, ""),\n'
+    '                severity: Coalesce(varIbCur.Severity.Value, ""),\n'
+    f'                status: Coalesce(varIbCur.Status.Value, "{cfg.STATUS_NEW}"),\n'
+    f'                priority: Coalesce(varIbCur.Priority.Value, "{cfg.PRIORITY_DEFAULT}"),\n'
+    '                assignee: Lower(Coalesce(varIbCur.AssignedToEmail, "")),\n'
+    '                resolution: Coalesce(varIbCur.Resolution, "")\n'
+    "            }\n"
+    "        })\n"
+    f"    ), {FALLBACK}));\n"
+    f"    Set(varIbSel, {_row('varIbEdited')});\n"
+    "    Set(varIbSelFullFor, varIbSelId);\n"
+    "    UpdateIf(colIbAll, Id = varIbSelId, varIbSel);\n"
     "    " + LOAD_ACTIVITY.replace("\n", "\n    ") + ";\n"
-    "    Set(varIbSharedLoaded, false);\n"
     "    Set(varIbFormOn, false);\n"
     "    Set(varIbDetailOn, true);\n"
-    '    Notify("Your changes have been saved.", NotificationType.Success),\n'
-    '    Notify("The changes could not be saved. " & Coalesce(varIbRes.message, "Please try again."), '
-    "NotificationType.Error)\n"
+    "    If(\n"
+    '        varIbRes.ok = "yes",\n'
+    '        Notify("Your changes have been saved.", NotificationType.Success),\n'
+    '        Notify("Your changes have been saved, but they could not be added to the activity. " & '
+    "Coalesce(varIbRes.message, \"\"), NotificationType.Warning)\n"
+    "    )\n"
     ");\n"
     "Set(varIbBusy, false)"
 )
@@ -1135,8 +1129,8 @@ SIMILAR_ITEMS = (
     "    FirstN(\n"
     "        SortByColumns(\n"
     "            Filter(\n"
-    # En admin har alle sager i colIbAll; alle andre den anonyme liste.
-    f"                ForAll(Filter(If({IS_ADMIN}, colIbAll, colIbShared), !Archived) As S,\n"
+    # Alle har alle sager i colIbAll (issue #193).
+    "                ForAll(Filter(colIbAll, !Archived) As S,\n"
     "                    { TicketNo: S.TicketNo, Title: S.Title, Status: S.Status, Archived: S.Archived,\n"
     "                      Where: S.Application & \"  ·  \" & S.Section, Row: S,\n"
     "                      Hits: CountRows(Filter(w, Word in S.Title)),\n"
@@ -1216,8 +1210,7 @@ FORM_DIRTY = (
     f'        {_differs("inpIbResolution", "Resolution")})),\n'
     '    Coalesce(varIbFormApp, "") <> IbFrom || !IsBlank(varIbFormSection) ||\n'
     + "".join(f"    !IsBlank(Trim({c}.Text)) ||\n" for c, _f in _TEXTS) +
-    f'    Coalesce(drpIbSeverity.Selected.Value, "{cfg.SEVERITY_DEFAULT}") <> "{cfg.SEVERITY_DEFAULT}" ||\n'
-    "    CountRows(attIbNewFiles.Attachments) > 0\n"
+    f'    Coalesce(drpIbSeverity.Selected.Value, "{cfg.SEVERITY_DEFAULT}") <> "{cfg.SEVERITY_DEFAULT}"\n'
     ")"
 )
 
@@ -1250,8 +1243,9 @@ def build_form():
     intro = text_ctrl("txtIbFormIntro",
                       f'If({EDITING}, "Edit mode. Change what is needed and select Save changes - '
                       'every change is recorded in the activity.", '
-                      '"Tell us what happened. Fields marked * are required. Only you and the '
-                      'administrators can see your name and the comments.")',
+                      '"Tell us what happened. Fields marked * are required. Everyone can see the '
+                      'issue and your name; only you and the administrators can see the comments. '
+                      'Add screenshots and files after you submit.")',
                       size=lay.SIZE_BODY, color=C_MUTED, height=40, wrap="true")
 
     app = themed_dropdown("drpIbFormApp", APPS_FX, "varIbFormApp", value_col="Application",
@@ -1278,9 +1272,8 @@ def build_form():
                        max_length=120, required_formula="true", label='"Title, required"')
     title_f = _field("conIbFormTitleF", "Title", title, required=True)
 
-    # Lignende sager - fra den ANONYME liste. Intet her kan vise en anden
-    # brugers navn eller kommentarer.
-    sim_head = text_ctrl("txtIbSimHead", '"Similar shared issues - is yours already reported?"',
+    # Lignende sager - fra alle sager (issue #193).
+    sim_head = text_ctrl("txtIbSimHead", '"Similar issues - is yours already reported?"',
                          size=lay.SIZE_SMALL, weight="Semibold", color=C_INFO_FG, height=18)
     tw = "Parent.TemplateWidth"
     s_no = text_ctrl("txtIbSimNo", "ThisItem.TicketNo", size=lay.SIZE_SMALL, weight="Semibold",
@@ -1292,14 +1285,14 @@ def build_form():
                         height=18, width=f"{tw} - 16 - {CHIP_W} - 8", extra={"X": "8", "Y": "23"})
     s_chip = _chip("txtIbSimStatus", "ThisItem.Status", "ThisItem.Archived",
                    x=f"{tw} - {CHIP_W} - 4", y="10")
-    # Altid den anonyme visning: formularen er aaben bagved, og intet herfra
-    # maa kunne aendre en sag (Edit ville overskrive formularen).
+    # Kun laesning: formularen er aaben bagved, og intet herfra maa kunne
+    # aendre en sag (Edit ville overskrive formularen).
     s_hit = row_hit("btnIbSimOpen", open_ticket("ThisItem.Row", "true"),
-                    '"Open shared issue " & ThisItem.TicketNo & " - " & ThisItem.Title',
+                    '"Open similar issue " & ThisItem.TicketNo & " - " & ThisItem.Title',
                     tw, SIM_ROW_H - 2, radius=8)
     sim_h = f"galIbSimilar.AllItemsCount * {SIM_ROW_H}"
     sim = Ctrl("galIbSimilar", "Gallery", variant="Vertical", props={
-        "AccessibleLabel": '"Similar shared issues"',
+        "AccessibleLabel": '"Similar issues"',
         "BorderStyle": "BorderStyle.None", "Fill": C_TRANSPARENT, "FillPortions": "0",
         "Height": sim_h, "Items": SIMILAR_ITEMS, "LayoutMinWidth": "0",
         "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
@@ -1347,11 +1340,8 @@ def build_form():
     details = group("conIbFormMore", [steps, expected, actual, extra_row], direction="Vertical",
                     gap=12, visible="varIbMore")
 
-    # Skaermbilleder og filer - kun ved en ny sag; paa en gemt sag ligger
-    # de under fanen Attachments.
-    files = _field("conIbFormFiles", "Screenshots and files (optional)",
-                   _attachments("attIbNewFiles", '"Screenshots and files for the new issue"'),
-                   visible=f"!({EDITING})")
+    # Skaermbilleder og filer laegges paa EFTER oprettelsen (issue #193):
+    # papirclipsen paa flisen eller fanen Attachments.
 
     # Admin: livsforloebet, prioriteten, tildelingen og loesningen.
     st = themed_dropdown("drpIbStatus", _table([s for s, _c, _r in cfg.STATUS]),
@@ -1367,7 +1357,7 @@ def build_form():
                           f'{SEL_REF}.Assigned, "Not assigned"))',
                           value_col="Name", label='"Assigned to"')
     res = text_input("inpIbResolution", f"{SEL_REF}.Resolution",
-                     placeholder='"What was done - shown to the reporter and on the shared board"',
+                     placeholder='"What was done - shown to everyone with the issue"',
                      max_length=4000, height=72, ttype="Multiline", label='"Resolution"')
     manage_head = text_ctrl("txtIbManageHead", '"Administration"', size=lay.SIZE_BODY,
                             weight="Semibold", height=20)
@@ -1416,7 +1406,7 @@ def build_form():
                    height=36, justify="End", align_items="Center")
     foot = group("conIbFormFoot", [footer, missing], direction="Vertical", gap=8)
     kids = [head, intro, where, sec_hint, other_f, title_f, similar, desc_f, more, details,
-            files, manage, context]
+            manage, context]
     # Foden staar fast under det, der scroller: Submit kan altid naas.
     return [_popup("IbForm", kids, FORM_ON, width=FORM_W, foot=foot), *build_discard()]
 
@@ -1426,16 +1416,14 @@ def build_form():
 # ---------------------------------------------------------------------------
 DETAIL_ON = "IfError(varIbDetailOn, false)"
 SEL = "varIbSel"
-MINE = "!varIbSelShared"
 DET_IN = f"({POP_IN} - {lay.SCROLLBAR_W})"
 ACT_ROW_PAD = 12
 ACT_W = f"({DET_IN} - {lay.SCROLLBAR_W} - {lay.GALLERY_RESERVE})"
 ACT_BODY_W = f"({ACT_W} - {2 * ACT_ROW_PAD})"
 ACT_MAX_H = 420
 
-# Efter enhver aendring gennem flowet: sagen og dens Activity igen, og den
-# delte liste hentes forfra naeste gang, den vises.
-AFTER_CHANGE = (RELOAD_SEL + ";\n" + LOAD_ACTIVITY + ";\nSet(varIbSharedLoaded, false)")
+# Efter enhver aendring gennem flowet: sagen og dens Activity igen.
+AFTER_CHANGE = RELOAD_SEL + ";\n" + LOAD_ACTIVITY
 
 
 def _run(action, payload, ok_fx, fail_text, busy="varIbBusy"):
@@ -1461,7 +1449,6 @@ POST = _run(
     f"{{ ticketId: varIbSelId, content: Trim(inpIbComment.Text), internal: varIbInternal && {IS_ADMIN} }}",
     "Reset(inpIbComment);\n"
     + LOAD_ACTIVITY + ";\n"
-    "UpdateIf(colIbMine, Id = varIbSelId, { UpdatedOn: Now() });\n"
     "UpdateIf(colIbAll, Id = varIbSelId, { UpdatedOn: Now() });\n"
     'Notify(If(varIbInternal, "Internal note added.", "Comment posted."), NotificationType.Success);\n'
     "Set(varIbInternal, false);\n"
@@ -1488,9 +1475,7 @@ ARCHIVE = _run(
 # en laast knap. Flowet tjekker nummeret igen.
 DELETE = _run(
     cfg.ACT_DELETE, "{ ticketId: varIbSelId, confirm: Trim(inpIbDelConfirm.Text) }",
-    "RemoveIf(colIbMine, Id = varIbSelId);\n"
     "RemoveIf(colIbAll, Id = varIbSelId);\n"
-    "Set(varIbSharedLoaded, false);\n"
     "Set(varIbDelOn, false);\n"
     "Set(varIbDiscardOn, false);\n"
     "Set(varIbDetailOn, false);\n"
@@ -1664,13 +1649,13 @@ def _files_panel():
                               "varIbUploading, DisplayMode.Disabled, DisplayMode.Edit)"))
     up.props["AlignInContainer"] = "AlignInContainer.End"
     hint = text_ctrl("txtIbFilesHint",
-                     f'"Up to {cfg.MAX_FILES} files at a time, {cfg.MAX_FILE_MB} MB each. Files are '
-                     'only visible to you and the administrators - never on the shared board."',
+                     f'"Up to {cfg.MAX_FILES} files at a time, {cfg.MAX_FILE_MB} MB each. Everyone '
+                     'who uses the Issue Board can open the files - leave out personal data."',
                      size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true")
     adder = group("conIbFileAdd", [picker, hint, up], direction="Vertical", gap=8,
-                  visible=f"!{SEL}.Archived")
+                  visible="IbCanAttach")
     return group("conIbDetFiles", [state, gal, adder], direction="Vertical", gap=12,
-                 visible=f'{MINE} && varIbTab = "files"')
+                 visible='varIbTab = "files"')
 
 
 FACT_H = 40
@@ -1694,18 +1679,15 @@ def _fact(name, label, value_fx, visible=None):
 
 def _facts():
     """Fakta om sagen som et lille gitter - ikke en lang tekststreng.
-    Hvem: kun det, brugeren maa se (samme regler som foer): rapportoeren
-    ser "You", en admin rapportoerens initialer, den anonyme visning
-    ingen."""
+    Hvem: rapportoerens navn ("You" paa ens egne) - ingen anonymisering
+    (issue #193)."""
     def blank_as(expr, text):
         return f'If(IsBlank({expr}), "{text}", {expr})'
     sev = _fact("IbFactSeverity", "Severity", blank_as(f"{SEL}.Severity", "Not set"))
     pri = _fact("IbFactPriority", "Priority", blank_as(f"{SEL}.Priority", "Not set"))
     asg = _fact("IbFactAssigned", "Assigned to",
-                f'If(varIbSelShared, "Not shown", {blank_as(SEL + ".Assigned", "Not assigned")})')
-    rep = _fact("IbFactReporter", "Reported by",
-                f'If(varIbSelShared, "Anonymous", IbSelMine, "You", {IS_ADMIN}, '
-                f'{_initials(SEL + ".Reporter")}, "Not shown")')
+                blank_as(SEL + ".Assigned", "Not assigned"))
+    rep = _fact("IbFactReporter", "Reported by", REPORTER_FX.format(r=SEL))
     reported = _fact("IbFactReported", "Reported", f"Text({SEL}.CreatedOn, {DATE_FMT})")
     # Updated kun efter en reel aendring (IbSelUpdatedOn) - den staar sidst,
     # saa der ikke opstaar et hul, naar den ikke vises.
@@ -1758,11 +1740,11 @@ def build_detail():
     facts = _facts()
     actions, menu = _actions()
 
-    shared_note = text_ctrl("txtIbDetShared",
-                            '"Anonymous view. Who reported it, their details, the comments and '
-                            'the files are private and not shown here."',
-                            size=lay.SIZE_SMALL, color=C_INFO_FG, height=34, wrap="true",
-                            visible="varIbSelShared",
+    peek_note = text_ctrl("txtIbDetPeek",
+                          '"Read only - opened from your new report. Close it to continue '
+                          'your report."',
+                          size=lay.SIZE_SMALL, color=C_INFO_FG, height=34, wrap="true",
+                          visible="varIbSelPeek",
                             extra={"Fill": C_INFO_BG, "PaddingLeft": "12", "PaddingRight": "12",
                                    "PaddingTop": "8", **lay.radius(10)})
     retest = text_ctrl("txtIbDetRetest",
@@ -1780,19 +1762,23 @@ def build_detail():
         _tab("btnIbTabDetails", '"Description"', "details", '"Show the description"'),
         _tab("btnIbTabActivity", f'"Activity (" & {n_act} & ")"', "activity",
              '"Show the activity and comments, " & ' + n_act + ' & " entries"'),
-        _tab("btnIbTabFiles", '"Attachments (" & IbFileCount & ")"', "files",
-             '"Show the attachments, " & IbFileCount & " files"',
+        _tab("btnIbTabFiles",
+             '"Attachments" & If(IsBlank(IbFileCount), "", " (" & IbFileCount & ")")', "files",
+             '"Show the attachments"',
              onselect='Set(varIbTab, "files");\nIf(varIbFilesFor <> varIbSelId, ' + LOAD_FILES + ")"),
-    ], direction="Horizontal", gap=8, height=32, align_items="Center", visible=MINE)
+    ], direction="Horizontal", gap=8, height=32, align_items="Center")
+    # Activity (kommentarerne) kun for rapportoeren og admins (issue #193).
+    tabs.children[1].props["Visible"] = "IbSeeActivity"
+    tabs.children[1].vis = "IbSeeActivity"
     # Tre faner skal kunne staa paa en telefon: de deler bredden.
     for t in tabs.children:
         t.props["Width"] = f"Min({TAB_W}, ({DET_IN} - 16) / 3)"
 
     # 6. Det valgte indhold.
-    show_details = f'varIbSelShared || varIbTab = "details"'
+    show_details = 'varIbTab = "details"'
     loading_more = text_ctrl("txtIbDetLoading", '"Loading the rest of the issue..."',
                              size=lay.SIZE_SMALL, color=C_MUTED, height=18,
-                             visible=f"{MINE} && varIbSelFullFor <> varIbSelId")
+                             visible="varIbSelFullFor <> varIbSelId")
     blocks = [
         _text_block("IbDetDesc", "Description", f"{SEL}.Description"),
         loading_more,
@@ -1902,9 +1888,9 @@ def build_detail():
                               size=lay.SIZE_SMALL, color=C_MUTED, height=18,
                               visible=f"{SEL}.Archived")
     activity = group("conIbDetActivity", [act_state, gal, composer, archived_hint],
-                     direction="Vertical", gap=12, visible=f'{MINE} && varIbTab = "activity"')
+                     direction="Vertical", gap=12, visible='IbSeeActivity && varIbTab = "activity"')
 
-    kids = [head, meta, facts, actions, menu, shared_note, retest, rule, tabs, details, activity,
+    kids = [head, meta, facts, actions, menu, peek_note, retest, rule, tabs, details, activity,
             _files_panel()]
     return [_popup("IbDet", kids, DETAIL_ON)]
 
@@ -1918,7 +1904,7 @@ def build_delete():
     warn = text_ctrl(
         "txtIbDelWarn",
         '"This cannot be undone. The issue, all its comments and activity, and its attachments '
-        'are deleted for everyone, and it disappears from the shared board. '
+        'are deleted for everyone. '
         'To keep the history, archive the issue instead."',
         size=lay.SIZE_BODY, color=C_INVALID_FG, height=58, wrap="true")
     match = f"Upper(Trim(inpIbDelConfirm.Text)) = Upper({SEL}.TicketNo)"
