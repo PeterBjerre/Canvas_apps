@@ -152,6 +152,9 @@ ROW = dict(ROW_BASE, Pos="0", FlBad="false", DescBad="false", Hint='""')
 ISSUE = {"RowGuid": '""', "Ord": "0", "Sev": '""', "Code": '""', "Field": '""',
          "Short": '""', "Msg": '""'}
 
+DET = {"Column": '""', "Field": '""', "Editable": "false", "List": '""',
+       "MaxLen": "0", "Section": '""', "Kind": '""', "Value": '""', "Issue": '""'}
+
 COLLECTIONS = [
     # Raekkerne - Validation-tabellen (functional-location.html:59-74).
     ("colFlRows", ROW),
@@ -167,10 +170,12 @@ COLLECTIONS = [
     ("colFlTrm", {"RowGuid": '""', "AnyTrm": "false", "Ue": "false"}),
     # FL5: de FL'er, der staar paa mere end een raekke (fl_validation.DUPS).
     ("colFlDupFl", {"FL": '""'}),
-    # Formularen for den valgte raekke (issue #166) - regnet, naar raekken
-    # vaelges, og efter hver validering (fl_parts.DET_ITEMS).
-    ("colFlDet", {"Column": '""', "Field": '""', "Editable": "false", "List": '""',
-                  "MaxLen": "0", "Section": '""', "Kind": '""', "Value": '""', "Issue": '""'}),
+    # Fold-ud-sektionen for den valgte raekke (issue #166, #184) - regnet,
+    # naar raekken vaelges, og efter hver validering (fl_parts.DET_ITEMS).
+    ("colFlDet", DET),
+    # Class data-popuppens KOPI af raekkens klassefelter (issue #184) -
+    # Apply skriver den tilbage, Cancel kasserer den (fl_parts.OPEN_CLS_FX).
+    ("colFlClsDet", DET),
     # Raekker, brugeren har slettet. Gem fjerner KUN dem (og tomme
     # raekker) fra listen - ikke raekker, en anden har tilfoejet (D24).
     ("colFlDeleted", {"RowGuid": '""'}),
@@ -216,9 +221,15 @@ Set(varFlCanEdit, false);
 Set(varFlNextRowNo, 1);
 // Aktiv klassefane. ALL som i renderClassTabs.
 Set(varFlTab, "ALL");
-// Den raekke, formularen viser (issue #166). Valideringen vaelger den
-// foerste, naar den er tom.
+// Den valgte raekke (issue #166). Valideringen vaelger den foerste, naar
+// den er tom. varFlFoldOpen: er den foldet ud (issue #184)?
 Set(varFlDetailRow, "");
+Set(varFlFoldOpen, true);
+// Class data-popuppen (issue #184): aaben, for hvilken raekke, og skal
+// valideringen lukke den efter Apply?
+Set(varFlClsOpen, false);
+Set(varFlClsRow, "");
+Set(varFlClsCheck, false);
 // Er der aendret noget siden sidste validering? Submit kraever false (FL68).
 Set(varFlStale, false);
 // Kun fejl ved gem/indsend - vist under Validation-tabellen (issue #77).
