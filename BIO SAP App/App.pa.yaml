@@ -2082,37 +2082,42 @@ App:
       // sidebaren). Kun naar konfigurationen siger det - ellers intet gaet.
       IbFrom = Coalesce(LookUp(colIbSections, ScreenKey = gblNavFrom && !IsBlank(gblNavFrom)).Application, "");
 
-      IbFailed = IfError(varIbCfgFailed, false) || IfError(varIbMineFailed, false) || IfError(varIbAllFailed, false) || (varIbScope = "shared" && IfError(varIbSharedFailed, false));
+      IbFailed = IfError(varIbCfgFailed, false) || IfError(varIbAllFailed, false);
 
-      // En admin henter kun colIbAll (alle sager); hans egne er en del af dem og
-      // hentes ikke en gang til. Alle andre har colIbMine.
-      IbMine = If(IsAdmin, Filter(colIbAll, Reporter = varIbMe), colIbMine);
+      // Alle henter alle sager (issue #193); "My issues" er et filter paa dem.
+      IbMine = Filter(colIbAll, Reporter = varIbMe);
 
-      // Scopet: All issues (admin: alle sager; ellers den anonyme liste), My
-      // issues og - for admin - Assigned to me. Filtrene regnes oven paa det.
-      IbScopeRows = Switch(varIbScope, "shared", colIbShared, "all", colIbAll, "assigned", Filter(colIbAll, AssignedEmail = varIbMe), IbMine);
+      // Scopet: All issues, My issues og - for admin - Assigned to me. Filtrene
+      // regnes oven paa det.
+      IbScopeRows = Switch(varIbScope, "all", colIbAll, "assigned", Filter(colIbAll, AssignedEmail = varIbMe), IbMine);
+
+      // Hvad maa brugeren paa den aabne sag? EET sted for knapperne. Kun
+      // kommentarerne er beskyttet af SharePoint (rettigheder paa raekken i
+      // IB_TicketComments); resten er appens regler (issue #193).
+      IbSelMine = varIbSel.Reporter = varIbMe;
+
+      // Activity og kommentarer: kun rapportoeren og admins.
+      IbSeeActivity = IbSelMine || IsAdmin;
 
       // Updated vises kun efter en reel aendring: en haendelse efter
-      // indmeldingen (ikke filerne, der kom med den). Den anonyme kopi har ingen
-      // Activity - der taeller kun en aendring mere end 5 minutter efter.
-      IbSelUpdatedOn = If(varIbSelShared, If(DateDiff(varIbSel.CreatedOn, varIbSel.UpdatedOn, TimeUnit.Minutes) >= 5, varIbSel.UpdatedOn, Blank()), Max(Filter(colIbActivity, Kind <> "Reported" && !Initial), At));
+      // indmeldingen. Uden Activity taeller kun en aendring mere end
+      // 5 minutter efter indmeldingen.
+      IbSelUpdatedOn = If(IbSeeActivity, Max(Filter(colIbActivity, Kind <> "Reported" && !Initial), At), If(DateDiff(varIbSel.CreatedOn, varIbSel.UpdatedOn, TimeUnit.Minutes) >= 5, varIbSel.UpdatedOn, Blank()));
 
-      // Hvad maa brugeren paa den aabne sag? EET sted for knapperne - og samme
-      // regler som flowet BioSap-IssueBoard-Submit, der afgoer det paa serveren.
-      // En anonym (delt) sag kan ingen aendre herfra.
-      IbSelMine = !varIbSelShared && varIbSel.Reporter = varIbMe;
+      IbCanEdit = !varIbSelPeek && !varIbSel.Archived && (IsAdmin || (IbSelMine && varIbSel.Status = "New"));
 
-      IbCanEdit = !varIbSelShared && !varIbSel.Archived && (IsAdmin || (IbSelMine && varIbSel.Status = "New"));
+      IbCanReopen = !varIbSelPeek && !varIbSel.Archived && (IsAdmin || IbSelMine) && varIbSel.Status in ["Closed", "Ready for retest"];
 
-      IbCanReopen = !varIbSelShared && !varIbSel.Archived && (IsAdmin || IbSelMine) && varIbSel.Status in ["Closed", "Ready for retest"];
+      IbCanManage = !varIbSelPeek && IsAdmin;
 
-      IbCanManage = !varIbSelShared && IsAdmin;
+      IbCanComment = !varIbSelPeek && IbSeeActivity && !varIbSel.Archived;
 
-      IbCanComment = !varIbSelShared && !varIbSel.Archived;
+      // Filer paa en sag: rapportoeren og admins (flowet tjekker det igen).
+      IbCanAttach = !varIbSelPeek && IbSeeActivity && !varIbSel.Archived;
 
       // Antallet af filer paa sagen - af Activity, saa fanen kan vise det uden
-      // at hente filerne.
-      IbFileCount = CountRows(Filter(colIbActivity, Kind = "Attachment"));
+      // at hente filerne. Uden Activity: de hentede filer, naar fanen er valgt.
+      IbFileCount = If(IbSeeActivity, CountRows(Filter(colIbActivity, Kind = "Attachment")), varIbFilesFor = varIbSelId, CountRows(varIbFiles), Blank());
     OnError: |
       =Trace(
           "Unhandled error",
