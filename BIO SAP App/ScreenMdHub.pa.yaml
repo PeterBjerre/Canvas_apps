@@ -3563,6 +3563,12 @@ Screens:
                                         =2
                                     Color: |-
                                         =RGBA(0, 0, 0, 0)
+                                    DisabledBorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    DisabledColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    DisabledFill: |-
+                                        =C.'row-pressed'
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     FocusedBorderColor: |-
@@ -3579,6 +3585,8 @@ Screens:
                                         =C.'row-hover'
                                     OnSelect: |-
                                         =If(
+                                            IfError(gblNavigating, false),
+                                            false,
                                             IsBlank(ThisItem.RequestGuid),
                                             Notify("This request has no ID.", NotificationType.Error),
                                             Switch(
@@ -3643,6 +3651,12 @@ Screens:
                                         =0
                                     Color: |-
                                         =RGBA(0, 0, 0, 0)
+                                    DisabledBorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    DisabledColor: |-
+                                        =C.'color-brand-primary'
+                                    DisabledFill: |-
+                                        =C.'row-pressed'
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     FocusedBorderColor: |-
@@ -3929,6 +3943,8 @@ Screens:
                                         =ImagePosition.Fit
                                     OnSelect: |-
                                         =If(
+                                            IfError(gblNavigating, false),
+                                            false,
                                             IsBlank(ThisItem.RequestGuid),
                                             Notify("This request has no ID.", NotificationType.Error),
                                             Switch(
@@ -4059,6 +4075,8 @@ Screens:
                                         =ImagePosition.Fit
                                     OnSelect: |-
                                         =If(
+                                            IfError(gblNavigating, false),
+                                            false,
                                             IsBlank(ThisItem.RequestGuid),
                                             Notify("This request has no ID.", NotificationType.Error),
                                             Switch(
@@ -4978,10 +4996,13 @@ Screens:
                       =ImagePosition.Fit
                   OnSelect: |-
                       =Set(varMdNewMenu, false);
-                      Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
-                      Set(gblNavigating, true);
-                      Set(gblFlWant, "new:" & gblNewSeq);
-                      Navigate(ScreenFunctionalLocation, ScreenTransition.None)
+                      If(
+                          !IfError(gblNavigating, false),
+                          Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
+                          Set(gblNavigating, true);
+                          Set(gblFlWant, "new:" & gblNewSeq);
+                          Navigate(ScreenFunctionalLocation, ScreenTransition.None)
+                      )
                   PressedFill: |-
                       =C.'bg-muted'
                   TabIndex: |-
@@ -5013,10 +5034,13 @@ Screens:
                       =ImagePosition.Fit
                   OnSelect: |-
                       =Set(varMdNewMenu, false);
-                      Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
-                      Set(gblNavigating, true);
-                      Set(gblVhpWant, "new:" & gblNewSeq);
-                      Navigate(ScreenVhPlan, ScreenTransition.None)
+                      If(
+                          !IfError(gblNavigating, false),
+                          Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
+                          Set(gblNavigating, true);
+                          Set(gblVhpWant, "new:" & gblNewSeq);
+                          Navigate(ScreenVhPlan, ScreenTransition.None)
+                      )
                   PressedFill: |-
                       =C.'bg-muted'
                   TabIndex: |-
@@ -5048,10 +5072,13 @@ Screens:
                       =ImagePosition.Fit
                   OnSelect: |-
                       =Set(varMdNewMenu, false);
-                      Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
-                      Set(gblNavigating, true);
-                      Set(gblMatWant, "new:" & gblNewSeq);
-                      Navigate(ScreenMaterial, ScreenTransition.None)
+                      If(
+                          !IfError(gblNavigating, false),
+                          Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
+                          Set(gblNavigating, true);
+                          Set(gblMatWant, "new:" & gblNewSeq);
+                          Navigate(ScreenMaterial, ScreenTransition.None)
+                      )
                   PressedFill: |-
                       =C.'bg-muted'
                   TabIndex: |-
@@ -5083,10 +5110,13 @@ Screens:
                       =ImagePosition.Fit
                   OnSelect: |-
                       =Set(varMdNewMenu, false);
-                      Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
-                      Set(gblNavigating, true);
-                      Set(gblEqWant, "new:" & gblNewSeq);
-                      Navigate(ScreenEquipment, ScreenTransition.None)
+                      If(
+                          !IfError(gblNavigating, false),
+                          Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
+                          Set(gblNavigating, true);
+                          Set(gblEqWant, "new:" & gblNewSeq);
+                          Navigate(ScreenEquipment, ScreenTransition.None)
+                      )
                   PressedFill: |-
                       =C.'bg-muted'
                   TabIndex: |-
@@ -5458,6 +5488,12 @@ Screens:
                             =2
                         Color: |-
                             =RGBA(0, 0, 0, 0)
+                        DisabledBorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        DisabledColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        DisabledFill: |-
+                            =C.'row-pressed'
                         Fill: |-
                             =RGBA(0, 0, 0, 0)
                         FocusedBorderColor: |-
@@ -5475,6 +5511,8 @@ Screens:
                         OnSelect: |-
                             =Set(varMdClosedPeek, false);
                             If(
+                                IfError(gblNavigating, false),
+                                false,
                                 IsBlank(ThisItem.RequestGuid),
                                 Notify("This request has no ID.", NotificationType.Error),
                                 Switch(
@@ -7185,6 +7223,12 @@ Screens:
                                   =2
                               Color: |-
                                   =RGBA(0, 0, 0, 0)
+                              DisabledBorderColor: |-
+                                  =RGBA(0, 0, 0, 0)
+                              DisabledColor: |-
+                                  =RGBA(0, 0, 0, 0)
+                              DisabledFill: |-
+                                  =C.'row-pressed'
                               Fill: |-
                                   =RGBA(0, 0, 0, 0)
                               FocusedBorderColor: |-
@@ -9514,6 +9558,12 @@ Screens:
                                               =2
                                           Color: |-
                                               =RGBA(0, 0, 0, 0)
+                                          DisabledBorderColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          DisabledColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          DisabledFill: |-
+                                              =C.'row-pressed'
                                           Fill: |-
                                               =RGBA(0, 0, 0, 0)
                                           FocusedBorderColor: |-
