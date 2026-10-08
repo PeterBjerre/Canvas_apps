@@ -475,6 +475,9 @@ def strip_hits(act_width, x_expr, compact=None):
         "Align": "Align.Right",
         "BorderColor": t, "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
         "Color": t, "Fill": t, "Font": "Font.'Segoe UI'", "Size": "16",
+        # Deaktiveret (AutoDisableOnSelect, mens OnSelect koerer) som tryk -
+        # ellers tegner Power Apps en graa flade med teksten (issue #219).
+        "DisabledBorderColor": t, "DisabledColor": C_PRIMARY, "DisabledFill": C_ROW_PRESSED,
         "FocusedBorderColor": C_PRIMARY, "FocusedBorderThickness": "2",
         "Height": str(hit_h),
         "HoverBorderColor": t, "HoverColor": C_MUTED, "HoverFill": C_ROW_HOVER,
