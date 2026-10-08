@@ -6,22 +6,25 @@ hentningen.
     [ikon] Issue Board                              [Refresh] [+ New issue]
            Report what you find while testing ...
     +------------------------------------------------------------------+
-    | [All issues | My issues | Shared issues]  [Open | Closed | Archived]
-    | [Search .................] [Application v] [Section v] [Sort v]  |
-    | [Status v] [Priority v] [Severity v] [Assigned to me]            |
+    | [All issues | My issues | Assigned to me]  [Open | Closed | Archived]
+    | [Search .................................] [Sort v]               |
+    | [Application v] [Section v] [Status v] [Priority v]              |
     +------------------------------------------------------------------+
-    | 12 issues                                                        |
-    | ISS-000142  Save draft fails on ...                 [ New      ] |
-    |             Maintenance Plan · Items · Major · Updated ...       |
+    | 12 open issues                                   [Clear filters] |
+    | +-----------+ +-----------+ +-----------+                        |
+    | | ISS-00142 | | ISS-00141 | | ...       |  fliser i et gitter;   |
+    | | titel     | | titel     | |           |  hele flisen aabner    |
+    | +-----------+ +-----------+ +-----------+  sagen (issue #177)    |
     +------------------------------------------------------------------+
 
     New issue   -> popup: Application/Section, titel, lignende sager fra
                    den anonyme liste, "What happened?", flere detaljer
                    (valgfrit), Submit -> flowet.
-    En raekke   -> popup i View mode: beskrivelsen og (egne sager og
-                   admin) Activity og Attachments. Handlingerne staar
-                   under hovedet: Edit, Reopen, Archive/Restore, Delete -
-                   hver kun, naar brugeren maa (IbCanEdit osv.).
+    En flise    -> popup i View mode: nummer, titel og Close; status,
+                   Application og Section; fakta; handlingerne (Edit,
+                   Reopen, More actions -> Archive/Delete); fanerne
+                   Description, Activity og Attachments - hver kun, naar
+                   brugeren maa (IbCanEdit osv.).
     Edit        -> samme formular som New issue, udfyldt (Edit mode). En
                    admin faar desuden status, prioritet, tildeling og
                    loesning.
@@ -32,25 +35,24 @@ SIKKERHED ER IKKE HER
 Alle filtre og knapper paa skaermen er UX. Det, en bruger kan hente,
 afgoeres af rettighederne paa raekken, som flowet saetter, og alt, der
 aendrer noget, gaar gennem flowet, som tjekker admin og rapportoer paa
-serveren (ib_config.py). "All issues" er kun et scope for admins - en
-almindelig bruger, der fik det, ville stadig kun kunne hente sine egne
-raekker.
+serveren (ib_config.py). "All issues" er for en admin alle sager; for
+alle andre er det den anonyme liste - en almindelig bruger kan stadig kun
+hente sine egne raekker i IB_Tickets.
 
-HENTNING
+HENTNING (issue #177)
 --------
-  * Konfigurationen og brugerens egne sager hentes EEN gang, foerste gang
-    skaermen vises (Concurrent, to delegerbare forespoergsler).
-  * Den anonyme liste hentes foerst, naar man vaelger "Shared issues" eller
-    aabner "New issue" (forslag til lignende sager).
-  * "All issues" (kun admin) hentes, naar scopet vaelges - for en admin
-    er det startvisningen.
-  * Activity hentes, naar man aabner en af sine egne sager (eller en
-    admin aabner en sag). Antallet af vedhaeftninger regnes af Activity;
-    selve filerne hentes foerst, naar fanen Attachments vaelges.
+  * Konfigurationen og EEN liste hentes samtidig, foerste gang skaermen
+    vises: en admin alle sager, alle andre deres egne. Oversigten henter
+    ikke de lange tekster (ShowColumns).
+  * Den anonyme liste hentes foerst, naar en almindelig bruger vaelger
+    "All issues" eller aabner "New issue" (forslag til lignende sager).
+  * Naar en sag aabnes, hentes dens hele raekke og dens Activity samtidig.
+    Antallet af vedhaeftninger regnes af Activity; selve filerne hentes
+    foerst, naar fanen Attachments vaelges.
   * Efter en aendring hentes kun den ene sag igen (LookUp paa ID) og
     dens Activity - ikke hele listen.
   * Soegning, filtre og sortering regnes i hukommelsen paa de hentede
-    raekker - intet kald pr. tastetryk.
+    raekker - intet kald pr. filtervalg eller tastetryk.
 """
 from gen_screen import (Ctrl, stack_height, C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_DIVIDER, C_INFO_BG,
                         C_INFO_FG, C_INVALID_FG, C_MUTED, C_MUTED_BG, C_MODAL_BG, C_OVERLAY,
@@ -699,7 +701,7 @@ def build_filters():
 # ---------------------------------------------------------------------------
 NO_W = 96
 TILE_MIN_W = 240
-TILE_H = 196
+TILE_H = 212
 TILE_M = 6          # luft om hver flise - 12 px mellem to
 TILE_PAD = 14       # flisens indre polstring
 TILE_CHIP_W = 112
@@ -797,7 +799,11 @@ def build_list():
                       f'If({TILE_UPDATED}, "  ·  Updated " & Text(ThisItem.UpdatedOn, {DATE_FMT}), "")',
                       size=lay.SIZE_SMALL, color=C_MUTED, height=34, width=inner, wrap="true",
                       extra={"X": x0, "Y": "116", "VerticalAlign": "VerticalAlign.Top"})
-    bottom_y = th - TILE_M - TILE_PAD - 22
+    # Nederste linje: prioriteten og hvem. "Hvem" maa ombrydes til to
+    # linjer paa en smal flise (en admin ser baade rapportoer og tildeling) -
+    # hellere to linjer end en klippet (issue #177).
+    people_h = 34
+    bottom_y = th - TILE_M - TILE_PAD - people_h
     pfg, pbg = _priority_tokens("ThisItem.Priority")
     pri = text_ctrl("txtIbTilePriority", "ThisItem.Priority", size=lay.SIZE_MICRO,
                     weight="Semibold", height=22, width=TILE_PRI_W, align="Center", color=pfg,
@@ -806,8 +812,10 @@ def build_list():
                     extra={"X": x0, "Y": str(bottom_y), "VerticalAlign": "VerticalAlign.Middle",
                            **lay.radius(11)})
     people = text_ctrl("txtIbTilePeople", TILE_PEOPLE, size=lay.SIZE_SMALL, color=C_MUTED,
-                       height=18, align="Right", width=f"{inner} - {TILE_PRI_W} - 8",
-                       extra={"X": f"{x0} + {TILE_PRI_W} + 8", "Y": str(bottom_y + 2)})
+                       height=people_h, align="Right", width=f"{inner} - {TILE_PRI_W} - 8",
+                       wrap="true",
+                       extra={"X": f"{x0} + {TILE_PRI_W} + 8", "Y": str(bottom_y + 2),
+                              "VerticalAlign": "VerticalAlign.Top"})
     hit = row_hit("btnIbTileOpen", OPEN_TILE,
                   '"Open " & ThisItem.TicketNo & " - " & ThisItem.Title & ", " & '
                   'If(ThisItem.Archived, "Archived", ThisItem.Status)',
