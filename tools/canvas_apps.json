@@ -46,7 +46,12 @@
     "  scripts    byggescripterne i build/, i raekkefoelge",
     "",
     "Raekkefoelgen er byggeraekkefoelgen - BIO SAP SIDST, fordi den",
-    "bygges af de andres byggere. Sidebarens raekkefoelge er nav_order."
+    "bygges af de andres byggere. Sidebarens raekkefoelge er nav_order.",
+    "",
+    "measuringpoint staar med vilje IKKE i nav_order endnu (issue #210):",
+    "et punkt mere i sidebaren aendrer ALLE skaermes sidebar, og de delte",
+    "dele laves om i #204. Skaermen aabnes fra hubbens flise, og punktet",
+    "laegges i sidebaren, naar #204 er merget."
   ],
   "_single_apps_kommentar": [
     "ENKELTAPPERNE UDFASES (besluttet 2026-09-30). BIO SAP App er den app,",
@@ -71,7 +76,12 @@
     "",
     "  issue_board  Issue Board (udviklings- og testfasen). Slaas fra ved",
     "               at fjerne linjen eller saette den til false og bygge",
-    "               og deploye igen. Data i SharePoint roeres ikke."
+    "               og deploye igen. Data i SharePoint roeres ikke.",
+    "",
+    "  measuring_point  Measuring Point (issue #210). Bygges, mens appen er",
+    "               under opbygning; godkendelse, trinindikator og hubbens",
+    "               godkendelsesvisning kommer, naar #204's delte moduler",
+    "               er paa plads. Slaas fra som issue_board."
   ],
   "nav_order": [
     "hub",
@@ -143,6 +153,17 @@
         "assemble_screen.py"
       ]
     },
+    "measuringpoint": {
+      "folder": "Measuring Point App",
+      "screen": "ScreenMeasuringPoint",
+      "prefix": "Dom",
+      "nav_label": "Measuring Points",
+      "feature": "measuring_point",
+      "scripts": [
+        "generate_app_onstart.py",
+        "assemble_screen.py"
+      ]
+    },
     "issueboard": {
       "folder": "Issue Board",
       "screen": "ScreenIssueBoard",
@@ -172,7 +193,8 @@
       "environment_id": "e0f8f822-d16a-e878-ba4e-fb42bc617e47",
       "environment_category": "prod",
       "features": {
-        "issue_board": true
+        "issue_board": true,
+        "measuring_point": true
       },
       "apps": {
         "hub": {
@@ -197,6 +219,9 @@
         },
         "kks": {
           "navn": "KKS lookup - kun som skaerm i BIO SAP, ingen enkeltapp"
+        },
+        "measuringpoint": {
+          "navn": "Measuring Points - kun som skaerm i BIO SAP, ingen enkeltapp"
         },
         "biosap": {
           "navn": "BIO SAP - de fem apps som skaerme i een app (til test)",

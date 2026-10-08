@@ -383,7 +383,11 @@ def _mobile_bar(p, current):
     Menuknappen aabner det samme panel som skinnens ">>". Logoet goer det
     samme som i skinnen (til hubben), og appens navn staar til hoejre, saa
     man kan se, hvor man er, uden at aabne menuen."""
-    label = dict((k, l) for k, l, _ in ITEMS)[current]
+    # En app uden punkt i sidebaren (issue #210) staar ikke i ITEMS; dens
+    # navn staar stadig i tools/canvas_apps.json, saa bjaelken kan sige,
+    # hvor man er.
+    label = (dict((k, l) for k, l, _ in ITEMS).get(current)
+             or env.APPS[current].get("nav_label") or current)
     menu = _image(f"img{p}NavMenu", _svg(lay.NAV_W, ITEM_H, _icon(ICON_MENU, _hx("text-primary"))),
                   lay.NAV_W, ITEM_H, f"Set({OPEN}, true)", '"Open menu"',
                   tooltip='"Open menu"')
@@ -424,7 +428,15 @@ def side_nav(prefix, current, help_on=None, help_action=None):
     help_action: OnSelect, der vender hjaelpen.
     """
     keys = [k for k, _, _ in ITEMS]
-    if current not in keys:
+    # EN APP UDEN PUNKT I SIDEBAREN (issue #210)
+    #
+    # Measuring Point bygges, foer den faar sit punkt: et punkt mere
+    # aendrer sidebaren paa ALLE skaermene, og de delte dele laves om i
+    # #204. Appen findes i tools/canvas_apps.json, men staar ikke i
+    # nav_order - saa er sidebaren bare umarkeret, mens man er paa den
+    # skaerm. Et navn, der slet ikke findes som app, er stadig en fejl:
+    # det ville ellers tavst give en sidebar uden markering.
+    if current not in keys and current not in env.APPS:
         raise ValueError("side_nav: ukendt app '%s'. Kendte: %s" % (current, ", ".join(keys)))
 
     p = prefix
