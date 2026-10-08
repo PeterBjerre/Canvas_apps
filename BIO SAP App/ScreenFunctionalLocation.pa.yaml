@@ -5727,7 +5727,7 @@ Screens:
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
-                            =Set(gblNavOpen, false); Set(gblFbMe, Lower(User().Email)); Set(gblFbPick, false); Set(gblFbBusy, false); Set(gblFbAtt, false); ClearCollect(colFbRequests, ForAll(FirstN(Sort(Filter('MD_RequestIndex', RequesterEmail = gblFbMe), LastActionOn, SortOrder.Descending), 100) As R, {Code: R.RequestNo, Title: Coalesce(R.ShortText, ""), Domain: R.Domain.Value, TypeName: Switch(R.Domain.Value, "FunctionalLocation", "Functional location", "Equipment", "Equipment", "MeasuringPoint", "Measuring point", "Material", "Material", "MaintenancePlan", "Maintenance plan", "Request"), Url: Coalesce(R.AppUrl, "")})); Set(gblFbOpen, true)
+                            =Set(gblNavOpen, false); Set(gblFbMe, Lower(User().Email)); Set(gblFbPick, false); Set(gblFbBusy, false); ClearCollect(colFbRequests, ForAll(FirstN(Sort(Filter('MD_RequestIndex', RequesterEmail = gblFbMe), LastActionOn, SortOrder.Descending), 100) As R, {Code: R.RequestNo, Title: Coalesce(R.ShortText, ""), Domain: R.Domain.Value, TypeName: Switch(R.Domain.Value, "FunctionalLocation", "Functional location", "Equipment", "Equipment", "MeasuringPoint", "Measuring point", "Material", "Material", "MaintenancePlan", "Maintenance plan", "Request"), Url: Coalesce(R.AppUrl, "")})); Set(gblFbOpen, true)
                         PressedFill: |-
                             =C.'bg-muted'
                         RadiusBottomLeft: |-
@@ -6426,7 +6426,7 @@ Screens:
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
-                            =Set(gblNavOpen, false); Set(gblFbMe, Lower(User().Email)); Set(gblFbPick, false); Set(gblFbBusy, false); Set(gblFbAtt, false); ClearCollect(colFbRequests, ForAll(FirstN(Sort(Filter('MD_RequestIndex', RequesterEmail = gblFbMe), LastActionOn, SortOrder.Descending), 100) As R, {Code: R.RequestNo, Title: Coalesce(R.ShortText, ""), Domain: R.Domain.Value, TypeName: Switch(R.Domain.Value, "FunctionalLocation", "Functional location", "Equipment", "Equipment", "MeasuringPoint", "Measuring point", "Material", "Material", "MaintenancePlan", "Maintenance plan", "Request"), Url: Coalesce(R.AppUrl, "")})); Set(gblFbOpen, true)
+                            =Set(gblNavOpen, false); Set(gblFbMe, Lower(User().Email)); Set(gblFbPick, false); Set(gblFbBusy, false); ClearCollect(colFbRequests, ForAll(FirstN(Sort(Filter('MD_RequestIndex', RequesterEmail = gblFbMe), LastActionOn, SortOrder.Descending), 100) As R, {Code: R.RequestNo, Title: Coalesce(R.ShortText, ""), Domain: R.Domain.Value, TypeName: Switch(R.Domain.Value, "FunctionalLocation", "Functional location", "Equipment", "Equipment", "MeasuringPoint", "Measuring point", "Material", "Material", "MaintenancePlan", "Maintenance plan", "Request"), Url: Coalesce(R.AppUrl, "")})); Set(gblFbOpen, true)
                         PressedFill: |-
                             =C.'bg-muted'
                         RadiusBottomLeft: |-
@@ -6572,7 +6572,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =242 + 12 + (48 + (62) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 402))))))
+                      =242 + 12 + (0 + (62) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354))))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -6696,7 +6696,7 @@ Screens:
                               Layout: |-
                                   =ButtonLayout.TextOnly
                               OnSelect: |-
-                                  =Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Set(gblFbAtt, false); Reset(inpFlFbSubjectFind); Reset(inpFlFbMessage); Reset(attFlFbFiles)
+                                  =Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpFlFbSubjectFind); Reset(inpFlFbMessage)
                               RadiusBottomLeft: |-
                                   =10
                               RadiusBottomRight: |-
@@ -6972,7 +6972,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =48 + (62) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 402)))))
+                            =0 + (62) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354)))))
                         LayoutMinWidth: |-
                             =0
                         Width: |-
@@ -6987,7 +6987,7 @@ Screens:
                               DropShadow: |-
                                   =DropShadow.None
                               Height: |-
-                                  =48 + (62) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 402)))))
+                                  =0 + (62) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354)))))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -7232,7 +7232,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 402))))
+                                        =20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354))))
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
@@ -7305,7 +7305,7 @@ Screens:
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
-                                              =If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 402)))
+                                              =If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354)))
                                           LayoutMinWidth: |-
                                               =0
                                           MaxLength: |-
@@ -7328,123 +7328,6 @@ Screens:
                                               =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                           Width: |-
                                               =Parent.Width
-                              - conFlFbAttachRow:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =36
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Center
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =12
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    Width: |-
-                                        =Parent.Width
-                                  Children:
-                                    - btnFlFbAttach:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =If(CountRows(attFlFbFiles.Attachments) = 0, "Attach files", "Attach files, " & CountRows(attFlFbFiles.Attachments) & " attached")
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =C.'border-default'
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'text-primary'
-                                          DisplayMode: |-
-                                              =If(gblFbBusy, DisplayMode.Disabled, DisplayMode.Edit)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =36
-                                          Icon: |-
-                                              ="Attach"
-                                          Layout: |-
-                                              =ButtonLayout.IconBefore
-                                          LayoutMinWidth: |-
-                                              =171
-                                          OnSelect: |-
-                                              =Set(gblFbPick, false); Set(gblFbAtt, true)
-                                          RadiusBottomLeft: |-
-                                              =10
-                                          RadiusBottomRight: |-
-                                              =10
-                                          RadiusTopLeft: |-
-                                              =10
-                                          RadiusTopRight: |-
-                                              =10
-                                          Size: |-
-                                              =14
-                                          Text: |-
-                                              =If(CountRows(attFlFbFiles.Attachments) = 0, "Attach files", "Attach files (" & CountRows(attFlFbFiles.Attachments) & ")")
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =171
-                                    - txtFlFbOutlookNote:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Send via Outlook can't include files."
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          FillPortions: |-
-                                              =0
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =36
-                                          LayoutMinWidth: |-
-                                              =0
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =12
-                                          Text: |-
-                                              ="Send via Outlook can't include files."
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Visible: |-
-                                              =CountRows(attFlFbFiles.Attachments) > 0
-                                          Width: |-
-                                              =Max(0, (((((Min(560, App.Width - 40)) - 18 - 18)))) - ((171) + 12) - 2)
-                                          Wrap: |-
-                                              =true
                         - conFlFbSubjectList:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -7458,7 +7341,7 @@ Screens:
                               Fill: |-
                                   =C.'bg-modal'
                               Height: |-
-                                  =12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(Min(galFlFbSubject.AllItemsCount, 7) * 36, (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 402)))) + 82 - 12 - If(CountRows(colFbRequests) > 6, 42, 0)))
+                                  =12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(Min(galFlFbSubject.AllItemsCount, 7) * 36, (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354)))) + 34 - 12 - If(CountRows(colFbRequests) > 6, 42, 0)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -7587,7 +7470,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =Min(Min(galFlFbSubject.AllItemsCount, 7) * 36, (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 402)))) + 82 - 12 - If(CountRows(colFbRequests) > 6, 42, 0))
+                                        =Min(Min(galFlFbSubject.AllItemsCount, 7) * 36, (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354)))) + 34 - 12 - If(CountRows(colFbRequests) > 6, 42, 0))
                                     Items: |-
                                         =With({q: Trim(inpFlFbSubjectFind.Text)},
                                             With({
@@ -7856,7 +7739,7 @@ Screens:
                               Color: |-
                                   =C.'text-primary'
                               DisplayMode: |-
-                                  =If(IsBlank(Trim(inpFlFbMessage.Text)) || gblFbBusy || CountRows(attFlFbFiles.Attachments) > 0, DisplayMode.Disabled, DisplayMode.Edit)
+                                  =If(IsBlank(Trim(inpFlFbMessage.Text)) || gblFbBusy, DisplayMode.Disabled, DisplayMode.Edit)
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
@@ -7868,7 +7751,7 @@ Screens:
                               OnSelect: |-
                                   =Launch("mailto:sapvedligehold@orsted.com?subject=" & EncodeUrl("SAP maintenance - " & Switch(gblFbSel.Kind, "R", gblFbSel.TypeName & " request " & gblFbSel.Code, "G", gblFbSel.Label, "question")) & "&body=" & EncodeUrl(If(gblFbSel.Kind = "R", "Request: " & gblFbSel.Code & Char(10) & "Type: " & gblFbSel.TypeName & Char(10) & "Title: " & gblFbSel.Title & Char(10) & If(IsBlank(gblFbSel.Url), "", "Link: " & gblFbSel.Url & Char(10)) & Char(10), "") & Left(inpFlFbMessage.Text, Find("Kind regards,", inpFlFbMessage.Text & "Kind regards,") - 1)));
                                   Set(gblFbOpen, false);
-                                  Set(gblFbSel, Blank()); Set(gblFbPick, false); Set(gblFbAtt, false); Reset(inpFlFbSubjectFind); Reset(inpFlFbMessage); Reset(attFlFbFiles);
+                                  Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpFlFbSubjectFind); Reset(inpFlFbMessage);
                                   Notify("The mail is ready in Outlook. Press Send there.", NotificationType.Information)
                               RadiusBottomLeft: |-
                                   =10
@@ -7883,7 +7766,7 @@ Screens:
                               Text: |-
                                   ="Send via Outlook"
                               Tooltip: |-
-                                  =If(CountRows(attFlFbFiles.Attachments) > 0, "Outlook can't take the attached files. Use Send, or remove the files.", "Open the message as a draft in your own Outlook")
+                                  ="Open the message as a draft in your own Outlook"
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
@@ -7916,9 +7799,9 @@ Screens:
                               OnSelect: |-
                                   =Set(gblFbBusy, true);
                                   IfError(
-                                      With({ res: 'BioSap-SendFeedbackMail'.Run("sapvedligehold@orsted.com", "SAP maintenance - " & Switch(gblFbSel.Kind, "R", gblFbSel.TypeName & " request " & gblFbSel.Code, "G", gblFbSel.Label, "question"), inpFlFbMessage.Text, JSON(ForAll(attFlFbFiles.Attachments, {Name: ThisRecord.Name, Value: ThisRecord.Value}), JSONFormat.IncludeBinaryData), JSON({Kind: gblFbSel.Kind, Topic: gblFbSel.Label, Code: gblFbSel.Code, Type: gblFbSel.TypeName, Title: gblFbSel.Title, Url: gblFbSel.Url, Name: User().FullName}, JSONFormat.Compact)) },
+                                      With({ res: 'BioSap-SendFeedbackMail'.Run("sapvedligehold@orsted.com", "SAP maintenance - " & Switch(gblFbSel.Kind, "R", gblFbSel.TypeName & " request " & gblFbSel.Code, "G", gblFbSel.Label, "question"), inpFlFbMessage.Text, "[]", JSON({Kind: gblFbSel.Kind, Topic: gblFbSel.Label, Code: gblFbSel.Code, Type: gblFbSel.TypeName, Title: gblFbSel.Title, Url: gblFbSel.Url, Name: User().FullName}, JSONFormat.Compact)) },
                                           If(res.sent = "yes",
-                                              Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Set(gblFbAtt, false); Reset(inpFlFbSubjectFind); Reset(inpFlFbMessage); Reset(attFlFbFiles); Notify("Message sent.", NotificationType.Success),
+                                              Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpFlFbSubjectFind); Reset(inpFlFbMessage); Notify("Message sent.", NotificationType.Success),
                                               Notify("The message could not be sent. " & res.message, NotificationType.Error))),
                                       Notify("The message could not be sent.", NotificationType.Error));
                                   Set(gblFbBusy, false)
@@ -7938,300 +7821,6 @@ Screens:
                                   =VerticalAlign.Middle
                               Width: |-
                                   =96
-      - conFlFbAttBackdrop:
-          Control: GroupContainer
-          Variant: AutoLayout
-          Properties:
-            BorderStyle: |-
-                =BorderStyle.None
-            DropShadow: |-
-                =DropShadow.None
-            Fill: |-
-                =C.'overlay'
-            FillPortions: |-
-                =0
-            Height: |-
-                =App.Height
-            LayoutAlignItems: |-
-                =LayoutAlignItems.Center
-            LayoutDirection: |-
-                =LayoutDirection.Vertical
-            LayoutGap: |-
-                =0
-            LayoutJustifyContent: |-
-                =LayoutJustifyContent.Start
-            LayoutMinWidth: |-
-                =0
-            LayoutOverflowX: |-
-                =LayoutOverflow.Hide
-            LayoutOverflowY: |-
-                =LayoutOverflow.Scroll
-            PaddingBottom: |-
-                =20
-            PaddingLeft: |-
-                =0
-            PaddingRight: |-
-                =0
-            PaddingTop: |-
-                =20
-            Visible: |-
-                =IfError(gblFbOpen && gblFbAtt, false)
-            Width: |-
-                =App.Width
-            X: |-
-                =0
-            Y: |-
-                =0
-          Children:
-            - conFlFbAttModal:
-                Control: GroupContainer
-                Variant: AutoLayout
-                Properties:
-                  AlignInContainer: |-
-                      =AlignInContainer.Center
-                  BorderColor: |-
-                      =C.'color-brand-primary-soft'
-                  BorderThickness: |-
-                      =1
-                  DropShadow: |-
-                      =DropShadow.ExtraBold
-                  Fill: |-
-                      =C.'bg-modal'
-                  FillPortions: |-
-                      =0
-                  Height: |-
-                      =150 + 12 + (If(CountRows(attFlFbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attFlFbFiles.Attachments), 4) * 36))
-                  LayoutAlignItems: |-
-                      =LayoutAlignItems.Stretch
-                  LayoutDirection: |-
-                      =LayoutDirection.Vertical
-                  LayoutGap: |-
-                      =12
-                  LayoutMinWidth: |-
-                      =0
-                  LayoutOverflowX: |-
-                      =LayoutOverflow.Hide
-                  LayoutOverflowY: |-
-                      =LayoutOverflow.Hide
-                  PaddingBottom: |-
-                      =18
-                  PaddingLeft: |-
-                      =18
-                  PaddingRight: |-
-                      =18
-                  PaddingTop: |-
-                      =18
-                  RadiusBottomLeft: |-
-                      =16
-                  RadiusBottomRight: |-
-                      =16
-                  RadiusTopLeft: |-
-                      =16
-                  RadiusTopRight: |-
-                      =16
-                  Width: |-
-                      =Min(480, App.Width - 40)
-                Children:
-                  - conFlFbAttHead:
-                      Control: GroupContainer
-                      Variant: AutoLayout
-                      Properties:
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        DropShadow: |-
-                            =DropShadow.None
-                        FillPortions: |-
-                            =0
-                        Height: |-
-                            =32
-                        LayoutAlignItems: |-
-                            =LayoutAlignItems.Center
-                        LayoutDirection: |-
-                            =LayoutDirection.Horizontal
-                        LayoutGap: |-
-                            =12
-                        LayoutMinWidth: |-
-                            =0
-                        LayoutOverflowX: |-
-                            =LayoutOverflow.Hide
-                        LayoutOverflowY: |-
-                            =LayoutOverflow.Hide
-                        Width: |-
-                            =Parent.Width
-                      Children:
-                        - txtFlFbAttTitle:
-                            Control: ModernText
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Attach files"
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'text-primary'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              FillPortions: |-
-                                  =0
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
-                              Height: |-
-                                  =26
-                              LayoutMinWidth: |-
-                                  =0
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =17
-                              Text: |-
-                                  ="Attach files"
-                              Width: |-
-                                  =Max(0, (((Min(480, App.Width - 40)) - 18 - 18)) - ((90) + 12) - 2)
-                              Wrap: |-
-                                  =false
-                        - btnFlFbAttClose:
-                            Control: ModernButton
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Close"
-                              Align: |-
-                                  =Align.Center
-                              AlignInContainer: |-
-                                  =AlignInContainer.Center
-                              Appearance: |-
-                                  =ButtonAppearance.Outline
-                              BorderColor: |-
-                                  =C.'border-default'
-                              BorderThickness: |-
-                                  =1
-                              Color: |-
-                                  =C.'text-primary'
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
-                              Height: |-
-                                  =32
-                              Layout: |-
-                                  =ButtonLayout.TextOnly
-                              OnSelect: |-
-                                  =Set(gblFbAtt, false)
-                              RadiusBottomLeft: |-
-                                  =10
-                              RadiusBottomRight: |-
-                                  =10
-                              RadiusTopLeft: |-
-                                  =10
-                              RadiusTopRight: |-
-                                  =10
-                              Size: |-
-                                  =14
-                              Text: |-
-                                  ="Close"
-                              VerticalAlign: |-
-                                  =VerticalAlign.Middle
-                              Width: |-
-                                  =90
-                  - txtFlFbAttIntro:
-                      Control: ModernText
-                      Properties:
-                        AccessibleLabel: |-
-                            ="The files go with the message when you press Send."
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        BorderThickness: |-
-                            =0
-                        Color: |-
-                            =C.'text-muted'
-                        Fill: |-
-                            =RGBA(0, 0, 0, 0)
-                        Font: |-
-                            =Font.'Segoe UI'
-                        Height: |-
-                            =40
-                        PaddingBottom: |-
-                            =0
-                        PaddingLeft: |-
-                            =0
-                        PaddingRight: |-
-                            =0
-                        PaddingTop: |-
-                            =0
-                        Size: |-
-                            =13
-                        Text: |-
-                            ="The files go with the message when you press Send."
-                        Wrap: |-
-                            =true
-                  - attFlFbFiles:
-                      Control: Attachments@2.3.0
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Files to attach to the message"
-                        BorderColor: |-
-                            =C.'border-default'
-                        BorderThickness: |-
-                            =1
-                        DisplayMode: |-
-                            =If(gblFbBusy, DisplayMode.Disabled, DisplayMode.Edit)
-                        Height: |-
-                            =If(CountRows(Self.Attachments) = 0, 112, 112 + Min(CountRows(Self.Attachments), 4) * 36)
-                        MaxAttachmentSize: |-
-                            =5
-                        MaxAttachments: |-
-                            =3
-                        NoAttachmentsText: |-
-                            ="Select files to upload"
-                        PaddingBottom: |-
-                            =5
-                        PaddingLeft: |-
-                            =5
-                        PaddingRight: |-
-                            =5
-                        PaddingTop: |-
-                            =5
-                        Width: |-
-                            =Parent.Width
-                  - txtFlFbFileLimits:
-                      Control: ModernText
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Up to 3 files at a time, 5 MB each."
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        BorderThickness: |-
-                            =0
-                        Color: |-
-                            =C.'text-muted'
-                        Fill: |-
-                            =RGBA(0, 0, 0, 0)
-                        Font: |-
-                            =Font.'Segoe UI'
-                        Height: |-
-                            =18
-                        PaddingBottom: |-
-                            =0
-                        PaddingLeft: |-
-                            =0
-                        PaddingRight: |-
-                            =0
-                        PaddingTop: |-
-                            =0
-                        Size: |-
-                            =12
-                        Text: |-
-                            ="Up to 3 files at a time, 5 MB each."
-                        Wrap: |-
-                            =true
       - conFlClsBackdrop:
           Control: Image
           Properties:

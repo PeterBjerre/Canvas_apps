@@ -91,10 +91,13 @@ def test_app_calls_the_flow_with_its_trigger_inputs():
     schema = _flow()["properties"]["definition"]["triggers"]["manual"]["inputs"]["schema"]
     assert schema["required"] == ["text", "text_1", "text_2", "text_3", "text_4"]
     assert schema["properties"]["text_4"]["title"] == "Context"
+    assert schema["properties"]["text_3"]["title"] == "Attachments"
     # Beskeden gaar uaendret til flowet - anmodningen kommer i Context (#194).
+    # Ingen vedhaeftninger (issue #215): Attachments-inputtet beholdes, saa
+    # kaldet stadig har fem argumenter, og appen sender en tom liste.
     yaml = open(os.path.join(ROOT, "BIO SAP App", "ScreenKks.pa.yaml"), encoding="utf-8").read()
-    assert ("%s, inpKksFbMessage.Text, JSON(ForAll(attKksFbFiles.Attachments, {Name: ThisRecord.Name, Value: ThisRecord.Value}), JSONFormat.IncludeBinaryData), %s)"
-            % (fb.SUBJECT_FX, fb.CONTEXT_FX)) in yaml
+    assert ('.Run("%s", %s, inpKksFbMessage.Text, "[]", %s)'
+            % (fb.MAILBOX, fb.SUBJECT_FX, fb.CONTEXT_FX)) in yaml
     assert "Url: Coalesce(R.AppUrl" in yaml
 
 
@@ -135,10 +138,9 @@ def test_send_uses_the_flow_and_outlook_is_a_separate_draft():
     # Emne, anmodning og besked kommer med - URL-kodet (UTF-8, ogsaa ae/oe/aa).
     assert "EncodeUrl(%s)" % fb.SUBJECT_FX in out
     assert "EncodeUrl(%s & Left(inpKksFbMessage.Text" % fb.OUTLOOK_CONTEXT_FX in out
-    # Filer forsvinder ikke i stilhed: knappen er spaerret, mens der er filer,
-    # og popuppen siger hvorfor.
-    assert "CountRows(attKksFbFiles.Attachments) > 0" in _prop(kks, "btnKksFbSendOutlook", "DisplayMode")
-    assert "can't include files" in _prop(kks, "txtKksFbOutlookNote", "Text")
+    # Begge knapper spaerres paa samme maade: tom besked eller kald i gang.
+    assert (_prop(kks, "btnKksFbSendOutlook", "DisplayMode")
+            == _prop(kks, "btnKksFbSend", "DisplayMode"))
     # Send er den primaere knap og staar sidst.
     assert kks.index("- btnKksFbSendOutlook:") < kks.index("- btnKksFbSend:")
 
@@ -300,6 +302,19 @@ def test_mail_reuses_the_plan_mail_styling():
     for bad in ("<style", "class=", "display:flex", "<h1", "<h2", "<p>"):
         assert bad not in html, bad
     assert "Reply to this email" in html
+
+
+def test_message_us_has_no_attachments():
+    """Issue #215: ingen vedhaeftningsknap, -antal, -note eller -popup i
+    Message us - paa nogen skaerm. Issue Boardets egne vedhaeftninger
+    (andre kontrolnavne) roeres ikke."""
+    for name, text in _screens().items():
+        for bad in ("FbAttach", "FbFiles", "FbOutlookNote", "FbAtt", "gblFbAtt",
+                    "FbFileLimits", "can't include files"):
+            assert bad not in text, (name, bad)
+    combined = open(os.path.join(ROOT, "BIO SAP App", "build", "check_combined.py"),
+                    encoding="utf-8").read()
+    assert "gblFbAtt" not in combined
 
 
 def test_no_json_over_a_raw_attachments_table():
