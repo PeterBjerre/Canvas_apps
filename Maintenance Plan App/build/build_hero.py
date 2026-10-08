@@ -2,11 +2,12 @@
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, SHELL_W, C_PRIMARY, C_CARD_BORDER, C_VALID_FG, C_MUTED,
-                        C_DIVIDER, C_MODAL_BG, C_TRANSPARENT)
+                        C_DIVIDER, C_MODAL_BG, C_TRANSPARENT, C_PRIMARY_SOFT, stack_height)
 import layout_tokens as lay
 from build_helpers import (group, fit_button_width, text_ctrl, text_px,
                            flow_row, page_icon, PAGE_ICON, ICON_W, top_bar, grow,
-                           button, confirm_modal, edit_button, delete_modal)
+                           button, confirm_modal, edit_button, delete_modal, tap_backdrop)
+from build_status import MISSING_NAMES, join_lines
 from layout_tokens import if_below, at_least, below
 from design_tokens import ref_hex
 from build_items import FL_CODE, SEED_FL_PICKER, RESET_EDITOR_CONTROLS
@@ -109,22 +110,29 @@ IS_STRAT = 'varVhpPlan.PlanType = "Strategy"'
 # venter paa at blive gemt. VhpCanSubmit er falsk, naar planen er indsendt.
 CAN_SUBMIT = f"VhpCanSubmit && !({ITEM_DIRTY})"
 
-# HVAD MANGLER - EEN liste (trin, mangler, besked). Trinenes tooltips,
-# Submits tooltip og linjen under trinene bygges alle af den, og
-# betingelserne er de navngivne formler, Submit selv bruger. Saa kan en
-# besked ikke sige noget andet end knappen.
-MISSING = [
-    (1, "!VhpStepPlanDone", '"Save the plan header."'),
-    (2, "!VhpStepItemDone", '"Add at least one item and save every item as valid."'),
-    (2, ITEM_DIRTY, '"Save the changes in the Item Editor."'),
-    (3, "!VhpStepTasklistDone", '"Choose a task list for every item."'),
-    (3, "!VhpStepOpsDone",
-     f'If({IS_STRAT}, "Give every item operations, each with a package.", '
-     '"Give every item at least one operation.")'),
-    (4, "!IsBlank(VhpValidationErrors)",
-     'With({ n: CountRows(Split(VhpValidationErrors, Char(10))) }, '
-     '"Fix " & n & If(n = 1, " plan rule", " plan rules") & "{hint}.")'),
+# HVAD MANGLER (issue #220) - grupperet efter sektion. Kilden er de
+# navngivne formler VhpPlanMissing, VhpItemMissing og VhpOpsMissing
+# (build_status.py): trinenes beskeder plus sektionens linjer fra
+# VhpValidationErrors - de samme betingelser, som Submit, progressbaren og
+# badgerne bruger. Skaermen laegger kun usavede aendringer i Item Editoren
+# til (ITEM_DIRTY), som ingen formel kan se. Trinenes tooltips, Submits
+# tooltip, linjen under trinene og listen "Before you can submit" bygges
+# alle af GROUPS. Foer stod der "Fix 1 plan rule - hover Submit to see
+# them" - nu staar selve reglerne der.
+DIRTY_MSG = '"Save the changes in the Item Editor."'
+# (overskrift = sektionens titel, tekst med een linje pr. krav, trin)
+GROUPS = [
+    ("Plan Header", MISSING_NAMES["Plan"], 1),
+    ("Items", join_lines([MISSING_NAMES["Item"], f'If({ITEM_DIRTY}, {DIRTY_MSG}, "")']), 2),
+    ("Tasklist and Operations", MISSING_NAMES["Ops"], 3),
 ]
+# Listen "Before you can submit" (missing_modal) har een tekst pr. gruppe.
+# De tekster ER skaermens kilde: ITEM_DIRTY regnes kun der, og linjen under
+# trinene, "Show all", trinenes tooltips og Submits tooltip laeser dem.
+# Teksterne regnes, ogsaa naar popuppen er lukket.
+MISS_TXT = ("txtVhpMissingPlan", "txtVhpMissingItem", "txtVhpMissingOps")
+GT = [f"{n}.Text" for n in MISS_TXT]
+BULLET = "\u2022 "
 
 # Navnet, ITEM_DIRTY faar i en With - saa regnes den een gang pr. formel.
 DIRTY = "vhpDirty"
@@ -136,13 +144,19 @@ def with_dirty(expr):
             % (DIRTY, ITEM_DIRTY, expr.replace(ITEM_DIRTY, DIRTY)))
 
 
-def missing_list(steps=None, sep='Char(10)', bullet='"- "', hint=""):
-    """De beskeder i MISSING, der gaelder nu - for trinene i steps
-    (alle, naar steps er None). Tom tekst, naar intet mangler. hint
-    staar efter regelbeskeden, hvor reglerne ikke selv er listet."""
-    parts = [f"If({cond}, {bullet} & {msg.replace('{hint}', hint)} & {sep}, \"\")"
-             for st, cond, msg in MISSING if steps is None or st in steps]
-    return " &\n        ".join(parts)
+def bullets(text):
+    """Een punkttegn-linje pr. krav."""
+    return f'"{BULLET}" & Substitute({text}, Char(10), Char(10) & "{BULLET}")'
+
+
+# Alle krav som en tabel (Value, med punkttegn) - til den foerste linje
+# og antallet.
+ALL_MISSING = ("Filter(Split(%s, Char(10)), !IsBlank(Value))"
+               % " & Char(10) & ".join(GT))
+# Alle krav, grupperet: "Plan Header:" og kravene under, osv.
+GROUPED = ("Concat(\n        Filter(Table(%s), !IsBlank(t)),\n"
+           "        h & \":\" & Char(10) & t,\n        Char(10)\n    )"
+           % ", ".join('{ h: "%s", t: %s }' % (h, t) for t, (h, _f, _s) in zip(GT, GROUPS)))
 
 
 # (label foer, faerdig foer, label efter, faerdig efter, klik)
@@ -188,16 +202,19 @@ def _done(i):
 
 
 def _step_tooltip(i):
-    """Foer Submit: hvad der mangler i trinet (eller at det er faerdigt).
-    Efter Submit: hvor sagen er."""
-    last = i == len(STEPS) - 1
-    # "Ready to submit" kraever det hele - dets tooltip er hele listen og
-    # reglerne selv.
-    lst = (missing_list(hint=":") + ' &\n        VhpValidationErrors') if last else missing_list(steps=(i + 1,))
-    done_tip = '"Ready - Submit is available."' if last else '"Done."'
-    tip = (f"If(\n    VhpSubmitted, {AFTER_TIPS[i]},\n    d{i + 1}, {done_tip},\n"
-           f"    \"Missing:\" & Char(10) &\n        {lst}\n)")
-    return with_dirty(tip) if ITEM_DIRTY in tip else tip
+    """Foer Submit: hvad der mangler i trinets sektion (eller at det er
+    faerdigt). Efter Submit: hvor sagen er. Tooltippen er en ekstra vej -
+    det hele staar ogsaa under trinene og i listen bag "Show all"."""
+    if i == len(STEPS) - 1:
+        # "Ready to submit" kraever det hele - hele listen, grupperet.
+        return (f"If(\n    VhpSubmitted, {AFTER_TIPS[i]},\n"
+                f"    d{i + 1}, \"Ready - Submit is available.\",\n"
+                f"    \"Before you can submit:\" & Char(10) & {GROUPED}\n)")
+    # Sektionens krav - ogsaa naar trinet er groent, men en regel i
+    # sektionen fejler. Saa siger tooltip og badge det samme.
+    return (f"If(\n    VhpSubmitted, {AFTER_TIPS[i]},\n"
+            f"    !IsBlank({GT[i]}), \"Missing:\" & Char(10) & {GT[i]},\n"
+            f"    \"Done.\"\n)")
 
 
 def focus_border(ctrl, steps, normal):
@@ -327,13 +344,13 @@ def _step_image(i, label, done, prev_done, current, action, width, suffix="", he
 
 
 def _submit_tooltip():
-    """Samme liste som trinene (MISSING) - og reglerne selv til sidst."""
+    """Samme grupperede liste som "Before you can submit" (GROUPS)."""
     # View mode foerst (issue #211): Submit staar graa, til man vaelger Edit.
     return with_dirty(f"If(\n    VhpSubmitted, \"Already submitted - see the progress bar.\",\n"
             f"    IfError(varVhpViewOnly, false), \"View mode - select Edit to change or submit the plan.\",\n"
             f"    {CAN_SUBMIT},\n    \"Submit the plan for approval.\",\n"
-            f"    \"Not ready to submit:\" & Char(10) &\n        {missing_list(hint=':')} &\n"
-            f"        VhpValidationErrors\n)")
+            f"    varVhpSaving, \"Saving ...\",\n"
+            f"    \"Before you can submit:\" & Char(10) & {GROUPED}\n)")
 
 
 # LINJEN UNDER TRINENE (issue #88): det, der mangler, uden at man skal
@@ -347,7 +364,8 @@ AFTER_LINE = (
     'varVhpFlow.Stage = "Cost", "Waiting for cost approval.", '
     '"Waiting for the system owners to approve the items.")'
 )
-_INLINE = missing_list(sep='" "', bullet='""', hint=" - hover Submit to see them")
+# Det foerste krav staar paa linjen - specifikt og uden hover. "Show all"
+# ved siden af aabner hele listen, grupperet (missing_modal).
 READINESS = with_dirty(
     "If(\n"
     "    VhpSubmitted,\n"
@@ -359,9 +377,13 @@ READINESS = with_dirty(
     '    "View only - this plan has not been submitted.",\n'
     f"    {CAN_SUBMIT},\n"
     '    "Ready to submit.",\n'
-    '    "Before you can submit: " &\n'
-    f"        {_INLINE}\n"
+    '    varVhpSaving,\n'
+    '    "Saving ...",\n'
+    f'    "Before you can submit: " & Mid(First({ALL_MISSING}).Value, {len(BULLET) + 1})\n'
     ")")
+# Planen kan indsendes, men mangler noget: "Show all" og listen giver mening.
+# Er listen ikke tom, kan planen ikke indsendes - og omvendt (CAN_SUBMIT).
+PENDING = f"(!VhpSubmitted && !IfError(varVhpViewOnly, false) && !varVhpSaving && !IsEmpty({ALL_MISSING}))"
 READY_OK = f"(VhpSubmitted || ({CAN_SUBMIT}))"
 
 
@@ -399,20 +421,96 @@ HAS_UNSAVED = (
     f"!(VhpStepSaveDone && varVhpPlanLocked && !({ITEM_DIRTY}))"
 )
 
+MISSING_ON = "IfError(varVhpMissingOn, false)"
+MISSING_CLOSE = "Set(varVhpMissingOn, false)"
+SHOW_ALL_W = fit_button_width('"Show all (99)"')
+# Raekkens hoejde: kun skaermbredden (check_layout 23b). To linjer tekst
+# paa en telefon - beskeden kan vaere for lang til een.
+READY_H = if_below("Tablet", "40", "32")
+
+
 def readiness_line():
-    """Linjen under trinene: hvad der mangler foer Submit, eller hvor sagen
-    ligger efter. Groen, naar planen er klar eller indsendt. Skjult, naar
-    planen kun vises og ikke er indsendt, staar der blot det. Linjen er
+    """Linjen under trinene: det foerste, der mangler foer Submit - eller
+    hvor sagen ligger efter. Groen, naar planen er klar eller indsendt.
+    Mangler der noget, staar "Show all (n)" ved siden af: en knap, saa
+    listen kan aabnes med mus, tastatur og touch (issue #220). Raekken er
     altid synlig, saa headerens hoejde kun afhaenger af skaermbredden."""
     ok = f"(VhpSubmitted || ({CAN_SUBMIT}))"
     ctrl = text_ctrl("txtVhpReadiness", READINESS, size=12,
                      color=with_dirty(f"If({ok}, {C_VALID_FG}, {C_MUTED})"),
                      wrap="true", align="Center", height=20,
-                     accessible='"Submission status: " & Self.Text')
-    ctrl.props["Width"] = "Parent.Width"
-    # To linjer paa en telefon - beskeden er for lang til een.
-    ctrl.props["Height"] = ctrl.h = if_below("Tablet", "36", "20")
-    return ctrl
+                     accessible='"Submission status: " & Self.Text',
+                     extra={"VerticalAlign": "VerticalAlign.Middle"})
+    grow(ctrl)
+    ctrl.props["Height"] = ctrl.h = READY_H
+    show = button("btnVhpShowMissing",
+                  f'"Show all (" & CountRows({ALL_MISSING}) & ")"',
+                  "Set(varVhpMissingOn, true)", width=SHOW_ALL_W, height=32,
+                  accessible='"Show everything that is missing before you can submit"',
+                  visible=PENDING)
+    show.props["LayoutMinWidth"] = str(SHOW_ALL_W)
+    return group("conVhpReadyRow", [ctrl, show], direction="Horizontal", gap=8,
+                 height=READY_H, align_items="Center")
+
+
+def _lines_h(text, width, px=7.2, line_h=19):
+    """Hoejden af en ombrudt tekst: linjer regnet af laengden og
+    linjeskiftene (som Issue Boardets). Hellere en linje luft for meget."""
+    cpl = f"Max(12, RoundDown(({width}) / {px}, 0))"
+    return (f"With({{ t: {text} }}, (RoundUp(Len(t) / {cpl}, 0) + "
+            f"CountRows(Split(t, Char(10))) - 1) * {line_h} + 2)")
+
+
+MODAL_W = "Min(520, App.Width - 24)"
+MODAL_PAD = 18
+
+
+def missing_modal():
+    """"Before you can submit" (issue #220) - [sloer, popup].
+
+    Alt, der mangler, grupperet efter sektion: Plan Header, Items og
+    Tasklist and Operations. Samme kilde som linjen under trinene, Submits
+    tooltip og trinene (GROUPS), saa listen kan ikke sige noget andet end
+    knappen. Den regnes om, mens brugeren retter - et krav forsvinder,
+    naar det er opfyldt, og er alt i orden, siger popuppen det. Indholdet
+    scroller, hvis listen er hoejere end skaermen; Close kan altid naas."""
+    vis = MISSING_ON
+    backdrop = tap_backdrop("conVhpMissingBackdrop", vis, MISSING_CLOSE)
+    title = text_ctrl("txtVhpMissingTitle", '"Before you can submit"', size=lay.SIZE_CARD_TITLE,
+                      weight="Semibold", height=26, wrap="false")
+    intro = text_ctrl("txtVhpMissingIntro",
+                      f'If(IsEmpty({ALL_MISSING}), "Everything is in place. You can submit the plan now.", '
+                      '"Complete the steps below. The list updates as you fix them.")',
+                      size=13, color=f"If(IsEmpty({ALL_MISSING}), {C_VALID_FG}, {C_MUTED})",
+                      height=38, wrap="true")
+    text_w = f"{MODAL_W} - {2 * MODAL_PAD} - {lay.SCROLLBAR_W}"
+    blocks = []
+    for (head, fx, _st), name, ref in zip(GROUPS, MISS_TXT, GT):
+        h = text_ctrl(f"{name}H", f'"{head}"', size=13, weight="Semibold",
+                      height=20, wrap="false")
+        body_fx = f"With(\n    {{ t: {fx} }},\n    If(IsBlank(t), \"\", {bullets('t')})\n)"
+        if ITEM_DIRTY in body_fx:
+            body_fx = with_dirty(body_fx)
+        body = text_ctrl(name, body_fx, size=13, height=_lines_h("Self.Text", text_w), wrap="true",
+                         accessible=f'"{head}: " & Self.Text')
+        # Gruppens hoejde laeser tekstens Text, ikke dens Height (check_layout 1).
+        body.h = _lines_h(ref, text_w)
+        blocks.append(group(f"conVhpMissing{name[len('txtVhpMissing'):]}", [h, body],
+                            direction="Vertical", gap=4, visible=f"!IsBlank({ref})"))
+    fixed = 26 + 38 + 36 + 3 * 12 + 2 * MODAL_PAD
+    natural = stack_height(blocks, 12)
+    body = group("conVhpMissingBody", blocks, direction="Vertical", gap=12,
+                 height=f"Max(0, Min({natural}, App.Height - 40 - {fixed}))", overflow_y="Scroll")
+    close = button("btnVhpMissingClose", '"Close"', MISSING_CLOSE,
+                   width=fit_button_width('"Close"'), height=36)
+    footer = group("conVhpMissingFooter", [close], direction="Horizontal", gap=8,
+                   height=36, justify="End", align_items="Center")
+    modal = group("conVhpMissingModal", [title, intro, body, footer], direction="Vertical", gap=12,
+                  fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
+                  pad=(MODAL_PAD,) * 4, width=MODAL_W, drop_shadow="ExtraBold", visible=vis)
+    modal.props["X"] = "(App.Width - Self.Width) / 2"
+    modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
+    return [backdrop, modal]
 
 
 # Bjaelkens elementer - samme opbevaring som assemble_screen skal bruge.
@@ -565,7 +663,8 @@ def build_top_bar():
         "VhpNew", "varVhpConfirmNew", "Start a new request?",
         '"Unsaved work on this request is discarded. Save a draft first to keep it."',
         "Discard and start new", NEW_PLAN_FX, "btnVhpNewConfirm", icon="Add")
-    CONFIRM[:] = confirm + confirmNew + delete_modal("Vhp", "varVhpRequestGuid", _cfg.L_INDEX, "MaintenancePlan")
+    CONFIRM[:] = (confirm + confirmNew + delete_modal("Vhp", "varVhpRequestGuid", _cfg.L_INDEX, "MaintenancePlan")
+                  + missing_modal())
     MORE_MENU[:] = _more_menu(NOTES_HAVE, NOTES_OPEN_VIEW)
     more_vis = f"({NOTES_HAVE} || {DELETE_VIS})"
     btnMore = button("btnVhpMoreActs", '""', f"Set(varVhpMoreOn, !{MORE_ON})",
