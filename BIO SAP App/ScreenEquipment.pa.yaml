@@ -13189,8 +13189,8 @@ Screens:
                                                 RequestGuid: varEqRequestGuid,
                                                 Stage: "Admin",
                                                 Decision: "AdminEdit",
-                                                Detail: Left("Status: " & Switch(varEqAdmFrom, "Kladde", "Draft", "Indsendt", "Submitted", "UnderBehandling", "In progress", "AfventerInfo", "Awaiting info", "KlarTilSAP", "Ready for SAP", "OprettetISAP", "Created in SAP", "Afvist", "Rejected", "Annulleret", "Cancelled", varEqAdmFrom) & " → Submitted", 255),
-                                                Comment: "Status: " & Switch(varEqAdmFrom, "Kladde", "Draft", "Indsendt", "Submitted", "UnderBehandling", "In progress", "AfventerInfo", "Awaiting info", "KlarTilSAP", "Ready for SAP", "OprettetISAP", "Created in SAP", "Afvist", "Rejected", "Annulleret", "Cancelled", varEqAdmFrom) & " → Submitted",
+                                                Detail: Left("Status: " & Coalesce(LookUp(RequestStatusLabels, Key = varEqAdmFrom, Label), varEqAdmFrom) & " → Submitted", 255),
+                                                Comment: "Status: " & Coalesce(LookUp(RequestStatusLabels, Key = varEqAdmFrom, Label), varEqAdmFrom) & " → Submitted",
                                                 DecidedByEmail: Lower(User().Email),
                                                 DecidedOn: Now()
                                             });
@@ -13494,8 +13494,8 @@ Screens:
                                                     RequestGuid: varEqDelGuid,
                                                     Stage: "Admin",
                                                     Decision: "AdminDelete",
-                                                    Detail: Left("Request deleted (" & varEqDelIdx.Status.Value & ", owner " & varEqDelIdx.RequesterEmail & ")", 255),
-                                                    Comment: "Request deleted (" & varEqDelIdx.Status.Value & ", owner " & varEqDelIdx.RequesterEmail & ")",
+                                                    Detail: Left("Request deleted (" & Coalesce(LookUp(RequestStatusLabels, Key = varEqDelIdx.Status.Value, Label), varEqDelIdx.Status.Value) & ", owner " & varEqDelIdx.RequesterEmail & ")", 255),
+                                                    Comment: "Request deleted (" & Coalesce(LookUp(RequestStatusLabels, Key = varEqDelIdx.Status.Value, Label), varEqDelIdx.Status.Value) & ", owner " & varEqDelIdx.RequesterEmail & ")",
                                                     DecidedByEmail: Lower(User().Email),
                                                     DecidedOn: Now()
                                                 });

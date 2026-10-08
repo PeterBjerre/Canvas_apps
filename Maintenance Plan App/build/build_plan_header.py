@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import (Ctrl, C_TRANSPARENT, C_MUTED, C_REQUIRED, C_INFO_BG, SHELL_W, C_DISABLED_BG, C_DIVIDER,
+from gen_screen import (Ctrl, C_TRANSPARENT, C_TITLE, C_MUTED, C_REQUIRED, C_INFO_BG, SHELL_W, C_DISABLED_BG, C_DIVIDER,
                         C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG, C_NEUTRAL_BG)
 import build_help as bh
 import layout_tokens as lay
@@ -83,27 +83,52 @@ def summary_formula(segs, max_w, bind=None):
     fill, line = ref_hex("state-neutral-bg"), ref_hex("border-default")
     mut, txt = ref_hex("text-muted"), ref_hex("text-primary")
     W = "Max(" + ", ".join(f"If(w{i} = 0, 0, x{i} + w{i})" for i in rng) + ", 1)"
-    H = f"r{n} * {CHIP_PITCH} + {CHIP_H}"
-    # Raekkerne er flex-raekker med faste chipbredder - de ombrydes ikke
-    # selv; et raekkeskift staar, hvor formlen har lagt det (r stiger).
-    style = (f'"<style>html,body{{margin:0;padding:0;overflow:hidden}}'
-             f'.s{{padding:2px 0;font-family:Segoe UI,sans-serif}}'
-             f'.r{{display:flex;height:28px;white-space:nowrap}}.r+.r{{margin-top:{CHIP_PITCH - 28}px}}'
-             f'.c{{flex:none;box-sizing:border-box;height:28px;line-height:26px;padding:0 13px;'
-             f'border:1px solid " & {line} & ";border-radius:14px;background:" & {fill} & ";'
-             f'color:" & {txt} & ";font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis}}'
-             f'.c+.c{{margin-left:{CHIP_GAP}px}}'
-             f'.c b{{font-size:10px;font-weight:600;letter-spacing:.5px;margin-right:6px;color:" & {mut} & "}}'
-             f'</style><div class=\'s\'><div class=\'r\'>"')
-    parts = [style]
+    # Ingen chip (alt er tomt) giver hoejden 0 - ingen tom flade (#176).
+    anyc = " || ".join(f"w{i} > 0" for i in rng)
+    H = f"If({anyc}, r{n} * {CHIP_PITCH} + {CHIP_H}, 0)"
+    # ISSUE #176: KUN INLINE-STYLES OG FASTE POSITIONER.
+    #
+    # Foer stod chipsenes udseende i en <style>-blok med klasser (.s, .r,
+    # .c, ".c b") og flex-raekker. I Power Apps' desktop-preview (plan
+    # MP0143, BIO SAP App/vh-plan_collapsed.png) stod der kun en 1 px
+    # streg pr. chip, i de rigtige bredder og med de rigtige mellemrum -
+    # chippens oeverste pixelraekke, men ingen tekst og ingen badge. Formlen regnede altsaa
+    # rigtigt (stregernes bredder passer til de gemte vaerdier); det var
+    # HTML'en, kontrollen ikke tegnede som en browser. Klasser og flex er
+    # det eneste, linjen havde, som appens andre HtmlViewer'e ikke har -
+    # de staar alle med inline-styles og vises.
+    #
+    # Maalt i skaermbilledet sad stregen paa kontrollens NEDERSTE
+    # pixelraekke (Plan Header og Item Editor): chipsene var skubbet en
+    # hel linje ned, og kontrollen klippede alt under sin kant.
+    #
+    # Nu er der intet at fortolke: <style> nulstiller kun html/body (som
+    # i operationstabellens overskrift, se build_tasklist), een relativt
+    # placeret kasse i praecis W x H (Microsoft: kontrollen antager
+    # relativ placering), og hver chip er en absolut placeret kasse paa
+    # sin x og sin raekke fra formlen. Alle maal og farver staar paa
+    # elementet selv - ingen klasser, ingen flex.
+    box = (f'"<div style=\'position:relative;margin:0;padding:0;width:" & ww & "px;height:" & hh & "px;overflow:hidden;'
+           f'font-family:Segoe UI,sans-serif\'>"')
+    parts = [box]
     for i in rng:
-        brk = f'If(r{i} > r{i - 1}, "</div><div class=\'r\'>", "") & ' if i > 1 else ""
         parts.append(
-            f'If(w{i} = 0, "", {brk}"<span class=\'c\' style=\'width:" & w{i} & "px\'><b>" & '
-            f'{esc("l%d" % i)} & "</b>" & {esc("d%d" % i)} & "</span>")')
-    parts.append('"</div></div>"')
+            f'If(w{i} = 0, "", "<div style=\'position:absolute;left:" & x{i} & "px;top:" & '
+            f'(r{i} * {CHIP_PITCH} + {(CHIP_H - 28) // 2}) & "px;width:" & w{i} & "px;height:28px;'
+            f'box-sizing:border-box;margin:0;padding:0 13px;border:1px solid " & {line} & ";'
+            f'border-radius:14px;background-color:" & {fill} & ";color:" & {txt} & ";'
+            f'font-size:13px;line-height:26px;font-weight:600;white-space:nowrap;overflow:hidden;'
+            f'text-overflow:ellipsis\'><span style=\'font-size:10px;line-height:26px;font-weight:600;'
+            f'letter-spacing:0.5px;margin-right:6px;color:" & {mut} & "\'>" & '
+            f'{esc("l%d" % i)} & "</span>" & {esc("d%d" % i)} & "</div>")')
+    # Nulstillingen staar SIDST: i Studio laa chipsene en linje for lavt,
+    # og et <style>-element, der tegnes som en tom linje, kan kun skubbe
+    # det, der staar efter det. Her staar intet efter det.
+    parts.append('"</div><style>html,body{margin:0;padding:0;overflow:hidden}</style>"')
+    # W og H regnes een gang og bruges baade af kassen og af kontrollen.
+    opens.append(f"With({{ ww: {W}, hh: {H} }},")
     body = ("{\n    Html: " + " &\n        ".join(parts) + ",\n"
-            f"    W: {W},\n    H: {H}\n}}")
+            "    W: ww,\n    H: hh\n}")
     return "\n".join(opens) + "\n" + body + "\n" + ")" * len(opens)
 
 
@@ -113,6 +138,9 @@ def summary_chips(name, fx, visible):
     bruger den samme, saa de ser ens ud. h er fx.H: kortet omkring foelger
     linjens hoejde, naar den ombrydes."""
     return Ctrl(name, "HtmlViewer", props={
+        # Color/Font: hvis kontrollen nogensinde tegner teksten uden
+        # chipsenes egne styles, staar den stadig i appens tekstfarve (#176).
+        "Color": C_TITLE, "Font": "Font.'Segoe UI'",
         "Fill": C_TRANSPARENT, "Height": f"{fx}.H", "HtmlText": f"{fx}.Html",
         "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0",
         "Visible": visible, "Width": f"{fx}.W", "AlignInContainer": "AlignInContainer.Start",
@@ -142,7 +170,7 @@ def collapse_footer(footer, info, edit, locked):
                                       "AlignInContainer.Center)")
     ev = f"({edit.vis})" if edit.vis else "true"
     h = (f"If({stack}, ({info.h}) + If({ev}, {footer.props['LayoutGap']} + 36, 0), "
-         f"Max(({info.h}), 36))")
+         f"Max(({info.h}), If({ev}, 36, 0)))")
     footer.props["Height"] = h
     footer.h = h
     return footer

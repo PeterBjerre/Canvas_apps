@@ -87,8 +87,8 @@ def join(*parts):
 
 def submitted(old_status):
     """'Status: <foer> -> Submitted' med statussernes engelske navne
-    (request_index.STATUS) - appens tekster er engelske."""
+    (tools/display_text.py) - appens tekster er engelske."""
     import request_index as ri
-    labels = ", ".join(f'"{k}", "{lab}"' for k, lab, _s in ri.STATUS)
-    new = dict((k, lab) for k, lab, _s in ri.STATUS)[ri.SUBMITTED]
-    return f'"Status: " & Switch({old_status}, {labels}, {old_status}) & " {ARROW} {new}"'
+    import display_text as dt
+    new = dt.status_label(ri.SUBMITTED)
+    return f'"Status: " & {dt.status(old_status)} & " {ARROW} {new}"'

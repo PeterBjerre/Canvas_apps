@@ -67,6 +67,11 @@ Alt andet — bogstaver, grupper, søgning, stien — regnes i hukommelsen af
 de navngivne formler. Fejler hentningen, siger skærmen det, og næste besøg
 prøver igen.
 
+Bogstavrækken viser kun de bogstaver, der har mindst én gruppe i den valgte
+nøgletype (`colKksL1Keys`, issue #164) — fx ikke funktionsnøglens D, F, J,
+K, T, V, W og Y eller komponentnøglens `-A` … `-Z`. Rækkerne findes stadig
+under ALL og i søgningen; et klik på en af dem går til ALL.
+
 ## Opsætning
 
 ```powershell

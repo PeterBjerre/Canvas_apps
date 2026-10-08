@@ -16,13 +16,14 @@ import app_yaml
 import design_tokens as tok
 import layout_tokens as lay
 import permissions as perm
+import display_text as dt
 
 # App.Formulas findes ikke i hubben i dag - der er ingen opslagslister at
 # hente dovent. Nu er der een formel, og det er temaet: C. Se
 # tools/design_tokens.py for hvorfor farven hoerer hjemme i en navngiven
 # formel og ikke i hver enkelt kontrol.
 FORMULAS = (tok.formula() + "\n\n" + lay.formula() + "\n\n" + perm.formula() + "\n\n" +
-            perm.approver_formula())
+            dt.formula() + "\n\n" + perm.approver_formula())
 
 # Samlingen bag SaveData skal have et kendt skema, foer Coalesce kan laese
 # .Dark - samme moenster som arbejdssamlingerne i de tre andre apps.

@@ -218,6 +218,70 @@ def test_language_check_allows_choice_values(tmp_path, monkeypatch):
     check_language.check()
 
 
+def test_language_check_finds_danish_flow_text(tmp_path, monkeypatch):
+    """Issue #162: et flow, der skriver dansk i en kolonne, appen viser."""
+    import json
+    import check_language
+    d = tmp_path / "solution" / "BIOSAP" / "src" / "Workflows"
+    d.mkdir(parents=True)
+    flow = {"properties": {"definition": {"actions": {"Log": {"inputs": {"parameters": {
+        "item/Detail": "@concat('opretter er 1. eller 2. godkender for system ', outputs('SysNo'))",
+        "item/Status/Value": "Kladde"}}}}}}}
+    (d / "BioSap-Test-00000000-0000-0000-0000-000000000000.json").write_text(
+        json.dumps(flow), encoding="utf-8")
+    monkeypatch.setattr(check_language, "ROOT", str(tmp_path))
+    bad, n = check_language.check_flows()
+    assert n == 1 and len(bad) == 1 and "opretter" in bad[0]
+
+
+def test_language_check_allows_stored_values_in_flows(tmp_path, monkeypatch):
+    import json
+    import check_language
+    d = tmp_path / "solution" / "BIOSAP" / "src" / "Workflows"
+    d.mkdir(parents=True)
+    flow = {"properties": {"definition": {"actions": {"If": {
+        "expression": "@contains(createArray('Indsendt', 'KlarTilSAP'), triggerBody()?['Status'])",
+        "inputs": {"parameters": {"folderPath": "/SAP-oprettelse/Til oprettelse",
+                                  "item/Status": {"Value": "AfventerInfo"}}}}}}}}
+    (d / "BioSap-Test-00000000-0000-0000-0000-000000000000.json").write_text(
+        json.dumps(flow), encoding="utf-8")
+    monkeypatch.setattr(check_language, "ROOT", str(tmp_path))
+    assert check_language.check_flows()[0] == []
+
+
+def test_status_labels_cover_every_stored_status():
+    import display_text as dt
+    import request_index as ri
+    f = dt.formula()
+    for key, label, _step in ri.STATUS:
+        assert f'{{ Key: "{key}", Label: "{label}" }}' in f
+    assert dt.STATUS_TABLE in dt.status("ThisItem.Status.Value")
+
+
+def test_old_flow_texts_are_shown_in_english():
+    """Hver dansk saetning i udtraekket af MD_ApprovalLog bliver engelsk,
+    og den engelske tekst, flowene skriver nu, gaar uaendret igennem."""
+    import json
+    import check_language as cl
+    import display_text as dt
+    rows = json.load(io.open(os.path.join(ROOT, "sharepoint", "inspect", "out",
+                                          "sample-MD_ApprovalLog.json"), encoding="utf-8-sig"))
+    seen = 0
+    for r in rows:
+        for col in ("Detail", "ItemText"):
+            v = r.get(col) or ""
+            out = dt.log_py(v)
+            assert not cl._danish(out.strip()), (col, v, out)
+            seen += out != v
+    assert seen >= 10
+    for en in ("System 2", "Cost", "Quality SSV", "Quality (SSV)", "Approved earlier",
+               "No response from x@y.com", "494 DKK (threshold 300000 DKK)", "SAP plan 1",
+               "Requester is 1st or 2nd approver for system 2: a@b.com",
+               "FL SSV13 HFC10 belongs to SSV, the plan is for ASV", "System approval",
+               "Quality review (SSV): ok", "The plan has no items."):
+        assert dt.log_py(en) == en, en
+
+
 def test_every_light_token_has_a_dark_value():
     import design_tokens as dt
     assert set(dt.LIGHT) == set(dt.DARK)
@@ -362,3 +426,22 @@ def test_vhp_every_rule_has_a_section():
     # Item-reglen er den eneste uden kode: "Item <id> (...): missing ...".
     assert '"Item " & Text(ItemId) & " ("' in bs.VALIDATION
     assert "Item " in bs.RULE_SECTIONS["Item"]
+
+
+def test_vhp_collapsed_summaries_use_inline_markup_only():
+    """Issue #176: de sammenklappede linjer viste kun en 1 px streg pr. chip
+    i Power Apps, da chipsene var klasser i en <style>-blok og flex-raekker.
+    Linjerne maa kun bruge inline-styles og faste positioner, og en linje
+    uden vaerdier maa ikke reservere plads."""
+    text = open(os.path.join(APP, "App.pa.yaml"), encoding="utf-8").read()
+    for name in ("VhpPlanSummary", "VhpItemSummary", "VhpOpsSummary"):
+        m = re.search(r"^      %s = (.*?)^      \)+;" % name, text, re.S | re.M)
+        assert m, name
+        fx = m.group(1)
+        assert "class=" not in fx, name
+        assert "flex" not in fx and "grid" not in fx, name
+        assert "position:relative" in fx and "position:absolute" in fx, name
+        # Det eneste <style> nulstiller html/body og staar sidst.
+        assert fx.count("<style>") == 1, name
+        assert re.search(r"</div><style>html,body\{[^}]*\}</style>\",\s*W:", fx), name
+        assert re.search(r"hh: If\(w1 > 0 \|\|.*?, 0\)", fx), name

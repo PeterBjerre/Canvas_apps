@@ -400,9 +400,17 @@ def resolve_templates(nodes, parent=None, parent_inner=None, uncertain=False):
                 c._tpl_unc = False
             else:
                 res = GALLERY_RESERVE if unc else 0
-                c._tpl_w = (None if cw is None
-                            else f"({cw}) - 2 * {pad} - {sb}"
-                                 + (f" - {res}" if res else ""))
+                wrap = _p(c, "WrapCount", "1")
+                if cw is None:
+                    c._tpl_w = None
+                elif wrap == "1":
+                    c._tpl_w = (f"({cw}) - 2 * {pad} - {sb}"
+                                + (f" - {res}" if res else ""))
+                else:
+                    # Et gitter (WrapCount > 1): bredden deles mellem
+                    # kolonnerne, og hver skabelon har sin egen padding.
+                    c._tpl_w = (f"(({cw}) - {sb}" + (f" - {res}" if res else "")
+                                + f") / ({wrap}) - 2 * {pad}")
                 c._tpl_h = size
                 c._tpl_unc = unc
             inner = cw
