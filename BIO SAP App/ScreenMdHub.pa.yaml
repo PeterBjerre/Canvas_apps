@@ -2683,7 +2683,7 @@ Screens:
                                             !(ThisItem.Domain.Value = "MaintenancePlan" && ThisItem.Status.Value <> "Kladde"), "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='30' viewBox='0 0 270 30'><text x='4' y='19' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
                                             With(
                                                 { L: With({ c: Filter(varMdAprAll, RequestGuid = ThisItem.RequestGuid) }, If(IsEmpty(c) && CountRows(varMdAprAll) >= 500, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c)) },
-                                                With({a: With({T: If(IsEmpty(Filter(L, Stage = "System")), Blank(), ForAll(GroupBy(Filter(L, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
+                                                With({a: With({T: If(IsBlank(Filter(L, Stage = "System")) || IsEmpty(Filter(L, Stage = "System")), Blank(), ForAll(GroupBy(Filter(L, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
                                             n > 0 && n >= Max(1, ThisItem.ItemCount) && k = n, "Skipped",
                                             n > 0 && n >= Max(1, ThisItem.ItemCount), "Approved",
@@ -2691,7 +2691,7 @@ Screens:
                                             true, "In progress",
                                         "Pending"
                                         )))},
-                                        With({b: With({T: If(IsEmpty(Filter(L, Stage = "Cost")), Blank(), ForAll(GroupBy(Filter(L, Stage = "Cost"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
+                                        With({b: With({T: If(IsBlank(Filter(L, Stage = "Cost")) || IsEmpty(Filter(L, Stage = "Cost")), Blank(), ForAll(GroupBy(Filter(L, Stage = "Cost"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
                                             n > 0 && n >= Max(1, ThisItem.ItemCount) && k = n, "Skipped",
                                             n > 0 && n >= Max(1, ThisItem.ItemCount), "Approved",
@@ -3339,7 +3339,7 @@ Screens:
                                             !(ThisItem.Domain.Value = "MaintenancePlan" && ThisItem.Status.Value <> "Kladde"), "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='30' viewBox='0 0 270 30'><text x='4' y='19' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
                                             With(
                                                 { L: With({ c: Filter(varMdAprAll, RequestGuid = ThisItem.RequestGuid) }, If(IsEmpty(c) && CountRows(varMdAprAll) >= 500, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c)) },
-                                                With({a: With({T: If(IsEmpty(Filter(L, Stage = "System")), Blank(), ForAll(GroupBy(Filter(L, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
+                                                With({a: With({T: If(IsBlank(Filter(L, Stage = "System")) || IsEmpty(Filter(L, Stage = "System")), Blank(), ForAll(GroupBy(Filter(L, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
                                             n > 0 && n >= Max(1, ThisItem.ItemCount) && k = n, "Skipped",
                                             n > 0 && n >= Max(1, ThisItem.ItemCount), "Approved",
@@ -3347,7 +3347,7 @@ Screens:
                                             true, "In progress",
                                         "Pending"
                                         )))},
-                                        With({b: With({T: If(IsEmpty(Filter(L, Stage = "Cost")), Blank(), ForAll(GroupBy(Filter(L, Stage = "Cost"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
+                                        With({b: With({T: If(IsBlank(Filter(L, Stage = "Cost")) || IsEmpty(Filter(L, Stage = "Cost")), Blank(), ForAll(GroupBy(Filter(L, Stage = "Cost"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
                                             n > 0 && n >= Max(1, ThisItem.ItemCount) && k = n, "Skipped",
                                             n > 0 && n >= Max(1, ThisItem.ItemCount), "Approved",
@@ -3668,8 +3668,8 @@ Screens:
                                         Set(varMdAprReq, ThisItem);
                                         Set(varMdAprNote, If(varMdAprReq.HasApproverNote && (Lower(Coalesce(varMdAprReq.RequesterEmail, "")) = varMdMe || IsAdmin || IsApprover || Lower(Coalesce(varMdAprReq.AssignedToEmail, "")) = varMdMe || !IsBlank(LookUp(varMdAprAll, RequestGuid = varMdAprReq.RequestGuid && DecidedByEmail = varMdMe))), Coalesce(LookUp(MaintenancePlans, ID = varMdAprReq.SourceItemId).NoteToApprover, ""), ""));
                                         ClearCollect(colMdAprLog, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid));
-                                        ClearCollect(colMdAprLatest, If(IsEmpty(Filter(colMdAprLog, Stage = "System")), Blank(), ForAll(GroupBy(Filter(colMdAprLog, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))));
-                                        Collect(colMdAprLatest, If(IsEmpty(Filter(colMdAprLog, Stage = "Cost")), Blank(), ForAll(GroupBy(Filter(colMdAprLog, Stage = "Cost"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))));
+                                        ClearCollect(colMdAprLatest, If(IsBlank(Filter(colMdAprLog, Stage = "System")) || IsEmpty(Filter(colMdAprLog, Stage = "System")), Blank(), ForAll(GroupBy(Filter(colMdAprLog, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))));
+                                        Collect(colMdAprLatest, If(IsBlank(Filter(colMdAprLog, Stage = "Cost")) || IsEmpty(Filter(colMdAprLog, Stage = "Cost")), Blank(), ForAll(GroupBy(Filter(colMdAprLog, Stage = "Cost"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))));
                                         Collect(colMdAprLatest, FirstN(SortByColumns(Filter(colMdAprLog, Stage = "Quality"), "DecidedOn", SortOrder.Descending), 1));
                                         Set(varMdAprS1, With({T: Filter(colMdAprLatest, Stage = "System")}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
