@@ -105,6 +105,7 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 | [`docs/35-flow-sap-ordre.md`](docs/35-flow-sap-ordre.md) | De to flows til docs/34, trin for trin: ordren ud, kvitteringen tilbage, rettigheder |
 | [`docs/36-fl-sap-oprettelse.md`](docs/36-fl-sap-oprettelse.md) | FL-anmodninger i samme opretter: SPOOL-arkets GUI-script porteret, JSON-ordre pr. anmodning, de to FL-flows |
 | [`docs/38-modern-controls-audit.md`](docs/38-modern-controls-audit.md) | Audit af klassiske vs. moderne kontroller i BIO SAP App: hvad er migreret, hvad bliver og hvorfor, kandidater til Peter (#161) |
+| [`docs/39-uat-github-issues.md`](docs/39-uat-github-issues.md) | UAT: fra godkendt sag i Issue Board til GitHub-issue med `Send-IssueBoardToGitHub.ps1` |
 
 ## Kode og artefakter
 
@@ -122,6 +123,7 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 | `sharepoint/provision/Provision-RequestIndex.ps1` | `MD_RequestIndex` — den fælles indeksliste bag landingssiden |
 | `sharepoint/provision/Provision-VHPlanApproval.ps1` | Godkendelsesflowets fase 1: kolonner på `MaintenancePlans`, `MD_Approver`, `MD_ApprovalLog`, grænsen i `AppSettings` — se `docs/32` |
 | `sharepoint/provision/Provision-SapCreation.ps1` | Biblioteket `SAP-oprettelse` og kolonnerne til numrene fra SAP — se `docs/34` |
+| `sharepoint/github/Send-IssueBoardToGitHub.ps1` | Opretter GitHub-issues fra de Issue Board-sager, en admin har sat til Triaged — se `docs/39` |
 | `sharepoint/seed/*.csv` | Masterdata: strategier, pakker, hjælpetekster, godkendere, FL-nøgler |
 | `schema/vhplan-sap-order.schema.json`, `vhplan-sap-receipt.schema.json` | Ordren til opretteren og kvitteringen tilbage, med eksempler |
 | `schema/fl-sap-order.schema.json`, `fl-sap-receipt.schema.json` | Det samme for FL-anmodninger |
