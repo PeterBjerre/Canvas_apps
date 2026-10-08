@@ -4643,7 +4643,7 @@ Screens:
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
-                            =Set(gblNavOpen, false); Set(gblFbMe, Lower(User().Email)); Set(gblFbPick, false); Set(gblFbBusy, false); ClearCollect(colFbRequests, ForAll(FirstN(Sort(Filter('MD_RequestIndex', RequesterEmail = gblFbMe), LastActionOn, SortOrder.Descending), 100) As R, {Code: R.RequestNo, Title: Coalesce(R.ShortText, ""), Domain: R.Domain.Value, TypeName: Switch(R.Domain.Value, "FunctionalLocation", "Functional location", "Equipment", "Equipment", "MeasuringPoint", "Measuring point", "Material", "Material", "MaintenancePlan", "Maintenance plan", "Request")})); Set(gblFbOpen, true)
+                            =Set(gblNavOpen, false); Set(gblFbMe, Lower(User().Email)); Set(gblFbPick, false); Set(gblFbBusy, false); ClearCollect(colFbRequests, ForAll(FirstN(Sort(Filter('MD_RequestIndex', RequesterEmail = gblFbMe), LastActionOn, SortOrder.Descending), 100) As R, {Code: R.RequestNo, Title: Coalesce(R.ShortText, ""), Domain: R.Domain.Value, TypeName: Switch(R.Domain.Value, "FunctionalLocation", "Functional location", "Equipment", "Equipment", "MeasuringPoint", "Measuring point", "Material", "Material", "MaintenancePlan", "Maintenance plan", "Request"), Url: Coalesce(R.AppUrl, "")})); Set(gblFbOpen, true)
                         PressedFill: |-
                             =C.'bg-muted'
                         RadiusBottomLeft: |-
@@ -8284,7 +8284,7 @@ Screens:
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
-                            =Set(gblNavOpen, false); Set(gblFbMe, Lower(User().Email)); Set(gblFbPick, false); Set(gblFbBusy, false); ClearCollect(colFbRequests, ForAll(FirstN(Sort(Filter('MD_RequestIndex', RequesterEmail = gblFbMe), LastActionOn, SortOrder.Descending), 100) As R, {Code: R.RequestNo, Title: Coalesce(R.ShortText, ""), Domain: R.Domain.Value, TypeName: Switch(R.Domain.Value, "FunctionalLocation", "Functional location", "Equipment", "Equipment", "MeasuringPoint", "Measuring point", "Material", "Material", "MaintenancePlan", "Maintenance plan", "Request")})); Set(gblFbOpen, true)
+                            =Set(gblNavOpen, false); Set(gblFbMe, Lower(User().Email)); Set(gblFbPick, false); Set(gblFbBusy, false); ClearCollect(colFbRequests, ForAll(FirstN(Sort(Filter('MD_RequestIndex', RequesterEmail = gblFbMe), LastActionOn, SortOrder.Descending), 100) As R, {Code: R.RequestNo, Title: Coalesce(R.ShortText, ""), Domain: R.Domain.Value, TypeName: Switch(R.Domain.Value, "FunctionalLocation", "Functional location", "Equipment", "Equipment", "MeasuringPoint", "Measuring point", "Material", "Material", "MaintenancePlan", "Maintenance plan", "Request"), Url: Coalesce(R.AppUrl, "")})); Set(gblFbOpen, true)
                         PressedFill: |-
                             =C.'bg-muted'
                         RadiusBottomLeft: |-
@@ -9185,11 +9185,11 @@ Screens:
                                                 r: Filter(colFbRequests, IsBlank(q) || q in Code || q in Title || q in TypeName)
                                             },
                                             Ungroup(Table(
-                                                {x: Filter(Table({Kind: "H", Code: "", Label: "General", TypeName: "", Domain: "", Title: ""}), !IsEmpty(g))},
-                                                {x: ForAll(g As G, {Kind: "G", Code: "", Label: G.Label, TypeName: "", Domain: "", Title: ""})},
-                                                {x: Table({Kind: "H", Code: "", Label: "Your requests", TypeName: "", Domain: "", Title: ""})},
-                                                {x: ForAll(r As R, {Kind: "R", Code: R.Code, Label: R.Code & If(IsBlank(R.Title), "", " · " & R.Title), TypeName: R.TypeName, Domain: R.Domain, Title: R.Title})},
-                                                {x: Filter(Table({Kind: "E", Code: "", Label: If(IsBlank(q), "You have no requests yet.", "No requests match your search."), TypeName: "", Domain: "", Title: ""}), IsEmpty(r))}
+                                                {x: Filter(Table({Kind: "H", Code: "", Label: "General", TypeName: "", Domain: "", Title: "", Url: ""}), !IsEmpty(g))},
+                                                {x: ForAll(g As G, {Kind: "G", Code: "", Label: G.Label, TypeName: "", Domain: "", Title: "", Url: ""})},
+                                                {x: Table({Kind: "H", Code: "", Label: "Your requests", TypeName: "", Domain: "", Title: "", Url: ""})},
+                                                {x: ForAll(r As R, {Kind: "R", Code: R.Code, Label: R.Code & If(IsBlank(R.Title), "", " · " & R.Title), TypeName: R.TypeName, Domain: R.Domain, Title: R.Title, Url: R.Url})},
+                                                {x: Filter(Table({Kind: "E", Code: "", Label: If(IsBlank(q), "You have no requests yet.", "No requests match your search."), TypeName: "", Domain: "", Title: "", Url: ""}), IsEmpty(r))}
                                             ), x)))
                                     LayoutMinWidth: |-
                                         =0
@@ -9372,7 +9372,7 @@ Screens:
                                           HoverFill: |-
                                               =C.'row-hover'
                                           OnSelect: |-
-                                              =Set(gblFbSel, {Kind: ThisItem.Kind, Code: ThisItem.Code, Label: ThisItem.Label, TypeName: ThisItem.TypeName, Domain: ThisItem.Domain, Title: ThisItem.Title}); Set(gblFbPick, false)
+                                              =Set(gblFbSel, {Kind: ThisItem.Kind, Code: ThisItem.Code, Label: ThisItem.Label, TypeName: ThisItem.TypeName, Domain: ThisItem.Domain, Title: ThisItem.Title, Url: ThisItem.Url}); Set(gblFbPick, false)
                                           PressedBorderColor: |-
                                               =RGBA(0, 0, 0, 0)
                                           PressedColor: |-
@@ -9714,7 +9714,7 @@ Screens:
                               OnSelect: |-
                                   =Set(gblFbBusy, true);
                                   IfError(
-                                      With({ res: 'BioSap-SendFeedbackMail'.Run("sapvedligehold@orsted.com", "SAP maintenance - " & Switch(gblFbSel.Kind, "R", gblFbSel.TypeName & " request " & gblFbSel.Code, "G", gblFbSel.Label, "question"), If(gblFbSel.Kind = "R", "Request: " & gblFbSel.Code & Char(10) & "Type: " & gblFbSel.TypeName & Char(10) & "Title: " & gblFbSel.Title & Char(10) & Char(10), "") & inpMdFbMessage.Text, JSON(attMdFbFiles.Attachments, JSONFormat.IncludeBinaryData)) },
+                                      With({ res: 'BioSap-SendFeedbackMail'.Run("sapvedligehold@orsted.com", "SAP maintenance - " & Switch(gblFbSel.Kind, "R", gblFbSel.TypeName & " request " & gblFbSel.Code, "G", gblFbSel.Label, "question"), inpMdFbMessage.Text, JSON(attMdFbFiles.Attachments, JSONFormat.IncludeBinaryData), JSON({Kind: gblFbSel.Kind, Topic: gblFbSel.Label, Code: gblFbSel.Code, Type: gblFbSel.TypeName, Title: gblFbSel.Title, Url: gblFbSel.Url}, JSONFormat.Compact)) },
                                           If(res.sent = "yes",
                                               Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpMdFbSubjectFind); Reset(inpMdFbMessage); Reset(attMdFbFiles); Notify("Message sent.", NotificationType.Success),
                                               Notify("The message could not be sent. " & res.message, NotificationType.Error))),
