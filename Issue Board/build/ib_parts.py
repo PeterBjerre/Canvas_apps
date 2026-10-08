@@ -1392,7 +1392,7 @@ def build_form():
                         visible=f"!({EDITING})")
     # Hvad mangler der? Staar i foden lige under Submit - og i beskeden, hvis
     # man trykker for tidligt (issue #177).
-    missing_text = f'"To submit, add " & {MISSING_FX} & "."'
+    missing_text = f'If({EDITING}, "To save, add ", "To submit, add ") & {MISSING_FX} & "."'
     missing = text_ctrl("txtIbFormMissing", missing_text, size=lay.SIZE_SMALL,
                         color=f"If(varIbTried, {C_INVALID_FG}, {C_MUTED})",
                         height=_lines_h(missing_text, f"{FORM_W} - {2 * POP_PAD}", px=6.6),
