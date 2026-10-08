@@ -944,6 +944,15 @@ def _field(name, label, ctrl, required=False, visible=None):
 # New issue
 # ---------------------------------------------------------------------------
 FORM_ON = "IfError(varIbFormOn, false)"
+# Hvad der mangler, for at sagen kan sendes - samme regler som VALID.
+MISSING_FX = (
+    "Concat(Filter(Table("
+    '{ m: "an application", ok: !IsBlank(varIbFormApp) }, '
+    '{ m: "a section", ok: !IsBlank(varIbFormSection) }, '
+    '{ m: "where it happened", ok: !IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text)) }, '
+    '{ m: "a title of at least 4 characters", ok: Len(Trim(inpIbTitle.Text)) >= 4 }, '
+    '{ m: "what happened", ok: !IsBlank(Trim(inpIbDesc.Text)) }), !ok), m, ", ")'
+)
 VALID = ("!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && "
          "(!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && "
          "Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))")
@@ -1296,6 +1305,11 @@ def build_form():
     desc = text_input("inpIbDesc", _dflt("Description"), placeholder='"What did you do, and what went wrong?"',
                       max_length=4000, required_formula="true", height=110, ttype="Multiline",
                       label='"What happened, required"')
+    # Felterne, Submit afhaenger af, opdaterer Text for hvert tegn - ikke
+    # foerst, naar de mister fokus (saa naaede trykket paa Submit ikke frem,
+    # foer den regnede felterne for udfyldt, issue #177).
+    for c in (other, title, desc):
+        c.props["TriggerOutput"] = "TriggerOutput.Keypress"
     desc_f = _field("conIbFormDesc", "What happened?", desc, required=True)
 
     more = button("btnIbMore", 'If(varIbMore, "Hide details", "Add more details (optional)")',
@@ -1368,27 +1382,35 @@ def build_form():
                         'LayoutContext & " layout, " & Host.OSType & ", and the date and time."',
                         size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true",
                         visible=f"!({EDITING})")
-    missing = text_ctrl("txtIbFormMissing",
-                        '"To submit, pick an application and a section, and fill in the title '
-                        '(at least 4 characters) and what happened."',
-                        size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true",
-                        visible=f"!({VALID})")
-    # Submit er footerens eneste handling (issue #135). OnSelect tjekker
-    # selv, at intet kald koerer, og at felterne er gyldige - et hurtigt
-    # dobbeltklik naar ikke at sende sagen to gange.
+    # Hvad mangler der? Staar i foden lige under Submit - og i beskeden, hvis
+    # man trykker for tidligt (issue #177).
+    missing_text = f'"To submit, add " & {MISSING_FX} & "."'
+    missing = text_ctrl("txtIbFormMissing", missing_text, size=lay.SIZE_SMALL,
+                        color=f"If(varIbTried, {C_INVALID_FG}, {C_MUTED})",
+                        height=_lines_h(missing_text, f"{FORM_W} - {2 * POP_PAD}", px=6.6),
+                        wrap="true", visible=f"!({VALID})")
+    # Submit er footerens eneste handling (issue #135). Den er ikke laast,
+    # mens felterne er ufuldstaendige - et tryk siger, hvad der mangler.
+    # Kun mens et kald koerer er den laast, og OnSelect tjekker det selv:
+    # et hurtigt dobbeltklik naar ikke at sende sagen to gange.
     submit = button("btnIbFormSubmit", f'If({EDITING}, "Save changes", "Submit issue")',
-                    f"If(\n    !varIbBusy && ({VALID}),\n    If(\n        {EDITING},\n        "
+                    "If(\n    varIbBusy,\n    false,\n"
+                    f"    !({VALID}),\n"
+                    "    Set(varIbTried, true);\n"
+                    f"    Notify({missing_text}, NotificationType.Warning),\n"
+                    f"    If(\n        {EDITING},\n        "
                     + SAVE_EDIT.replace("\n", "\n        ") + ",\n        "
                     + SUBMIT.replace("\n", "\n        ") + "\n    )\n)", primary=True,
                     width=fit_button_width('"Save changes"') + ICON_W, height=36,
                     icon=f'If({EDITING}, "Save", "Send")',
-                    display_mode=f"If(({VALID}) && !varIbBusy, DisplayMode.Edit, DisplayMode.Disabled)")
+                    display_mode="If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)")
     footer = group("conIbFormFooter", [submit], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
+    foot = group("conIbFormFoot", [footer, missing], direction="Vertical", gap=8)
     kids = [head, intro, where, sec_hint, other_f, title_f, similar, desc_f, more, details,
-            files, manage, context, missing]
+            files, manage, context]
     # Foden staar fast under det, der scroller: Submit kan altid naas.
-    return [_popup("IbForm", kids, FORM_ON, width=FORM_W, foot=footer), *build_discard()]
+    return [_popup("IbForm", kids, FORM_ON, width=FORM_W, foot=foot), *build_discard()]
 
 
 # ---------------------------------------------------------------------------

@@ -282,7 +282,19 @@ def test_new_issue_popup_submits_once_and_closes_only_on_success():
     assert P.SUBMIT.rstrip().endswith("Set(varIbBusy, false)")
     form = {c.name: c for c in _walk_ctrls(P.build_form())}
     submit = form["btnIbFormSubmit"].props["OnSelect"]
-    assert submit.startswith(f"If(\n    !varIbBusy && ({P.VALID}),")
+    # Issue #177: Submit er kun laast, mens et kald koerer. Mangler der noget,
+    # siger et tryk hvad - valgfrie felter og filer indgaar ikke i VALID.
+    assert submit.startswith(f"If(\n    varIbBusy,\n    false,\n    !({P.VALID}),\n"
+                             "    Set(varIbTried, true);\n    Notify(")
+    assert form["btnIbFormSubmit"].props["DisplayMode"] == \
+        "If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)"
+    for optional in ("inpIbSteps", "inpIbExpected", "inpIbActual", "inpIbRelated", "drpIbSeverity",
+                     "attIbNewFiles"):
+        assert optional not in P.VALID
+    for required in ("inpIbTitle", "inpIbDesc", "inpIbOther"):
+        assert required in P.VALID
+        assert form[required].props["TriggerOutput"] == "TriggerOutput.Keypress"
+    assert "varIbFormApp" in P.VALID and "varIbFormSection" in P.VALID
     assert form["btnIbFormClose"].props["OnSelect"] == P.CLOSE_ASK
     assert "Set(varIbDiscardOn, true)" in P.CLOSE_ASK and "!varIbBusy" in P.CLOSE_ASK
     assert [k.name for k in form["conIbFormFooter"].children] == ["btnIbFormSubmit"]
