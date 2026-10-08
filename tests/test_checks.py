@@ -445,3 +445,45 @@ def test_vhp_collapsed_summaries_use_inline_markup_only():
         assert fx.count("<style>") == 1, name
         assert re.search(r"</div><style>html,body\{[^}]*\}</style>\",\s*W:", fx), name
         assert re.search(r"hh: If\(w1 > 0 \|\|.*?, 0\)", fx), name
+
+
+# --- issue #188: variabler, der kun saettes, og opslagenes .Id -------------
+
+def _combined():
+    path = os.path.join(APP, "build")
+    if path not in sys.path:
+        sys.path.insert(0, path)
+    import check_combined
+    return check_combined
+
+
+def test_unused_vars_finds_set_only_variable():
+    cc = _combined()
+    # varB laeses; varC saettes to gange, men laeses aldrig.
+    text = ("Set(varA, 1); Set(varB, 2); Set(varC, 3);\n"
+            "If(varB > 0, Set(varC, varB))")
+    assert cc.unused_vars(text) == ["varA", "varC"]
+
+
+def test_combined_app_has_no_set_only_variables():
+    cc = _combined()
+    assert cc.unused_vars(cc.all_text()) == []
+
+
+def test_delete_sets_only_variables_it_reads():
+    import request_delete as rd
+    fl = rd.delete_fx("Fl", ["FunctionalLocation"], "true", "varFlMe")
+    assert "varFlDelSp" not in fl and "varFlDelDomain" not in fl
+    vhp = rd.delete_fx("Vhp", ["MaintenancePlan"], "true", "varVhpMe")
+    assert "Set(varVhpDelSp," in vhp and "varVhpDelDomain" not in vhp
+    hub = rd.delete_fx("Md", list(rd.TAGS), "true", "varMdMe")
+    assert "Set(varMdDelSp," in hub and "Set(varMdDelDomain," in hub
+
+
+def test_plan_lookups_filter_on_value_not_id():
+    # Studio delegerer ikke '=' paa et SharePoint-opslags .Id (issue #188).
+    pat = re.compile(r"MaintenancePlan(?:No|ID)\.Id\s*=")
+    for fn in os.listdir(APP):
+        if fn.endswith(".pa.yaml"):
+            text = open(os.path.join(APP, fn), encoding="utf-8").read()
+            assert not pat.search(text), fn
