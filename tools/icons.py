@@ -50,21 +50,28 @@ MAINTENANCE_PLAN = (
     "M8 2.5v4M16 2.5v4M3 10h18"
 )
 
-HUB_SATELLITES = (
-    (5, 5, "domain-fl"),
-    (19, 5, "domain-vhp"),
-    (5, 19, "domain-mat"),
-    (19, 19, "domain-eq"),
+# MASTERDATA HUB = HJEM (issue #203). Et husomrids - tag, vaegge, gulv og
+# en buet doer - i fire stykker, hvert i sin domaenefarve (tokens, saa de
+# foelger temaet og daempningen fra #199):
+#     venstre tagflade  domain-fl   (blaa)
+#     hoejre tagflade   domain-vhp  (lilla)
+#     venstre vaeg, gulv og doerens venstre halvdel   domain-mat (orange)
+#     hoejre vaeg, gulv og doerens hoejre halvdel     domain-eq  (turkis)
+# Ingen prikker, linjer mellem punkter eller fyld: app-logoet (app-icon.png)
+# er netop et midterpunkt med fire satellitter, og hjem-ikonet skal kunne
+# skelnes fra det. Stregen arves fra den, der tegner (icons.stroke).
+HUB_PARTS = (
+    ("M2.5 11 12 3", "domain-fl"),
+    ("M12 3l9.5 8", "domain-vhp"),
+    ("M12 14a2 2 0 0 0-2 2v4.5H6.5A1.5 1.5 0 0 1 5 19V9", "domain-mat"),
+    ("M12 14a2 2 0 0 1 2 2v4.5h3.5A1.5 1.5 0 0 0 19 19V9", "domain-eq"),
 )
-HUB = "M7 7l2.6 2.6M17 7l-2.6 2.6M7 17l2.6-2.6M17 17l-2.6-2.6"
+HUB = " ".join(d for d, _t in HUB_PARTS)
 
 
 def hub_paths(hx):
-    """Et midterpunkt med fire satellitter, hver i sin domaenefarve. hx(token) giver farven, som den staar i en streng."""
-    sats = "".join(f"<circle cx='{x}' cy='{y}' r='3' fill='{hx(t)}' stroke='none'/>"
-                   for x, y, t in HUB_SATELLITES)
-    return (f"<path d='{HUB}' stroke='{hx('text-muted')}' stroke-width='1.6'/>"
-            f"<circle cx='12' cy='12' r='3.6' fill='{hx('text-muted')}' stroke='none'/>" + sats)
+    """Husomridset i fire farver. hx(token) giver farven, som den staar i en streng."""
+    return "".join(f"<path d='{d}' stroke='{hx(t)}'/>" for d, t in HUB_PARTS)
 
 # KKS-opslaget: tre linjer tekst og et forstoerrelsesglas - en
 # kodevejledning, man soeger i. Ikke et domaene med anmodninger, saa det
@@ -156,6 +163,7 @@ FLUENT = {
     "note": "Note",
     "expand": "ChevronDown",
     "collapse": "ChevronUp",
+    "attach": "Attach",
 }
 
 # Stregen ved en given tegnet stoerrelse - se ovenfor.
