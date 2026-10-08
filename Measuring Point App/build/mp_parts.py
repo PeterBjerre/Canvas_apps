@@ -33,7 +33,10 @@ bruges ogsaa til at rydde et skjult felt ved gem.
 import domain_config as cfg
 import domain_parts as dp
 from gen_screen import C_INFO_FG, C_MUTED, C_WARN_FG
-from build_helpers import card, text_ctrl, text_input, themed_dropdown
+import admin_log as alog
+import permissions as perm
+from build_helpers import (button, card, fit_button_width, group, grow, text_ctrl,
+                           text_input, themed_dropdown)
 
 CELL_W = dp.CELL_W
 REQUIRED = dp.REQUIRED
@@ -309,24 +312,81 @@ UNIT = ("UNIT", "ThisItem.CharacteristicUnit", 70)
 TAG = ("PRODOS TAG", "ThisItem.ProdosTag", 110)
 DESC = (cfg.TEXT_LABEL.upper(),
         f'If(IsBlank(Trim(ThisItem.{cfg.C_TEXT})), "(no text)", ThisItem.{cfg.C_TEXT})', 130)
+# EET FAST LAYOUT (Q13): ingen Compact/All columns. Pladserne er derfor
+# (plads, None) - den anden halvdel af parret hoerer til den visning, der
+# ikke findes her. Alt det, der ikke er plads til, staar i Details.
 SLOTS = [
-    # (Compact, All)
-    (PLANT, PLANT),
-    (FL_C, FL_C),
-    (MPNO, MPNO),
-    (TYPE, TYPE),
-    (CHAR, CHAR),
-    (UNIT, UNIT),
-    (TAG, TAG),
-    (None, DESC),
-    (None, ("DECIMAL PLACES", dp.num_text("DecimalPlaces"), 110)),
-    (None, ("EXISTS IN SAP", "ThisItem.ExistsInSap", 100)),
-    (None, ("IN PRODOS", "ThisItem.InProdos", 90)),
-    (None, ("DOCUMENTS",
-            'If(ThisItem.FileCount > 0, Text(ThisItem.FileCount) & " file(s)", "-")', 90)),
+    (PLANT, None),
+    (FL_C, None),
+    (MPNO, None),
+    (TYPE, None),
+    (CHAR, None),
+    (UNIT, None),
+    (TAG, None),
 ]
 
 
 def build_rows():
     return dp.build_list(SLOTS, "STATUS",
-                         "Search FL, measuring point, characteristic, PRODOS tag")
+                         "Search FL, measuring point, characteristic, PRODOS tag",
+                         views=False, fixed=True)
+
+
+# ---------------------------------------------------------------------------
+# Details: Master Data udfylder maalepunktsnummeret
+#
+# SAP Opretters MP-del kommer senere (Q19). Indtil da - og bagefter som
+# den manuelle vej og til at bekraefte et eksisterende nummer - skriver
+# Master Data eller en admin nummeret her. AEndringen logges som alle
+# andre admin-aendringer (tools/admin_log.py).
+# ---------------------------------------------------------------------------
+MPNO_INPUT = "inpDomDetMpNo"
+# Kun en admin (Master Data staar i admin-listen, tools/permissions.py).
+# Reglen staar baade i UI'et og i selve handlingen.
+MPNO_DM = f"If({perm.IS_ADMIN}, DisplayMode.Edit, DisplayMode.View)"
+
+
+def _save_mpno_fx(row):
+    new_no = f"Trim({MPNO_INPUT}.Text)"
+    log = alog.write(
+        "varDomRequestGuid", f'Coalesce({row}.RequestNo, "")', alog.EDIT,
+        f'"Created measuring point no. for " & Coalesce({row}.ItemKey, "") & '
+        f'": " & Coalesce({row}.CreatedMeasuringPointNo, "(blank)") & " '
+        f'{alog.ARROW} " & {new_no}', 8)
+    return (
+        "If(\n"
+        f"    !{perm.IS_ADMIN},\n"
+        '    Notify("Only Master Data and admins can fill in the measuring point no.",\n'
+        "        NotificationType.Warning),\n"
+        "\n"
+        "    IfError(\n"
+        f"    Patch(\n        {cfg.L_ROWS},\n"
+        f"        LookUp({cfg.L_ROWS}, ID = varDomDetailsId),\n"
+        f"        {{ CreatedMeasuringPointNo: {new_no} }}\n"
+        "    );\n"
+        + log + ";\n"
+        + dp.refresh_rows_fx(4) + ";\n"
+        '    Notify("The measuring point no. was saved.", NotificationType.Success),\n'
+        "\n"
+        '    Notify("Save failed: " & FirstError.Message, NotificationType.Error)\n'
+        "    )\n"
+        ")")
+
+
+def details_extra(row):
+    """Linjen nederst i detaljeruden: nummeret fra SAP, som Master Data
+    eller en admin kan udfylde og rette."""
+    lbl = text_ctrl("txtDomDetMpNoL", '"Set measuring point no."', size=12,
+                    color=C_MUTED, weight="Semibold", height=36,
+                    width=dp.DETAIL_LBL_W, wrap="false")
+    inp = grow(text_input(MPNO_INPUT, f'Coalesce({row}.CreatedMeasuringPointNo, "")',
+                          max_length=40, display_mode=MPNO_DM,
+                          placeholder='"Number from SAP"',
+                          label='"Created measuring point no."'), min_w=140)
+    btn = button("btnDomDetSaveMpNo", '"Save no."', _save_mpno_fx(row),
+                 primary=True, width=fit_button_width('"Save no."'), height=36,
+                 display_mode=MPNO_DM,
+                 tooltip='"Save the measuring point number from SAP on this row"')
+    btn.props["LayoutMinWidth"] = btn.props["Width"]
+    return [group("conDomDetMpNo", [lbl, inp, btn], direction="Horizontal", gap=12,
+                  height=36, align_items="Center")]

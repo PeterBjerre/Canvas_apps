@@ -5929,14 +5929,14 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =82 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (240) + (170) + (170) + (111) + 24, 36, (26) + 8 + (36) + 8 + (36) + 8 + (36))) + 14 + (0 + If(LayoutRank >= 3, 0 + (34), 0) + (Max(Min(CountRows(Filter(
+                            =36 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (240) + (170) + (170) + (111) + 24, 36, (26) + 8 + (36) + 8 + (36) + 8 + (36))) + 14 + (0 + If(LayoutRank >= 3, 0 + (34), 0) + (Max(Min(CountRows(Filter(
                                 colMpRows,
                                 (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
                                 (drpMpStatusFilter.Selected.Value = "All status" ||
                                  Status = Lower(drpMpStatusFilter.Selected.Value)),
                                 (drpMpPlantFilter.Selected.Value = "All plants" ||
                                  Plant = drpMpPlantFilter.Selected.Value)
-                            )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 130, 46)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), If(varMpAllCols, 1821, Max(1260, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18))))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)), 18, 0)) + If(!IsBlank(varMpRequestNo), 14 + (20), 0)
+                            )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 130, 46)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1260, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)), 18, 0)) + If(!IsBlank(varMpRequestNo), 14 + (20), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -6175,129 +6175,6 @@ Screens:
                                         =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                     Width: |-
                                         =170
-                        - conMpViewSwitch:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =32
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Center
-                              LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
-                              LayoutGap: |-
-                                  =8
-                              LayoutJustifyContent: |-
-                                  =LayoutJustifyContent.End
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              Width: |-
-                                  =Parent.Width
-                            Children:
-                              - btnMpViewCompact:
-                                  Control: ModernButton
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Compact view"
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    Appearance: |-
-                                        =If(!varMpAllCols, ButtonAppearance.Primary, ButtonAppearance.Outline)
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =If(!varMpAllCols, C.'color-brand-primary', C.'border-default')
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =If(!varMpAllCols, C.'text-on-primary', C.'text-primary')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =32
-                                    Layout: |-
-                                        =ButtonLayout.TextOnly
-                                    LayoutMinWidth: |-
-                                        =90
-                                    OnSelect: |-
-                                        =Set(varMpAllCols, false)
-                                    RadiusBottomLeft: |-
-                                        =16
-                                    RadiusBottomRight: |-
-                                        =16
-                                    RadiusTopLeft: |-
-                                        =16
-                                    RadiusTopRight: |-
-                                        =16
-                                    Size: |-
-                                        =13
-                                    Text: |-
-                                        ="Compact"
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Width: |-
-                                        =90
-                              - btnMpViewAll:
-                                  Control: ModernButton
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="All columns view"
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    Appearance: |-
-                                        =If(varMpAllCols, ButtonAppearance.Primary, ButtonAppearance.Outline)
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =If(varMpAllCols, C.'color-brand-primary', C.'border-default')
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =If(varMpAllCols, C.'text-on-primary', C.'text-primary')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =32
-                                    Layout: |-
-                                        =ButtonLayout.TextOnly
-                                    LayoutMinWidth: |-
-                                        =114
-                                    OnSelect: |-
-                                        =Set(varMpAllCols, true)
-                                    RadiusBottomLeft: |-
-                                        =16
-                                    RadiusBottomRight: |-
-                                        =16
-                                    RadiusTopLeft: |-
-                                        =16
-                                    RadiusTopRight: |-
-                                        =16
-                                    Size: |-
-                                        =13
-                                    Text: |-
-                                        ="All columns"
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Width: |-
-                                        =114
                         - conMpTableWrap:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -6316,7 +6193,7 @@ Screens:
                                        Status = Lower(drpMpStatusFilter.Selected.Value)),
                                       (drpMpPlantFilter.Selected.Value = "All plants" ||
                                        Plant = drpMpPlantFilter.Selected.Value)
-                                  )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 130, 46)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), If(varMpAllCols, 1821, Max(1260, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18))))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)), 18, 0)
+                                  )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 130, 46)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1260, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)), 18, 0)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Start
                               LayoutDirection: |-
@@ -6361,7 +6238,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 3
                                     Width: |-
-                                        =If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), If(varMpAllCols, 1821, Max(1260, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18))))
+                                        =If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1260, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))
                                   Children:
                                     - txtMpHeadStatus:
                                         Control: ModernText
@@ -6430,7 +6307,7 @@ Screens:
                                           Text: |-
                                               ="PLANT"
                                           Width: |-
-                                              =If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)
+                                              =70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7
                                           Wrap: |-
                                               =false
                                     - txtMpHead1:
@@ -6465,7 +6342,7 @@ Screens:
                                           Text: |-
                                               ="FUNCTIONAL LOCATION"
                                           Width: |-
-                                              =If(varMpAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)
+                                              =154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7
                                           Wrap: |-
                                               =false
                                     - txtMpHead2:
@@ -6500,7 +6377,7 @@ Screens:
                                           Text: |-
                                               ="MEASURING POINT"
                                           Width: |-
-                                              =If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)
+                                              =130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7
                                           Wrap: |-
                                               =false
                                     - txtMpHead3:
@@ -6535,7 +6412,7 @@ Screens:
                                           Text: |-
                                               ="TYPE"
                                           Width: |-
-                                              =If(varMpAllCols, 120, 120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)
+                                              =120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7
                                           Wrap: |-
                                               =false
                                     - txtMpHead4:
@@ -6570,7 +6447,7 @@ Screens:
                                           Text: |-
                                               ="CHARACTERISTIC"
                                           Width: |-
-                                              =If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)
+                                              =130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7
                                           Wrap: |-
                                               =false
                                     - txtMpHead5:
@@ -6605,7 +6482,7 @@ Screens:
                                           Text: |-
                                               ="UNIT"
                                           Width: |-
-                                              =If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)
+                                              =70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7
                                           Wrap: |-
                                               =false
                                     - txtMpHead6:
@@ -6640,199 +6517,14 @@ Screens:
                                           Text: |-
                                               ="PRODOS TAG"
                                           Width: |-
-                                              =If(varMpAllCols, 110, 110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)
-                                          Wrap: |-
-                                              =false
-                                    - txtMpHead7:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="DESCRIPTION"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =18
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =11
-                                          Text: |-
-                                              ="DESCRIPTION"
-                                          Visible: |-
-                                              =varMpAllCols
-                                          Width: |-
-                                              =130
-                                          Wrap: |-
-                                              =false
-                                    - txtMpHead8:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="DECIMAL PLACES"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =18
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =11
-                                          Text: |-
-                                              ="DECIMAL PLACES"
-                                          Visible: |-
-                                              =varMpAllCols
-                                          Width: |-
-                                              =116
-                                          Wrap: |-
-                                              =false
-                                    - txtMpHead9:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="EXISTS IN SAP"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =18
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =11
-                                          Text: |-
-                                              ="EXISTS IN SAP"
-                                          Visible: |-
-                                              =varMpAllCols
-                                          Width: |-
-                                              =100
-                                          Wrap: |-
-                                              =false
-                                    - txtMpHead10:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="IN PRODOS"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =18
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =11
-                                          Text: |-
-                                              ="IN PRODOS"
-                                          Visible: |-
-                                              =varMpAllCols
-                                          Width: |-
-                                              =90
-                                          Wrap: |-
-                                              =false
-                                    - txtMpHead11:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="DOCUMENTS"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =18
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =11
-                                          Text: |-
-                                              ="DOCUMENTS"
-                                          Visible: |-
-                                              =varMpAllCols
-                                          Width: |-
-                                              =95
+                                              =110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7
                                           Wrap: |-
                                               =false
                                     - txtMpHeadMore:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              =Self.Text
+                                              ="MORE"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -6858,7 +6550,7 @@ Screens:
                                           Size: |-
                                               =11
                                           Text: |-
-                                              =If(varMpAllCols, "ACTIONS", "MORE")
+                                              ="MORE"
                                           Width: |-
                                               =142
                                           Wrap: |-
@@ -6893,7 +6585,7 @@ Screens:
                                           Size: |-
                                               =11
                                           Text: |-
-                                              =If(varMpAllCols, "", "ACTIONS")
+                                              ="ACTIONS"
                                           Width: |-
                                               =190
                                           Wrap: |-
@@ -6971,7 +6663,7 @@ Screens:
                                     TemplateSize: |-
                                         =If(LayoutRank < 3, 128, 44)
                                     Width: |-
-                                        =(If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), If(varMpAllCols, 1821, Max(1260, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18))))) + 4 + 18
+                                        =(If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1260, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18
                                     WrapCount: |-
                                         =1
                                   Children:
@@ -7058,7 +6750,7 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)
+                                              =70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -7097,11 +6789,11 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =If(varMpAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)
+                                              =154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
                                     - txtMpCell2:
@@ -7136,11 +6828,11 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)
+                                              =130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
                                     - txtMpCell3:
@@ -7175,11 +6867,11 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =If(varMpAllCols, 120, 120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)
+                                              =120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
                                     - txtMpCell4:
@@ -7214,11 +6906,11 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)
+                                              =130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 120, 120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
                                     - txtMpCell5:
@@ -7253,11 +6945,11 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)
+                                              =70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 120, 120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
                                     - txtMpCell6:
@@ -7292,206 +6984,11 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =If(varMpAllCols, 110, 110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)
+                                              =110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 120, 120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6
-                                          Y: |-
-                                              =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
-                                    - txtMpCell7:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =If(IsBlank(Trim(ThisItem.Description)), "(no text)", ThisItem.Description)
-                                          Visible: |-
-                                              =(LayoutRank >= 3) && (varMpAllCols)
-                                          Width: |-
-                                              =130
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 120, 120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 110, 110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6
-                                          Y: |-
-                                              =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
-                                    - txtMpCell8:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =If(IsBlank(ThisItem.DecimalPlaces), "", Text(ThisItem.DecimalPlaces))
-                                          Visible: |-
-                                              =(LayoutRank >= 3) && (varMpAllCols)
-                                          Width: |-
-                                              =116
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 120, 120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 110, 110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + If(varMpAllCols, (130) + 6, 0)
-                                          Y: |-
-                                              =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
-                                    - txtMpCell9:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =ThisItem.ExistsInSap
-                                          Visible: |-
-                                              =(LayoutRank >= 3) && (varMpAllCols)
-                                          Width: |-
-                                              =100
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 120, 120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 110, 110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + If(varMpAllCols, (130) + 6, 0) + If(varMpAllCols, (116) + 6, 0)
-                                          Y: |-
-                                              =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
-                                    - txtMpCell10:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =ThisItem.InProdos
-                                          Visible: |-
-                                              =(LayoutRank >= 3) && (varMpAllCols)
-                                          Width: |-
-                                              =90
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 120, 120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 110, 110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + If(varMpAllCols, (130) + 6, 0) + If(varMpAllCols, (116) + 6, 0) + If(varMpAllCols, (100) + 6, 0)
-                                          Y: |-
-                                              =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
-                                    - txtMpCell11:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =If(ThisItem.FileCount > 0, Text(ThisItem.FileCount) & " file(s)", "-")
-                                          Visible: |-
-                                              =(LayoutRank >= 3) && (varMpAllCols)
-                                          Width: |-
-                                              =95
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 120, 120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 110, 110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + If(varMpAllCols, (130) + 6, 0) + If(varMpAllCols, (116) + 6, 0) + If(varMpAllCols, (100) + 6, 0) + If(varMpAllCols, (90) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
                                     - btnMpRowDocs:
@@ -7575,7 +7072,7 @@ Screens:
                                           Width: |-
                                               =64
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 120, 120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 110, 110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + If(varMpAllCols, (130) + 6, 0) + If(varMpAllCols, (116) + 6, 0) + If(varMpAllCols, (100) + 6, 0) + If(varMpAllCols, (90) + 6, 0) + If(varMpAllCols, (95) + 6, 0) + 10 + 0
+                                              =0 + 0 + 0 + (90) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + 10 + 0
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - btnMpRowCopy:
@@ -7611,7 +7108,7 @@ Screens:
                                               Set(varMpFPlant, ThisItem.Plant);
                                               Set(varMpFFunctionalLocation, ThisItem.FunctionalLocation);
                                               Set(varMpFExistsInSap, ThisItem.ExistsInSap);
-                                              Set(varMpFMeasuringPoint, ThisItem.MeasuringPoint);
+                                              Set(varMpFMeasuringPoint, "");
                                               Set(varMpFMeasuringPointType, ThisItem.MeasuringPointType);
                                               Set(varMpFCharacteristic, ThisItem.Characteristic);
                                               Set(varMpFCharacteristicDescription, ThisItem.CharacteristicDescription);
@@ -7653,7 +7150,7 @@ Screens:
                                           Width: |-
                                               =64
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 120, 120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 110, 110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + If(varMpAllCols, (130) + 6, 0) + If(varMpAllCols, (116) + 6, 0) + If(varMpAllCols, (100) + 6, 0) + If(varMpAllCols, (90) + 6, 0) + If(varMpAllCols, (95) + 6, 0) + 10 + 0 + (64) + 4
+                                              =0 + 0 + 0 + (90) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + 10 + 0 + (64) + 4
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - btnMpRowDetails:
@@ -7702,7 +7199,7 @@ Screens:
                                           Width: |-
                                               =72
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 120, 120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 110, 110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + If(varMpAllCols, (130) + 6, 0) + If(varMpAllCols, (116) + 6, 0) + If(varMpAllCols, (100) + 6, 0) + If(varMpAllCols, (90) + 6, 0) + If(varMpAllCols, (95) + 6, 0) + (142) + 6 + 10 + 0
+                                              =0 + 0 + 0 + (90) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (142) + 6 + 10 + 0
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - btnMpRowOpen:
@@ -7779,7 +7276,7 @@ Screens:
                                           Width: |-
                                               =60
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 120, 120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 110, 110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + If(varMpAllCols, (130) + 6, 0) + If(varMpAllCols, (116) + 6, 0) + If(varMpAllCols, (100) + 6, 0) + If(varMpAllCols, (90) + 6, 0) + If(varMpAllCols, (95) + 6, 0) + (142) + 6 + 10 + 0 + (72) + 4
+                                              =0 + 0 + 0 + (90) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (142) + 6 + 10 + 0 + (72) + 4
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - btnMpRowDelete:
@@ -7833,7 +7330,7 @@ Screens:
                                           Width: |-
                                               =40
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 120, 120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 130, 130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 70, 70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + (If(varMpAllCols, 110, 110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7)) + 6 + If(varMpAllCols, (130) + 6, 0) + If(varMpAllCols, (116) + 6, 0) + If(varMpAllCols, (100) + 6, 0) + If(varMpAllCols, (90) + 6, 0) + If(varMpAllCols, (95) + 6, 0) + (142) + 6 + 10 + 0 + (72) + 4 + (60) + 4
+                                              =0 + 0 + 0 + (90) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (120 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1260) / 7) + 6 + (142) + 6 + 10 + 0 + (72) + 4 + (60) + 4
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - txtMpRowKeyC:
@@ -7870,7 +7367,7 @@ Screens:
                                           Visible: |-
                                               =LayoutRank < 3
                                           Width: |-
-                                              =Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), If(varMpAllCols, 1821, Max(1260, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18))))) + 4 + 18) - 2 * 2 - 18) - 10 - 10)) - ((70) + 8) - 2)
+                                              =Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1260, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 18) - 10 - 10)) - ((70) + 8) - 2)
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -7925,7 +7422,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 10 + 0 + 0 + (Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), If(varMpAllCols, 1821, Max(1260, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18))))) + 4 + 18) - 2 * 2 - 18) - 10 - 10)) - ((70) + 8) - 2)) + 8
+                                              =0 + 10 + 0 + 0 + (Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1260, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 18) - 10 - 10)) - ((70) + 8) - 2)) + 8
                                           Y: |-
                                               =0 + 8 + 0 + 0 + (((22) - 0 - 0) - (22)) / 2
                                     - txtMpRowMetaC:
@@ -7960,7 +7457,7 @@ Screens:
                                           Visible: |-
                                               =LayoutRank < 3
                                           Width: |-
-                                              =(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), If(varMpAllCols, 1821, Max(1260, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18))))) + 4 + 18) - 2 * 2 - 18) - 10 - 10
+                                              =(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1260, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 18) - 10 - 10
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -8264,7 +7761,7 @@ Screens:
                                               Set(varMpFPlant, ThisItem.Plant);
                                               Set(varMpFFunctionalLocation, ThisItem.FunctionalLocation);
                                               Set(varMpFExistsInSap, ThisItem.ExistsInSap);
-                                              Set(varMpFMeasuringPoint, ThisItem.MeasuringPoint);
+                                              Set(varMpFMeasuringPoint, "");
                                               Set(varMpFMeasuringPointType, ThisItem.MeasuringPointType);
                                               Set(varMpFCharacteristic, ThisItem.Characteristic);
                                               Set(varMpFCharacteristicDescription, ThisItem.CharacteristicDescription);
@@ -9073,7 +8570,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =36 + (0 + (Max((46), (30), (30), (30), (30))) * 1 + 0) + 12 + (Min(748, App.Height - 200))
+                =36 + (0 + (Max((46), (30), (30), (30), (30))) * 1 + 0) + 12 + (Min(790, App.Height - 200))
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -9519,7 +9016,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =Min(748, App.Height - 200)
+                      =Min(790, App.Height - 200)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -12406,6 +11903,273 @@ Screens:
                                   =Max(0, ((((Min(820, App.Width - 32)) - 18 - 18) - 18)) - ((190) + 12) - 2)
                               Wrap: |-
                                   =false
+                  - conMpDetMpNo:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =36
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Center
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =12
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Width: |-
+                            =Parent.Width
+                      Children:
+                        - txtMpDetMpNoL:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Set measuring point no."
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-muted'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =36
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =12
+                              Text: |-
+                                  ="Set measuring point no."
+                              Width: |-
+                                  =190
+                              Wrap: |-
+                                  =false
+                        - inpMpDetMpNo:
+                            Control: ModernTextInput
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Created measuring point no."
+                              Appearance: |-
+                                  =If((If(IsAdmin, DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              BorderColor: |-
+                                  =C.'border-default'
+                              BorderStyle: |-
+                                  =BorderStyle.Solid
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =If((If(IsAdmin, DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                              Default: |-
+                                  =Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).CreatedMeasuringPointNo, "")
+                              DisplayMode: |-
+                                  =If((If(IsAdmin, DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                              Fill: |-
+                                  =If(If(IsAdmin, DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                              FillPortions: |-
+                                  =0
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =36
+                              LayoutMinWidth: |-
+                                  =140
+                              MaxLength: |-
+                                  =40
+                              Placeholder: |-
+                                  ="Number from SAP"
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =If(LayoutRank < 2, 16, 14)
+                              ValidationState: |-
+                                  =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                              Width: |-
+                                  =Max(140, ((((Min(820, App.Width - 32)) - 18 - 18) - 18)) - ((190) + 12) - ((100) + 12) - 2)
+                        - btnMpDetSaveMpNo:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Save no."
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              Color: |-
+                                  =C.'text-on-primary'
+                              DisplayMode: |-
+                                  =If(IsAdmin, DisplayMode.Edit, DisplayMode.View)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =36
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
+                              LayoutMinWidth: |-
+                                  =100
+                              OnSelect: |-
+                                  =If(
+                                      !IsAdmin,
+                                      Notify("Only Master Data and admins can fill in the measuring point no.",
+                                          NotificationType.Warning),
+                                  
+                                      IfError(
+                                      Patch(
+                                          MeasuringPointItems,
+                                          LookUp(MeasuringPointItems, ID = varMpDetailsId),
+                                          { CreatedMeasuringPointNo: Trim(inpMpDetMpNo.Text) }
+                                      );
+                                          IfError(
+                                              Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                  Title: Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).RequestNo, ""),
+                                                  RequestGuid: varMpRequestGuid,
+                                                  Stage: "Admin",
+                                                  Decision: "AdminEdit",
+                                                  Detail: Left("Created measuring point no. for " & Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).ItemKey, "") & ": " & Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).CreatedMeasuringPointNo, "(blank)") & " → " & Trim(inpMpDetMpNo.Text), 255),
+                                                  Comment: "Created measuring point no. for " & Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).ItemKey, "") & ": " & Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).CreatedMeasuringPointNo, "(blank)") & " → " & Trim(inpMpDetMpNo.Text),
+                                                  DecidedByEmail: Lower(User().Email),
+                                                  DecidedOn: Now()
+                                              });
+                                              true,
+                                              Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                              false
+                                          );
+                                      If(
+                                          (!IsBlank(varMpRequestGuid) && !IsBlank(varMpIdx) && varMpIdx.RequestGuid = varMpRequestGuid && !(Lower(Coalesce(varMpIdx.RequesterEmail, "")) = varMpMe)),
+                                          ClearCollect(
+                                              colMpRows,
+                                              ForAll(
+                                                  SortByColumns(Filter(MeasuringPointItems, RequestGuid = varMpRequestGuid), "Created", SortOrder.Descending) As R,
+                                                  {
+                                                      RowId: R.ID,
+                                                      ItemKey: Coalesce(R.ItemKey, ""),
+                                                      RequestNo: Coalesce(R.RequestNo, ""),
+                                                      Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                      FileCount: Coalesce(R.FileCount, 0),
+                                                      Description: Coalesce(R.Description, ""),
+                                                      Plant: Coalesce(R.Plant, ""),
+                                                      FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                      ExistsInSap: Coalesce(R.ExistsInSap, ""),
+                                                      MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                      MeasuringPointType: Coalesce(R.MeasuringPointType, ""),
+                                                      Characteristic: Coalesce(R.Characteristic, ""),
+                                                      CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                      CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                      CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                      DecimalPlaces: R.DecimalPlaces,
+                                                      TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                      LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                      UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                      ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                      InProdos: Coalesce(R.InProdos, ""),
+                                                      ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                      ProdosCounterExists: Coalesce(R.ProdosCounterExists, ""),
+                                                      CounterCreateIn: Coalesce(R.CounterCreateIn, ""),
+                                                      Remarks: Coalesce(R.Remarks, ""),
+                                                      IsCounter: Coalesce(R.IsCounter, false),
+                                                      ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                      CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                      CounterCreatedOn: R.CounterCreatedOn,
+                                                      CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                      SapResult: Coalesce(R.SapResult, "")
+                                                  }
+                                              )
+                                          ),
+                                          ClearCollect(
+                                              colMpRows,
+                                              ForAll(
+                                                  SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe), "Created", SortOrder.Descending) As R,
+                                                  {
+                                                      RowId: R.ID,
+                                                      ItemKey: Coalesce(R.ItemKey, ""),
+                                                      RequestNo: Coalesce(R.RequestNo, ""),
+                                                      Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                      FileCount: Coalesce(R.FileCount, 0),
+                                                      Description: Coalesce(R.Description, ""),
+                                                      Plant: Coalesce(R.Plant, ""),
+                                                      FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                      ExistsInSap: Coalesce(R.ExistsInSap, ""),
+                                                      MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                      MeasuringPointType: Coalesce(R.MeasuringPointType, ""),
+                                                      Characteristic: Coalesce(R.Characteristic, ""),
+                                                      CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                      CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                      CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                      DecimalPlaces: R.DecimalPlaces,
+                                                      TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                      LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                      UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                      ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                      InProdos: Coalesce(R.InProdos, ""),
+                                                      ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                      ProdosCounterExists: Coalesce(R.ProdosCounterExists, ""),
+                                                      CounterCreateIn: Coalesce(R.CounterCreateIn, ""),
+                                                      Remarks: Coalesce(R.Remarks, ""),
+                                                      IsCounter: Coalesce(R.IsCounter, false),
+                                                      ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                      CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                      CounterCreatedOn: R.CounterCreatedOn,
+                                                      CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                      SapResult: Coalesce(R.SapResult, "")
+                                                  }
+                                              )
+                                          )
+                                      );
+                                      Notify("The measuring point no. was saved.", NotificationType.Success),
+                                  
+                                      Notify("Save failed: " & FirstError.Message, NotificationType.Error)
+                                      )
+                                  )
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  ="Save no."
+                              Tooltip: |-
+                                  ="Save the measuring point number from SAP on this row"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Width: |-
+                                  =100
       - conMpAttModal:
           Control: GroupContainer
           Variant: AutoLayout
@@ -16996,8 +16760,6 @@ Screens:
                             Set(varMpAttJson, "");
                             Set(varMpFlMsg, "");
                             Set(varMpFlBusy, false);
-                            // Listen: false = Compact, true = All columns (issue #67/#68).
-                            Set(varMpAllCols, false);
                             Set(varMpActiveRowId, Blank());
                             Set(varMpRowStatus, "valid");
                             Set(varMpValidated, false);
