@@ -9,7 +9,7 @@ med ikoner; aabnet viser den teksterne ved siden af.
 
     lukket (NAV_W)        aabnet (NAV_W_OPEN)
     +------+              +------------------------+
-    | [BS] |              | [BS]  BIO SAP          |
+    | [ik] |              | [ik]  BIO SAP          |
     |  >>  |              |  <<                    |
     |  ^   |              |  ^    Masterdata Hub   |
     |  o   |              |  o    Functional ...   |
@@ -22,7 +22,8 @@ med ikoner; aabnet viser den teksterne ved siden af.
 
 HVAD DER ER TAGET MED FRA HTML-SIDEN
 ------------------------------------
-  * Logo-maerket "BS" og ordmaerket "BIO SAP".
+  * Logoet og ordmaerket "BIO SAP". Logoet er appens ikon (app-icon.png,
+    issue #203) i stedet for HTML-sidens "BS"-maerke.
   * Ikonerne - de samme stier som NAV_ITEMS i shell.js.
   * Den aktive side: lys baggrund, accentfarve og den smalle accentstreg
     ude ved kanten (".kv-rail-item[aria-current=page]::before").
@@ -183,15 +184,34 @@ def _item_svg(w, path, label, current, icon_token=None):
     return _svg(w, ITEM_H, body)
 
 
+# App-logoet (issue #203): appens eget ikon, BIO SAP App/app-icon.png -
+# det samme billede, som er app-ikon i app-indstillingerne. Deployet sender
+# kun YAML (ingen medier), saa PNG'en staar som data-URI i EEN navngiven
+# formel i App.Formulas, laest direkte fra filen ved hvert byg - ingen
+# kopi af billedet, og ikke en kopi pr. skaerm. Logoet tegnes som <image>
+# i sidebarens SVG, saa ordmaerket og afstandene er de samme som foer.
+LOGO = "AppLogo"
+LOGO_FILE = ("BIO SAP App", "app-icon.png")
+LOGO_PX = 26
+
+
+def logo_formula():
+    """AppLogo til App.Formulas: PNG'en som data-URI (base64)."""
+    import base64
+    path = os.path.join(env.ROOT, *LOGO_FILE)
+    with open(path, "rb") as f:
+        data = base64.b64encode(f.read()).decode("ascii")
+    return ("// APP-LOGO. Genereret af tools/side_nav.py af "
+            + "/".join(LOGO_FILE) + " - ret ikke her.\n"
+            + f'{LOGO} = "data:image/png;base64,{data}";')
+
+
 def _brand_svg(w, wordmark):
-    m = 26
+    m = LOGO_PX
     x = (lay.NAV_W - m) // 2
     y = (BRAND_H - m) // 2
-    body = (f"<rect x='{x}' y='{y}' width='{m}' height='{m}' rx='7' "
-            f"fill='{_hx('color-brand-primary')}'/>"
-            f"<text x='{x + m // 2}' y='{y + 17}' text-anchor='middle' "
-            f"font-family='Consolas, monospace' font-size='11' font-weight='700' "
-            f"fill='{_hx('text-on-primary')}'>BS</text>")
+    body = (f"<image x='{x}' y='{y}' width='{m}' height='{m}' "
+            f"preserveAspectRatio='xMidYMid meet' href='\" & {LOGO} & \"'/>")
     if wordmark:
         body += (f"<text x='{lay.NAV_W}' y='{BRAND_H // 2 + 6}' {FONT} "
                  f"font-size='16' font-weight='600' "
