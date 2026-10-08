@@ -35,7 +35,7 @@ import yaml
 import combined as cb
 
 # Navne uden domaenepraefiks, der er FAELLES med vilje.
-SHARED = {"gblFbOpen", "gblFbMe", "gblFbSel", "gblFbPick", "gblFbBusy", "colFbRequests", "gblNavOpen", "colAppPrefs", "darkModeEnabled", cb.NEW_SEQ, "gblNavigating", "gblNavTo",
+SHARED = {"gblFbOpen", "gblFbMe", "gblFbSel", "gblFbPick", "gblFbBusy", "gblFbAtt", "colFbRequests", "gblNavOpen", "colAppPrefs", "darkModeEnabled", cb.NEW_SEQ, "gblNavigating", "gblNavTo",
           # Skaermen, man kom fra, naar man aabner Issue Board (issue #114).
           "gblNavFrom"}
 # Hubbens egne - de har aldrig haft et praefiks.

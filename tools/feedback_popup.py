@@ -2,16 +2,26 @@
 """
 "Message us" popup - opened from the message icon in the sidebar (side_nav.py).
 
-The user writes to the SAP maintenance mailbox. The mail is sent by the
-flow BioSap-SendFeedbackMail from the service account SVC_BioSap (issue
-#189) - the same Outlook connection reference (orsted_BioSapOutlookConn,
-embedded) as the Issue Board and approval mails. The user's own Outlook is
-never used: no mailto link, no connector of the user's. The flow writes the
-signed-in user (from Power Apps' header) at the top of the mail and sets
-Reply-To to them, so the team can answer the user directly.
+The user writes to the SAP maintenance mailbox. Send (the primary button)
+runs the flow BioSap-SendFeedbackMail from the service account SVC_BioSap
+(issue #189) - the same Outlook connection reference
+(orsted_BioSapOutlookConn, embedded) as the Issue Board and approval mails.
+The flow writes the signed-in user at the top of the mail and sets Reply-To
+to them, so the team can answer the user directly.
 
-Files chosen in the popup go with the mail as attachments (JSON with the
-files as data URIs - the flow turns them back into binaries).
+"Send via Outlook" (issue #205) is the old mailto draft from before #189:
+subject, the chosen request and the message open in the user's own Outlook.
+No connector is involved. A mailto link cannot carry files, so the button
+is disabled while files are attached, and the popup says why.
+
+Files go with Send as attachments (JSON with the files as data URIs - the
+flow turns them back into binaries). They are chosen in a separate
+"Attach files" popup (issue #205); the paperclip button shows how many.
+
+TEGN (issue #205): afsendernavnet kom fra Power Apps' header
+x-ms-user-name, og en HTTP-header baerer ikke ae/oe/aa - de blev til "?".
+Navnet sendes nu med i Context-JSON'en (User().FullName, UTF-8 i
+kaldets krop), og flowet bruger det foer headeren.
 
 The user's initials and email are read from the signed-in account.
 
@@ -56,6 +66,7 @@ REQS = "colFbRequests"
 MAILBOX = "sapvedligehold@orsted.com"
 SEND_FLOW = "'BioSap-SendFeedbackMail'"
 BUSY = "gblFbBusy"    # flowet koerer - Send er spaerret, saa intet sendes to gange
+ATT = "gblFbAtt"      # vedhaeftningspopuppen er aaben (issue #205)
 # Vedhaeftninger: faa og smaa nok til, at JSON-kaldet (base64) og mailen
 # holder sig langt under Outlook-forbindelsens graenser.
 MAX_FILES = 3
@@ -99,7 +110,7 @@ _COLLECT = (f"ClearCollect({REQS}, ForAll(FirstN(Sort(Filter('{ri.LIST}', Reques
             f"TypeName: {_type_fx('R.Domain.Value')}, Url: Coalesce(R.AppUrl, \"\")}}))")
 
 OPEN_FX = (f"Set({ME}, Lower(User().Email)); Set({PICK}, false); Set({BUSY}, false); "
-           f"{_COLLECT}; Set({OPEN}, true)")
+           f"Set({ATT}, false); {_COLLECT}; Set({OPEN}, true)")
 
 # Ingen tom "Request:"-linje mere (issue #116): en valgt anmodning saettes
 # ind som en kontekstblok ved afsendelse (CONTEXT_FX).
@@ -111,16 +122,39 @@ TEMPLATE_FX = ('"Hello SAP Maintenance Team," & Char(10) & Char(10) & '
 # emne i overskriften og - kun for en anmodning - et afsnit med nummer,
 # type, titel og link. Beskeden selv faar ingen kontekstblok mere. Et tomt
 # valg giver null-felter, som flowet laeser som tomme.
+# Name er brugerens navn (issue #205): i kaldets krop er det UTF-8, mens
+# headeren x-ms-user-name gav "?" for ae, oe og aa.
 CONTEXT_FX = (f'JSON({{Kind: {SEL}.Kind, Topic: {SEL}.Label, Code: {SEL}.Code, '
-              f'Type: {SEL}.TypeName, Title: {SEL}.Title, Url: {SEL}.Url}}, JSONFormat.Compact)')
+              f'Type: {SEL}.TypeName, Title: {SEL}.Title, Url: {SEL}.Url, '
+              'Name: User().FullName}, JSONFormat.Compact)')
+
+# "Send via Outlook" (issue #205): den gamle kontekstblok fra foer #189 -
+# en mailto-krop er ren tekst, saa anmodningen staar som linjer foer
+# beskeden. Linket kommer med, naar anmodningen har et.
+OUTLOOK_CONTEXT_FX = (f'If({SEL}.Kind = "R", "Request: " & {SEL}.Code & Char(10) & '
+                      f'"Type: " & {SEL}.TypeName & Char(10) & "Title: " & {SEL}.Title & Char(10) & '
+                      f'If(IsBlank({SEL}.Url), "", "Link: " & {SEL}.Url & Char(10)) & Char(10), "")')
 
 SUBJECT_FX = (f'"SAP maintenance - " & Switch({SEL}.Kind, '
               f'"R", {SEL}.TypeName & " request " & {SEL}.Code, '
               f'"G", {SEL}.Label, "question")')
 
-# Typografien for en valgmulighed - i listen og i den lukkede vaelger.
+# Typografien for en valgmulighed i den udfoldede liste (uaendret).
 ROW_TEXT_SIZE = lay.SIZE_BODY
 ROW_TEXT_PX = 7     # gennemsnitlig tegnbredde i den stoerrelse (til _fit)
+
+# Den LUKKEDE vaelger (issue #205) har formularfelternes typografi:
+# 14 px, 16 px under Tablet (input_theme). Knappen er en Classic/Button, og
+# en klassisk kontrols Size er i PUNKTER, mens de moderne felters er i
+# pixels - SIZE_BODY (13) blev derfor ca. 17 px, stoerre end felterne
+# omkring den. 1 pt = 4/3 px.
+def _pt(px):
+    v = px * 0.75
+    return str(int(v)) if v == int(v) else str(v)
+
+
+SUBJECT_SIZE = lay.if_below("Tablet", _pt(lay.SIZE_INPUT_MOBILE), _pt(lay.SIZE_INPUT))
+SUBJECT_PX = lay.if_below("Tablet", "8.2", "7.2")   # tegnbredde i den stoerrelse (til _fit)
 CHEVRON_DOWN = icons.CHEVRON_DOWN
 CHEVRON_UP = icons.CHEVRON_UP
 
@@ -169,8 +203,10 @@ def _field(name, label, ctrl, width=None):
                  width=width if width is not None else "Parent.Width")
 
 
-def _subject_picker(n):
-    """Feltet "Subject or request": knappen og den udfoldede liste."""
+def _subject_picker(n, avail):
+    """Feltet "Subject or request": (cellen med knappen, den udfoldede
+    liste, soegefeltets navn). avail er den hoejde, listen maa fylde under
+    knappen - den ligger OVEN PAA formularen (issue #205), ikke i den."""
     toggle = f"Set({PICK}, !{PICK})"
     has = f"!IsBlank({SEL}.Kind)"
     is_req = f'{SEL}.Kind = "R"'
@@ -182,11 +218,9 @@ def _subject_picker(n):
         "Visible": is_req, "Width": "20",
     }, h=20, vis=is_req)
     label = f'If({has}, {SEL}.Label, "Pick a subject or request")'
-    # Den valgte vaerdi har samme typografi som teksten i den udfoldede
-    # liste (SubjectRow: SIZE_BODY, normal vaegt, samme tegnbredde i _fit) -
-    # paa alle skaermbredder (issue #140). Knappen er ikke et tekstfelt, saa
-    # iOS-zoom-reglen bag SIZE_INPUT_MOBILE gaelder ikke her.
-    size = str(ROW_TEXT_SIZE)
+    # Pladsholderen og den valgte vaerdi har de andre felters typografi
+    # (issue #205, se SUBJECT_SIZE): normal vaegt, een linje, ... til sidst.
+    size = SUBJECT_SIZE
     btn = Ctrl(n("btn", "Subject"), "Classic/Button", props={
         "Align": "Align.Left",
         "BorderColor": C_TRANSPARENT, "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
@@ -203,7 +237,7 @@ def _subject_picker(n):
         "PressedFill": C_TRANSPARENT,
         "Size": size,
         "TabIndex": "0",
-        "Text": _fit(label, "Self.Width", ROW_TEXT_PX),
+        "Text": _fit(label, "Self.Width", SUBJECT_PX),
         "VerticalAlign": "VerticalAlign.Middle",
     }, h=34)
     chevron = Ctrl(n("img", "SubjectChevron"), "Image", props={
@@ -287,7 +321,10 @@ def _subject_picker(n):
     hit.vis = pickable
 
     gal_name = n("gal", "Subject")
-    gal_h = f"Min({gal_name}.AllItemsCount, {MAX_ROWS}) * {ROW_H}"
+    # Listen holder sig inden for den plads, der er under knappen, og
+    # scroller resten (issue #205).
+    gal_h = (f"Min(Min({gal_name}.AllItemsCount, {MAX_ROWS}) * {ROW_H}, "
+             f"{avail} - 12 - If({many}, 42, 0))")
     gal = Ctrl(gal_name, "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Subjects and your requests"',
         "BorderStyle": "BorderStyle.None", "Fill": C_TRANSPARENT, "FillPortions": "0",
@@ -305,18 +342,78 @@ def _subject_picker(n):
 
     lab = text_ctrl(n("txt", "SubjectLabel"), '"Subject or request (optional)"', size=12,
                     color=C_MUTED, weight="Semibold", height=20, wrap="false")
-    cell = group(n("con", "SubjectCell"), [lab, trigger, panel], direction="Vertical", gap=6)
-    return cell, find_name
+    cell = group(n("con", "SubjectCell"), [lab, trigger], direction="Vertical", gap=6)
+    return cell, panel, find_name
+
+
+# Raekken med vedhaeftningsknappen (issue #205) og hoejden af det, der staar
+# under knappen "Subject or request": cellen er etiket 20 + 6 + knap 36.
+SUBJECT_CELL_H = 62
+ATTACH_ROW_H = 36
+# Listen ligger 4 px under knappen.
+LIST_Y = SUBJECT_CELL_H + 4
+
+
+def _no_flex(ctrl, x, y):
+    """Et barn af en ManualLayout-container: X og Y i stedet for
+    AutoLayout-egenskaberne."""
+    for k in ("FillPortions", "LayoutMinWidth", "AlignInContainer"):
+        ctrl.props.pop(k, None)
+    ctrl.props["X"] = str(x)
+    ctrl.props["Y"] = str(y)
+    ctrl.props["Width"] = "Parent.Width"
+    return ctrl
+
+
+def _attach_popup(n, files, close_fx):
+    """Vedhaeftningspopuppen (issue #205): den faelles klassiske filvaelger
+    (doc_upload) med loftet. Den skjules med Visible og fjernes aldrig, saa
+    de valgte filer bliver i kontrollen, naar popuppen lukkes og aabnes
+    igen. Close er eneste lukkehandling og nulstiller intet."""
+    vis = f"IfError({OPEN} && {ATT}, false)"
+    title = grow(text_ctrl(n("txt", "AttTitle"), '"Attach files"', size=lay.SIZE_CARD_TITLE,
+                           weight="Semibold", height=26, wrap="false"))
+    close = button(n("btn", "AttClose"), '"Close"', close_fx, width=90, height=32)
+    head = group(n("con", "AttHead"), [title, close], direction="Horizontal", gap=12,
+                 height=32, align_items="Center")
+    intro = text_ctrl(n("txt", "AttIntro"),
+                      '"The files go with the message when you press Send."',
+                      size=13, color=C_MUTED, height=40, wrap="true")
+    picker = du.picker(files, '"Files to attach to the message"', MAX_FILES, MAX_FILE_MB,
+                       display_mode=f"If({BUSY}, DisplayMode.Disabled, DisplayMode.Edit)")
+    limits = du.limits_text(n("txt", "FileLimits"), MAX_FILES, MAX_FILE_MB)
+    modal = group(n("con", "AttModal"), [head, intro, picker, limits],
+                  direction="Vertical", gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT,
+                  radius=lay.RADIUS_MODAL, pad=(18, 18, 18, 18),
+                  width="Min(480, App.Width - 40)", drop_shadow="ExtraBold",
+                  align_in_container="Center")
+    backdrop = group(n("con", "AttBackdrop"), [modal], direction="Vertical", gap=0,
+                     height="App.Height", width="App.Width", fill=C_OVERLAY, visible=vis,
+                     justify="Start", align_items="Center", pad=(20, 0, 20, 0),
+                     overflow_y="Scroll")
+    backdrop.props["X"] = "0"
+    backdrop.props["Y"] = "0"
+    return backdrop
 
 
 def build(p):
-    """[backdrop, popup] for one screen. p is the screen's name prefix."""
+    """[backdrop, attachments backdrop] for one screen. p is the screen's
+    name prefix."""
     vis = f"IfError({OPEN}, false)"
     n = lambda kind, base: f"{kind}{p}Fb{base}"
 
-    about, find_name = _subject_picker(n)
+    # Beskedens hoejde: det faste i popuppen (402 - samme regnestykke som
+    # foer #189, hvor vedhaeftningsraekken staar paa notens plads) og
+    # resten til beskeden. Den afhaenger IKKE af, om listen er foldet ud
+    # (issue #205), saa popuppen staar stille.
+    msg_h = f"If({lay.below('Tablet')}, 220, Max(160, Min(272, App.Height - 40 - 402)))"
+    # Pladsen under vaelgerens knap: resten af cellen, beskeden og
+    # vedhaeftningsraekken.
+    avail = f"({msg_h}) + {12 + 26 + 12 + ATTACH_ROW_H - 4}"
+    about, panel, find_name = _subject_picker(n, avail)
     files = n("att", "Files")
-    reset = (f"Set({SEL}, Blank()); Set({PICK}, false); Reset({find_name}); "
+    n_files = f"CountRows({files}.Attachments)"
+    reset = (f"Set({SEL}, Blank()); Set({PICK}, false); Set({ATT}, false); Reset({find_name}); "
              f"Reset({n('inp', 'Message')}); Reset({files})")
 
     title = grow(text_ctrl(n("txt", "Title"), '"Message SAP maintenance"', size=lay.SIZE_CARD_TITLE,
@@ -341,31 +438,45 @@ def build(p):
         grow(_field(n("con", "EmailCell"), "Email", inpEmail), min_w=0),
     ], direction="Horizontal", gap=12, height=62, align_items="Start")
 
-    # Vedhaeftningsfeltet (issue #189) staar paa den gamle notes plads
-    # (36): etiket 20 + 6, vaelgeren, 6 + loftteksten 18. Beskeden giver
-    # forskellen fra sig, naar skaermen er lav.
-    extra = f"({du.picker_height(files)} + 50 - 36)"
-    msg_h = (f"If({lay.below('Tablet')}, 220, Max(160, Min(272, App.Height - 40 - 402 - {extra})))")
     inpMessage = text_input(n("inp", "Message"), TEMPLATE_FX, placeholder='"Write your message"',
                             max_length=1200, height=220, ttype="Multiline",
                             label='"Message"')
     inpMessage.props["Height"] = msg_h
     inpMessage.h = msg_h
     message = _field(n("con", "MessageCell"), "Message", inpMessage)
-    # Mens listen er foldet ud, staar den paa beskedens plads - saa passer
-    # popuppen stadig paa en telefon. Teksten i feltet bevares.
-    message.props["Visible"] = f"!{PICK}"
-    message.vis = f"!{PICK}"
 
-    # Filerne gaar med mailen fra servicekontoen (issue #189) - den gamle
-    # "Send via Outlook" (mailto) er vaek.
-    picker = du.picker(files, '"Files to attach to the message"', MAX_FILES, MAX_FILE_MB,
+    # Papirclipsen (issue #205): aabner vedhaeftningspopuppen og viser,
+    # hvor mange filer der er valgt. Det store upload-felt er vaek fra
+    # formularen.
+    attach_text = f'If({n_files} = 0, "Attach files", "Attach files (" & {n_files} & ")")'
+    attach_w = fit_button_width('"Attach files (3)"') + ICON_W
+    btnAttach = button(n("btn", "Attach"), attach_text, f"Set({PICK}, false); Set({ATT}, true)",
+                       width=attach_w, height=ATTACH_ROW_H, icon=icons.FLUENT["attach"],
+                       accessible=(f'If({n_files} = 0, "Attach files", '
+                                   f'"Attach files, " & {n_files} & " attached")'),
                        display_mode=f"If({BUSY}, DisplayMode.Disabled, DisplayMode.Edit)")
-    limits = du.limits_text(n("txt", "FileLimits"), MAX_FILES, MAX_FILE_MB)
-    attach = _field(n("con", "FilesCell"), "Attachments (optional)",
-                    group(n("con", "FilesBody"), [picker, limits], direction="Vertical", gap=6))
-    attach.props["Visible"] = f"!{PICK}"
-    attach.vis = f"!{PICK}"
+    btnAttach.props["LayoutMinWidth"] = str(attach_w)
+    # mailto kan ikke baere filer - det siges, i stedet for at de forsvinder.
+    outlook_note = text_ctrl(n("txt", "OutlookNote"), '"Send via Outlook can\'t include files."',
+                             size=lay.SIZE_SMALL, color=C_MUTED, height=ATTACH_ROW_H, wrap="true",
+                             visible=f"{n_files} > 0",
+                             extra={"VerticalAlign": "VerticalAlign.Middle"})
+    attach_row = group(n("con", "AttachRow"), [btnAttach, grow(outlook_note)],
+                       direction="Horizontal", gap=12, height=ATTACH_ROW_H, align_items="Center")
+
+    # Formularen under "Subject or request" og listen OVEN PAA den
+    # (issue #205): en ManualLayout-container, hvor listen ligger sidst
+    # (= oeverst). Formularen beholder sin hoejde og sine vaerdier, naar
+    # listen foldes ud; listen er kun saa hoej, som der er plads til
+    # (avail), og scroller resten.
+    form = group(n("con", "Form"), [about, message, attach_row], direction="Vertical", gap=12)
+    _no_flex(form, 0, 0)
+    _no_flex(panel, 0, LIST_Y)
+    area = Ctrl(n("con", "Area"), "GroupContainer", variant="ManualLayout", props={
+        "BorderStyle": "BorderStyle.None", "DropShadow": "DropShadow.None",
+        "FillPortions": "0", "Height": str(form.h), "LayoutMinWidth": "0",
+        "Width": "Parent.Width",
+    }, children=[form, panel], h=form.h)
 
     msg = f"{n('inp', 'Message')}.Text"
     # Flowet sender fra SVC_BioSap og svarer {sent, message}. En afvisning
@@ -392,10 +503,26 @@ def build(p):
     btnSend = button(n("btn", "Send"), '"Send"', send_app, primary=True,
                      width=fit_button_width('"Send"') + ICON_W, height=36, icon="Send",
                      display_mode=blank)
-    footer = group(n("con", "Footer"), [btnSend], direction="Horizontal", gap=8,
+    # "Send via Outlook" (issue #205) - adfaerden fra foer #189: et udkast i
+    # brugerens egen Outlook med emne, anmodning og besked. Hilsenen
+    # skaeres fra, for Outlook saetter brugerens egen signatur paa.
+    # Spaerret, mens der er valgt filer: et mailto-link kan ikke baere dem.
+    top = f'Left({msg}, Find("Kind regards,", {msg} & "Kind regards,") - 1)'
+    send_out = (f'Launch("mailto:{MAILBOX}?subject=" & EncodeUrl({SUBJECT_FX}) & '
+                f'"&body=" & EncodeUrl({OUTLOOK_CONTEXT_FX} & {top}));\n'
+                f"Set({OPEN}, false);\n{reset};\n"
+                'Notify("The mail is ready in Outlook. Press Send there.", NotificationType.Information)')
+    btnOutlook = button(n("btn", "SendOutlook"), '"Send via Outlook"', send_out,
+                        width=fit_button_width('"Send via Outlook"'), height=36,
+                        display_mode=(f"If(IsBlank(Trim({msg})) || {BUSY} || {n_files} > 0, "
+                                      "DisplayMode.Disabled, DisplayMode.Edit)"),
+                        tooltip=(f'If({n_files} > 0, "Outlook can\'t take the attached files. '
+                                 'Use Send, or remove the files.", '
+                                 '"Open the message as a draft in your own Outlook")'))
+    footer = group(n("con", "Footer"), [btnOutlook, btnSend], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
 
-    modal = group(n("con", "Modal"), [head, intro, who, about, message, attach, footer],
+    modal = group(n("con", "Modal"), [head, intro, who, area, footer],
                   direction="Vertical", gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT,
                   radius=lay.RADIUS_MODAL, pad=(18, 18, 18, 18),
                   width="Min(560, App.Width - 40)", drop_shadow="ExtraBold",
@@ -406,4 +533,5 @@ def build(p):
                      overflow_y="Scroll")
     backdrop.props["X"] = "0"
     backdrop.props["Y"] = "0"
-    return [backdrop]
+    # Vedhaeftningspopuppen ligger efter (= oven paa) Message us.
+    return [backdrop, _attach_popup(n, files, f"Set({ATT}, false)")]
