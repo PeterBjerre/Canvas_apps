@@ -54,7 +54,16 @@ VALIDATION = """With(
                         VhpSaveableItems,
                         IsBlank(ShortText) || IsBlank(MainWorkCenter) || IsBlank(ActivityType) || IsBlank(FunctionalLocation)
                     ),
-                    "Item " & Text(ItemId) & " (" & Coalesce(ShortText, "no short text") & "): missing required fields.",
+                    With(
+                        {
+                            f:
+                                If(IsBlank(ShortText), ", short text", "") &
+                                If(IsBlank(MainWorkCenter), ", main work center", "") &
+                                If(IsBlank(ActivityType), ", activity type", "") &
+                                If(IsBlank(FunctionalLocation), ", functional location", "")
+                        },
+                        "Item " & Text(ItemId) & " (" & Coalesce(ShortText, "no short text") & "): add " & Mid(f, 3) & "."
+                    ),
                     Char(10)
                 ),
             s1:
@@ -152,6 +161,40 @@ def _section_rules(section):
     return f"Concat(Filter(Split(VhpValidationErrors, Char(10)), {cond}), Value, Char(10))"
 
 
+# HVAD DER MANGLER, PR. SEKTION (issue #220). Trinenes egne beskeder plus
+# sektionens regler (VhpPlanRuleErrors osv.) - samme betingelser, som
+# Submit, progressbaren og badgerne bruger. Ingen nye regler: hver linje
+# er enten et trin, der ikke er faerdigt, eller en linje fra
+# VhpValidationErrors. Usavede aendringer i Item Editoren laegges til paa
+# skaermen (build_hero.ITEM_DIRTY).
+IS_STRAT = 'varVhpPlan.PlanType = "Strategy"'
+STEP_MISSING = {
+    "Plan": [("!VhpStepPlanDone", '"Save the plan header."')],
+    # Samme betingelse som foer (trin 2) - kun beskeden siger nu, hvilken
+    # halvdel der mangler.
+    "Item": [("!VhpStepItemDone",
+              'If(IsEmpty(VhpSaveableItems), "Add at least one item.", '
+              '"Save every item as valid in the Item Editor.")')],
+    "Ops": [("!VhpStepTasklistDone", '"Choose a task list for every item."'),
+            ("!VhpStepOpsDone",
+             f'If({IS_STRAT}, "Give every item operations, each with a package.", '
+             '"Give every item at least one operation.")')],
+}
+MISSING_NAMES = {"Plan": "VhpPlanMissing", "Item": "VhpItemMissing", "Ops": "VhpOpsMissing"}
+RULE_NAMES = {"Plan": "VhpPlanRuleErrors", "Item": "VhpItemRuleErrors", "Ops": "VhpOpsRuleErrors"}
+
+
+def join_lines(parts):
+    """Power Fx-tekst: de ikke-tomme dele, een pr. linje (Char(10))."""
+    rows = ", ".join("{ m: %s }" % p for p in parts)
+    return f"Concat(Filter(Table({rows}), !IsBlank(m)), m, Char(10))"
+
+
+def _section_missing(section):
+    parts = [f"If({cond}, {msg}, \"\")" for cond, msg in STEP_MISSING[section]]
+    return join_lines(parts + [RULE_NAMES[section]])
+
+
 def formulas():
     """(navn, udtryk, forklaring) - samme form som sp_config.named_formulas."""
     F = []
@@ -190,6 +233,9 @@ def formulas():
         "Reglerne, der rettes i Item Editoren.")
     add("VhpOpsRuleErrors", _section_rules("Ops"),
         "Reglerne, der rettes i Tasklist and Operations.")
+    for sec, why in (("Plan", "Plan Header"), ("Item", "Items"), ("Ops", "Tasklist and Operations")):
+        add(MISSING_NAMES[sec], _section_missing(sec),
+            f"Det, der mangler i {why} (issue #220) - een linje pr. krav. Tom = intet.")
     add("VhpPlanValid", "VhpStepPlanDone && IsBlank(VhpPlanRuleErrors)",
         "Plan Header er gemt og opfylder sine regler.")
     add("VhpItemsValid", "VhpStepItemDone && IsBlank(VhpItemRuleErrors)",
