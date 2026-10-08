@@ -111,6 +111,57 @@ def use(expected):
 ROW_H = 44
 GAL_ROWS = 8
 
+# ---------------------------------------------------------------------------
+# APPENS EGNE KROGE (issue #204)
+#
+# Delene herunder er FAELLES. Skal den ene app noget mere - Materials'
+# Object List, dens standardvaerdi i et felt, dens grupperede detaljer -
+# hoerer koden i appens egen mappe, men de faelles dele skal kunne KALDE
+# den. Derfor den her ene, navngivne kontrakt i stedet for en voksende
+# raekke af undtagelser med appnavne i.
+#
+# Appens *_parts kalder configure() ved IMPORT (ikke i en build-funktion):
+# delene kaldes af tools/domain_app.build_screen, og den ser kun modulet.
+#
+# Hver krog er domaeneneutral - der staar intet om materialer her:
+#
+#   field_defaults  {kolonne: udtryk} - vaerdien et felt faar, naar
+#                   formularen ryddes (Materials: StorageBin = "X")
+#   clear_extra     Power Fx efter clear_form_fx
+#   load_extra      Power Fx efter load_row_fx (brug ThisItem.<kolonne>;
+#                   detaljeruden erstatter "ThisItem." med sit opslag)
+#   copy_extra      Power Fx efter copy_row_fx
+#   extra_patch     [(kolonne, udtryk)] - skrives med i save_row_fx ud
+#                   over felterne i SECTIONS
+#   details_groups  [(overskrift, [kolonner])] - grupperet detaljerude.
+#                   None = den flade liste som hidtil
+#   details_hide    kolonner, detaljeruden ikke viser
+#   details_open    Power Fx naar detaljeruden aabnes paa en raekke
+#   details_nav     Power Fx ved Previous/Next i detaljeruden
+#   details_rows    funktion(row) -> kontroller, der laegges i
+#                   detaljeruden efter felterne
+# ---------------------------------------------------------------------------
+HOOKS = {
+    "field_defaults": {},
+    "clear_extra": "",
+    "load_extra": "",
+    "copy_extra": "",
+    "extra_patch": (),
+    "details_groups": None,
+    "details_hide": (),
+    "details_open": "",
+    "details_nav": "",
+    "details_rows": None,
+}
+
+
+def configure(**kw):
+    """Appens kroge. Et ukendt navn er en tastefejl og stopper byggeriet."""
+    unknown = set(kw) - set(HOOKS)
+    if unknown:
+        raise SystemExit("domain_parts.configure: ukendt krog %s" % sorted(unknown))
+    HOOKS.update(kw)
+
 # Arbejder brugeren som ADMIN i en andens anmodning? varDomIdx er den
 # aabne anmodnings indeksraekke (open_request_fx / send_fx); uden GUID er
 # der ingen aaben anmodning, og varDomIdx kan vaere en gammel vaerdi.
@@ -258,13 +309,14 @@ def _var(col):
     return "varDomF" + col
 
 
-def _input_for(col, kind, choices):
+def _input_for(col, kind, choices, required_formula="false"):
     # Praefikset foelger kontroltypen (REVIEW.md A4): inp = tekst,
     # num = tal, dte = dato.
-    name = {"num": "numDom", "date": "dteDom"}.get(kind, "inpDom") + col
+    name = {"num": "numDom", "date": "dteDom", "bool": "chkDom"}.get(kind, "inpDom") + col
     v = _var(col)
     if kind == "num":
-        c = number_input(name, v, display_mode=DM_ROW)
+        c = number_input(name, v, display_mode=DM_ROW,
+                         required_formula=required_formula)
         c.props["OnChange"] = f"Set({v}, Self.Value)"
         return c
     if kind == "date":
@@ -294,6 +346,7 @@ def _input_for(col, kind, choices):
         # ModernDropdown.Default.
         items = "[" + ", ".join(f'"{x}"' for x in choices) + "]"
         return themed_dropdown(name, items, v, display_mode=DM_ROW,
+                               required_formula=required_formula,
                                onchange=f"Set({v}, Self.Selected.Value)")
     if kind == "bool":
         # Ja/nej. Samme ModernCheckbox som dokumentlisten bruger - den er
@@ -310,6 +363,7 @@ def _input_for(col, kind, choices):
             "Width": "Parent.Width",
         }), h=36)
     c = text_input(name, v, max_length=255, display_mode=DM_ROW,
+                   required_formula=required_formula,
                    onchange=f"Set({v}, Self.Text)")
     return c
 
@@ -503,8 +557,11 @@ def clear_form_fx():
              'Set(varDomFText, "");',
              'Set(varDomFPlant, "");']
     for col, _lab, kind, _ch in FIELDS:
-        lines.append(f"Set({_var(col)}, {_blank(kind)});")
+        # Appens standardvaerdi, hvor der er en (HOOKS["field_defaults"]).
+        lines.append(f"Set({_var(col)}, {HOOKS['field_defaults'].get(col, _blank(kind))});")
     lines.append(fl_reset_fx_dom() + ";")
+    if HOOKS["clear_extra"]:
+        lines.append(HOOKS["clear_extra"] + ";")
     lines.append('Set(varDomInfo, "")')
     return "\n".join(lines)
 
@@ -534,6 +591,8 @@ def copy_row_fx():
     # gamle raekkes noegle, og kopien har ingen noegle endnu.
     if getattr(cfg, "FL_FIELD", None):
         lines.append(_fl_known_fx(f"ThisItem.{cfg.FL_FIELD}"))
+    if HOOKS["copy_extra"]:
+        lines.append(HOOKS["copy_extra"] + ";")
     lines.append('Set(varDomInfo, "Copied to a new row - not saved yet. '
                  'Documents were not copied.")')
     return "\n".join(lines)
@@ -560,6 +619,8 @@ def load_row_fx():
         lines.append(f"Set({_var(col)}, ThisItem.{col});")
     if getattr(cfg, "FL_FIELD", None):
         lines.append(_fl_known_fx(f"ThisItem.{cfg.FL_FIELD}"))
+    if HOOKS["load_extra"]:
+        lines.append(HOOKS["load_extra"] + ";")
     lines[-1] = lines[-1].rstrip(";")
     return "\n".join(lines)
 
@@ -627,6 +688,10 @@ def save_row_fx(status="valid", required=()):
     ]
     for col, _lab, kind, _ch in FIELDS:
         patch.append(f"            {col}: {_patch_value(col, kind)},")
+    # Appens egne kolonner, der ikke er et felt i formularen (Materials'
+    # Object List) - HOOKS["extra_patch"].
+    for col, expr in HOOKS["extra_patch"]:
+        patch.append(f"            {col}: {expr},")
     patch += [
         '            RowStatus: { Value: "%s" },' % status,
         # En admin i en andens anmodning gemmer raekken i EJERENS navn.
@@ -932,6 +997,107 @@ def _detail_row(i, label, value):
                  height=DETAIL_ROW_H, align_items="Center")
 
 
+# ---------------------------------------------------------------------------
+# Detaljeruden GRUPPERET (issue #204)
+#
+# Nitten felter paa en flad liste er en liste, man skimmer uden at laese.
+# Med grupper - identifikation, objekter, leverandoer, lager,
+# klassifikation, yderligere oplysninger, rekvirent - kan man finde det,
+# man leder efter.
+#
+# EET GALLERI, IKKE EN KONTROL PR. LINJE. Fyrre linjer som fyrre
+# containere er fyrre kontroller, der skal tegnes og regnes med - og en
+# lodret container, der er hoejere end popuppen maa vaere, melder overloeb
+# (check_layout regel 2), ogsaa naar den scroller. Galleriet har EEN
+# skabelon og en fast hoejde.
+#
+# Grupperne staar i appens egen fil (HOOKS["details_groups"]); den er kun
+# tilgaengelig for de apps, der har sat den - de andre faar den flade
+# liste som hidtil.
+# ---------------------------------------------------------------------------
+DET_ROW_H = 26
+DET_MAX_ROWS = 18
+
+
+def _detail_value(col, row):
+    """(etiket, udtryk) for en kolonne i detaljeruden."""
+    special = {
+        "TEXT": (cfg.TEXT_LABEL, f'Coalesce({row}.{cfg.C_TEXT}, "-")'),
+        "PLANT": (cfg.PLANT_LABEL, f'Coalesce({row}.Plant, "-")'),
+        "STATUS": ("Status", f'Coalesce({row}.Status, "-")'),
+        "DOCS": ("Documents", f'Text(Coalesce({row}.FileCount, 0))'),
+        "KEY": ("Row key", f'Coalesce({row}.ItemKey, "-")'),
+        "REQUESTNO": ("Request no.", f'Coalesce({row}.RequestNo, "-")'),
+    }
+    if col in special:
+        return special[col]
+    for c, label, kind, _ch in ROW_FIELDS:
+        if c != col:
+            continue
+        if kind == "bool":
+            return label, f'If({row}.{col}, "Yes", "No")'
+        if kind in ("num", "date"):
+            return label, f'If(IsBlank({row}.{col}), "-", Text({row}.{col}))'
+        return label, f'Coalesce({row}.{col}, "-")'
+    raise SystemExit(f"domain_parts: {col} kan ikke vises i detaljeruden")
+
+
+def _details_items(row):
+    """Galleriets raekker: en overskrift (K = "H") pr. gruppe og en linje
+    (K = "D") pr. felt. Appen kan give (etiket, udtryk) direkte, hvor
+    vaerdien ikke blot er kolonnen - {row} er raekken."""
+    recs = []
+    for title, cols in HOOKS["details_groups"]:
+        recs.append('{ K: "H", L: "%s", V: "" }' % title)
+        for col in cols:
+            if isinstance(col, tuple):
+                label, expr = col[0], col[1].replace("{row}", row)
+            else:
+                label, expr = _detail_value(col, row)
+            recs.append('{ K: "D", L: "%s", V: %s }' % (label, expr))
+    body = ",\n            ".join(recs)
+    return len(recs), "Table(\n            %s\n        )" % body
+
+
+def _details_gallery(row):
+    n, items = _details_items(row)
+    head = text_ctrl("txtDomDetGrp", "Upper(ThisItem.L)", size=11, color=C_MUTED,
+                     weight="Semibold", height=20, wrap="false",
+                     visible='ThisItem.K = "H"')
+    head.props["X"] = "0"
+    head.props["Y"] = "6"
+    head.props["Width"] = "Parent.TemplateWidth"
+    lbl = text_ctrl("txtDomDetL", "ThisItem.L", size=12, color=C_MUTED,
+                    weight="Semibold", height=20, width=DETAIL_LBL_W, wrap="false",
+                    visible='ThisItem.K = "D"')
+    lbl.props["X"] = "0"
+    lbl.props["Y"] = "3"
+    val = text_ctrl("txtDomDetV", "ThisItem.V", size=13, height=20, wrap="false",
+                    visible='ThisItem.K = "D"')
+    val.props["X"] = str(DETAIL_LBL_W + 12)
+    val.props["Y"] = "3"
+    val.props["Width"] = f"Parent.TemplateWidth - {DETAIL_LBL_W + 12}"
+    h = f"Min({n * DET_ROW_H}, App.Height - 260)"
+    gal = Ctrl("galDomDetails", "Gallery", variant="Vertical", props={
+        "AccessibleLabel": '"All fields on this row"',
+        "BorderStyle": "BorderStyle.None",
+        "Fill": C_TRANSPARENT,
+        "FillPortions": "0",
+        "Height": h,
+        "Items": items,
+        "LayoutMinWidth": "0",
+        "LoadingSpinner": "LoadingSpinner.None",
+        "Selectable": "false",
+        "ShowScrollbar": "true",
+        "TabIndex": "0",
+        "TemplatePadding": "0",
+        "TemplateSize": str(DET_ROW_H),
+        "Width": "Parent.Width",
+        "WrapCount": "1",
+    }, children=[head, lbl, val], h=h)
+    return gal
+
+
 def build_details(scope=None):
     """Alle raekkens felter, med frem og tilbage mellem raekkerne.
 
@@ -958,13 +1124,16 @@ def build_details(scope=None):
     head_left = grow(group("conDomDetHeadL", [key, where], direction="Vertical",
                            gap=2))
 
+    # Skifter ruden raekke, skal appens egne felter i den foelge med
+    # (HOOKS["details_nav"], fx Materials' felt til materialenummeret).
+    nav = (";\n" + HOOKS["details_nav"]) if HOOKS["details_nav"] else ""
     prev = button("btnDomDetPrev", '"Previous"',
-                  f'Set(varDomDetailsId, Index({order}, Max(1, {pos} - 1)).RowId)',
+                  f'Set(varDomDetailsId, Index({order}, Max(1, {pos} - 1)).RowId)' + nav,
                   width=96, height=30,
                   display_mode=f"If({pos} <= 1, DisplayMode.Disabled, DisplayMode.Edit)")
     nxt = button("btnDomDetNext", '"Next"',
                  f'Set(varDomDetailsId, '
-                 f'Index({order}, Min(CountRows({order}), {pos} + 1)).RowId)',
+                 f'Index({order}, Min(CountRows({order}), {pos} + 1)).RowId)' + nav,
                  width=96, height=30,
                  display_mode=f"If({pos} >= CountRows({order}), "
                               f"DisplayMode.Disabled, DisplayMode.Edit)")
@@ -988,6 +1157,19 @@ def build_details(scope=None):
     # Alle felter - ogsaa de tomme. En tom linje er et svar: feltet ER
     # ikke udfyldt. Skjules den, kan man ikke se forskel paa "tomt" og
     # "findes ikke".
+    if HOOKS["details_groups"]:
+        kids = [_details_gallery(row)]
+        if HOOKS["details_rows"]:
+            kids += HOOKS["details_rows"](row)
+        box = group("conDomDetRows", kids, direction="Vertical", gap=10)
+        modal = group("conDomDetailsModal", [head, box], direction="Vertical",
+                      gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT,
+                      radius=lay.RADIUS_MODAL, pad=(lay.CARD_PAD,) * 4,
+                      width=DETAILS_W, drop_shadow="ExtraBold",
+                      visible="!IsBlank(varDomDetailsId)")
+        modal.props["X"] = MODAL_X
+        modal.props["Y"] = MODAL_Y
+        return modal
     rows = [_detail_row(0, cfg.TEXT_LABEL, f'Coalesce({row}.{cfg.C_TEXT}, "-")'),
             _detail_row(1, "Plant", f'Coalesce({row}.Plant, "-")'),
             _detail_row(2, "Status", f'Coalesce({row}.Status, "-")'),
@@ -1268,11 +1450,28 @@ def grid_cell(name, label, ctrl, required=False):
                       fill_portions_formula="0")
 
 
-def field_grid_cell(col):
-    """Et felt fra SECTIONS som celle i gitteret."""
+def field_grid_cell(col, required=False, visible=None):
+    """Et felt fra SECTIONS som celle i gitteret.
+
+    required: stjernen ved etiketten - true, eller et UDTRYK, naar kravet
+    afhaenger af noget andet (Materials: min/max kraeves kun for en
+    lagervare). visible: et udtryk, feltet kun vises under. Et skjult felt
+    koster ingen plads - gitterets hoejde regnes af de synlige boern."""
     for c, label, kind, choices in FIELDS:
         if c == col:
-            return grid_cell(f"conDom{c}", label, _input_for(c, kind, choices))
+            req_fx = (f"({REQUIRED} && ({required}))" if isinstance(required, str)
+                      else (REQUIRED if required else "false"))
+            cell = grid_cell(f"conDom{c}", label,
+                             _input_for(c, kind, choices, required_formula=req_fx),
+                             required=bool(required))
+            if isinstance(required, str):
+                # Stjernen kun, naar kravet gaelder. En stjerne ved et felt,
+                # der ikke kraeves lige nu, ville lyve.
+                star = cell.children[0].children[-1]
+                star.vis = required
+            if visible:
+                cell.vis = visible
+            return cell
     raise SystemExit(f"domain_parts: {col} er ikke et felt i SECTIONS")
 
 
@@ -1512,7 +1711,14 @@ MORE_BTNS = [("btnDomRowDocs", '"Docs"'), ("btnDomRowCopy", '"Copy"')]
 ACTION_BTNS = [("btnDomRowDetails", '"Details"'), ("btnDomRowOpen", '"Edit"'),
                ("btnDomRowDelete", '"Delete row"')]
 # Details aabner den eksisterende skrivebeskyttede popup (build_details).
-DETAILS_FX = "Set(varDomDetailsId, ThisItem.RowId)"
+def details_fx():
+    """Raekkens Details-knap. HOOKS["details_open"] er appens egne felter i
+    ruden (Materials' materialenummer)."""
+    fx = "Set(varDomDetailsId, ThisItem.RowId)"
+    if HOOKS["details_open"]:
+        fx += ";\n" + HOOKS["details_open"]
+    return fx
+
 # Knapperne, der kan laases - ens i tabellen og i Compact-kortet.
 ROW_MODES = {"btnDomRowDelete": DM_ROW_DEL, "btnDomRowOpen": DM_ROW_EDIT,
              "btnDomRowCopy": "If(varDomViewOnly, DisplayMode.Disabled, DisplayMode.Edit)"}
@@ -1691,7 +1897,7 @@ def _compact_row(lay_, load_fx, copy_fx, delete_fx):
         return group(name, out, direction="Horizontal", gap=ROW_BTN_GAP, height=ROW_BTN_H,
                      align_items="Center")
 
-    line3 = btns("conDomRowLineC3", ACTION_BTNS, [DETAILS_FX, load_fx, delete_fx],
+    line3 = btns("conDomRowLineC3", ACTION_BTNS, [details_fx(), load_fx, delete_fx],
                  danger=("btnDomRowDelete",), modes=ROW_MODES)
     line4 = btns("conDomRowLineC4", MORE_BTNS, [open_docs_fx(), copy_fx],
                  modes=ROW_MODES)
@@ -1753,7 +1959,7 @@ def build_list(slots, badge_head, search_placeholder):
                               [open_docs_fx(), copy_row_fx()],
                               LIST_MORE_W, modes=ROW_MODES))
     cells.append(_row_buttons("conDomRowActions", ACTION_BTNS,
-                              [DETAILS_FX, load_row_fx(), delete_this_row_fx()],
+                              [details_fx(), load_row_fx(), delete_this_row_fx()],
                               LIST_ACTIONS_W, danger=("btnDomRowDelete",),
                               modes=ROW_MODES))
 

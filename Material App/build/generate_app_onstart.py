@@ -14,10 +14,14 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), "tools")
 
 import domain_config as cfg
 import domain_app
+import material_parts as parts
 
 
 def main():
-    domain_app.write_app(cfg, os.path.join(HERE, ".."))
+    # Materials' egen tilstand (issue #204): raekken med de valgfrie
+    # oplysninger er foldet ind ved opstart.
+    domain_app.write_app(cfg, os.path.join(HERE, ".."),
+                         extra_state=parts.EXTRA_STATE)
 
 
 if __name__ == "__main__":
