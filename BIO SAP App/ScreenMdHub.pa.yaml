@@ -5163,10 +5163,13 @@ Screens:
                       =ImagePosition.Fit
                   OnSelect: |-
                       =Set(varMdNewMenu, false);
-                      Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
-                      Set(gblNavigating, true);
-                      Set(gblMpWant, "new:" & gblNewSeq);
-                      Navigate(ScreenMeasuringPoint, ScreenTransition.None)
+                      If(
+                          !IfError(gblNavigating, false),
+                          Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
+                          Set(gblNavigating, true);
+                          Set(gblMpWant, "new:" & gblNewSeq);
+                          Navigate(ScreenMeasuringPoint, ScreenTransition.None)
+                      )
                   PressedFill: |-
                       =C.'bg-muted'
                   TabIndex: |-
