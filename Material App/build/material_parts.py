@@ -54,6 +54,7 @@ gem, hent, kopier og detaljer tager den med af sig selv.
 """
 import domain_config as cfg
 import domain_parts as dp
+import object_list as ol
 from gen_screen import C_REQUIRED
 from build_helpers import (text_ctrl, group, button, text_input, card, field_cell,
                            label_px, fit_button_width)
@@ -82,6 +83,26 @@ def is_strategic(expr):
 
 
 STRAT_FORM = is_strategic(dp._var("StrategicPart"))
+# OBJECT LIST (issue #204)
+#
+# Raekkens funktionspladser. Samlingen hoerer til FORMULAREN - den raekke,
+# man staar paa - og den gemmes paa raekken som ObjectList (koderne),
+# ObjectListJson (kode + beskrivelse) og FunctionalLocation (den foerste
+# kode). Delene staar i tools/object_list.py og er domaeneneutrale.
+OBJECTS = "colDomObjects"
+OBJ_SCHEMA = ol.schema()
+OBJ_COUNT = ol.count_fx(OBJECTS)
+FL_MSG = "varDomFlMsg"
+# Mindst 16 tegn foer der kan soeges OG foer der kan tilfoejes (Q11).
+# "SSV13 HFC10AJ010" er praecis 16 - i praksis skal man kende hele koden.
+MIN_FL_LEN = 16
+ADD_READY = f'Len(Trim(Coalesce({FL_VAR}, ""))) >= {MIN_FL_LEN}'
+# Gendannelsen, naar en raekke hentes eller kopieres: JSON'en foerst, saa
+# den "; "-adskilte liste, og til sidst FL-kolonnen alene (gamle raekker).
+OBJ_RESTORE = ol.restore_fx(
+    OBJECTS, json_src="ThisItem.ObjectListJson", list_src="ThisItem.ObjectList",
+    fl_src=f"ThisItem.{cfg.FL_FIELD}")
+
 # Formularens "flere oplysninger" - foldet ind, indtil nogen aabner den.
 EXTRA_OPEN = "varDomExtraOpen"
 # Appens egen tilstand i App.OnStart (domain_app.write_app).
@@ -91,14 +112,23 @@ EXTRA_STATE = f'Set({EXTRA_OPEN}, false);\nSet(varDomDetCreatedNo, "")'
 # ---------------------------------------------------------------------------
 # Functional Location og No BOM Item
 # ---------------------------------------------------------------------------
+def _add_fx():
+    """Add: laeg det VALGTE resultat i objektlisten. Soegningen er
+    FL-vaelgerens egen - knappen her tilfoejer kun."""
+    desc = f'Coalesce(LookUp(colDomFl, Code = {FL_VAR}).Description, "")'
+    return ol.add_fx(OBJECTS, FL_VAR, desc, FL_MSG)
+
+
 def _fl_cell():
-    """Functional Location - EEN celle med EEN combobox og Search
-    (fl_picker.py, issue #63).
+    """Functional Location - EEN celle med EEN combobox, Search og Add
+    (fl_picker.py, issue #63; objektlisten er issue #204).
 
     Stjernen staar kun, naar feltet er kraevet: No BOM Item slaar kravet
-    fra, og saa ville en stjerne paa et deaktiveret felt lyve."""
+    fra, og saa ville en stjerne paa et deaktiveret felt lyve. Kravet er
+    nu objektlisten - der skal vaere MINDST EET objekt."""
     picker = dp.build_fl_picker(
-        CELL_W, lock=NOBOM, required_formula=f"{REQUIRED} && !{NOBOM}")
+        CELL_W, lock=NOBOM, min_len=MIN_FL_LEN,
+        required_formula=f"{REQUIRED} && !{NOBOM} && {OBJ_COUNT} = 0")
     label = "Functional location"
     lbl = text_ctrl("txtDomFlLbl", f'"{label}"', size=13, weight="Semibold",
                     height=20, width=f"Min({label_px(label)}, ({CELL_W}) - 13)",
@@ -114,15 +144,26 @@ def _fl_cell():
 
 def toggle_nobom_fx():
     """No BOM Item til/fra. TIL rydder funktionspladsen - soegningen, dens
-    svar og det valgte - saa en No BOM-raekke aldrig gemmes med en."""
+    svar, det valgte OG objektlisten - saa en No BOM-raekke aldrig gemmes
+    med en.
+
+    En STRATEGISK raekke kan ikke blive No BOM (issue #204): godkendelsen
+    findes gennem funktionspladsen, saa No BOM Item kan ikke bruges til at
+    omgaa kravet."""
     return (
-        f"Set({NOBOM}, !{NOBOM});\n"
         "If(\n"
-        f"    {NOBOM},\n"
-        f'    Set({FL_VAR}, "");\n'
-        f"    {dp.fl_reset_fx_dom()};\n"
-        '    Set(varDomFlMsg, "No BOM item - a functional location is not required."),\n'
-        '    Set(varDomFlMsg, "")\n'
+        f"    !{NOBOM} && {STRAT_FORM},\n"
+        '    Set(varDomFlMsg, "A strategic part needs at least one functional location."),\n'
+        "\n"
+        f"    Set({NOBOM}, !{NOBOM});\n"
+        "    If(\n"
+        f"        {NOBOM},\n"
+        f'        Set({FL_VAR}, "");\n'
+        f"        {ol.clear_fx(OBJECTS)};\n"
+        f"        {dp.fl_reset_fx_dom()};\n"
+        '        Set(varDomFlMsg, "No BOM item - a functional location is not required."),\n'
+        '        Set(varDomFlMsg, "")\n'
+        "    )\n"
         ")"
     )
 
@@ -159,8 +200,10 @@ def _nobom_button():
 # tjekker dem ikke. Beskederne siger HVAD der mangler.
 def _row_rules():
     return [
-        (f'!{NOBOM} && IsBlank(Trim(Coalesce({FL_VAR}, "")))',
-         "Functional location is required - or turn on No BOM Item."),
+        (f"!{NOBOM} && {OBJ_COUNT} = 0",
+         "Add at least one functional location - or turn on No BOM Item."),
+        (f"{STRAT_FORM} && {OBJ_COUNT} = 0",
+         "A strategic row needs at least one functional location."),
         (f"Coalesce({STOCK}, false) && (IsBlank({MIN_S}) || IsBlank({MAX_S}))",
          "Min stock and max stock are required for a stock item."),
         (f"Coalesce({STOCK}, false) && !IsBlank({MIN_S}) && !IsBlank({MAX_S}) && "
@@ -236,6 +279,15 @@ def build_form():
     rows = dp.grid_rows("conDomGrid", [_cell(k) for k in MAIN_ORDER])
     # Soegningens svar under den foerste raekke - den med FL i.
     rows.insert(1, dp.build_fl_msg())
+    # Objektlisten i FULD bredde under soegningen: koderne er lange, og i
+    # en fjerdedel af kortet ville de blive klippet.
+    add = ol.add_button(
+        "Dom", _add_fx(),
+        display_mode=f"If({NOBOM} || !({ADD_READY}), DisplayMode.Disabled, {dp.DM_ROW})")
+    rows.insert(2, ol.panel(
+        "Dom", OBJECTS, width="Parent.Width", msg_var=FL_MSG, add=add,
+        display_mode=f"If({NOBOM}, DisplayMode.Disabled, {dp.DM_ROW})",
+        hint='"No functional location yet - search above and press Add."'))
     # De valgfrie oplysninger: een raekke, der kun er der, naar den er
     # foldet ud - skjult koster den ingen plads.
     extra = dp.grid_row("conDomGridX", [_cell(k) for k in EXTRA_ORDER])
@@ -253,8 +305,12 @@ def build_form():
 # en plads er.
 DESC = (cfg.TEXT_LABEL.upper(),
         f'If(IsBlank(Trim(ThisItem.{cfg.C_TEXT})), "(no text)", ThisItem.{cfg.C_TEXT})', 150)
+# "SSV13 HFC10AJ010 +2": den foerste kode og hvor mange flere raekken har
+# (issue #204). Regnet af den GEMTE ObjectList, saa den virker for hver
+# raekke i tabellen.
 FL_C = ("FUNCTIONAL LOCATION",
-        f'If(ThisItem.NoBomItem, "No BOM item", ThisItem.{cfg.FL_FIELD})', 150)
+        'If(ThisItem.NoBomItem, "No BOM item", '
+        + ol.summary_fx("ThisItem.ObjectList", f"ThisItem.{cfg.FL_FIELD}") + ")", 170)
 MFR = ("MANUFACTURER", "ThisItem.Manufacturer", 110)
 MODEL = ("MODEL NUMBER", "ThisItem.ModelNumber", 110)
 MPN = ("MANUFACTURER PART NO.", "ThisItem.ManufacturerPartNo", 150)
@@ -373,6 +429,15 @@ def details_rows(row):
 dp.configure(
     # Storage bin foreslaas som "X", naar formularen ryddes.
     field_defaults={"StorageBin": '"X"'},
+    # Objektlisten foelger raekken: den fyldes, naar en raekke hentes eller
+    # kopieres, og ryddes med formularen.
+    clear_extra=ol.clear_fx(OBJECTS),
+    load_extra=OBJ_RESTORE,
+    copy_extra=OBJ_RESTORE,
+    # Gem: koderne, JSON'en - og FL-kolonnen som den FOERSTE kode.
+    extra_patch=[("ObjectList", ol.codes_fx(OBJECTS)),
+                 ("ObjectListJson", ol.json_fx(OBJECTS))],
+    patch_override={cfg.FL_FIELD: ol.first_fx(OBJECTS)},
     # Grupperet detaljerude, og materialenummeret under felterne.
     details_groups=DETAILS_GROUPS,
     details_rows=details_rows,

@@ -18,9 +18,11 @@ import material_parts as parts
 
 
 def main():
-    # Materials' egen tilstand (issue #204): raekken med de valgfrie
-    # oplysninger er foldet ind ved opstart.
+    # Materials' eget (issue #204): objektlisten paa den raekke,
+    # formularen staar paa, og raekken med de valgfrie oplysninger, der er
+    # foldet ind ved opstart.
     domain_app.write_app(cfg, os.path.join(HERE, ".."),
+                         extra_collections=[(parts.OBJECTS, parts.OBJ_SCHEMA)],
                          extra_state=parts.EXTRA_STATE)
 
 

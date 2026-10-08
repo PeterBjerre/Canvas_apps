@@ -133,6 +133,9 @@ GAL_ROWS = 8
 #   copy_extra      Power Fx efter copy_row_fx
 #   extra_patch     [(kolonne, udtryk)] - skrives med i save_row_fx ud
 #                   over felterne i SECTIONS
+#   patch_override  {kolonne: udtryk} - et felt fra SECTIONS, der gemmes
+#                   som noget andet end sin egen variabel (Materials
+#                   gemmer FL-kolonnen som den FOERSTE kode i objektlisten)
 #   details_groups  [(overskrift, [kolonner])] - grupperet detaljerude.
 #                   None = den flade liste som hidtil
 #   details_hide    kolonner, detaljeruden ikke viser
@@ -147,6 +150,7 @@ HOOKS = {
     "load_extra": "",
     "copy_extra": "",
     "extra_patch": (),
+    "patch_override": {},
     "details_groups": None,
     "details_hide": (),
     "details_open": "",
@@ -397,14 +401,15 @@ FL_LAST_VAR = "varDomFlLast"
 FL_COMBO = "cmbDomFl"
 
 
-def build_fl_picker(cell_w, lock=None, required_formula="false"):
+def build_fl_picker(cell_w, lock=None, required_formula="false", min_len=None):
     """Functional Location i EEN combobox med Search - soegefelt OG
     valgliste (fl_picker.py). Der er ingen separat soegeboks og ingen
     separat dropdown.
 
     lock: et udtryk, der - naar det er sandt - deaktiverer vaelgeren
     (Materials' No BOM Item). required_formula: hvornaar kanten maa vaere
-    roed.
+    roed. min_len: mindste antal tegn foer der kan soeges (Materials
+    kraever 16 - se build_flsearch.MIN_SEARCH_LEN for standarden).
 
     lock gaar til fl_picker selv (issue #101): foer blev den lagt ind i
     DisplayMode her, og input_theme gjorde Disabled til View - feltet saa
@@ -415,7 +420,7 @@ def build_fl_picker(cell_w, lock=None, required_formula="false"):
         msg_var="varDomFlMsg", busy_var=FL_BUSY_VAR, query_var=FL_QUERY_VAR,
         last_var=FL_LAST_VAR, pick_var=v,
         default_items=f"Filter(colDomFl, Code = {v})",
-        display_mode=DM_ROW, lock=lock,
+        display_mode=DM_ROW, lock=lock, min_len=min_len,
         required_formula=required_formula, width=cell_w, stack_search=True)
 
 
@@ -687,7 +692,8 @@ def save_row_fx(status="valid", required=()):
         "            Plant: varDomFPlant,",
     ]
     for col, _lab, kind, _ch in FIELDS:
-        patch.append(f"            {col}: {_patch_value(col, kind)},")
+        value = HOOKS["patch_override"].get(col) or _patch_value(col, kind)
+        patch.append(f"            {col}: {value},")
     # Appens egne kolonner, der ikke er et felt i formularen (Materials'
     # Object List) - HOOKS["extra_patch"].
     for col, expr in HOOKS["extra_patch"]:
