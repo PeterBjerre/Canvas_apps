@@ -27,11 +27,12 @@ import fl_save as S
 from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED, C_WHITE,
                         C_PRIMARY, C_TRANSPARENT, C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY,
                         C_BORDER_OK, C_BORDER_ERROR, C_INVALID_FG, C_WARN_FG, C_VALID_FG,
-                        C_CARD_BG, C_DIVIDER, C_ROW_HOVER)
+                        C_CARD_BG, C_DIVIDER, C_ROW_HOVER, C_MUTED_BG)
 from design_tokens import ref_hex
 import layout_tokens as lay
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least, below
-from build_helpers import (checkbox_theme, new_text_on_mobile, text_ctrl, group, button, text_input, themed_dropdown, card,
+import icons
+from build_helpers import (tap_backdrop, checkbox_theme, new_text_on_mobile, text_ctrl, group, button, text_input, themed_dropdown, card,
                            pin_widths, top_bar, grow, badge, fit_button_width, row_rule,
                            loading_overlay, with_busy, confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
                            ICON_W)
@@ -50,14 +51,15 @@ def norm_fl(expr):
 
 
 def add_row_fx():
-    """FL63: en ny, tom raekke. Den bliver den valgte, saa formularen
-    under listen viser den (issue #166)."""
+    """FL63: en ny, tom raekke. Den bliver den valgte og foldes ud
+    (issue #166, #184)."""
     return ("With({ g: Text(GUID()) },\n"
             "    Collect(colFlRows, { RowGuid: g, RowNo: varFlNextRowNo, SpId: 0, "
             "FL: \"\", Description: \"\", KksType: \"\", AssignedClass: \"\", Status: \"draft\", "
             "FirstIssue: \"\", FirstWarning: \"\", IssueCount: 0, WarningCount: 0, "
             "Pos: 0, FlBad: false, DescBad: false, Hint: \"\" });\n"
-            "    Set(varFlDetailRow, g)\n"
+            "    Set(varFlDetailRow, g);\n"
+            "    Set(varFlFoldOpen, true)\n"
             ");\n"
             "Set(varFlNextRowNo, varFlNextRowNo + 1)")
 
@@ -175,6 +177,9 @@ GAL_MAX = 12
 VAL_MIN = 64
 PAIR_MAX = 300
 PAIR_MIN = 144
+# Naar Room, Sort Field og Warranty staar i raekken (issue #184).
+EXTRA_PAIR = 240
+EXTRA_VAL = 140
 
 
 class Cols:
@@ -185,23 +190,41 @@ class Cols:
     vandret scrollbar, og Delete/Open ryger ud over kanten:
       - de to midterste kolonner skjules, naar Validation/Info ikke kan faa
         160 px ved siden af dem (som foer);
+      - extra (issue #184: Room, Sort Field og Warranty) skjules FOER de
+        midterste - kun naar der er plads til dem OG parret i fuld bredde;
       - Functional Location og Description deler PAIR_MAX, men krymper
         sammen ned til PAIR_MIN, foer Validation/Info kommer under VAL_MIN;
       - under Tablet skjules # (raekkenummeret), og act_narrow er
-        handlingsknappens bredde dér (Delete bliver et ikon)."""
+        handlingsknappens bredde dér (Delete bliver et ikon);
+      - lead er en fast kolonne helt til venstre, der altid staar (fold-ud-
+        pilen, issue #184)."""
 
-    def __init__(self, mid, act_w, act_narrow=None):
+    def __init__(self, mid, act_w, act_narrow=None, lead=0, extra=()):
         self.mid = mid                      # [(navn, overskrift, bredde)]
+        self.extra = list(extra)            # [(navn, overskrift, bredde)]
+        self.lead = lead
         self.act = (f"If({NARROW}, {act_narrow}, {act_w})" if act_narrow is not None
                     else str(act_w))
-        full = 28 + PAIR_MAX + sum(w for _n, _l, w in mid) + act_w + GAP * (4 + len(mid))
+        lead_sum = lead + GAP if lead else 0
+        full = (lead_sum + 28 + PAIR_MAX + sum(w for _n, _l, w in mid) + act_w
+                + GAP * (4 + len(mid)))
         self.show_mid = f"({ROWS_W}) >= {full} + 160"
+        extra_sum = sum(w + GAP for _n, _l, w in self.extra)
+        # Med extra maa parret give lidt (EXTRA_PAIR) og Validation noejes
+        # med EXTRA_VAL - ellers kom de foerst paa skaerme bredere end 1450.
+        full_extra = full - PAIR_MAX + EXTRA_PAIR + extra_sum
+        self.show_extra = (f"({self.show_mid}) && ({ROWS_W}) >= {full_extra} + {EXTRA_VAL}"
+                           if self.extra else "false")
         self.show_no = at_least("Tablet")
         mid_sum = sum(w + GAP for _n, _l, w in mid)
         # Alt andet end parret: #, midten, handlingen, Validation-minimum og
         # de tre mellemrum mellem FL, Description, Validation og handlingen.
         self.others = (f"If({self.show_no}, {28 + GAP}, 0) + {self.act} + "
                        f"If({self.show_mid}, {mid_sum}, 0) + {VAL_MIN} + {3 * GAP}")
+        if lead:
+            self.others = f"{lead_sum} + " + self.others
+        if self.extra:
+            self.others += f" + If({self.show_extra}, {extra_sum}, 0)"
         self.pmax = f"If({NARROW}, 190, {PAIR_MAX})"
         self.pair = f"Min({self.pmax}, Max(If({NARROW}, 100, {PAIR_MIN}), ({ROWS_W}) - ({self.others})))"
         self.fl = f"({self.pair}) * 160 / ({self.pmax})"
@@ -209,12 +232,15 @@ class Cols:
         # Resten - regnet af det samme udtryk, ikke af galleriets Parent.Width.
         self.rest = f"Max(48, ({ROWS_W}) - ({self.others}) + {VAL_MIN} - ({self.pair}))"
 
-    def spec(self, rest_name, rest_label, act_name, act_label):
+    def spec(self, rest_name, rest_label, act_name, act_label, lead_name=None):
         """(navn, overskrift, bredde, synlig) i raekkefoelge."""
-        return ([("No", "#", 28, self.show_no),
-                 ("Fl", "Functional Location", self.fl, None),
-                 ("Desc", "Description", self.desc, None)]
+        lead = [(lead_name, "", self.lead, None)] if self.lead else []
+        return (lead
+                + [("No", "#", 28, self.show_no),
+                   ("Fl", "Functional Location", self.fl, None),
+                   ("Desc", "Description", self.desc, None)]
                 + [(n, l, w, self.show_mid) for n, l, w in self.mid]
+                + [(n, l, w, self.show_extra) for n, l, w in self.extra]
                 + [(rest_name, rest_label, self.rest, None),
                    (act_name, act_label, self.act, None)])
 
@@ -225,7 +251,9 @@ def table_head(name, spec):
     head = group(name,
                  pin_widths([text_ctrl(f"txt{name[3:]}{n}", f'"{lbl}"', size=11, color=C_MUTED,
                                        weight="Semibold", height=18, width=w, wrap="false",
-                                       visible=vis)
+                                       visible=vis,
+                                       # Fold-ud-kolonnen har ingen overskrift (issue #184).
+                                       accessible=None if lbl else '"Expand or collapse"')
                              for n, lbl, w, vis in spec]),
                  direction="Horizontal", gap=GAP, height=18, align_items="Center")
     return head
@@ -286,22 +314,120 @@ def _cells(spec, ctrls):
     return out
 
 
-# Action: Edit (vaelg raekken til formularen, issue #166) og Delete.
-EDIT_W = 36
+# Fold-ud-pilen staar forrest, Delete bagerst (issue #184). Edit-knappen
+# fra #166 er vaek: pilen goer det samme - viser raekkens oevrige felter.
+FOLD_W = 32
+# Stamdatafelterne, der staar i den kompakte raekke (issue #184) - i
+# raekkefoelge, med kolonnens bredde. Etiket og maks.-laengde er reglernes
+# (fl_rules.generated.json, ens for alle klasser - tests/test_fl_sections).
+_NO_CLASS = {c["Field"]: c for c in V.R["columns"] if c["Cls"] == "NO CLASS"}
+COMPACT_VALS = [("Room", "ROOM", 64), ("Sort", "SORT FIELD", 100),
+                ("WStart", "WARRANTY START", 96), ("WEnd", "WARRANTY END", 96)]
 VCOLS = Cols([("Kks", "KKS Type", 64), ("Cls", "Assigned Class", 96)],
-             act_w=EDIT_W + 6 + 76, act_narrow=EDIT_W + 6 + 36)
-V_SPEC = VCOLS.spec("Val", "Validation", "Act", "Action")
+             act_w=76, act_narrow=36, lead=FOLD_W,
+             extra=[(n, _NO_CLASS[f]["Column"], w) for n, f, w in COMPACT_VALS])
+V_SPEC = VCOLS.spec("Val", "Validation", "Act", "Action", lead_name="Fold")
 
 ERRS = 'CountRows(Filter(colFlRows, Status = "invalid"))'
+
+# Den udfoldede raekke: varFlDetailRow (den valgte) og varFlFoldOpen.
+# Kun een raekke er foldet ud ad gangen. Tabellen er to gallerier - raekkerne
+# til og med den udfoldede og raekkerne efter den - med fold-ud-sektionen
+# imellem, saa den staar direkte under sin raekke. Sammenklappet staar alle
+# raekkerne i det foerste.
+SEL_NO = "LookUp(colFlRows, RowGuid = varFlDetailRow).RowNo"
+TOP_TEST = f"!varFlFoldOpen || RowNo <= {SEL_NO}"
+BOTTOM_TEST = f"varFlFoldOpen && RowNo > {SEL_NO}"
 
 
 def verify_button():
     """HELE valideringen - skjult. Alle aendringer kalder den med
     Select(btnFlVerify) (REVERIFY, docs/31 PX7). Select virker paa en
     skjult knap; den skal bare staa paa samme skaerm."""
-    b = button("btnFlVerify", '"Verify"', V.verify_fx(DET_ITEMS), width=100, visible="false",
-               accessible='"Validate the rows"')
+    b = button("btnFlVerify", '"Verify"', V.verify_fx(DET_ITEMS, after=CLS_AFTER_VERIFY),
+               width=100, visible="false", accessible='"Validate the rows"')
     return b
+
+
+def _issue_on(guid, field):
+    """Er der en fejl paa feltet? Samme udvalg som V.field_issue for
+    spool-felterne (Ord >= 100)."""
+    return (f'!IsBlank(LookUp(colFlIssues, RowGuid = {guid} && Sev = "Error" && '
+            f'Field = "{field}" && Ord >= 100).Short)')
+
+
+def row_cells(tag):
+    """Cellerne i een kompakt raekke. tag skiller de to gallerier (Row og
+    RowB) - et kontrolnavn maa kun findes een gang (regel 0)."""
+    row = "ThisItem"
+    is_open = "(ThisItem.RowGuid = varFlDetailRow && varFlFoldOpen)"
+    fold = button(f"btnFl{tag}Fold", '"Expand"',
+                  f"If({is_open}, Set(varFlFoldOpen, false), {SELECT_FX})",
+                  width=FOLD_W, height=30,
+                  icon=f'If({is_open}, "{icons.FLUENT["collapse"]}", "{icons.FLUENT["expand"]}")',
+                  accessible=f'If({is_open}, "Collapse row ", "Expand row ") & ThisItem.Pos',
+                  tooltip=f'If({is_open}, "Hide the other fields of this row", '
+                          '"Show the other fields of this row")')
+    fold.props["Layout"] = "ButtonLayout.IconOnly"
+    # Pos, FlBad, DescBad og Hint regnes i valideringen (B6).
+    no = text_ctrl(f"txtFl{tag}No", "Text(ThisItem.Pos)",
+                   size=13, color=C_MUTED, height=20, wrap="false")
+    fl = text_input(f"inpFl{tag}Fl", "ThisItem.FL", max_length=40, width="160",
+                    display_mode=DM_EDIT, label='"Functional Location"',
+                    onchange=set_row_fx("ThisItem.RowGuid", "FL", norm_fl("Self.Text")))
+    fl.props["BorderColor"] = _field_border(f"{row}.FlBad", f'{row}.Status <> "draft"')
+    desc = text_input(f"inpFl{tag}Desc", "ThisItem.Description", max_length=40, width="140",
+                      display_mode=DM_EDIT, label='"Description"',
+                      onchange=set_row_fx("ThisItem.RowGuid", "Description", "Trim(Self.Text)"))
+    desc.props["BorderColor"] = _field_border(
+        f"{row}.DescBad", f'{row}.Status <> "draft" && !IsBlank({row}.Description)')
+    kks = text_ctrl(f"txtFl{tag}Kks", 'If(IsBlank(ThisItem.KksType), "-", ThisItem.KksType)',
+                    size=13, height=20, wrap="false")
+    cls = text_ctrl(f"txtFl{tag}Cls",
+                    'If(IsBlank(ThisItem.AssignedClass), "-", ThisItem.AssignedClass)',
+                    size=13, weight="Semibold", height=20, wrap="false")
+
+    # Room, Sort Field og Warranty: de samme spool-felter og regler som i
+    # fold-ud-sektionen (colFlVals, set_val_fx, FL56) - bare i raekken.
+    vals = []
+    for n, f, w in COMPACT_VALS:
+        col = _NO_CLASS[f]
+        inp = text_input(f"inpFl{tag}{n}",
+                         f'LookUp(colFlVals, RowGuid = ThisItem.RowGuid && Field = "{f}").Value',
+                         max_length=col["MaxLen"], width=str(w), display_mode=DM_EDIT,
+                         label=f'"{col["Column"]}"',
+                         placeholder='"DD.MM.YYYY"' if f.startswith("WARRANTY") else '""',
+                         onchange=set_val_fx("ThisItem.RowGuid", f'"{f}"', "Self.Text"))
+        inp.props["BorderColor"] = _field_border(_issue_on("ThisItem.RowGuid", f), "false")
+        vals.append(inp)
+
+    # FL26: chippen og den foerste fejl eller advarsel (renderValidationBadges).
+    # Teksten afkortes med vilje - hele forklaringen staar bag "?".
+    msg = ('Switch(ThisItem.Status, "draft", "Draft", "valid", "Valid", '
+           '"warning", "Warning" & If(IsBlank(ThisItem.FirstWarning), "", " - " & ThisItem.FirstWarning), '
+           'If(IsBlank(ThisItem.FirstIssue), "Invalid", ThisItem.FirstIssue))')
+    hint_expr = "ThisItem.Hint"
+    has_hint = f"!IsBlank({hint_expr})"
+    val_txt = text_ctrl(f"txtFl{tag}Issue", msg, size=13, color=_status_color(row), height=20,
+                        wrap="false", width=f"({VCOLS.rest}) - If({has_hint}, 36, 0)")
+    hint = button(f"btnFl{tag}Hint", '"?"', f"Notify({hint_expr}, NotificationType.Information)",
+                  width=30, height=30, visible=has_hint,
+                  accessible='"What does this message mean?"')
+    hint.props["Tooltip"] = hint_expr
+    val = group(f"conFl{tag}Val", [val_txt, hint], direction="Horizontal", gap=6,
+                height=30, align_items="Center")
+
+    # Under Tablet er Delete et ikon, saa hele raekken kan staa (issue #77).
+    delete = button(f"btnFl{tag}Delete", '"Delete"', f"""Collect(colFlDeleted, {{ RowGuid: ThisItem.RowGuid }});
+Remove(colFlRows, LookUp(colFlRows, RowGuid = ThisItem.RowGuid));
+RemoveIf(colFlVals, RowGuid = ThisItem.RowGuid);
+RemoveIf(colFlIssues, RowGuid = ThisItem.RowGuid);
+If(CountRows(colFlRows) = 0, {add_row_fx()});
+{REVERIFY}""", danger=True, width=76, height=30, display_mode=DM_EDIT, icon="Delete",
+                    accessible='"Delete row " & ThisItem.Pos')
+    delete.props["Layout"] = f"If({NARROW}, ButtonLayout.IconOnly, ButtonLayout.TextOnly)"
+    delete.props["Width"] = f"If({NARROW}, 36, 76)"
+    return _cells(V_SPEC, [fold, no, fl, desc, kks, cls] + vals + [val, delete])
 
 
 def build_rows():
@@ -314,67 +440,18 @@ def build_rows():
 
     head = table_head("conFlRowsHead", V_SPEC)
 
-    row = "ThisItem"
-    # Pos, FlBad, DescBad og Hint regnes i valideringen (B6).
-    no = text_ctrl("txtFlRowNo", "Text(ThisItem.Pos)",
-                   size=13, color=C_MUTED, height=20, wrap="false")
-    fl = text_input("inpFlRowFl", "ThisItem.FL", max_length=40, width="160",
-                    display_mode=DM_EDIT, label='"Functional Location"',
-                    onchange=set_row_fx("ThisItem.RowGuid", "FL", norm_fl("Self.Text")))
-    fl.props["BorderColor"] = _field_border(f"{row}.FlBad", f'{row}.Status <> "draft"')
-    desc = text_input("inpFlRowDesc", "ThisItem.Description", max_length=40, width="140",
-                      display_mode=DM_EDIT, label='"Description"',
-                      onchange=set_row_fx("ThisItem.RowGuid", "Description", "Trim(Self.Text)"))
-    desc.props["BorderColor"] = _field_border(
-        f"{row}.DescBad", f'{row}.Status <> "draft" && !IsBlank({row}.Description)')
-    kks = text_ctrl("txtFlRowKks", 'If(IsBlank(ThisItem.KksType), "-", ThisItem.KksType)',
-                    size=13, height=20, wrap="false")
-    cls = text_ctrl("txtFlRowCls",
-                    'If(IsBlank(ThisItem.AssignedClass), "-", ThisItem.AssignedClass)',
-                    size=13, weight="Semibold", height=20, wrap="false")
-
-    # FL26: chippen og den foerste fejl eller advarsel (renderValidationBadges).
-    # Teksten afkortes med vilje - hele forklaringen staar bag "?".
-    shown = 'If(ThisItem.Status = "invalid", ThisItem.FirstIssue, ThisItem.FirstWarning)'
-    msg = ('Switch(ThisItem.Status, "draft", "Draft", "valid", "Valid", '
-           '"warning", "Warning" & If(IsBlank(ThisItem.FirstWarning), "", " - " & ThisItem.FirstWarning), '
-           'If(IsBlank(ThisItem.FirstIssue), "Invalid", ThisItem.FirstIssue))')
-    hint_expr = "ThisItem.Hint"
-    has_hint = f"!IsBlank({hint_expr})"
-    val_txt = text_ctrl("txtFlRowIssue", msg, size=13, color=_status_color(row), height=20,
-                        wrap="false", width=f"({VCOLS.rest}) - If({has_hint}, 36, 0)")
-    hint = button("btnFlRowHint", '"?"', f"Notify({hint_expr}, NotificationType.Information)",
-                  width=30, height=30, visible=has_hint,
-                  accessible='"What does this message mean?"')
-    hint.props["Tooltip"] = hint_expr
-    val = group("conFlRowVal", [val_txt, hint], direction="Horizontal", gap=6,
-                height=30, align_items="Center")
-
-    # Under Tablet er Delete et ikon, saa hele raekken kan staa (issue #77).
-    delete = button("btnFlRowDelete", '"Delete"', f"""Collect(colFlDeleted, {{ RowGuid: ThisItem.RowGuid }});
-Remove(colFlRows, LookUp(colFlRows, RowGuid = ThisItem.RowGuid));
-RemoveIf(colFlVals, RowGuid = ThisItem.RowGuid);
-RemoveIf(colFlIssues, RowGuid = ThisItem.RowGuid);
-If(CountRows(colFlRows) = 0, {add_row_fx()});
-{REVERIFY}""", danger=True, width=76, height=30, display_mode=DM_EDIT, icon="Delete",
-                    accessible='"Delete row " & ThisItem.RowNo')
-    delete.props["Layout"] = f"If({NARROW}, ButtonLayout.IconOnly, ButtonLayout.TextOnly)"
-    delete.props["Width"] = f"If({NARROW}, 36, 76)"
-    # Edit: raekken vises i formularen under listen (issue #166).
-    edit = button("btnFlRowEdit", '"Edit"', SELECT_FX, width=EDIT_W, height=30, icon="Edit",
-                  accessible='"Edit row " & ThisItem.RowNo & " below"',
-                  tooltip='"Edit all fields of this row below"')
-    edit.props["Layout"] = "ButtonLayout.IconOnly"
-    edit.props["Appearance"] = ('If(ThisItem.RowGuid = varFlDetailRow, ButtonAppearance.Primary, '
-                                'ButtonAppearance.Outline)')
-    act = group("conFlRowAct", pin_widths([edit, delete]), direction="Horizontal", gap=6,
-                height=30, align_items="Center")
-
-    cells = _cells(V_SPEC, [no, fl, desc, kks, cls, val, act])
-    # Den valgte raekke er markeret - det er den, formularen viser.
-    gal = table_gallery("galFlRows", '"Functional Location rows"', "Sort(colFlRows, RowNo)",
-                        "CountRows(colFlRows)", cells, "conFlRow",
-                        row_fill=f"If(ThisItem.RowGuid = varFlDetailRow, {C_ROW_HOVER}, {C_TRANSPARENT})")
+    # Den udfoldede raekke er markeret.
+    fill = f"If(ThisItem.RowGuid = varFlDetailRow && varFlFoldOpen, {C_ROW_HOVER}, {C_TRANSPARENT})"
+    top = table_gallery("galFlRows", '"Functional Location rows"',
+                        f"Sort(Filter(colFlRows, {TOP_TEST}), RowNo)",
+                        f"CountRows(Filter(colFlRows, {TOP_TEST}))", row_cells("Row"), "conFlRow",
+                        row_fill=fill)
+    bottom = table_gallery("galFlRowsB", '"Functional Location rows below the expanded row"',
+                           f"Sort(Filter(colFlRows, {BOTTOM_TEST}), RowNo)",
+                           f"CountRows(Filter(colFlRows, {BOTTOM_TEST}))", row_cells("RowB"),
+                           "conFlRowB", row_fill=fill)
+    # Ingen afstand mellem galleri, fold-ud og galleri - det er een tabel.
+    table = group("conFlTable", [top, build_fold(), bottom], direction="Vertical", gap=0)
 
     # Kun noget at sige, naar der ER noget: en fejl ved gem/indsend, eller
     # raekker, der blokerer Submit. Ingen "Ready."/"Done." (issue #77).
@@ -382,7 +459,7 @@ If(CountRows(colFlRows) = 0, {add_row_fx()});
                      f'Coalesce(varFlInfo, "Submit is blocked: " & {ERRS} & " row(s) have errors.")',
                      size=12, color=C_INVALID_FG, height=18, wrap="false",
                      visible=f"!IsBlank(varFlInfo) || {ERRS} > 0")
-    return card("conFlRowsCard", [head_row, head, divider("conFlRowsRule"), gal, info,
+    return card("conFlRowsCard", [head_row, head, divider("conFlRowsRule"), table, info,
                                   verify_button()], gap=10)
 
 
@@ -445,7 +522,7 @@ def build_classes():
     }, children=[tab], h=40, vis=HAS_CLASSES)
 
     note = text_ctrl("txtFlClassNote",
-                     '"Compact view - Edit shows all fields of the row in the form above."',
+                     '"Compact view - Edit expands the row in the table above."',
                      size=12, color=C_MUTED, height=18, wrap="false", visible=HAS_CLASSES)
 
     head = table_head("conFlClsHead", C_SPEC)
@@ -471,7 +548,7 @@ def build_classes():
     info = text_ctrl("txtFlCInfo", info_msg, size=13, color=_status_color("ThisItem"),
                      height=20, wrap="false")
     open_ = button("btnFlCOpen", '"Edit"', SELECT_FX, width=72, height=30,
-                   accessible='"Edit " & ThisItem.FL & " in the form"')
+                   accessible='"Edit " & ThisItem.FL & " in the table above"')
     cells = _cells(C_SPEC, [no, fl, desc, strc, clsc, info, open_])
     gal = table_gallery("galFlClassRows", '"Rows in the selected class"', VIEW_POS, VIEW_N,
                         cells, "conFlCRow", visible=HAS_CLASSES)
@@ -485,12 +562,14 @@ def build_classes():
 
 
 # ---------------------------------------------------------------------------
-# Formularen for den valgte raekke (issue #166, FL57-FL61)
+# Fold-ud-sektionen og Class data-popuppen (issue #184, afloeser #166's
+# formular under listen)
 #
-# Detaljepopuppen er vaek. Under raekkelisten staar to sektioner for den
-# VALGTE raekke (varFlDetailRow):
-#   1. Master data - de faste stamdatafelter, ens for alle klasser
-#   2. Class data  - klassens karakteristikker, TRM og GIV_EXT/WCM
+#   Fold-ud  - under den udfoldede raekke: de stamdatafelter, der IKKE staar
+#              i den kompakte raekke, og knappen Class data.
+#   Popuppen - klassens karakteristikker, TRM og GIV_EXT/WCM for netop den
+#              raekke. Den redigerer en KOPI (colFlClsDet); Apply skriver
+#              kopien tilbage og validerer, Cancel og luk kasserer den.
 # Hvilke felter der er hvor, er Section i colFlColumns (harnessens
 # buildPlan), og editoren er Kind (generate_app_onstart.editor_kind).
 # ---------------------------------------------------------------------------
@@ -512,15 +591,16 @@ def _display_val(dr, field):
             f'    Coalesce({raw}, ""))')
 
 
-# Alle felter i formularen for den valgte raekke - regnet EEN gang, naar
-# raekken vaelges, og efter hver validering (fl_validation.verify_fx, H).
-# Gallerierne filtrerer kun denne lille, lokale samling (ingen kald).
-DET_ITEMS = f"""With(
-    {{ dr: {DR} }},
+def det_items(row_var, section_test):
+    """Felterne i een sektion for raekken row_var - med vaerdi og besked.
+    Regnet EEN gang (ved valg, aabning og validering); gallerierne
+    filtrerer kun den lille, lokale samling (ingen kald)."""
+    return f"""With(
+    {{ dr: LookUp(colFlRows, RowGuid = {row_var}) }},
     With(
         {{ dc: Coalesce(dr.AssignedClass, "NO CLASS") }},
         ForAll(
-            Sort(Filter(colFlColumns, Cls = dc && Section <> "Status"), Ord) As K,
+            Sort(Filter(colFlColumns, Cls = dc && {section_test}), Ord) As K,
             {{
                 Column: K.Column, Field: K.Field, Editable: K.Editable,
                 List: K.List, MaxLen: K.MaxLen, Section: K.Section, Kind: K.Kind,
@@ -531,8 +611,14 @@ DET_ITEMS = f"""With(
     )
 )"""
 
-# At vaelge en raekke: formularen viser den med det samme.
-SELECT_FX = "Set(varFlDetailRow, ThisItem.RowGuid);\nClearCollect(colFlDet, " + DET_ITEMS + ")"
+
+# Fold-ud-sektionens felter: stamdata for den valgte raekke - regnet, naar
+# raekken vaelges, og efter hver validering (fl_validation.verify_fx, H).
+DET_ITEMS = det_items("varFlDetailRow", 'Section = "Master"')
+
+# At vaelge en raekke: den foldes ud, og sektionen viser den med det samme.
+SELECT_FX = ("Set(varFlDetailRow, ThisItem.RowGuid);\nSet(varFlFoldOpen, true);\n"
+             "ClearCollect(colFlDet, " + DET_ITEMS + ")")
 
 # Dropdownens valg: tom, den gemte vaerdi hvis den er ugyldig, og listen
 # (renderSpoolEditor :2112-2131).
@@ -546,8 +632,8 @@ DD_ITEMS = """Ungroup(
     G
 )"""
 
-# Gitteret: 1, 2 eller 3 felter pr. linje efter kortets bredde.
-FORM_COLS = f"If({SHELL_W} < {lay.TWO_COL_MIN}, 1, {SHELL_W} < 1100, 2, 3)"
+# To felter pr. linje - eet paa mobil (issue #184).
+FORM_COLS = lay.if_below("Tablet", "1", "2")
 TILE_H = 86
 TILE_GAP = 16
 
@@ -561,10 +647,22 @@ FIELD_HELP = ('Switch(ThisItem.Field, '
               '"")')
 
 
-def field_grid(tag, section_test, label):
-    """Et gitter af felter fra colFlDet. Hvert felt: etiket, editor (efter
-    Kind) og en linje med beskeden - eller en kort hjaelp."""
-    items = f"Filter(colFlDet, {section_test})"
+def _set_detail(value):
+    """Fold-ud-sektionens felter skriver direkte i raekkens data."""
+    return set_val_fx("varFlDetailRow", "ThisItem.Field", value)
+
+
+def _set_copy(value):
+    """Popuppens felter skriver KUN i kopien - Apply overfoerer den."""
+    return (f"Patch(colFlClsDet, LookUp(colFlClsDet, Field = ThisItem.Field), "
+            f"{{ Value: {value} }})")
+
+
+def field_grid(tag, section_test, label, source="colFlDet", set_fx=_set_detail):
+    """Et gitter af felter fra source (colFlDet eller popuppens kopi). Hvert
+    felt: etiket, editor (efter Kind) og en linje med beskeden - eller en
+    kort hjaelp."""
+    items = f"Filter({source}, {section_test})"
     n = f"CountRows({items})"
     w = "Parent.Width"
     lbl = text_ctrl(f"txtFl{tag}Lbl",
@@ -574,15 +672,14 @@ def field_grid(tag, section_test, label):
                      label="ThisItem.Column",
                      placeholder='If(ThisItem.Field = "WARRANTY START" || ThisItem.Field = "WARRANTY END", '
                                  '"DD.MM.YYYY", "")',
-                     onchange=set_val_fx("varFlDetailRow", "ThisItem.Field", "Self.Text"))
+                     onchange=set_fx("Self.Text"))
     txt.props["MaxLength"] = "If(ThisItem.MaxLen > 0, ThisItem.MaxLen, 4000)"
     txt.props["BorderColor"] = _field_border("!IsBlank(ThisItem.Issue)", "!IsBlank(ThisItem.Value)")
     txt.vis = 'ThisItem.Kind = "text"'
     dd = themed_dropdown(f"drpFl{tag}Val", DD_ITEMS,
                          f"LookUp({DD_ITEMS}, Upper(Value) = Upper(ThisItem.Value)).Value",
                          width=w, display_mode=DM_EDIT, label="ThisItem.Column")
-    dd.props["OnChange"] = set_val_fx("varFlDetailRow", "ThisItem.Field",
-                                      "Coalesce(Self.Selected.Value, \"\")")
+    dd.props["OnChange"] = set_fx("Coalesce(Self.Selected.Value, \"\")")
     dd.props["BorderColor"] = _field_border("!IsBlank(ThisItem.Issue)", "!IsBlank(ThisItem.Value)")
     dd.vis = 'ThisItem.Kind = "list"'
     # X-felterne (Atex, TRM assignment, GIV_EXT assignment): afkrydsning,
@@ -593,8 +690,8 @@ def field_grid(tag, section_test, label):
         "DisplayMode": DM_EDIT,
         "Height": "36",
         "Label": '"Yes"',
-        "OnCheck": set_val_fx("varFlDetailRow", "ThisItem.Field", '"X"'),
-        "OnUncheck": set_val_fx("varFlDetailRow", "ThisItem.Field", '""'),
+        "OnCheck": set_fx('"X"'),
+        "OnUncheck": set_fx('""'),
         "Width": w,
     }), h=36, vis='ThisItem.Kind = "check"')
     ro = text_ctrl(f"txtFl{tag}Ro", 'If(IsBlank(ThisItem.Value), "-", ThisItem.Value)',
@@ -634,44 +731,124 @@ def _group_title(name, text, visible):
                      visible=visible)
 
 
-def build_master():
-    """Sektion 1: stamdata for den valgte raekke. Felterne er de samme i alle
-    klasser; kun Description er paakraevet (FL32)."""
-    title = text_ctrl("txtFlMasterH", '"Master data"', size=lay.SIZE_CARD_TITLE,
-                      weight="Semibold", height=26, wrap="false")
-    sub = text_ctrl("txtFlMasterSub",
-                    f'With({{ r: {DR} }}, "Row " & r.RowNo & ": " & '
-                    f'If(IsBlank(r.FL), "no Functional Location yet", r.FL) & '
-                    f'" - select another row with the Edit button above.")',
-                    size=12, color=C_MUTED, height=18, wrap="false")
-    grid = field_grid("M", 'Section = "Master"', '"Master data of the selected row"')
-    return card("conFlMasterCard", [title, sub, grid], gap=10)
+# Felterne, der staar i den kompakte raekke, vises ikke igen her. KKS Type
+# og Room/Sort Field/Warranty kun, naar deres kolonner faktisk staar i
+# raekken - paa en smal skaerm er de skjult dér og staar i stedet her.
+_COMPACT_ALWAYS = '["FUNCTIONAL LOCATION", "DESCRIPTION"]'
+_COMPACT_EXTRA = "[" + ", ".join(f'"{f}"' for _n, f, _w in COMPACT_VALS) + "]"
+FOLD_TEST = (f'Section = "Master" && !(Field in {_COMPACT_ALWAYS}) && '
+             f'!(Field = "STRINDICATOR" && {VCOLS.show_mid}) && '
+             f'!(Field in {_COMPACT_EXTRA} && {VCOLS.show_extra})')
+FOLD_OPEN = f"varFlFoldOpen && !IsBlank({DR}.RowGuid)"
+CLS_TIP = ('If(' + HAS_CLASS + ', "Edit the class characteristics, TRM and GIV_EXT / WCM fields of this row", '
+           '"No class yet - the class is determined by the KKS code. Enter a valid Functional Location first.")')
 
 
-def build_class_data():
-    """Sektion 2: klassens felter i tre grupper. Klassen er den, KKS-koden
-    giver (FL16-FL23); den kan ikke vaelges her."""
-    title = text_ctrl("txtFlClassDataH",
-                      f'With({{ c: {DR}.AssignedClass }}, If(IsBlank(c), "Class data", '
-                      f'"Class data - " & c & With({{ hp: LookUp(colFlClassHelp, Key = c).Help }}, '
-                      f'If(IsBlank(hp), "", " (" & hp & ")"))))',
-                      size=lay.SIZE_CARD_TITLE, weight="Semibold", height=26, wrap="false")
-    sub = text_ctrl("txtFlClassDataSub",
-                    f'If({HAS_CLASS}, "The class is determined by the KKS code of the Functional Location.", '
-                    '"The class is determined by the KKS code. Enter a valid Functional Location to see '
-                    'the class fields.")',
+def build_fold():
+    """Fold-ud-sektionen under den udfoldede raekke (issue #184)."""
+    grid = field_grid("M", FOLD_TEST, '"Other fields of the expanded row"')
+    btn = _fit(button("btnFlClassData", '"Class data"', OPEN_CLS_FX,
+                      display_mode=f"If({HAS_CLASS}, DisplayMode.Edit, DisplayMode.Disabled)",
+                      tooltip=CLS_TIP, accessible='"Class data of row " & ' + DR + '.Pos'))
+    # Uden klasse siges hvorfor - en tooltip paa en deaktiveret knap ses
+    # ikke paa en touchskaerm. Paa en smal skaerm, hvor klassekolonnen er
+    # skjult, staar klassen her (ellers staar den kun i raekken).
+    note_fx = (f'If(!({HAS_CLASS}), "No class yet - the class is determined by the KKS code.", '
+               f'!({VCOLS.show_mid}), "Assigned Class: " & {DR}.AssignedClass, "")')
+    note = grow(text_ctrl("txtFlFoldNote", note_fx, size=12, color=C_MUTED, height=18,
+                          wrap="false", visible=f"!({HAS_CLASS}) || !({VCOLS.show_mid})"))
+    foot = group("conFlFoldFoot", pin_widths([btn, note]), direction="Horizontal", gap=12,
+                 align_items="Center")
+    return group("conFlFold", [grid, foot], direction="Vertical", gap=8,
+                 fill=C_MUTED_BG, border_color=C_DIVIDER, radius=lay.RADIUS_INPUT,
+                 pad=(12, 12, 12, 12), visible=FOLD_OPEN)
+
+
+# --- Class data-popuppen ----------------------------------------------------
+CR = "LookUp(colFlRows, RowGuid = varFlClsRow)"
+CLS_TEST = 'Section in ["Class", "TRM", "Ext"]'
+CLS_ITEMS = det_items("varFlClsRow", CLS_TEST)
+CLS_LOCKED = 'varFlViewOnly || varFlStatus = "Indsendt"'
+CLS_OPEN = "IfError(varFlClsOpen, false)"
+# Kopien laves af raekkens GEMTE vaerdier, hver gang popuppen aabnes - en
+# anden raekkes popup kan derfor aldrig se denne raekkes kladde.
+OPEN_CLS_FX = ("Set(varFlClsRow, varFlDetailRow);\n"
+               "ClearCollect(colFlClsDet, " + CLS_ITEMS + ");\n"
+               "Set(varFlClsOpen, true)")
+CLOSE_CLS_FX = "Set(varFlClsOpen, false);\nClear(colFlClsDet)"
+# Apply: kopiens redigerbare felter erstatter raekkens (samme form som
+# set_val_fx: trimmet, tomt = intet), og valideringen koerer.
+APPLY_CLS_FX = f"""With(
+    {{ r: varFlClsRow, ed: Filter(colFlClsDet, Editable) }},
+    RemoveIf(colFlVals, RowGuid = r && Field in ed.Field);
+    Collect(colFlVals, ForAll(Filter(ed, !IsBlank(Trim(Value))) As E, {{ RowGuid: r, Field: E.Field, Value: Trim(E.Value) }}))
+);
+Set(varFlClsCheck, true);
+{REVERIFY}"""
+# Efter valideringen (fl_validation.verify_fx, I): uden fejl i popuppens
+# felter lukker den; ellers bliver den staaende med beskederne. Select
+# koerer foerst, naar Apply er faerdig - derfor her, ikke i Apply.
+CLS_AFTER_VERIFY = f"""If(varFlClsCheck,
+    Set(varFlClsCheck, false);
+    If(
+        IsEmpty(Filter(colFlIssues, RowGuid = varFlClsRow && Sev = "Error" && Ord >= 100 && Field in colFlClsDet.Field)),
+        {CLOSE_CLS_FX.replace(chr(10), " ")},
+        ClearCollect(colFlClsDet, {CLS_ITEMS})
+    )
+)"""
+CLS_W = "Min(900, App.Width - 32)"
+
+
+def build_class_modal():
+    """[sloer, popup] - klassedata for raekken varFlClsRow (issue #184)."""
+    backdrop = tap_backdrop("conFlClsBackdrop", CLS_OPEN, CLOSE_CLS_FX)
+    title = text_ctrl("txtFlClsH", '"Class data"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
+                      height=26, wrap="false")
+    sub = text_ctrl("txtFlClsSub",
+                    f'With({{ r: {CR} }}, "Row " & r.Pos & " - " & '
+                    f'If(IsBlank(r.FL), "no Functional Location", r.FL) & " - class " & r.AssignedClass & '
+                    f'With({{ hp: LookUp(colFlClassHelp, Key = r.AssignedClass).Help }}, '
+                    f'If(IsBlank(hp), "", " (" & hp & ")")))',
                     size=12, color=C_MUTED, height=18, wrap="false")
+    left = grow(group("conFlClsHeadL", [title, sub], direction="Vertical", gap=2))
+    close = button("btnFlClsClose", '"Close"', CLOSE_CLS_FX, width=36, height=36,
+                   icon=icons.FLUENT["dismiss"], accessible='"Close without applying"',
+                   tooltip='"Close without applying"')
+    close.props["Layout"] = "ButtonLayout.IconOnly"
+    head = group("conFlClsTop", pin_widths([left, close]), direction="Horizontal", gap=8,
+                 align_items="Center")
+
     groups = []
-    for tag, test, head, label in (
+    for tag, test, head_txt, label in (
             ("C", 'Section = "Class"', '"Class characteristics"', '"Characteristics of the class"'),
             ("T", 'Section = "TRM"', '"TRM"', '"TRM fields"'),
             ("X", 'Section = "Ext"', '"GIV_EXT / WCM"', '"GIV_EXT and WCM fields"')):
-        vis = f"{HAS_CLASS} && IfError(CountRows(Filter(colFlDet, {test})) > 0, false)"
-        groups.append(_group_title(f"txtFl{tag}GroupH", head, vis))
-        grid = field_grid(tag, test, label)
-        grid.vis = f"{HAS_CLASS} && ({grid.props['Visible']})"
+        grid = field_grid(tag, test, label, source="colFlClsDet", set_fx=_set_copy)
+        groups.append(_group_title(f"txtFl{tag}GroupH", head_txt, grid.props["Visible"]))
         groups.append(grid)
-    return card("conFlClassDataCard", [title, sub] + groups, gap=10)
+    groups.append(text_ctrl("txtFlClsNone", '"This class has no class data fields."', size=13,
+                            color=C_MUTED, height=20, wrap="false",
+                            visible="IfError(CountRows(colFlClsDet) = 0, false)"))
+    inner = group("conFlClsFields", groups, direction="Vertical", gap=8)
+    # Popuppen er aldrig hoejere end skaermen: felterne scroller, titel og
+    # knapper staar fast. Hoejre polstring = scrollbarens plads.
+    body = group("conFlClsBody", [inner], direction="Vertical", gap=0,
+                 height=f"Min({inner.h}, App.Height - 220)", overflow_y="Scroll",
+                 pad=(0, SCROLLBAR_W, 0, 0))
+
+    cancel = _fit(button("btnFlClsCancel", '"Cancel"', CLOSE_CLS_FX,
+                         tooltip='"Discard the changes made since the dialog was opened"'))
+    apply_ = _fit(button("btnFlClsApply", '"Apply"', APPLY_CLS_FX, primary=True,
+                         visible=f"!({CLS_LOCKED})",
+                         tooltip='"Validate and apply the changes to this row"'))
+    foot = group("conFlClsFoot", [cancel, apply_], direction="Horizontal", gap=8, height=36,
+                 justify="End", align_items="Center")
+    modal = group("conFlClsModal", [head, body, foot], direction="Vertical", gap=12,
+                  fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
+                  pad=(18, 18, 18, 18), width=CLS_W, drop_shadow="ExtraBold", visible=CLS_OPEN)
+    modal.props["X"] = "(App.Width - Self.Width) / 2"
+    modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
+    return [backdrop, modal]
 
 
 # ---------------------------------------------------------------------------
@@ -768,11 +945,16 @@ Set(varFlViewOnly, false);
 Set(varFlCanEdit, false);
 Set(varFlTab, "ALL");
 Set(varFlDetailRow, "");
+Set(varFlFoldOpen, true);
+Set(varFlClsOpen, false);
+Set(varFlClsCheck, false);
+Set(varFlClsRow, "");
+Clear(colFlClsDet);
 Set(varFlStale, false);
 Set(varFlNextRowNo, 1);
 """ + add_row_fx() + """;
 Set(varFlInfo, "");
-// Formularen viser den nye, tomme raekke (issue #166).
+// Den nye, tomme raekke er foldet ud (issue #166, #184).
 Select(btnFlVerify)"""
 
 
