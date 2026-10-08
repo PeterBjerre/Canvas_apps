@@ -56,6 +56,7 @@ import domain_config as cfg
 import domain_parts as dp
 import env_config as env
 import object_list as ol
+import stepper as st
 from gen_screen import C_REQUIRED
 from build_helpers import (text_ctrl, group, button, text_input, card, field_cell,
                            label_px, fit_button_width)
@@ -305,7 +306,10 @@ def build_form():
     rows.append(extra)
 
     buttons = dp.form_buttons(save_fx, "Save row", "New row")
-    return card("conDomFormCard", [head] + rows + dp.form_footer(buttons))
+    # Trinstriben lige under hovedet - foer felterne, saa den er det
+    # foerste, man ser (kun naar godkendelsen er med).
+    top = [build_steps()] if APPROVAL_ON else []
+    return card("conDomFormCard", [head] + top + rows + dp.form_footer(buttons))
 
 
 # ---------------------------------------------------------------------------
@@ -535,9 +539,13 @@ def resolve_fx(codes):
         "                    Approver: Text(R.Value.approver),\n"
         "                    Error: Text(R.Value.error)\n"
         "                })\n"
-        "        ),\n"
+        "        );\n"
+        # Begge grene skal give det SAMME - IfError er et udtryk, ikke to
+        # blokke (check_layout regel 32).
+        "        true,\n"
         f'        Set({APPR_MSG}, "Could not look up the system managers: " & '
-        "FirstError.Message)\n"
+        "FirstError.Message);\n"
+        "        false\n"
         "    )\n"
         ")"
     )
@@ -600,6 +608,92 @@ def _approver_line():
             f'!IsBlank(Trim(Coalesce({APPR_MSG}, "")))')
     return text_ctrl("txtDomObjApprovers", text, size=12, color=C_MUTED,
                      height=18, wrap="false", visible=seen)
+
+
+# ---------------------------------------------------------------------------
+# TRINSTRIBEN (issue #204) - hvor langt er indmeldingen?
+#
+# Hubben har altid vist forloebet pr. anmodning; den, der UDFYLDER
+# formularen, har aldrig haft det. Han saa en liste raekker og en
+# Submit-knap, og foerst naar han trykkede, fik han at vide, at noget
+# manglede. Striben er de samme tre trin FOER indsendelsen - og de samme
+# tre knuder bliver forloebet EFTER den, saa billedet ikke skifter under
+# brugeren.
+#
+# Hjaelpelinjen under striben siger praecis det, Submit ville sige: samme
+# udtryk, samme beskeder. Delene staar i tools/stepper.py og er
+# domaeneneutrale.
+# ---------------------------------------------------------------------------
+SUBMITTED = 'CountRows(Filter(colDomRows, Status = "submitted")) > 0'
+DRAFTS = 'CountRows(Filter(colDomRows, Status = "draft"))'
+VALID_N = 'CountRows(Filter(colDomRows, Status = "valid"))'
+# Strategiske raekker UANSET status - ogsaa de indsendte, for efter Submit
+# er der ingen "valid" raekker tilbage at taelle.
+ANY_STRAT = ("CountRows(Filter(colDomRows, " + is_strategic("StrategicPart")
+             + ")) > 0")
+IDX_ST = 'Coalesce(varDomIdx.Status.Value, "")'
+# Det, Submit ville spaerre paa (submit_guard).
+BLOCKED = (f"{NO_OBJECT} || CountRows({BAD}) > 0 || "
+           f'!IsBlank(Trim(Coalesce({APPR_MSG}, "")))')
+
+
+def _steps():
+    rows = (f'If(\n    {SUBMITTED}, "Done",\n'
+            '    CountRows(colDomRows) > 0, "Done",\n    "Current"\n)')
+    appr = (
+        "If(\n"
+        f"    !({ANY_STRAT}), \"Skipped\",\n"
+        f"    {SUBMITTED},\n"
+        "    If(\n"
+        f'        {IDX_ST} = "UnderBehandling" || {IDX_ST} = "AfventerInfo", "Current",\n'
+        f'        {IDX_ST} = "Indsendt" || {IDX_ST} = "KlarTilSAP" || '
+        f'{IDX_ST} = "OprettetISAP", "Done",\n'
+        '        "Pending"\n'
+        "    ),\n"
+        f"    {BLOCKED}, \"Current\",\n"
+        '    "Done"\n'
+        ")")
+    done = (
+        "If(\n"
+        f"    {SUBMITTED},\n"
+        "    If(\n"
+        f'        {IDX_ST} = "OprettetISAP", "Done",\n'
+        f'        {IDX_ST} = "KlarTilSAP", "Current",\n'
+        '        "Pending"\n'
+        "    ),\n"
+        f"    {VALID_N} > 0 && !({BLOCKED}), \"Current\",\n"
+        '    "Pending"\n'
+        ")")
+    return [
+        (f'If({SUBMITTED}, "Submitted", "Rows")', rows),
+        (f'If({SUBMITTED}, "System approval", "Objects & approvers")', appr),
+        (f'If({SUBMITTED}, "Handed over", "Ready to submit")', done),
+    ]
+
+
+def _steps_hint():
+    """Linjen under striben - de samme beskeder, Submit ville give."""
+    return (
+        "With(\n"
+        f"    {{ v: {VALID_N}, d: {DRAFTS} }},\n"
+        "    If(\n"
+        f"        {SUBMITTED}, \"The request is with Master Data - you get an "
+        'e-mail when it moves on.",\n'
+        '        v = 0 && d = 0, "Add a row and save it to get started.",\n'
+        f"        {NO_OBJECT}, \"A strategic row needs at least one functional "
+        'location before it can be submitted.",\n'
+        f'        CountRows({BAD}) > 0, "Cannot submit: " & First({BAD}).Error,\n'
+        f'        !IsBlank(Trim(Coalesce({APPR_MSG}, ""))), {APPR_MSG},\n'
+        '        d > 0 && v = 0, "Finish the draft row before submitting.",\n'
+        '        "Ready: " & v & " row(s) will be submitted." & '
+        'If(d > 0, " " & d & " draft row(s) stay as drafts.", "")\n'
+        "    )\n"
+        ")")
+
+
+def build_steps():
+    return st.strip("Dom", _steps(), hint=_steps_hint(),
+                    label='"Progress of this request"')
 
 
 # Godkendelsen er bag flaget: er det slukket, er appen praecis som foer -

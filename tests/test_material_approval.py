@@ -332,3 +332,70 @@ def test_an_error_notifies_the_development_team():
     notify = _find(APPROVAL, "Send_notification_to_development_team")
     assert notify["inputs"]["parameters"]["emailMessage/To"] == \
         "@parameters('BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)')"
+
+
+# ---------------------------------------------------------------------------
+# HUBBEN - striben og popuppen (Masterdata Hub/build/approval_flow.py)
+# ---------------------------------------------------------------------------
+import sys
+
+sys.path.insert(0, os.path.join(ROOT, "Masterdata Hub", "build"))
+import approval_flow as apf
+
+HUB = os.path.join(ROOT, "BIO SAP App", "ScreenMdHub.pa.yaml")
+
+
+def _hub():
+    return open(HUB, encoding="utf-8").read()
+
+
+def test_the_hub_shows_a_flow_for_plans_and_materials():
+    assert set(apf.DOM_STAGES) == {"MaintenancePlan", "Material"}
+    for dom in apf.DOM_STAGES:
+        assert '%s"' % dom in apf.applies("ThisItem")
+
+
+def test_materials_strip_has_the_system_step_and_the_handover():
+    svg = apf._mat_strip("ThisItem")
+    assert ">System<" in svg and ">Handover<" in svg
+    # Og ikke VH-planens trin.
+    assert "Cost" not in svg and "Quality" not in svg
+
+
+def test_materials_count_comes_from_the_requested_rows_not_itemcount():
+    # Enheden er raekke GANGE system, saa ItemCount er ikke tallet.
+    exp = apf.mat_expected("L")
+    assert 'Decision = "Requested"' in exp and "Distinct" in exp and "ItemGuid" in exp
+    assert "ItemCount" not in apf._mat_strip("ThisItem")
+
+
+def test_a_requested_row_is_not_a_decision():
+    assert apf.decided("T") == 'Filter(T, Decision <> "Requested")'
+    # Striben og popuppen taeller begge kun beslutninger.
+    assert 'Decision <> "Requested"' in apf._mat_strip("ThisItem")
+    assert 'Decision <> "Requested"' in apf.open_fx()
+
+
+def test_the_plan_strip_is_unchanged():
+    # Materials gren er lagt VED SIDEN AF VH-planens, ikke ind i den.
+    vh = apf._vh_strip("ThisItem")
+    for name in (">System<", ">Cost<", ">Quality<", ">SAP<"):
+        assert name in vh, name
+    assert "Max(1, ThisItem.ItemCount)" in vh
+    assert "Requested" not in vh
+    assert "Handover" not in vh
+    # Begge grene staar i den byggede skaerm - den ene erstattede ikke
+    # den anden.
+    hub = _hub()
+    for name in (">Cost<", ">Quality<", ">Handover<"):
+        assert name in hub, name
+
+
+def test_the_popup_branches_on_the_domain():
+    fx = apf.open_fx()
+    assert apf.is_mat(apf.R) in fx
+    # Materials popup har sit eget sidste trin.
+    assert "Handover to Master Data" in fx
+    assert "Creation in SAP" in fx
+    # Trinene, Materials ikke har, maa ikke staa tilbage fra en VH-plan.
+    assert 'Set(varMdAprS2, "")' in fx and 'Set(varMdAprS3, "")' in fx
