@@ -64,6 +64,12 @@ def build_formulas():
                 continue
             merged[name], owner[name] = text, d["folder"]
             order.append(name)
+    # Sidebarens app-logo (issue #203) - kun den samlede app har sidebaren.
+    import side_nav
+    if side_nav.LOGO in merged:
+        raise SystemExit("App.Formulas: '%s' findes allerede." % side_nav.LOGO)
+    merged[side_nav.LOGO] = side_nav.logo_formula()
+    order.append(side_nav.LOGO)
     return "\n\n".join(merged[n] for n in order), len(order)
 
 
