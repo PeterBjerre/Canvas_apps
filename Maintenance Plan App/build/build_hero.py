@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import Ctrl, SHELL_W, C_PRIMARY, C_CARD_BORDER, C_VALID_FG, C_MUTED
+from gen_screen import (Ctrl, SHELL_W, C_PRIMARY, C_CARD_BORDER, C_VALID_FG, C_MUTED,
+                        C_DIVIDER, C_MODAL_BG, C_TRANSPARENT)
 import layout_tokens as lay
 from build_helpers import (group, fit_button_width, text_ctrl, text_px,
                            flow_row, page_icon, PAGE_ICON, ICON_W, top_bar, grow,
-                           button, confirm_modal, icon_on_mobile, edit_button, delete_button, delete_modal)
+                           button, confirm_modal, edit_button, delete_modal)
 from layout_tokens import if_below, at_least, below
 from design_tokens import ref_hex
 from build_items import FL_CODE, SEED_FL_PICKER, RESET_EDITOR_CONTROLS
@@ -327,7 +328,9 @@ def _step_image(i, label, done, prev_done, current, action, width, suffix="", he
 
 def _submit_tooltip():
     """Samme liste som trinene (MISSING) - og reglerne selv til sidst."""
+    # View mode foerst (issue #211): Submit staar graa, til man vaelger Edit.
     return with_dirty(f"If(\n    VhpSubmitted, \"Already submitted - see the progress bar.\",\n"
+            f"    IfError(varVhpViewOnly, false), \"View mode - select Edit to change or submit the plan.\",\n"
             f"    {CAN_SUBMIT},\n    \"Submit the plan for approval.\",\n"
             f"    \"Not ready to submit:\" & Char(10) &\n        {missing_list(hint=':')} &\n"
             f"        VhpValidationErrors\n)")
@@ -367,11 +370,12 @@ READY_OK = f"(VhpSubmitted || ({CAN_SUBMIT}))"
 # Knappen hedder nu det, den goer; status i SharePoint er stadig Draft.
 DRAFT_TEXT = 'If(IsBlank(varVhpPlanKey), "Create draft", "Update draft")'
 SAVE_W = fit_button_width('"Update draft"') + ICON_W
-SUB_W = fit_button_width('"Submit"', min_w=72)
+# Submit har ikonet foran teksten - det skal ogsaa have plads, ellers
+# klippes "Submit" (issue #211).
+SUB_W = fit_button_width('"Submit"', min_w=72) + ICON_W
 SUBTITLE = '"Plan header, items, task lists and operations - submitted to SAP master data."'
 NEW_W = fit_button_width('"New request"') + ICON_W
 EDIT_W = fit_button_width('"Edit"') + ICON_W
-NOTES_W = 40
 
 RESET_COLLECTIONS = ("colVhpItems", "colVhpOperations", "colVhpItemObjects", "colVhpObjDraft",
                      "colVhpMaterials", "colVhpAttachments")
@@ -413,61 +417,188 @@ def readiness_line():
 
 # Bjaelkens elementer - samme opbevaring som assemble_screen skal bruge.
 CONFIRM = []
+# More actions-menuen (issue #211): [sloer, menu]. Den ligger paa skaermen,
+# ikke i headeren, saa headerens hoejde kun afhaenger af skaermbredden.
+MORE_MENU = []
+
+# KNAPPERNE I HEADEREN (issue #211)
+# ---------------------------------
+# Foer stod seks knapper paa een linje (Notes, Edit, Delete, New request,
+# Save draft, Submit), og bredden var regnet for fem af dem. I Edit mode
+# med noter blev linjen bredere end pladsen, og Submit blev klippet i
+# hoejre kant. Nu:
+#
+#   [+ New request] | [Edit / Update draft] [Submit] [...]
+#
+#   New request   til venstre for en lodret streg - den starter en NY
+#                 anmodning og roerer ikke planen, man staar i.
+#   Edit          kun i View mode, naar brugeren maa aendre planen.
+#   Update draft  kun i Edit mode, foer planen er indsendt. Edit og
+#                 Update draft er aldrig synlige samtidig.
+#   Submit        den primaere knap, til planen er indsendt. I View mode
+#                 staar den graa og siger, at Edit kommer foerst.
+#   ...           More actions: View notes og Delete request (sidst, i
+#                 fare-farven, med den samme bekraeftelse som foer).
+#
+# Er der ikke plads til teksterne, er New request, Edit og Update draft
+# kun deres ikon (COMPACT). Submit beholder altid sin tekst. Hvornaar det
+# sker, afhaenger kun af skaermbredden - se COMPACT nedenfor.
+MORE_ON = "IfError(varVhpMoreOn, false)"
+MORE_CLOSE = "Set(varVhpMoreOn, false)"
+ICON_BTN = 40
+SEP_W = 1
+BTN_GAP = 8
+MENU_W = 200
+# Titlen maa ikke blive smallere end det her, foer knapperne skifter til ikoner.
+TITLE_MIN = 220
+# Plan-knapperne: Edit og Update draft deler een plads.
+PLAN_W = max(EDIT_W, SAVE_W)
+FULL_W = NEW_W + SEP_W + PLAN_W + SUB_W + ICON_BTN + 4 * BTN_GAP
+COMPACT_W = ICON_BTN + SEP_W + ICON_BTN + SUB_W + ICON_BTN + 4 * BTN_GAP
+STEPS_W = len(STEPS) * STEP_W
+# Pladsen til titel + knapper paa linjen (trinene og to gaps er trukket fra).
+LINE_REST = if_below("Desktop", f"({SHELL_W} - 16)", f"({SHELL_W} - {STEPS_W} - 32)")
+COMPACT = f"({below('Tablet')} || {LINE_REST} - {FULL_W} < {TITLE_MIN})"
+# Synligheden af planens handlinger - samme betingelser som foer, plus
+# status: efter Submit er der intet at gemme eller indsende.
+EDIT_VIS = "IfError(varVhpViewOnly && varVhpCanEdit, false)"
+DRAFT_VIS = "(!IfError(varVhpViewOnly, true) && !VhpSubmitted)"
+SUBMIT_VIS = "(!VhpSubmitted && (!IfError(varVhpViewOnly, true) || IfError(varVhpCanEdit, false)))"
+DELETE_VIS = "(!IfError(varVhpViewOnly, true) && !IsBlank(varVhpRequestGuid))"
+
+
+def _compact(btn, full_w):
+    """Tekst og ikon, naar der er plads - ellers kun ikonet."""
+    btn.props["Width"] = f"If({COMPACT}, {ICON_BTN}, {full_w})"
+    btn.props["LayoutMinWidth"] = btn.props["Width"]
+    btn.props["Layout"] = f"If({COMPACT}, ButtonLayout.IconOnly, ButtonLayout.IconBefore)"
+    btn.props["AlignInContainer"] = "AlignInContainer.Center"
+    return btn
+
+
+def _more_menu(notes_vis, notes_fx):
+    """More actions: en lille flade lige under ...-knappen (Issue Boardets
+    More actions-moenster), men svaevende oven paa siden, saa headeren ikke
+    vokser. Et gennemsigtigt sloer bag lukker den ved et klik udenfor, som
+    sidebarens. Delete staar sidst og aabner den samme bekraeftelse som
+    foer."""
+    # Fast bredde: menuen er MENU_W bred med 8 px luft i hver side.
+    item_w = str(MENU_W - 16)
+    notes = button("btnVhpNotes", '"View notes"', f"{MORE_CLOSE};\n{notes_fx}",
+                   width=item_w, height=36, icon="Note",
+                   accessible='"View the submission notes"',
+                   tooltip='"Read the notes added when the plan was submitted"',
+                   visible=notes_vis)
+    rule = group("conVhpMoreRule", [], direction="Horizontal", height=1, fill=C_DIVIDER, width=item_w,
+                 visible=f"({notes_vis}) && {DELETE_VIS}")
+    blocked = "(VhpSubmitted || varVhpSaving)"
+    delete = button("btnVhpDeleteRequest", '"Delete request"',
+                    f"{MORE_CLOSE};\nSet(varVhpDeleteOpen, true)",
+                    width=item_w, height=36, icon="Delete", danger=True,
+                    visible=DELETE_VIS, accessible='"Delete this request"',
+                    display_mode=f"If({blocked}, DisplayMode.Disabled, DisplayMode.Edit)",
+                    tooltip=('If(VhpSubmitted, "A submitted plan cannot be deleted.", '
+                             'varVhpSaving, "Saving ...", '
+                             '"Delete this draft request - you are asked to confirm first")'))
+    why = text_ctrl("txtVhpDeleteWhy",
+                    'If(VhpSubmitted, "A submitted plan cannot be deleted.", "Wait until saving is done.")',
+                    size=lay.SIZE_SMALL, color=C_MUTED, height=32, wrap="true",
+                    visible=f"{DELETE_VIS} && {blocked}")
+    why.props["Width"] = item_w
+    menu = group("conVhpMoreMenu", [notes, rule, delete, why], direction="Vertical", gap=6,
+                 fill=C_MODAL_BG, border_color=C_CARD_BORDER, radius=lay.RADIUS_INPUT,
+                 pad=(8, 8, 8, 8), width=str(MENU_W), align_items="Center", drop_shadow="Bold",
+                 visible=MORE_ON)
+    # Lige under ...-knappen: den staar yderst til hoejre i headeren, midt
+    # paa hovedlinjen (paa en telefon under trinene).
+    line_h = if_below("Tablet", "60", str(STEP_H + 28))
+    steps_m = if_below("Tablet", f"Min({STEP_H}, ({SHELL_W}) / {len(STEPS)} * {STEP_H} / {STEP_W})", "0")
+    menu.props["X"] = f"App.Width - {lay.PAGE_PAD_R + lay.SCROLLBAR_W} - Self.Width"
+    menu.props["Y"] = (f"{lay.ROOT_Y} + {lay.HEADER_PAD_T} + {steps_m} + "
+                       f"({line_h} - 44) / 2 + 40 + 4")
+    t = C_TRANSPARENT
+    scrim = Ctrl("imgVhpMoreScrim", "Image", props={
+        "AccessibleLabel": '"Close more actions"',
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "Fill": t, "HoverFill": t, "PressedFill": t,
+        "Height": "App.Height",
+        "Image": '""',
+        "OnSelect": MORE_CLOSE,
+        "TabIndex": "0",
+        "Visible": MORE_ON,
+        "Width": "App.Width",
+        "X": "0",
+        "Y": "0",
+    }, h="App.Height", vis=MORE_ON)
+    return [scrim, menu]
 
 
 def build_top_bar():
     """VH-planens topbjaelke - to raekker, saa intet kan klippes:
 
-        [ikon] VH-plan                                  [Save draft][Submit]
+        [ikon] VH-plan              [+ New request] | [Update draft][Submit][...]
                undertekst
-                 (1)-----(2)-----(3)-----(4)-----(5)
-                 Plan    Item    Task    Ops     Save
+                 (1)-----(2)-----(3)-----(4)
+                 Plan    Item    Task    Ready
 
     Foerste raekke er den SAMME titelbjaelke som paa alle andre sider
     (build_helpers.top_bar), saa ikonet staar det samme sted overalt.
     Trinene staar under den, i fuld bredde og med fast hoejde. Help og tema
-    staar i sidebaren."""
-    from build_save import save_buttons, NOTES_OPEN_VIEW, NOTES_HAVE
+    staar i sidebaren. Knapperne: se KNAPPERNE I HEADEREN ovenfor."""
+    from build_save import save_buttons, NOTES_OPEN_VIEW, NOTES_HAVE, SAVEABLE_COUNT
     btnDraft, btnSubmit, confirm = save_buttons(CAN_SUBMIT)
-    # Noterne ved Submit, skrivebeskyttet (issue #115): kun naar planen har
-    # en note, brugeren maa se. Kun ikonet, saa knaprakken ikke vokser.
-    btnNotes = button("btnVhpNotes", '"Notes"', NOTES_OPEN_VIEW, width=NOTES_W, height=36,
-                      icon="Note", accessible='"View the submission notes"', tooltip='"View notes"',
-                      visible=NOTES_HAVE)
-    btnNotes.props["Layout"] = "ButtonLayout.IconOnly"
-    btnNotes.props["AlignInContainer"] = "AlignInContainer.Center"
-    btnNotes.props["LayoutMinWidth"] = str(NOTES_W)
     btnNew = button("btnVhpNewRequest", '"New request"',
                     f"If({HAS_UNSAVED}, Set(varVhpConfirmNew, true), {NEW_PLAN_FX})",
                     width=NEW_W, height=36, icon="Add",
-                    accessible='"Start a new blank request"')
-    btnNew.props["AlignInContainer"] = "AlignInContainer.Center"
-    btnNew.props["LayoutMinWidth"] = str(NEW_W)
-    btnNew.vis = at_least("Tablet")
+                    accessible='"Start a new blank request"',
+                    tooltip='"Start a new blank request"')
+    _compact(btnNew, NEW_W)
     # Den faelles Edit (build_helpers.edit_button). Den skifter KUN til Edit
     # mode (issue #103): sektionerne er altid foldet ud (issue #192), og Plan
     # Header laases op med sin egen Edit - foer laaste denne knap ogsaa den op.
     btnEdit = edit_button("btnVhpEdit", "varVhpViewOnly", "varVhpCanEdit",
-                          "Set(varVhpViewOnly, false)")
+                          "Set(varVhpViewOnly, false)",
+                          tooltip='"Switch to Edit mode to change or submit the plan"')
+    _compact(btnEdit, EDIT_W)
     confirmNew = confirm_modal(
         "VhpNew", "varVhpConfirmNew", "Start a new request?",
         '"Unsaved work on this request is discarded. Save a draft first to keep it."',
         "Discard and start new", NEW_PLAN_FX, "btnVhpNewConfirm", icon="Add")
     CONFIRM[:] = confirm + confirmNew + delete_modal("Vhp", "varVhpRequestGuid", _cfg.L_INDEX, "MaintenancePlan")
-    btnDelete = delete_button("Vhp", "varVhpViewOnly", "varVhpRequestGuid")
-    btnDraft.props["Width"] = str(SAVE_W)
+    MORE_MENU[:] = _more_menu(NOTES_HAVE, NOTES_OPEN_VIEW)
+    more_vis = f"({NOTES_HAVE} || {DELETE_VIS})"
+    btnMore = button("btnVhpMoreActs", '""', f"Set(varVhpMoreOn, !{MORE_ON})",
+                     width=ICON_BTN, height=36, icon="MoreHorizontal",
+                     accessible='"More actions"', tooltip='"More actions"', visible=more_vis)
+    btnMore.props["Layout"] = "ButtonLayout.IconOnly"
+    btnMore.props["LayoutMinWidth"] = str(ICON_BTN)
+    btnMore.props["BorderColor"] = f"If({MORE_ON}, {C_PRIMARY}, {C_CARD_BORDER})"
     btnDraft.props["Text"] = DRAFT_TEXT
     btnDraft.props["AccessibleLabel"] = (
         'If(IsBlank(varVhpPlanKey), "Create the plan as a draft", "Update the saved draft")')
+    # Hvorfor knappen er graa - samme betingelser som build_save.DRAFT_DM.
     btnDraft.props["Tooltip"] = (
         "If(\n"
         "    varVhpSaving, \"Saving ...\",\n"
+        "    !varVhpPlanCommitted, \"Save the plan header first - then you can create the draft.\",\n"
+        f"    {SAVEABLE_COUNT} = 0, \"Add at least one item with a short text or functional location first.\",\n"
         "    IsBlank(varVhpPlanKey), \"Not saved yet. Create a draft so you can come back to it.\",\n"
         "    \"Saved as draft \" & varVhpPlanKey & \". Update draft saves your changes to the same plan, items and operations.\"\n"
         ")")
+    btnDraft.props["Visible"] = btnDraft.vis = DRAFT_VIS
     focus_border(btnDraft, (4,), C_CARD_BORDER)
+    _compact(btnDraft, SAVE_W)
     btnSubmit.props["Width"] = str(SUB_W)
+    btnSubmit.props["LayoutMinWidth"] = str(SUB_W)
+    btnSubmit.props["AlignInContainer"] = "AlignInContainer.Center"
     btnSubmit.props["Tooltip"] = _submit_tooltip()
+    btnSubmit.props["Visible"] = btnSubmit.vis = SUBMIT_VIS
+    # Stregen mellem New request og planens handlinger.
+    sep = group("conVhpHeadSep", [], direction="Horizontal", height=24, width=str(SEP_W),
+                fill=C_DIVIDER, layout_min_width=SEP_W,
+                visible=f"{EDIT_VIS} || {DRAFT_VIS} || {SUBMIT_VIS} || {more_vis}")
+    sep.props["AlignInContainer"] = "AlignInContainer.Center"
     title_bar = top_bar("Vhp", '"Maintenance Plan"', SUBTITLE, [], icon="vhplan", mode_var="varVhpViewOnly",
                      num_var="varVhpPlanKey")
     # Nye navne: Studio beholdt bjaelkens gamle tilstand paa conVhpBar fra foer redesignet.
@@ -475,20 +606,6 @@ def build_top_bar():
     title_bar.children[1].name = "conVhpTitleText"
     title_bar.props["AlignInContainer"] = "AlignInContainer.Center"
     title_bar.children[1].props["AlignInContainer"] = "AlignInContainer.Center"
-    btnDraft.props["AlignInContainer"] = "AlignInContainer.Center"
-    btnSubmit.props["AlignInContainer"] = "AlignInContainer.Center"
-    btnDraft.props["LayoutMinWidth"] = str(SAVE_W)
-    btnSubmit.props["LayoutMinWidth"] = str(SUB_W)
-    for b_ in (btnNew, btnDraft):
-        icon_on_mobile(b_)
-    narrow = below("Tablet")
-    new_m_w = fit_button_width('"New"', min_w=0) + 8
-    btnNew.props["Text"] = f'If({narrow}, "New", "New request")'
-    btnNew.props["Width"] = f"If({narrow}, {new_m_w}, {NEW_W})"
-    btnNew.props["LayoutMinWidth"] = btnNew.props["Width"]
-    btnNew.props["Layout"] = f"If({narrow}, ButtonLayout.TextOnly, ButtonLayout.IconBefore)"
-    btnNew.vis = None
-    btnDraft.vis = None
 
     n = len(STEPS)
     step_w = f"Min({STEP_W}, {SHELL_W} / {n})"
@@ -513,20 +630,18 @@ def build_top_bar():
     m_steps = group("conVhpStepRowM", m_imgs, direction="Horizontal", gap=0, height=m_h,
                     width=SHELL_W, justify="Center", align_items="Start",
                     visible=below("Tablet"))
-    # Trinene staar midt paa linjen: titelblokken har samme bredde som den
-    # tomme rest efter dem, og resten tager en afstandsholder.
-    side_min = SAVE_W + SUB_W + NEW_W + EDIT_W + 32 + 40
-    side_w = if_below(
-        "Desktop", if_below("Tablet", str(SUB_W + 80 + new_m_w + 24 + 48), str(side_min)),
-        f"Max({side_min}, ({SHELL_W} - {steps_w}) / 2 - 16)")
-    # Tablet: trinene er skjult, saa titlen faar resten efter knapperne (mindst
-    # 220 som foer) - ellers klippes "Maintenance Plan" paa en bred tablet,
-    # selv om linjen har plads (issue #93).
-    tab_w = f"Max(220, {SHELL_W} - {side_min} - 16)"
-    title_bar.props["Width"] = if_below("Tablet", "56", if_below("Desktop", tab_w, f"Max({side_min}, ({SHELL_W} - {steps_w}) / 2 - 16)"))
-    title_bar.props["LayoutMinWidth"] = if_below("Tablet", "56", "220")
-    btns = group("conVhpHeadBtns", [btnNotes, btnEdit, btnDelete, btnNew, btnDraft, btnSubmit], direction="Horizontal", gap=8,
-                 height=44, width=side_w, justify="End", align_items="Center")
+    # BREDDERNE (issue #211). Knapperne faar praecis den plads, de bruger
+    # (FULL_W eller COMPACT_W), og titlen resten. Trinene staar midt paa
+    # linjen, naar der er plads til det: saa er knapblokken lige saa bred
+    # som titlen. Ingen af bredderne kan tilsammen blive bredere end linjen.
+    btn_w = f"If({COMPACT}, {COMPACT_W}, {FULL_W})"
+    side_w = if_below("Desktop", btn_w, f"Max({btn_w}, {LINE_REST} / 2)")
+    title_bar.props["Width"] = if_below("Tablet", "56", f"{LINE_REST} - {side_w}")
+    title_bar.props["LayoutMinWidth"] = "0"
+    btns = group("conVhpHeadBtns", [btnNew, sep, btnEdit, btnDraft, btnSubmit, btnMore],
+                 direction="Horizontal", gap=BTN_GAP, height=44, width=side_w,
+                 justify="End", align_items="Center")
+    btns.props["LayoutMinWidth"] = btns.props["Width"]
     head = group("conVhpHeadLine", [title_bar, steps, btns],
                  height=if_below("Tablet", "60", str(STEP_H + 28)),
                  direction="Horizontal", gap=16, align_items="Center", justify="SpaceBetween")

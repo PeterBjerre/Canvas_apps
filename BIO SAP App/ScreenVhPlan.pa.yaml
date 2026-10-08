@@ -701,7 +701,7 @@ Screens:
                                     LayoutGap: |-
                                         =10
                                     LayoutMinWidth: |-
-                                        =If(LayoutRank < 2, 56, 220)
+                                        =0
                                     LayoutOverflowX: |-
                                         =LayoutOverflow.Hide
                                     LayoutOverflowY: |-
@@ -709,7 +709,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 2
                                     Width: |-
-                                        =If(LayoutRank < 2, 56, If(LayoutRank < 3, Max(220, (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 548 - 16), Max(548, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416) / 2 - 16)))
+                                        =If(LayoutRank < 2, 56, If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - If(LayoutRank < 3, If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - 477 < 220), 259, 477), Max(If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - 477 < 220), 259, 477), If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) / 2)))
                                   Children:
                                     - imgVhpTitleIcon:
                                         Control: Image
@@ -765,7 +765,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =Max(0, ((If(LayoutRank < 2, 56, If(LayoutRank < 3, Max(220, (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 548 - 16), Max(548, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416) / 2 - 16))))) - (If(LayoutRank >= 2, (32) + 10, 0)) - 2)
+                                              =Max(0, ((If(LayoutRank < 2, 56, If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - If(LayoutRank < 3, If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - 477 < 220), 259, 477), Max(If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - 477 < 220), 259, 477), If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) / 2))))) - (If(LayoutRank >= 2, (32) + 10, 0)) - 2)
                                         Children:
                                           - conVhpTitleLine:
                                               Control: GroupContainer
@@ -796,7 +796,7 @@ Screens:
                                                 Visible: |-
                                                     =LayoutRank >= 2
                                                 Width: |-
-                                                    =Max(0, Min(286, ((Max(0, ((If(LayoutRank < 2, 56, If(LayoutRank < 3, Max(220, (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 548 - 16), Max(548, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416) / 2 - 16))))) - (If(LayoutRank >= 2, (32) + 10, 0)) - 2)))))
+                                                    =Max(0, Min(286, ((Max(0, ((If(LayoutRank < 2, 56, If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - If(LayoutRank < 3, If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - 477 < 220), 259, 477), Max(If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - 477 < 220), 259, 477), If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) / 2))))) - (If(LayoutRank >= 2, (32) + 10, 0)) - 2)))))
                                               Children:
                                                 - txtVhpTitle:
                                                     Control: ModernText
@@ -834,7 +834,7 @@ Screens:
                                                       Visible: |-
                                                           =LayoutRank >= 2
                                                       Width: |-
-                                                          =Max(0, Min(192, ((Max(0, Min(286, ((Max(0, ((If(LayoutRank < 2, 56, If(LayoutRank < 3, Max(220, (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 548 - 16), Max(548, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416) / 2 - 16))))) - (If(LayoutRank >= 2, (32) + 10, 0)) - 2))))))) - (If(IsBlank(varVhpPlanKey), 0, 6 + 88))))
+                                                          =Max(0, Min(192, ((Max(0, Min(286, ((Max(0, ((If(LayoutRank < 2, 56, If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - If(LayoutRank < 3, If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - 477 < 220), 259, 477), Max(If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - 477 < 220), 259, 477), If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) / 2))))) - (If(LayoutRank >= 2, (32) + 10, 0)) - 2))))))) - (If(IsBlank(varVhpPlanKey), 0, 6 + 88))))
                                                       Wrap: |-
                                                           =false
                                                 - imgVhpNumber:
@@ -1485,168 +1485,14 @@ Screens:
                                     LayoutJustifyContent: |-
                                         =LayoutJustifyContent.End
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If(LayoutRank < 3, If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - 477 < 220), 259, 477), Max(If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - 477 < 220), 259, 477), If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) / 2))
                                     LayoutOverflowX: |-
                                         =LayoutOverflow.Hide
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If(LayoutRank < 3, If(LayoutRank < 2, 304, 548), Max(548, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416) / 2 - 16))
+                                        =If(LayoutRank < 3, If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - 477 < 220), 259, 477), Max(If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - 477 < 220), 259, 477), If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) / 2))
                                   Children:
-                                    - btnVhpNotes:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="View the submission notes"
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =C.'border-default'
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =36
-                                          Icon: |-
-                                              ="Note"
-                                          Layout: |-
-                                              =ButtonLayout.IconOnly
-                                          LayoutMinWidth: |-
-                                              =40
-                                          OnSelect: |-
-                                              =Set(varVhpNotesEdit, false);
-                                              Reset(inpVhpNoteA);
-                                              Reset(inpVhpNoteS);
-                                              Set(varVhpConfirmSubmit, true)
-                                          RadiusBottomLeft: |-
-                                              =10
-                                          RadiusBottomRight: |-
-                                              =10
-                                          RadiusTopLeft: |-
-                                              =10
-                                          RadiusTopRight: |-
-                                              =10
-                                          Size: |-
-                                              =14
-                                          Text: |-
-                                              ="Notes"
-                                          Tooltip: |-
-                                              ="View notes"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Visible: |-
-                                              =(!IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf))
-                                          Width: |-
-                                              =40
-                                    - btnVhpEdit:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Edit this request"
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =C.'border-default'
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =36
-                                          Icon: |-
-                                              ="Edit"
-                                          Layout: |-
-                                              =If(LayoutRank < 2, ButtonLayout.IconOnly, ButtonLayout.IconBefore)
-                                          LayoutMinWidth: |-
-                                              =If(LayoutRank < 2, 40, 96)
-                                          OnSelect: |-
-                                              =Set(varVhpViewOnly, false)
-                                          RadiusBottomLeft: |-
-                                              =10
-                                          RadiusBottomRight: |-
-                                              =10
-                                          RadiusTopLeft: |-
-                                              =10
-                                          RadiusTopRight: |-
-                                              =10
-                                          Size: |-
-                                              =14
-                                          Text: |-
-                                              ="Edit"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Visible: |-
-                                              =IfError(varVhpViewOnly && varVhpCanEdit, false)
-                                          Width: |-
-                                              =If(LayoutRank < 2, 40, 96)
-                                    - btnVhpDeleteRequest:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Delete this request"
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =C.'border-error'
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'state-error-fg'
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =36
-                                          Icon: |-
-                                              ="Delete"
-                                          Layout: |-
-                                              =If(LayoutRank < 2, ButtonLayout.IconOnly, ButtonLayout.IconBefore)
-                                          LayoutMinWidth: |-
-                                              =If(LayoutRank < 2, 40, 106)
-                                          OnSelect: |-
-                                              =Set(varVhpDeleteOpen, true)
-                                          RadiusBottomLeft: |-
-                                              =10
-                                          RadiusBottomRight: |-
-                                              =10
-                                          RadiusTopLeft: |-
-                                              =10
-                                          RadiusTopRight: |-
-                                              =10
-                                          Size: |-
-                                              =14
-                                          Text: |-
-                                              ="Delete"
-                                          Tooltip: |-
-                                              ="Delete this draft request"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Visible: |-
-                                              =!IfError(varVhpViewOnly, true) && !IsBlank(varVhpRequestGuid)
-                                          Width: |-
-                                              =If(LayoutRank < 2, 40, 106)
                                     - btnVhpNewRequest:
                                         Control: ModernButton
                                         Properties:
@@ -1673,9 +1519,9 @@ Screens:
                                           Icon: |-
                                               ="Add"
                                           Layout: |-
-                                              =If(LayoutRank < 2, ButtonLayout.TextOnly, ButtonLayout.IconBefore)
+                                              =If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - 477 < 220), ButtonLayout.IconOnly, ButtonLayout.IconBefore)
                                           LayoutMinWidth: |-
-                                              =If(LayoutRank < 2, 70, 148)
+                                              =If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - 477 < 220), 40, 148)
                                           OnSelect: |-
                                               =If((varVhpPlanCommitted || CountRows(colVhpItems) > 1 || !IsBlank(Trim(First(colVhpItems).ShortText))) && !(VhpStepSaveDone && varVhpPlanLocked && !(With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
@@ -1786,11 +1632,96 @@ Screens:
                                           Size: |-
                                               =14
                                           Text: |-
-                                              =If(LayoutRank < 2, "New", "New request")
+                                              ="New request"
+                                          Tooltip: |-
+                                              ="Start a new blank request"
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =If(LayoutRank < 2, 70, 148)
+                                              =If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - 477 < 220), 40, 148)
+                                    - conVhpHeadSep:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          Fill: |-
+                                              =C.'border-subtle'
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =24
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =1
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          Visible: |-
+                                              =IfError(varVhpViewOnly && varVhpCanEdit, false) || (!IfError(varVhpViewOnly, true) && !VhpSubmitted) || (!VhpSubmitted && (!IfError(varVhpViewOnly, true) || IfError(varVhpCanEdit, false))) || ((!IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)) || (!IfError(varVhpViewOnly, true) && !IsBlank(varVhpRequestGuid)))
+                                          Width: |-
+                                              =1
+                                    - btnVhpEdit:
+                                        Control: ModernButton
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Edit this request"
+                                          Align: |-
+                                              =Align.Center
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          Appearance: |-
+                                              =ButtonAppearance.Outline
+                                          BorderColor: |-
+                                              =C.'border-default'
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =36
+                                          Icon: |-
+                                              ="Edit"
+                                          Layout: |-
+                                              =If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - 477 < 220), ButtonLayout.IconOnly, ButtonLayout.IconBefore)
+                                          LayoutMinWidth: |-
+                                              =If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - 477 < 220), 40, 96)
+                                          OnSelect: |-
+                                              =Set(varVhpViewOnly, false)
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Size: |-
+                                              =14
+                                          Text: |-
+                                              ="Edit"
+                                          Tooltip: |-
+                                              ="Switch to Edit mode to change or submit the plan"
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Visible: |-
+                                              =IfError(varVhpViewOnly && varVhpCanEdit, false)
+                                          Width: |-
+                                              =If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - 477 < 220), 40, 96)
                                     - btnVhpSaveDraft:
                                         Control: ModernButton
                                         Properties:
@@ -1823,9 +1754,9 @@ Screens:
                                           Icon: |-
                                               ="Save"
                                           Layout: |-
-                                              =If(LayoutRank < 2, ButtonLayout.IconOnly, ButtonLayout.IconBefore)
+                                              =If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - 477 < 220), ButtonLayout.IconOnly, ButtonLayout.IconBefore)
                                           LayoutMinWidth: |-
-                                              =If(LayoutRank < 2, 40, 150)
+                                              =If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - 477 < 220), 40, 150)
                                           OnSelect: |-
                                               =If(
                                                   !varVhpPlanCommitted || CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))) = 0,
@@ -2516,13 +2447,17 @@ Screens:
                                           Tooltip: |-
                                               =If(
                                                   varVhpSaving, "Saving ...",
+                                                  !varVhpPlanCommitted, "Save the plan header first - then you can create the draft.",
+                                                  CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))) = 0, "Add at least one item with a short text or functional location first.",
                                                   IsBlank(varVhpPlanKey), "Not saved yet. Create a draft so you can come back to it.",
                                                   "Saved as draft " & varVhpPlanKey & ". Update draft saves your changes to the same plan, items and operations."
                                               )
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
+                                          Visible: |-
+                                              =(!IfError(varVhpViewOnly, true) && !VhpSubmitted)
                                           Width: |-
-                                              =If(LayoutRank < 2, 40, 150)
+                                              =If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - 477 < 220), 40, 150)
                                     - btnVhpSubmit:
                                         Control: ModernButton
                                         Properties:
@@ -2560,7 +2495,7 @@ Screens:
                                           Layout: |-
                                               =ButtonLayout.IconBefore
                                           LayoutMinWidth: |-
-                                              =82
+                                              =106
                                           OnSelect: |-
                                               =Set(varVhpNotesEdit, true);
                                               Reset(inpVhpNoteA);
@@ -2594,6 +2529,7 @@ Screens:
                                               ) },
                                                   If(
                                                   VhpSubmitted, "Already submitted - see the progress bar.",
+                                                  IfError(varVhpViewOnly, false), "View mode - select Edit to change or submit the plan.",
                                                   VhpCanSubmit && !(vhpDirty),
                                                   "Submit the plan for approval.",
                                                   "Not ready to submit:" & Char(10) &
@@ -2608,8 +2544,61 @@ Screens:
                                               )
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
+                                          Visible: |-
+                                              =(!VhpSubmitted && (!IfError(varVhpViewOnly, true) || IfError(varVhpCanEdit, false)))
                                           Width: |-
-                                              =82
+                                              =106
+                                    - btnVhpMoreActs:
+                                        Control: ModernButton
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="More actions"
+                                          Align: |-
+                                              =Align.Center
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          Appearance: |-
+                                              =ButtonAppearance.Outline
+                                          BorderColor: |-
+                                              =If(IfError(varVhpMoreOn, false), C.'color-brand-primary', C.'border-default')
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =36
+                                          Icon: |-
+                                              ="MoreHorizontal"
+                                          Layout: |-
+                                              =ButtonLayout.IconOnly
+                                          LayoutMinWidth: |-
+                                              =40
+                                          OnSelect: |-
+                                              =Set(varVhpMoreOn, !IfError(varVhpMoreOn, false))
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Size: |-
+                                              =14
+                                          Text: |-
+                                              =""
+                                          Tooltip: |-
+                                              ="More actions"
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Visible: |-
+                                              =((!IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)) || (!IfError(varVhpViewOnly, true) && !IsBlank(varVhpRequestGuid)))
+                                          Width: |-
+                                              =40
                         - txtVhpReadiness:
                             Control: ModernText
                             Properties:
@@ -20135,6 +20124,260 @@ Screens:
                             =VerticalAlign.Middle
                         Width: |-
                             =106
+      - imgVhpMoreScrim:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Close more actions"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =RGBA(0, 0, 0, 0)
+            Height: |-
+                =App.Height
+            HoverFill: |-
+                =RGBA(0, 0, 0, 0)
+            Image: |-
+                =""
+            OnSelect: |-
+                =Set(varVhpMoreOn, false)
+            PressedFill: |-
+                =RGBA(0, 0, 0, 0)
+            TabIndex: |-
+                =0
+            Visible: |-
+                =IfError(varVhpMoreOn, false)
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conVhpMoreMenu:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'border-default'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.Bold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =16 + If((!IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)), 0 + (36), 0) + If(((!IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf))) && (!IfError(varVhpViewOnly, true) && !IsBlank(varVhpRequestGuid)), 6 + (1), 0) + If((!IfError(varVhpViewOnly, true) && !IsBlank(varVhpRequestGuid)), 6 + (36), 0) + If((!IfError(varVhpViewOnly, true) && !IsBlank(varVhpRequestGuid)) && (VhpSubmitted || varVhpSaving), 6 + (32), 0)
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Center
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =6
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =8
+            PaddingLeft: |-
+                =8
+            PaddingRight: |-
+                =8
+            PaddingTop: |-
+                =8
+            RadiusBottomLeft: |-
+                =10
+            RadiusBottomRight: |-
+                =10
+            RadiusTopLeft: |-
+                =10
+            RadiusTopRight: |-
+                =10
+            Visible: |-
+                =IfError(varVhpMoreOn, false)
+            Width: |-
+                =200
+            X: |-
+                =App.Width - 34 - Self.Width
+            Y: |-
+                =If(LayoutRank >= 2, 0, 52) + 14 + If(LayoutRank < 2, Min(56, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) / 4 * 56 / 104), 0) + (If(LayoutRank < 2, 60, 84) - 44) / 2 + 40 + 4
+          Children:
+            - btnVhpNotes:
+                Control: ModernButton
+                Properties:
+                  AccessibleLabel: |-
+                      ="View the submission notes"
+                  Align: |-
+                      =Align.Center
+                  AlignInContainer: |-
+                      =AlignInContainer.Center
+                  Appearance: |-
+                      =ButtonAppearance.Outline
+                  BorderColor: |-
+                      =C.'border-default'
+                  BorderThickness: |-
+                      =1
+                  Color: |-
+                      =C.'text-primary'
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =36
+                  Icon: |-
+                      ="Note"
+                  Layout: |-
+                      =ButtonLayout.IconBefore
+                  OnSelect: |-
+                      =Set(varVhpMoreOn, false);
+                      Set(varVhpNotesEdit, false);
+                      Reset(inpVhpNoteA);
+                      Reset(inpVhpNoteS);
+                      Set(varVhpConfirmSubmit, true)
+                  RadiusBottomLeft: |-
+                      =10
+                  RadiusBottomRight: |-
+                      =10
+                  RadiusTopLeft: |-
+                      =10
+                  RadiusTopRight: |-
+                      =10
+                  Size: |-
+                      =14
+                  Text: |-
+                      ="View notes"
+                  Tooltip: |-
+                      ="Read the notes added when the plan was submitted"
+                  VerticalAlign: |-
+                      =VerticalAlign.Middle
+                  Visible: |-
+                      =(!IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf))
+                  Width: |-
+                      =184
+            - conVhpMoreRule:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  Fill: |-
+                      =C.'border-subtle'
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =1
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Stretch
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Visible: |-
+                      =((!IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf))) && (!IfError(varVhpViewOnly, true) && !IsBlank(varVhpRequestGuid))
+                  Width: |-
+                      =184
+            - btnVhpDeleteRequest:
+                Control: ModernButton
+                Properties:
+                  AccessibleLabel: |-
+                      ="Delete this request"
+                  Align: |-
+                      =Align.Center
+                  AlignInContainer: |-
+                      =AlignInContainer.Center
+                  Appearance: |-
+                      =ButtonAppearance.Outline
+                  BorderColor: |-
+                      =C.'border-error'
+                  BorderThickness: |-
+                      =1
+                  Color: |-
+                      =C.'state-error-fg'
+                  DisplayMode: |-
+                      =If((VhpSubmitted || varVhpSaving), DisplayMode.Disabled, DisplayMode.Edit)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =36
+                  Icon: |-
+                      ="Delete"
+                  Layout: |-
+                      =ButtonLayout.IconBefore
+                  OnSelect: |-
+                      =Set(varVhpMoreOn, false);
+                      Set(varVhpDeleteOpen, true)
+                  RadiusBottomLeft: |-
+                      =10
+                  RadiusBottomRight: |-
+                      =10
+                  RadiusTopLeft: |-
+                      =10
+                  RadiusTopRight: |-
+                      =10
+                  Size: |-
+                      =14
+                  Text: |-
+                      ="Delete request"
+                  Tooltip: |-
+                      =If(VhpSubmitted, "A submitted plan cannot be deleted.", varVhpSaving, "Saving ...", "Delete this draft request - you are asked to confirm first")
+                  VerticalAlign: |-
+                      =VerticalAlign.Middle
+                  Visible: |-
+                      =(!IfError(varVhpViewOnly, true) && !IsBlank(varVhpRequestGuid))
+                  Width: |-
+                      =184
+            - txtVhpDeleteWhy:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =32
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =12
+                  Text: |-
+                      =If(VhpSubmitted, "A submitted plan cannot be deleted.", "Wait until saving is done.")
+                  Visible: |-
+                      =(!IfError(varVhpViewOnly, true) && !IsBlank(varVhpRequestGuid)) && (VhpSubmitted || varVhpSaving)
+                  Width: |-
+                      =184
+                  Wrap: |-
+                      =true
       - imgVhpNavScrim:
           Control: Image
           Properties:
