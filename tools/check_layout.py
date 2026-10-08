@@ -201,11 +201,6 @@ def _evaluate_n(expr, w, n):
     e = re.sub(r"\bLayoutRank\b", str(lay.rank_for(w)), e)
 
     e = e.replace("App.Width", str(w)).replace("App.Height", "900")
-    # En sammenklappet linjes hoejde er en NAVNGIVEN FORMEL (VH-plan,
-    # build_plan_header.summary_formula, issue #123) - chipsene ombrydes
-    # efter data. Ugunstigste tilfaelde: to raekker chips (2 x 32 + 4).
-    e = re.sub(r"\b\w+Summary\.H\b", "68", e)
-
     # Booleske testvaerdier: det ugunstigste tilfaelde er at alt er synligt.
     e = re.sub(r"varVhpPlan\.PlanType\s*=\s*\"Strategy\"", "True", e)
     e = re.sub(r"IsBlank\(varVhpPlan\.Strategy\)", "False", e)
