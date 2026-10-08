@@ -1794,6 +1794,8 @@ App:
 
       If(false, ClearCollect(colFlDet, { Column: "", Field: "", Editable: false, List: "", MaxLen: 0, Section: "", Kind: "", Value: "", Issue: "" }));
 
+      If(false, ClearCollect(colFlClsDet, { Column: "", Field: "", Editable: false, List: "", MaxLen: 0, Section: "", Kind: "", Value: "", Issue: "" }));
+
       If(false, ClearCollect(colFlDeleted, { RowGuid: "" }));
 
       If(false, ClearCollect(colFlTabs, { Key: "", Label: "" }));
@@ -1836,9 +1838,15 @@ App:
       Set(varFlNextRowNo, 1);
       // Aktiv klassefane. ALL som i renderClassTabs.
       Set(varFlTab, "ALL");
-      // Den raekke, formularen viser (issue #166). Valideringen vaelger den
-      // foerste, naar den er tom.
+      // Den valgte raekke (issue #166). Valideringen vaelger den foerste, naar
+      // den er tom. varFlFoldOpen: er den foldet ud (issue #184)?
       Set(varFlDetailRow, "");
+      Set(varFlFoldOpen, true);
+      // Class data-popuppen (issue #184): aaben, for hvilken raekke, og skal
+      // valideringen lukke den efter Apply?
+      Set(varFlClsOpen, false);
+      Set(varFlClsRow, "");
+      Set(varFlClsCheck, false);
       // Er der aendret noget siden sidste validering? Submit kraever false (FL68).
       Set(varFlStale, false);
       // Kun fejl ved gem/indsend - vist under Validation-tabellen (issue #77).
