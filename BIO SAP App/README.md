@@ -24,7 +24,7 @@ Baggrunden for beslutningen står i
 | `ScreenEquipment` | Equipments |
 | `ScreenMaterial` | Materials |
 | `ScreenKks` | KKS-opslaget. En **opslagsskærm**: ingen anmodninger, så hubben åbner den ikke, og den har intet `?reqid=`. Den henter nøglerne én gang, første gang den vises. Se [`../KKS App/README.md`](../KKS%20App/README.md) |
-| `ScreenIssueBoard` | Issue Board (issue #114): testernes sager — *My issues*, *Shared issues* (anonym), for admins *All issues* (admin-boardet), ny sag, redigering, kommentarer, interne noter, vedhæftninger, arkivering og sletning. Også en opslagsskærm. Se [Issue Board](#issue-board-issue-114) nedenfor. Bygges **kun** når `features.issue_board` er slået til for miljøet i `tools/canvas_apps.json`; ellers findes skærmen, menupunktet og datakilderne ikke. Lister og flow: `sharepoint/provision/Provision-IssueBoard.ps1` og `BioSap-IssueBoard-Submit` |
+| `ScreenIssueBoard` | Issue Board (issue #114, #193): testernes sager — *All issues* (alle sager med navn), *My issues*, for admins *Assigned to me*, ny sag, redigering, kommentarer, interne noter, vedhæftninger, arkivering og sletning. Også en opslagsskærm. Se [Issue Board](#issue-board-issue-114) nedenfor. Bygges **kun** når `features.issue_board` er slået til for miljøet i `tools/canvas_apps.json`; ellers findes skærmen, menupunktet og datakilderne ikke. Lister og flows: `sharepoint/provision/Provision-IssueBoard.ps1`, `BioSap-IssueBoard-Submit` og `BioSap-IssueBoard-OnCreated` |
 
 Hver domæneskærm har én kontrol mere end i den enkelte app: ventespinneren.
 Antallet pr. skærm skrives ud af `build/check_combined.py` ved hvert build
@@ -117,8 +117,10 @@ fra en af de fem enkeltapps — skriver den `AppUrl` =
    oprettes først)
 
    *Kun med Issue Board slået til (issue #114):* listerne `IB_Tickets`,
-   `IB_TicketComments`, `IB_AppSections`, `IB_SharedIssues` og flowet
+   `IB_TicketComments`, `IB_AppSections` og flowet
    `BioSap-IssueBoard-Submit` samt `UserAndGroups` (admins).
+   (`BioSap-IssueBoard-OnCreated` udløses af SharePoint og er ingen
+   datakilde.)
 3. **Sæt app-id'et** under `biosap` i `tools/canvas_apps.json`. Det står i
    Studio-URL'en (`…%2Fapps%2F<app_id>`).
 4. **Deploy:**
@@ -169,26 +171,28 @@ fra en af de fem enkeltapps — skriver den `AppUrl` =
 
 Et midlertidigt sags- og feedbacksystem til udviklings- og testfasen. Koden
 står i `Issue Board/build/` (`ib_config.py` har navne, lister og regler),
-listerne i `sharepoint/provision/Provision-IssueBoard.ps1` og flowet i
-`solution/BIOSAP/src/Workflows/BioSap-IssueBoard-Submit-*.json`.
+listerne i `sharepoint/provision/Provision-IssueBoard.ps1` og flowene i
+`solution/BIOSAP/src/Workflows/BioSap-IssueBoard-*.json`.
 
-- **Sikkerhed:** appen læser med brugerens egen forbindelse, og alt, der
-  ændrer noget, går gennem flowet. Flowet tjekker admin (`UserAndGroups`,
-  Title = Admin) og rapportør på serveren for hver handling. Rettighederne
-  sidder på hver række: rapportøren *Read*, admins *Contribute*. En intern
-  note får ingen rettighed for rapportøren.
-- **Handlinger i flowet:** `create`, `comment` (også interne noter), `edit`
-  (rapportøren mens sagen er *New*; admin altid, inkl. status, prioritet,
-  tildeling og løsning), `reopen`, `archive` (og gendan), `delete` (kun med
-  sagsnummeret) og `attach`. Hver ændring bliver sin egen række i
+- **Oprettelse og redigering (issue #193):** appen opretter og retter sagen
+  selv med `Patch` i `IB_Tickets`. Flowet `BioSap-IssueBoard-OnCreated`
+  (SharePoint-trigger) sætter sagsnummeret, rapportøren ud fra *Created By*
+  og starttilstanden, og mailer admins og rapportøren.
+- **Sikkerhed:** alle Members læser alle sager (ingen anonymisering) og
+  retter kun deres egne (*Create and Edit access: own items*); admins har
+  *Design* og retter alle. Hvilke felter man retter, er appens regel.
+  Kommentarer skrives af `BioSap-IssueBoard-Submit` med rettigheder på hver
+  række: rapportøren *Read* (ikke ved interne noter), admins *Contribute* —
+  kun de kan læse en sags kommentarer.
+- **Handlinger i flowet:** `comment` (også interne noter), `edit` (logger
+  ændringerne efter appens Patch), `reopen`, `archive` (og gendan), `delete`
+  (kun med sagsnummeret) og `attach`. Hver ændring bliver sin egen række i
   `IB_TicketComments`.
 - **Vedhæftninger** er SharePoint-vedhæftninger på sagens række i
-  `IB_Tickets`, så de arver rækkens rettigheder. De vises aldrig på det delte
-  board.
-- **Mail** går kun til rapportøren: når en admin svarer synligt, når sagen er
-  *Ready for retest*, og når den er *Closed*.
-- **Det delte board** (`IB_SharedIssues`) holdes ajour af flowet. En arkiveret
-  sag fjernes fra det; gendannes den, kommer den tilbage.
+  `IB_Tickets` og kan ses af alle. Rapportøren og admins lægger dem på efter
+  oprettelsen: papirclipsen på flisen åbner sagen på fanen *Attachments*.
+- **Mail:** ny sag til admins og rapportøren; til rapportøren, når en admin
+  svarer synligt, når sagen er *Ready for retest*, og når den er *Closed*.
 
 ### Fjernelse før produktion
 
@@ -197,15 +201,15 @@ listerne i `sharepoint/provision/Provision-IssueBoard.ps1` og flowet i
   deeplinket og alle formlerne væk.
 - [ ] Slet `ScreenIssueBoard` i Studio, hvis den står der fra et tidligere
   deploy (deploy fjerner ikke skærme).
-- [ ] Fjern datakilderne `IB_Tickets`, `IB_TicketComments`, `IB_AppSections`,
-  `IB_SharedIssues` og flowet `BioSap-IssueBoard-Submit` i Studio.
+- [ ] Fjern datakilderne `IB_Tickets`, `IB_TicketComments`, `IB_AppSections`
+  og flowet `BioSap-IssueBoard-Submit` i Studio.
   `UserAndGroups` bliver; resten af appen bruger den.
-- [ ] Slå flowet `BioSap-IssueBoard-Submit` fra, og slet det fra solution
-  (inkl. `RootComponent` i `Solution.xml`). Det fjerner også mailene; der er
+- [ ] Slå flowene `BioSap-IssueBoard-Submit` og `BioSap-IssueBoard-OnCreated`
+  fra, og slet dem fra solution (inkl. `RootComponent` i `Solution.xml`). Det fjerner også mailene; der er
   ingen andre notifikationer.
-- [ ] Eksportér de fire `IB_*`-lister, inkl. vedhæftninger på `IB_Tickets`,
-  hvis historikken skal gemmes. Slet derefter listerne (`IB_SharedIssues` er
-  den anonyme kopi; den har intet, der ikke også står i `IB_Tickets`).
+- [ ] Eksportér `IB_*`-listerne, inkl. vedhæftninger på `IB_Tickets`, hvis
+  historikken skal gemmes. Slet derefter listerne (en gammel
+  `IB_SharedIssues` fjernes med `Provision-IssueBoard.ps1 -RemoveSharedIssues`).
 - [ ] Fjern flowkontoens Full Control på listerne, hvis den er givet andre
   steder end på de slettede lister.
 - [ ] Der er ingen miljøvariabler og ingen egne forbindelser at rydde op i:
