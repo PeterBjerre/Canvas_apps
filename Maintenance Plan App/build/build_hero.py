@@ -445,8 +445,8 @@ def build_top_bar():
     btnNew.props["LayoutMinWidth"] = str(NEW_W)
     btnNew.vis = at_least("Tablet")
     # Den faelles Edit (build_helpers.edit_button). Den skifter KUN til Edit
-    # mode (issue #103): de gemte sektioner forbliver sammenklappede, og hver
-    # aabnes med sin egen Edit - foer laaste denne knap ogsaa Plan Header op.
+    # mode (issue #103): sektionerne er altid foldet ud (issue #192), og Plan
+    # Header laases op med sin egen Edit - foer laaste denne knap ogsaa den op.
     btnEdit = edit_button("btnVhpEdit", "varVhpViewOnly", "varVhpCanEdit",
                           "Set(varVhpViewOnly, false)")
     confirmNew = confirm_modal(

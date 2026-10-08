@@ -521,9 +521,6 @@ WORKING_COLLECTIONS = [
     # colVhpItemObjects; lukkes popup'en, er intet aendret.
     ("colVhpObjDraft", {"Code": '""', "Description": '""'}),
     ("colVhpPickerSelected", {"OperationNo": '""'}),
-    # Items, hvis Tasklist and Operations er gemt og klappet sammen (issue
-    # #103) - kun skaermens tilstand, aldrig gemt. Se build_tasklist.OPS_LOCKED.
-    ("colVhpOpsDone", {"ItemId": 0}),
     # Materialer til arbejdsplanen. Description og Unit staar tomme, indtil
     # materialeopslaget mod SAP er paa plads - felterne findes allerede, saa
     # opslaget kun skal fylde dem ud og ikke aendre skemaet.
