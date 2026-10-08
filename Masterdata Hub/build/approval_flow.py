@@ -77,8 +77,11 @@ def latest(log, stage):
     newest = 'SortByColumns(%s, "DecidedOn", SortOrder.Descending)'
     if stage == "Quality":
         return f"FirstN({newest % s}, 1)"
-    return (f'ForAll(GroupBy({s}, ItemGuid, colgrp), '
-            f'First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))')
+    # GroupBy fejler paa en tom (blank) tabel: varMdAprAll er blank, til
+    # visningens Set har koert, og galleriets raekker tegnes foer det. Saa
+    # er der ingen beslutninger endnu, og T bliver blank (CountRows = 0).
+    return (f'If(IsEmpty({s}), Blank(), ForAll(GroupBy({s}, ItemGuid, colgrp), '
+            f'First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))))')
 
 
 def expected(stage, req):
