@@ -18,6 +18,11 @@ navnerum. Det her fanger det, der gaar galt, naar de flyttes sammen:
      (build_screens.open_block). Alle andre steder er det domaenets egen
      variabel - Param() er det samme hele sessionen og for alle skaerme.
      Hubben og opslagsskaermene (combined.LOOKUPS) laeser den slet ikke.
+  6. Hver variabel, der saettes med Set(), laeses ogsaa et sted i appen
+     (App.pa.yaml og alle skaerme). App checker melder ellers
+     UnusedVariables (issue #188: syv slettevariabler, der kun blev sat).
+     Navnet skal blot forekomme uden for Set(navn, - en omtale i en
+     kommentar taeller ogsaa, saa tjekket giver ingen falske fund.
 
 Til sidst en optaelling af kontroller pr. skaerm.
 """
@@ -68,6 +73,39 @@ def formulas(body):
         for v in (b.get("Properties") or {}).values():
             if isinstance(v, str):
                 yield v
+
+
+def all_text():
+    """Hver streng i App.pa.yaml og skaermene - formler, ogsaa Formulas."""
+    def strings(o):
+        if isinstance(o, dict):
+            for v in o.values():
+                yield from strings(v)
+        elif isinstance(o, list):
+            for v in o:
+                yield from strings(v)
+        elif isinstance(o, str):
+            yield o
+    out = []
+    for fn in sorted(os.listdir(cb.APP_DIR)):
+        if fn.endswith(".pa.yaml"):
+            doc = yaml.safe_load(open(os.path.join(cb.APP_DIR, fn), encoding="utf-8"))
+            out.extend(strings(doc))
+    return "\n".join(out)
+
+
+SET_VAR = re.compile(r"\bSet\(\s*([A-Za-z_]\w*)\s*,")
+
+
+def unused_vars(text):
+    """Variabler, der kun forekommer som Set(navn, ...) - aldrig laest."""
+    out = []
+    for v in sorted(set(SET_VAR.findall(text))):
+        uses = len(re.findall(r"\b%s\b" % re.escape(v), text))
+        sets = len(re.findall(r"\bSet\(\s*%s\s*," % re.escape(v), text))
+        if uses == sets:
+            out.append(v)
+    return out
 
 
 def domain_of(screen):
@@ -141,6 +179,11 @@ def main():
             problems.append('[5] %s laeser Param("reqid") %d gang(e), forventet %d'
                             % (s, n, want))
 
+    # 6. variabler, der saettes, men aldrig laeses (App checker UnusedVariables)
+    for v in unused_vars(all_text()):
+        problems.append("[6] %s saettes med Set(), men laeses intet sted - App checker "
+                        "melder UnusedVariables. Fjern Set-kaldet i byggeren" % v)
+
     total = 0
     print("Kontroller pr. skaerm:")
     for s, body in scr.items():
@@ -154,7 +197,8 @@ def main():
             print("  " + p)
         return 1
     print("Samlet-tjek OK: unikke kontrolnavne, ingen referencer paa tvaers af "
-          "skaerme, hvert domaenes variabler kun paa dets egne skaerme.")
+          "skaerme, hvert domaenes variabler kun paa dets egne skaerme, "
+          "ingen variabel, der kun saettes.")
     return 0
 
 
