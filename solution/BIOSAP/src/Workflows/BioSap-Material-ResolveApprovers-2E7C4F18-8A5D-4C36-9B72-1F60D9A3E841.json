@@ -1,0 +1,302 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapSharePointConn"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_powerbi": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapPowerBIConn"
+        },
+        "api": {
+          "name": "shared_powerbi"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "BioSap-SiteUrl (orsted_BioSapSiteUrl)": {
+          "defaultValue": "https://orsted.sharepoint.com/teams/BioSAPDev",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapSiteUrl"
+          }
+        },
+        "BioSap-PowerBI-WorkspaceId": {
+          "defaultValue": "26d062ec-3014-4cd3-9313-ced0cfe497b9",
+          "type": "String"
+        },
+        "BioSap-PowerBI-DatasetId": {
+          "defaultValue": "fadc4a40-342b-41e3-a1ef-aa4af8bb9e09",
+          "type": "String"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "type": "Request",
+          "kind": "PowerAppV2",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "FunctionalLocations",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Functional location codes separated by \"; \"",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Init_results": {
+          "runAfter": {},
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Results",
+                "type": "array",
+                "value": []
+              }
+            ]
+          }
+        },
+        "Codes": {
+          "runAfter": {
+            "Init_results": [
+              "Succeeded"
+            ]
+          },
+          "type": "Compose",
+          "inputs": "@split(coalesce(triggerBody()?['text'], ''), ';')"
+        },
+        "Trimmed_codes": {
+          "runAfter": {
+            "Codes": [
+              "Succeeded"
+            ]
+          },
+          "type": "Query",
+          "inputs": {
+            "from": "@outputs('Codes')",
+            "where": "@not(empty(trim(coalesce(item(), ''))))"
+          }
+        },
+        "Select_FL_list": {
+          "runAfter": {
+            "Trimmed_codes": [
+              "Succeeded"
+            ]
+          },
+          "type": "Select",
+          "inputs": {
+            "from": "@body('Trimmed_codes')",
+            "select": "@concat('\"', replace(trim(item()), '\"', '\"\"'), '\"')"
+          }
+        },
+        "Has_codes": {
+          "runAfter": {
+            "Select_FL_list": [
+              "Succeeded"
+            ]
+          },
+          "type": "If",
+          "expression": {
+            "greater": [
+              "@length(body('Trimmed_codes'))",
+              0
+            ]
+          },
+          "actions": {
+            "Run_a_query_against_a_dataset": {
+              "runAfter": {},
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "groupid": "@parameters('BioSap-PowerBI-WorkspaceId')",
+                  "datasetid": "@parameters('BioSap-PowerBI-DatasetId')",
+                  "specification/query": "EVALUATE SELECTCOLUMNS(FILTER('Functional Locations', 'Functional Locations'[Functional Location] IN {@{join(body('Select_FL_list'), ',')}}), \"FL\", 'Functional Locations'[Functional Location], \"Description\", 'Functional Locations'[Functional Location Description], \"PlantKey\", 'Functional Locations'[Plant Key], \"SystemNo\", 'Functional Locations'[Plant Section Key])",
+                  "specification/serializerSettings/includeNulls": false
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_powerbi",
+                  "operationId": "ExecuteDatasetQuery",
+                  "connectionName": "shared_powerbi"
+                }
+              }
+            },
+            "Get_approvers": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                  "table": "MD_Approver",
+                  "$top": 100
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "GetItems",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "runAfter": {
+                "Run_a_query_against_a_dataset": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "For_each_code": {
+              "foreach": "@body('Trimmed_codes')",
+              "runAfter": {
+                "Get_approvers": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Foreach",
+              "runtimeConfiguration": {
+                "concurrency": {
+                  "repetitions": 1
+                }
+              },
+              "actions": {
+                "FL": {
+                  "runAfter": {},
+                  "type": "Compose",
+                  "inputs": "@trim(coalesce(items('For_each_code'), ''))"
+                },
+                "Filter_FL_rows": {
+                  "runAfter": {
+                    "FL": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@coalesce(outputs('Run_a_query_against_a_dataset')?['body/firstTableRows'], json('[]'))",
+                    "where": "@equals(toLower(trim(coalesce(item()?['[FL]'], ''))), toLower(outputs('FL')))"
+                  }
+                },
+                "SysNoRaw": {
+                  "runAfter": {
+                    "Filter_FL_rows": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "Compose",
+                  "inputs": "@if(greater(length(body('Filter_FL_rows')), 0), trim(coalesce(first(body('Filter_FL_rows'))?['[SystemNo]'], '')), '')"
+                },
+                "SysNo": {
+                  "runAfter": {
+                    "SysNoRaw": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "Compose",
+                  "inputs": "@if(startsWith(outputs('SysNoRaw'), '00'), substring(outputs('SysNoRaw'), 2), if(startsWith(outputs('SysNoRaw'), '0'), substring(outputs('SysNoRaw'), 1), outputs('SysNoRaw')))"
+                },
+                "Filter_approver_rows": {
+                  "runAfter": {
+                    "SysNo": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@outputs('Get_approvers')?['body/value']",
+                    "where": "@equals(trim(coalesce(item()?['Title'], '')), outputs('SysNo'))"
+                  }
+                },
+                "Initials": {
+                  "runAfter": {
+                    "Filter_approver_rows": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "Compose",
+                  "inputs": "@if(equals(length(body('Filter_approver_rows')), 0), '', if(equals(first(body('Filter_approver_rows'))?['Approver1Absent'], true), trim(coalesce(first(body('Filter_approver_rows'))?['Approver2'], '')), trim(coalesce(first(body('Filter_approver_rows'))?['Approver1'], ''))))"
+                },
+                "Error": {
+                  "runAfter": {
+                    "Initials": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "Compose",
+                  "inputs": "@if(empty(outputs('FL')), 'No functional location', if(equals(length(body('Filter_FL_rows')), 0), concat('No system found for ', outputs('FL')), if(empty(outputs('SysNo')), concat('No system found for ', outputs('FL')), if(empty(outputs('Initials')), concat('No System Manager is configured for system ', outputs('SysNo')), ''))))"
+                },
+                "Append_result": {
+                  "runAfter": {
+                    "Error": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "AppendToArrayVariable",
+                  "inputs": {
+                    "name": "Results",
+                    "value": {
+                      "code": "@outputs('FL')",
+                      "systemNo": "@outputs('SysNo')",
+                      "approver": "@toUpper(outputs('Initials'))",
+                      "error": "@outputs('Error')"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "Respond_to_a_Power_App_or_flow": {
+          "runAfter": {
+            "Has_codes": [
+              "Succeeded"
+            ]
+          },
+          "type": "Response",
+          "kind": "PowerApp",
+          "inputs": {
+            "statusCode": 200,
+            "body": {
+              "resolveoutput": "@{string(variables('Results'))}"
+            },
+            "schema": {
+              "type": "object",
+              "properties": {
+                "resolveoutput": {
+                  "title": "ResolveOutput",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}

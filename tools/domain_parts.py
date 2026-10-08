@@ -143,6 +143,14 @@ GAL_ROWS = 8
 #   details_nav     Power Fx ved Previous/Next i detaljeruden
 #   details_rows    funktion(row) -> kontroller, der laegges i
 #                   detaljeruden efter felterne
+#   submit_guard    (foer, spaerret, besked) - Power Fx, der koeres naar
+#                   Submit trykkes, et udtryk der betyder "kan ikke
+#                   indsendes" og beskeden. Er det spaerret, aabner
+#                   bekraeftelsen slet ikke (Materials: en strategisk
+#                   raekke uden system eller uden systemansvarlig)
+#   after_submit    Power Fx efter en LYKKET indsendelse, mens
+#                   varDomRequestGuid stadig staar (Materials: start
+#                   systemgodkendelsen)
 # ---------------------------------------------------------------------------
 HOOKS = {
     "field_defaults": {},
@@ -156,6 +164,8 @@ HOOKS = {
     "details_open": "",
     "details_nav": "",
     "details_rows": None,
+    "submit_guard": None,
+    "after_submit": "",
 }
 
 
@@ -254,6 +264,25 @@ DM_ROW_EDIT = DM_ROW_DEL
 # ---------------------------------------------------------------------------
 # Den flade top
 # ---------------------------------------------------------------------------
+def submit_press_fx():
+    """Submit-knappen. Uden en vagt aabner den bare bekraeftelsen.
+
+    MED en vagt (HOOKS["submit_guard"]) koeres appens eget tjek FOERST, og
+    er indmeldingen spaerret, aabner bekraeftelsen slet ikke - brugeren
+    faar beskeden om, hvad der mangler. Vagten staar her og ikke i
+    send_fx, fordi den skal kunne stoppe POPUPPEN, ikke bare gemningen."""
+    open_confirm = f"Set({CONFIRM_VAR}, true)"
+    if not HOOKS["submit_guard"]:
+        return open_confirm
+    before, blocked, message = HOOKS["submit_guard"]
+    return (f"{before};\n"
+            "If(\n"
+            f"    {blocked},\n"
+            f"    Notify({message}, NotificationType.Warning),\n"
+            f"    {open_confirm}\n"
+            ")")
+
+
 def build_bar():
     """Toplinjen. Den staar i rammens header (build_helpers.app_frame), saa
     den scroller aldrig vaek, og dens hoejde afhaenger kun af App.Width.
@@ -276,7 +305,7 @@ def build_bar():
         tooltip='"Put the request on the landing page as Draft - rows stay editable"'),
         True)
     submit = sized(button(
-        "btnDomSubmit", '"Submit"', f"Set({CONFIRM_VAR}, true)", primary=True,
+        "btnDomSubmit", '"Submit"', submit_press_fx(), primary=True,
         icon=ICON_SUBMIT,
         display_mode=f'If(varDomViewOnly || CountRows({VALID}) = 0, DisplayMode.Disabled, DisplayMode.Edit)',
         tooltip='"Submit the valid rows - they are locked afterwards (asks first)"'),
@@ -1271,6 +1300,11 @@ def send_fx(submit):
             + "\n        );\n")
     empty = ("There are no completed rows to submit."
              if submit else "There are no rows to save.")
+    # Appens eget efterspil - koeres FOER GUID og nummer ryddes (after
+    # ovenfor), saa det stadig ved, hvilken indmelding der blev sendt.
+    submit_extra = ""
+    if submit and HOOKS["after_submit"]:
+        submit_extra = ";\n" + _indent(HOOKS["after_submit"], 8)
 
     # Kun en indsendelse laaser raekkerne. En kladde skal stadig kunne
     # rettes - ellers er det ikke en kladde.
@@ -1359,7 +1393,7 @@ def send_fx(submit):
         "\n"
         f'        Set(varDomInfo, "{label}: " & varDomRequestNo);\n'
         f"        {(msg.submitted if submit else msg.saved)('varDomRequestNo')}"
-        + after + ',\n'
+        + submit_extra + after + ',\n'
         "\n"
         f'        Set(varDomInfo, "{action} failed: " & FirstError.Message);\n'
         f"        {msg.failed(action)}\n"

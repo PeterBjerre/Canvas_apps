@@ -285,9 +285,9 @@ function New-MaterialList {
     New-MdNoteField 'MaterialItems' 'ObjectList'      6
     New-MdNoteField 'MaterialItems' 'ObjectListJson'  6
 
-    # GODKENDELSE (issue #204): sand, naar raekken er Strategic part ved
-    # indsendelsen. Den fastfryses ved Submit og er et FILTER i hub og
-    # liste - udfaldet staar i MD_ApprovalLog og kun dér.
+    # GODKENDELSE (issue #204): sand, naar raekken er Strategic part.
+    # Den skrives ved hver gemning og er et FILTER i hub, liste og flow -
+    # selve udfaldet staar i MD_ApprovalLog og kun der.
     New-MdField 'MaterialItems' 'ApprovalRequired'    Boolean -Indexed
 
     # YDERLIGERE OPLYSNINGER (issue #204). Remarks er sin EGEN kolonne:
