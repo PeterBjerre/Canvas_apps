@@ -428,6 +428,20 @@ def test_vhp_every_rule_has_a_section():
     assert "Item " in bs.RULE_SECTIONS["Item"]
 
 
+def test_vhp_missing_list_reuses_section_rules():
+    """Listen "Before you can submit" (issue #220) bygger paa sektionernes
+    regler - ingen ny validering - og intet beder brugeren holde musen
+    over Submit."""
+    sys.path.insert(0, os.path.join(ROOT, "Maintenance Plan App", "build"))
+    import build_status as bs
+    names = dict((n, e) for n, e, _w in bs.formulas())
+    for sec in bs.RULE_SECTIONS:
+        assert bs.RULE_NAMES[sec] in names[bs.MISSING_NAMES[sec]], sec
+    with open(os.path.join(ROOT, "BIO SAP App", "ScreenVhPlan.pa.yaml"), encoding="utf-8") as f:
+        screen = f.read()
+    assert "hover Submit" not in screen and "plan rule" not in screen
+
+
 # --- issue #188: variabler, der kun saettes, og opslagenes .Id -------------
 
 def _combined():
