@@ -2032,6 +2032,20 @@ App:
       // naar dropdownen aabnes.
       colMpPlants = Sort(ForAll(PlantList As R, { Value: R.Title }), Value);
 
+      // Karakteristikker til maalepunkter (issue #210). Genereret af
+      // Measuring Point App/build/domain_config.py - ret ikke i YAML'en.
+      colMpChars = Sort(
+          ForAll(Filter(MD_MpCharacteristic, Active = true) As R, {
+              Value: R.Title,
+              Description: Coalesce(R.Description, ""),
+              Unit: Coalesce(R.Unit, ""),
+              UnitDescription: Coalesce(R.UnitDescription, ""),
+              MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+              DefaultDecimalPlaces: Coalesce(R.DefaultDecimalPlaces, 0)
+          }),
+          Value
+      );
+
       // KKS-opslaget (KKS App/build/kks_parts.py). Samlingerne hentes i
       // skaermens OnVisible; alt herunder regnes i hukommelsen.
       // varKksLoaded staar med for at tvinge en genberegning, naar noeglerne er hentet.

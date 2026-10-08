@@ -151,3 +151,84 @@ PLANT_LABEL = "Plant"
 # Felter soegefeltet kigger i. Skal vaere tekstfelter i samlingen.
 SEARCH_FIELDS = ["Description", "FunctionalLocation", "MeasuringPoint",
                  "ProdosTag", "Characteristic"]
+
+# --- betingede felter (issue #210, fase 2) ----------------------------
+# Hvert felt, der kun gaelder i en bestemt situation, har et Power
+# Fx-udtryk her. tools/domain_parts.py bruger det TO steder: cellens
+# Visible, og ryd-ved-gem, saa en aendret type ikke efterlader gamle
+# vaerdier paa raekken.
+#
+# Variablerne er formularens egne (varDomF<kolonne>); i den samlede app
+# doebes Dom om til Mp (BIO SAP App/build/combined.py).
+_EXISTS = 'varDomFExistsInSap'
+_TYPE = 'varDomFMeasuringPointType'
+_PRODOS = 'varDomFInProdos'
+_COUNTER_IN_PRODOS = 'varDomFProdosCounterExists'
+
+# Nyt maalepunkt (Exists = No) - resten af formularen.
+NEW = f'{_EXISTS} = "No"'
+# Et eksisterende maalepunkt registreres kun (Q5).
+OLD = f'{_EXISTS} = "Yes"'
+IS_COUNTER = f'{_TYPE} = "Counter"'
+IS_MP = f'{_TYPE} = "MeasuringPoint"'
+IN_PRODOS = f'{NEW} && {_PRODOS} = "Yes"'
+COUNTER_Q = f'{IN_PRODOS} && {IS_COUNTER}'
+COUNTER_MISSING = f'{COUNTER_Q} && {_COUNTER_IN_PRODOS} = "No"'
+
+WHEN = {
+    "MeasuringPoint": OLD,
+    "MeasuringPointType": NEW,
+    "Characteristic": NEW,
+    "CharacteristicDescription": NEW,
+    "CharacteristicUnit": NEW,
+    "CharacteristicUnitDescription": NEW,
+    "DecimalPlaces": NEW,
+    "TargetValue": f"{NEW} && {IS_MP}",
+    "LowerLimit": f"{NEW} && {IS_MP}",
+    "UpperLimit": f"{NEW} && {IS_MP}",
+    "ExpectedAnnualUsage": f"{NEW} && {IS_COUNTER}",
+    "InProdos": NEW,
+    "ProdosTag": IN_PRODOS,
+    "ProdosCounterExists": COUNTER_Q,
+    "CounterCreateIn": COUNTER_MISSING,
+}
+
+# --- det, appen selv skriver ------------------------------------------
+# "Is the measuring point a counter?" er ET TYPEVALG (Q14), saa IsCounter
+# er afledt og ikke et felt. ApprovalRequired er sand for en NY Counter
+# (Q1, Q16) - en eksisterende Counter, der kun registreres, godkendes
+# ikke. Begge fastfryses, naar raekken laases ved Submit.
+EXTRA_PATCH = {
+    "IsCounter": IS_COUNTER,
+    "ApprovalRequired": f"({IS_COUNTER} && {NEW})",
+}
+
+# --- opslagslisten bag Characteristic ---------------------------------
+# Karakteristik og enhed haenger sammen (Q3): man vaelger karakteristikken,
+# og enheden foelger med. Kun aktive raekker kan vaelges; en gammel raekke
+# beholder de vaerdier, der blev KOPIERET ned paa den.
+#
+# Navngiven formel: den laeses dovent og hoejst een gang pr. session, og
+# Filter paa en Boolean delegeres.
+EXTRA_FORMULAS = (
+    "// Karakteristikker til maalepunkter (issue #210). Genereret af\n"
+    "// Measuring Point App/build/domain_config.py - ret ikke i YAML'en.\n"
+    "colDomChars = Sort(\n"
+    f"    ForAll(Filter({L_CHARS}, Active = true) As R, {{\n"
+    "        Value: R.Title,\n"
+    "        Description: Coalesce(R.Description, \"\"),\n"
+    "        Unit: Coalesce(R.Unit, \"\"),\n"
+    "        UnitDescription: Coalesce(R.UnitDescription, \"\"),\n"
+    "        MeasuringPointType: Coalesce(R.MeasuringPointType.Value, \"\"),\n"
+    "        DefaultDecimalPlaces: Coalesce(R.DefaultDecimalPlaces, 0)\n"
+    "    }),\n"
+    "    Value\n"
+    ");"
+)
+
+# --- Submit ------------------------------------------------------------
+# En anmodning uden godkendelse og uden manglende taeller gaar direkte til
+# Master Data (Q12). Godkendelsen af nye Counter-raekker, trinindikatoren
+# og flowene kommer i en senere PR, naar #204's delte moduler er paa
+# plads; indtil da er Submit den simple vej: Indsendt -> KlarTilSAP.
+SUBMIT_STATUS = "KlarTilSAP"
