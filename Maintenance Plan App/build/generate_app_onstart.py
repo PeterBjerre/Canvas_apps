@@ -83,13 +83,6 @@ Set(varVhpCanEdit, false);
 Set(varVhpPlanCreatedAt, Blank());
 Set(varVhpPlanValidated, false);
 Set(varVhpItemValidated, false);
-// Sektionernes Save/Edit (issue #103), som varVhpPlanLocked: Item Editoren
-// er foldet ud, mens varVhpItemEditing er sand; Tasklist and Operations er
-// klappet sammen for items i colVhpOpsDone. varVhpOpsSavePending er det
-// item, hvis Save venter paa gemningen (0 = intet).
-Set(varVhpItemEditing, false);
-Set(varVhpOpsSavePending, 0);
-Clear(colVhpOpsDone);
 // Hvor planen er EFTER Submit: Status og ApprovalStage fra MaintenancePlans
 // (docs/32-godkendelsesflow.md). Tom = ikke indsendt. Progressbaren skifter
 // til godkendelses- og SAP-trinene, naar Status er indsendt (build_status).
@@ -208,11 +201,7 @@ def build_formulas():
     """App.Formulas. Hver formel afsluttes med semikolon - ogsaa den sidste."""
     out = [tok.formula(), "", lay.formula(), "", perm.formula(), "", dt.formula(), "",
            perm.approver_formula(), ""]
-    # De sammenklappede linjer (issue #123) - importeres her, fordi
-    # builderne foerst kan importeres, naar tools/ er paa stien.
-    import build_plan_header
-    for name, expr, why in (cfg.named_formulas() + build_status.formulas()
-                            + build_plan_header.summary_formulas()):
+    for name, expr, why in cfg.named_formulas() + build_status.formulas():
         if why:
             out.append(f"// {why}")
         out.append(f"{name} = {expr};")

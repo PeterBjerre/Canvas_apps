@@ -811,12 +811,6 @@ def save_action():
         # Save-trinnet er groent, saa laenge planen er den samme - se
         # VhpStateJson i sp_config.py.
         "    Set(varVhpSavedJson, VhpStateJson);\n"
-        # Tasklist and Operations' Save (issue #103): sektionen klappes
-        # foerst sammen her, naar gemningen er lykkedes.
-        "    If(\n"
-        "        varVhpOpsSavePending > 0 && !(varVhpOpsSavePending in colVhpOpsDone.ItemId),\n"
-        "        Collect(colVhpOpsDone, { ItemId: varVhpOpsSavePending })\n"
-        "    );\n"
         + _admin_log() + ";\n"
         f"    If(varVhpSubmitting, {msg.submitted('varVhpPlanKey')}, {msg.saved('varVhpPlanKey')}),\n"
         f"    If(varVhpSubmitting, {msg.failed('Submit', detail)}, {msg.failed('Save', detail)})\n"
@@ -837,14 +831,12 @@ def save_action():
         report,
         # EET sted spinneren slukkes og tilstanden nulstilles.
         "Set(varVhpSubmitting, false)",
-        "Set(varVhpOpsSavePending, 0)",
         "Set(varVhpSaving, false)",
     ])
     return (
         "If(\n"
         f"    !varVhpPlanCommitted || {SAVEABLE_COUNT} = 0,\n"
         "    Set(varVhpSubmitting, false);\n"
-        "    Set(varVhpOpsSavePending, 0);\n"
         "    Notify(\"Create the plan and at least one item first.\", NotificationType.Warning),\n"
         "\n"
         + body + "\n)"
