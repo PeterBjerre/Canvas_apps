@@ -132,21 +132,28 @@ Ikke "det lyse tema med omvendt lysstyrke". Kontrastforhold:
 | Brødtekst på app-baggrund | 14,07 | 15,47 | 4,5 |
 | Brødtekst på kort | 15,40 | 14,42 | 4,5 |
 | Dæmpet tekst på kort | 5,62 | 6,96 | 4,5 |
-| Knaptekst på brandfarve | 5,91 | **5,17** | 4,5 |
-| Status grøn | 4,86 | 7,66 | 4,5 |
-| Status gul | 5,39 | 8,58 | 4,5 |
-| Status rød | 5,35 | 5,58 | 4,5 |
-| Status blå | 6,87 | 5,94 | 4,5 |
+| Knaptekst på brandfarve | 7,12 | **5,09** | 4,5 |
+| Brandfarve (fokusramme) på kort | 6,88 | 3,51 | 3,0 |
+| Status grøn | 5,24 | 6,97 | 4,5 |
+| Status gul | 5,58 | 7,57 | 4,5 |
+| Status rød | 5,38 | 5,96 | 4,5 |
+| Status blå | 6,66 | 6,42 | 4,5 |
 | Status neutral | 4,78 | 5,71 | 4,5 |
 | Tekst i inputfelt | 15,94 | 16,29 | 4,5 |
 | Kant mod inputfelt | — | 4,24 | 3,0 |
 
 **Tre valg var ikke frie:**
 
-1. `color-brand-primary` er blue-600, ikke blue-500. Hvid tekst på
-   blue-500 giver **3,68:1** og falder dermed under AA for de 14 px
-   halvfede knaptekster, apperne bruger. Blue-600 giver 5,17 og står
-   stadig 3,45 fra kortet bagved.
+1. `color-brand-primary` skal både bære hvid knaptekst og kunne ses mod
+   kortet (den er også fokusrammen). Oprindeligt blue-600, fordi hvid
+   tekst på blue-500 kun giver **3,68:1**. Siden issue #199 er den en
+   dæmpet stålblå (#4470A8): hvid tekst 5,09, 3,51 fra kortet bagved.
+
+**Issue #199 — roligere farver.** Alle accentfarver (brand, status,
+domæner, rækkehover) er trukket ned i mætning, så appen ikke ligner en
+standard-Fluent-flade. Farvefamilierne er de samme, så domæner og
+statusser kan genkendes; lilla er drejet mod blomme for at holde
+afstanden til den dæmpede blå (ΔE ≥ 45). Tallene i tabellen er de nye.
 2. `color-brand-primary-hover` er **mørkere** end grundfarven — ikke
    lysere, som man ellers gør på mørk baggrund. Samme grund: en lysere
    hover ville tage knaptekstens kontrast med sig ned. Knappen er allerede
