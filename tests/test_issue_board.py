@@ -396,3 +396,24 @@ def test_tile_fits_its_people_line():
     bottom = int(people.props["Y"]) + int(people.props["Height"])
     assert bottom <= P.TILE_H - P.TILE_M
     assert tile["galIbList"].props["TemplateSize"] == str(P.TILE_H)
+
+
+def test_github_script_reads_provisioned_columns_and_vocabulary():
+    """UAT: Send-IssueBoardToGitHub.ps1 laeser IB_Tickets direkte - samme
+    kolonner og statusvaerdier som provisioneringen, og samme sagsnummer
+    som flowet. Scriptet skriver intet i SharePoint og gemmer intet token."""
+    path = os.path.join(ROOT, "sharepoint", "github", "Send-IssueBoardToGitHub.ps1")
+    s = open(path, encoding="utf-8-sig").read()
+    m = re.search(r"^\$FIELDS = ((?:'[^']*'[\s,]*)+)", s, re.M)
+    assert m
+    fields = set(re.findall(r"'([^']*)'", m.group(1)))
+    missing = fields - BUILTIN - _provisioned()[cfg.L_TICKETS]
+    assert not missing, missing
+    assert re.search(r"^\$TICKETS = '" + cfg.L_TICKETS + "'", s, re.M)
+    status = re.search(r"\[string\] \$Status = '([^']+)'", s).group(1)
+    assert status in [x for x, _c, _r in cfg.STATUS]
+    assert "concat('ISS-', formatNumber(variables('TicketId'), '000000'))" in json.dumps(_flow())
+    assert "'ISS-{0:000000}'" in s
+    code = "\n".join(l for l in s.splitlines() if not l.lstrip().startswith("#"))
+    assert not re.search(r"\b(Set|Add|Remove|New)-PnP", code)
+    assert not re.search(r"gh[pousr]_[A-Za-z0-9]{20,}|github_pat_", s)
