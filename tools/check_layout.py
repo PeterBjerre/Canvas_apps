@@ -768,6 +768,11 @@ def rule_24(ctx):
         if wv == "=Parent.Width":
             if pb is None:
                 continue
+            # En ManualLayout-container uden padding (Message us, issue
+            # #205): dens Width ER pladsen inden i den.
+            if (pb.get("Variant") == "ManualLayout"
+                    and not any(k.startswith("Padding") for k in pp_)):
+                continue
             if all(is_vertical(pp_, w) and is_stretch(pp_, w) for w in WIDTHS) \
                     and not re.search(r"\.(Start|Center|End)\b",
                                       props.get("AlignInContainer") or ""):
