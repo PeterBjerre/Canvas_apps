@@ -95,30 +95,11 @@ DESC = (cfg.TEXT_LABEL.upper(),
         f'If(IsBlank(Trim(ThisItem.{cfg.C_TEXT})), "(no text)", ThisItem.{cfg.C_TEXT})', 130)
 EQTYPE = ("EQUIPMENT TYPE", "ThisItem.EquipmentCategory", 110)
 FL_C = ("FUNCTIONAL LOCATION", f"ThisItem.{cfg.FL_FIELD}", 150)
-SLOTS = [
-    # (Compact, All)
-    (TYPE, TYPE),
-    (PLANT, PLANT),
-    (FL_C, EQNO),
-    (EQNO, DESC),
-    (DESC, EQTYPE),
-    (EQTYPE, ("MANUFACTURER", "ThisItem.Manufacturer", 110)),
-    (None, ("TYPE DESIGNATION", "ThisItem.TypeDesignation", 110)),
-    (None, ("SERIAL NUMBER", "ThisItem.SerialNumber", 110)),
-    (None, FL_C),
-    (None, ("CLASS DATA", "ThisItem.ClassData", 100)),
-    (None, ("ROOM COORDINATES", "ThisItem.RoomCoordinates", 110)),
-    (None, ("PLACEMENT TEXT", "ThisItem.Placement", 120)),
-    (None, ("WARRANTY FROM", dp.date_text("WarrantyStart"), 100)),
-    (None, ("WARRANTY TO", dp.date_text("WarrantyEnd"), 100)),
-    # Dokumenttype og -link: dokumenterne i biblioteket, ikke felter paa
-    # raekken. Antallet og mappen, de ligger i.
-    (None, ("DOCUMENTS",
-            'If(ThisItem.FileCount > 0, Text(ThisItem.FileCount) & " file(s)", "-")', 90)),
-    (None, ("DOCUMENT LINK",
-            f'If(IsBlank(ThisItem.ItemKey), "-", "{attflows.LIBRARY}/" & ThisItem.ItemKey)',
-            200)),
-]
+# EET fast saet kolonner (issue #204): de samme seks, Compact viste.
+# Compact/All columns er vaek i baade Equipment og Materials - resten af
+# raekkens felter ses i Details.
+SLOTS = [TYPE, PLANT, FL_C, EQNO, DESC, EQTYPE]
+
 
 
 def build_rows():

@@ -34,10 +34,15 @@ def _tokens(src):
 
 
 class _Ctx:
-    def __init__(self, trigger_body, headers, outputs):
+    def __init__(self, trigger_body, headers, outputs, item=None):
         self.trigger_body = trigger_body
         self.headers = headers
         self.outputs = outputs
+        # item() - elementet i en Query, en Select eller en loekke.
+        self.item = item
+
+    def with_item(self, item):
+        return _Ctx(self.trigger_body, self.headers, self.outputs, item)
 
 
 def _min(*a):
@@ -58,9 +63,13 @@ FUNCS = {
     "concat": lambda *a: "".join(_str(x) for x in a),
     "and": lambda *a: all(a),
     "not": lambda x: not x,
-    "substring": lambda s, i, n: s[i:i + n],
+    # Laengden er valgfri, som i flowet: substring(s, 2) er "resten".
+    "substring": lambda s, i, n=None: s[i:] if n is None else s[i:i + n],
     "min": _min,
     "length": lambda x: len(x),
+    "greater": lambda a, b: a > b,
+    "first": lambda x: x[0] if len(x) else None,
+    "toUpper": lambda s: str(s).upper(),
 }
 
 
@@ -150,6 +159,8 @@ class _Parser:
             return {"headers": self.ctx.headers, "body": self.ctx.trigger_body}
         if name in ("outputs", "body"):
             return self.ctx.outputs[args[0]]
+        if name == "item":
+            return self.ctx.item
         if name not in FUNCS:
             raise NotImplementedError("WDL-funktion %s" % name)
         return FUNCS[name](*args)
@@ -205,9 +216,32 @@ def value(v, ctx):
     return v
 
 
+def _query(action, ctx):
+    """En Query-handling: de elementer i "from", hvor "where" er sand."""
+    src = value(action["inputs"]["from"], ctx) or []
+    return [it for it in src
+            if value(action["inputs"]["where"], ctx.with_item(it))]
+
+
+def _select(action, ctx):
+    """En Select-handling: "select" regnet for hvert element i "from"."""
+    src = value(action["inputs"]["from"], ctx) or []
+    return [value(action["inputs"]["select"], ctx.with_item(it)) for it in src]
+
+
 def run(actions, names, trigger_body, headers):
-    """Koer Compose-handlingerne names i raekkefoelge; returner outputs."""
+    """Koer handlingerne names i raekkefoelge; returner outputs.
+
+    Compose er sit input. Query og Select faar deres element bundet til
+    item(), som i flowet - saa et filter eller et opslag kan koeres paa en
+    eksempelraekke uden at skrive dets logik om i Python."""
     ctx = _Ctx(trigger_body, headers, {})
     for n in names:
-        ctx.outputs[n] = value(actions[n]["inputs"], ctx)
+        a = actions[n]
+        if a.get("type") == "Query":
+            ctx.outputs[n] = _query(a, ctx)
+        elif a.get("type") == "Select":
+            ctx.outputs[n] = _select(a, ctx)
+        else:
+            ctx.outputs[n] = value(a["inputs"], ctx)
     return ctx

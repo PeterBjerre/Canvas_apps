@@ -112,28 +112,17 @@ Set(varDomFlQuery, "");
 Set(varDomFlLast, "");
 Set(varDomFlBusy, false);
 Set(varDomInfo, "");
-@@VIEWS@@// Er formularen blevet tjekket? Styrer om en kraevet feltkant maa vaere
+// Er formularen blevet tjekket? Styrer om en kraevet feltkant maa vaere
 // roed. false ved opstart: en tom formular, ingen har roert, skal ikke
 // staa og lyse roedt. Saettes af Gem/Indsend - se domain_parts.REQUIRED.
 Set(varDomValidated, false)'''
-
-
-def _state(cfg):
-    """Skaermens tilstand. En app med EET fast listelayout (cfg.LIST_VIEWS
-    = False, issue #210) har ingen Compact/All at skifte med - og saa maa
-    varDomAllCols ikke saettes: App checker melder en variabel, der kun
-    saettes (UnusedVariables)."""
-    views = ('// Listen: false = Compact, true = All columns (issue #67/#68).\n'
-             'Set(varDomAllCols, false);\n\n')
-    return STATE.replace("@@VIEWS@@",
-                         views if getattr(cfg, "LIST_VIEWS", True) else "")
 
 
 def onstart(cfg, extra_collections=(), extra_state=""):
     # Temaet saettes FOER resten: skaermen tegner sig selv ud af C, og C
     # laeser darkModeEnabled.
     body = (_collection_block(cfg, extra_collections) + "\n\n"
-            + tok.onstart_block() + "\n\n" + _state(cfg))
+            + tok.onstart_block() + "\n\n" + STATE)
     if extra_state:
         body += ";\n\n" + extra_state
     return body

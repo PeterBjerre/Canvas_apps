@@ -105,15 +105,61 @@ SECTIONS = [
         ("StockUnit", "Stock unit", "text", None),
         ("RecommendedStock", "Recommended stock", "num", None),
     ]),
+    # LAGER OG PLADS (issue #204). IsStockItem er en rigtig til/fra -
+    # kolonnen er Boolean, og appen sender sand/falsk. Min og max kraeves
+    # KUN for en lagervare (material_parts.save_fx), og de har ingen
+    # standardvaerdi: et tal, ingen har valgt, ser ud som et oensket
+    # lagerniveau. StorageBin foreslaas som "X" i formularen.
+    ("Stock and storage", [
+        ("IsStockItem", "Stock item", "bool", None),
+        ("MinStock", "Min stock", "num", None),
+        ("MaxStock", "Max stock", "num", None),
+        ("StorageBin", "Storage bin", "text", None),
+    ]),
     ("Classification", [
-        ("StrategicPart", "Strategic part", "text", None),
+        # Ja/nej, skrevet som teksten "Yes"/"No" i den EKSISTERENDE
+        # tekstkolonne (issue #204, Q2: Critical = Strategic). Gamle
+        # vaerdier (Ja, Y, true) laeses som Yes og skrives ikke om.
+        ("StrategicPart", "Strategic part", "choice", ["Yes", "No"]),
         ("WearPart", "Wear part", "text", None),
     ]),
+    # YDERLIGERE OPLYSNINGER (issue #204) - alle valgfrie. Raekken staar
+    # foldet ind bag knappen i formularens hoved.
+    ("Additional information", [
+        ("Remarks", "Remarks", "long", None),
+        ("MaintenanceOrderNo", "Maintenance order no.", "text", None),
+        ("ReplacesExisting", "Replaces existing material", "bool", None),
+        ("ReplacedMaterialNo", "Replaced material no.", "text", None),
+    ]),
+]
+
+# Kolonner appen LAESER, men formularen ikke skriver (issue #204):
+#
+#   ObjectList/ObjectListJson  raekkens funktionspladser. De skrives af
+#       gem (material_parts.OBJECT_PATCH), ikke af et felt.
+#   ApprovalRequired           fastfrosset ved Submit - et filter, ikke et
+#       resultat. Udfaldet staar i MD_ApprovalLog.
+#   CreatedMaterialNo          materialenummeret fra SAP. Det findes
+#       foerst, naar materialet er oprettet, og udfyldes derfor i Details
+#       bagefter - aldrig i formularen foer Submit (Q16).
+#   RequesterName/Email/SubmittedOn  rekvirenten og tidspunktet. De staar
+#       paa raekken i SharePoint og vises i Details (issue #204).
+READ_FIELDS = [
+    ("ObjectList", "Object list", "long", None),
+    ("ObjectListJson", "Object list (json)", "long", None),
+    ("ApprovalRequired", "Approval required", "bool", None),
+    ("CreatedMaterialNo", "Created material no.", "text", None),
+    ("RequesterName", "Requested by", "text", None),
+    ("RequesterEmail", "Requester e-mail", "text", None),
+    ("SubmittedOn", "Submitted on", "date", None),
 ]
 
 PLANT_LABEL = "Plant"
 
 # Listens kolonner staar i material_parts.SLOTS.
 
-SEARCH_FIELDS = ["MaterialDescription", "FunctionalLocation",
-                 "ManufacturerPartNo", "Supplier"]
+# Soegningen i Saved rows. ObjectList er med (issue #204), saa ALLE
+# raekkens funktionspladser kan findes - ikke kun den foerste, der staar i
+# FunctionalLocation.
+SEARCH_FIELDS = ["MaterialDescription", "FunctionalLocation", "ObjectList",
+                 "ManufacturerPartNo", "Supplier", "CreatedMaterialNo"]

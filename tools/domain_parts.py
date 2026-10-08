@@ -138,6 +138,71 @@ def use(expected):
 ROW_H = 44
 GAL_ROWS = 8
 
+# ---------------------------------------------------------------------------
+# APPENS EGNE KROGE (issue #204)
+#
+# Delene herunder er FAELLES. Skal den ene app noget mere - Materials'
+# Object List, dens standardvaerdi i et felt, dens grupperede detaljer -
+# hoerer koden i appens egen mappe, men de faelles dele skal kunne KALDE
+# den. Derfor den her ene, navngivne kontrakt i stedet for en voksende
+# raekke af undtagelser med appnavne i.
+#
+# Appens *_parts kalder configure() ved IMPORT (ikke i en build-funktion):
+# delene kaldes af tools/domain_app.build_screen, og den ser kun modulet.
+#
+# Hver krog er domaeneneutral - der staar intet om materialer her:
+#
+#   field_defaults  {kolonne: udtryk} - vaerdien et felt faar, naar
+#                   formularen ryddes (Materials: StorageBin = "X")
+#   clear_extra     Power Fx efter clear_form_fx
+#   load_extra      Power Fx efter load_row_fx (brug ThisItem.<kolonne>;
+#                   detaljeruden erstatter "ThisItem." med sit opslag)
+#   copy_extra      Power Fx efter copy_row_fx
+#   extra_patch     [(kolonne, udtryk)] - skrives med i save_row_fx ud
+#                   over felterne i SECTIONS
+#   patch_override  {kolonne: udtryk} - et felt fra SECTIONS, der gemmes
+#                   som noget andet end sin egen variabel (Materials
+#                   gemmer FL-kolonnen som den FOERSTE kode i objektlisten)
+#   details_groups  [(overskrift, [kolonner])] - grupperet detaljerude.
+#                   None = den flade liste som hidtil
+#   details_hide    kolonner, detaljeruden ikke viser
+#   details_open    Power Fx naar detaljeruden aabnes paa en raekke
+#   details_nav     Power Fx ved Previous/Next i detaljeruden
+#   details_rows    funktion(row) -> kontroller, der laegges i
+#                   detaljeruden efter felterne
+#   submit_guard    (foer, spaerret, besked) - Power Fx, der koeres naar
+#                   Submit trykkes, et udtryk der betyder "kan ikke
+#                   indsendes" og beskeden. Er det spaerret, aabner
+#                   bekraeftelsen slet ikke (Materials: en strategisk
+#                   raekke uden system eller uden systemansvarlig)
+#   after_submit    Power Fx efter en LYKKET indsendelse, mens
+#                   varDomRequestGuid stadig staar (Materials: start
+#                   systemgodkendelsen)
+# ---------------------------------------------------------------------------
+HOOKS = {
+    "field_defaults": {},
+    "clear_extra": "",
+    "load_extra": "",
+    "copy_extra": "",
+    "extra_patch": (),
+    "patch_override": {},
+    "details_groups": None,
+    "details_hide": (),
+    "details_open": "",
+    "details_nav": "",
+    "details_rows": None,
+    "submit_guard": None,
+    "after_submit": "",
+}
+
+
+def configure(**kw):
+    """Appens kroge. Et ukendt navn er en tastefejl og stopper byggeriet."""
+    unknown = set(kw) - set(HOOKS)
+    if unknown:
+        raise SystemExit("domain_parts.configure: ukendt krog %s" % sorted(unknown))
+    HOOKS.update(kw)
+
 # Arbejder brugeren som ADMIN i en andens anmodning? varDomIdx er den
 # aabne anmodnings indeksraekke (open_request_fx / send_fx); uden GUID er
 # der ingen aaben anmodning, og varDomIdx kan vaere en gammel vaerdi.
@@ -226,6 +291,25 @@ DM_ROW_EDIT = DM_ROW_DEL
 # ---------------------------------------------------------------------------
 # Den flade top
 # ---------------------------------------------------------------------------
+def submit_press_fx():
+    """Submit-knappen. Uden en vagt aabner den bare bekraeftelsen.
+
+    MED en vagt (HOOKS["submit_guard"]) koeres appens eget tjek FOERST, og
+    er indmeldingen spaerret, aabner bekraeftelsen slet ikke - brugeren
+    faar beskeden om, hvad der mangler. Vagten staar her og ikke i
+    send_fx, fordi den skal kunne stoppe POPUPPEN, ikke bare gemningen."""
+    open_confirm = f"Set({CONFIRM_VAR}, true)"
+    if not HOOKS["submit_guard"]:
+        return open_confirm
+    before, blocked, message = HOOKS["submit_guard"]
+    return (f"{before};\n"
+            "If(\n"
+            f"    {blocked},\n"
+            f"    Notify({message}, NotificationType.Warning),\n"
+            f"    {open_confirm}\n"
+            ")")
+
+
 def build_bar():
     """Toplinjen. Den staar i rammens header (build_helpers.app_frame), saa
     den scroller aldrig vaek, og dens hoejde afhaenger kun af App.Width.
@@ -248,7 +332,7 @@ def build_bar():
         tooltip='"Put the request on the landing page as Draft - rows stay editable"'),
         True)
     submit = sized(button(
-        "btnDomSubmit", '"Submit"', f"Set({CONFIRM_VAR}, true)", primary=True,
+        "btnDomSubmit", '"Submit"', submit_press_fx(), primary=True,
         icon=ICON_SUBMIT,
         display_mode=f'If(varDomViewOnly || CountRows({VALID}) = 0, DisplayMode.Disabled, DisplayMode.Edit)',
         tooltip='"Submit the valid rows - they are locked afterwards (asks first)"'),
@@ -285,13 +369,14 @@ def _var(col):
     return "varDomF" + col
 
 
-def _input_for(col, kind, choices):
+def _input_for(col, kind, choices, required_formula="false"):
     # Praefikset foelger kontroltypen (REVIEW.md A4): inp = tekst,
     # num = tal, dte = dato.
-    name = {"num": "numDom", "date": "dteDom"}.get(kind, "inpDom") + col
+    name = {"num": "numDom", "date": "dteDom", "bool": "chkDom"}.get(kind, "inpDom") + col
     v = _var(col)
     if kind == "num":
-        c = number_input(name, v, display_mode=DM_ROW)
+        c = number_input(name, v, display_mode=DM_ROW,
+                         required_formula=required_formula)
         c.props["OnChange"] = f"Set({v}, Self.Value)"
         return c
     if kind == "date":
@@ -331,6 +416,7 @@ def _input_for(col, kind, choices):
         # ModernDropdown.Default.
         items = "[" + ", ".join(f'"{x}"' for x in choices) + "]"
         return themed_dropdown(name, items, v, display_mode=DM_ROW,
+                               required_formula=required_formula,
                                onchange=f"Set({v}, Self.Selected.Value)")
     if kind == "bool":
         # Ja/nej. Samme ModernCheckbox som dokumentlisten bruger - den er
@@ -347,6 +433,7 @@ def _input_for(col, kind, choices):
             "Width": "Parent.Width",
         }), h=36)
     c = text_input(name, v, max_length=255, display_mode=DM_ROW,
+                   required_formula=required_formula,
                    onchange=f"Set({v}, Self.Text)")
     return c
 
@@ -380,14 +467,15 @@ FL_LAST_VAR = "varDomFlLast"
 FL_COMBO = "cmbDomFl"
 
 
-def build_fl_picker(cell_w, lock=None, required_formula="false"):
+def build_fl_picker(cell_w, lock=None, required_formula="false", min_len=None):
     """Functional Location i EEN combobox med Search - soegefelt OG
     valgliste (fl_picker.py). Der er ingen separat soegeboks og ingen
     separat dropdown.
 
     lock: et udtryk, der - naar det er sandt - deaktiverer vaelgeren
     (Materials' No BOM Item). required_formula: hvornaar kanten maa vaere
-    roed.
+    roed. min_len: mindste antal tegn foer der kan soeges (Materials
+    kraever 16 - se build_flsearch.MIN_SEARCH_LEN for standarden).
 
     lock gaar til fl_picker selv (issue #101): foer blev den lagt ind i
     DisplayMode her, og input_theme gjorde Disabled til View - feltet saa
@@ -398,7 +486,7 @@ def build_fl_picker(cell_w, lock=None, required_formula="false"):
         msg_var="varDomFlMsg", busy_var=FL_BUSY_VAR, query_var=FL_QUERY_VAR,
         last_var=FL_LAST_VAR, pick_var=v,
         default_items=f"Filter(colDomFl, Code = {v})",
-        display_mode=DM_ROW, lock=lock,
+        display_mode=DM_ROW, lock=lock, min_len=min_len,
         required_formula=required_formula, width=cell_w, stack_search=True)
 
 
@@ -549,8 +637,11 @@ def clear_form_fx():
              'Set(varDomFText, "");',
              'Set(varDomFPlant, "");']
     for col, _lab, kind, _ch in FIELDS:
-        lines.append(f"Set({_var(col)}, {_blank(kind)});")
+        # Appens standardvaerdi, hvor der er en (HOOKS["field_defaults"]).
+        lines.append(f"Set({_var(col)}, {HOOKS['field_defaults'].get(col, _blank(kind))});")
     lines.append(fl_reset_fx_dom() + ";")
+    if HOOKS["clear_extra"]:
+        lines.append(HOOKS["clear_extra"] + ";")
     lines.append('Set(varDomInfo, "")')
     return "\n".join(lines)
 
@@ -587,6 +678,8 @@ def copy_row_fx():
     # gamle raekkes noegle, og kopien har ingen noegle endnu.
     if getattr(cfg, "FL_FIELD", None):
         lines.append(_fl_known_fx(f"ThisItem.{cfg.FL_FIELD}"))
+    if HOOKS["copy_extra"]:
+        lines.append(HOOKS["copy_extra"] + ";")
     lines.append('Set(varDomInfo, "Copied to a new row - not saved yet. '
                  'Documents were not copied.")')
     return "\n".join(lines)
@@ -613,6 +706,8 @@ def load_row_fx():
         lines.append(f"Set({_var(col)}, ThisItem.{col});")
     if getattr(cfg, "FL_FIELD", None):
         lines.append(_fl_known_fx(f"ThisItem.{cfg.FL_FIELD}"))
+    if HOOKS["load_extra"]:
+        lines.append(HOOKS["load_extra"] + ";")
     lines[-1] = lines[-1].rstrip(";")
     return "\n".join(lines)
 
@@ -679,7 +774,7 @@ def save_row_fx(status="valid", required=()):
         "            Plant: varDomFPlant,",
     ]
     for col, _lab, kind, _ch in FIELDS:
-        v = _patch_value(col, kind)
+        v = HOOKS["patch_override"].get(col) or _patch_value(col, kind)
         if col in WHEN:
             # ET SKJULT FELT GEMMES TOMT (issue #210)
             #
@@ -688,6 +783,11 @@ def save_row_fx(status="valid", required=()):
             # detaljerne vise et felt, formularen ikke laengere viser.
             v = f"If({WHEN[col]}, {v}, {_blank(kind)})"
         patch.append(f"            {col}: {v},")
+    # Appens egne kolonner, der ikke er et felt i formularen (Materials'
+    # Object List) - HOOKS["extra_patch"].
+    for col, expr in HOOKS["extra_patch"]:
+        patch.append(f"            {col}: {expr},")
+    # Felter, appen afleder af andre (cfg.EXTRA_PATCH, issue #210).
     for col, fx in EXTRA_PATCH.items():
         patch.append(f"            {col}: {fx},")
     patch += [
@@ -995,6 +1095,109 @@ def _detail_row(i, label, value):
                  height=DETAIL_ROW_H, align_items="Center")
 
 
+# ---------------------------------------------------------------------------
+# Detaljeruden GRUPPERET (issue #204)
+#
+# Nitten felter paa en flad liste er en liste, man skimmer uden at laese.
+# Med grupper - identifikation, objekter, leverandoer, lager,
+# klassifikation, yderligere oplysninger, rekvirent - kan man finde det,
+# man leder efter.
+#
+# EET GALLERI, IKKE EN KONTROL PR. LINJE. Fyrre linjer som fyrre
+# containere er fyrre kontroller, der skal tegnes og regnes med - og en
+# lodret container, der er hoejere end popuppen maa vaere, melder overloeb
+# (check_layout regel 2), ogsaa naar den scroller. Galleriet har EEN
+# skabelon og en fast hoejde.
+#
+# Grupperne staar i appens egen fil (HOOKS["details_groups"]); den er kun
+# tilgaengelig for de apps, der har sat den - de andre faar den flade
+# liste som hidtil.
+# ---------------------------------------------------------------------------
+DET_ROW_H = 26
+DET_MAX_ROWS = 18
+
+
+def _detail_value(col, row):
+    """(etiket, udtryk) for en kolonne i detaljeruden."""
+    special = {
+        "TEXT": (cfg.TEXT_LABEL, f'Coalesce({row}.{cfg.C_TEXT}, "-")'),
+        "PLANT": (cfg.PLANT_LABEL, f'Coalesce({row}.Plant, "-")'),
+        "STATUS": ("Status", f'Coalesce({row}.Status, "-")'),
+        "DOCS": ("Documents", f'Text(Coalesce({row}.FileCount, 0))'),
+        "KEY": ("Row key", f'Coalesce({row}.ItemKey, "-")'),
+        "REQUESTNO": ("Request no.", f'Coalesce({row}.RequestNo, "-")'),
+    }
+    if col in special:
+        return special[col]
+    for c, label, kind, _ch in ROW_FIELDS:
+        if c != col:
+            continue
+        if kind == "bool":
+            return label, f'If({row}.{col}, "Yes", "No")'
+        if kind == "dec":
+            return label, f'If(IsBlank({row}.{col}), "-", {row}.{col})'
+        if kind in ("num", "date"):
+            return label, f'If(IsBlank({row}.{col}), "-", Text({row}.{col}))'
+        return label, f'Coalesce({row}.{col}, "-")'
+    raise SystemExit(f"domain_parts: {col} kan ikke vises i detaljeruden")
+
+
+def _details_items(row):
+    """Galleriets raekker: en overskrift (K = "H") pr. gruppe og en linje
+    (K = "D") pr. felt. Appen kan give (etiket, udtryk) direkte, hvor
+    vaerdien ikke blot er kolonnen - {row} er raekken."""
+    recs = []
+    for title, cols in HOOKS["details_groups"]:
+        recs.append('{ K: "H", L: "%s", V: "" }' % title)
+        for col in cols:
+            if isinstance(col, tuple):
+                label, expr = col[0], col[1].replace("{row}", row)
+            else:
+                label, expr = _detail_value(col, row)
+            recs.append('{ K: "D", L: "%s", V: %s }' % (label, expr))
+    body = ",\n            ".join(recs)
+    return len(recs), "Table(\n            %s\n        )" % body
+
+
+def _details_gallery(row):
+    n, items = _details_items(row)
+    head = text_ctrl("txtDomDetGrp", "Upper(ThisItem.L)", size=11, color=C_MUTED,
+                     weight="Semibold", height=20, wrap="false",
+                     visible='ThisItem.K = "H"')
+    head.props["X"] = "0"
+    head.props["Y"] = "6"
+    head.props["Width"] = "Parent.TemplateWidth"
+    lbl = text_ctrl("txtDomDetL", "ThisItem.L", size=12, color=C_MUTED,
+                    weight="Semibold", height=20, width=DETAIL_LBL_W, wrap="false",
+                    visible='ThisItem.K = "D"')
+    lbl.props["X"] = "0"
+    lbl.props["Y"] = "3"
+    val = text_ctrl("txtDomDetV", "ThisItem.V", size=13, height=20, wrap="false",
+                    visible='ThisItem.K = "D"')
+    val.props["X"] = str(DETAIL_LBL_W + 12)
+    val.props["Y"] = "3"
+    val.props["Width"] = f"Parent.TemplateWidth - {DETAIL_LBL_W + 12}"
+    h = f"Min({n * DET_ROW_H}, App.Height - 260)"
+    gal = Ctrl("galDomDetails", "Gallery", variant="Vertical", props={
+        "AccessibleLabel": '"All fields on this row"',
+        "BorderStyle": "BorderStyle.None",
+        "Fill": C_TRANSPARENT,
+        "FillPortions": "0",
+        "Height": h,
+        "Items": items,
+        "LayoutMinWidth": "0",
+        "LoadingSpinner": "LoadingSpinner.None",
+        "Selectable": "false",
+        "ShowScrollbar": "true",
+        "TabIndex": "0",
+        "TemplatePadding": "0",
+        "TemplateSize": str(DET_ROW_H),
+        "Width": "Parent.Width",
+        "WrapCount": "1",
+    }, children=[head, lbl, val], h=h)
+    return gal
+
+
 def build_details(scope=None, extra=()):
     """Alle raekkens felter, med frem og tilbage mellem raekkerne.
 
@@ -1026,13 +1229,16 @@ def build_details(scope=None, extra=()):
     head_left = grow(group("conDomDetHeadL", [key, where], direction="Vertical",
                            gap=2))
 
+    # Skifter ruden raekke, skal appens egne felter i den foelge med
+    # (HOOKS["details_nav"], fx Materials' felt til materialenummeret).
+    nav = (";\n" + HOOKS["details_nav"]) if HOOKS["details_nav"] else ""
     prev = button("btnDomDetPrev", '"Previous"',
-                  f'Set(varDomDetailsId, Index({order}, Max(1, {pos} - 1)).RowId)',
+                  f'Set(varDomDetailsId, Index({order}, Max(1, {pos} - 1)).RowId)' + nav,
                   width=96, height=30,
                   display_mode=f"If({pos} <= 1, DisplayMode.Disabled, DisplayMode.Edit)")
     nxt = button("btnDomDetNext", '"Next"',
                  f'Set(varDomDetailsId, '
-                 f'Index({order}, Min(CountRows({order}), {pos} + 1)).RowId)',
+                 f'Index({order}, Min(CountRows({order}), {pos} + 1)).RowId)' + nav,
                  width=96, height=30,
                  display_mode=f"If({pos} >= CountRows({order}), "
                               f"DisplayMode.Disabled, DisplayMode.Edit)")
@@ -1056,6 +1262,20 @@ def build_details(scope=None, extra=()):
     # Alle felter - ogsaa de tomme. En tom linje er et svar: feltet ER
     # ikke udfyldt. Skjules den, kan man ikke se forskel paa "tomt" og
     # "findes ikke".
+    if HOOKS["details_groups"]:
+        kids = [_details_gallery(row)]
+        if HOOKS["details_rows"]:
+            kids += HOOKS["details_rows"](row)
+        kids += list(extra(row) if callable(extra) else extra)
+        box = group("conDomDetRows", kids, direction="Vertical", gap=10)
+        modal = group("conDomDetailsModal", [head, box], direction="Vertical",
+                      gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT,
+                      radius=lay.RADIUS_MODAL, pad=(lay.CARD_PAD,) * 4,
+                      width=DETAILS_W, drop_shadow="ExtraBold",
+                      visible="!IsBlank(varDomDetailsId)")
+        modal.props["X"] = MODAL_X
+        modal.props["Y"] = MODAL_Y
+        return modal
     rows = [_detail_row(0, cfg.TEXT_LABEL, f'Coalesce({row}.{cfg.C_TEXT}, "-")'),
             _detail_row(1, "Plant", f'Coalesce({row}.Plant, "-")'),
             _detail_row(2, "Status", f'Coalesce({row}.Status, "-")'),
@@ -1161,6 +1381,11 @@ def send_fx(submit):
             + "\n        );\n")
     empty = ("There are no completed rows to submit."
              if submit else "There are no rows to save.")
+    # Appens eget efterspil - koeres FOER GUID og nummer ryddes (after
+    # ovenfor), saa det stadig ved, hvilken indmelding der blev sendt.
+    submit_extra = ""
+    if submit and HOOKS["after_submit"]:
+        submit_extra = ";\n" + _indent(HOOKS["after_submit"], 8)
 
     # Kun en indsendelse laaser raekkerne. En kladde skal stadig kunne
     # rettes - ellers er det ikke en kladde.
@@ -1249,7 +1474,7 @@ def send_fx(submit):
         "\n"
         f'        Set(varDomInfo, "{label}: " & varDomRequestNo);\n'
         f"        {(msg.submitted if submit else msg.saved)('varDomRequestNo')}"
-        + after + ',\n'
+        + submit_extra + after + ',\n'
         "\n"
         f'        Set(varDomInfo, "{action} failed: " & FirstError.Message);\n'
         f"        {msg.failed(action)}\n"
@@ -1346,18 +1571,33 @@ def grid_cell(name, label, ctrl, required=False):
                       fill_portions_formula="0")
 
 
-def field_grid_cell(col, required=False):
+def field_grid_cell(col, required=False, visible=None):
     """Et felt fra SECTIONS som celle i gitteret.
 
-    Staar feltet i cfg.WHEN, faar cellen betingelsen som Visible - og
-    forelderens hoejde taeller den kun med, naar den vises
-    (gen_screen.stack_height)."""
+    required: stjernen ved etiketten - true, eller et UDTRYK, naar kravet
+    afhaenger af noget andet (Materials: min/max kraeves kun for en
+    lagervare). visible: et udtryk, feltet kun vises under. Et skjult felt
+    koster ingen plads - gitterets hoejde regnes af de synlige boern.
+
+    Staar feltet i cfg.WHEN (issue #210), faar cellen ogsaa betingelsen
+    som Visible - sammen med visible, hvis begge er givet."""
     for c, label, kind, choices in FIELDS:
         if c == col:
-            cell = grid_cell(f"conDom{c}", label, _input_for(c, kind, choices),
-                             required=required)
-            if c in WHEN:
-                cell.vis = WHEN[c]
+            req_fx = (f"({REQUIRED} && ({required}))" if isinstance(required, str)
+                      else (REQUIRED if required else "false"))
+            cell = grid_cell(f"conDom{c}", label,
+                             _input_for(c, kind, choices, required_formula=req_fx),
+                             required=bool(required))
+            if isinstance(required, str):
+                # Stjernen kun, naar kravet gaelder. En stjerne ved et felt,
+                # der ikke kraeves lige nu, ville lyve.
+                star = cell.children[0].children[-1]
+                star.vis = required
+            conds = [x for x in (WHEN.get(c), visible) if x]
+            if len(conds) == 1:
+                cell.vis = conds[0]
+            elif conds:
+                cell.vis = " && ".join(f"({x})" for x in conds)
             return cell
     raise SystemExit(f"domain_parts: {col} er ikke et felt i SECTIONS")
 
@@ -1539,26 +1779,24 @@ def form_buttons(save_fx, save_text, new_text):
 
 
 # ---------------------------------------------------------------------------
-# De gemte raekker (issue #67 / #68)
+# De gemte raekker (issue #67 / #68, aendret i #204)
 #
-# Hoved med soegning, status- og vaerksfilter, Compact/All columns, en
-# tabel der scroller vandret, naar den er bredere end kortet, og indsend
-# under den til hoejre. Kolonnerne er appens egne (SLOTS i
-# material_parts.py / equipment_parts.py).
+# Hoved med soegning, status- og vaerksfilter, en tabel der scroller
+# vandret, naar den er bredere end kortet, og indsend under den.
+# Kolonnerne er appens egne (SLOTS i material_parts.py /
+# equipment_parts.py).
 #
-# EEN RAEKKE, FLERE PLADSER
-# -------------------------
-# Kolonnerne staar i forskellig raekkefoelge i de to visninger. En celle
-# kan ikke flytte sig i et galleri, men dens INDHOLD kan: hver plads viser
-# een kolonne i Compact og en (evt. anden) i All columns. Saa er der ingen
-# celle to gange, og overskriften skifter paa samme maade.
+# EEN VISNING, IKKE TO (issue #204)
+# ---------------------------------
+# Her stod Compact/All columns: hver plads viste een kolonne i Compact og
+# en anden i All columns, og en pille skiftede imellem dem. Det var to
+# sandheder om samme tabel - overskrifter, bredder og indhold skiftede
+# under haanden - og "alle kolonner" var alligevel for bredt til at laese
+# paa en skaerm. Nu er der EET fast saet kolonner, og resten af raekkens
+# felter ses i Details, hvor de staar i grupper.
 #
-# En plads er (Compact, All). Hver af de to er (overskrift, udtryk,
-# mindstebredde) - eller None, naar pladsen er tom i den visning.
+# En plads er (overskrift, udtryk, mindstebredde).
 # ---------------------------------------------------------------------------
-# Compact eller All columns. Sat i App.OnStart og ALDRIG af en genhentning,
-# saa visningen bliver staaende, naar raekkerne hentes forfra.
-ALL_COLS = "varDomAllCols"
 
 # "All plants"/"All status" er LOKALE ord: de betyder "filtrer ikke" og
 # staar ingen steder i SharePoint. De tre andre statusvaerdier ER lagrede
@@ -1598,7 +1836,14 @@ MORE_BTNS = [("btnDomRowDocs", '"Docs"'), ("btnDomRowCopy", '"Copy"')]
 ACTION_BTNS = [("btnDomRowDetails", '"Details"'), ("btnDomRowOpen", '"Edit"'),
                ("btnDomRowDelete", '"Delete row"')]
 # Details aabner den eksisterende skrivebeskyttede popup (build_details).
-DETAILS_FX = "Set(varDomDetailsId, ThisItem.RowId)"
+def details_fx():
+    """Raekkens Details-knap. HOOKS["details_open"] er appens egne felter i
+    ruden (Materials' materialenummer)."""
+    fx = "Set(varDomDetailsId, ThisItem.RowId)"
+    if HOOKS["details_open"]:
+        fx += ";\n" + HOOKS["details_open"]
+    return fx
+
 # Knapperne, der kan laases - ens i tabellen og i Compact-kortet.
 ROW_MODES = {"btnDomRowDelete": DM_ROW_DEL, "btnDomRowOpen": DM_ROW_EDIT,
              "btnDomRowCopy": "If(varDomViewOnly, DisplayMode.Disabled, DisplayMode.Edit)"}
@@ -1626,8 +1871,6 @@ def col_w(spec):
     skoen, der med vilje rammer for bredt; paa sytten overskrifter blev det
     til flere hundrede pixels, og Compact kunne ikke staa uden scroll paa en
     1366-skaerm. 4 px oven i er sikkerheden."""
-    if spec is None:
-        return 0
     header, _expr, min_w = spec
     return max(min_w, label_px(header, HEAD_SIZE) + 2 * CELL_PAD + 4)
 
@@ -1641,64 +1884,27 @@ def date_text(col):
 
 
 class ListLayout:
-    """Bredderne for et saet pladser i de to visninger.
+    """Bredderne for tabellens kolonner.
 
-    All columns har faste bredder. Compact FYLDER listens bredde: hver
-    tekstkolonne faar sin mindstebredde (mindst saa bred som overskriften)
-    plus en lige del af det, der er tilovers. Er der intet tilovers (en
-    tablet), er tabellen sine mindstebredder og scroller vandret."""
+    Tabellen FYLDER listens bredde: hver kolonne faar sin mindstebredde
+    (mindst saa bred som overskriften) plus en lige del af det, der er
+    tilovers. Er der intet tilovers (en tablet), er tabellen sine
+    mindstebredder og scroller vandret."""
 
-    def __init__(self, slots, fixed=False):
-        self.slots = slots
-        # FAST LAYOUT (opt-in, issue #210): een visning, ingen Compact/All.
-        # Alle pladser er "Compact"-pladsen, de fylder listens bredde, og
-        # der er ingen varDomAllCols at skifte med.
-        self.fixed = fixed
-        self.all_ws = [col_w(a) for _c, a in slots]
-        self.all_w = (BADGE_W + sum(self.all_ws) + LIST_MORE_W + LIST_ACTIONS_W
-                      + T_GAP * (len(slots) + 2))
-        self.compact = [i for i, (c, _a) in enumerate(slots) if c is not None]
-        # Det, der ikke kan vokse: maerket, de to knapkolonner og gaps.
-        # (Hed "fixed" og skyggede parameteren af samme navn.)
-        fixed_w = BADGE_W + LIST_MORE_W + LIST_ACTIONS_W + T_GAP * (len(self.compact) + 2)
-        self.compact_min = fixed_w + sum(col_w(slots[i][0]) for i in self.compact)
-        self.spare = (f"Max(0, ({TABLE_AVAIL}) - {self.compact_min}) / "
-                      f"{len(self.compact)}")
-        self.table_w = (f"Max({self.compact_min}, {TABLE_AVAIL})" if self.fixed else
-                        f"If({ALL_COLS}, {self.all_w}, "
-                        f"Max({self.compact_min}, {TABLE_AVAIL}))")
+    def __init__(self, slots):
+        self.slots = list(slots)
+        fixed = BADGE_W + LIST_MORE_W + LIST_ACTIONS_W + T_GAP * (len(self.slots) + 2)
+        self.min_w = fixed + sum(col_w(c) for c in self.slots)
+        self.spare = f"Max(0, ({TABLE_AVAIL}) - {self.min_w}) / {len(self.slots)}"
+        self.table_w = f"Max({self.min_w}, {TABLE_AVAIL})"
 
     def width(self, i):
-        c, a = self.slots[i]
-        if self.fixed:
-            return f"{col_w(c)} + {self.spare}"
-        if c is None:
-            return str(self.all_ws[i])
-        cw = f"{col_w(c)} + {self.spare}"
-        return cw if a is None else f"If({ALL_COLS}, {self.all_ws[i]}, {cw})"
-
-    def visible(self, i):
-        c, a = self.slots[i]
-        if self.fixed:
-            return None
-        if c is None:
-            return ALL_COLS
-        if a is None:
-            return f"!{ALL_COLS}"
-        return None
+        return f"{col_w(self.slots[i])} + {self.spare}"
 
     def text(self, i, part):
         """part 0 = overskriften, 1 = udtrykket."""
-        c, a = self.slots[i]
-        pick = (lambda s: f'"{s[0]}"') if part == 0 else (lambda s: s[1])
-        if self.fixed:
-            return pick(c)
-        if c is None:
-            return pick(a)
-        if a is None:
-            return pick(c)
-        cv, av = pick(c), pick(a)
-        return cv if cv == av else f"If({ALL_COLS}, {av}, {cv})"
+        spec = self.slots[i]
+        return f'"{spec[0]}"' if part == 0 else spec[1]
 
 
 def _pad(ctrl):
@@ -1758,7 +1964,7 @@ def _row_buttons(name, btns, fxs, width, danger=(), modes=None):
 def _compact_row(lay_, load_fx, copy_fx, delete_fx):
     """Card row below Desktop: key + status on top, the next values under it, the actions
     on two short lines. Replaces the wide table, which would scroll sideways on a phone."""
-    cs = [lay_.slots[i][0] for i in lay_.compact]
+    cs = list(lay_.slots)
     s = "ThisItem.Status"
     fg = (f'Switch({s}, "valid", {C_VALID_FG}, "submitted", {C_INFO_FG}, '
           f'"draft", {C_WARN_FG}, {C_NEUTRAL_FG})')
@@ -1790,7 +1996,7 @@ def _compact_row(lay_, load_fx, copy_fx, delete_fx):
         return group(name, out, direction="Horizontal", gap=ROW_BTN_GAP, height=ROW_BTN_H,
                      align_items="Center")
 
-    line3 = btns("conDomRowLineC3", ACTION_BTNS, [DETAILS_FX, load_fx, delete_fx],
+    line3 = btns("conDomRowLineC3", ACTION_BTNS, [details_fx(), load_fx, delete_fx],
                  danger=("btnDomRowDelete",), modes=ROW_MODES)
     line4 = btns("conDomRowLineC4", MORE_BTNS, [open_docs_fx(), copy_fx],
                  modes=ROW_MODES)
@@ -1800,19 +2006,12 @@ def _compact_row(lay_, load_fx, copy_fx, delete_fx):
                  visible=below("Desktop"))
 
 
-def build_list(slots, badge_head, search_placeholder, views=True, fixed=False):
+def build_list(slots, badge_head, search_placeholder):
     """Kortet med de gemte raekker - og indsend under tabellen.
 
     slots: appens pladser (se ovenfor). badge_head: overskriften over
-    statusmaerket ("STATUS" / "VALIDATION").
-    views: skal der vaere Compact/All columns? Measuring Point har EET
-    fast layout (issue #210 Q13), og saa er der ingen knapper at skifte
-    med - og ingen varDomAllCols.
-    fixed: pladserne er faste; kun den foerste af hvert par bruges."""
-    if fixed and views:
-        raise SystemExit("domain_parts.build_list: fixed kraever views=False "
-                         "- et fast layout har ingen Compact/All.")
-    lay_ = ListLayout(slots, fixed=fixed)
+    statusmaerket ("STATUS" / "VALIDATION")."""
+    lay_ = ListLayout(slots)
 
     # --- hovedet: titel, soegning og de to filtre ---------------------
     title = text_ctrl("txtDomRowsH", '"Saved Rows"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
@@ -1828,40 +2027,22 @@ def build_list(slots, badge_head, search_placeholder, views=True, fixed=False):
     head = flow_row("conDomRowsTop", [title, search, status, plant], FORM_W, gap=8,
                     flex=title, flex_min=text_px("Saved Rows", 17))
 
-    # --- Compact / All columns --------------------------------------------
-    compact = pill(fit(button("btnDomViewCompact", '"Compact"',
-                              f"Set({ALL_COLS}, false)", height=32,
-                              accessible='"Compact view"'), size=13),
-                   f"!{ALL_COLS}")
-    allc = pill(fit(button("btnDomViewAll", '"All columns"',
-                           f"Set({ALL_COLS}, true)", height=32,
-                           accessible='"All columns view"'), size=13),
-                ALL_COLS)
-    for b in (compact, allc):
-        b.props["Size"] = "13"
-    view_switch = group("conDomViewSwitch", [compact, allc], direction="Horizontal",
-                        gap=8, height=32, align_items="Center", justify="End")
-
     # --- tabellen -----------------------------------------------------------
     heads = [_head_text("txtDomHeadStatus", f'"{badge_head}"', BADGE_W)]
     cells = [_status_badge()]
     for i in range(len(slots)):
         heads.append(_head_text(f"txtDomHead{i}", lay_.text(i, 0), lay_.width(i),
-                                visible=lay_.visible(i), accessible=lay_.text(i, 0)))
+                                accessible=lay_.text(i, 0)))
         cells.append(_pad(text_ctrl(f"txtDomCell{i}", lay_.text(i, 1), size=13,
-                                    height=20, width=lay_.width(i), wrap="false",
-                                    visible=lay_.visible(i))))
-    heads.append(_head_text("txtDomHeadMore",
-                            '"MORE"' if fixed else f'If({ALL_COLS}, "ACTIONS", "MORE")',
-                            LIST_MORE_W))
-    heads.append(_head_text("txtDomHeadActions",
-                            '"ACTIONS"' if fixed else f'If({ALL_COLS}, "", "ACTIONS")',
+                                    height=20, width=lay_.width(i), wrap="false")))
+    heads.append(_head_text("txtDomHeadMore", '"MORE"', LIST_MORE_W))
+    heads.append(_head_text("txtDomHeadActions", '"ACTIONS"',
                             LIST_ACTIONS_W, accessible='"Actions"'))
     cells.append(_row_buttons("conDomRowMore", MORE_BTNS,
                               [open_docs_fx(), copy_row_fx()],
                               LIST_MORE_W, modes=ROW_MODES))
     cells.append(_row_buttons("conDomRowActions", ACTION_BTNS,
-                              [DETAILS_FX, load_row_fx(), delete_this_row_fx()],
+                              [details_fx(), load_row_fx(), delete_this_row_fx()],
                               LIST_ACTIONS_W, danger=("btnDomRowDelete",),
                               modes=ROW_MODES))
 
@@ -1908,8 +2089,7 @@ def build_list(slots, badge_head, search_placeholder, views=True, fixed=False):
 
     empty = None
 
-    body = [head, view_switch, table] if views else [head, table]
-    return card("conDomRowsCard", body + _submit_parts())
+    return card("conDomRowsCard", [head, table] + _submit_parts())
 
 
 # ---------------------------------------------------------------------------
