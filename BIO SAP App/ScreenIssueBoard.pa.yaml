@@ -9,6 +9,8 @@ Screens:
           If(false, ClearCollect(colIbActivity, { Kind: "", Actor: "", Role: "", Body: "", At: Now(), Internal: false, IsSystem: false, File: "", SizeKb: 0, Initial: false }));
           If(false, ClearCollect(colIbAdmins, { Email: "", Name: "" }));
           If(false, ClearCollect(colIbUp, { Name: "", Msg: "" }));
+          If(false, ClearCollect(colIbFresh, { Id: 0, TicketNo: "", Title: "", Description: "", Steps: "", Expected: "", Actual: "", Application: "", Section: "", Other: "", RelatedNo: "", Severity: "", Priority: "", Status: "", Resolution: "", Assigned: "", CreatedOn: Now(), UpdatedOn: Now(), Archived: false, Reporter: "", ReporterName: "", AssignedEmail: "", PriRank: 0, StatusRank: 0 }));
+          If(false, ClearCollect(colIbActFresh, { Kind: "", Actor: "", Role: "", Body: "", At: Now(), Internal: false, IsSystem: false, File: "", SizeKb: 0, Initial: false }));
           
           If(
               !IfError(varIbInit, false),
@@ -35,7 +37,21 @@ Screens:
               Set(varIbBusy, false);
               Set(varIbUploading, false);
               Set(varIbSelPeek, false);
-              Set(varIbPosting, false)
+              Set(varIbPosting, false);
+              Set(varIbSyncing, false)
+          );
+          If(
+              varIbLoaded && !varIbSyncing && DateDiff(varIbSyncedAt, Now(), TimeUnit.Minutes) >= 2,
+              Set(varIbSyncing, true);
+              Set(varIbSyncFailed, IfError(ClearCollect(colIbFresh, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
+              If(
+                  varIbSyncFailed,
+                  Notify("The issues could not be refreshed. The list shows what was loaded last.", NotificationType.Error),
+                  ClearCollect(colIbAll, colIbFresh);
+                  Clear(colIbFresh);
+                  Set(varIbSyncedAt, Now())
+              );
+              Set(varIbSyncing, false)
           );
           If(
               !varIbLoaded,
@@ -45,6 +61,7 @@ Screens:
                   Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true))
               );
               Set(varIbLoaded, !varIbCfgFailed && !varIbAllFailed);
+              Set(varIbSyncedAt, Now());
               Set(varIbLoading, false)
           );
           If(IsBlank(varIbScope), Set(varIbScope, If(IsAdmin, "all", "mine")))
@@ -272,7 +289,7 @@ Screens:
                             Control: ModernButton
                             Properties:
                               AccessibleLabel: |-
-                                  ="Load the issues again"
+                                  ="Load the latest changes from everyone"
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
@@ -286,7 +303,7 @@ Screens:
                               Color: |-
                                   =C.'text-primary'
                               DisplayMode: |-
-                                  =If(varIbLoading, DisplayMode.Disabled, DisplayMode.Edit)
+                                  =If(varIbLoading || varIbSyncing, DisplayMode.Disabled, DisplayMode.Edit)
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
@@ -298,18 +315,32 @@ Screens:
                               LayoutMinWidth: |-
                                   =91
                               OnSelect: |-
-                                  =Set(varIbLoaded, false);
-                                  If(
-                                      !varIbLoaded,
-                                      Set(varIbLoading, true);
-                                      Concurrent(
-                                          Set(varIbCfgFailed, IfError(ClearCollect(colIbSections, ForAll(Filter(IB_AppSections, IsActive = true) As r, { Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), AppOrder: Coalesce(r.AppOrder, 0), SectionOrder: Coalesce(r.SectionOrder, 0), ScreenKey: Coalesce(r.ScreenKey, "") })); false, true)),
-                                          Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true))
+                                  =If(
+                                      varIbLoaded,
+                                      Set(varIbSyncing, true);
+                                      Set(varIbSyncFailed, IfError(ClearCollect(colIbFresh, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
+                                      If(
+                                          varIbSyncFailed,
+                                          Notify("The issues could not be refreshed. The list shows what was loaded last.", NotificationType.Error),
+                                          ClearCollect(colIbAll, colIbFresh);
+                                          Clear(colIbFresh);
+                                          Set(varIbSyncedAt, Now())
                                       );
-                                      Set(varIbLoaded, !varIbCfgFailed && !varIbAllFailed);
-                                      Set(varIbLoading, false)
-                                  );
-                                  If(IsBlank(varIbScope), Set(varIbScope, If(IsAdmin, "all", "mine")))
+                                      Set(varIbSyncing, false),
+                                      Set(varIbLoaded, false);
+                                      If(
+                                          !varIbLoaded,
+                                          Set(varIbLoading, true);
+                                          Concurrent(
+                                              Set(varIbCfgFailed, IfError(ClearCollect(colIbSections, ForAll(Filter(IB_AppSections, IsActive = true) As r, { Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), AppOrder: Coalesce(r.AppOrder, 0), SectionOrder: Coalesce(r.SectionOrder, 0), ScreenKey: Coalesce(r.ScreenKey, "") })); false, true)),
+                                              Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true))
+                                          );
+                                          Set(varIbLoaded, !varIbCfgFailed && !varIbAllFailed);
+                                          Set(varIbSyncedAt, Now());
+                                          Set(varIbLoading, false)
+                                      );
+                                      If(IsBlank(varIbScope), Set(varIbScope, If(IsAdmin, "all", "mine")))
+                                  )
                               RadiusBottomLeft: |-
                                   =10
                               RadiusBottomRight: |-
@@ -455,50 +486,30 @@ Screens:
                   Width: |-
                       =Parent.Width
                 Children:
-                  - conIbFilterCard:
+                  - conIbToolbar:
                       Control: GroupContainer
                       Variant: AutoLayout
                       Properties:
-                        BorderColor: |-
-                            =C.'border-default'
-                        BorderThickness: |-
-                            =1
+                        BorderStyle: |-
+                            =BorderStyle.None
                         DropShadow: |-
                             =DropShadow.None
-                        Fill: |-
-                            =C.'bg-card'
                         FillPortions: |-
                             =0
                         Height: |-
-                            =36 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 34, 34 + 8 + 34)) + 12 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 448, 36, 2 * 36 + 8)) + 12 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 624, 36, 2 * 36 + 8))
+                            =0 + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 608, 34, 34 + 8 + 34)) + 10 + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 36, (If((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 632, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) >= 398, 36, 2 * 36 + 8)) + 8 + (If((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) >= 624, 36, 2 * 36 + 8))))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
                             =LayoutDirection.Vertical
                         LayoutGap: |-
-                            =12
+                            =10
                         LayoutMinWidth: |-
                             =0
                         LayoutOverflowX: |-
                             =LayoutOverflow.Hide
                         LayoutOverflowY: |-
                             =LayoutOverflow.Hide
-                        PaddingBottom: |-
-                            =18
-                        PaddingLeft: |-
-                            =18
-                        PaddingRight: |-
-                            =18
-                        PaddingTop: |-
-                            =18
-                        RadiusBottomLeft: |-
-                            =14
-                        RadiusBottomRight: |-
-                            =14
-                        RadiusTopLeft: |-
-                            =14
-                        RadiusTopRight: |-
-                            =14
                         Width: |-
                             =Parent.Width
                       Children:
@@ -513,13 +524,13 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 34, 34 + 8 + 34)
+                                  =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 608, 34, 34 + 8 + 34)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Start
                               LayoutDirection: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                  =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 608, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 16, 8)
+                                  =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 608, 16, 8)
                               LayoutMinWidth: |-
                                   =0
                               LayoutOverflowX: |-
@@ -548,13 +559,13 @@ Screens:
                                     LayoutGap: |-
                                         =4
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, If(IsAdmin, 332, 200), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 608, If(IsAdmin, 332, 200), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))
                                     LayoutOverflowX: |-
                                         =LayoutOverflow.Hide
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, If(IsAdmin, 332, 200), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 608, If(IsAdmin, 332, 200), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))
                                   Children:
                                     - btnIbScopeAll:
                                         Control: ModernButton
@@ -584,7 +595,7 @@ Screens:
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           LayoutMinWidth: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 96, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 4 * (If(IsAdmin, 3, 2) - 1)) / If(IsAdmin, 3, 2))
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 608, 96, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64))) - 4 * (If(IsAdmin, 3, 2) - 1)) / If(IsAdmin, 3, 2))
                                           OnSelect: |-
                                               =Set(varIbScope, "all")
                                           RadiusBottomLeft: |-
@@ -602,7 +613,7 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 96, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 4 * (If(IsAdmin, 3, 2) - 1)) / If(IsAdmin, 3, 2))
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 608, 96, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64))) - 4 * (If(IsAdmin, 3, 2) - 1)) / If(IsAdmin, 3, 2))
                                     - btnIbScopeMine:
                                         Control: ModernButton
                                         Properties:
@@ -631,7 +642,7 @@ Screens:
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           LayoutMinWidth: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 100, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 4 * (If(IsAdmin, 3, 2) - 1)) / If(IsAdmin, 3, 2))
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 608, 100, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64))) - 4 * (If(IsAdmin, 3, 2) - 1)) / If(IsAdmin, 3, 2))
                                           OnSelect: |-
                                               =Set(varIbScope, "mine")
                                           RadiusBottomLeft: |-
@@ -649,7 +660,7 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 100, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 4 * (If(IsAdmin, 3, 2) - 1)) / If(IsAdmin, 3, 2))
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 608, 100, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64))) - 4 * (If(IsAdmin, 3, 2) - 1)) / If(IsAdmin, 3, 2))
                                     - btnIbScopeAssigned:
                                         Control: ModernButton
                                         Properties:
@@ -678,7 +689,7 @@ Screens:
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           LayoutMinWidth: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 128, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 4 * (If(IsAdmin, 3, 2) - 1)) / If(IsAdmin, 3, 2))
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 608, 128, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64))) - 4 * (If(IsAdmin, 3, 2) - 1)) / If(IsAdmin, 3, 2))
                                           OnSelect: |-
                                               =Set(varIbScope, "assigned")
                                           RadiusBottomLeft: |-
@@ -698,7 +709,7 @@ Screens:
                                           Visible: |-
                                               =IsAdmin
                                           Width: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 128, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 4 * (If(IsAdmin, 3, 2) - 1)) / If(IsAdmin, 3, 2))
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 608, 128, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64))) - 4 * (If(IsAdmin, 3, 2) - 1)) / If(IsAdmin, 3, 2))
                               - conIbState:
                                   Control: GroupContainer
                                   Variant: AutoLayout
@@ -718,13 +729,13 @@ Screens:
                                     LayoutGap: |-
                                         =4
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 260, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 608, 260, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))
                                     LayoutOverflowX: |-
                                         =LayoutOverflow.Hide
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 260, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 608, 260, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))
                                   Children:
                                     - btnIbStateOpen:
                                         Control: ModernButton
@@ -754,7 +765,7 @@ Screens:
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           LayoutMinWidth: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 76, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 3)
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 608, 76, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64))) - 8) / 3)
                                           OnSelect: |-
                                               =Set(varIbState, "open")
                                           RadiusBottomLeft: |-
@@ -772,7 +783,7 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 76, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 3)
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 608, 76, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64))) - 8) / 3)
                                     - btnIbStateClosed:
                                         Control: ModernButton
                                         Properties:
@@ -801,7 +812,7 @@ Screens:
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           LayoutMinWidth: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 84, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 3)
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 608, 84, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64))) - 8) / 3)
                                           OnSelect: |-
                                               =Set(varIbState, "closed")
                                           RadiusBottomLeft: |-
@@ -819,7 +830,7 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 84, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 3)
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 608, 84, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64))) - 8) / 3)
                                     - btnIbStateArchived:
                                         Control: ModernButton
                                         Properties:
@@ -848,7 +859,7 @@ Screens:
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           LayoutMinWidth: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 92, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 3)
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 608, 92, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64))) - 8) / 3)
                                           OnSelect: |-
                                               =Set(varIbState, "archived")
                                           RadiusBottomLeft: |-
@@ -866,8 +877,8 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 608, 92, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 3)
-                        - conIbFltRow:
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 608, 92, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64))) - 8) / 3)
+                        - conIbFltLine:
                             Control: GroupContainer
                             Variant: AutoLayout
                             Properties:
@@ -878,11 +889,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 448, 36, 2 * 36 + 8)
+                                  =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 36, (If((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 632, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) >= 398, 36, 2 * 36 + 8)) + 8 + (If((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) >= 624, 36, 2 * 36 + 8)))
                               LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
+                                  =LayoutAlignItems.Start
                               LayoutDirection: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 448, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                  =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =8
                               LayoutMinWidth: |-
@@ -894,126 +905,7 @@ Screens:
                               Width: |-
                                   =Parent.Width
                             Children:
-                              - inpIbSearch:
-                                  Control: ModernTextInput
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Search issues"
-                                    Appearance: |-
-                                        =Appearance.FilledDarker
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderStyle: |-
-                                        =BorderStyle.Solid
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =C.'input-fg'
-                                    Default: |-
-                                        =""
-                                    Fill: |-
-                                        =C.'input-bg'
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =36
-                                    LayoutMinWidth: |-
-                                        =0
-                                    Placeholder: |-
-                                        ="Search number, title or description"
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =If(LayoutRank < 2, 16, 14)
-                                    TriggerOutput: |-
-                                        =TriggerOutput.Delayed
-                                    ValidationState: |-
-                                        =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
-                                    Width: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 448, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 168, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
-                              - drpIbSort:
-                                  Control: ModernDropdown
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Sort issues"
-                                    Appearance: |-
-                                        =Appearance.FilledDarker
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderStyle: |-
-                                        =BorderStyle.Solid
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =C.'input-fg'
-                                    Default: |-
-                                        =LookUp(["Last updated", "Newest", "Oldest", "Priority", "Status"] As _dd, _dd.Value = (varIbSort))
-                                    Fill: |-
-                                        =C.'input-bg'
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =36
-                                    ItemDisplayText: |-
-                                        =ThisItem.Value
-                                    Items: |-
-                                        =["Last updated", "Newest", "Oldest", "Priority", "Status"]
-                                    LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 448, 160, 0)
-                                    OnChange: |-
-                                        =Set(varIbSort, Self.Selected.Value)
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =If(LayoutRank < 2, 16, 14)
-                                    ValidationState: |-
-                                        =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
-                                    Width: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 448, 160, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
-                        - conIbFltRow2:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 624, 36, 2 * 36 + 8)
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
-                              LayoutDirection: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 624, LayoutDirection.Horizontal, LayoutDirection.Vertical)
-                              LayoutGap: |-
-                                  =8
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              Width: |-
-                                  =Parent.Width
-                            Children:
-                              - conIbFltPairA:
+                              - conIbFltRow:
                                   Control: GroupContainer
                                   Variant: AutoLayout
                                   Properties:
@@ -1024,27 +916,27 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =36
+                                        =If((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 632, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) >= 398, 36, 2 * 36 + 8)
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
+                                        =If((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 632, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) >= 398, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                                     LayoutGap: |-
                                         =8
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 632, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))
                                     LayoutOverflowX: |-
                                         =LayoutOverflow.Hide
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 624, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 632, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))
                                   Children:
-                                    - drpIbFltApp:
-                                        Control: ModernDropdown
+                                    - inpIbSearch:
+                                        Control: ModernTextInput
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Filter by application"
+                                              ="Search issues"
                                           Appearance: |-
                                               =Appearance.FilledDarker
                                           BasePaletteColor: |-
@@ -1058,23 +950,17 @@ Screens:
                                           Color: |-
                                               =C.'input-fg'
                                           Default: |-
-                                              =LookUp(Ungroup(Table({ x: Table({ Application: "All applications" }) }, { x: IbApps }), x) As _dd, _dd.Application = (If(IsBlank(varIbApp), "All applications", varIbApp)))
+                                              =""
                                           Fill: |-
                                               =C.'input-bg'
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
                                               =36
-                                          ItemDisplayText: |-
-                                              =ThisItem.Application
-                                          Items: |-
-                                              =Ungroup(Table({ x: Table({ Application: "All applications" }) }, { x: IbApps }), x)
                                           LayoutMinWidth: |-
                                               =0
-                                          OnChange: |-
-                                              =Set(varIbApp, If(Self.Selected.Application = "All applications", "", Self.Selected.Application));
-                                              Set(varIbSection, "");
-                                              Reset(drpIbFltSection)
+                                          Placeholder: |-
+                                              ="Search number, title or description"
                                           RadiusBottomLeft: |-
                                               =10
                                           RadiusBottomRight: |-
@@ -1085,140 +971,17 @@ Screens:
                                               =10
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
+                                          TriggerOutput: |-
+                                              =TriggerOutput.Delayed
                                           ValidationState: |-
-                                              =If(false && IsBlank(Self.Selected.Application), ValidationState.Error, ValidationState.None)
+                                              =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                           Width: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 624, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 24) / 4, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 2)
-                                    - drpIbFltSection:
+                                              =If((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 632, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) >= 398, If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 632, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64))) - 158, If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 632, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64))))
+                                    - drpIbSort:
                                         Control: ModernDropdown
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Filter by section"
-                                          Appearance: |-
-                                              =If((If(IsBlank(varIbApp), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                          BasePaletteColor: |-
-                                              =C.'color-brand-primary'
-                                          BorderColor: |-
-                                              =C.'border-default'
-                                          BorderStyle: |-
-                                              =BorderStyle.Solid
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =If((If(IsBlank(varIbApp), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                          Default: |-
-                                              =LookUp(Ungroup(Table({ x: Table({ Section: "All sections" }) }, { x: ShowColumns(IbFilterSections, Section) }), x) As _dd, _dd.Section = (If(IsBlank(varIbSection), "All sections", varIbSection)))
-                                          DisplayMode: |-
-                                              =If((If(IsBlank(varIbApp), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                                          Fill: |-
-                                              =If(If(IsBlank(varIbApp), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =36
-                                          ItemDisplayText: |-
-                                              =ThisItem.Section
-                                          Items: |-
-                                              =Ungroup(Table({ x: Table({ Section: "All sections" }) }, { x: ShowColumns(IbFilterSections, Section) }), x)
-                                          LayoutMinWidth: |-
-                                              =0
-                                          OnChange: |-
-                                              =Set(varIbSection, If(Self.Selected.Section = "All sections", "", Self.Selected.Section))
-                                          RadiusBottomLeft: |-
-                                              =10
-                                          RadiusBottomRight: |-
-                                              =10
-                                          RadiusTopLeft: |-
-                                              =10
-                                          RadiusTopRight: |-
-                                              =10
-                                          Size: |-
-                                              =If(LayoutRank < 2, 16, 14)
-                                          ValidationState: |-
-                                              =If(false && IsBlank(Self.Selected.Section), ValidationState.Error, ValidationState.None)
-                                          Width: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 624, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 24) / 4, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 2)
-                              - conIbFltPairB:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =36
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Stretch
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =8
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    Width: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 624, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))
-                                  Children:
-                                    - drpIbFltStatus:
-                                        Control: ModernDropdown
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Filter by status"
-                                          Appearance: |-
-                                              =If((If(varIbState = "closed", DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                          BasePaletteColor: |-
-                                              =C.'color-brand-primary'
-                                          BorderColor: |-
-                                              =C.'border-default'
-                                          BorderStyle: |-
-                                              =BorderStyle.Solid
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =If((If(varIbState = "closed", DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                          Default: |-
-                                              =LookUp(["All statuses", "New", "Reopened", "Triaged", "In progress", "Ready for retest"] As _dd, _dd.Value = (If(IsBlank(varIbStatusF), "All statuses", varIbStatusF)))
-                                          DisplayMode: |-
-                                              =If((If(varIbState = "closed", DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                                          Fill: |-
-                                              =If(If(varIbState = "closed", DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =36
-                                          ItemDisplayText: |-
-                                              =ThisItem.Value
-                                          Items: |-
-                                              =["All statuses", "New", "Reopened", "Triaged", "In progress", "Ready for retest"]
-                                          LayoutMinWidth: |-
-                                              =0
-                                          OnChange: |-
-                                              =Set(varIbStatusF, If(Self.Selected.Value = "All statuses", "", Self.Selected.Value))
-                                          RadiusBottomLeft: |-
-                                              =10
-                                          RadiusBottomRight: |-
-                                              =10
-                                          RadiusTopLeft: |-
-                                              =10
-                                          RadiusTopRight: |-
-                                              =10
-                                          Size: |-
-                                              =If(LayoutRank < 2, 16, 14)
-                                          ValidationState: |-
-                                              =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
-                                          Width: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 624, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 24) / 4, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 2)
-                                    - drpIbFltPriority:
-                                        Control: ModernDropdown
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Filter by priority"
+                                              ="Sort issues"
                                           Appearance: |-
                                               =Appearance.FilledDarker
                                           BasePaletteColor: |-
@@ -1232,7 +995,7 @@ Screens:
                                           Color: |-
                                               =C.'input-fg'
                                           Default: |-
-                                              =LookUp(["All priorities", "Urgent", "High", "Normal", "Low"] As _dd, _dd.Value = (If(IsBlank(varIbPriF), "All priorities", varIbPriF)))
+                                              =LookUp(["Last updated", "Newest", "Oldest", "Priority", "Status"] As _dd, _dd.Value = (varIbSort))
                                           Fill: |-
                                               =C.'input-bg'
                                           Font: |-
@@ -1242,11 +1005,11 @@ Screens:
                                           ItemDisplayText: |-
                                               =ThisItem.Value
                                           Items: |-
-                                              =["All priorities", "Urgent", "High", "Normal", "Low"]
+                                              =["Last updated", "Newest", "Oldest", "Priority", "Status"]
                                           LayoutMinWidth: |-
-                                              =0
+                                              =If((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 632, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) >= 398, 150, 0)
                                           OnChange: |-
-                                              =Set(varIbPriF, If(Self.Selected.Value = "All priorities", "", Self.Selected.Value))
+                                              =Set(varIbSort, Self.Selected.Value)
                                           RadiusBottomLeft: |-
                                               =10
                                           RadiusBottomRight: |-
@@ -1260,7 +1023,282 @@ Screens:
                                           ValidationState: |-
                                               =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                           Width: |-
-                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= 624, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 24) / 4, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 8) / 2)
+                                              =If((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 632, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) >= 398, 150, If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 632, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64))))
+                              - conIbFltRow2:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =If((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) >= 624, 36, 2 * 36 + 8)
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =If((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) >= 624, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                    LayoutGap: |-
+                                        =8
+                                    LayoutMinWidth: |-
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    Width: |-
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))
+                                  Children:
+                                    - conIbFltPairA:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =36
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          Width: |-
+                                              =If((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) >= 624, ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) - 8) / 2, If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64))))
+                                        Children:
+                                          - drpIbFltApp:
+                                              Control: ModernDropdown
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Filter by application"
+                                                Appearance: |-
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
+                                                BorderColor: |-
+                                                    =C.'border-default'
+                                                BorderStyle: |-
+                                                    =BorderStyle.Solid
+                                                BorderThickness: |-
+                                                    =1
+                                                Color: |-
+                                                    =C.'input-fg'
+                                                Default: |-
+                                                    =LookUp(Ungroup(Table({ x: Table({ Application: "All applications" }) }, { x: IbApps }), x) As _dd, _dd.Application = (If(IsBlank(varIbApp), "All applications", varIbApp)))
+                                                Fill: |-
+                                                    =C.'input-bg'
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =36
+                                                ItemDisplayText: |-
+                                                    =ThisItem.Application
+                                                Items: |-
+                                                    =Ungroup(Table({ x: Table({ Application: "All applications" }) }, { x: IbApps }), x)
+                                                LayoutMinWidth: |-
+                                                    =0
+                                                OnChange: |-
+                                                    =Set(varIbApp, If(Self.Selected.Application = "All applications", "", Self.Selected.Application));
+                                                    Set(varIbSection, "");
+                                                    Reset(drpIbFltSection)
+                                                RadiusBottomLeft: |-
+                                                    =10
+                                                RadiusBottomRight: |-
+                                                    =10
+                                                RadiusTopLeft: |-
+                                                    =10
+                                                RadiusTopRight: |-
+                                                    =10
+                                                Size: |-
+                                                    =If(LayoutRank < 2, 16, 14)
+                                                ValidationState: |-
+                                                    =If(false && IsBlank(Self.Selected.Application), ValidationState.Error, ValidationState.None)
+                                                Width: |-
+                                                    =If((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) >= 624, ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) - 24) / 4, ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) - 8) / 2)
+                                          - drpIbFltSection:
+                                              Control: ModernDropdown
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Filter by section"
+                                                Appearance: |-
+                                                    =If((If(IsBlank(varIbApp), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
+                                                BorderColor: |-
+                                                    =C.'border-default'
+                                                BorderStyle: |-
+                                                    =BorderStyle.Solid
+                                                BorderThickness: |-
+                                                    =1
+                                                Color: |-
+                                                    =If((If(IsBlank(varIbApp), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                                Default: |-
+                                                    =LookUp(Ungroup(Table({ x: Table({ Section: "All sections" }) }, { x: ShowColumns(IbFilterSections, Section) }), x) As _dd, _dd.Section = (If(IsBlank(varIbSection), "All sections", varIbSection)))
+                                                DisplayMode: |-
+                                                    =If((If(IsBlank(varIbApp), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                Fill: |-
+                                                    =If(If(IsBlank(varIbApp), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =36
+                                                ItemDisplayText: |-
+                                                    =ThisItem.Section
+                                                Items: |-
+                                                    =Ungroup(Table({ x: Table({ Section: "All sections" }) }, { x: ShowColumns(IbFilterSections, Section) }), x)
+                                                LayoutMinWidth: |-
+                                                    =0
+                                                OnChange: |-
+                                                    =Set(varIbSection, If(Self.Selected.Section = "All sections", "", Self.Selected.Section))
+                                                RadiusBottomLeft: |-
+                                                    =10
+                                                RadiusBottomRight: |-
+                                                    =10
+                                                RadiusTopLeft: |-
+                                                    =10
+                                                RadiusTopRight: |-
+                                                    =10
+                                                Size: |-
+                                                    =If(LayoutRank < 2, 16, 14)
+                                                ValidationState: |-
+                                                    =If(false && IsBlank(Self.Selected.Section), ValidationState.Error, ValidationState.None)
+                                                Width: |-
+                                                    =If((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) >= 624, ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) - 24) / 4, ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) - 8) / 2)
+                                    - conIbFltPairB:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =36
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          Width: |-
+                                              =If((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) >= 624, ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) - 8) / 2, If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64))))
+                                        Children:
+                                          - drpIbFltStatus:
+                                              Control: ModernDropdown
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Filter by status"
+                                                Appearance: |-
+                                                    =If((If(varIbState = "closed", DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
+                                                BorderColor: |-
+                                                    =C.'border-default'
+                                                BorderStyle: |-
+                                                    =BorderStyle.Solid
+                                                BorderThickness: |-
+                                                    =1
+                                                Color: |-
+                                                    =If((If(varIbState = "closed", DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                                Default: |-
+                                                    =LookUp(["All statuses", "New", "Reopened", "Triaged", "In progress", "Ready for retest"] As _dd, _dd.Value = (If(IsBlank(varIbStatusF), "All statuses", varIbStatusF)))
+                                                DisplayMode: |-
+                                                    =If((If(varIbState = "closed", DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                Fill: |-
+                                                    =If(If(varIbState = "closed", DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =36
+                                                ItemDisplayText: |-
+                                                    =ThisItem.Value
+                                                Items: |-
+                                                    =["All statuses", "New", "Reopened", "Triaged", "In progress", "Ready for retest"]
+                                                LayoutMinWidth: |-
+                                                    =0
+                                                OnChange: |-
+                                                    =Set(varIbStatusF, If(Self.Selected.Value = "All statuses", "", Self.Selected.Value))
+                                                RadiusBottomLeft: |-
+                                                    =10
+                                                RadiusBottomRight: |-
+                                                    =10
+                                                RadiusTopLeft: |-
+                                                    =10
+                                                RadiusTopRight: |-
+                                                    =10
+                                                Size: |-
+                                                    =If(LayoutRank < 2, 16, 14)
+                                                ValidationState: |-
+                                                    =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
+                                                Width: |-
+                                                    =If((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) >= 624, ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) - 24) / 4, ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) - 8) / 2)
+                                          - drpIbFltPriority:
+                                              Control: ModernDropdown
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Filter by priority"
+                                                Appearance: |-
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
+                                                BorderColor: |-
+                                                    =C.'border-default'
+                                                BorderStyle: |-
+                                                    =BorderStyle.Solid
+                                                BorderThickness: |-
+                                                    =1
+                                                Color: |-
+                                                    =C.'input-fg'
+                                                Default: |-
+                                                    =LookUp(["All priorities", "Urgent", "High", "Normal", "Low"] As _dd, _dd.Value = (If(IsBlank(varIbPriF), "All priorities", varIbPriF)))
+                                                Fill: |-
+                                                    =C.'input-bg'
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =36
+                                                ItemDisplayText: |-
+                                                    =ThisItem.Value
+                                                Items: |-
+                                                    =["All priorities", "Urgent", "High", "Normal", "Low"]
+                                                LayoutMinWidth: |-
+                                                    =0
+                                                OnChange: |-
+                                                    =Set(varIbPriF, If(Self.Selected.Value = "All priorities", "", Self.Selected.Value))
+                                                RadiusBottomLeft: |-
+                                                    =10
+                                                RadiusBottomRight: |-
+                                                    =10
+                                                RadiusTopLeft: |-
+                                                    =10
+                                                RadiusTopRight: |-
+                                                    =10
+                                                Size: |-
+                                                    =If(LayoutRank < 2, 16, 14)
+                                                ValidationState: |-
+                                                    =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
+                                                Width: |-
+                                                    =If((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) >= 624, ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) - 24) / 4, ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) >= 1030, 624, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)))) - 8) / 2)
                   - conIbListCard:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -1276,7 +1314,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =66 + If(IsAdmin && varIbScope in ["all", "assigned"], 8 + (34), 0) + If(galIbList.AllItemsCount > 0, 8 + (Max(1, Min(RoundUp(galIbList.AllItemsCount / Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0)), 0), Max(2, RoundDown((App.Height - 280) / 212, 0)))) * 212), 0) + If(galIbList.AllItemsCount = 0, 8 + (40), 0) + If(IbFailed && !varIbLoading, 8 + (36), 0)
+                            =66 + If(IsAdmin && varIbScope in ["all", "assigned"], 8 + (34), 0) + If(galIbList.AllItemsCount > 0, 8 + (Max(1, Min(RoundUp(galIbList.AllItemsCount / Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0)), 0), Max(2, RoundDown((App.Height - 280) / 252, 0)))) * 252), 0) + If(galIbList.AllItemsCount = 0, 8 + (40), 0) + If(IbFailed && !varIbLoading, 8 + (36), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -1475,7 +1513,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =Max(1, Min(RoundUp(galIbList.AllItemsCount / Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0)), 0), Max(2, RoundDown((App.Height - 280) / 212, 0)))) * 212
+                                  =Max(1, Min(RoundUp(galIbList.AllItemsCount / Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0)), 0), Max(2, RoundDown((App.Height - 280) / 252, 0)))) * 252
                               Items: |-
                                   =With(
                                       { q: Trim(inpIbSearch.Text) },
@@ -1510,7 +1548,7 @@ Screens:
                               TemplatePadding: |-
                                   =0
                               TemplateSize: |-
-                                  =212
+                                  =252
                               Visible: |-
                                   =galIbList.AllItemsCount > 0
                               Width: |-
@@ -1536,7 +1574,7 @@ Screens:
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
-                                        =200
+                                        =240
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -1659,7 +1697,7 @@ Screens:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
-                                        =Self.Text
+                                        ="Title: " & ThisItem.Title
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -1685,7 +1723,7 @@ Screens:
                                     Size: |-
                                         =14
                                     Text: |-
-                                        =ThisItem.Title
+                                        =With({ t: ThisItem.Title, n: Max(8, RoundDown((Self.Width) / 8.4, 0) * 2 - 8) }, If(Len(t) > n, Left(t, n - 1) & "…", t))
                                     VerticalAlign: |-
                                         =VerticalAlign.Top
                                     Width: |-
@@ -1724,7 +1762,7 @@ Screens:
                                     Size: |-
                                         =12
                                     Text: |-
-                                        =ThisItem.Application & "  ·  " & ThisItem.Section
+                                        =With({ t: ThisItem.Application & "  ·  " & ThisItem.Section, n: Max(8, RoundDown((Self.Width) / 6.6, 0) * 1 - 4) }, If(Len(t) > n, Left(t, n - 1) & "…", t))
                                     Width: |-
                                         =(((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 18 - 40) / (Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0))) - 2 * 0) - 40
                                     Wrap: |-
@@ -1732,7 +1770,46 @@ Screens:
                                     X: |-
                                         =20
                                     Y: |-
-                                        =96
+                                        =94
+                              - txtIbTileSummary:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Summary: " & Self.Text
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =34
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =12
+                                    Text: |-
+                                        =With({ t: Trim(Substitute(Substitute(ThisItem.Description, Char(13), ""), Char(10), " ")), n: Max(8, RoundDown((Self.Width) / 6.6, 0) * 2 - 8) }, If(Len(t) > n, Left(t, n - 1) & "…", t))
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Top
+                                    Width: |-
+                                        =(((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 18 - 40) / (Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0))) - 2 * 0) - 40
+                                    Wrap: |-
+                                        =true
+                                    X: |-
+                                        =20
+                                    Y: |-
+                                        =116
                               - txtIbTileDates:
                                   Control: ModernText
                                   Properties:
@@ -1771,7 +1848,7 @@ Screens:
                                     X: |-
                                         =20
                                     Y: |-
-                                        =116
+                                        =154
                               - txtIbTilePriority:
                                   Control: ModernText
                                   Properties:
@@ -1824,7 +1901,7 @@ Screens:
                                     X: |-
                                         =20
                                     Y: |-
-                                        =158
+                                        =198
                               - txtIbTilePeople:
                                   Control: ModernText
                                   Properties:
@@ -1855,7 +1932,7 @@ Screens:
                                     Size: |-
                                         =12
                                     Text: |-
-                                        =If(ThisItem.Reporter = varIbMe, "Reported by you", "By " & If(ThisItem.Reporter = varIbMe, "You", !IsBlank(ThisItem.ReporterName), ThisItem.ReporterName, Upper(First(Split(ThisItem.Reporter, "@")).Value))) & "  ·  " & If(IsBlank(ThisItem.Assigned), "Unassigned", "To " & ThisItem.Assigned)
+                                        ="Requester " & If(IsBlank(ThisItem.Reporter), "-", Upper(First(Split(ThisItem.Reporter, "@")).Value)) & If(!IsBlank(ThisItem.Assigned), "  ·  Assigned " & ThisItem.Assigned, IsAdmin && !ThisItem.Archived && ThisItem.Status <> "Closed", "  ·  Unassigned", "")
                                     VerticalAlign: |-
                                         =VerticalAlign.Top
                                     Width: |-
@@ -1865,7 +1942,7 @@ Screens:
                                     X: |-
                                         =20 + 80 + 8
                                     Y: |-
-                                        =160
+                                        =200
                               - btnIbTileOpen:
                                   Control: Classic/Button
                                   Properties:
@@ -1884,7 +1961,7 @@ Screens:
                                     FocusedBorderThickness: |-
                                         =2
                                     Height: |-
-                                        =200
+                                        =240
                                     HoverBorderColor: |-
                                         =C.'color-brand-primary'
                                     HoverColor: |-
@@ -1908,7 +1985,7 @@ Screens:
                                             If(IbSeeActivity,
                                         Set(varIbActBusy, true);
                                         Set(varIbActFailed, IfError(ClearCollect(
-                                            colIbActivity,
+                                            colIbActFresh,
                                             { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
                                             ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
                                                 With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
@@ -1925,6 +2002,7 @@ Screens:
                                                       SizeKb: Coalesce(r.FileSizeKb, 0),
                                                       Initial: atSub })))
                                         ; false, true));
+                                        If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
                                         Set(varIbActBusy, false)
                                         )
                                         );
@@ -2006,7 +2084,7 @@ Screens:
                                             If(IbSeeActivity,
                                         Set(varIbActBusy, true);
                                         Set(varIbActFailed, IfError(ClearCollect(
-                                            colIbActivity,
+                                            colIbActFresh,
                                             { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
                                             ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
                                                 With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
@@ -2023,6 +2101,7 @@ Screens:
                                                       SizeKb: Coalesce(r.FileSizeKb, 0),
                                                       Initial: atSub })))
                                         ; false, true));
+                                        If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
                                         Set(varIbActBusy, false)
                                         )
                                         );
@@ -2124,6 +2203,7 @@ Screens:
                                           Set(varIbAllFailed, IfError(ClearCollect(colIbAll, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true))
                                       );
                                       Set(varIbLoaded, !varIbCfgFailed && !varIbAllFailed);
+                                      Set(varIbSyncedAt, Now());
                                       Set(varIbLoading, false)
                                   );
                                   If(IsBlank(varIbScope), Set(varIbScope, If(IsAdmin, "all", "mine")))
@@ -6503,7 +6583,7 @@ Screens:
                                                   If(IbSeeActivity,
                                               Set(varIbActBusy, true);
                                               Set(varIbActFailed, IfError(ClearCollect(
-                                                  colIbActivity,
+                                                  colIbActFresh,
                                                   { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
                                                   ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
                                                       With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
@@ -6520,6 +6600,7 @@ Screens:
                                                             SizeKb: Coalesce(r.FileSizeKb, 0),
                                                             Initial: atSub })))
                                               ; false, true));
+                                              If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
                                               Set(varIbActBusy, false)
                                               )
                                               );
@@ -8127,7 +8208,7 @@ Screens:
                                                     UpdateIf(colIbAll, Id = varIbSelId, varIbSel);
                                                     Set(varIbActBusy, true);
                                                     Set(varIbActFailed, IfError(ClearCollect(
-                                                        colIbActivity,
+                                                        colIbActFresh,
                                                         { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
                                                         ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
                                                             With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
@@ -8144,6 +8225,7 @@ Screens:
                                                                   SizeKb: Coalesce(r.FileSizeKb, 0),
                                                                   Initial: atSub })))
                                                     ; false, true));
+                                                    If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
                                                     Set(varIbActBusy, false);
                                                     Set(varIbFormOn, false);
                                                     Set(varIbDetailOn, true);
@@ -8220,7 +8302,7 @@ Screens:
                                                     Reset(inpIbComment);
                                                     Set(varIbActBusy, true);
                                                     Set(varIbActFailed, IfError(ClearCollect(
-                                                        colIbActivity,
+                                                        colIbActFresh,
                                                         { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
                                                         ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
                                                             With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
@@ -8237,6 +8319,7 @@ Screens:
                                                                   SizeKb: Coalesce(r.FileSizeKb, 0),
                                                                   Initial: atSub })))
                                                     ; false, true));
+                                                    If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
                                                     Set(varIbActBusy, false);
                                                     Set(varIbDetailOn, true);
                                                     Notify("Thank you. Issue " & varIbNew.TicketNo & " has been submitted. To add screenshots or files, select Attachments here or the paperclip on the issue.", NotificationType.Success)
@@ -8612,7 +8695,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =36 + (Max(32, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36)) - 96 - 77 - 20) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))) + 12 + (Max(60, Min(81 + 12 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 40, 3 * 40 + 2 * 8)) + If(IbCanEdit || IbCanReopen || IbCanManage, 12 + (34), 0) + If(IbCanManage && varIbActsOn, 12 + (96), 0) + If(varIbSelPeek, 12 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 12 + (34), 0) + If(varIbTab = "details", 12 + (0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)), 0) + If(IbSeeActivity && varIbTab = "activity", 12 + (0 + If(varIbActBusy || IfError(varIbActFailed, false), 0 + (20), 0) + If(!varIbActBusy, 12 + (Min(420, Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((Min(760, App.Width - 24) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40)))), 0) + If(IbCanComment, 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0) + If(varIbSel.Archived, 12 + (18), 0)), 0) + If(varIbTab = "files", 12 + (0 + If(galIbFiles.AllItemsCount = 0, 0 + (20), 0) + If(galIbFiles.AllItemsCount > 0, 12 + (Min(5, galIbFiles.AllItemsCount) * 60), 0) + If(IbCanAttach, 12 + (86 + (If(CountRows(attIbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFiles.Attachments), 4) * 36))), 0)), 0), App.Height - 32 - 36 - 12 - (Max(32, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36)) - 96 - 77 - 20) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))))))
+                      =36 + (Max(32, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36)) - 96 - 77 - 20) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))) + 12 + (81 + 12 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 40, 3 * 40 + 2 * 8)) + If(IbCanReopen || IbCanEdit || IbCanManage, 12 + (34), 0) + If((IbCanEdit || IbCanManage) && varIbActsOn, 12 + (54 + If(IbCanManage, 8 + (34), 0)), 0) + If(varIbSelPeek, 12 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 12 + (34), 0)) + 12 + (Max(160, Min(App.Height - 32 - 36 - (Max(32, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36)) - 96 - 77 - 20) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))) - 12 - (81 + 12 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 40, 3 * 40 + 2 * 8)) + If(IbCanReopen || IbCanEdit || IbCanManage, 12 + (34), 0) + If((IbCanEdit || IbCanManage) && varIbActsOn, 12 + (54 + If(IbCanManage, 8 + (34), 0)), 0) + If(varIbSelPeek, 12 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 12 + (34), 0)) - 12, Max(360, (0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)), (If(IbSeeActivity, 0 + If((varIbActBusy && IsEmpty(colIbActivity)) || IfError(varIbActFailed, false), 0 + (34), 0) + If(!IsEmpty(colIbActivity), 12 + (Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((Min(760, App.Width - 24) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40))), 0) + If(IbCanComment, 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0) + If(varIbSel.Archived, 12 + (18), 0), 0)), (0 + If(galIbFiles.AllItemsCount = 0, 0 + (20), 0) + If(galIbFiles.AllItemsCount > 0, 12 + (galIbFiles.AllItemsCount * 60), 0) + If(IbCanAttach, 12 + (86 + (If(CountRows(attIbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFiles.Attachments), 4) * 36))), 0))))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -8805,7 +8888,7 @@ Screens:
                                   =VerticalAlign.Middle
                               Width: |-
                                   =77
-                  - conIbDetBody:
+                  - conIbDetTop:
                       Control: GroupContainer
                       Variant: AutoLayout
                       Properties:
@@ -8816,7 +8899,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =Max(60, Min(81 + 12 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 40, 3 * 40 + 2 * 8)) + If(IbCanEdit || IbCanReopen || IbCanManage, 12 + (34), 0) + If(IbCanManage && varIbActsOn, 12 + (96), 0) + If(varIbSelPeek, 12 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 12 + (34), 0) + If(varIbTab = "details", 12 + (0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)), 0) + If(IbSeeActivity && varIbTab = "activity", 12 + (0 + If(varIbActBusy || IfError(varIbActFailed, false), 0 + (20), 0) + If(!varIbActBusy, 12 + (Min(420, Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((Min(760, App.Width - 24) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40)))), 0) + If(IbCanComment, 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0) + If(varIbSel.Archived, 12 + (18), 0)), 0) + If(varIbTab = "files", 12 + (0 + If(galIbFiles.AllItemsCount = 0, 0 + (20), 0) + If(galIbFiles.AllItemsCount > 0, 12 + (Min(5, galIbFiles.AllItemsCount) * 60), 0) + If(IbCanAttach, 12 + (86 + (If(CountRows(attIbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFiles.Attachments), 4) * 36))), 0)), 0), App.Height - 32 - 36 - 12 - (Max(32, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36)) - 96 - 77 - 20) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2)))))))
+                            =81 + 12 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 40, 3 * 40 + 2 * 8)) + If(IbCanReopen || IbCanEdit || IbCanManage, 12 + (34), 0) + If((IbCanEdit || IbCanManage) && varIbActsOn, 12 + (54 + If(IbCanManage, 8 + (34), 0)), 0) + If(varIbSelPeek, 12 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 12 + (34), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -8828,7 +8911,7 @@ Screens:
                         LayoutOverflowX: |-
                             =LayoutOverflow.Hide
                         LayoutOverflowY: |-
-                            =LayoutOverflow.Scroll
+                            =LayoutOverflow.Hide
                         Width: |-
                             =Parent.Width
                       Children:
@@ -8944,7 +9027,7 @@ Screens:
                                     Text: |-
                                         =varIbSel.Application & "  ·  " & varIbSel.Section
                                     Width: |-
-                                        =Max(0, ((((Min(760, App.Width - 24)) - 18 - 18) - 18)) - ((124) + 10) - 2)
+                                        =Max(0, ((((Min(760, App.Width - 24)) - 18 - 18))) - ((124) + 10) - 2)
                                     Wrap: |-
                                         =false
                         - conIbDetFacts:
@@ -9332,7 +9415,7 @@ Screens:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Reported by"
+                                                    ="Requester"
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -9358,14 +9441,14 @@ Screens:
                                                 Size: |-
                                                     =11
                                                 Text: |-
-                                                    ="Reported by"
+                                                    ="Requester"
                                                 Wrap: |-
                                                     =false
                                           - txtIbFactReporter:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Reported by: " & Self.Text
+                                                    ="Requester: " & Self.Text
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -9389,7 +9472,7 @@ Screens:
                                                 Size: |-
                                                     =13
                                                 Text: |-
-                                                    =If(varIbSel.Reporter = varIbMe, "You", !IsBlank(varIbSel.ReporterName), varIbSel.ReporterName, Upper(First(Split(varIbSel.Reporter, "@")).Value))
+                                                    =If(IsBlank(varIbSel.Reporter), "-", Upper(First(Split(varIbSel.Reporter, "@")).Value))
                                                 Wrap: |-
                                                     =false
                               - conIbFacts3:
@@ -9630,86 +9713,10 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Visible: |-
-                                  =IbCanEdit || IbCanReopen || IbCanManage
+                                  =IbCanReopen || IbCanEdit || IbCanManage
                               Width: |-
                                   =Parent.Width
                             Children:
-                              - btnIbEdit:
-                                  Control: ModernButton
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Edit this issue"
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    Appearance: |-
-                                        =ButtonAppearance.Outline
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =C.'text-primary'
-                                    DisplayMode: |-
-                                        =If(varIbSelFullFor = varIbSelId && !varIbBusy, DisplayMode.Edit, DisplayMode.Disabled)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =34
-                                    Icon: |-
-                                        ="Edit"
-                                    Layout: |-
-                                        =If(LayoutRank < 2, ButtonLayout.IconOnly, ButtonLayout.IconBefore)
-                                    LayoutMinWidth: |-
-                                        =If(LayoutRank < 2, 40, 96)
-                                    OnSelect: |-
-                                        =Set(varIbFormMode, "edit");
-                                        Set(varIbFormApp, varIbSel.Application);
-                                        Set(varIbFormSection, varIbSel.Section);
-                                        Set(varIbMore, true);
-                                        If(
-                                            IsAdmin && !IfError(varIbAdminsLoaded, false),
-                                            Set(varIbAdminsLoaded, !IfError(ClearCollect(colIbAdmins,
-                                                ForAll(Filter(UserAndGroups, Title = "Admin") As a,
-                                                    { Email: Lower(Coalesce(a.Member, "")), Name: Upper(First(Split(Coalesce(a.Member, ""), "@")).Value) })); false, true))
-                                        );
-                                        Reset(drpIbFormApp);
-                                        Reset(drpIbFormSection);
-                                        Reset(inpIbOther);
-                                        Reset(inpIbTitle);
-                                        Reset(inpIbDesc);
-                                        Reset(inpIbSteps);
-                                        Reset(inpIbExpected);
-                                        Reset(inpIbActual);
-                                        Reset(inpIbRelated);
-                                        Reset(drpIbSeverity);
-                                        Reset(drpIbStatus);
-                                        Reset(drpIbPriority);
-                                        Reset(drpIbAssignee);
-                                        Reset(inpIbResolution);
-                                        Set(varIbDetailOn, false);
-                                        Set(varIbFormOn, true)
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =14
-                                    Text: |-
-                                        ="Edit"
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Visible: |-
-                                        =IbCanEdit
-                                    Width: |-
-                                        =If(LayoutRank < 2, 40, 96)
                               - btnIbReopen:
                                   Control: ModernButton
                                   Properties:
@@ -9766,7 +9773,7 @@ Screens:
                                             );
                                             Set(varIbActBusy, true);
                                             Set(varIbActFailed, IfError(ClearCollect(
-                                                colIbActivity,
+                                                colIbActFresh,
                                                 { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
                                                 ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
                                                     With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
@@ -9783,6 +9790,7 @@ Screens:
                                                           SizeKb: Coalesce(r.FileSizeKb, 0),
                                                           Initial: atSub })))
                                             ; false, true));
+                                            If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
                                             Set(varIbActBusy, false);
                                             Set(varIbState, "open");
                                             Notify("The issue has been reopened. An administrator will look at it again.", NotificationType.Success),
@@ -9811,7 +9819,7 @@ Screens:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        =If(varIbActsOn, "Hide more actions", "More actions: archive or delete")
+                                        ="More actions"
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -9819,7 +9827,7 @@ Screens:
                                     Appearance: |-
                                         =ButtonAppearance.Outline
                                     BorderColor: |-
-                                        =C.'border-default'
+                                        =If(varIbActsOn, C.'color-brand-primary', C.'border-default')
                                     BorderThickness: |-
                                         =1
                                     Color: |-
@@ -9831,11 +9839,11 @@ Screens:
                                     Height: |-
                                         =34
                                     Icon: |-
-                                        =If(varIbActsOn, "ChevronUp", "MoreHorizontal")
+                                        ="MoreHorizontal"
                                     Layout: |-
-                                        =If(LayoutRank < 2, ButtonLayout.IconOnly, ButtonLayout.IconBefore)
+                                        =ButtonLayout.IconOnly
                                     LayoutMinWidth: |-
-                                        =If(LayoutRank < 2, 40, 153)
+                                        =34
                                     OnSelect: |-
                                         =Set(varIbActsOn, !varIbActsOn)
                                     RadiusBottomLeft: |-
@@ -9850,12 +9858,14 @@ Screens:
                                         =14
                                     Text: |-
                                         ="More actions"
+                                    Tooltip: |-
+                                        ="More actions"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Visible: |-
-                                        =IbCanManage
+                                        =IbCanEdit || IbCanManage
                                     Width: |-
-                                        =If(LayoutRank < 2, 40, 153)
+                                        =34
                         - conIbActsMenu:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -9869,7 +9879,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =96
+                                  =54 + If(IbCanManage, 8 + (34), 0)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -9899,41 +9909,10 @@ Screens:
                               RadiusTopRight: |-
                                   =10
                               Visible: |-
-                                  =IbCanManage && varIbActsOn
+                                  =(IbCanEdit || IbCanManage) && varIbActsOn
                               Width: |-
                                   =Parent.Width
                             Children:
-                              - txtIbActsHint:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =Self.Text
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-muted'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =34
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =12
-                                    Text: |-
-                                        =If(varIbSel.Archived, "Restore brings the issue back to the active lists.", "Archive keeps the issue, its comments, activity and files, and anyone can still find it under Archived.") & " Delete removes it permanently for everyone and asks you to confirm first."
-                                    Wrap: |-
-                                        =true
                               - conIbActsBtns:
                                   Control: GroupContainer
                                   Variant: AutoLayout
@@ -9953,7 +9932,7 @@ Screens:
                                     LayoutGap: |-
                                         =8
                                     LayoutJustifyContent: |-
-                                        =LayoutJustifyContent.End
+                                        =If(LayoutRank < 2, LayoutJustifyContent.Start, LayoutJustifyContent.End)
                                     LayoutMinWidth: |-
                                         =0
                                     LayoutOverflowX: |-
@@ -9963,6 +9942,83 @@ Screens:
                                     Width: |-
                                         =Parent.Width
                                   Children:
+                                    - btnIbEdit:
+                                        Control: ModernButton
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Edit this issue"
+                                          Align: |-
+                                              =Align.Center
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          Appearance: |-
+                                              =ButtonAppearance.Outline
+                                          BorderColor: |-
+                                              =C.'border-default'
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =C.'text-primary'
+                                          DisplayMode: |-
+                                              =If(varIbSelFullFor = varIbSelId && !varIbBusy, DisplayMode.Edit, DisplayMode.Disabled)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =34
+                                          Icon: |-
+                                              ="Edit"
+                                          Layout: |-
+                                              =ButtonLayout.IconBefore
+                                          LayoutMinWidth: |-
+                                              =96
+                                          OnSelect: |-
+                                              =Set(varIbActsOn, false);
+                                              Set(varIbFormMode, "edit");
+                                              Set(varIbFormApp, varIbSel.Application);
+                                              Set(varIbFormSection, varIbSel.Section);
+                                              Set(varIbMore, true);
+                                              If(
+                                                  IsAdmin && !IfError(varIbAdminsLoaded, false),
+                                                  Set(varIbAdminsLoaded, !IfError(ClearCollect(colIbAdmins,
+                                                      ForAll(Filter(UserAndGroups, Title = "Admin") As a,
+                                                          { Email: Lower(Coalesce(a.Member, "")), Name: Upper(First(Split(Coalesce(a.Member, ""), "@")).Value) })); false, true))
+                                              );
+                                              Reset(drpIbFormApp);
+                                              Reset(drpIbFormSection);
+                                              Reset(inpIbOther);
+                                              Reset(inpIbTitle);
+                                              Reset(inpIbDesc);
+                                              Reset(inpIbSteps);
+                                              Reset(inpIbExpected);
+                                              Reset(inpIbActual);
+                                              Reset(inpIbRelated);
+                                              Reset(drpIbSeverity);
+                                              Reset(drpIbStatus);
+                                              Reset(drpIbPriority);
+                                              Reset(drpIbAssignee);
+                                              Reset(inpIbResolution);
+                                              Set(varIbDetailOn, false);
+                                              Set(varIbFormOn, true)
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Size: |-
+                                              =14
+                                          Text: |-
+                                              ="Edit"
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Visible: |-
+                                              =IbCanEdit
+                                          Width: |-
+                                              =96
                                     - btnIbArchive:
                                         Control: ModernButton
                                         Properties:
@@ -10021,7 +10077,7 @@ Screens:
                                                   );
                                                   Set(varIbActBusy, true);
                                                   Set(varIbActFailed, IfError(ClearCollect(
-                                                      colIbActivity,
+                                                      colIbActFresh,
                                                       { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
                                                       ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
                                                           With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
@@ -10038,6 +10094,7 @@ Screens:
                                                                 SizeKb: Coalesce(r.FileSizeKb, 0),
                                                                 Initial: atSub })))
                                                   ; false, true));
+                                                  If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
                                                   Set(varIbActBusy, false);
                                                   Notify(If(varIbSel.Archived, "The issue has been archived. It is kept under Archived.", "The issue has been restored."), NotificationType.Success),
                                                   Notify("The issue could not be changed. " & varIbRes.message, NotificationType.Error)
@@ -10058,6 +10115,8 @@ Screens:
                                               =If(varIbSel.Archived, "Restore", "Archive")
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
+                                          Visible: |-
+                                              =IbCanManage
                                           Width: |-
                                               =115
                                     - btnIbDelete:
@@ -10109,8 +10168,43 @@ Screens:
                                               ="Delete"
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
+                                          Visible: |-
+                                              =IbCanManage
                                           Width: |-
                                               =106
+                              - txtIbActsHint:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =Self.Text
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =34
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =12
+                                    Text: |-
+                                        =If(varIbSel.Archived, "Restore brings the issue back to the active lists.", "Archive keeps the issue, its comments, activity and files, and anyone can still find it under Archived.") & " Delete removes it permanently for everyone and asks you to confirm first."
+                                    Visible: |-
+                                        =IbCanManage
+                                    Wrap: |-
+                                        =true
                         - txtIbDetPeek:
                             Control: ModernText
                             Properties:
@@ -10389,6 +10483,33 @@ Screens:
                                         =VerticalAlign.Middle
                                     Width: |-
                                         =Min(132, (((Min(760, App.Width - 24) - 36) - 18) - 16) / 3)
+                  - conIbDetContent:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =Max(160, Min(App.Height - 32 - 36 - (Max(32, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36)) - 96 - 77 - 20) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))) - 12 - (81 + 12 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 40, 3 * 40 + 2 * 8)) + If(IbCanReopen || IbCanEdit || IbCanManage, 12 + (34), 0) + If((IbCanEdit || IbCanManage) && varIbActsOn, 12 + (54 + If(IbCanManage, 8 + (34), 0)), 0) + If(varIbSelPeek, 12 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 12 + (34), 0)) - 12, Max(360, (0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)), (If(IbSeeActivity, 0 + If((varIbActBusy && IsEmpty(colIbActivity)) || IfError(varIbActFailed, false), 0 + (34), 0) + If(!IsEmpty(colIbActivity), 12 + (Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((Min(760, App.Width - 24) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40))), 0) + If(IbCanComment, 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0) + If(varIbSel.Archived, 12 + (18), 0), 0)), (0 + If(galIbFiles.AllItemsCount = 0, 0 + (20), 0) + If(galIbFiles.AllItemsCount > 0, 12 + (galIbFiles.AllItemsCount * 60), 0) + If(IbCanAttach, 12 + (86 + (If(CountRows(attIbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFiles.Attachments), 4) * 36))), 0)))))
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Stretch
+                        LayoutDirection: |-
+                            =LayoutDirection.Vertical
+                        LayoutGap: |-
+                            =0
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Width: |-
+                            =Parent.Width
+                      Children:
                         - conIbDetDetails:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -10400,7 +10521,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)
+                                  =Parent.Height
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -10412,7 +10533,7 @@ Screens:
                               LayoutOverflowX: |-
                                   =LayoutOverflow.Hide
                               LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
+                                  =LayoutOverflow.Scroll
                               Visible: |-
                                   =varIbTab = "details"
                               Width: |-
@@ -11111,7 +11232,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =0 + If(varIbActBusy || IfError(varIbActFailed, false), 0 + (20), 0) + If(!varIbActBusy, 12 + (Min(420, Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((Min(760, App.Width - 24) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40)))), 0) + If(IbCanComment, 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0) + If(varIbSel.Archived, 12 + (18), 0)
+                                  =Parent.Height
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -11123,7 +11244,7 @@ Screens:
                               LayoutOverflowX: |-
                                   =LayoutOverflow.Hide
                               LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
+                                  =LayoutOverflow.Scroll
                               Visible: |-
                                   =IbSeeActivity && varIbTab = "activity"
                               Width: |-
@@ -11139,13 +11260,13 @@ Screens:
                                     BorderThickness: |-
                                         =0
                                     Color: |-
-                                        =If(varIbActBusy, C.'text-muted', C.'state-error-fg')
+                                        =If(varIbActBusy && IsEmpty(colIbActivity), C.'text-muted', C.'state-error-fg')
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
-                                        =20
+                                        =34
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -11157,9 +11278,9 @@ Screens:
                                     Size: |-
                                         =13
                                     Text: |-
-                                        =If(varIbActBusy, "Loading activity...", "The activity could not be loaded. Close the issue and open it again.")
+                                        =If(varIbActBusy && IsEmpty(colIbActivity), "Loading activity...", IsEmpty(colIbActivity), "The activity could not be loaded. Close the issue and open it again.", "The activity could not be refreshed. It shows what was loaded last - close the issue and open it again to retry.")
                                     Visible: |-
-                                        =varIbActBusy || IfError(varIbActFailed, false)
+                                        =(varIbActBusy && IsEmpty(colIbActivity)) || IfError(varIbActFailed, false)
                                     Wrap: |-
                                         =true
                               - galIbActivity:
@@ -11175,7 +11296,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =Min(420, Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((Min(760, App.Width - 24) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40)))
+                                        =Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((Min(760, App.Width - 24) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40))
                                     Items: |-
                                         =colIbActivity
                                     LayoutMinWidth: |-
@@ -11185,7 +11306,7 @@ Screens:
                                     Selectable: |-
                                         =false
                                     ShowScrollbar: |-
-                                        =true
+                                        =false
                                     TabIndex: |-
                                         =0
                                     TemplatePadding: |-
@@ -11193,7 +11314,7 @@ Screens:
                                     TemplateSize: |-
                                         =60
                                     Visible: |-
-                                        =!varIbActBusy
+                                        =!IsEmpty(colIbActivity)
                                     Width: |-
                                         =Parent.Width
                                   Children:
@@ -11237,7 +11358,7 @@ Screens:
                                           Text: |-
                                               =""
                                           Width: |-
-                                              =(((((Min(760, App.Width - 24)) - 18 - 18) - 18)) - 2 * 0 - 18 - 40)
+                                              =(((((Min(760, App.Width - 24)) - 18 - 18)) - 18) - 2 * 0 - 0 - 40)
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -11327,7 +11448,7 @@ Screens:
                                           Text: |-
                                               =ThisItem.Actor & If(ThisItem.Internal, "  ·  internal note, admins only", ThisItem.Kind = "Comment", "  ·  comment", "")
                                           Width: |-
-                                              =(((((Min(760, App.Width - 24)) - 18 - 18) - 18)) - 2 * 0 - 18 - 40) - 76 - 12 - 150
+                                              =(((((Min(760, App.Width - 24)) - 18 - 18)) - 18) - 2 * 0 - 0 - 40) - 76 - 12 - 150
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -11370,7 +11491,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =(((((Min(760, App.Width - 24)) - 18 - 18) - 18)) - 2 * 0 - 18 - 40) - 12 - 150
+                                              =(((((Min(760, App.Width - 24)) - 18 - 18)) - 18) - 2 * 0 - 0 - 40) - 12 - 150
                                           Y: |-
                                               =9
                                     - txtIbActBody:
@@ -11403,7 +11524,7 @@ Screens:
                                           Text: |-
                                               =ThisItem.Body
                                           Width: |-
-                                              =(((((Min(760, App.Width - 24)) - 18 - 18) - 18)) - 2 * 0 - 18 - 40) - 24
+                                              =(((((Min(760, App.Width - 24)) - 18 - 18)) - 18) - 2 * 0 - 0 - 40) - 24
                                           Wrap: |-
                                               =true
                                           X: |-
@@ -11579,28 +11700,10 @@ Screens:
                                               ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }));
                                               If(
                                                   varIbRes.ok = "yes",
+                                                  Collect(colIbActivity, { Kind: "Comment", Actor: "You", Role: If(IsAdmin && !IbSelMine, "Admin", "User"), Body: Trim(inpIbComment.Text), At: Now(), Internal: varIbInternal && IsAdmin, IsSystem: false, File: "", SizeKb: 0, Initial: false });
                                                   Reset(inpIbComment);
-                                                  Set(varIbActBusy, true);
-                                                  Set(varIbActFailed, IfError(ClearCollect(
-                                                      colIbActivity,
-                                                      { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
-                                                      ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
-                                                          With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
-                                                              { Kind: k,
-                                                                Actor: If(role = "System", "Issue Board", who = varIbMe, "You", Upper(First(Split(who, "@")).Value)),
-                                                                Role: Switch(role, "Admin", "Admin", "System", "System", "User"),
-                                                                Body: If(k in ["StatusChange", "Closed", "Reopened"] && !IsBlank(r.NewStatus), "Status changed from " & Coalesce(r.PreviousStatus, "-") & " to " & r.NewStatus & If(IsBlank(r.Content), ".", ". " & r.Content),
-                                                                      k = "Attachment", If(atSub, "Attached ", "Added ") & Coalesce(r.FileName, "a file") & If(IsBlank(r.FileSizeKb), "", " (" & r.FileSizeKb & " KB)") & If(atSub, " with the report.", "."),
-                                                                      Coalesce(r.Content, "")),
-                                                                At: Coalesce(r.EventOn, r.Created),
-                                                                Internal: r.Visibility.Value = "Internal",
-                                                                IsSystem: k <> "Comment",
-                                                                File: Coalesce(r.FileName, ""),
-                                                                SizeKb: Coalesce(r.FileSizeKb, 0),
-                                                                Initial: atSub })))
-                                                  ; false, true));
-                                                  Set(varIbActBusy, false);
                                                   UpdateIf(colIbAll, Id = varIbSelId, { UpdatedOn: Now() });
+                                                  Set(varIbSel, Patch(varIbSel, { UpdatedOn: Now() }));
                                                   Notify(If(varIbInternal, "Internal note added.", "Comment posted."), NotificationType.Success);
                                                   Set(varIbInternal, false);
                                                   Reset(chkIbInternal),
@@ -11667,7 +11770,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =0 + If(galIbFiles.AllItemsCount = 0, 0 + (20), 0) + If(galIbFiles.AllItemsCount > 0, 12 + (Min(5, galIbFiles.AllItemsCount) * 60), 0) + If(IbCanAttach, 12 + (86 + (If(CountRows(attIbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFiles.Attachments), 4) * 36))), 0)
+                                  =Parent.Height
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -11679,7 +11782,7 @@ Screens:
                               LayoutOverflowX: |-
                                   =LayoutOverflow.Hide
                               LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
+                                  =LayoutOverflow.Scroll
                               Visible: |-
                                   =varIbTab = "files"
                               Width: |-
@@ -11731,7 +11834,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =Min(5, galIbFiles.AllItemsCount) * 60
+                                        =galIbFiles.AllItemsCount * 60
                                     Items: |-
                                         =If(varIbFilesFor = varIbSelId, varIbFiles, FirstN(varIbFiles, 0))
                                     LayoutMinWidth: |-
@@ -11741,7 +11844,7 @@ Screens:
                                     Selectable: |-
                                         =false
                                     ShowScrollbar: |-
-                                        =true
+                                        =false
                                     TabIndex: |-
                                         =0
                                     TemplatePadding: |-
@@ -11877,7 +11980,7 @@ Screens:
                                           Text: |-
                                               =ThisItem.DisplayName
                                           Width: |-
-                                              =(((((Min(760, App.Width - 24)) - 18 - 18) - 18)) - 2 * 0 - 18 - 40) - 56 - 72 - 12
+                                              =(((((Min(760, App.Width - 24)) - 18 - 18)) - 18) - 2 * 0 - 0 - 40) - 56 - 72 - 12
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -11914,7 +12017,7 @@ Screens:
                                           Text: |-
                                               =With({ e: LookUp(colIbActivity, Kind = "Attachment" && File = ThisItem.DisplayName) }, Upper(Lower(Last(Split(ThisItem.DisplayName, ".")).Value)) & If(IsBlank(e), "", "  ·  " & e.SizeKb & " KB  ·  " & e.Actor & "  ·  " & Text(e.At, "dd mmm yyyy hh:mm") & If(e.Initial, "  ·  with the report", "  ·  added later")))
                                           Width: |-
-                                              =(((((Min(760, App.Width - 24)) - 18 - 18) - 18)) - 2 * 0 - 18 - 40) - 56 - 72 - 12
+                                              =(((((Min(760, App.Width - 24)) - 18 - 18)) - 18) - 2 * 0 - 0 - 40) - 56 - 72 - 12
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -11965,7 +12068,7 @@ Screens:
                                           Width: |-
                                               =72
                                           X: |-
-                                              =(((((Min(760, App.Width - 24)) - 18 - 18) - 18)) - 2 * 0 - 18 - 40) - 72
+                                              =(((((Min(760, App.Width - 24)) - 18 - 18)) - 18) - 2 * 0 - 0 - 40) - 72
                                           Y: |-
                                               =14
                               - conIbFileAdd:
@@ -12115,7 +12218,7 @@ Screens:
                                                   );
                                                   Set(varIbActBusy, true);
                                                   Set(varIbActFailed, IfError(ClearCollect(
-                                                      colIbActivity,
+                                                      colIbActFresh,
                                                       { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", Upper(First(Split(varIbSel.Reporter, "@")).Value)), Role: "User", Body: "Reported the issue.", At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },
                                                       ForAll(Sort(Filter(IB_TicketComments, TicketId = varIbSelId), ID, SortOrder.Ascending) As r,
                                                           With({ k: Coalesce(r.EventType.Value, "Comment"), who: Lower(Coalesce(r.AuthorEmail, "")), role: Coalesce(r.AuthorRole.Value, ""), atSub: Coalesce(r.AtSubmission, false) },
@@ -12132,6 +12235,7 @@ Screens:
                                                                 SizeKb: Coalesce(r.FileSizeKb, 0),
                                                                 Initial: atSub })))
                                                   ; false, true));
+                                                  If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
                                                   Set(varIbActBusy, false);
                                                   Set(varIbUploading, false);
                                                   If(

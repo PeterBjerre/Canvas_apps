@@ -5,10 +5,8 @@ hentningen.
 
     [ikon] Issue Board                              [Refresh] [+ New issue]
            Report what you find while testing ...
-    +------------------------------------------------------------------+
-    | [All issues | My issues | Assigned to me]  [Open | Closed | Archived]
-    | [Search .................................] [Sort v]               |
-    | [Application v] [Section v] [Status v] [Priority v]              |
+    [All issues | My issues | Assigned to me]  [Open | Closed | Archived]
+    [Search ..............] [Sort v] [Application v] [Section v] [Status v] [Priority v]
     +------------------------------------------------------------------+
     | 12 open issues                                   [Clear filters] |
     | +-----------+ +-----------+ +-----------+                        |
@@ -16,16 +14,20 @@ hentningen.
     | | titel     | | titel     | |           |  hele flisen aabner    |
     | +-----------+ +-----------+ +-----------+  sagen (issue #177)    |
     +------------------------------------------------------------------+
+    Filtrene er en let vaerktoejslinje direkte over fliserne - intet kort
+    (issue #212). Paa en smallere skaerm staar listerne paa deres egen linje.
 
     New issue   -> popup: Application/Section, titel, lignende sager,
                    "What happened?", flere detaljer (valgfrit), Submit ->
                    Patch direkte i IB_Tickets (issue #193). Filer laegges
                    paa bagefter: papirclipsen på flisen.
     En flise    -> popup i View mode: nummer, titel og Close; status,
-                   Application og Section; fakta; handlingerne (Edit,
-                   Reopen, More actions -> Archive/Delete); fanerne
-                   Description, Activity og Attachments - hver kun, naar
-                   brugeren maa (IbCanEdit osv.).
+                   Application og Section; fakta; handlingerne (Reopen,
+                   ... -> Edit/Archive/Delete); fanerne Description,
+                   Activity og Attachments - hver kun, naar brugeren maa
+                   (IbCanEdit osv.). Toppen staar fast; kun fanens flade
+                   scroller, og den har samme hoejde for alle tre faner
+                   (issue #212).
     Edit        -> samme formular som New issue, udfyldt (Edit mode). En
                    admin faar desuden status, prioritet, tildeling og
                    loesning.
@@ -56,6 +58,12 @@ HENTNING (issue #177)
     dens Activity - ikke hele listen.
   * Soegning, filtre og sortering regnes i hukommelsen paa de hentede
     raekker - intet kald pr. filtervalg eller tastetryk.
+  * En kommentar eller intern note saettes ind lokalt i feeden, naar
+    flowet har svaret ok - Activity hentes ikke igen (issue #212).
+  * Andres aendringer: en stille opdatering af oversigten, naar man kommer
+    tilbage til skaermen (hoejst hvert SYNC_AFTER_MIN minut) og fra
+    Refresh. Ingen timer. Listerne hentes i en midlertidig samling, saa en
+    fejlet hentning aldrig toemmer det, der staar.
 """
 from gen_screen import (Ctrl, stack_height, C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_DIVIDER, C_INFO_BG,
                         C_INFO_FG, C_INVALID_FG, C_MUTED, C_MUTED_BG, C_MODAL_BG, C_OVERLAY,
@@ -107,7 +115,8 @@ INIT_STATE = (
     "    Set(varIbBusy, false);\n"
     "    Set(varIbUploading, false);\n"
     "    Set(varIbSelPeek, false);\n"
-    "    Set(varIbPosting, false)\n"
+    "    Set(varIbPosting, false);\n"
+    "    Set(varIbSyncing, false)\n"
     ")"
 )
 
@@ -188,6 +197,7 @@ LOAD = (
         f"Set(varIbCfgFailed, IfError(ClearCollect(colIbSections, {FETCH_SECTIONS}); false, true))",
         RELOAD_MAIN, indent=4) + ";\n"
     "    Set(varIbLoaded, !varIbCfgFailed && !varIbAllFailed);\n"
+    "    Set(varIbSyncedAt, Now());\n"
     "    Set(varIbLoading, false)\n"
     ")"
 )
@@ -196,9 +206,38 @@ SET_SCOPE = f'If(IsBlank(varIbScope), Set(varIbScope, If({IS_ADMIN}, "all", "min
 
 RETRY = "Set(varIbLoaded, false);\n" + LOAD + ";\n" + SET_SCOPE
 
+# STILLE OPDATERING (issue #212): oversigten hentes igen uden ventespinner
+# og uden at filtre, sortering, scope eller en aaben sag roeres. Den nye
+# liste hentes i en midlertidig samling og skrives foerst over, naar den
+# kom hjem - fejler hentningen, staar den gamle liste der stadig, og en
+# besked siger det. Ingen timer: den koerer, naar man kommer tilbage til
+# skaermen (hoejst hvert SYNC_AFTER_MIN minut), og fra Refresh.
+SYNC_AFTER_MIN = 2
+SYNC = (
+    "Set(varIbSyncing, true);\n"
+    f"Set(varIbSyncFailed, IfError(ClearCollect(colIbFresh, {FETCH_ALL}); false, true));\n"
+    "If(\n"
+    "    varIbSyncFailed,\n"
+    '    Notify("The issues could not be refreshed. The list shows what was loaded last.", '
+    "NotificationType.Error),\n"
+    "    ClearCollect(colIbAll, colIbFresh);\n"
+    "    Clear(colIbFresh);\n"
+    "    Set(varIbSyncedAt, Now())\n"
+    ");\n"
+    "Set(varIbSyncing, false)"
+)
+# Refresh: stille, naar listen er hentet; ellers som Retry.
+REFRESH = f"If(\n    varIbLoaded,\n    {SYNC.replace(chr(10), chr(10) + '    ')},\n    {RETRY.replace(chr(10), chr(10) + '    ')}\n)"
+# Tilbage paa skaermen: stille opdatering, hvis listen er mere end
+# SYNC_AFTER_MIN minutter gammel. Foerste gang koerer LOAD i stedet.
+SYNC_ON_RETURN = (
+    f"If(\n    varIbLoaded && !varIbSyncing && DateDiff(varIbSyncedAt, Now(), TimeUnit.Minutes) >= "
+    f"{SYNC_AFTER_MIN},\n    {SYNC.replace(chr(10), chr(10) + '    ')}\n)"
+)
+
 
 def on_visible():
-    return INIT_STATE + ";\n" + LOAD + ";\n" + SET_SCOPE
+    return INIT_STATE + ";\n" + SYNC_ON_RETURN + ";\n" + LOAD + ";\n" + SET_SCOPE
 
 
 def _initials(email):
@@ -218,7 +257,7 @@ STATUS_EVENTS = '["StatusChange", "Closed", "Reopened"]'
 LOAD_ACTIVITY = (
     "Set(varIbActBusy, true);\n"
     "Set(varIbActFailed, IfError(ClearCollect(\n"
-    "    colIbActivity,\n"
+    "    colIbActFresh,\n"
     '    { Kind: "Reported", Actor: If(varIbSel.Reporter = varIbMe, "You", '
     f'{_initials("varIbSel.Reporter")}), Role: "User", Body: "Reported the issue.", '
     'At: varIbSel.CreatedOn, Internal: false, IsSystem: true, File: "", SizeKb: 0, Initial: false },\n'
@@ -244,6 +283,10 @@ LOAD_ACTIVITY = (
     "              SizeKb: Coalesce(r.FileSizeKb, 0),\n"
     "              Initial: atSub })))\n"
     "; false, true));\n"
+    # Hentes i en midlertidig samling og skrives foerst over, naar den kom
+    # hjem (issue #212): fejler en genhentning, staar den gamle feed der
+    # stadig - og ingen dobbelte raekker.
+    "If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));\n"
     "Set(varIbActBusy, false)"
 )
 
@@ -344,7 +387,7 @@ UPLOAD = {"Name": '""', "Msg": '""'}
 
 def collections():
     return [("colIbAll", ROW), ("colIbSections", SEC), ("colIbActivity", ACT), ("colIbAdmins", ADMINS),
-            ("colIbUp", UPLOAD)]
+            ("colIbUp", UPLOAD), ("colIbFresh", ROW), ("colIbActFresh", ACT)]
 
 
 # ---------------------------------------------------------------------------
@@ -490,10 +533,13 @@ def build_bar():
                  width=fit_button_width('"New issue"') + ICON_W, height=36, icon="Add",
                  accessible='"Report a new issue"')
     icon_on_mobile(new)
-    refresh = button("btnIbRefresh", '"Refresh"', RETRY,
+    # Refresh er ikke laengere en del af det normale arbejde - hver aendring
+    # opdaterer selv det, den roerer (issue #212). Den henter andres
+    # aendringer stille, uden at filtrene eller en aaben sag roeres.
+    refresh = button("btnIbRefresh", '"Refresh"', REFRESH,
                      width=fit_button_width('"Refresh"'), height=36,
-                     accessible='"Load the issues again"',
-                     display_mode="If(varIbLoading, DisplayMode.Disabled, DisplayMode.Edit)")
+                     accessible='"Load the latest changes from everyone"',
+                     display_mode="If(varIbLoading || varIbSyncing, DisplayMode.Disabled, DisplayMode.Edit)")
     return top_bar(P, f'"{cfg.TITLE}"',
                    '"Report what you find while testing, and follow it until it is fixed."',
                    [refresh, new], narrow_hide=("btnIbRefresh",), icon=cfg.APP_KEY)
@@ -538,19 +584,29 @@ CLEAR_FILTERS = ('Set(varIbApp, "");\nSet(varIbSection, "");\nSet(varIbStatusF, 
                  'Set(varIbPriF, "");\nReset(inpIbSearch);\nReset(drpIbFltApp);\n'
                  "Reset(drpIbFltSection);\nReset(drpIbFltStatus);\nReset(drpIbFltPriority)")
 
-# Kontakternes bredder paa en bred skaerm. Paa en smal deler segmenterne
-# kortets bredde.
+# Vaerktoejslinjen (issue #212): filtrene staar direkte over fliserne - ikke
+# i et kort - og regnes af hele bredden (SHELL_W). Kontakternes bredder paa
+# en bred skaerm; paa en smal deler segmenterne bredden.
+TB_W = f"({SHELL_W})"
 SCOPE_W = {"btnIbScopeAll": 96, "btnIbScopeMine": 100, "btnIbScopeAssigned": 128}
 STATE_W = {"btnIbStateOpen": 76, "btnIbStateClosed": 84, "btnIbStateArchived": 92}
 SCOPE_ADMIN_W = sum(SCOPE_W.values()) + 2 * 4
 SCOPE_USER_W = SCOPE_W["btnIbScopeAll"] + SCOPE_W["btnIbScopeMine"] + 4
 STATE_ALL_W = sum(STATE_W.values()) + 2 * 4
-TOP_OK = f"({CARD_W}) >= {SCOPE_ADMIN_W + 16 + STATE_ALL_W}"
+TOP_OK = f"{TB_W} >= {SCOPE_ADMIN_W + 16 + STATE_ALL_W}"
+# Soegning, sortering og de fire lister: paa EEN linje, naar der er plads
+# til dem alle (soegefeltet mindst SEARCH_MIN); ellers soegning og sortering
+# paa een linje og listerne paa den naeste (to og to paa en telefon).
+DD_W = 150
+SORT_W = 150
+SEARCH_MIN = 240
+LISTS_W = 4 * DD_W + 3 * 8
+ONE_LINE = f"{TB_W} >= {LISTS_W + 8 + SORT_W + 8 + SEARCH_MIN}"
 
 
 def build_filters():
     n_scope = f"If({IS_ADMIN}, 3, 2)"
-    narrow_scope = f"(({CARD_W}) - 4 * ({n_scope} - 1)) / {n_scope}"
+    narrow_scope = f"(({TB_W}) - 4 * ({n_scope} - 1)) / {n_scope}"
     all_seg = _seg("btnIbScopeAll", "All issues", SCOPE_ALL,
                    'Set(varIbScope, "all")', SCOPE_W["btnIbScopeAll"],
                    '"Show all issues from all testers"')
@@ -567,7 +623,7 @@ def build_filters():
         s.props["LayoutMinWidth"] = s.props["Width"]
     scope = group("conIbScope", [all_seg, mine_seg, asg_seg], direction="Horizontal", gap=4,
                   height=SEG_H, align_items="Center",
-                  width=f"If({TOP_OK}, If({IS_ADMIN}, {SCOPE_ADMIN_W}, {SCOPE_USER_W}), {CARD_W})")
+                  width=f"If({TOP_OK}, If({IS_ADMIN}, {SCOPE_ADMIN_W}, {SCOPE_USER_W}), {TB_W})")
     scope.props["LayoutMinWidth"] = scope.props["Width"]
 
     states = [("btnIbStateOpen", "Open", "open", '"Show open issues"'),
@@ -577,18 +633,20 @@ def build_filters():
     for name, label, key, acc in states:
         s = _seg(name, label, f'varIbState = "{key}"', f'Set(varIbState, "{key}")', STATE_W[name],
                  acc)
-        s.props["Width"] = f"If({TOP_OK}, {STATE_W[name]}, (({CARD_W}) - 8) / 3)"
+        s.props["Width"] = f"If({TOP_OK}, {STATE_W[name]}, (({TB_W}) - 8) / 3)"
         s.props["LayoutMinWidth"] = s.props["Width"]
         segs.append(s)
     state = group("conIbState", segs, direction="Horizontal", gap=4, height=SEG_H,
-                  align_items="Center", width=f"If({TOP_OK}, {STATE_ALL_W}, {CARD_W})")
+                  align_items="Center", width=f"If({TOP_OK}, {STATE_ALL_W}, {TB_W})")
     state.props["LayoutMinWidth"] = state.props["Width"]
     top = group("conIbSwitches", [scope, state], direction="Horizontal", gap=16,
                 height=f"If({TOP_OK}, {SEG_H}, {SEG_H} + 8 + {SEG_H})", align_items="Start")
     top.props["LayoutDirection"] = f"If({TOP_OK}, LayoutDirection.Horizontal, LayoutDirection.Vertical)"
     top.props["LayoutGap"] = f"If({TOP_OK}, 16, 8)"
 
-    # Soegning og sortering paa een linje; under hinanden paa en telefon.
+    # Soegning og sortering. RW: deres bredde - hele linjen, eller resten
+    # ved siden af listerne, naar alt staar paa een linje.
+    rw = f"If({ONE_LINE}, {TB_W} - {LISTS_W + 8}, {TB_W})"
     search = text_input("inpIbSearch", '""', placeholder='"Search number, title or description"',
                         label='"Search issues"')
     # Listen filtreres i hukommelsen - et lille ophold, saa den ikke regnes
@@ -597,14 +655,14 @@ def build_filters():
     drp_sort = themed_dropdown("drpIbSort", '["Last updated", "Newest", "Oldest", "Priority", "Status"]',
                                "varIbSort", label='"Sort issues"',
                                onchange="Set(varIbSort, Self.Selected.Value)")
-    sort_w = 160
-    ok1 = f"({CARD_W}) >= {sort_w + 8 + 280}"
-    drp_sort.props["Width"] = f"If({ok1}, {sort_w}, {CARD_W})"
-    drp_sort.props["LayoutMinWidth"] = f"If({ok1}, {sort_w}, 0)"
-    search.props["Width"] = f"If({ok1}, {CARD_W} - {sort_w + 8}, {CARD_W})"
+    ok1 = f"({rw}) >= {SORT_W + 8 + SEARCH_MIN}"
+    drp_sort.props["Width"] = f"If({ok1}, {SORT_W}, {rw})"
+    drp_sort.props["LayoutMinWidth"] = f"If({ok1}, {SORT_W}, 0)"
+    search.props["Width"] = f"If({ok1}, {rw} - {SORT_W + 8}, {rw})"
     row = group("conIbFltRow", [search, drp_sort], direction="Horizontal", gap=8,
-                height=f"If({ok1}, 36, 2 * 36 + 8)")
+                height=f"If({ok1}, 36, 2 * 36 + 8)", width=rw)
     row.props["LayoutDirection"] = f"If({ok1}, LayoutDirection.Horizontal, LayoutDirection.Vertical)"
+    row.props["LayoutMinWidth"] = row.props["Width"]
 
     # Application og den afhaengige Section, status og prioritet: fire paa
     # een linje, ellers to og to.
@@ -632,22 +690,29 @@ def build_filters():
                             display_mode='If(varIbState = "closed", DisplayMode.Disabled, DisplayMode.Edit)')
     drp_pri = _filter_dd("drpIbFltPriority", "All priorities", [p for p, _r in cfg.PRIORITY],
                          "varIbPriF", '"Filter by priority"')
-    ok4 = f"({CARD_W}) >= {4 * 150 + 3 * 8}"
-    half = f"(({CARD_W}) - 8) / 2"
-    quarter = f"(({CARD_W}) - 24) / 4"
-    # To og to paa en smal skaerm: hver liste er halvdelen af kortet.
+    r2w = f"If({ONE_LINE}, {LISTS_W}, {TB_W})"
+    ok4 = f"({r2w}) >= {LISTS_W}"
+    half = f"(({r2w}) - 8) / 2"
+    quarter = f"(({r2w}) - 24) / 4"
+    # To og to paa en smal skaerm: hver liste er halvdelen af linjen.
     for c in (drp_app, drp_sec, drp_status, drp_pri):
         c.props["Width"] = f"If({ok4}, {quarter}, {half})"
         c.props["LayoutMinWidth"] = "0"
     pair_a = group("conIbFltPairA", [drp_app, drp_sec], direction="Horizontal", gap=8,
-                   height=36, width=f"If({ok4}, {half}, {CARD_W})")
+                   height=36, width=f"If({ok4}, {half}, {r2w})")
     pair_b = group("conIbFltPairB", [drp_status, drp_pri], direction="Horizontal", gap=8,
-                   height=36, width=f"If({ok4}, {half}, {CARD_W})")
+                   height=36, width=f"If({ok4}, {half}, {r2w})")
     row2 = group("conIbFltRow2", [pair_a, pair_b], direction="Horizontal", gap=8,
-                 height=f"If({ok4}, 36, 2 * 36 + 8)")
+                 height=f"If({ok4}, 36, 2 * 36 + 8)", width=r2w)
     row2.props["LayoutDirection"] = f"If({ok4}, LayoutDirection.Horizontal, LayoutDirection.Vertical)"
+    row2.props["LayoutMinWidth"] = row2.props["Width"]
+    line = group("conIbFltLine", [row, row2], direction="Horizontal", gap=8,
+                 height=f"If({ONE_LINE}, 36, ({row.h}) + 8 + ({row2.h}))", align_items="Start")
+    line.props["LayoutDirection"] = (f"If({ONE_LINE}, LayoutDirection.Horizontal, "
+                                     "LayoutDirection.Vertical)")
 
-    return card("conIbFilterCard", [top, row, row2], gap=12)
+    # Ingen kortflade og ingen kant: en let linje over fliserne.
+    return group("conIbToolbar", [top, line], direction="Vertical", gap=10)
 
 
 # ---------------------------------------------------------------------------
@@ -655,7 +720,7 @@ def build_filters():
 # ---------------------------------------------------------------------------
 NO_W = 96
 TILE_MIN_W = 240
-TILE_H = 212
+TILE_H = 252
 TILE_M = 6          # luft om hver flise - 12 px mellem to
 TILE_PAD = 14       # flisens indre polstring
 TILE_CHIP_W = 112
@@ -713,14 +778,34 @@ def _priority_tokens(expr):
     return sw("fg"), sw("bg")
 
 
-# Hvem: rapportoerens navn - ingen anonymisering (issue #193) - og
-# tildelingen.
-REPORTER_FX = (f'If({{r}}.Reporter = varIbMe, "You", !IsBlank({{r}}.ReporterName), {{r}}.ReporterName, '
-               f'{_initials("{r}.Reporter")})')
+# Hvem (issue #212): rapportoeren som kort bruger-id - delen foer @ med
+# store bogstaver (uffes@orsted.com -> UFFES), samme metode som MyUserId
+# (tools/permissions.py) og initialerne i Activity. Aldrig hele mailen.
+def requester(r):
+    return f'If(IsBlank({r}.Reporter), "-", {_initials(r + ".Reporter")})'
+
+
+REPORTER_FX = requester("{r}")
+# Tildelingen kun, naar den siger noget: den tildelte admin - og for en
+# admin "Unassigned" paa en aaben sag.
 TILE_PEOPLE = (
-    f'If(ThisItem.Reporter = varIbMe, "Reported by you", "By " & {REPORTER_FX.format(r="ThisItem")}) & '
-    '"  ·  " & If(IsBlank(ThisItem.Assigned), "Unassigned", "To " & ThisItem.Assigned)'
+    f'"Requester " & {requester("ThisItem")} & '
+    'If(!IsBlank(ThisItem.Assigned), "  ·  Assigned " & ThisItem.Assigned, '
+    f'{IS_ADMIN} && !ThisItem.Archived && ThisItem.Status <> "{cfg.STATUS_CLOSED}", "  ·  Unassigned", "")'
 )
+
+
+def _ellipsis(text, width, lines, px):
+    """Teksten afkortet med en ellipse, saa den kan staa paa 'lines' linjer
+    i 'width' (px: et tegns gennemsnitlige bredde). Ombrydningen sker ved
+    ord, saa hver linje regnes et par tegn kortere."""
+    n = f"Max(8, RoundDown(({width}) / {px}, 0) * {lines} - {4 * lines})"
+    return f'With({{ t: {text}, n: {n} }}, If(Len(t) > n, Left(t, n - 1) & "…", t))'
+
+
+# Resumeet paa flisen: beskrivelsens begyndelse paa een linje - ingen fast tekst.
+TILE_SUMMARY_TEXT = ('Trim(Substitute(Substitute(ThisItem.Description, Char(13), ""), '
+                     'Char(10), " "))')
 
 
 def build_list():
@@ -741,17 +826,24 @@ def build_list():
     chip = _chip("txtIbTileStatus", "ThisItem.Status", "ThisItem.Archived",
                  x=f"{tw} - {TILE_M + TILE_PAD} - {TILE_CHIP_W}", y=str(TILE_M + TILE_PAD),
                  width=TILE_CHIP_W)
-    title = text_ctrl("txtIbTileTitle", "ThisItem.Title", size=lay.SIZE_INPUT, weight="Semibold",
-                      height=40, width=inner, wrap="true",
+    title = text_ctrl("txtIbTileTitle", _ellipsis("ThisItem.Title", "Self.Width", 2, 8.4),
+                      size=lay.SIZE_INPUT, weight="Semibold", height=40, width=inner, wrap="true",
+                      accessible='"Title: " & ThisItem.Title',
                       extra={"X": x0, "Y": "50", "VerticalAlign": "VerticalAlign.Top"})
-    where = text_ctrl("txtIbTileWhere", 'ThisItem.Application & "  ·  " & ThisItem.Section',
+    where = text_ctrl("txtIbTileWhere",
+                      _ellipsis('ThisItem.Application & "  ·  " & ThisItem.Section', "Self.Width", 1, 6.6),
                       size=lay.SIZE_SMALL, color=C_MUTED, height=18, width=inner,
-                      extra={"X": x0, "Y": "96"})
+                      extra={"X": x0, "Y": "94"})
+    # Resumeet: beskrivelsens begyndelse, hoejst to linjer (issue #212).
+    summary = text_ctrl("txtIbTileSummary", _ellipsis(TILE_SUMMARY_TEXT, "Self.Width", 2, 6.6),
+                        size=lay.SIZE_SMALL, color=C_TITLE, height=34, width=inner, wrap="true",
+                        accessible='"Summary: " & Self.Text',
+                        extra={"X": x0, "Y": "116", "VerticalAlign": "VerticalAlign.Top"})
     dates = text_ctrl("txtIbTileDates",
                       f'"Reported " & Text(ThisItem.CreatedOn, {DATE_FMT}) & '
                       f'If({TILE_UPDATED}, "  ·  Updated " & Text(ThisItem.UpdatedOn, {DATE_FMT}), "")',
                       size=lay.SIZE_SMALL, color=C_MUTED, height=34, width=inner, wrap="true",
-                      extra={"X": x0, "Y": "116", "VerticalAlign": "VerticalAlign.Top"})
+                      extra={"X": x0, "Y": "154", "VerticalAlign": "VerticalAlign.Top"})
     # Nederste linje: prioriteten og hvem. "Hvem" maa ombrydes til to
     # linjer paa en smal flise (en admin ser baade rapportoer og tildeling) -
     # hellere to linjer end en klippet (issue #177).
@@ -794,7 +886,7 @@ def build_list():
         "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
         "ShowScrollbar": "true", "TabIndex": "0", "TemplatePadding": "0",
         "TemplateSize": str(TILE_H), "Width": "Parent.Width", "WrapCount": TILE_COLS,
-    }, children=[bg, no, chip, title, where, dates, pri, people, hit, att], h=gal_h,
+    }, children=[bg, no, chip, title, where, summary, dates, pri, people, hit, att], h=gal_h,
         vis="galIbList.AllItemsCount > 0")
 
     state_word = 'Switch(varIbState, "closed", " closed", "archived", " archived", " open")'
@@ -862,19 +954,24 @@ POP_GAP = 12
 POP_MARGIN = 16
 
 
-def _popup(prefix, kids, vis, width=POP_W, foot=None):
+def _popup(prefix, kids, vis, width=POP_W, foot=None, own_scroll=False):
     """Popuppen holder sig inden for skaermen (issue #177): hovedet (titel
     og Close) og en eventuel fod staar fast; kun indholdet imellem scroller,
     og kun naar det ikke kan staa. Close kan altid naas.
 
-    kids[0] er hovedet; resten er indholdet."""
+    kids[0] er hovedet; resten er indholdet. own_scroll: indholdet styrer
+    selv sin hoejde og sin scrolling (sagens popup, issue #212) - saa
+    pakkes det ikke i en scrollende krop."""
     head, rest = kids[0], list(kids[1:])
-    fixed = f"({head.h})" + (f" + {POP_GAP} + ({foot.h})" if foot is not None else "")
-    room = f"App.Height - {2 * POP_MARGIN} - {2 * POP_PAD} - {POP_GAP} - {fixed}"
-    natural = stack_height(rest, POP_GAP)
-    body = group(f"con{prefix}Body", rest, direction="Vertical", gap=POP_GAP,
-                 height=f"Max(60, Min({natural}, {room}))", overflow_y="Scroll")
-    parts = [head, body] + ([foot] if foot is not None else [])
+    if own_scroll:
+        parts = [head] + rest + ([foot] if foot is not None else [])
+    else:
+        fixed = f"({head.h})" + (f" + {POP_GAP} + ({foot.h})" if foot is not None else "")
+        room = f"App.Height - {2 * POP_MARGIN} - {2 * POP_PAD} - {POP_GAP} - {fixed}"
+        natural = stack_height(rest, POP_GAP)
+        body = group(f"con{prefix}Body", rest, direction="Vertical", gap=POP_GAP,
+                     height=f"Max(60, Min({natural}, {room}))", overflow_y="Scroll")
+        parts = [head, body] + ([foot] if foot is not None else [])
     modal = group(f"con{prefix}Modal", parts, direction="Vertical", gap=POP_GAP, fill=C_MODAL_BG,
                   border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(POP_PAD, POP_PAD, POP_PAD, POP_PAD), width=width,
@@ -1420,7 +1517,10 @@ DET_IN = f"({POP_IN} - {lay.SCROLLBAR_W})"
 ACT_ROW_PAD = 12
 ACT_W = f"({DET_IN} - {lay.SCROLLBAR_W} - {lay.GALLERY_RESERVE})"
 ACT_BODY_W = f"({ACT_W} - {2 * ACT_ROW_PAD})"
-ACT_MAX_H = 420
+# Indholdsfladen i sagens popup: mindst saa hoej, naar skaermen tillader det -
+# og aldrig lavere end DET_SAFE_MIN_H (issue #212).
+DET_MIN_H = 360
+DET_SAFE_MIN_H = 160
 
 # Efter enhver aendring gennem flowet: sagen og dens Activity igen.
 AFTER_CHANGE = RELOAD_SEL + ";\n" + LOAD_ACTIVITY
@@ -1444,12 +1544,26 @@ def _run(action, payload, ok_fx, fail_text, busy="varIbBusy"):
     )
 
 
+# Kommentar og intern note (issue #212): flowet svarer foerst, naar
+# raekken er skrevet. Saa saettes den samme raekke ind sidst i feeden - den
+# nyeste, altsaa i den rigtige raekkefoelge - uden at hente hele Activity
+# igen: intet blink, intet ekstra kald. Rollen er flowets egen regel (Admin,
+# naar en admin skriver paa en andens sag). Feltet toemmes foerst nu;
+# fejler kaldet, staar teksten der stadig.
+POST_ROW = (
+    '{ Kind: "Comment", Actor: "You", '
+    f'Role: If({IS_ADMIN} && !IbSelMine, "Admin", "User"), '
+    "Body: Trim(inpIbComment.Text), At: Now(), "
+    f"Internal: varIbInternal && {IS_ADMIN}, IsSystem: false, "
+    'File: "", SizeKb: 0, Initial: false }'
+)
 POST = _run(
     cfg.ACT_COMMENT,
     f"{{ ticketId: varIbSelId, content: Trim(inpIbComment.Text), internal: varIbInternal && {IS_ADMIN} }}",
+    f"Collect(colIbActivity, {POST_ROW});\n"
     "Reset(inpIbComment);\n"
-    + LOAD_ACTIVITY + ";\n"
     "UpdateIf(colIbAll, Id = varIbSelId, { UpdatedOn: Now() });\n"
+    "Set(varIbSel, Patch(varIbSel, { UpdatedOn: Now() }));\n"
     'Notify(If(varIbInternal, "Internal note added.", "Comment posted."), NotificationType.Success);\n'
     "Set(varIbInternal, false);\n"
     "Reset(chkIbInternal)",
@@ -1527,43 +1641,46 @@ def _tab(name, label_fx, key, accessible, onselect=None):
     return b
 
 
+# Overloebsmenuen vises, naar mindst een af dens handlinger er tilladt.
+CAN_MORE = "IbCanEdit || IbCanManage"
+
+
 def _actions():
     """Handlingerne paa den aabne sag - hver kun, naar brugeren maa (de
     navngivne formler IbCan*). Paa en bred skaerm staar de til hoejre.
-    Archive og Delete ligger under More actions (kun admin), Delete sidst
-    og i fare-farven; selve sletningen har sin egen bekraeftelse."""
-    # Edit foerst, naar sagens hele raekke er hentet - ellers kunne de
-    # felter, oversigten ikke henter, blive gemt tomme.
-    ready = "varIbSelFullFor = varIbSelId"
-    edit = icon_on_mobile(button("btnIbEdit", '"Edit"', OPEN_EDIT,
-                                 width=fit_button_width('"Edit"') + ICON_W, height=34, icon="Edit",
-                                 visible="IbCanEdit", accessible='"Edit this issue"',
-                                 display_mode=f"If({ready} && !varIbBusy, DisplayMode.Edit, "
-                                              "DisplayMode.Disabled)"))
+    Issue #212: Edit, Archive og Delete ligger i overloebsmenuen bag en
+    knap med tre prikker (kun ikonet; "More actions" er tooltip og
+    etiket) - i den raekkefoelge, Delete sidst og i fare-farven; selve
+    sletningen har sin egen bekraeftelse. Reopen staar fremme."""
     reopen = button("btnIbReopen", '"Reopen"', REOPEN, width=fit_button_width('"Reopen"'),
                     height=34, visible="IbCanReopen",
                     accessible='"Reopen this issue - the problem is still there"',
                     display_mode="If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)")
-    more_w = fit_button_width('"More actions"') + ICON_W
-    more = icon_on_mobile(button("btnIbMoreActs", '"More actions"', "Set(varIbActsOn, !varIbActsOn)",
-                                 width=more_w, height=34,
-                                 icon='If(varIbActsOn, "ChevronUp", "MoreHorizontal")',
-                                 visible="IbCanManage",
-                                 accessible='If(varIbActsOn, "Hide more actions", '
-                                            '"More actions: archive or delete")'))
-    for b in (edit, reopen, more):
+    more = button("btnIbMoreActs", '"More actions"', "Set(varIbActsOn, !varIbActsOn)",
+                  width=34, height=34, icon="MoreHorizontal", visible=CAN_MORE,
+                  accessible='"More actions"', tooltip='"More actions"')
+    more.props["Layout"] = "ButtonLayout.IconOnly"
+    more.props["BorderColor"] = f"If(varIbActsOn, {C_PRIMARY}, {C_CARD_BORDER})"
+    for b in (reopen, more):
         b.props["LayoutMinWidth"] = b.props["Width"]
-    row = group("conIbDetActions", [edit, reopen, more], direction="Horizontal", gap=8,
+    row = group("conIbDetActions", [reopen, more], direction="Horizontal", gap=8,
                 height=34, align_items="Center", justify="End",
-                visible="IbCanEdit || IbCanReopen || IbCanManage")
+                visible=f"IbCanReopen || {CAN_MORE}")
     row.props["LayoutJustifyContent"] = (f"If({NARROW}, LayoutJustifyContent.Start, "
                                          "LayoutJustifyContent.End)")
 
-    # More actions: en lille flade lige under knapperne.
+    # Menuen: en lille flade lige under knappen.
+    # Edit foerst, naar sagens hele raekke er hentet - ellers kunne de
+    # felter, oversigten ikke henter, blive gemt tomme.
+    ready = "varIbSelFullFor = varIbSelId"
+    edit = button("btnIbEdit", '"Edit"', "Set(varIbActsOn, false);\n" + OPEN_EDIT,
+                  width=fit_button_width('"Edit"') + ICON_W, height=34, icon="Edit",
+                  visible="IbCanEdit", accessible='"Edit this issue"',
+                  display_mode=f"If({ready} && !varIbBusy, DisplayMode.Edit, DisplayMode.Disabled)")
     archive = button("btnIbArchive", f'If({SEL}.Archived, "Restore", "Archive")',
                      ARCHIVE + ";\nSet(varIbActsOn, false)",
                      width=fit_button_width('"Restore"') + ICON_W, height=34,
-                     icon=f'If({SEL}.Archived, "ArrowUndo", "Archive")',
+                     icon=f'If({SEL}.Archived, "ArrowUndo", "Archive")', visible="IbCanManage",
                      accessible=f'If({SEL}.Archived, "Restore this issue from the archive", '
                                 '"Archive this issue - it is kept with its history, but leaves '
                                 'the active lists")',
@@ -1571,20 +1688,23 @@ def _actions():
     delete = button("btnIbDelete", '"Delete"',
                     "Reset(inpIbDelConfirm);\nSet(varIbActsOn, false);\nSet(varIbDelOn, true)",
                     width=fit_button_width('"Delete"') + ICON_W, height=34, icon="Delete",
-                    danger=True, accessible='"Delete this issue permanently"',
+                    danger=True, visible="IbCanManage", accessible='"Delete this issue permanently"',
                     display_mode="If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)")
-    for b in (archive, delete):
+    for b in (edit, archive, delete):
         b.props["LayoutMinWidth"] = b.props["Width"]
-    btns = group("conIbActsBtns", [archive, delete], direction="Horizontal", gap=8, height=34,
-                 align_items="Center", justify="End")
+    btns = group("conIbActsBtns", [edit, archive, delete], direction="Horizontal", gap=8,
+                 height=34, align_items="Center", justify="End")
+    btns.props["LayoutJustifyContent"] = (f"If({NARROW}, LayoutJustifyContent.Start, "
+                                          "LayoutJustifyContent.End)")
     hint = text_ctrl("txtIbActsHint",
                      f'If({SEL}.Archived, "Restore brings the issue back to the active lists.", '
                      '"Archive keeps the issue, its comments, activity and files, and anyone can '
                      'still find it under Archived.") & " Delete removes it permanently for '
                      'everyone and asks you to confirm first."',
-                     size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true")
-    menu = group("conIbActsMenu", [hint, btns], direction="Vertical", gap=8, fill=C_MUTED_BG,
-                 radius=10, pad=(10, 10, 10, 10), visible="IbCanManage && varIbActsOn")
+                     size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true",
+                     visible="IbCanManage")
+    menu = group("conIbActsMenu", [btns, hint], direction="Vertical", gap=8, fill=C_MUTED_BG,
+                 radius=10, pad=(10, 10, 10, 10), visible=f"({CAN_MORE}) && varIbActsOn")
     return row, menu
 
 
@@ -1624,13 +1744,14 @@ def _files_panel():
     opn.props["X"] = f"{tw} - {open_w}"
     opn.props["Y"] = "14"
     files_items = "If(varIbFilesFor = varIbSelId, varIbFiles, FirstN(varIbFiles, 0))"
-    gal_h = f"Min(5, galIbFiles.AllItemsCount) * {row_h}"
+    # Alle filer i fuld hoejde - fanens flade scroller (issue #212).
+    gal_h = f"galIbFiles.AllItemsCount * {row_h}"
     gal = Ctrl("galIbFiles", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Attachments"',
         "BorderStyle": "BorderStyle.None", "Fill": C_TRANSPARENT, "FillPortions": "0",
         "Height": gal_h, "Items": files_items, "LayoutMinWidth": "0",
         "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
-        "ShowScrollbar": "true", "TabIndex": "0", "TemplatePadding": "0",
+        "ShowScrollbar": "false", "TabIndex": "0", "TemplatePadding": "0",
         "TemplateSize": str(row_h), "Width": "Parent.Width", "WrapCount": "1",
     }, children=[thumb, kind, name, meta, opn], h=gal_h,
         vis="galIbFiles.AllItemsCount > 0")
@@ -1679,15 +1800,16 @@ def _fact(name, label, value_fx, visible=None):
 
 def _facts():
     """Fakta om sagen som et lille gitter - ikke en lang tekststreng.
-    Hvem: rapportoerens navn ("You" paa ens egne) - ingen anonymisering
-    (issue #193)."""
+    Hvem: rapportoeren som kort bruger-id (UFFES) - ingen anonymisering
+    (issue #193, #212)."""
     def blank_as(expr, text):
         return f'If(IsBlank({expr}), "{text}", {expr})'
     sev = _fact("IbFactSeverity", "Severity", blank_as(f"{SEL}.Severity", "Not set"))
     pri = _fact("IbFactPriority", "Priority", blank_as(f"{SEL}.Priority", "Not set"))
     asg = _fact("IbFactAssigned", "Assigned to",
                 blank_as(SEL + ".Assigned", "Not assigned"))
-    rep = _fact("IbFactReporter", "Reported by", REPORTER_FX.format(r=SEL))
+    # Requester som kort bruger-id - det samme som paa flisen (issue #212).
+    rep = _fact("IbFactReporter", "Requester", REPORTER_FX.format(r=SEL))
     reported = _fact("IbFactReported", "Reported", f"Text({SEL}.CreatedOn, {DATE_FMT})")
     # Updated kun efter en reel aendring (IbSelUpdatedOn) - den staar sidst,
     # saa der ikke opstaar et hul, naar den ikke vises.
@@ -1832,22 +1954,30 @@ def build_detail():
     body = text_ctrl("txtIbActBody", "ThisItem.Body", size=lay.SIZE_BODY, wrap="true",
                      height=body_h, width=f"{tw} - {2 * ACT_ROW_PAD}",
                      extra={"X": str(ACT_ROW_PAD), "Y": "30"})
+    # Hele feeden i fuld hoejde: fanens flade scroller - ikke galleriet
+    # inden i den (issue #212).
     act_sum = f"Sum(colIbActivity, {_lines_h('Body', ACT_BODY_W)} + 40)"
-    gal_h = f"Min({ACT_MAX_H}, Max(40, {act_sum}))"
+    gal_h = f"Max(40, {act_sum})"
     gal = Ctrl("galIbActivity", "Gallery", variant="VariableHeight", props={
         "AccessibleLabel": '"Activity, oldest first"',
         "BorderStyle": "BorderStyle.None", "Fill": C_TRANSPARENT, "FillPortions": "0",
         "Height": gal_h, "Items": "colIbActivity", "LayoutMinWidth": "0",
         "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
-        "ShowScrollbar": "true", "TabIndex": "0", "TemplatePadding": "0",
+        "ShowScrollbar": "false", "TabIndex": "0", "TemplatePadding": "0",
         "TemplateSize": "60", "Width": "Parent.Width",
-    }, children=[bg, role, actor, when, body], h=gal_h, vis="!varIbActBusy")
+    }, children=[bg, role, actor, when, body], h=gal_h, vis="!IsEmpty(colIbActivity)")
+    # Feeden bliver staaende, mens den hentes igen (issue #212) - kun en
+    # tom feed viser "Loading". Fejler en genhentning, staar den gamle
+    # feed der stadig, med en besked over.
+    act_loading = "varIbActBusy && IsEmpty(colIbActivity)"
     act_state = text_ctrl("txtIbActState",
-                          'If(varIbActBusy, "Loading activity...", '
-                          '"The activity could not be loaded. Close the issue and open it again.")',
-                          size=lay.SIZE_BODY, color=f"If(varIbActBusy, {C_MUTED}, {C_INVALID_FG})",
-                          height=20, wrap="true",
-                          visible="varIbActBusy || IfError(varIbActFailed, false)")
+                          f'If({act_loading}, "Loading activity...", IsEmpty(colIbActivity), '
+                          '"The activity could not be loaded. Close the issue and open it again.", '
+                          '"The activity could not be refreshed. It shows what was loaded last - '
+                          'close the issue and open it again to retry.")',
+                          size=lay.SIZE_BODY, color=f"If({act_loading}, {C_MUTED}, {C_INVALID_FG})",
+                          height=34, wrap="true",
+                          visible=f"({act_loading}) || IfError(varIbActFailed, false)")
 
     comment = text_input("inpIbComment", '""',
                          placeholder=(f'If(varIbInternal, "Write an internal note for the administrators", '
@@ -1890,9 +2020,27 @@ def build_detail():
     activity = group("conIbDetActivity", [act_state, gal, composer, archived_hint],
                      direction="Vertical", gap=12, visible='IbSeeActivity && varIbTab = "activity"')
 
-    kids = [head, meta, facts, actions, menu, peek_note, retest, rule, tabs, details, activity,
-            _files_panel()]
-    return [_popup("IbDet", kids, DETAIL_ON)]
+    # STABIL HOEJDE (issue #212). Toppen - status, fakta, handlingerne og
+    # fanerne - staar fast; under den EEN indholdsflade med samme hoejde for
+    # alle tre faner: den fane, der kraever mest, bestemmer den (mindst
+    # DET_MIN_H), og den er aldrig hoejere end skaermen tillader. Hver fane
+    # scroller selv, saa hver har sin egen scrollposition.
+    top = group("conIbDetTop", [meta, facts, actions, menu, peek_note, retest, rule, tabs],
+                direction="Vertical", gap=POP_GAP)
+    files = _files_panel()
+    panels = [details, activity, files]
+    natural = [stack_height(p.children, 12) for p in panels]
+    natural[1] = f"If(IbSeeActivity, {natural[1]}, 0)"
+    room = (f"App.Height - {2 * POP_MARGIN} - {2 * POP_PAD} - ({head.h}) - {POP_GAP} - "
+            f"({top.h}) - {POP_GAP}")
+    content_h = (f"Max({DET_SAFE_MIN_H}, Min({room}, Max({DET_MIN_H}, "
+                 + ", ".join(f"({n})" for n in natural) + ")))")
+    for p in panels:
+        p.props["Height"] = "Parent.Height"
+        p.props["LayoutOverflowY"] = "LayoutOverflow.Scroll"
+        p.h = "Parent.Height"
+    content = group("conIbDetContent", panels, direction="Vertical", gap=0, height=content_h)
+    return [_popup("IbDet", [head, top, content], DETAIL_ON, own_scroll=True)]
 
 
 def build_delete():
