@@ -67,7 +67,7 @@
                                     "title": "Context",
                                     "type": "string",
                                     "x-ms-dynamically-added": true,
-                                    "description": "JSON from the app: {Kind, Topic, Code, Type, Title, Url} - Kind R = request, G = general subject, blank = none",
+                                    "description": "JSON from the app: {Kind, Topic, Code, Type, Title, Url, Name} - Kind R = request, G = general subject, blank = none; Name = the user's display name",
                                     "x-ms-content-hint": "TEXT"
                                 }
                             },
@@ -91,9 +91,21 @@
                     "type": "Compose",
                     "inputs": "@toLower(trim(coalesce(triggerOutputs()?['headers']?['x-ms-user-email'], '')))"
                 },
-                "Caller_name": {
+                "Context": {
                     "runAfter": {
                         "Caller": [
+                            "Succeeded"
+                        ]
+                    },
+                    "metadata": {
+                        "operationMetadataId": "2f6c8a1e-5b3d-4e97-a0c4-8d1e6b7f2a39"
+                    },
+                    "type": "Compose",
+                    "inputs": "@if(empty(trim(coalesce(triggerBody()?['text_4'], ''))), json('{}'), json(triggerBody()?['text_4']))"
+                },
+                "Caller_name": {
+                    "runAfter": {
+                        "Context": [
                             "Succeeded"
                         ]
                     },
@@ -101,7 +113,7 @@
                         "operationMetadataId": "5a2c9e7d-1b4f-4c86-a3d0-8e6f2b1c4a57"
                     },
                     "type": "Compose",
-                    "inputs": "@{replace(replace(replace(replace(coalesce(triggerOutputs()?['headers']?['x-ms-user-name'], outputs('Caller')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;'), '\"', '&quot;')}"
+                    "inputs": "@{replace(replace(replace(replace(if(empty(trim(coalesce(outputs('Context')?['Name'], ''))), coalesce(triggerOutputs()?['headers']?['x-ms-user-name'], outputs('Caller')), trim(outputs('Context')?['Name'])), '&', '&amp;'), '<', '&lt;'), '>', '&gt;'), '\"', '&quot;')}"
                 },
                 "Mailbox": {
                     "runAfter": {
@@ -127,21 +139,9 @@
                     "type": "Compose",
                     "inputs": "@{replace(replace(replace(replace(replace(replace(replace(coalesce(triggerBody()?['text_2'], ''), '&', '&amp;'), '<', '&lt;'), '>', '&gt;'), '\"', '&quot;'), concat(decodeUriComponent('%0D'), decodeUriComponent('%0A')), '<br>'), decodeUriComponent('%0D'), '<br>'), decodeUriComponent('%0A'), '<br>')}"
                 },
-                "Context": {
-                    "runAfter": {
-                        "Message_html": [
-                            "Succeeded"
-                        ]
-                    },
-                    "metadata": {
-                        "operationMetadataId": "2f6c8a1e-5b3d-4e97-a0c4-8d1e6b7f2a39"
-                    },
-                    "type": "Compose",
-                    "inputs": "@if(empty(trim(coalesce(triggerBody()?['text_4'], ''))), json('{}'), json(triggerBody()?['text_4']))"
-                },
                 "Request": {
                     "runAfter": {
-                        "Context": [
+                        "Message_html": [
                             "Succeeded"
                         ]
                     },
