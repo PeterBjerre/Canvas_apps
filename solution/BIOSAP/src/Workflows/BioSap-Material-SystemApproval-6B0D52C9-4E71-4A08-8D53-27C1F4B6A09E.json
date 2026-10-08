@@ -1,0 +1,1352 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapSharePointConn"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_powerbi": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapPowerBIConn"
+        },
+        "api": {
+          "name": "shared_powerbi"
+        }
+      },
+      "shared_approvals": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapApprovalsConn"
+        },
+        "api": {
+          "name": "shared_approvals"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapOutlookConn"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "BioSap-SiteUrl (orsted_BioSapSiteUrl)": {
+          "defaultValue": "https://orsted.sharepoint.com/teams/BioSAPDev",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapSiteUrl"
+          }
+        },
+        "BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)": {
+          "defaultValue": "pkbje@orsted.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapErrorNotifiers"
+          }
+        },
+        " BioSap-EmailDomain (orsted_BioSapEmailDomain)": {
+          "defaultValue": "orsted.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapEmailDomain"
+          }
+        },
+        "BioSap-PowerBI-WorkspaceId": {
+          "defaultValue": "26d062ec-3014-4cd3-9313-ced0cfe497b9",
+          "type": "String"
+        },
+        "BioSap-PowerBI-DatasetId": {
+          "defaultValue": "fadc4a40-342b-41e3-a1ef-aa4af8bb9e09",
+          "type": "String"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "type": "Request",
+          "kind": "PowerAppV2",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "RequestGuid",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "RequestGuid of the material request",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Initialize_FlowRunHistoryLink": {
+          "runAfter": {},
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "FlowRunHistoryLink",
+                "type": "string",
+                "value": "<a href=\"@{concat('https://make.powerautomate.com/environments/', workflow()?['tags']['environmentName'], '/flows/', workflow()?['name'], '/runs/', workflow()?['run']['name'])}\">Link to Run History</a>"
+              }
+            ]
+          }
+        },
+        "Init_units": {
+          "runAfter": {
+            "Initialize_FlowRunHistoryLink": [
+              "Succeeded"
+            ]
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Units",
+                "type": "array",
+                "value": []
+              }
+            ]
+          }
+        },
+        "Init_row_systems": {
+          "runAfter": {
+            "Init_units": [
+              "Succeeded"
+            ]
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "RowSystems",
+                "type": "array",
+                "value": []
+              }
+            ]
+          }
+        },
+        "Init_resolved": {
+          "runAfter": {
+            "Init_row_systems": [
+              "Succeeded"
+            ]
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Resolved",
+                "type": "array",
+                "value": []
+              }
+            ]
+          }
+        },
+        "Init_problems": {
+          "runAfter": {
+            "Init_resolved": [
+              "Succeeded"
+            ]
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Problems",
+                "type": "array",
+                "value": []
+              }
+            ]
+          }
+        },
+        "RequestGuid": {
+          "runAfter": {
+            "Init_problems": [
+              "Succeeded"
+            ]
+          },
+          "type": "Compose",
+          "inputs": "@trim(coalesce(triggerBody()?['text'], ''))"
+        },
+        "Respond_accepted": {
+          "runAfter": {
+            "RequestGuid": [
+              "Succeeded"
+            ]
+          },
+          "type": "Response",
+          "kind": "PowerApp",
+          "inputs": {
+            "statusCode": 200,
+            "body": {
+              "started": "yes"
+            },
+            "schema": {
+              "type": "object",
+              "properties": {
+                "started": {
+                  "title": "started",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "Try": {
+          "actions": {
+            "Get_request_index": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                  "table": "MD_RequestIndex",
+                  "$filter": "RequestGuid eq '@{outputs('RequestGuid')}'",
+                  "$top": 1
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "GetItems",
+                  "connectionName": "shared_sharepointonline"
+                }
+              }
+            },
+            "Has_index": {
+              "runAfter": {
+                "Get_request_index": [
+                  "Succeeded"
+                ]
+              },
+              "type": "If",
+              "expression": {
+                "greater": [
+                  "@length(outputs('Get_request_index')?['body/value'])",
+                  0
+                ]
+              },
+              "actions": {
+                "IndexId": {
+                  "runAfter": {},
+                  "type": "Compose",
+                  "inputs": "@first(outputs('Get_request_index')?['body/value'])?['ID']"
+                },
+                "RequestNo": {
+                  "runAfter": {
+                    "IndexId": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "Compose",
+                  "inputs": "@coalesce(first(outputs('Get_request_index')?['body/value'])?['Title'], '')"
+                },
+                "RequesterEmail": {
+                  "runAfter": {
+                    "RequestNo": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "Compose",
+                  "inputs": "@coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterEmail'], '')"
+                },
+                "RequesterName": {
+                  "runAfter": {
+                    "RequesterEmail": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "Compose",
+                  "inputs": "@coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterName'], '')"
+                },
+                "AppUrl": {
+                  "runAfter": {
+                    "RequesterName": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "Compose",
+                  "inputs": "@coalesce(first(outputs('Get_request_index')?['body/value'])?['AppUrl'], '')"
+                },
+                "Get_rows": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                      "table": "MaterialItems",
+                      "$filter": "RequestGuid eq '@{outputs('RequestGuid')}'",
+                      "$top": 500
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "operationId": "GetItems",
+                      "connectionName": "shared_sharepointonline"
+                    }
+                  },
+                  "runAfter": {
+                    "AppUrl": [
+                      "Succeeded"
+                    ]
+                  }
+                },
+                "Strategic_rows": {
+                  "runAfter": {
+                    "Get_rows": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@outputs('Get_rows')?['body/value']",
+                    "where": "@equals(item()?['ApprovalRequired'], true)"
+                  }
+                },
+                "Select_FL_list": {
+                  "runAfter": {
+                    "Strategic_rows": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "Select",
+                  "inputs": {
+                    "from": "@body('Strategic_rows')",
+                    "select": "@concat('\"', replace(trim(coalesce(item()?['ObjectList'], coalesce(item()?['FunctionalLocation'], ''))), '\"', '\"\"'), '\"')"
+                  }
+                },
+                "Has_strategic_rows": {
+                  "runAfter": {
+                    "Select_FL_list": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "If",
+                  "expression": {
+                    "greater": [
+                      "@length(body('Strategic_rows'))",
+                      0
+                    ]
+                  },
+                  "actions": {
+                    "Patch_index_progress": {
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "parameters": {
+                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                          "table": "MD_RequestIndex",
+                          "id": "@outputs('IndexId')",
+                          "item/Title": "@outputs('RequestNo')",
+                          "item/RequesterEmail": "@outputs('RequesterEmail')",
+                          "item/Status/Value": "UnderBehandling",
+                          "item/StatusStep": 3,
+                          "item/IsOpen": true,
+                          "item/LastActionOn": "@utcNow()",
+                          "item/LastActionBy": "System approval"
+                        },
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "operationId": "PatchItem",
+                          "connectionName": "shared_sharepointonline"
+                        }
+                      }
+                    },
+                    "All_codes": {
+                      "runAfter": {
+                        "Patch_index_progress": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Compose",
+                      "inputs": "@split(join(body('Select_FL_list'), ';'), ';')"
+                    },
+                    "Codes_trimmed": {
+                      "runAfter": {
+                        "All_codes": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Query",
+                      "inputs": {
+                        "from": "@outputs('All_codes')",
+                        "where": "@not(empty(trim(replace(coalesce(item(), ''), '\"', ''))))"
+                      }
+                    },
+                    "Select_FL_quoted": {
+                      "runAfter": {
+                        "Codes_trimmed": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Select",
+                      "inputs": {
+                        "from": "@body('Codes_trimmed')",
+                        "select": "@concat('\"', trim(replace(item(), '\"', '')), '\"')"
+                      }
+                    },
+                    "Run_a_query_against_a_dataset": {
+                      "runAfter": {
+                        "Select_FL_quoted": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "parameters": {
+                          "groupid": "@parameters('BioSap-PowerBI-WorkspaceId')",
+                          "datasetid": "@parameters('BioSap-PowerBI-DatasetId')",
+                          "specification/query": "EVALUATE SELECTCOLUMNS(FILTER('Functional Locations', 'Functional Locations'[Functional Location] IN {@{join(body('Select_FL_quoted'), ',')}}), \"FL\", 'Functional Locations'[Functional Location], \"Description\", 'Functional Locations'[Functional Location Description], \"PlantKey\", 'Functional Locations'[Plant Key], \"SystemNo\", 'Functional Locations'[Plant Section Key])",
+                          "specification/serializerSettings/includeNulls": false
+                        },
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_powerbi",
+                          "operationId": "ExecuteDatasetQuery",
+                          "connectionName": "shared_powerbi"
+                        }
+                      }
+                    },
+                    "Get_approvers": {
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "parameters": {
+                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                          "table": "MD_Approver",
+                          "$top": 100
+                        },
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "operationId": "GetItems",
+                          "connectionName": "shared_sharepointonline"
+                        }
+                      },
+                      "runAfter": {
+                        "Run_a_query_against_a_dataset": [
+                          "Succeeded"
+                        ]
+                      }
+                    },
+                    "Get_log": {
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "parameters": {
+                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                          "table": "MD_ApprovalLog",
+                          "$filter": "RequestGuid eq '@{outputs('RequestGuid')}' and Stage eq 'System'",
+                          "$top": 5000
+                        },
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "operationId": "GetItems",
+                          "connectionName": "shared_sharepointonline"
+                        }
+                      },
+                      "runAfter": {
+                        "Get_approvers": [
+                          "Succeeded"
+                        ]
+                      }
+                    },
+                    "For_each_row": {
+                      "foreach": "@body('Strategic_rows')",
+                      "runAfter": {
+                        "Get_log": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Foreach",
+                      "runtimeConfiguration": {
+                        "concurrency": {
+                          "repetitions": 1
+                        }
+                      },
+                      "actions": {
+                        "Reset_row_systems": {
+                          "runAfter": {},
+                          "type": "SetVariable",
+                          "inputs": {
+                            "name": "RowSystems",
+                            "value": []
+                          }
+                        },
+                        "Row_codes": {
+                          "runAfter": {
+                            "Reset_row_systems": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "Compose",
+                          "inputs": "@split(coalesce(items('For_each_row')?['ObjectList'], coalesce(items('For_each_row')?['FunctionalLocation'], '')), ';')"
+                        },
+                        "Row_codes_trimmed": {
+                          "runAfter": {
+                            "Row_codes": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "Query",
+                          "inputs": {
+                            "from": "@outputs('Row_codes')",
+                            "where": "@not(empty(trim(coalesce(item(), ''))))"
+                          }
+                        },
+                        "For_each_code": {
+                          "foreach": "@body('Row_codes_trimmed')",
+                          "runAfter": {
+                            "Row_codes_trimmed": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "Foreach",
+                          "runtimeConfiguration": {
+                            "concurrency": {
+                              "repetitions": 1
+                            }
+                          },
+                          "actions": {
+                            "FL": {
+                              "runAfter": {},
+                              "type": "Compose",
+                              "inputs": "@trim(coalesce(items('For_each_code'), ''))"
+                            },
+                            "Filter_FL_rows": {
+                              "runAfter": {
+                                "FL": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "type": "Query",
+                              "inputs": {
+                                "from": "@coalesce(outputs('Run_a_query_against_a_dataset')?['body/firstTableRows'], json('[]'))",
+                                "where": "@equals(toLower(trim(coalesce(item()?['[FL]'], ''))), toLower(outputs('FL')))"
+                              }
+                            },
+                            "SysNoRaw": {
+                              "runAfter": {
+                                "Filter_FL_rows": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "type": "Compose",
+                              "inputs": "@if(greater(length(body('Filter_FL_rows')), 0), trim(coalesce(first(body('Filter_FL_rows'))?['[SystemNo]'], '')), '')"
+                            },
+                            "SysNo": {
+                              "runAfter": {
+                                "SysNoRaw": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "type": "Compose",
+                              "inputs": "@if(startsWith(outputs('SysNoRaw'), '00'), substring(outputs('SysNoRaw'), 2), if(startsWith(outputs('SysNoRaw'), '0'), substring(outputs('SysNoRaw'), 1), outputs('SysNoRaw')))"
+                            },
+                            "New_system": {
+                              "runAfter": {
+                                "SysNo": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "type": "If",
+                              "expression": {
+                                "and": [
+                                  {
+                                    "not": {
+                                      "equals": [
+                                        "@outputs('SysNo')",
+                                        ""
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "not": {
+                                      "contains": [
+                                        "@variables('RowSystems')",
+                                        "@outputs('SysNo')"
+                                      ]
+                                    }
+                                  }
+                                ]
+                              },
+                              "actions": {
+                                "Append_system": {
+                                  "runAfter": {},
+                                  "type": "AppendToArrayVariable",
+                                  "inputs": {
+                                    "name": "RowSystems",
+                                    "value": "@outputs('SysNo')"
+                                  }
+                                },
+                                "Append_unit": {
+                                  "runAfter": {
+                                    "Append_system": [
+                                      "Succeeded"
+                                    ]
+                                  },
+                                  "type": "AppendToArrayVariable",
+                                  "inputs": {
+                                    "name": "Units",
+                                    "value": {
+                                      "itemKey": "@coalesce(items('For_each_row')?['ItemKey'], concat('row-', string(items('For_each_row')?['ID'])))",
+                                      "itemId": "@items('For_each_row')?['ID']",
+                                      "itemText": "@concat(coalesce(items('For_each_row')?['Title'], ''), ' - ', coalesce(items('For_each_row')?['ObjectList'], coalesce(items('For_each_row')?['FunctionalLocation'], '')))",
+                                      "sysNo": "@outputs('SysNo')",
+                                      "fingerprint": "@concat(coalesce(items('For_each_row')?['ObjectList'], coalesce(items('For_each_row')?['FunctionalLocation'], '')), '|', coalesce(items('For_each_row')?['Title'], ''), '|', coalesce(items('For_each_row')?['StrategicPart'], ''))"
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "No_system": {
+                              "runAfter": {
+                                "New_system": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "type": "If",
+                              "expression": {
+                                "equals": [
+                                  "@outputs('SysNo')",
+                                  ""
+                                ]
+                              },
+                              "actions": {
+                                "Append_problem": {
+                                  "runAfter": {},
+                                  "type": "AppendToArrayVariable",
+                                  "inputs": {
+                                    "name": "Problems",
+                                    "value": {
+                                      "itemKey": "@coalesce(items('For_each_row')?['ItemKey'], '')",
+                                      "itemText": "@coalesce(items('For_each_row')?['Title'], '')",
+                                      "reason": "@concat('No system found for ', outputs('FL'), ' - contact Master Data.')"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "For_each_unit": {
+                      "foreach": "@variables('Units')",
+                      "runAfter": {
+                        "For_each_row": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Foreach",
+                      "runtimeConfiguration": {
+                        "concurrency": {
+                          "repetitions": 1
+                        }
+                      },
+                      "actions": {
+                        "Filter_approver_rows": {
+                          "runAfter": {},
+                          "type": "Query",
+                          "inputs": {
+                            "from": "@outputs('Get_approvers')?['body/value']",
+                            "where": "@equals(trim(coalesce(item()?['Title'], '')), items('For_each_unit')?['sysNo'])"
+                          }
+                        },
+                        "Initials": {
+                          "runAfter": {
+                            "Filter_approver_rows": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "Compose",
+                          "inputs": "@if(equals(length(body('Filter_approver_rows')), 0), '', if(equals(first(body('Filter_approver_rows'))?['Approver1Absent'], true), trim(coalesce(first(body('Filter_approver_rows'))?['Approver2'], '')), trim(coalesce(first(body('Filter_approver_rows'))?['Approver1'], ''))))"
+                        },
+                        "Approver_email": {
+                          "runAfter": {
+                            "Initials": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "Compose",
+                          "inputs": "@if(empty(outputs('Initials')), '', toLower(concat(outputs('Initials'), '@', parameters(' BioSap-EmailDomain (orsted_BioSapEmailDomain)'))))"
+                        },
+                        "FingerprintRaw": {
+                          "runAfter": {
+                            "Approver_email": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "Compose",
+                          "inputs": "@concat(items('For_each_unit')?['sysNo'], '|', toUpper(trim(coalesce(items('For_each_unit')?['fingerprint'], ''))))"
+                        },
+                        "Fingerprint": {
+                          "runAfter": {
+                            "FingerprintRaw": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "Compose",
+                          "inputs": "@if(greater(length(outputs('FingerprintRaw')), 240), substring(outputs('FingerprintRaw'), 0, 240), outputs('FingerprintRaw'))"
+                        },
+                        "Filter_prev_rows": {
+                          "runAfter": {
+                            "Fingerprint": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "Query",
+                          "inputs": {
+                            "from": "@outputs('Get_log')?['body/value']",
+                            "where": "@and(equals(item()?['ItemGuid'], concat(items('For_each_unit')?['itemKey'], '#', items('For_each_unit')?['sysNo'])), equals(item()?['Fingerprint'], outputs('Fingerprint')), equals(item()?['Decision'], 'Approve'))"
+                          }
+                        },
+                        "Append_resolved": {
+                          "runAfter": {
+                            "Filter_prev_rows": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "AppendToArrayVariable",
+                          "inputs": {
+                            "name": "Resolved",
+                            "value": {
+                              "itemGuid": "@concat(items('For_each_unit')?['itemKey'], '#', items('For_each_unit')?['sysNo'])",
+                              "itemKey": "@items('For_each_unit')?['itemKey']",
+                              "itemText": "@items('For_each_unit')?['itemText']",
+                              "sysNo": "@items('For_each_unit')?['sysNo']",
+                              "fingerprint": "@outputs('Fingerprint')",
+                              "approver": "@outputs('Approver_email')",
+                              "initials": "@toUpper(outputs('Initials'))",
+                              "done": "@greater(length(body('Filter_prev_rows')), 0)"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "Open_units": {
+                      "runAfter": {
+                        "For_each_unit": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Query",
+                      "inputs": {
+                        "from": "@variables('Resolved')",
+                        "where": "@not(equals(item()?['done'], true))"
+                      }
+                    },
+                    "For_each_open_unit": {
+                      "foreach": "@body('Open_units')",
+                      "runAfter": {
+                        "Open_units": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Foreach",
+                      "runtimeConfiguration": {
+                        "concurrency": {
+                          "repetitions": 5
+                        }
+                      },
+                      "actions": {
+                        "Log_requested": {
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "parameters": {
+                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                              "table": "MD_ApprovalLog",
+                              "item/Title": "@workflow()?['run']?['name']",
+                              "item/RequestGuid": "@outputs('RequestGuid')",
+                              "item/Stage": "System",
+                              "item/ItemGuid": "@items('For_each_open_unit')?['itemGuid']",
+                              "item/ItemText": "@items('For_each_open_unit')?['itemText']",
+                              "item/Fingerprint": "@items('For_each_open_unit')?['fingerprint']",
+                              "item/Decision": "Requested",
+                              "item/Detail": "@concat('System ', items('For_each_open_unit')?['sysNo'], ' - ', coalesce(items('For_each_open_unit')?['initials'], 'no approver'))",
+                              "item/DecidedByEmail": "system",
+                              "item/DecidedOn": "@utcNow()"
+                            },
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                              "operationId": "PostItem",
+                              "connectionName": "shared_sharepointonline"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "Unresolved_units": {
+                      "runAfter": {
+                        "For_each_open_unit": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Query",
+                      "inputs": {
+                        "from": "@body('Open_units')",
+                        "where": "@empty(coalesce(item()?['approver'], ''))"
+                      }
+                    },
+                    "For_each_unresolved": {
+                      "foreach": "@body('Unresolved_units')",
+                      "runAfter": {
+                        "Unresolved_units": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Foreach",
+                      "runtimeConfiguration": {
+                        "concurrency": {
+                          "repetitions": 5
+                        }
+                      },
+                      "actions": {
+                        "Log_no_approver": {
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "parameters": {
+                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                              "table": "MD_ApprovalLog",
+                              "item/Title": "@workflow()?['run']?['name']",
+                              "item/RequestGuid": "@outputs('RequestGuid')",
+                              "item/Stage": "System",
+                              "item/ItemGuid": "@items('For_each_unresolved')?['itemGuid']",
+                              "item/ItemText": "@items('For_each_unresolved')?['itemText']",
+                              "item/Fingerprint": "@items('For_each_unresolved')?['fingerprint']",
+                              "item/Decision": "Return",
+                              "item/Detail": "@concat('No System Manager is configured for system ', items('For_each_unresolved')?['sysNo'])",
+                              "item/DecidedByEmail": "system",
+                              "item/DecidedOn": "@utcNow()",
+                              "item/Comment": "@concat('No System Manager is configured for system ', items('For_each_unresolved')?['sysNo'], ' - contact Master Data.')"
+                            },
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                              "operationId": "PostItem",
+                              "connectionName": "shared_sharepointonline"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "For_each_problem": {
+                      "foreach": "@variables('Problems')",
+                      "runAfter": {
+                        "For_each_unresolved": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Foreach",
+                      "runtimeConfiguration": {
+                        "concurrency": {
+                          "repetitions": 5
+                        }
+                      },
+                      "actions": {
+                        "Log_no_system": {
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "parameters": {
+                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                              "table": "MD_ApprovalLog",
+                              "item/Title": "@workflow()?['run']?['name']",
+                              "item/RequestGuid": "@outputs('RequestGuid')",
+                              "item/Stage": "System",
+                              "item/ItemGuid": "@concat(items('For_each_problem')?['itemKey'], '#none')",
+                              "item/ItemText": "@items('For_each_problem')?['itemText']",
+                              "item/Decision": "Return",
+                              "item/Detail": "@items('For_each_problem')?['reason']",
+                              "item/DecidedByEmail": "system",
+                              "item/DecidedOn": "@utcNow()",
+                              "item/Comment": "@items('For_each_problem')?['reason']"
+                            },
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                              "operationId": "PostItem",
+                              "connectionName": "shared_sharepointonline"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "Askable_units": {
+                      "runAfter": {
+                        "For_each_problem": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Query",
+                      "inputs": {
+                        "from": "@body('Open_units')",
+                        "where": "@not(empty(coalesce(item()?['approver'], '')))"
+                      }
+                    },
+                    "Select_approver_emails": {
+                      "runAfter": {
+                        "Askable_units": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Select",
+                      "inputs": {
+                        "from": "@body('Askable_units')",
+                        "select": "@item()?['approver']"
+                      }
+                    },
+                    "Approver_list": {
+                      "runAfter": {
+                        "Select_approver_emails": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Compose",
+                      "inputs": "@union(body('Select_approver_emails'), body('Select_approver_emails'))"
+                    },
+                    "For_each_approver": {
+                      "foreach": "@outputs('Approver_list')",
+                      "runAfter": {
+                        "Approver_list": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Foreach",
+                      "runtimeConfiguration": {
+                        "concurrency": {
+                          "repetitions": 20
+                        }
+                      },
+                      "actions": {
+                        "My_units": {
+                          "runAfter": {},
+                          "type": "Query",
+                          "inputs": {
+                            "from": "@variables('Resolved')",
+                            "where": "@and(equals(item()?['approver'], items('For_each_approver')), not(equals(item()?['done'], true)))"
+                          }
+                        },
+                        "My_lines": {
+                          "runAfter": {
+                            "My_units": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "Select",
+                          "inputs": {
+                            "from": "@body('My_units')",
+                            "select": "@concat('- ', item()?['itemText'], '  (system ', item()?['sysNo'], ')')"
+                          }
+                        },
+                        "Start_and_wait_for_an_approval": {
+                          "runAfter": {
+                            "My_lines": [
+                              "Succeeded"
+                            ]
+                          },
+                          "limit": {
+                            "timeout": "P14D"
+                          },
+                          "type": "OpenApiConnectionWebhook",
+                          "inputs": {
+                            "parameters": {
+                              "approvalType": "CustomResponse",
+                              "WebhookApprovalCreationInput/responseOptions": [
+                                "Approve",
+                                "Return"
+                              ],
+                              "WebhookApprovalCreationInput/title": "@concat('Material request ', coalesce(outputs('RequestNo'), ''), ' - system approval')",
+                              "WebhookApprovalCreationInput/assignedTo": "@items('For_each_approver')",
+                              "WebhookApprovalCreationInput/details": "@concat('**Request:** ', coalesce(outputs('RequestNo'), ''), '\\n\\n**Requester:** ', coalesce(outputs('RequesterName'), ''), '\\n\\n**Rows for you to approve:**\\n\\n', join(body('My_lines'), '\\n\\n'), '\\n\\nApprove, or Return with a comment telling the requester what to change.')",
+                              "WebhookApprovalCreationInput/itemLink": "@coalesce(outputs('AppUrl'), parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)'))",
+                              "WebhookApprovalCreationInput/itemLinkDescription": "Open the request in the app",
+                              "WebhookApprovalCreationInput/enableNotifications": true,
+                              "WebhookApprovalCreationInput/enableReassignment": true
+                            },
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_approvals",
+                              "operationId": "StartAndWaitForAnApproval",
+                              "connectionName": "shared_approvals"
+                            }
+                          }
+                        },
+                        "Approval_outcome": {
+                          "runAfter": {
+                            "Start_and_wait_for_an_approval": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "If",
+                          "expression": {
+                            "equals": [
+                              "@outputs('Start_and_wait_for_an_approval')?['body/outcome']",
+                              "Approve"
+                            ]
+                          },
+                          "actions": {
+                            "For_each_my_unit": {
+                              "foreach": "@body('My_units')",
+                              "runAfter": {},
+                              "type": "Foreach",
+                              "runtimeConfiguration": {
+                                "concurrency": {
+                                  "repetitions": 1
+                                }
+                              },
+                              "actions": {
+                                "Log_approve": {
+                                  "type": "OpenApiConnection",
+                                  "inputs": {
+                                    "parameters": {
+                                      "item/Title": "@workflow()?['run']?['name']",
+                                      "item/RequestGuid": "@outputs('RequestGuid')",
+                                      "item/Stage": "System",
+                                      "item/ItemGuid": "@items('For_each_my_unit')?['itemGuid']",
+                                      "item/ItemText": "@items('For_each_my_unit')?['itemText']",
+                                      "item/Fingerprint": "@items('For_each_my_unit')?['fingerprint']",
+                                      "item/DecidedOn": "@utcNow()",
+                                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                      "table": "MD_ApprovalLog",
+                                      "item/Decision": "Approve",
+                                      "item/Detail": "@concat('System ', items('For_each_my_unit')?['sysNo'])",
+                                      "item/DecidedByEmail": "@items('For_each_approver')",
+                                      "item/Comment": "@coalesce(outputs('Start_and_wait_for_an_approval')?['body/responses'][0]?['comments'], '')"
+                                    },
+                                    "host": {
+                                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                      "operationId": "PostItem",
+                                      "connectionName": "shared_sharepointonline"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "else": {
+                            "actions": {
+                              "For_each_my_unit_returned": {
+                                "foreach": "@body('My_units')",
+                                "runAfter": {},
+                                "type": "Foreach",
+                                "runtimeConfiguration": {
+                                  "concurrency": {
+                                    "repetitions": 1
+                                  }
+                                },
+                                "actions": {
+                                  "Log_return": {
+                                    "type": "OpenApiConnection",
+                                    "inputs": {
+                                      "parameters": {
+                                        "item/Title": "@workflow()?['run']?['name']",
+                                        "item/RequestGuid": "@outputs('RequestGuid')",
+                                        "item/Stage": "System",
+                                        "item/ItemGuid": "@items('For_each_my_unit_returned')?['itemGuid']",
+                                        "item/ItemText": "@items('For_each_my_unit_returned')?['itemText']",
+                                        "item/Fingerprint": "@items('For_each_my_unit_returned')?['fingerprint']",
+                                        "item/DecidedOn": "@utcNow()",
+                                        "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                        "table": "MD_ApprovalLog",
+                                        "item/Decision": "Return",
+                                        "item/Detail": "@concat('System ', items('For_each_my_unit_returned')?['sysNo'])",
+                                        "item/DecidedByEmail": "@items('For_each_approver')",
+                                        "item/Comment": "@coalesce(outputs('Start_and_wait_for_an_approval')?['body/responses'][0]?['comments'], '')"
+                                      },
+                                      "host": {
+                                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                        "operationId": "PostItem",
+                                        "connectionName": "shared_sharepointonline"
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "Get_log_results": {
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "parameters": {
+                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                          "table": "MD_ApprovalLog",
+                          "$filter": "RequestGuid eq '@{outputs('RequestGuid')}' and Stage eq 'System'",
+                          "$top": 5000
+                        },
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "operationId": "GetItems",
+                          "connectionName": "shared_sharepointonline"
+                        }
+                      },
+                      "runAfter": {
+                        "For_each_approver": [
+                          "Succeeded"
+                        ]
+                      }
+                    },
+                    "Return_rows": {
+                      "runAfter": {
+                        "Get_log_results": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Query",
+                      "inputs": {
+                        "from": "@outputs('Get_log_results')?['body/value']",
+                        "where": "@equals(item()?['Decision'], 'Return')"
+                      }
+                    },
+                    "Any_return": {
+                      "runAfter": {
+                        "Return_rows": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "If",
+                      "expression": {
+                        "greater": [
+                          "@length(body('Return_rows'))",
+                          0
+                        ]
+                      },
+                      "actions": {
+                        "Select_return_lines": {
+                          "runAfter": {},
+                          "type": "Select",
+                          "inputs": {
+                            "from": "@body('Return_rows')",
+                            "select": "@concat('- ', coalesce(item()?['ItemText'], ''), ': ', coalesce(item()?['Comment'], coalesce(item()?['Detail'], '')))"
+                          }
+                        },
+                        "Return_comment": {
+                          "runAfter": {
+                            "Select_return_lines": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "Compose",
+                          "inputs": "@join(body('Select_return_lines'), '\n')"
+                        },
+                        "For_each_row_unlock": {
+                          "foreach": "@outputs('Get_rows')?['body/value']",
+                          "runAfter": {
+                            "Return_comment": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "Foreach",
+                          "runtimeConfiguration": {
+                            "concurrency": {
+                              "repetitions": 5
+                            }
+                          },
+                          "actions": {
+                            "Unlock_row": {
+                              "type": "OpenApiConnection",
+                              "inputs": {
+                                "parameters": {
+                                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                  "table": "MaterialItems",
+                                  "id": "@items('For_each_row_unlock')?['ID']",
+                                  "item/Title": "@items('For_each_row_unlock')?['Title']",
+                                  "item/RowStatus/Value": "valid"
+                                },
+                                "host": {
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                  "operationId": "PatchItem",
+                                  "connectionName": "shared_sharepointonline"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "Patch_index_returned": {
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "parameters": {
+                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                              "table": "MD_RequestIndex",
+                              "id": "@outputs('IndexId')",
+                              "item/Title": "@outputs('RequestNo')",
+                              "item/RequesterEmail": "@outputs('RequesterEmail')",
+                              "item/Status/Value": "AfventerInfo",
+                              "item/StatusStep": 4,
+                              "item/IsOpen": true,
+                              "item/LastActionOn": "@utcNow()",
+                              "item/LastActionBy": "System approval"
+                            },
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                              "operationId": "PatchItem",
+                              "connectionName": "shared_sharepointonline"
+                            }
+                          },
+                          "runAfter": {
+                            "For_each_row_unlock": [
+                              "Succeeded"
+                            ]
+                          }
+                        },
+                        "Send_returned_mail": {
+                          "runAfter": {
+                            "Patch_index_returned": [
+                              "Succeeded",
+                              "Failed"
+                            ]
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "parameters": {
+                              "emailMessage/To": "@outputs('RequesterEmail')",
+                              "emailMessage/Subject": "@concat('Material request ', coalesce(outputs('RequestNo'), ''), ' returned - correct it and submit again')",
+                              "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">Material request @{coalesce(outputs('RequestNo'), '')} was returned by the system approval:</p><p style=\"font-family: Arial, sans-serif; white-space: pre-line;\">@{replace(replace(replace(outputs('Return_comment'), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</p><p style=\"font-family: Arial, sans-serif;\">Correct the rows in the app and submit the request again.</p>",
+                              "emailMessage/Importance": "Normal"
+                            },
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                              "operationId": "SendEmailV2",
+                              "connectionName": "shared_office365"
+                            }
+                          }
+                        }
+                      },
+                      "else": {
+                        "actions": {
+                          "Patch_index_approved": {
+                            "type": "OpenApiConnection",
+                            "inputs": {
+                              "parameters": {
+                                "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                "table": "MD_RequestIndex",
+                                "id": "@outputs('IndexId')",
+                                "item/Title": "@outputs('RequestNo')",
+                                "item/RequesterEmail": "@outputs('RequesterEmail')",
+                                "item/Status/Value": "Indsendt",
+                                "item/StatusStep": 2,
+                                "item/IsOpen": true,
+                                "item/LastActionOn": "@utcNow()",
+                                "item/LastActionBy": "System approval"
+                              },
+                              "host": {
+                                "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                "operationId": "PatchItem",
+                                "connectionName": "shared_sharepointonline"
+                              }
+                            }
+                          },
+                          "Send_approved_mail": {
+                            "runAfter": {
+                              "Patch_index_approved": [
+                                "Succeeded",
+                                "Failed"
+                              ]
+                            },
+                            "type": "OpenApiConnection",
+                            "inputs": {
+                              "parameters": {
+                                "emailMessage/To": "@outputs('RequesterEmail')",
+                                "emailMessage/Subject": "@concat('Material request ', coalesce(outputs('RequestNo'), ''), ' is approved')",
+                                "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">Material request @{coalesce(outputs('RequestNo'), '')} has been approved by the system managers and is now with Master Data.</p>",
+                                "emailMessage/Importance": "Normal"
+                              },
+                              "host": {
+                                "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                                "operationId": "SendEmailV2",
+                                "connectionName": "shared_office365"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Respond_accepted": [
+              "Succeeded"
+            ]
+          },
+          "type": "Scope"
+        },
+        "Catch": {
+          "actions": {
+            "Convert_UTC_time_to_DK_time_zone": {
+              "type": "Expression",
+              "kind": "ConvertTimeZone",
+              "inputs": {
+                "baseTime": "@utcNow()",
+                "sourceTimeZone": "UTC",
+                "destinationTimeZone": "Romance Standard Time",
+                "formatString": "G"
+              }
+            },
+            "Send_notification_to_development_team": {
+              "runAfter": {
+                "Convert_UTC_time_to_DK_time_zone": [
+                  "Succeeded"
+                ]
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "emailMessage/To": "@parameters('BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)')",
+                  "emailMessage/Subject": "An error occured in the flow - @{workflow()?['tags']?['flowDisplayName']}",
+                  "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">Hi,<br><br>An error was detected in the following flow instance (a material request).<br><br>&gt;Timestamp<br>@{body('Convert_UTC_time_to_DK_time_zone')}<br><br>&gt;Run History<br>@{variables('FlowRunHistoryLink')}<br><br>Thank you</p>",
+                  "emailMessage/Importance": "Normal"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                  "operationId": "SendEmailV2",
+                  "connectionName": "shared_office365"
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Try": [
+              "TimedOut",
+              "Skipped",
+              "Failed"
+            ]
+          },
+          "type": "Scope"
+        },
+        "Finally": {
+          "actions": {},
+          "runAfter": {
+            "Catch": [
+              "Succeeded",
+              "Failed",
+              "Skipped",
+              "TimedOut"
+            ]
+          },
+          "type": "Scope"
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}
