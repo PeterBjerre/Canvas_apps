@@ -280,6 +280,16 @@ def _input_for(col, kind, choices):
         # build_helpers sammen med de fire andre og deler deres regel.
         return date_picker(name, v, display_mode=DM_ROW,
                            onchange=f"Set({v}, Self.SelectedDate)")
+    if kind == "dec":
+        # TAL MED DECIMALER, TASTET SOM TEKST (issue #210)
+        #
+        # ModernNumberInput har heltalspraecision (build_helpers.
+        # number_input saetter Precision '0'), og en maaling kan have op
+        # til tre decimaler. Feltet er derfor et tekstfelt, og _patch_value
+        # sender Value(...) til Number-kolonnen. Variablen er TEKST, saa
+        # "ikke udfyldt" kan skelnes fra 0.
+        return text_input(name, v, max_length=20, display_mode=DM_ROW,
+                          onchange=f"Set({v}, Self.Text)")
     if kind == "long":
         # ttype="Multiline" -> Type: TextInputType.Multiline. Det er den
         # form, VH-plan-appens langtekstboks bruger, og dermed den eneste
@@ -401,6 +411,11 @@ def _patch_value(col, kind):
         return f"Trim(Coalesce({v}, \"\"))"
     if kind == "bool":
         return f"Coalesce({v}, false)"
+    if kind == "dec":
+        # Tekstfeltets indhold ind i en Number-kolonne. Tom tekst skal
+        # vaere Blank() og ikke 0: 0 er en maaling, tom er "ikke udfyldt".
+        return (f'If(IsBlank(Trim(Coalesce({v}, ""))), Blank(), '
+                f'IfError(Value(Trim({v})), Blank()))')
     return v
 
 
@@ -440,6 +455,10 @@ def _collect_rows(source):
     for col, _lab, kind, _ch in ROW_FIELDS:
         if kind in ("text", "long", "choice"):
             v = f'Coalesce(R.{col}, "")'
+        elif kind == "dec":
+            # Tallet som TEKST, saa formularens tekstfelt kan vise det
+            # praecis som det staar - og tom betyder tom (issue #210).
+            v = f'If(IsBlank(R.{col}), "", Text(R.{col}))'
         elif kind == "bool":
             v = f"Coalesce(R.{col}, false)"
         elif kind == "num":
@@ -995,6 +1014,8 @@ def build_details(scope=None):
     for n, (col, label, kind, _ch) in enumerate(ROW_FIELDS, start=len(rows)):
         if kind == "bool":
             v = f'If({row}.{col}, "Yes", "No")'
+        elif kind == "dec":
+            v = f'If(IsBlank({row}.{col}), "-", {row}.{col})'
         elif kind in ("num", "date"):
             v = f'If(IsBlank({row}.{col}), "-", Text({row}.{col}))'
         else:

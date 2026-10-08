@@ -23,8 +23,10 @@ from gen_screen import C_APP_BG
 from side_nav import side_nav
 
 # Tom vaerdi pr. feltart i samlingsskemaet.
+# "dec" er et tal med decimaler, der tastes som tekst og gemmes i en
+# Number-kolonne (tools/domain_parts.py) - i samlingen er det tekst.
 EMPTY = {"num": "0", "date": "Blank()", "long": '""', "choice": '""', "text": '""',
-         "bool": "false"}
+         "bool": "false", "dec": '""'}
 
 
 def _row_schema(cfg):

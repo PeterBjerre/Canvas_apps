@@ -501,7 +501,8 @@ def build_domain_app(key):
     load = (stale_check(d) + open_block(d, init) + ";\n\n"
             f"If(\n    var{d['tag']}StaleNow,\n"
             + "\n".join("    " + l for l in dp.refresh_rows_fx().split("\n")) + "\n)")
-    label = {"equipment": "Equipments", "material": "Materials"}[key]
+    label = {"equipment": "Equipments", "material": "Materials",
+             "measuringpoint": "Measuring Points"}[key]
     # Her stod en regex-omdoebning: felternes kontroller hed inp<Kolonne>
     # og con<Kolonne> uden Dom, og Manufacturer findes i begge domaener.
     # domain_parts navngiver dem nu selv inpDom<Kolonne>/conDom<Kolonne>
@@ -612,6 +613,7 @@ BUILDERS = {
     "vhplan": build_vhplan,
     "equipment": lambda: build_domain_app("equipment"),
     "material": lambda: build_domain_app("material"),
+    "measuringpoint": lambda: build_domain_app("measuringpoint"),
     "kks": lambda: build_lookup("kks"),
     "issueboard": lambda: build_lookup("issueboard"),
 }
