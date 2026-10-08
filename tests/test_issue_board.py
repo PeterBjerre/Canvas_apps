@@ -214,10 +214,24 @@ def test_attachments_live_on_the_ticket_row():
     assert "file" not in trigger["required"]
 
 
-def test_archiving_removes_the_issue_from_the_shared_board():
-    archive = json.dumps(_cases()[cfg.ACT_ARCHIVE])
-    assert '"operationId": "DeleteItem"' in archive and f'"table": "{cfg.L_SHARED}"' in archive
-    assert '"item/SharedItemId": 0' in archive
+def test_archived_issues_stay_on_the_shared_board_marked_archived():
+    # Issue #177: alle skal kunne finde de arkiverede sager - uden private
+    # oplysninger. Den anonyme kopi slettes ikke, den markeres.
+    archive = _cases()[cfg.ACT_ARCHIVE]
+    text = json.dumps(archive)
+    assert '"operationId": "DeleteItem"' not in text
+    assert '"item/SharedItemId": 0' not in text
+    branch = archive["Archive_ok"]["actions"]["Archive_or_restore"]
+    patch = branch["actions"]["Archive_shared"]["actions"]["Patch_shared_archived"]
+    assert patch["inputs"]["parameters"]["table"] == cfg.L_SHARED
+    assert patch["inputs"]["parameters"]["item/IsArchived"] is True
+    restore = branch["else"]["actions"]["Restore_shared"]
+    assert restore["actions"]["Patch_shared_restored"]["inputs"]["parameters"]["item/IsArchived"] is False
+    # Sager arkiveret foer #177 har ingen kopi - den laves igen ved gendannelse.
+    assert "Recreate_shared" in restore["else"]["actions"]
+    # Den anonyme liste har stadig kun de sanerede kolonner.
+    assert not {"ReporterEmail", "ReporterName", "AssignedToEmail", "AssignedToName"} & set(
+        cfg.COLS[cfg.L_SHARED])
 
 
 def test_mail_only_goes_to_the_reporter_on_three_events():
@@ -235,7 +249,9 @@ def test_mail_only_goes_to_the_reporter_on_three_events():
 def test_admin_scope_and_actions_follow_is_admin():
     import ib_parts as P
     from permissions import IS_ADMIN
-    assert f"{IS_ADMIN} && !varIbAllLoaded" in P.LOAD_ALL
+    # En admin henter alle sager (colIbAll), alle andre kun deres egne.
+    assert P.RELOAD_MAIN.startswith(f"If({IS_ADMIN}, {P.RELOAD_ALL};")
+    assert f"IbMine = If({IS_ADMIN}, Filter(colIbAll, Reporter = varIbMe), colIbMine);" in P.FORMULAS
     assert f"IbCanManage = !varIbSelShared && {IS_ADMIN};" in P.FORMULAS
     assert "IbCanEdit = " in P.FORMULAS and f'varIbSel.Status = "{cfg.STATUS_EDITABLE}"' in P.FORMULAS
 
@@ -260,12 +276,25 @@ def test_new_issue_popup_submits_once_and_closes_only_on_success():
     ok, fail = P.SUBMIT.split('NotificationType.Success)\n    ),\n')
     assert "Set(varIbFormOn, false)" in ok and "Set(varIbFormOn, false)" not in fail
     assert P.CLEAR_FORM.replace("\n", "\n    ") in ok
-    assert "Set(varIbDetailOn, true)" in P.SHOW_NEW and "Value(varIbRes.ticketid)" in P.SHOW_NEW
+    assert "Set(varIbDetailOn, true)" in P.SHOW_NEW and "Value(varIbRes.ticketid)" in P.ADD_NEW
+    assert ok.index("Set(varIbSelId, Value(varIbRes.ticketid))") < ok.index("LookUp(IbMine, Id = varIbSelId)")
     assert "Coalesce(varIbRes.message" in fail
     assert P.SUBMIT.rstrip().endswith("Set(varIbBusy, false)")
     form = {c.name: c for c in _walk_ctrls(P.build_form())}
     submit = form["btnIbFormSubmit"].props["OnSelect"]
-    assert submit.startswith(f"If(\n    !varIbBusy && ({P.VALID}),")
+    # Issue #177: Submit er kun laast, mens et kald koerer. Mangler der noget,
+    # siger et tryk hvad - valgfrie felter og filer indgaar ikke i VALID.
+    assert submit.startswith(f"If(\n    varIbBusy,\n    false,\n    !({P.VALID}),\n"
+                             "    Set(varIbTried, true);\n    Notify(")
+    assert form["btnIbFormSubmit"].props["DisplayMode"] == \
+        "If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)"
+    for optional in ("inpIbSteps", "inpIbExpected", "inpIbActual", "inpIbRelated", "drpIbSeverity",
+                     "attIbNewFiles"):
+        assert optional not in P.VALID
+    for required in ("inpIbTitle", "inpIbDesc", "inpIbOther"):
+        assert required in P.VALID
+        assert form[required].props["TriggerOutput"] == "TriggerOutput.Keypress"
+    assert "varIbFormApp" in P.VALID and "varIbFormSection" in P.VALID
     assert form["btnIbFormClose"].props["OnSelect"] == P.CLOSE_ASK
     assert "Set(varIbDiscardOn, true)" in P.CLOSE_ASK and "!varIbBusy" in P.CLOSE_ASK
     assert [k.name for k in form["conIbFormFooter"].children] == ["btnIbFormSubmit"]
@@ -276,3 +305,94 @@ def _walk_ctrls(nodes):
     for n in nodes:
         yield n
         yield from _walk_ctrls(n.children)
+
+
+# ---------------------------------------------------------------------------
+# Issue #177: oversigt, filtre, arkiv, popup, Activity, indsendelse, hentning
+# ---------------------------------------------------------------------------
+def test_screen_opens_with_one_round_of_queries():
+    # Konfigurationen og den ene liste (admin: alle sager, ellers egne) hentes
+    # samtidig - ingen anden runde mod IB_Tickets, og IsAdmin staar ikke i
+    # koe foran hentningen.
+    import ib_parts as P
+    from permissions import IS_ADMIN
+    on_visible = P.on_visible()
+    assert on_visible.count("Concurrent(") == 1
+    assert on_visible.count(f"ClearCollect(colIbAll,") == 1
+    assert on_visible.count(f"ClearCollect(colIbMine,") == 1
+    assert "colIbShared" not in on_visible
+    assert IS_ADMIN not in P.INIT_STATE
+    # Oversigten henter ikke de lange tekster - de kommer, naar sagen aabnes.
+    for col in ("ReproSteps", "ExpectedResult", "ActualResult", "OtherContext",
+                "RelatedRequestNo", "Resolution"):
+        assert col not in P.OVERVIEW_COLS
+        assert f"r.{col}" not in P.FETCH_MINE and f"r.{col}" not in P.FETCH_ALL
+    assert set(P.OVERVIEW_COLS) <= set(cfg.COLS[cfg.L_TICKETS])
+    # Aabnes en sag: dens raekke og Activity samtidig; filerne foerst paa fanen.
+    assert "Concurrent(" in P.LOAD_OPEN and "colIbActivity" in P.LOAD_OPEN
+    assert "Attachments" not in P.LOAD_OPEN
+
+
+def test_new_issue_is_added_without_reloading_the_list():
+    import ib_parts as P
+    ok, _fail = P.SUBMIT.split('NotificationType.Success)\n    ),\n')
+    assert P.FETCH_MINE not in ok.split("IsBlank(varIbSelRow)")[0]
+    assert f"LookUp({cfg.L_TICKETS}, ID = varIbSelId)" in P.ADD_NEW
+    # Formularen venter ikke paa den anonyme liste.
+    assert P.OPEN_FORM.index("Set(varIbFormOn, true)") < P.OPEN_FORM.index("colIbShared")
+    assert "varIbLoading" not in P.LOAD_SHARED
+
+
+def test_detail_popup_hierarchy_and_single_close():
+    import ib_parts as P
+    nodes = P.build_detail()
+    ctrls = {c.name: c for c in _walk_ctrls(nodes)}
+    modal = ctrls["conIbDetModal"]
+    # Hovedet (nummer, titel, Close) staar fast; kun kroppen scroller.
+    assert [k.name for k in modal.children] == ["conIbDetHead", "conIbDetBody"]
+    assert [k.name for k in ctrls["conIbDetHead"].children] == ["txtIbDetNo", "txtIbDetTitle",
+                                                               "btnIbDetClose"]
+    assert "Scroll" in ctrls["conIbDetBody"].props["LayoutOverflowY"]
+    body = [k.name for k in ctrls["conIbDetBody"].children]
+    order = ["conIbDetMeta", "conIbDetFacts", "conIbDetActions", "conIbActsMenu", "conIbDetRule",
+             "conIbDetTabs"]
+    assert [b for b in body if b in order] == order
+    # Ingen Cancel - Close er eneste vej ud, ogsaa i sletningen.
+    assert not [n for n in ctrls if "Cancel" in n]
+    dels = {c.name for c in _walk_ctrls(P.build_delete())}
+    assert "btnIbDelCancel" not in dels and "btnIbDelClose" in dels
+    # Archive og Delete under More actions (kun admin), Delete sidst.
+    assert [k.name for k in ctrls["conIbActsBtns"].children] == ["btnIbArchive", "btnIbDelete"]
+    assert "IbCanManage" in ctrls["conIbActsMenu"].props["Visible"]
+    assert ctrls["btnIbMoreActs"].props["Visible"] == "IbCanManage"
+    # Edit kun, naar hele raekken er hentet.
+    assert "varIbSelFullFor = varIbSelId" in ctrls["btnIbEdit"].props["DisplayMode"]
+    # Rapportoeren vises kun, hvor det var tilladt foer: You / admin / anonym.
+    rep = ctrls["txtIbFactReporter"].props["Text"]
+    assert rep.startswith('If(varIbSelShared, "Anonymous", IbSelMine, "You", IsAdmin,')
+    # Updated kun efter en reel aendring.
+    assert ctrls["conIbFactUpdated"].props["Visible"] == "!IsBlank(IbSelUpdatedOn)"
+
+
+def test_activity_shows_role_badges():
+    import ib_parts as P
+    ctrls = {c.name: c for c in _walk_ctrls(P.build_detail())}
+    assert ctrls["txtIbActRole"].props["Text"] == "ThisItem.Role"
+    assert 'Role: Switch(role, "Admin", "Admin", "System", "System", "User")' in P.LOAD_ACTIVITY
+    assert '" (admin)"' not in P.LOAD_ACTIVITY
+    # Interne noter kun for admin; Post comment laast, naar feltet er tomt.
+    assert "internal: varIbInternal && IsAdmin" in P.POST
+    assert ctrls["btnIbPost"].props["DisplayMode"].startswith("If(IsBlank(Trim(inpIbComment.Text))")
+    assert ctrls["inpIbComment"].props["TriggerOutput"] == "TriggerOutput.Keypress"
+
+
+def test_tile_fits_its_people_line():
+    """Issue #177: flisen klipper ikke 'hvem' - linjen maa ombrydes, og den
+    staar inden for flisen."""
+    import ib_parts as P
+    tile = {c.name: c for c in _walk_ctrls([P.build_list()])}
+    people = tile["txtIbTilePeople"]
+    assert people.props["Wrap"] == "true"
+    bottom = int(people.props["Y"]) + int(people.props["Height"])
+    assert bottom <= P.TILE_H - P.TILE_M
+    assert tile["galIbList"].props["TemplateSize"] == str(P.TILE_H)
