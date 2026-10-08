@@ -9714,7 +9714,7 @@ Screens:
                               OnSelect: |-
                                   =Set(gblFbBusy, true);
                                   IfError(
-                                      With({ res: 'BioSap-SendFeedbackMail'.Run("sapvedligehold@orsted.com", "SAP maintenance - " & Switch(gblFbSel.Kind, "R", gblFbSel.TypeName & " request " & gblFbSel.Code, "G", gblFbSel.Label, "question"), inpMdFbMessage.Text, JSON(attMdFbFiles.Attachments, JSONFormat.IncludeBinaryData), JSON({Kind: gblFbSel.Kind, Topic: gblFbSel.Label, Code: gblFbSel.Code, Type: gblFbSel.TypeName, Title: gblFbSel.Title, Url: gblFbSel.Url}, JSONFormat.Compact)) },
+                                      With({ res: 'BioSap-SendFeedbackMail'.Run("sapvedligehold@orsted.com", "SAP maintenance - " & Switch(gblFbSel.Kind, "R", gblFbSel.TypeName & " request " & gblFbSel.Code, "G", gblFbSel.Label, "question"), inpMdFbMessage.Text, JSON(ForAll(attMdFbFiles.Attachments, {Name: ThisRecord.Name, Value: ThisRecord.Value}), JSONFormat.IncludeBinaryData), JSON({Kind: gblFbSel.Kind, Topic: gblFbSel.Label, Code: gblFbSel.Code, Type: gblFbSel.TypeName, Title: gblFbSel.Title, Url: gblFbSel.Url}, JSONFormat.Compact)) },
                                           If(res.sent = "yes",
                                               Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpMdFbSubjectFind); Reset(inpMdFbMessage); Reset(attMdFbFiles); Notify("Message sent.", NotificationType.Success),
                                               Notify("The message could not be sent. " & res.message, NotificationType.Error))),
