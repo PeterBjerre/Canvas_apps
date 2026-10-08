@@ -14110,9 +14110,7 @@ Screens:
                                 !((Lower(Coalesce(varMatDelIdx.RequesterEmail, "")) = varMatMe && (varMatDelIdx.Status.Value = "Kladde")) || (IsAdmin && (varMatDelIdx.Status.Value = "Kladde" || varMatDelIdx.Status.Value = "AfventerInfo"))),
                                 If(IsAdmin, Notify("Only drafts and requests awaiting info can be deleted.", NotificationType.Warning), Notify("Only drafts can be deleted.", NotificationType.Warning)),
                                 Set(varMatDelGuid, varMatDelIdx.RequestGuid);
-                                Set(varMatDelSp, varMatDelIdx.SourceItemId);
                                 Set(varMatDelKey, varMatDelIdx.RequestNo);
-                                Set(varMatDelDomain, varMatDelIdx.Domain.Value);
                                 Remove(MaterialItems, Filter(MaterialItems, RequestGuid = varMatDelGuid));
                                 If(
                                     !IsEmpty(Errors(MaterialItems)),
