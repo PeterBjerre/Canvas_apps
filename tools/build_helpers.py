@@ -1436,12 +1436,26 @@ def row_hit(name, onselect, label, width, height, radius=0, hover_border=False):
 
     Cellerne under laget, der selv kan aabnes, tages ud af tab-
     raekkefoelgen med TabIndex -1, hvor typen kender den (Image, klassiske
-    kontroller) - ModernButton goer IKKE (check_layout regel 10)."""
+    kontroller) - ModernButton goer IKKE (check_layout regel 10).
+
+    INGEN "OPEN ..."-BANNER (issue #219)
+    ------------------------------------
+    Den klassiske knap har AutoDisableOnSelect = true: mens OnSelect
+    koerer, er knappen deaktiveret og tegnes med Disabled*-farverne. De
+    stod paa Power Apps' standard (graa flade, graa tekst), saa den
+    usynlige label ("Open MAT-2026-011 - ...") stod et oejeblik som et
+    stort banner over hele raekken, foer spinneren kom. Nu er den
+    deaktiverede tilstand den samme som tryk-tilstanden: teksten forbliver
+    usynlig, raekken beholder trykkets tone og flytter sig ikke.
+    AutoDisableOnSelect bliver staaende - den er det, der afviser et
+    dobbeltklik, mens handlingen koerer."""
     t = C_TRANSPARENT
     edge = C_PRIMARY if hover_border else t
     props = {
         "BorderColor": t, "BorderStyle": "BorderStyle.Solid", "BorderThickness": "2",
-        "Color": t, "Fill": t,
+        "Color": t,
+        "DisabledBorderColor": edge, "DisabledColor": t, "DisabledFill": C_ROW_PRESSED,
+        "Fill": t,
         "FocusedBorderColor": C_PRIMARY, "FocusedBorderThickness": "2",
         "Height": str(height),
         "HoverBorderColor": edge, "HoverColor": t, "HoverFill": C_ROW_HOVER,
