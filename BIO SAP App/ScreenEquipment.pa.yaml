@@ -13550,9 +13550,7 @@ Screens:
                                 !((Lower(Coalesce(varEqDelIdx.RequesterEmail, "")) = varEqMe && (varEqDelIdx.Status.Value = "Kladde")) || (IsAdmin && (varEqDelIdx.Status.Value = "Kladde" || varEqDelIdx.Status.Value = "AfventerInfo"))),
                                 If(IsAdmin, Notify("Only drafts and requests awaiting info can be deleted.", NotificationType.Warning), Notify("Only drafts can be deleted.", NotificationType.Warning)),
                                 Set(varEqDelGuid, varEqDelIdx.RequestGuid);
-                                Set(varEqDelSp, varEqDelIdx.SourceItemId);
                                 Set(varEqDelKey, varEqDelIdx.RequestNo);
-                                Set(varEqDelDomain, varEqDelIdx.Domain.Value);
                                 Remove(EquipmentItems, Filter(EquipmentItems, RequestGuid = varEqDelGuid));
                                 If(
                                     !IsEmpty(Errors(EquipmentItems)),

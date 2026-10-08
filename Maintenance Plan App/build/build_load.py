@@ -77,10 +77,10 @@ EMPTY_ITEM_FIELDS = [
 PLAN_FIELDS = [
     ("Plant", "pl.PlantsInitial.Value"),
     # Status staar paa hvert item i MaintenanceItems, ikke paa planen.
-    # varVhpPlanSpId er sat lige foer (build_load: Set foer With), saa
-    # opslaget er delegerbart.
+    # varVhpPlanKey er sat lige foer (load_block: Set foer varVhpPlan), og
+    # opslaget maaler paa .Value, saa det er delegerbart (sp_config.plan_cond).
     ("Status",
-     f"Coalesce(LookUp({cfg.L_ITEMS}, MaintenancePlanNo.Id = varVhpPlanSpId)"
+     f"Coalesce(LookUp({cfg.L_ITEMS}, {cfg.plan_cond(cfg.L_ITEMS)})"
      ".Status.Value, \"\")"),
     ("PlanType", 'If(IsBlank(pl.StrategyKey), "SingleCycle", "Strategy")'),
     ("Strategy", 'Coalesce(pl.StrategyKey, "")'),
@@ -225,19 +225,22 @@ def load_block():
     #
     # De to variabler saettes i toppen af 'load', FOER hentningerne - og de
     # har praecis de samme vaerdier.
-    items_src = f"Filter({cfg.L_ITEMS}, MaintenancePlanNo.Id = varVhpPlanSpId)"
-    ops_src = f"Filter({cfg.L_TASKS}, MaintenancePlanID.Id = varVhpPlanSpId)"
+    # Items og operationer maaler paa opslagets .Value (PlanID), ikke .Id:
+    # Studio delegerer ikke .Id (issue #188, sp_config.plan_rows).
+    items_src = cfg.plan_rows(cfg.L_ITEMS)
+    ops_src = cfg.plan_rows(cfg.L_TASKS)
     mat_src = f"Filter({cfg.L_MATERIALS}, PlanKey = varVhpPlanKey)"
     att_src = f"Filter({cfg.L_ATTACHMENTS}, PlanKey = varVhpPlanKey)"
 
     load = (
         "// --- planhovedet ---------------------------------\n"
+        # varVhpPlanKey FOER varVhpPlan: Status slaar op i items paa den.
+        "                Set(varVhpPlanSpId, pl.ID);\n"
+        "                Set(varVhpPlanKey, pl.PlanID);\n"
         "                Set(\n"
         "                    varVhpPlan,\n"
         f"                    {_record(PLAN_FIELDS, 20)}\n"
         "                );\n"
-        "                Set(varVhpPlanSpId, pl.ID);\n"
-        "                Set(varVhpPlanKey, pl.PlanID);\n"
         "                Set(varVhpFlow, { Status: Coalesce(pl.Status.Value, \"\"), "
         "Stage: Coalesce(pl.ApprovalStage.Value, \"\"), "
         # ReturnComment er flowets tekst: vist paa engelsk, ogsaa naar en

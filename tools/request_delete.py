@@ -30,7 +30,8 @@ Alle filtre er paa indekserede kolonner (sharepoint/inspect/out/schema.md):
 RequestGuid i EquipmentItems, MaterialItems, FunctionalLocationItems og
 FunctionalLocationRequests; PlanKey i MD_TasklistMaterial og
 MD_TasklistAttachment; MaintenancePlanID / MaintenancePlanNo (opslag) i
-TaskListMain og MaintenanceItems; ID i MaintenancePlans.
+TaskListMain og MaintenanceItems (maalt paa opslagets .Value, PlanID,
+issue #188); ID i MaintenancePlans.
 """
 import admin_log as alog
 import permissions as perm
@@ -75,10 +76,14 @@ def _steps(domain, guid, sp, key):
              f"Remove(MD_TasklistMaterial, Filter(MD_TasklistMaterial, PlanKey = {key}))"),
             ("MD_TasklistAttachment", k,
              f"Remove(MD_TasklistAttachment, Filter(MD_TasklistAttachment, PlanKey = {key}))"),
-            ("TaskListMain", p,
-             f"Remove(TaskListMain, Filter(TaskListMain, MaintenancePlanID.Id = {sp}))"),
-            ("MaintenanceItems", p,
-             f"Remove(MaintenanceItems, Filter(MaintenanceItems, MaintenancePlanNo.Id = {sp}))"),
+            # Opslagene maales paa .Value (planens PlanID = indeksraekkens
+            # RequestNo), ikke .Id: Studio delegerer ikke '=' paa et
+            # opslags .Id (issue #188). Kun med en noegle - '= Blank()'
+            # ville ramme raekker, hvis plan allerede er slettet.
+            ("TaskListMain", k,
+             f"Remove(TaskListMain, Filter(TaskListMain, MaintenancePlanID.Value = {key}))"),
+            ("MaintenanceItems", k,
+             f"Remove(MaintenanceItems, Filter(MaintenanceItems, MaintenancePlanNo.Value = {key}))"),
             # Note to self (issue #115). Listen viser kun de raekker, brugeren
             # maa se - en admin uden Override List Behaviors finder ingen.
             ("VHP_NoteToSelf", None,
@@ -127,10 +132,16 @@ def delete_fx(prefix, domains, success, me, indent=0):
                         f'{idx}.RequesterEmail & ")"', 4)
            + "\n);\n")
     success = log + success
-    head = (f"Set({guid}, {idx}.RequestGuid);\n"
-            f"Set({sp}, {idx}.SourceItemId);\n"
-            f"Set({key}, {idx}.{ri.COL_NO});\n"
-            f"Set({dom}, {idx}.Domain.Value);\n")
+    # Kun de variabler, kaeden laeser (issue #188): App checker melder en
+    # variabel, der saettes men aldrig laeses (UnusedVariables). SourceItemId
+    # bruges kun af VH-planen, Domain kun af hubbens Switch.
+    steps_text = "".join(rm for d in domains for _, _, rm in _steps(d, guid, sp, key))
+    head = f"Set({guid}, {idx}.RequestGuid);\n"
+    if sp in steps_text:
+        head += f"Set({sp}, {idx}.SourceItemId);\n"
+    head += f"Set({key}, {idx}.{ri.COL_NO});\n"
+    if len(domains) > 1:
+        head += f"Set({dom}, {idx}.Domain.Value);\n"
     if len(domains) == 1:
         body = head + _chain(_steps(domains[0], guid, sp, key) + index, success)
     else:
