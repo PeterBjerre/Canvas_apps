@@ -557,6 +557,24 @@ def submit_guard():
     return (resolve_fx(SUBMIT_CODES), blocked, message)
 
 
+def after_submit_fx():
+    """Start systemgodkendelsen, naar indmeldingen har strategiske
+    raekker. Raekkerne er hentet forfra (domain_parts' refresh), saa de
+    staar med anmodningens nummer."""
+    strat = ("CountRows(Filter(colDomRows, RequestNo = varDomRequestNo && "
+             "Coalesce(ApprovalRequired, false))) > 0")
+    return (
+        "If(\n"
+        f"    {strat},\n"
+        "    IfError(\n"
+        f"        {APPROVAL_FLOW}.Run(varDomRequestGuid),\n"
+        '        Notify("The request was submitted, but the system approval '
+        'could not be started: " & FirstError.Message, NotificationType.Warning)\n'
+        "    )\n"
+        ")"
+    )
+
+
 def _approver_line():
     """Linjen under objektlisten: hvem godkendelsen vil spoerge.
 
@@ -588,4 +606,4 @@ def _approver_line():
 # ingen opslag, ingen vagt paa Submit og intet flow-kald. Flaget staar i
 # tools/canvas_apps.json (environments.<miljoe>.features.material_approval).
 if APPROVAL_ON:
-    dp.configure(submit_guard=submit_guard())
+    dp.configure(submit_guard=submit_guard(), after_submit=after_submit_fx())
