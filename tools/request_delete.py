@@ -43,7 +43,7 @@ INDEX = ri.LIST
 # Domaenet (valgvaerdien i MD_RequestIndex.Domain) -> skaermens praefiks i
 # den samlede app (BIO SAP App/build/combined.py).
 TAGS = {"FunctionalLocation": "Fl", "MaintenancePlan": "Vhp",
-        "Equipment": "Eq", "Material": "Mat"}
+        "Equipment": "Eq", "Material": "Mat", "MeasuringPoint": "Mp"}
 
 def stale_var(tag):
     """Saettes af en sletning; domaeneskaermen ser efter den i OnVisible
@@ -60,6 +60,9 @@ def _steps(domain, guid, sp, key):
     if domain == "Material":
         return [("MaterialItems", None,
                  f"Remove(MaterialItems, Filter(MaterialItems, RequestGuid = {guid}))")]
+    if domain == "MeasuringPoint":
+        return [("MeasuringPointItems", None,
+                 f"Remove(MeasuringPointItems, Filter(MeasuringPointItems, RequestGuid = {guid}))")]
     if domain == "FunctionalLocation":
         return [
             ("FunctionalLocationItems", None,

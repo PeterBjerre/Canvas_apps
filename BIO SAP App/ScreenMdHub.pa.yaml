@@ -3611,6 +3611,11 @@ Screens:
                                                     Set(varEqOpened, "");
                                                     Set(gblEqWant, "req:" & ThisItem.RequestGuid);
                                                     Navigate(ScreenEquipment, ScreenTransition.None),
+                                                "MeasuringPoint",
+                                                    Set(gblNavigating, true);
+                                                    Set(varMpOpened, "");
+                                                    Set(gblMpWant, "req:" & ThisItem.RequestGuid);
+                                                    Navigate(ScreenMeasuringPoint, ScreenTransition.None),
                                                 Notify("This kind of request has no screen in the app yet.", NotificationType.Warning)
                                             )
                                         )
@@ -3969,6 +3974,11 @@ Screens:
                                                     Set(varEqOpened, "");
                                                     Set(gblEqWant, "edit:" & ThisItem.RequestGuid);
                                                     Navigate(ScreenEquipment, ScreenTransition.None),
+                                                "MeasuringPoint",
+                                                    Set(gblNavigating, true);
+                                                    Set(varMpOpened, "");
+                                                    Set(gblMpWant, "edit:" & ThisItem.RequestGuid);
+                                                    Navigate(ScreenMeasuringPoint, ScreenTransition.None),
                                                 Notify("This kind of request has no screen in the app yet.", NotificationType.Warning)
                                             )
                                         )
@@ -4101,6 +4111,11 @@ Screens:
                                                     Set(varEqOpened, "");
                                                     Set(gblEqWant, "edit:" & ThisItem.RequestGuid);
                                                     Navigate(ScreenEquipment, ScreenTransition.None),
+                                                "MeasuringPoint",
+                                                    Set(gblNavigating, true);
+                                                    Set(varMpOpened, "");
+                                                    Set(gblMpWant, "edit:" & ThisItem.RequestGuid);
+                                                    Navigate(ScreenMeasuringPoint, ScreenTransition.None),
                                                 Notify("This kind of request has no screen in the app yet.", NotificationType.Warning)
                                             )
                                         )
@@ -5127,7 +5142,7 @@ Screens:
                 Control: Image
                 Properties:
                   AccessibleLabel: |-
-                      ="Measuring point - coming soon"
+                      ="New measuring point request"
                   BorderStyle: |-
                       =BorderStyle.None
                   BorderThickness: |-
@@ -5141,16 +5156,19 @@ Screens:
                   Height: |-
                       =40
                   HoverFill: |-
-                      =RGBA(0, 0, 0, 0)
+                      =C.'bg-muted'
                   Image: |-
-                      ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='274' height='40' viewBox='0 0 274 40'><g transform='translate(14 9) scale(0.916667)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.65' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g><text x='48' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-muted' & "'>" & "Measuring point" & "</text><text x='260' y='24' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='11' fill='" & C.'hex-text-muted' & "'>" & "Coming soon" & "</text></svg>")
+                      ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='274' height='40' viewBox='0 0 274 40'><g transform='translate(14 9) scale(0.916667)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='1.65' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g><text x='48' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Measuring point" & "</text></svg>")
                   ImagePosition: |-
                       =ImagePosition.Fit
                   OnSelect: |-
                       =Set(varMdNewMenu, false);
-                      Notify("This app has not been built yet.", NotificationType.Warning)
+                      Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
+                      Set(gblNavigating, true);
+                      Set(gblMpWant, "new:" & gblNewSeq);
+                      Navigate(ScreenMeasuringPoint, ScreenTransition.None)
                   PressedFill: |-
-                      =RGBA(0, 0, 0, 0)
+                      =C.'bg-muted'
                   TabIndex: |-
                       =0
                   Width: |-
@@ -5537,6 +5555,11 @@ Screens:
                                         Set(varEqOpened, "");
                                         Set(gblEqWant, "req:" & ThisItem.RequestGuid);
                                         Navigate(ScreenEquipment, ScreenTransition.None),
+                                    "MeasuringPoint",
+                                        Set(gblNavigating, true);
+                                        Set(varMpOpened, "");
+                                        Set(gblMpWant, "req:" & ThisItem.RequestGuid);
+                                        Navigate(ScreenMeasuringPoint, ScreenTransition.None),
                                     Notify("This kind of request has no screen in the app yet.", NotificationType.Warning)
                                 )
                             )
@@ -5894,7 +5917,8 @@ Screens:
                                                         "FunctionalLocation", Set(gblFlStale, true),
                                                         "MaintenancePlan", Set(gblVhpStale, true),
                                                         "Equipment", Set(gblEqStale, true),
-                                                        "Material", Set(gblMatStale, true)
+                                                        "Material", Set(gblMatStale, true),
+                                                        "MeasuringPoint", Set(gblMpStale, true)
                                                     );
                                                     Notify("Request deleted.", NotificationType.Success)
                                                 )
@@ -5953,7 +5977,8 @@ Screens:
                                                                         "FunctionalLocation", Set(gblFlStale, true),
                                                                         "MaintenancePlan", Set(gblVhpStale, true),
                                                                         "Equipment", Set(gblEqStale, true),
-                                                                        "Material", Set(gblMatStale, true)
+                                                                        "Material", Set(gblMatStale, true),
+                                                                        "MeasuringPoint", Set(gblMpStale, true)
                                                                     );
                                                                     Notify("Request deleted.", NotificationType.Success)
                                                                 )
@@ -5996,7 +6021,8 @@ Screens:
                                                     "FunctionalLocation", Set(gblFlStale, true),
                                                     "MaintenancePlan", Set(gblVhpStale, true),
                                                     "Equipment", Set(gblEqStale, true),
-                                                    "Material", Set(gblMatStale, true)
+                                                    "Material", Set(gblMatStale, true),
+                                                    "MeasuringPoint", Set(gblMpStale, true)
                                                 );
                                                 Notify("Request deleted.", NotificationType.Success)
                                             )
@@ -6034,7 +6060,47 @@ Screens:
                                                     "FunctionalLocation", Set(gblFlStale, true),
                                                     "MaintenancePlan", Set(gblVhpStale, true),
                                                     "Equipment", Set(gblEqStale, true),
-                                                    "Material", Set(gblMatStale, true)
+                                                    "Material", Set(gblMatStale, true),
+                                                    "MeasuringPoint", Set(gblMpStale, true)
+                                                );
+                                                Notify("Request deleted.", NotificationType.Success)
+                                            )
+                                        ),
+                                    "MeasuringPoint",
+                                        Remove(MeasuringPointItems, Filter(MeasuringPointItems, RequestGuid = varMdDelGuid));
+                                        If(
+                                            !IsEmpty(Errors(MeasuringPointItems)),
+                                            Notify("The request could not be deleted: " & First(Errors(MeasuringPointItems)).Message, NotificationType.Error),
+                                            Remove(MD_RequestIndex, Filter(MD_RequestIndex, RequestGuid = varMdDelGuid));
+                                            If(
+                                                !IsEmpty(Errors(MD_RequestIndex)),
+                                                Notify("The request could not be deleted: " & First(Errors(MD_RequestIndex)).Message, NotificationType.Error),
+                                                If(
+                                                    (IsAdmin && !(Lower(Coalesce(varMdDelIdx.RequesterEmail, "")) = varMdMe)),
+                                                    IfError(
+                                                        Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                            Title: varMdDelKey,
+                                                            RequestGuid: varMdDelGuid,
+                                                            Stage: "Admin",
+                                                            Decision: "AdminDelete",
+                                                            Detail: Left("Request deleted (" & Coalesce(LookUp(RequestStatusLabels, Key = varMdDelIdx.Status.Value, Label), varMdDelIdx.Status.Value) & ", owner " & varMdDelIdx.RequesterEmail & ")", 255),
+                                                            Comment: "Request deleted (" & Coalesce(LookUp(RequestStatusLabels, Key = varMdDelIdx.Status.Value, Label), varMdDelIdx.Status.Value) & ", owner " & varMdDelIdx.RequesterEmail & ")",
+                                                            DecidedByEmail: Lower(User().Email),
+                                                            DecidedOn: Now()
+                                                        });
+                                                        true,
+                                                        Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                        false
+                                                    )
+                                                );
+                                                RemoveIf(colMdScope, Id = varMdDelIdx.ID);
+                                                Switch(
+                                                    varMdDelDomain,
+                                                    "FunctionalLocation", Set(gblFlStale, true),
+                                                    "MaintenancePlan", Set(gblVhpStale, true),
+                                                    "Equipment", Set(gblEqStale, true),
+                                                    "Material", Set(gblMatStale, true),
+                                                    "MeasuringPoint", Set(gblMpStale, true)
                                                 );
                                                 Notify("Request deleted.", NotificationType.Success)
                                             )

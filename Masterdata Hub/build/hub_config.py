@@ -64,7 +64,7 @@ DOMAINS = [
     {"key": "Equipment",          "short": "EQ",  "name": "Equipment",
      "token": "domain-eq",  "app": "equipment", "icon_key": "equipment"},
     {"key": "MeasuringPoint",     "short": "MP",  "name": "Measuring point",
-     "token": "domain-mp",  "app": None, "icon_key": "measuringpoint"},
+     "token": "domain-mp",  "app": "measuringpoint", "icon_key": "measuringpoint"},
 ]
 
 # Ikonerne er de FAELLES (tools/icons.py, issue #74) - de samme som i

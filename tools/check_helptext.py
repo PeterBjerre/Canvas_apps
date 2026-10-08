@@ -27,12 +27,20 @@ laeser ikke SharePoint. Prisen er kendt; alternativet var ingen vagt.
 """
 import ast
 import csv
+import glob
 import io
 import os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HELP = os.path.join(ROOT, "Maintenance Plan App", "build", "build_help.py")
 SEED = os.path.join(ROOT, "sharepoint", "seed", "MD_HelpText.csv")
+# EET seed PR. APP-OMRAADE (issue #210). MD_HelpText.csv er VH-planens
+# udtraek; en app, der kommer til bagefter, laegger sine raekker i
+# MD_HelpText_<App>.csv i stedet for at skrive i den - de to filer bliver
+# begge indlaest med Provision-HelpText.ps1 -Seed -SeedPath <fil>.
+# Tjekket skal se dem alle, ellers kunne en ny fil indfoere netop den
+# dobbelte noegle, filen her findes for at forhindre.
+SEED_GLOB = os.path.join(ROOT, "sharepoint", "seed", "MD_HelpText*.csv")
 
 
 def code_keys():
@@ -46,10 +54,11 @@ def code_keys():
 
 
 def seed_rows():
-    if not os.path.exists(SEED):
-        return []
-    with io.open(SEED, encoding="utf-8-sig", newline="") as f:
-        return list(csv.DictReader(f))
+    out = []
+    for path in sorted(glob.glob(SEED_GLOB)):
+        with io.open(path, encoding="utf-8-sig", newline="") as f:
+            out.extend(csv.DictReader(f))
+    return out
 
 
 def check():

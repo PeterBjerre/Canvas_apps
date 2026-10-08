@@ -64,6 +64,7 @@ _OWN = [
     ("vhplan", "Vhp", None),
     ("equipment", "Eq", "Dom"),
     ("material", "Mat", "Dom"),
+    ("measuringpoint", "Mp", "Dom"),
     ("kks", "Kks", None),
     ("issueboard", "Ib", None),
 ]

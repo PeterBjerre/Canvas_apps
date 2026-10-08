@@ -88,10 +88,37 @@ from fl_picker import fl_picker, known_fx as fl_known_fx, reset_fx as fl_reset_f
 
 # Raekkens felter i een flad liste - raekkefoelgen er sektionernes.
 FIELDS = [f for _sec, fields in cfg.SECTIONS for f in fields]
+# BETINGEDE FELTER (opt-in, issue #210)
+# -------------------------------------
+# cfg.WHEN = { kolonne: Power Fx-udtryk }. Et felt med et udtryk vises kun,
+# naar udtrykket er sandt, og dets vaerdi RYDDES ved gem, saa en aendret
+# type ikke efterlader gamle vaerdier i raekken.
+#
+# Equipment og Materials har ingen WHEN, og deres skaermes YAML er derfor
+# ordret den samme som foer - det er hele pointen med at det er opt-in.
+WHEN = dict(getattr(cfg, "WHEN", {}))
+
+# Felter, der skal skrives af appen i stedet for af brugeren (opt-in):
+# { kolonne: Power Fx-udtryk }. Measuring Point bruger den til IsCounter og
+# ApprovalRequired, der er AFLEDT af typen (issue #210 Q14/Q16). Kolonnerne
+# staar i cfg.READ_FIELDS, saa de hentes og vises, men ikke tastes.
+EXTRA_PATCH = dict(getattr(cfg, "EXTRA_PATCH", {}))
+
 # Raekkens felter i SAMLINGEN: formularens plus dem, appen kun laeser
 # (cfg.READ_FIELDS, fx Equipments SAP-udstyrsnummer - issue #94). De
 # hentes og vises, men skrives aldrig af formularen.
 ROW_FIELDS = FIELDS + list(getattr(cfg, "READ_FIELDS", []))
+
+_COLS = {c for c, _l, _k, _ch in FIELDS}
+_unknown = sorted(set(WHEN) - _COLS)
+if _unknown:
+    raise SystemExit("domain_config.WHEN naevner felter, der ikke staar i "
+                     "SECTIONS: %s" % ", ".join(_unknown))
+_READ_COLS = {c for c, _l, _k, _ch in getattr(cfg, "READ_FIELDS", [])}
+_unknown = sorted(set(EXTRA_PATCH) - _READ_COLS)
+if _unknown:
+    raise SystemExit("domain_config.EXTRA_PATCH naevner felter, der ikke staar i "
+                     "READ_FIELDS: %s" % ", ".join(_unknown))
 
 
 def use(expected):
@@ -280,6 +307,16 @@ def _input_for(col, kind, choices):
         # build_helpers sammen med de fire andre og deler deres regel.
         return date_picker(name, v, display_mode=DM_ROW,
                            onchange=f"Set({v}, Self.SelectedDate)")
+    if kind == "dec":
+        # TAL MED DECIMALER, TASTET SOM TEKST (issue #210)
+        #
+        # ModernNumberInput har heltalspraecision (build_helpers.
+        # number_input saetter Precision '0'), og en maaling kan have op
+        # til tre decimaler. Feltet er derfor et tekstfelt, og _patch_value
+        # sender Value(...) til Number-kolonnen. Variablen er TEKST, saa
+        # "ikke udfyldt" kan skelnes fra 0.
+        return text_input(name, v, max_length=20, display_mode=DM_ROW,
+                          onchange=f"Set({v}, Self.Text)")
     if kind == "long":
         # ttype="Multiline" -> Type: TextInputType.Multiline. Det er den
         # form, VH-plan-appens langtekstboks bruger, og dermed den eneste
@@ -401,6 +438,11 @@ def _patch_value(col, kind):
         return f"Trim(Coalesce({v}, \"\"))"
     if kind == "bool":
         return f"Coalesce({v}, false)"
+    if kind == "dec":
+        # Tekstfeltets indhold ind i en Number-kolonne. Tom tekst skal
+        # vaere Blank() og ikke 0: 0 er en maaling, tom er "ikke udfyldt".
+        return (f'If(IsBlank(Trim(Coalesce({v}, ""))), Blank(), '
+                f'IfError(Value(Trim({v})), Blank()))')
     return v
 
 
@@ -440,6 +482,10 @@ def _collect_rows(source):
     for col, _lab, kind, _ch in ROW_FIELDS:
         if kind in ("text", "long", "choice"):
             v = f'Coalesce(R.{col}, "")'
+        elif kind == "dec":
+            # Tallet som TEKST, saa formularens tekstfelt kan vise det
+            # praecis som det staar - og tom betyder tom (issue #210).
+            v = f'If(IsBlank(R.{col}), "", Text(R.{col}))'
         elif kind == "bool":
             v = f"Coalesce(R.{col}, false)"
         elif kind == "num":
@@ -528,7 +574,14 @@ def copy_row_fx():
              f'Set({REQUIRED}, false);',
              f'Set(varDomFText, ThisItem.{cfg.C_TEXT});',
              'Set(varDomFPlant, ThisItem.Plant);']
-    for col, _lab, _kind, _ch in FIELDS:
+    # cfg.COPY_SKIP: felter, der IKKE maa foelge med i en kopi (opt-in).
+    # Measuring Point bruger den til det eksisterende maalepunktsnummer -
+    # to raekker kan ikke vaere det samme punkt (issue #210).
+    skip = set(getattr(cfg, "COPY_SKIP", ()))
+    for col, _lab, kind, _ch in FIELDS:
+        if col in skip:
+            lines.append(f"Set({_var(col)}, {_blank(kind)});")
+            continue
         lines.append(f"Set({_var(col)}, ThisItem.{col});")
     # Dokumenterne foelger IKKE med. De ligger i en mappe, der hedder den
     # gamle raekkes noegle, og kopien har ingen noegle endnu.
@@ -626,7 +679,17 @@ def save_row_fx(status="valid", required=()):
         "            Plant: varDomFPlant,",
     ]
     for col, _lab, kind, _ch in FIELDS:
-        patch.append(f"            {col}: {_patch_value(col, kind)},")
+        v = _patch_value(col, kind)
+        if col in WHEN:
+            # ET SKJULT FELT GEMMES TOMT (issue #210)
+            #
+            # Skifter brugeren type, skal den gamle types vaerdier ikke
+            # blive staaende paa raekken - saa ville SAP-ordren og
+            # detaljerne vise et felt, formularen ikke laengere viser.
+            v = f"If({WHEN[col]}, {v}, {_blank(kind)})"
+        patch.append(f"            {col}: {v},")
+    for col, fx in EXTRA_PATCH.items():
+        patch.append(f"            {col}: {fx},")
     patch += [
         '            RowStatus: { Value: "%s" },' % status,
         # En admin i en andens anmodning gemmer raekken i EJERENS navn.
@@ -932,11 +995,16 @@ def _detail_row(i, label, value):
                  height=DETAIL_ROW_H, align_items="Center")
 
 
-def build_details(scope=None):
+def build_details(scope=None, extra=()):
     """Alle raekkens felter, med frem og tilbage mellem raekkerne.
 
     scope: det filter, listen viser (standard: LIST_SCOPE), saa frem og
-    tilbage foelger det, brugeren ser."""
+    tilbage foelger det, brugeren ser.
+    extra: appens egne kontroller NEDERST i feltlisten (opt-in) - en
+    funktion, der faar udtrykket for raekken, eller en liste. Measuring
+    Point laegger Master Datas felt til maalepunktsnummeret dér
+    (issue #210). Equipment og Materials giver ingen, og deres popup er
+    uaendret."""
     scope = LIST_SCOPE if scope is None else scope
     # Raekken, ruden viser. Den slaas op HVER gang - saa er den altid den,
     # der staar i samlingen, ogsaa efter en Gem.
@@ -995,6 +1063,8 @@ def build_details(scope=None):
     for n, (col, label, kind, _ch) in enumerate(ROW_FIELDS, start=len(rows)):
         if kind == "bool":
             v = f'If({row}.{col}, "Yes", "No")'
+        elif kind == "dec":
+            v = f'If(IsBlank({row}.{col}), "-", {row}.{col})'
         elif kind in ("num", "date"):
             v = f'If(IsBlank({row}.{col}), "-", Text({row}.{col}))'
         else:
@@ -1003,6 +1073,7 @@ def build_details(scope=None):
     # Anmodningen, raekken hoerer til - den sidste kolonne i colDomRows,
     # der ikke stod her (issue #101: "all available columns").
     rows.append(_detail_row(len(rows), "Request no.", f'Coalesce({row}.RequestNo, "-")'))
+    rows += list(extra(row) if callable(extra) else extra)
 
     # FELTLISTEN SCROLLER, POPUPPEN GOER IKKE. Equipment har nitten felter;
     # hoejere end en baerbar skaerm. Hovedet med Luk staar fast.
@@ -1052,7 +1123,14 @@ def send_fx(submit):
     kendes bagefter; indtil da staar GUID'en der.
     """
     rows = VALID if submit else SENDABLE
-    status = ri.SUBMITTED if submit else ri.DRAFT
+    # ET DOMAENE UDEN GODKENDELSE KAN GAA DIREKTE VIDERE (opt-in)
+    #
+    # cfg.SUBMIT_STATUS er den status, indeksraekken faar ved Submit.
+    # Measuring Point saetter den til KlarTilSAP: en anmodning uden
+    # Counter-godkendelse og uden manglende taeller gaar direkte til Master
+    # Data (issue #210 Q12). Equipment og Materials saetter den ikke og
+    # indsender som hidtil.
+    status = getattr(cfg, "SUBMIT_STATUS", ri.SUBMITTED) if submit else ri.DRAFT
     # Samme tekster som i VH-plan og FL: "Saved as X" / "Submitted as X".
     # Her stod "Saved as draft", og beskeden blev "Saved as draft as EQ-..".
     label = "Submitted" if submit else "Saved"
@@ -1268,11 +1346,19 @@ def grid_cell(name, label, ctrl, required=False):
                       fill_portions_formula="0")
 
 
-def field_grid_cell(col):
-    """Et felt fra SECTIONS som celle i gitteret."""
+def field_grid_cell(col, required=False):
+    """Et felt fra SECTIONS som celle i gitteret.
+
+    Staar feltet i cfg.WHEN, faar cellen betingelsen som Visible - og
+    forelderens hoejde taeller den kun med, naar den vises
+    (gen_screen.stack_height)."""
     for c, label, kind, choices in FIELDS:
         if c == col:
-            return grid_cell(f"conDom{c}", label, _input_for(c, kind, choices))
+            cell = grid_cell(f"conDom{c}", label, _input_for(c, kind, choices),
+                             required=required)
+            if c in WHEN:
+                cell.vis = WHEN[c]
+            return cell
     raise SystemExit(f"domain_parts: {col} er ikke et felt i SECTIONS")
 
 
@@ -1562,21 +1648,30 @@ class ListLayout:
     plus en lige del af det, der er tilovers. Er der intet tilovers (en
     tablet), er tabellen sine mindstebredder og scroller vandret."""
 
-    def __init__(self, slots):
+    def __init__(self, slots, fixed=False):
         self.slots = slots
+        # FAST LAYOUT (opt-in, issue #210): een visning, ingen Compact/All.
+        # Alle pladser er "Compact"-pladsen, de fylder listens bredde, og
+        # der er ingen varDomAllCols at skifte med.
+        self.fixed = fixed
         self.all_ws = [col_w(a) for _c, a in slots]
         self.all_w = (BADGE_W + sum(self.all_ws) + LIST_MORE_W + LIST_ACTIONS_W
                       + T_GAP * (len(slots) + 2))
         self.compact = [i for i, (c, _a) in enumerate(slots) if c is not None]
-        fixed = BADGE_W + LIST_MORE_W + LIST_ACTIONS_W + T_GAP * (len(self.compact) + 2)
-        self.compact_min = fixed + sum(col_w(slots[i][0]) for i in self.compact)
+        # Det, der ikke kan vokse: maerket, de to knapkolonner og gaps.
+        # (Hed "fixed" og skyggede parameteren af samme navn.)
+        fixed_w = BADGE_W + LIST_MORE_W + LIST_ACTIONS_W + T_GAP * (len(self.compact) + 2)
+        self.compact_min = fixed_w + sum(col_w(slots[i][0]) for i in self.compact)
         self.spare = (f"Max(0, ({TABLE_AVAIL}) - {self.compact_min}) / "
                       f"{len(self.compact)}")
-        self.table_w = (f"If({ALL_COLS}, {self.all_w}, "
+        self.table_w = (f"Max({self.compact_min}, {TABLE_AVAIL})" if self.fixed else
+                        f"If({ALL_COLS}, {self.all_w}, "
                         f"Max({self.compact_min}, {TABLE_AVAIL}))")
 
     def width(self, i):
         c, a = self.slots[i]
+        if self.fixed:
+            return f"{col_w(c)} + {self.spare}"
         if c is None:
             return str(self.all_ws[i])
         cw = f"{col_w(c)} + {self.spare}"
@@ -1584,6 +1679,8 @@ class ListLayout:
 
     def visible(self, i):
         c, a = self.slots[i]
+        if self.fixed:
+            return None
         if c is None:
             return ALL_COLS
         if a is None:
@@ -1594,6 +1691,8 @@ class ListLayout:
         """part 0 = overskriften, 1 = udtrykket."""
         c, a = self.slots[i]
         pick = (lambda s: f'"{s[0]}"') if part == 0 else (lambda s: s[1])
+        if self.fixed:
+            return pick(c)
         if c is None:
             return pick(a)
         if a is None:
@@ -1701,12 +1800,19 @@ def _compact_row(lay_, load_fx, copy_fx, delete_fx):
                  visible=below("Desktop"))
 
 
-def build_list(slots, badge_head, search_placeholder):
+def build_list(slots, badge_head, search_placeholder, views=True, fixed=False):
     """Kortet med de gemte raekker - og indsend under tabellen.
 
     slots: appens pladser (se ovenfor). badge_head: overskriften over
-    statusmaerket ("STATUS" / "VALIDATION")."""
-    lay_ = ListLayout(slots)
+    statusmaerket ("STATUS" / "VALIDATION").
+    views: skal der vaere Compact/All columns? Measuring Point har EET
+    fast layout (issue #210 Q13), og saa er der ingen knapper at skifte
+    med - og ingen varDomAllCols.
+    fixed: pladserne er faste; kun den foerste af hvert par bruges."""
+    if fixed and views:
+        raise SystemExit("domain_parts.build_list: fixed kraever views=False "
+                         "- et fast layout har ingen Compact/All.")
+    lay_ = ListLayout(slots, fixed=fixed)
 
     # --- hovedet: titel, soegning og de to filtre ---------------------
     title = text_ctrl("txtDomRowsH", '"Saved Rows"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
@@ -1733,8 +1839,8 @@ def build_list(slots, badge_head, search_placeholder):
                 ALL_COLS)
     for b in (compact, allc):
         b.props["Size"] = "13"
-    views = group("conDomViewSwitch", [compact, allc], direction="Horizontal", gap=8,
-                  height=32, align_items="Center", justify="End")
+    view_switch = group("conDomViewSwitch", [compact, allc], direction="Horizontal",
+                        gap=8, height=32, align_items="Center", justify="End")
 
     # --- tabellen -----------------------------------------------------------
     heads = [_head_text("txtDomHeadStatus", f'"{badge_head}"', BADGE_W)]
@@ -1746,8 +1852,10 @@ def build_list(slots, badge_head, search_placeholder):
                                     height=20, width=lay_.width(i), wrap="false",
                                     visible=lay_.visible(i))))
     heads.append(_head_text("txtDomHeadMore",
-                            f'If({ALL_COLS}, "ACTIONS", "MORE")', LIST_MORE_W))
-    heads.append(_head_text("txtDomHeadActions", f'If({ALL_COLS}, "", "ACTIONS")',
+                            '"MORE"' if fixed else f'If({ALL_COLS}, "ACTIONS", "MORE")',
+                            LIST_MORE_W))
+    heads.append(_head_text("txtDomHeadActions",
+                            '"ACTIONS"' if fixed else f'If({ALL_COLS}, "", "ACTIONS")',
                             LIST_ACTIONS_W, accessible='"Actions"'))
     cells.append(_row_buttons("conDomRowMore", MORE_BTNS,
                               [open_docs_fx(), copy_row_fx()],
@@ -1800,7 +1908,8 @@ def build_list(slots, badge_head, search_placeholder):
 
     empty = None
 
-    return card("conDomRowsCard", [head, views, table] + _submit_parts())
+    body = [head, view_switch, table] if views else [head, table]
+    return card("conDomRowsCard", body + _submit_parts())
 
 
 # ---------------------------------------------------------------------------
