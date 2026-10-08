@@ -21,6 +21,6 @@ def test_row_log_groupby_is_guarded():
     hits = [m.start() for m in re.finditer(r"GroupBy\(Filter\(L, ", text)]
     assert hits, "stripens GroupBy over L blev ikke fundet"
     for pos in hits:
-        before = text[max(0, pos - 80):pos]
-        assert re.search(r'If\(IsEmpty\(Filter\(L, Stage = "\w+"\)\), Blank\(\), ForAll\($', before), \
+        before = text[max(0, pos - 140):pos]
+        assert re.search(r'If\(IsBlank\(Filter\(L, Stage = "\w+"\)\) \|\| IsEmpty\(Filter\(L, Stage = "\w+"\)\), Blank\(\), ForAll\($', before), \
             "GroupBy over L uden IsEmpty-vagt: " + text[pos:pos + 60]
