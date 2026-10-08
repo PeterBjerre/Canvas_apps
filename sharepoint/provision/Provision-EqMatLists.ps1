@@ -256,6 +256,53 @@ function New-MaterialList {
     New-MdField 'MaterialItems' 'StrategicPart'       Text
     New-MdField 'MaterialItems' 'WearPart'            Text
 
+    # LAGER OG PLADS (issue #204)
+    #
+    # IsStockItem er en rigtig til/fra - appen sender sand/falsk fra en
+    # kontakt, ikke en etiket. Staar den til, KRAEVER formularen MinStock
+    # og MaxStock (Min <= Max); staar den fra, er de tomme.
+    #
+    # MinStock/MaxStock har INGEN standardvaerdi. En default paa 1 ville
+    # se ud som et oensket lagerniveau, nogen havde valgt.
+    New-MdField 'MaterialItems' 'IsStockItem'         Boolean
+    New-MdField 'MaterialItems' 'MinStock'            Number
+    New-MdField 'MaterialItems' 'MaxStock'            Number
+
+    # Lagerplads. Formularen foreslaar "X"; standarden staar i APPEN og
+    # ikke her, saa en raekke, nogen retter i SharePoint, ikke faar et
+    # felt udfyldt bag om brugeren.
+    New-MdField 'MaterialItems' 'StorageBin'          Text
+
+    # OBJECT LIST (issue #204): raekkens funktionspladser.
+    #
+    # ObjectList er koderne adskilt af "; " - SAMME format som
+    # MaintenanceItems.ObjectList, saa de to lister kan laeses ens.
+    # ObjectListJson er [{code, desc}], saa beskrivelserne kan gendannes,
+    # naar raekken aabnes, kopieres eller rettes igen.
+    # FunctionalLocation ovenfor er fortsat EEN kode - den foerste i
+    # listen - saa soegning, indeks og alt, der laeser feltet i dag, virker
+    # uaendret.
+    New-MdNoteField 'MaterialItems' 'ObjectList'      6
+    New-MdNoteField 'MaterialItems' 'ObjectListJson'  6
+
+    # GODKENDELSE (issue #204): sand, naar raekken er Strategic part ved
+    # indsendelsen. Den fastfryses ved Submit og er et FILTER i hub og
+    # liste - udfaldet staar i MD_ApprovalLog og kun dér.
+    New-MdField 'MaterialItems' 'ApprovalRequired'    Boolean -Indexed
+
+    # YDERLIGERE OPLYSNINGER (issue #204). Remarks er sin EGEN kolonne:
+    # LongText bruges af fakturaimporten og blandes ikke sammen med
+    # rekvirentens bemaerkning.
+    New-MdNoteField 'MaterialItems' 'Remarks'         6
+    New-MdField 'MaterialItems' 'MaintenanceOrderNo'  Text
+    New-MdField 'MaterialItems' 'ReplacesExisting'    Boolean
+    New-MdField 'MaterialItems' 'ReplacedMaterialNo'  Text
+
+    # Materialenummeret fra SAP. Det findes FOERST, naar materialet er
+    # oprettet, og udfyldes derfor i Details bagefter - af rekvirenten
+    # eller af en admin. Det indgaar ikke i godkendelsens fingerprint.
+    New-MdField 'MaterialItems' 'CreatedMaterialNo'   Text -Indexed
+
     # Documentation er BEVIDST ikke her - samme grund som DocumentType og
     # DocumentLink paa udstyret.
     #
