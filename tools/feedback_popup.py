@@ -31,8 +31,10 @@ Soegningen koerer lokalt paa den hentede liste og spoerger ikke SharePoint
 for hvert tastetryk.
 
 Valget gemmes som en record i gblFbSel (Kind, Code, Label, TypeName, Domain,
-Title) og bruges direkte i mailens emne og i en kontekstblok oeverst i
-beskeden - ikke som formateret tekst, der skal laeses tilbage.
+Title, Url) og bruges direkte i mailens emne og - som JSON (CONTEXT_FX) - i
+flowets "Context"-input. Flowet bygger selv mailens emne-/anmodningsafsnit
+og linket (AppUrl fra MD_RequestIndex) ud fra den (issue #194); beskeden
+sendes uaendret som ren tekst og escapes i flowet.
 """
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -94,7 +96,7 @@ def _type_fx(domain_expr):
 _COLLECT = (f"ClearCollect({REQS}, ForAll(FirstN(Sort(Filter('{ri.LIST}', RequesterEmail = {ME}), "
             f"LastActionOn, SortOrder.Descending), {REQ_LIMIT}) As R, "
             f'{{Code: R.{ri.COL_NO}, Title: Coalesce(R.ShortText, ""), Domain: R.Domain.Value, '
-            f"TypeName: {_type_fx('R.Domain.Value')}}}))")
+            f"TypeName: {_type_fx('R.Domain.Value')}, Url: Coalesce(R.AppUrl, \"\")}}))")
 
 OPEN_FX = (f"Set({ME}, Lower(User().Email)); Set({PICK}, false); Set({BUSY}, false); "
            f"{_COLLECT}; Set({OPEN}, true)")
@@ -105,11 +107,12 @@ TEMPLATE_FX = ('"Hello SAP Maintenance Team," & Char(10) & Char(10) & '
                'Char(10) & Char(10) & "Kind regards," & Char(10) & Char(10) & User().FullName & '
                'Char(10) & User().Email')
 
-# Kontekstblokken oeverst i beskeden - kun for en anmodning. Et fast emne
-# staar i mailens emne og giver ingen blok.
-CONTEXT_FX = (f'If({SEL}.Kind = "R", "Request: " & {SEL}.Code & Char(10) & '
-              f'"Type: " & {SEL}.TypeName & Char(10) & "Title: " & {SEL}.Title & '
-              'Char(10) & Char(10), "")')
+# Valget til flowets "Context"-input (issue #194): flowet viser et fast
+# emne i overskriften og - kun for en anmodning - et afsnit med nummer,
+# type, titel og link. Beskeden selv faar ingen kontekstblok mere. Et tomt
+# valg giver null-felter, som flowet laeser som tomme.
+CONTEXT_FX = (f'JSON({{Kind: {SEL}.Kind, Topic: {SEL}.Label, Code: {SEL}.Code, '
+              f'Type: {SEL}.TypeName, Title: {SEL}.Title, Url: {SEL}.Url}}, JSONFormat.Compact)')
 
 SUBJECT_FX = (f'"SAP maintenance - " & Switch({SEL}.Kind, '
               f'"R", {SEL}.TypeName & " request " & {SEL}.Code, '
@@ -154,9 +157,9 @@ def _fit(text, width, px=7.5):
             'If(Len(t) > c, Left(t, Max(1, c - 3)) & "...", t))')
 
 
-def _rec(kind, label, code='""', typ='""', domain='""', title='""'):
+def _rec(kind, label, code='""', typ='""', domain='""', title='""', url='""'):
     return (f'{{Kind: "{kind}", Code: {code}, Label: {label}, TypeName: {typ}, '
-            f'Domain: {domain}, Title: {title}}}')
+            f'Domain: {domain}, Title: {title}, Url: {url}}}')
 
 
 def _field(name, label, ctrl, width=None):
@@ -230,7 +233,7 @@ def _subject_picker(n):
     head_requests = _rec("H", '"Your requests"')
     gen_row = _rec("G", "G.Label")
     req_row = _rec("R", 'R.Code & If(IsBlank(R.Title), "", " · " & R.Title)',
-                   "R.Code", "R.TypeName", "R.Domain", "R.Title")
+                   "R.Code", "R.TypeName", "R.Domain", "R.Title", "R.Url")
     empty_row = _rec("E", 'If(IsBlank(q), "You have no requests yet.", "No requests match your search.")')
     items = (
         f"With({{q: {q}}},\n"
@@ -274,7 +277,8 @@ def _subject_picker(n):
     # weight er et udtryk, ikke et navn
     row_text.props["FontWeight"] = f"If({selected}, FontWeight.Semibold, FontWeight.Normal)"
     pick = (f"Set({SEL}, {{Kind: ThisItem.Kind, Code: ThisItem.Code, Label: ThisItem.Label, "
-            "TypeName: ThisItem.TypeName, Domain: ThisItem.Domain, Title: ThisItem.Title}); "
+            "TypeName: ThisItem.TypeName, Domain: ThisItem.Domain, Title: ThisItem.Title, "
+            "Url: ThisItem.Url}); "
             f"Set({PICK}, false)")
     hit_label = (f'If({kind} = "R", "Request " & ThisItem.Code & ", " & ThisItem.TypeName & '
                  '", " & ThisItem.Title, ThisItem.Label)')
@@ -367,8 +371,8 @@ def build(p):
     # Flowet sender fra SVC_BioSap og svarer {sent, message}. En afvisning
     # (sent = "no") og en fejl i kaldet giver begge fejlbeskeden; popuppen
     # bliver staaende med teksten, saa intet gaar tabt.
-    run = (f'{SEND_FLOW}.Run("{MAILBOX}", {SUBJECT_FX}, {CONTEXT_FX} & {msg}, '
-           f"JSON({files}.Attachments, JSONFormat.IncludeBinaryData))")
+    run = (f'{SEND_FLOW}.Run("{MAILBOX}", {SUBJECT_FX}, {msg}, '
+           f"JSON({files}.Attachments, JSONFormat.IncludeBinaryData), {CONTEXT_FX})")
     send_app = (f"Set({BUSY}, true);\n"
                 f"IfError(\n"
                 f"    With({{ res: {run} }},\n"
