@@ -400,7 +400,10 @@ def test_screen_opens_with_one_round_of_queries():
     from permissions import IS_ADMIN
     on_visible = P.on_visible()
     assert on_visible.count("Concurrent(") == 1
-    assert on_visible.count(f"ClearCollect(colIbAll,") == 1
+    # Een hentning af listen (LOAD); den stille opdatering ved genbesoeg
+    # (issue #212) kopierer kun fra sin midlertidige samling.
+    assert on_visible.count(f"ClearCollect(colIbAll, {P.FETCH_ALL})") == 1
+    assert on_visible.count("ClearCollect(colIbAll, colIbFresh)") == 1
     assert "colIbMine" not in on_visible
     assert IS_ADMIN not in P.INIT_STATE
     # Oversigten henter ikke de lange tekster - de kommer, naar sagen aabnes.
@@ -427,29 +430,51 @@ def test_detail_popup_hierarchy_and_single_close():
     nodes = P.build_detail()
     ctrls = {c.name: c for c in _walk_ctrls(nodes)}
     modal = ctrls["conIbDetModal"]
-    # Hovedet (nummer, titel, Close) staar fast; kun kroppen scroller.
-    assert [k.name for k in modal.children] == ["conIbDetHead", "conIbDetBody"]
+    # Hovedet og toppen (status, fakta, handlinger, faner) staar fast; kun
+    # fanens flade scroller, og den har samme hoejde for alle tre faner
+    # (issue #212).
+    assert [k.name for k in modal.children] == ["conIbDetHead", "conIbDetTop", "conIbDetContent"]
     assert [k.name for k in ctrls["conIbDetHead"].children] == ["txtIbDetNo", "txtIbDetTitle",
                                                                "btnIbDetClose"]
-    assert "Scroll" in ctrls["conIbDetBody"].props["LayoutOverflowY"]
-    body = [k.name for k in ctrls["conIbDetBody"].children]
+    top = [k.name for k in ctrls["conIbDetTop"].children]
     order = ["conIbDetMeta", "conIbDetFacts", "conIbDetActions", "conIbActsMenu", "conIbDetRule",
              "conIbDetTabs"]
-    assert [b for b in body if b in order] == order
+    assert [b for b in top if b in order] == order
+    assert "Scroll" not in ctrls["conIbDetTop"].props["LayoutOverflowY"]
+    content = ctrls["conIbDetContent"]
+    assert [k.name for k in content.children] == ["conIbDetDetails", "conIbDetActivity",
+                                                  "conIbDetFiles"]
+    for panel in content.children:
+        assert panel.props["Height"] == "Parent.Height"
+        assert "Scroll" in panel.props["LayoutOverflowY"]
+    # Hoejden afhaenger ikke af den valgte fane.
+    assert "varIbTab" not in content.props["Height"]
+    assert "App.Height" in content.props["Height"]
     # Ingen Cancel - Close er eneste vej ud, ogsaa i sletningen.
     assert not [n for n in ctrls if "Cancel" in n]
     dels = {c.name for c in _walk_ctrls(P.build_delete())}
     assert "btnIbDelCancel" not in dels and "btnIbDelClose" in dels
-    # Archive og Delete under More actions (kun admin), Delete sidst.
-    assert [k.name for k in ctrls["conIbActsBtns"].children] == ["btnIbArchive", "btnIbDelete"]
+    # Issue #212: Edit, Archive og Delete i overloebsmenuen - i den
+    # raekkefoelge, hver kun naar den er tilladt; Delete sidst.
+    assert [k.name for k in ctrls["conIbActsBtns"].children] == ["btnIbEdit", "btnIbArchive",
+                                                                 "btnIbDelete"]
+    assert ctrls["btnIbEdit"].props["Visible"] == "IbCanEdit"
+    assert ctrls["btnIbArchive"].props["Visible"] == "IbCanManage"
+    assert ctrls["btnIbDelete"].props["Visible"] == "IbCanManage"
     assert "IbCanManage" in ctrls["conIbActsMenu"].props["Visible"]
-    assert ctrls["btnIbMoreActs"].props["Visible"] == "IbCanManage"
+    assert "IbCanEdit" in ctrls["conIbActsMenu"].props["Visible"]
+    more = ctrls["btnIbMoreActs"]
+    assert more.props["Visible"] == "IbCanEdit || IbCanManage"
+    assert more.props["Layout"] == "ButtonLayout.IconOnly" and more.props["Icon"] == '"MoreHorizontal"'
+    assert more.props["Tooltip"] == '"More actions"' == more.props["AccessibleLabel"]
+    assert [k.name for k in ctrls["conIbDetActions"].children] == ["btnIbReopen", "btnIbMoreActs"]
     # Edit kun, naar hele raekken er hentet.
     assert "varIbSelFullFor = varIbSelId" in ctrls["btnIbEdit"].props["DisplayMode"]
-    # Issue #193: rapportoerens navn for alle ("You" paa ens egne).
+    # Issue #212: rapportoeren som kort bruger-id (UFFES) - aldrig mailen.
     rep = ctrls["txtIbFactReporter"].props["Text"]
     assert rep == P.REPORTER_FX.format(r="varIbSel")
-    assert "varIbSel.ReporterName" in rep
+    assert 'Upper(First(Split(varIbSel.Reporter, "@")).Value)' in rep
+    assert "ReporterName" not in rep
     # Activity-fanen kun for rapportoeren og admins; Attachments for alle.
     assert ctrls["btnIbTabActivity"].props["Visible"] == "IbSeeActivity"
     assert "Visible" not in ctrls["btnIbTabFiles"].props
@@ -547,3 +572,55 @@ def test_github_script_never_sends_who_reported_it():
     used = set(re.findall(r"Get-Text \$(?:Item|it|_) '([^']+)'", code))
     used |= set(re.findall(r"@\('[^']+', '([^']+)'\)", code))
     assert used and used <= fields, used - fields
+
+
+# ---------------------------------------------------------------------------
+# Issue #212: vaerktoejslinje, fliser og opdatering uden Refresh
+# ---------------------------------------------------------------------------
+def test_filters_are_a_toolbar_above_the_tiles():
+    import ib_parts as P
+    bar = P.build_filters()
+    assert bar.name == "conIbToolbar"
+    assert "Fill" not in bar.props and "BorderColor" not in bar.props
+    names = {c.name for c in _walk_ctrls([bar])}
+    for n in ("btnIbScopeAll", "btnIbStateOpen", "inpIbSearch", "drpIbSort", "drpIbFltApp",
+              "drpIbFltSection", "drpIbFltStatus", "drpIbFltPriority"):
+        assert n in names
+    assert "conIbFilterCard" not in names
+
+
+def test_tile_shows_requester_summary_and_ellipsis():
+    import ib_parts as P
+    gal = {c.name: c for c in _walk_ctrls([P.build_list()])}["galIbList"]
+    tile = {c.name: c for c in gal.children}
+    people = tile["txtIbTilePeople"].props["Text"]
+    assert 'Upper(First(Split(ThisItem.Reporter, "@")).Value)' in people
+    assert "ReporterName" not in people and "ThisItem.Reporter &" not in people
+    summary = tile["txtIbTileSummary"].props["Text"]
+    assert "ThisItem.Description" in summary and "…" in summary
+    assert "…" in tile["txtIbTileTitle"].props["Text"]
+    # Alt inden for flisen.
+    for c in gal.children:
+        if c.props.get("Y", "").isdigit() and str(c.props.get("Height", "")).isdigit():
+            assert int(c.props["Y"]) + int(c.props["Height"]) <= P.TILE_H
+
+
+def test_comment_is_added_locally_and_kept_on_failure():
+    import ib_parts as P
+    ok, fail = P.POST.split("Notify(\"The comment could not be posted.")
+    # Feeden faar raekken lokalt - ingen ny hentning af Activity.
+    assert "Collect(colIbActivity, " in ok and "ClearCollect(colIbActFresh" not in P.POST
+    assert ok.index("Collect(colIbActivity") < ok.index("Reset(inpIbComment)")
+    assert "UpdatedOn: Now()" in ok and "Set(varIbSel, Patch(varIbSel" in ok
+    assert "Reset(inpIbComment)" not in fail
+
+
+def test_refresh_never_empties_what_is_shown():
+    import ib_parts as P
+    # Hentes i en midlertidig samling; skrives kun over ved succes.
+    assert "ClearCollect(colIbFresh," in P.SYNC
+    assert P.SYNC.index("varIbSyncFailed,") < P.SYNC.index("ClearCollect(colIbAll, colIbFresh)")
+    assert "If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh)" in P.LOAD_ACTIVITY
+    # Ingen timer.
+    text = open(os.path.join(ROOT, "BIO SAP App", "ScreenIssueBoard.pa.yaml"), encoding="utf-8").read()
+    assert "Control: Timer" not in text
