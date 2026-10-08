@@ -2579,7 +2579,7 @@ Screens:
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
-                            =Set(gblNavOpen, false); Set(gblFbMe, Lower(User().Email)); Set(gblFbPick, false); Set(gblFbBusy, false); ClearCollect(colFbRequests, ForAll(FirstN(Sort(Filter('MD_RequestIndex', RequesterEmail = gblFbMe), LastActionOn, SortOrder.Descending), 100) As R, {Code: R.RequestNo, Title: Coalesce(R.ShortText, ""), Domain: R.Domain.Value, TypeName: Switch(R.Domain.Value, "FunctionalLocation", "Functional location", "Equipment", "Equipment", "MeasuringPoint", "Measuring point", "Material", "Material", "MaintenancePlan", "Maintenance plan", "Request"), Url: Coalesce(R.AppUrl, "")})); Set(gblFbOpen, true)
+                            =Set(gblNavOpen, false); Set(gblFbMe, Lower(User().Email)); Set(gblFbPick, false); Set(gblFbBusy, false); Set(gblFbAtt, false); ClearCollect(colFbRequests, ForAll(FirstN(Sort(Filter('MD_RequestIndex', RequesterEmail = gblFbMe), LastActionOn, SortOrder.Descending), 100) As R, {Code: R.RequestNo, Title: Coalesce(R.ShortText, ""), Domain: R.Domain.Value, TypeName: Switch(R.Domain.Value, "FunctionalLocation", "Functional location", "Equipment", "Equipment", "MeasuringPoint", "Measuring point", "Material", "Material", "MaintenancePlan", "Maintenance plan", "Request"), Url: Coalesce(R.AppUrl, "")})); Set(gblFbOpen, true)
                         PressedFill: |-
                             =C.'bg-muted'
                         RadiusBottomLeft: |-
@@ -3278,7 +3278,7 @@ Screens:
                         ImagePosition: |-
                             =ImagePosition.Fit
                         OnSelect: |-
-                            =Set(gblNavOpen, false); Set(gblFbMe, Lower(User().Email)); Set(gblFbPick, false); Set(gblFbBusy, false); ClearCollect(colFbRequests, ForAll(FirstN(Sort(Filter('MD_RequestIndex', RequesterEmail = gblFbMe), LastActionOn, SortOrder.Descending), 100) As R, {Code: R.RequestNo, Title: Coalesce(R.ShortText, ""), Domain: R.Domain.Value, TypeName: Switch(R.Domain.Value, "FunctionalLocation", "Functional location", "Equipment", "Equipment", "MeasuringPoint", "Measuring point", "Material", "Material", "MaintenancePlan", "Maintenance plan", "Request"), Url: Coalesce(R.AppUrl, "")})); Set(gblFbOpen, true)
+                            =Set(gblNavOpen, false); Set(gblFbMe, Lower(User().Email)); Set(gblFbPick, false); Set(gblFbBusy, false); Set(gblFbAtt, false); ClearCollect(colFbRequests, ForAll(FirstN(Sort(Filter('MD_RequestIndex', RequesterEmail = gblFbMe), LastActionOn, SortOrder.Descending), 100) As R, {Code: R.RequestNo, Title: Coalesce(R.ShortText, ""), Domain: R.Domain.Value, TypeName: Switch(R.Domain.Value, "FunctionalLocation", "Functional location", "Equipment", "Equipment", "MeasuringPoint", "Measuring point", "Material", "Material", "MaintenancePlan", "Maintenance plan", "Request"), Url: Coalesce(R.AppUrl, "")})); Set(gblFbOpen, true)
                         PressedFill: |-
                             =C.'bg-muted'
                         RadiusBottomLeft: |-
@@ -3424,7 +3424,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =242 + 12 + (62 + If(gblFbPick, 6 + (12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(galIbFbSubject.AllItemsCount, 7) * 36)), 0)) + If(!gblFbPick, 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 402 - (If(CountRows(attIbFbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFbFiles.Attachments), 4) * 36) + 50 - 36)))))), 0) + If(!gblFbPick, 12 + (20 + 6 + (24 + (If(CountRows(attIbFbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFbFiles.Attachments), 4) * 36)))), 0)
+                      =242 + 12 + (48 + (62) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 402))))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -3548,7 +3548,7 @@ Screens:
                               Layout: |-
                                   =ButtonLayout.TextOnly
                               OnSelect: |-
-                                  =Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpIbFbSubjectFind); Reset(inpIbFbMessage); Reset(attIbFbFiles)
+                                  =Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Set(gblFbAtt, false); Reset(inpIbFbSubjectFind); Reset(inpIbFbMessage); Reset(attIbFbFiles)
                               RadiusBottomLeft: |-
                                   =10
                               RadiusBottomRight: |-
@@ -3813,9 +3813,9 @@ Screens:
                                         =VerticalAlign.Middle
                                     Wrap: |-
                                         =false
-                  - conIbFbSubjectCell:
+                  - conIbFbArea:
                       Control: GroupContainer
-                      Variant: AutoLayout
+                      Variant: ManualLayout
                       Properties:
                         BorderStyle: |-
                             =BorderStyle.None
@@ -3824,211 +3824,479 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =62 + If(gblFbPick, 6 + (12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(galIbFbSubject.AllItemsCount, 7) * 36)), 0)
-                        LayoutAlignItems: |-
-                            =LayoutAlignItems.Stretch
-                        LayoutDirection: |-
-                            =LayoutDirection.Vertical
-                        LayoutGap: |-
-                            =6
+                            =48 + (62) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 402)))))
                         LayoutMinWidth: |-
                             =0
-                        LayoutOverflowX: |-
-                            =LayoutOverflow.Hide
-                        LayoutOverflowY: |-
-                            =LayoutOverflow.Hide
                         Width: |-
                             =Parent.Width
                       Children:
-                        - txtIbFbSubjectLabel:
-                            Control: ModernText
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Subject or request (optional)"
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'text-muted'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
-                              Height: |-
-                                  =20
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =12
-                              Text: |-
-                                  ="Subject or request (optional)"
-                              Wrap: |-
-                                  =false
-                        - conIbFbSubject:
+                        - conIbFbForm:
                             Control: GroupContainer
                             Variant: AutoLayout
                             Properties:
-                              BorderColor: |-
-                                  =If(gblFbPick, C.'color-brand-primary', C.'border-subtle')
-                              BorderThickness: |-
-                                  =1
+                              BorderStyle: |-
+                                  =BorderStyle.None
                               DropShadow: |-
                                   =DropShadow.None
-                              Fill: |-
-                                  =C.'input-bg'
-                              FillPortions: |-
-                                  =0
                               Height: |-
-                                  =36
+                                  =48 + (62) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 402)))))
                               LayoutAlignItems: |-
-                                  =LayoutAlignItems.Center
+                                  =LayoutAlignItems.Stretch
                               LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
+                                  =LayoutDirection.Vertical
                               LayoutGap: |-
-                                  =8
-                              LayoutMinWidth: |-
-                                  =0
+                                  =12
                               LayoutOverflowX: |-
                                   =LayoutOverflow.Hide
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =12
-                              PaddingRight: |-
-                                  =10
-                              PaddingTop: |-
-                                  =0
-                              RadiusBottomLeft: |-
-                                  =10
-                              RadiusBottomRight: |-
-                                  =10
-                              RadiusTopLeft: |-
-                                  =10
-                              RadiusTopRight: |-
-                                  =10
                               Width: |-
                                   =Parent.Width
+                              X: |-
+                                  =0
+                              Y: |-
+                                  =0
                             Children:
-                              - imgIbFbSubjectIcon:
-                                  Control: Image
+                              - conIbFbSubjectCell:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        ="Choose a subject or request"
                                     BorderStyle: |-
                                         =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Height: |-
-                                        =20
-                                    Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl(Switch(gblFbSel.Domain, "FunctionalLocation", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g></svg>", "Equipment", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g></svg>", "MeasuringPoint", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></svg>", "Material", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g></svg>", "MaintenancePlan", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g></svg>", ""))
-                                    ImagePosition: |-
-                                        =ImagePosition.Fit
-                                    OnSelect: |-
-                                        =Set(gblFbPick, !gblFbPick)
-                                    TabIndex: |-
-                                        =0
-                                    Visible: |-
-                                        =gblFbSel.Kind = "R"
-                                    Width: |-
-                                        =20
-                              - btnIbFbSubject:
-                                  Control: Classic/Button
-                                  Properties:
-                                    Align: |-
-                                        =Align.Left
-                                    BorderColor: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =If(!IsBlank(gblFbSel.Kind), C.'input-fg', C.'text-muted')
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
+                                    DropShadow: |-
+                                        =DropShadow.None
                                     FillPortions: |-
                                         =0
-                                    FocusedBorderColor: |-
-                                        =C.'color-brand-primary'
-                                    FocusedBorderThickness: |-
-                                        =2
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Normal
                                     Height: |-
-                                        =34
-                                    HoverBorderColor: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    HoverColor: |-
-                                        =If(!IsBlank(gblFbSel.Kind), C.'input-fg', C.'text-muted')
-                                    HoverFill: |-
-                                        =RGBA(0, 0, 0, 0)
+                                        =62
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =6
                                     LayoutMinWidth: |-
                                         =0
-                                    OnSelect: |-
-                                        =Set(gblFbPick, !gblFbPick)
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    PressedBorderColor: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    PressedColor: |-
-                                        =If(!IsBlank(gblFbSel.Kind), C.'input-fg', C.'text-muted')
-                                    PressedFill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Size: |-
-                                        =13
-                                    TabIndex: |-
-                                        =0
-                                    Text: |-
-                                        =With({t: If(!IsBlank(gblFbSel.Kind), gblFbSel.Label, "Pick a subject or request"), c: RoundDown((Self.Width) / 7, 0)}, If(Len(t) > c, Left(t, Max(1, c - 3)) & "...", t))
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
-                                        =Max(0, ((((Min(560, App.Width - 40)) - 18 - 18)) - 12 - 10) - (If(gblFbSel.Kind = "R", (20) + 8, 0)) - ((20) + 8) - 2)
-                              - imgIbFbSubjectChevron:
-                                  Control: Image
+                                        =Parent.Width
+                                  Children:
+                                    - txtIbFbSubjectLabel:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Subject or request (optional)"
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-muted'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =20
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =12
+                                          Text: |-
+                                              ="Subject or request (optional)"
+                                          Wrap: |-
+                                              =false
+                                    - conIbFbSubject:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderColor: |-
+                                              =If(gblFbPick, C.'color-brand-primary', C.'border-subtle')
+                                          BorderThickness: |-
+                                              =1
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          Fill: |-
+                                              =C.'input-bg'
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =36
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Center
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =12
+                                          PaddingRight: |-
+                                              =10
+                                          PaddingTop: |-
+                                              =0
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Width: |-
+                                              =Parent.Width
+                                        Children:
+                                          - imgIbFbSubjectIcon:
+                                              Control: Image
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Choose a subject or request"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Height: |-
+                                                    =20
+                                                Image: |-
+                                                    ="data:image/svg+xml;utf8," & EncodeUrl(Switch(gblFbSel.Domain, "FunctionalLocation", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g></svg>", "Equipment", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g></svg>", "MeasuringPoint", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></svg>", "Material", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g></svg>", "MaintenancePlan", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g></svg>", ""))
+                                                ImagePosition: |-
+                                                    =ImagePosition.Fit
+                                                OnSelect: |-
+                                                    =Set(gblFbPick, !gblFbPick)
+                                                TabIndex: |-
+                                                    =0
+                                                Visible: |-
+                                                    =gblFbSel.Kind = "R"
+                                                Width: |-
+                                                    =20
+                                          - btnIbFbSubject:
+                                              Control: Classic/Button
+                                              Properties:
+                                                Align: |-
+                                                    =Align.Left
+                                                BorderColor: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =If(!IsBlank(gblFbSel.Kind), C.'input-fg', C.'text-muted')
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                FillPortions: |-
+                                                    =0
+                                                FocusedBorderColor: |-
+                                                    =C.'color-brand-primary'
+                                                FocusedBorderThickness: |-
+                                                    =2
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Normal
+                                                Height: |-
+                                                    =34
+                                                HoverBorderColor: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                HoverColor: |-
+                                                    =If(!IsBlank(gblFbSel.Kind), C.'input-fg', C.'text-muted')
+                                                HoverFill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                LayoutMinWidth: |-
+                                                    =0
+                                                OnSelect: |-
+                                                    =Set(gblFbPick, !gblFbPick)
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                PressedBorderColor: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                PressedColor: |-
+                                                    =If(!IsBlank(gblFbSel.Kind), C.'input-fg', C.'text-muted')
+                                                PressedFill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Size: |-
+                                                    =If(LayoutRank < 2, 12, 10.5)
+                                                TabIndex: |-
+                                                    =0
+                                                Text: |-
+                                                    =With({t: If(!IsBlank(gblFbSel.Kind), gblFbSel.Label, "Pick a subject or request"), c: RoundDown((Self.Width) / If(LayoutRank < 2, 8.2, 7.2), 0)}, If(Len(t) > c, Left(t, Max(1, c - 3)) & "...", t))
+                                                VerticalAlign: |-
+                                                    =VerticalAlign.Middle
+                                                Width: |-
+                                                    =Max(0, ((((((Min(560, App.Width - 40)) - 18 - 18)))) - 12 - 10) - (If(gblFbSel.Kind = "R", (20) + 8, 0)) - ((20) + 8) - 2)
+                                          - imgIbFbSubjectChevron:
+                                              Control: Image
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =If(gblFbPick, "Collapse list", "Expand list")
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Height: |-
+                                                    =20
+                                                Image: |-
+                                                    ="data:image/svg+xml;utf8," & EncodeUrl(If(gblFbPick, "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 15l6-6 6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></g></svg>"))
+                                                ImagePosition: |-
+                                                    =ImagePosition.Fit
+                                                OnSelect: |-
+                                                    =Set(gblFbPick, !gblFbPick)
+                                                TabIndex: |-
+                                                    =0
+                                                Width: |-
+                                                    =20
+                              - conIbFbMessageCell:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =If(gblFbPick, "Collapse list", "Expand list")
                                     BorderStyle: |-
                                         =BorderStyle.None
-                                    BorderThickness: |-
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
                                         =0
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
                                     Height: |-
-                                        =20
-                                    Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl(If(gblFbPick, "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 15l6-6 6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></g></svg>"))
-                                    ImagePosition: |-
-                                        =ImagePosition.Fit
-                                    OnSelect: |-
-                                        =Set(gblFbPick, !gblFbPick)
-                                    TabIndex: |-
+                                        =20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 402))))
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =6
+                                    LayoutMinWidth: |-
                                         =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
-                                        =20
+                                        =Parent.Width
+                                  Children:
+                                    - txtIbFbMessageCellLabel:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Message"
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-muted'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =20
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =12
+                                          Text: |-
+                                              ="Message"
+                                          Wrap: |-
+                                              =false
+                                    - inpIbFbMessage:
+                                        Control: ModernTextInput
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Message"
+                                          Appearance: |-
+                                              =Appearance.FilledDarker
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
+                                          BorderColor: |-
+                                              =C.'border-default'
+                                          BorderStyle: |-
+                                              =BorderStyle.Solid
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =C.'input-fg'
+                                          Default: |-
+                                              ="Hello SAP Maintenance Team," & Char(10) & Char(10) & Char(10) & Char(10) & "Kind regards," & Char(10) & Char(10) & User().FullName & Char(10) & User().Email
+                                          Fill: |-
+                                              =C.'input-bg'
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 402)))
+                                          LayoutMinWidth: |-
+                                              =0
+                                          MaxLength: |-
+                                              =1200
+                                          Placeholder: |-
+                                              ="Write your message"
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Size: |-
+                                              =If(LayoutRank < 2, 16, 14)
+                                          Type: |-
+                                              =TextInputType.Multiline
+                                          ValidationState: |-
+                                              =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                          Width: |-
+                                              =Parent.Width
+                              - conIbFbAttachRow:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =36
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Center
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Horizontal
+                                    LayoutGap: |-
+                                        =12
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - btnIbFbAttach:
+                                        Control: ModernButton
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =If(CountRows(attIbFbFiles.Attachments) = 0, "Attach files", "Attach files, " & CountRows(attIbFbFiles.Attachments) & " attached")
+                                          Align: |-
+                                              =Align.Center
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          Appearance: |-
+                                              =ButtonAppearance.Outline
+                                          BorderColor: |-
+                                              =C.'border-default'
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =C.'text-primary'
+                                          DisplayMode: |-
+                                              =If(gblFbBusy, DisplayMode.Disabled, DisplayMode.Edit)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =36
+                                          Icon: |-
+                                              ="Attach"
+                                          Layout: |-
+                                              =ButtonLayout.IconBefore
+                                          LayoutMinWidth: |-
+                                              =171
+                                          OnSelect: |-
+                                              =Set(gblFbPick, false); Set(gblFbAtt, true)
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Size: |-
+                                              =14
+                                          Text: |-
+                                              =If(CountRows(attIbFbFiles.Attachments) = 0, "Attach files", "Attach files (" & CountRows(attIbFbFiles.Attachments) & ")")
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Width: |-
+                                              =171
+                                    - txtIbFbOutlookNote:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Send via Outlook can't include files."
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-muted'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          FillPortions: |-
+                                              =0
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =36
+                                          LayoutMinWidth: |-
+                                              =0
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =12
+                                          Text: |-
+                                              ="Send via Outlook can't include files."
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Visible: |-
+                                              =CountRows(attIbFbFiles.Attachments) > 0
+                                          Width: |-
+                                              =Max(0, (((((Min(560, App.Width - 40)) - 18 - 18)))) - ((171) + 12) - 2)
+                                          Wrap: |-
+                                              =true
                         - conIbFbSubjectList:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -4041,17 +4309,13 @@ Screens:
                                   =DropShadow.None
                               Fill: |-
                                   =C.'bg-modal'
-                              FillPortions: |-
-                                  =0
                               Height: |-
-                                  =12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(galIbFbSubject.AllItemsCount, 7) * 36)
+                                  =12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(Min(galIbFbSubject.AllItemsCount, 7) * 36, (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 402)))) + 82 - 12 - If(CountRows(colFbRequests) > 6, 42, 0)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
                                   =LayoutDirection.Vertical
                               LayoutGap: |-
-                                  =0
-                              LayoutMinWidth: |-
                                   =0
                               LayoutOverflowX: |-
                                   =LayoutOverflow.Hide
@@ -4077,6 +4341,10 @@ Screens:
                                   =gblFbPick
                               Width: |-
                                   =Parent.Width
+                              X: |-
+                                  =0
+                              Y: |-
+                                  =66
                             Children:
                               - conIbFbSubjectFind:
                                   Control: GroupContainer
@@ -4171,7 +4439,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =Min(galIbFbSubject.AllItemsCount, 7) * 36
+                                        =Min(Min(galIbFbSubject.AllItemsCount, 7) * 36, (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 402)))) + 82 - 12 - If(CountRows(colFbRequests) > 6, 42, 0))
                                     Items: |-
                                         =With({q: Trim(inpIbFbSubjectFind.Text)},
                                             With({
@@ -4393,264 +4661,6 @@ Screens:
                                               =0
                                           Y: |-
                                               =0
-                  - conIbFbMessageCell:
-                      Control: GroupContainer
-                      Variant: AutoLayout
-                      Properties:
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        DropShadow: |-
-                            =DropShadow.None
-                        FillPortions: |-
-                            =0
-                        Height: |-
-                            =20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 402 - (If(CountRows(attIbFbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFbFiles.Attachments), 4) * 36) + 50 - 36)))))
-                        LayoutAlignItems: |-
-                            =LayoutAlignItems.Stretch
-                        LayoutDirection: |-
-                            =LayoutDirection.Vertical
-                        LayoutGap: |-
-                            =6
-                        LayoutMinWidth: |-
-                            =0
-                        LayoutOverflowX: |-
-                            =LayoutOverflow.Hide
-                        LayoutOverflowY: |-
-                            =LayoutOverflow.Hide
-                        Visible: |-
-                            =!gblFbPick
-                        Width: |-
-                            =Parent.Width
-                      Children:
-                        - txtIbFbMessageCellLabel:
-                            Control: ModernText
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Message"
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'text-muted'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
-                              Height: |-
-                                  =20
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =12
-                              Text: |-
-                                  ="Message"
-                              Wrap: |-
-                                  =false
-                        - inpIbFbMessage:
-                            Control: ModernTextInput
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Message"
-                              Appearance: |-
-                                  =Appearance.FilledDarker
-                              BasePaletteColor: |-
-                                  =C.'color-brand-primary'
-                              BorderColor: |-
-                                  =C.'border-default'
-                              BorderStyle: |-
-                                  =BorderStyle.Solid
-                              BorderThickness: |-
-                                  =1
-                              Color: |-
-                                  =C.'input-fg'
-                              Default: |-
-                                  ="Hello SAP Maintenance Team," & Char(10) & Char(10) & Char(10) & Char(10) & "Kind regards," & Char(10) & Char(10) & User().FullName & Char(10) & User().Email
-                              Fill: |-
-                                  =C.'input-bg'
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              Height: |-
-                                  =If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 402 - (If(CountRows(attIbFbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFbFiles.Attachments), 4) * 36) + 50 - 36))))
-                              LayoutMinWidth: |-
-                                  =0
-                              MaxLength: |-
-                                  =1200
-                              Placeholder: |-
-                                  ="Write your message"
-                              RadiusBottomLeft: |-
-                                  =10
-                              RadiusBottomRight: |-
-                                  =10
-                              RadiusTopLeft: |-
-                                  =10
-                              RadiusTopRight: |-
-                                  =10
-                              Size: |-
-                                  =If(LayoutRank < 2, 16, 14)
-                              Type: |-
-                                  =TextInputType.Multiline
-                              ValidationState: |-
-                                  =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
-                              Width: |-
-                                  =Parent.Width
-                  - conIbFbFilesCell:
-                      Control: GroupContainer
-                      Variant: AutoLayout
-                      Properties:
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        DropShadow: |-
-                            =DropShadow.None
-                        FillPortions: |-
-                            =0
-                        Height: |-
-                            =20 + 6 + (24 + (If(CountRows(attIbFbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFbFiles.Attachments), 4) * 36)))
-                        LayoutAlignItems: |-
-                            =LayoutAlignItems.Stretch
-                        LayoutDirection: |-
-                            =LayoutDirection.Vertical
-                        LayoutGap: |-
-                            =6
-                        LayoutMinWidth: |-
-                            =0
-                        LayoutOverflowX: |-
-                            =LayoutOverflow.Hide
-                        LayoutOverflowY: |-
-                            =LayoutOverflow.Hide
-                        Visible: |-
-                            =!gblFbPick
-                        Width: |-
-                            =Parent.Width
-                      Children:
-                        - txtIbFbFilesCellLabel:
-                            Control: ModernText
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Attachments (optional)"
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'text-muted'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
-                              Height: |-
-                                  =20
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =12
-                              Text: |-
-                                  ="Attachments (optional)"
-                              Wrap: |-
-                                  =false
-                        - conIbFbFilesBody:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =24 + (If(CountRows(attIbFbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFbFiles.Attachments), 4) * 36))
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
-                              LayoutDirection: |-
-                                  =LayoutDirection.Vertical
-                              LayoutGap: |-
-                                  =6
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              Width: |-
-                                  =Parent.Width
-                            Children:
-                              - attIbFbFiles:
-                                  Control: Attachments@2.3.0
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Files to attach to the message"
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderThickness: |-
-                                        =1
-                                    DisplayMode: |-
-                                        =If(gblFbBusy, DisplayMode.Disabled, DisplayMode.Edit)
-                                    Height: |-
-                                        =If(CountRows(Self.Attachments) = 0, 112, 112 + Min(CountRows(Self.Attachments), 4) * 36)
-                                    MaxAttachmentSize: |-
-                                        =5
-                                    MaxAttachments: |-
-                                        =3
-                                    NoAttachmentsText: |-
-                                        ="Select files to upload"
-                                    PaddingBottom: |-
-                                        =5
-                                    PaddingLeft: |-
-                                        =5
-                                    PaddingRight: |-
-                                        =5
-                                    PaddingTop: |-
-                                        =5
-                                    Width: |-
-                                        =Parent.Width
-                              - txtIbFbFileLimits:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Up to 3 files at a time, 5 MB each."
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-muted'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =18
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =12
-                                    Text: |-
-                                        ="Up to 3 files at a time, 5 MB each."
-                                    Wrap: |-
-                                        =true
                   - conIbFbFooter:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -4680,6 +4690,56 @@ Screens:
                         Width: |-
                             =Parent.Width
                       Children:
+                        - btnIbFbSendOutlook:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Send via Outlook"
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-default'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'text-primary'
+                              DisplayMode: |-
+                                  =If(IsBlank(Trim(inpIbFbMessage.Text)) || gblFbBusy || CountRows(attIbFbFiles.Attachments) > 0, DisplayMode.Disabled, DisplayMode.Edit)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =36
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
+                              OnSelect: |-
+                                  =Launch("mailto:sapvedligehold@orsted.com?subject=" & EncodeUrl("SAP maintenance - " & Switch(gblFbSel.Kind, "R", gblFbSel.TypeName & " request " & gblFbSel.Code, "G", gblFbSel.Label, "question")) & "&body=" & EncodeUrl(If(gblFbSel.Kind = "R", "Request: " & gblFbSel.Code & Char(10) & "Type: " & gblFbSel.TypeName & Char(10) & "Title: " & gblFbSel.Title & Char(10) & If(IsBlank(gblFbSel.Url), "", "Link: " & gblFbSel.Url & Char(10)) & Char(10), "") & Left(inpIbFbMessage.Text, Find("Kind regards,", inpIbFbMessage.Text & "Kind regards,") - 1)));
+                                  Set(gblFbOpen, false);
+                                  Set(gblFbSel, Blank()); Set(gblFbPick, false); Set(gblFbAtt, false); Reset(inpIbFbSubjectFind); Reset(inpIbFbMessage); Reset(attIbFbFiles);
+                                  Notify("The mail is ready in Outlook. Press Send there.", NotificationType.Information)
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  ="Send via Outlook"
+                              Tooltip: |-
+                                  =If(CountRows(attIbFbFiles.Attachments) > 0, "Outlook can't take the attached files. Use Send, or remove the files.", "Open the message as a draft in your own Outlook")
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Width: |-
+                                  =163
                         - btnIbFbSend:
                             Control: ModernButton
                             Properties:
@@ -4708,9 +4768,9 @@ Screens:
                               OnSelect: |-
                                   =Set(gblFbBusy, true);
                                   IfError(
-                                      With({ res: 'BioSap-SendFeedbackMail'.Run("sapvedligehold@orsted.com", "SAP maintenance - " & Switch(gblFbSel.Kind, "R", gblFbSel.TypeName & " request " & gblFbSel.Code, "G", gblFbSel.Label, "question"), inpIbFbMessage.Text, JSON(ForAll(attIbFbFiles.Attachments, {Name: ThisRecord.Name, Value: ThisRecord.Value}), JSONFormat.IncludeBinaryData), JSON({Kind: gblFbSel.Kind, Topic: gblFbSel.Label, Code: gblFbSel.Code, Type: gblFbSel.TypeName, Title: gblFbSel.Title, Url: gblFbSel.Url}, JSONFormat.Compact)) },
+                                      With({ res: 'BioSap-SendFeedbackMail'.Run("sapvedligehold@orsted.com", "SAP maintenance - " & Switch(gblFbSel.Kind, "R", gblFbSel.TypeName & " request " & gblFbSel.Code, "G", gblFbSel.Label, "question"), inpIbFbMessage.Text, JSON(ForAll(attIbFbFiles.Attachments, {Name: ThisRecord.Name, Value: ThisRecord.Value}), JSONFormat.IncludeBinaryData), JSON({Kind: gblFbSel.Kind, Topic: gblFbSel.Label, Code: gblFbSel.Code, Type: gblFbSel.TypeName, Title: gblFbSel.Title, Url: gblFbSel.Url, Name: User().FullName}, JSONFormat.Compact)) },
                                           If(res.sent = "yes",
-                                              Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpIbFbSubjectFind); Reset(inpIbFbMessage); Reset(attIbFbFiles); Notify("Message sent.", NotificationType.Success),
+                                              Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Set(gblFbAtt, false); Reset(inpIbFbSubjectFind); Reset(inpIbFbMessage); Reset(attIbFbFiles); Notify("Message sent.", NotificationType.Success),
                                               Notify("The message could not be sent. " & res.message, NotificationType.Error))),
                                       Notify("The message could not be sent.", NotificationType.Error));
                                   Set(gblFbBusy, false)
@@ -4730,6 +4790,300 @@ Screens:
                                   =VerticalAlign.Middle
                               Width: |-
                                   =96
+      - conIbFbAttBackdrop:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderStyle: |-
+                =BorderStyle.None
+            DropShadow: |-
+                =DropShadow.None
+            Fill: |-
+                =C.'overlay'
+            FillPortions: |-
+                =0
+            Height: |-
+                =App.Height
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Center
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =0
+            LayoutJustifyContent: |-
+                =LayoutJustifyContent.Start
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Scroll
+            PaddingBottom: |-
+                =20
+            PaddingLeft: |-
+                =0
+            PaddingRight: |-
+                =0
+            PaddingTop: |-
+                =20
+            Visible: |-
+                =IfError(gblFbOpen && gblFbAtt, false)
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+          Children:
+            - conIbFbAttModal:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  AlignInContainer: |-
+                      =AlignInContainer.Center
+                  BorderColor: |-
+                      =C.'color-brand-primary-soft'
+                  BorderThickness: |-
+                      =1
+                  DropShadow: |-
+                      =DropShadow.ExtraBold
+                  Fill: |-
+                      =C.'bg-modal'
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =150 + 12 + (If(CountRows(attIbFbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFbFiles.Attachments), 4) * 36))
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Stretch
+                  LayoutDirection: |-
+                      =LayoutDirection.Vertical
+                  LayoutGap: |-
+                      =12
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  PaddingBottom: |-
+                      =18
+                  PaddingLeft: |-
+                      =18
+                  PaddingRight: |-
+                      =18
+                  PaddingTop: |-
+                      =18
+                  RadiusBottomLeft: |-
+                      =16
+                  RadiusBottomRight: |-
+                      =16
+                  RadiusTopLeft: |-
+                      =16
+                  RadiusTopRight: |-
+                      =16
+                  Width: |-
+                      =Min(480, App.Width - 40)
+                Children:
+                  - conIbFbAttHead:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =32
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Center
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =12
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Width: |-
+                            =Parent.Width
+                      Children:
+                        - txtIbFbAttTitle:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Attach files"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              FillPortions: |-
+                                  =0
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =26
+                              LayoutMinWidth: |-
+                                  =0
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =17
+                              Text: |-
+                                  ="Attach files"
+                              Width: |-
+                                  =Max(0, (((Min(480, App.Width - 40)) - 18 - 18)) - ((90) + 12) - 2)
+                              Wrap: |-
+                                  =false
+                        - btnIbFbAttClose:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Close"
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-default'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'text-primary'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =32
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
+                              OnSelect: |-
+                                  =Set(gblFbAtt, false)
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  ="Close"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Width: |-
+                                  =90
+                  - txtIbFbAttIntro:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="The files go with the message when you press Send."
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-muted'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =40
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =13
+                        Text: |-
+                            ="The files go with the message when you press Send."
+                        Wrap: |-
+                            =true
+                  - attIbFbFiles:
+                      Control: Attachments@2.3.0
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Files to attach to the message"
+                        BorderColor: |-
+                            =C.'border-default'
+                        BorderThickness: |-
+                            =1
+                        DisplayMode: |-
+                            =If(gblFbBusy, DisplayMode.Disabled, DisplayMode.Edit)
+                        Height: |-
+                            =If(CountRows(Self.Attachments) = 0, 112, 112 + Min(CountRows(Self.Attachments), 4) * 36)
+                        MaxAttachmentSize: |-
+                            =5
+                        MaxAttachments: |-
+                            =3
+                        NoAttachmentsText: |-
+                            ="Select files to upload"
+                        PaddingBottom: |-
+                            =5
+                        PaddingLeft: |-
+                            =5
+                        PaddingRight: |-
+                            =5
+                        PaddingTop: |-
+                            =5
+                        Width: |-
+                            =Parent.Width
+                  - txtIbFbFileLimits:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Up to 3 files at a time, 5 MB each."
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-muted'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =18
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =12
+                        Text: |-
+                            ="Up to 3 files at a time, 5 MB each."
+                        Wrap: |-
+                            =true
       - conIbFormBackdrop:
           Control: GroupContainer
           Variant: AutoLayout
