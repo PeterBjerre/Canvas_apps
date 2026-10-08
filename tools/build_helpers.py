@@ -472,6 +472,27 @@ def error_svg(size=40, stroke=4):
     return f'"data:image/svg+xml;utf8," & EncodeUrl({svg})'
 
 
+def stable_scrim(fill=C_OVERLAY):
+    """Sloerets farve - ens i alle tilstande (issue #221).
+
+    Et klassisk Image har sin egen HoverFill og PressedFill. Var de ikke
+    sat, skiftede sloeret farve, naar musen gik fra popuppen ud paa sloeret
+    (sloeret er "hovered" udenfor popuppen, ikke inde i den), og igen ved
+    et tryk. Fokusrammen tegnede en kant rundt om hele skaermen, naar
+    sloeret fik fokus ved et klik. Alle tre er nu den samme fyldfarve og
+    ingen ramme, saa siden under er daempet ens, til popuppen lukker.
+
+    Bruges af ALLE sloer med C_OVERLAY (tap_backdrop, loading_overlay,
+    open_overlay). Popupper, hvis sloer er en container med popuppen
+    indeni, har ingen hover-tilstand og er allerede stabile."""
+    return {
+        "Fill": fill,
+        "FocusedBorderThickness": "0",
+        "HoverFill": fill,
+        "PressedFill": fill,
+    }
+
+
 def loading_overlay(name, busy_var, label="Saving, please wait", caption=None):
     """DEN ventespinner - ens i alle apps og alle skaerme (issue #54, #64).
 
@@ -491,7 +512,7 @@ def loading_overlay(name, busy_var, label="Saving, please wait", caption=None):
         "AccessibleLabel": f'"{label}"',
         "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0",
-        "Fill": C_OVERLAY,
+        **stable_scrim(),
         "Height": "App.Height",
         "Image": spinner_svg(caption=caption),
         "ImagePosition": "ImagePosition.Center",
@@ -539,7 +560,7 @@ def open_overlay(prefix, busy_var, failed_var, slow_var, *, title_fx, step_fx, h
         "AccessibleLabel": f'"{label}"',
         "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0",
-        "Fill": C_OVERLAY,
+        **stable_scrim(),
         "Height": "App.Height",
         "Image": '""',
         "TabIndex": "0",
@@ -607,7 +628,7 @@ def tap_backdrop(name, vis, close_fx):
         "AccessibleLabel": '"Close the dialog"',
         "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0",
-        "Fill": C_OVERLAY,
+        **stable_scrim(),
         "Height": "App.Height",
         "Image": '""',
         "OnSelect": f"If({below}, {close_fx})",
@@ -1436,12 +1457,26 @@ def row_hit(name, onselect, label, width, height, radius=0, hover_border=False):
 
     Cellerne under laget, der selv kan aabnes, tages ud af tab-
     raekkefoelgen med TabIndex -1, hvor typen kender den (Image, klassiske
-    kontroller) - ModernButton goer IKKE (check_layout regel 10)."""
+    kontroller) - ModernButton goer IKKE (check_layout regel 10).
+
+    INGEN "OPEN ..."-BANNER (issue #219)
+    ------------------------------------
+    Den klassiske knap har AutoDisableOnSelect = true: mens OnSelect
+    koerer, er knappen deaktiveret og tegnes med Disabled*-farverne. De
+    stod paa Power Apps' standard (graa flade, graa tekst), saa den
+    usynlige label ("Open MAT-2026-011 - ...") stod et oejeblik som et
+    stort banner over hele raekken, foer spinneren kom. Nu er den
+    deaktiverede tilstand den samme som tryk-tilstanden: teksten forbliver
+    usynlig, raekken beholder trykkets tone og flytter sig ikke.
+    AutoDisableOnSelect bliver staaende - den er det, der afviser et
+    dobbeltklik, mens handlingen koerer."""
     t = C_TRANSPARENT
     edge = C_PRIMARY if hover_border else t
     props = {
         "BorderColor": t, "BorderStyle": "BorderStyle.Solid", "BorderThickness": "2",
-        "Color": t, "Fill": t,
+        "Color": t,
+        "DisabledBorderColor": edge, "DisabledColor": t, "DisabledFill": C_ROW_PRESSED,
+        "Fill": t,
         "FocusedBorderColor": C_PRIMARY, "FocusedBorderThickness": "2",
         "Height": str(height),
         "HoverBorderColor": edge, "HoverColor": t, "HoverFill": C_ROW_HOVER,

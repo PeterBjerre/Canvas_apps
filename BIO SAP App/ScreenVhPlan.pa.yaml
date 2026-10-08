@@ -58,7 +58,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =25 + (0 + If(LayoutRank < 2, 0 + (Min(56, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) / 4 * 56 / 104)), 0) + (If(LayoutRank < 2, 60, 84)) + (If(LayoutRank < 2, 36, 20)) + (If(LayoutRank < 2, 10, 8)))
+                      =25 + (0 + If(LayoutRank < 2, 0 + (Min(56, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) / 4 * 56 / 104)), 0) + (If(LayoutRank < 2, 60, 84)) + (If(LayoutRank < 2, 40, 32)) + (If(LayoutRank < 2, 10, 8)))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -93,7 +93,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + If(LayoutRank < 2, 0 + (Min(56, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) / 4 * 56 / 104)), 0) + (If(LayoutRank < 2, 60, 84)) + (If(LayoutRank < 2, 36, 20)) + (If(LayoutRank < 2, 10, 8))
+                            =0 + If(LayoutRank < 2, 0 + (Min(56, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) / 4 * 56 / 104)), 0) + (If(LayoutRank < 2, 60, 84)) + (If(LayoutRank < 2, 40, 32)) + (If(LayoutRank < 2, 10, 8))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -251,9 +251,8 @@ Screens:
                                         ))) },
                                             If(
                                             VhpSubmitted, "Submitted for approval.",
-                                            d1, "Done.",
-                                            "Missing:" & Char(10) &
-                                                If(!VhpStepPlanDone, "- " & "Save the plan header." & Char(10), "")
+                                            !IsBlank(txtVhpMissingPlan.Text), "Missing:" & Char(10) & txtVhpMissingPlan.Text,
+                                            "Done."
                                         )
                                         )
                                     Width: |-
@@ -368,26 +367,10 @@ Screens:
                                                 Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         ))) },
-                                            With(
-                                            { vhpDirty: With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ) },
                                             If(
                                             VhpSubmitted, If(VhpApprovalDone, "System and cost approval are done.", varVhpFlow.Stage = "Cost", "Waiting for cost approval.", "Waiting for the system owners to approve the items."),
-                                            d2, "Done.",
-                                            "Missing:" & Char(10) &
-                                                If(!VhpStepItemDone, "- " & "Add at least one item and save every item as valid." & Char(10), "") &
-                                                If(vhpDirty, "- " & "Save the changes in the Item Editor." & Char(10), "")
-                                        )
+                                            !IsBlank(txtVhpMissingItem.Text), "Missing:" & Char(10) & txtVhpMissingItem.Text,
+                                            "Done."
                                         )
                                         )
                                     Width: |-
@@ -505,10 +488,8 @@ Screens:
                                         ))) },
                                             If(
                                             VhpSubmitted, If(VhpQualityDone, "Quality review is done.", VhpApprovalDone, "Waiting for the quality review.", "The quality review follows the system and cost approval."),
-                                            d3, "Done.",
-                                            "Missing:" & Char(10) &
-                                                If(!VhpStepTasklistDone, "- " & "Choose a task list for every item." & Char(10), "") &
-                                                If(!VhpStepOpsDone, "- " & If(varVhpPlan.PlanType = "Strategy", "Give every item operations, each with a package.", "Give every item at least one operation.") & Char(10), "")
+                                            !IsBlank(txtVhpMissingOps.Text), "Missing:" & Char(10) & txtVhpMissingOps.Text,
+                                            "Done."
                                         )
                                         )
                                     Width: |-
@@ -622,31 +603,14 @@ Screens:
                                                 Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                             )
                                         ))) },
-                                            With(
-                                            { vhpDirty: With(
-                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                            !IsBlank(varVhpActiveItemId) && (
-                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                            )
-                                        ) },
                                             If(
                                             VhpSubmitted, If(VhpInSap, "Created in SAP.", VhpQualityDone, "Approved - waiting for Master Data to create the plan in SAP.", "Master Data creates the plan in SAP once it is approved."),
                                             d4, "Ready - Submit is available.",
-                                            "Missing:" & Char(10) &
-                                                If(!VhpStepPlanDone, "- " & "Save the plan header." & Char(10), "") &
-                                                If(!VhpStepItemDone, "- " & "Add at least one item and save every item as valid." & Char(10), "") &
-                                                If(vhpDirty, "- " & "Save the changes in the Item Editor." & Char(10), "") &
-                                                If(!VhpStepTasklistDone, "- " & "Choose a task list for every item." & Char(10), "") &
-                                                If(!VhpStepOpsDone, "- " & If(varVhpPlan.PlanType = "Strategy", "Give every item operations, each with a package.", "Give every item at least one operation.") & Char(10), "") &
-                                                If(!IsBlank(VhpValidationErrors), "- " & With({ n: CountRows(Split(VhpValidationErrors, Char(10))) }, "Fix " & n & If(n = 1, " plan rule", " plan rules") & ":.") & Char(10), "") &
-                                                VhpValidationErrors
-                                        )
+                                            "Before you can submit:" & Char(10) & Concat(
+                                                Filter(Table({ h: "Plan Header", t: txtVhpMissingPlan.Text }, { h: "Items", t: txtVhpMissingItem.Text }, { h: "Tasklist and Operations", t: txtVhpMissingOps.Text }), !IsBlank(t)),
+                                                h & ":" & Char(10) & t,
+                                                Char(10)
+                                            )
                                         )
                                         )
                                     Width: |-
@@ -1064,9 +1028,8 @@ Screens:
                                               ))) },
                                                   If(
                                                   VhpSubmitted, "Submitted for approval.",
-                                                  d1, "Done.",
-                                                  "Missing:" & Char(10) &
-                                                      If(!VhpStepPlanDone, "- " & "Save the plan header." & Char(10), "")
+                                                  !IsBlank(txtVhpMissingPlan.Text), "Missing:" & Char(10) & txtVhpMissingPlan.Text,
+                                                  "Done."
                                               )
                                               )
                                           Width: |-
@@ -1181,26 +1144,10 @@ Screens:
                                                       Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                                   )
                                               ))) },
-                                                  With(
-                                                  { vhpDirty: With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ) },
                                                   If(
                                                   VhpSubmitted, If(VhpApprovalDone, "System and cost approval are done.", varVhpFlow.Stage = "Cost", "Waiting for cost approval.", "Waiting for the system owners to approve the items."),
-                                                  d2, "Done.",
-                                                  "Missing:" & Char(10) &
-                                                      If(!VhpStepItemDone, "- " & "Add at least one item and save every item as valid." & Char(10), "") &
-                                                      If(vhpDirty, "- " & "Save the changes in the Item Editor." & Char(10), "")
-                                              )
+                                                  !IsBlank(txtVhpMissingItem.Text), "Missing:" & Char(10) & txtVhpMissingItem.Text,
+                                                  "Done."
                                               )
                                               )
                                           Width: |-
@@ -1318,10 +1265,8 @@ Screens:
                                               ))) },
                                                   If(
                                                   VhpSubmitted, If(VhpQualityDone, "Quality review is done.", VhpApprovalDone, "Waiting for the quality review.", "The quality review follows the system and cost approval."),
-                                                  d3, "Done.",
-                                                  "Missing:" & Char(10) &
-                                                      If(!VhpStepTasklistDone, "- " & "Choose a task list for every item." & Char(10), "") &
-                                                      If(!VhpStepOpsDone, "- " & If(varVhpPlan.PlanType = "Strategy", "Give every item operations, each with a package.", "Give every item at least one operation.") & Char(10), "")
+                                                  !IsBlank(txtVhpMissingOps.Text), "Missing:" & Char(10) & txtVhpMissingOps.Text,
+                                                  "Done."
                                               )
                                               )
                                           Width: |-
@@ -1435,31 +1380,14 @@ Screens:
                                                       Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                                   )
                                               ))) },
-                                                  With(
-                                                  { vhpDirty: With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ) },
                                                   If(
                                                   VhpSubmitted, If(VhpInSap, "Created in SAP.", VhpQualityDone, "Approved - waiting for Master Data to create the plan in SAP.", "Master Data creates the plan in SAP once it is approved."),
                                                   d4, "Ready - Submit is available.",
-                                                  "Missing:" & Char(10) &
-                                                      If(!VhpStepPlanDone, "- " & "Save the plan header." & Char(10), "") &
-                                                      If(!VhpStepItemDone, "- " & "Add at least one item and save every item as valid." & Char(10), "") &
-                                                      If(vhpDirty, "- " & "Save the changes in the Item Editor." & Char(10), "") &
-                                                      If(!VhpStepTasklistDone, "- " & "Choose a task list for every item." & Char(10), "") &
-                                                      If(!VhpStepOpsDone, "- " & If(varVhpPlan.PlanType = "Strategy", "Give every item operations, each with a package.", "Give every item at least one operation.") & Char(10), "") &
-                                                      If(!IsBlank(VhpValidationErrors), "- " & With({ n: CountRows(Split(VhpValidationErrors, Char(10))) }, "Fix " & n & If(n = 1, " plan rule", " plan rules") & ":.") & Char(10), "") &
-                                                      VhpValidationErrors
-                                              )
+                                                  "Before you can submit:" & Char(10) & Concat(
+                                                      Filter(Table({ h: "Plan Header", t: txtVhpMissingPlan.Text }, { h: "Items", t: txtVhpMissingItem.Text }, { h: "Tasklist and Operations", t: txtVhpMissingOps.Text }), !IsBlank(t)),
+                                                      h & ":" & Char(10) & t,
+                                                      Char(10)
+                                                  )
                                               )
                                               )
                                           Width: |-
@@ -2532,14 +2460,12 @@ Screens:
                                                   IfError(varVhpViewOnly, false), "View mode - select Edit to change or submit the plan.",
                                                   VhpCanSubmit && !(vhpDirty),
                                                   "Submit the plan for approval.",
-                                                  "Not ready to submit:" & Char(10) &
-                                                      If(!VhpStepPlanDone, "- " & "Save the plan header." & Char(10), "") &
-                                                      If(!VhpStepItemDone, "- " & "Add at least one item and save every item as valid." & Char(10), "") &
-                                                      If(vhpDirty, "- " & "Save the changes in the Item Editor." & Char(10), "") &
-                                                      If(!VhpStepTasklistDone, "- " & "Choose a task list for every item." & Char(10), "") &
-                                                      If(!VhpStepOpsDone, "- " & If(varVhpPlan.PlanType = "Strategy", "Give every item operations, each with a package.", "Give every item at least one operation.") & Char(10), "") &
-                                                      If(!IsBlank(VhpValidationErrors), "- " & With({ n: CountRows(Split(VhpValidationErrors, Char(10))) }, "Fix " & n & If(n = 1, " plan rule", " plan rules") & ":.") & Char(10), "") &
-                                                      VhpValidationErrors
+                                                  varVhpSaving, "Saving ...",
+                                                  "Before you can submit:" & Char(10) & Concat(
+                                                      Filter(Table({ h: "Plan Header", t: txtVhpMissingPlan.Text }, { h: "Items", t: txtVhpMissingItem.Text }, { h: "Tasklist and Operations", t: txtVhpMissingOps.Text }), !IsBlank(t)),
+                                                      h & ":" & Char(10) & t,
+                                                      Char(10)
+                                                  )
                                               )
                                               )
                                           VerticalAlign: |-
@@ -2599,86 +2525,162 @@ Screens:
                                               =((!IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)) || (!IfError(varVhpViewOnly, true) && !IsBlank(varVhpRequestGuid)))
                                           Width: |-
                                               =40
-                        - txtVhpReadiness:
-                            Control: ModernText
+                        - conVhpReadyRow:
+                            Control: GroupContainer
+                            Variant: AutoLayout
                             Properties:
-                              AccessibleLabel: |-
-                                  ="Submission status: " & Self.Text
-                              Align: |-
-                                  =Align.Center
                               BorderStyle: |-
                                   =BorderStyle.None
-                              BorderThickness: |-
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
                                   =0
-                              Color: |-
-                                  =With(
-                                      { vhpDirty: With(
-                                      { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                      !IsBlank(varVhpActiveItemId) && (
-                                          Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                          (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                          (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                          (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                          (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                          (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                          Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                      )
-                                  ) },
-                                      If((VhpSubmitted || (VhpCanSubmit && !(vhpDirty))), C.'state-ok-fg', C.'text-muted')
-                                  )
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
                               Height: |-
-                                  =If(LayoutRank < 2, 36, 20)
-                              PaddingBottom: |-
+                                  =If(LayoutRank < 2, 40, 32)
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Center
+                              LayoutDirection: |-
+                                  =LayoutDirection.Horizontal
+                              LayoutGap: |-
+                                  =8
+                              LayoutMinWidth: |-
                                   =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =12
-                              Text: |-
-                                  =With(
-                                      { vhpDirty: With(
-                                      { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                      !IsBlank(varVhpActiveItemId) && (
-                                          Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                          (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                          (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                          (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                          (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                          (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                          Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                      )
-                                  ) },
-                                      If(
-                                      VhpSubmitted,
-                                      "Submitted. " & If(VhpInSap, "Created in SAP.", VhpQualityDone, "Approved - waiting for Master Data to create the plan in SAP.", VhpApprovalDone, "Waiting for the quality review.", varVhpFlow.Stage = "Cost", "Waiting for cost approval.", "Waiting for the system owners to approve the items."),
-                                      varVhpFlow.Status = "Returned",
-                                      "Returned to you" & If(IsBlank(varVhpFlow.ReturnComment), ".", ": " & varVhpFlow.ReturnComment) &
-                                          " Correct the plan and submit it again.",
-                                      varVhpViewOnly,
-                                      "View only - this plan has not been submitted.",
-                                      VhpCanSubmit && !(vhpDirty),
-                                      "Ready to submit.",
-                                      "Before you can submit: " &
-                                          If(!VhpStepPlanDone, "" & "Save the plan header." & " ", "") &
-                                          If(!VhpStepItemDone, "" & "Add at least one item and save every item as valid." & " ", "") &
-                                          If(vhpDirty, "" & "Save the changes in the Item Editor." & " ", "") &
-                                          If(!VhpStepTasklistDone, "" & "Choose a task list for every item." & " ", "") &
-                                          If(!VhpStepOpsDone, "" & If(varVhpPlan.PlanType = "Strategy", "Give every item operations, each with a package.", "Give every item at least one operation.") & " ", "") &
-                                          If(!IsBlank(VhpValidationErrors), "" & With({ n: CountRows(Split(VhpValidationErrors, Char(10))) }, "Fix " & n & If(n = 1, " plan rule", " plan rules") & " - hover Submit to see them.") & " ", "")
-                                  )
-                                  )
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
                               Width: |-
                                   =Parent.Width
-                              Wrap: |-
-                                  =true
+                            Children:
+                              - txtVhpReadiness:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Submission status: " & Self.Text
+                                    Align: |-
+                                        =Align.Center
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =With(
+                                            { vhpDirty: With(
+                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                            !IsBlank(varVhpActiveItemId) && (
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
+                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
+                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                            )
+                                        ) },
+                                            If((VhpSubmitted || (VhpCanSubmit && !(vhpDirty))), C.'state-ok-fg', C.'text-muted')
+                                        )
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    FillPortions: |-
+                                        =0
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =If(LayoutRank < 2, 40, 32)
+                                    LayoutMinWidth: |-
+                                        =0
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =12
+                                    Text: |-
+                                        =With(
+                                            { vhpDirty: With(
+                                            { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                            !IsBlank(varVhpActiveItemId) && (
+                                                Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
+                                                (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
+                                                (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                            )
+                                        ) },
+                                            If(
+                                            VhpSubmitted,
+                                            "Submitted. " & If(VhpInSap, "Created in SAP.", VhpQualityDone, "Approved - waiting for Master Data to create the plan in SAP.", VhpApprovalDone, "Waiting for the quality review.", varVhpFlow.Stage = "Cost", "Waiting for cost approval.", "Waiting for the system owners to approve the items."),
+                                            varVhpFlow.Status = "Returned",
+                                            "Returned to you" & If(IsBlank(varVhpFlow.ReturnComment), ".", ": " & varVhpFlow.ReturnComment) &
+                                                " Correct the plan and submit it again.",
+                                            varVhpViewOnly,
+                                            "View only - this plan has not been submitted.",
+                                            VhpCanSubmit && !(vhpDirty),
+                                            "Ready to submit.",
+                                            varVhpSaving,
+                                            "Saving ...",
+                                            "Before you can submit: " & Mid(First(Filter(Split(txtVhpMissingPlan.Text & Char(10) & txtVhpMissingItem.Text & Char(10) & txtVhpMissingOps.Text, Char(10)), !IsBlank(Value))).Value, 3)
+                                        )
+                                        )
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34))) - (If((!VhpSubmitted && !IfError(varVhpViewOnly, false) && !varVhpSaving && !IsEmpty(Filter(Split(txtVhpMissingPlan.Text & Char(10) & txtVhpMissingItem.Text & Char(10) & txtVhpMissingOps.Text, Char(10)), !IsBlank(Value)))), (131) + 8, 0)) - 2)
+                                    Wrap: |-
+                                        =true
+                              - btnVhpShowMissing:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Show everything that is missing before you can submit"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =32
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
+                                        =131
+                                    OnSelect: |-
+                                        =Set(varVhpMissingOn, true)
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="Show all (" & CountRows(Filter(Split(txtVhpMissingPlan.Text & Char(10) & txtVhpMissingItem.Text & Char(10) & txtVhpMissingOps.Text, Char(10)), !IsBlank(Value))) & ")"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Visible: |-
+                                        =(!VhpSubmitted && !IfError(varVhpViewOnly, false) && !varVhpSaving && !IsEmpty(Filter(Split(txtVhpMissingPlan.Text & Char(10) & txtVhpMissingItem.Text & Char(10) & txtVhpMissingOps.Text, Char(10)), !IsBlank(Value))))
+                                    Width: |-
+                                        =131
                         - conVhpHeadSpace:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -2746,7 +2748,7 @@ Screens:
                   FillPortions: |-
                       =1
                   Height: |-
-                      =Parent.Height - (25 + (0 + If(LayoutRank < 2, 0 + (Min(56, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) / 4 * 56 / 104)), 0) + (If(LayoutRank < 2, 60, 84)) + (If(LayoutRank < 2, 36, 20)) + (If(LayoutRank < 2, 10, 8))))
+                      =Parent.Height - (25 + (0 + If(LayoutRank < 2, 0 + (Min(56, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) / 4 * 56 / 104)), 0) + (If(LayoutRank < 2, 60, 84)) + (If(LayoutRank < 2, 40, 32)) + (If(LayoutRank < 2, 10, 8))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -6302,6 +6304,12 @@ Screens:
                                               =2
                                           Color: |-
                                               =RGBA(0, 0, 0, 0)
+                                          DisabledBorderColor: |-
+                                              =C.'color-brand-primary'
+                                          DisabledColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          DisabledFill: |-
+                                              =C.'row-pressed'
                                           Fill: |-
                                               =RGBA(0, 0, 0, 0)
                                           FocusedBorderColor: |-
@@ -11835,6 +11843,12 @@ Screens:
                                               =2
                                           Color: |-
                                               =RGBA(0, 0, 0, 0)
+                                          DisabledBorderColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          DisabledColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          DisabledFill: |-
+                                              =C.'row-pressed'
                                           Fill: |-
                                               =RGBA(0, 0, 0, 0)
                                           FocusedBorderColor: |-
@@ -13904,12 +13918,18 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderThickness: |-
+                =0
             Height: |-
                 =App.Height
+            HoverFill: |-
+                =C.'overlay'
             Image: |-
                 =""
             OnSelect: |-
                 =If(LayoutRank < 2, If(!IfError(Coalesce(varVhpAttBusy, false), false), If(varVhpTasklistPickerOpen || varVhpLongTextOpen || varVhpObjListOpen || !IsBlank(varVhpMatOpNo) || !IsBlank(varVhpAttOpNo), Set(varVhpTasklistPickerOpen, false); Set(varVhpLongTextOpen, false); Set(varVhpObjListOpen, false); Set(varVhpMatOpNo, ""); Set(varVhpAttOpNo, ""); Reset(attVhpAttPicker); Clear(colVhpAttUp); Set(varVhpAttRemove, Blank()), Set(varVhpOpMNo, ""))))
+            PressedFill: |-
+                =C.'overlay'
             TabIndex: |-
                 =If(LayoutRank < 2, 0, -1)
             Visible: |-
@@ -19465,12 +19485,18 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderThickness: |-
+                =0
             Height: |-
                 =App.Height
+            HoverFill: |-
+                =C.'overlay'
             Image: |-
                 =""
             OnSelect: |-
                 =If(LayoutRank < 2, Set(varVhpConfirmNew, false))
+            PressedFill: |-
+                =C.'overlay'
             TabIndex: |-
                 =If(LayoutRank < 2, 0, -1)
             Visible: |-
@@ -19809,12 +19835,18 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderThickness: |-
+                =0
             Height: |-
                 =App.Height
+            HoverFill: |-
+                =C.'overlay'
             Image: |-
                 =""
             OnSelect: |-
                 =If(LayoutRank < 2, Set(varVhpDeleteOpen, false))
+            PressedFill: |-
+                =C.'overlay'
             TabIndex: |-
                 =If(LayoutRank < 2, 0, -1)
             Visible: |-
@@ -20124,6 +20156,557 @@ Screens:
                             =VerticalAlign.Middle
                         Width: |-
                             =106
+      - conVhpMissingBackdrop:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Close the dialog"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =C.'overlay'
+            FocusedBorderThickness: |-
+                =0
+            Height: |-
+                =App.Height
+            HoverFill: |-
+                =C.'overlay'
+            Image: |-
+                =""
+            OnSelect: |-
+                =If(LayoutRank < 2, Set(varVhpMissingOn, false))
+            PressedFill: |-
+                =C.'overlay'
+            TabIndex: |-
+                =If(LayoutRank < 2, 0, -1)
+            Visible: |-
+                =IfError(varVhpMissingOn, false)
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conVhpMissingModal:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'color-brand-primary-soft'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.ExtraBold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =160 + 12 + (Max(0, Min(0 + If(!IsBlank(txtVhpMissingPlan.Text), 0 + (20 + 4 + (With({ t: txtVhpMissingPlan.Text }, (RoundUp(Len(t) / Max(12, RoundDown((Min(520, App.Width - 24) - 36 - 18) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(txtVhpMissingItem.Text), 12 + (20 + 4 + (With({ t: txtVhpMissingItem.Text }, (RoundUp(Len(t) / Max(12, RoundDown((Min(520, App.Width - 24) - 36 - 18) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(txtVhpMissingOps.Text), 12 + (20 + 4 + (With({ t: txtVhpMissingOps.Text }, (RoundUp(Len(t) / Max(12, RoundDown((Min(520, App.Width - 24) - 36 - 18) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0), App.Height - 40 - 172)))
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =18
+            PaddingRight: |-
+                =18
+            PaddingTop: |-
+                =18
+            RadiusBottomLeft: |-
+                =16
+            RadiusBottomRight: |-
+                =16
+            RadiusTopLeft: |-
+                =16
+            RadiusTopRight: |-
+                =16
+            Visible: |-
+                =IfError(varVhpMissingOn, false)
+            Width: |-
+                =Min(520, App.Width - 24)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =Max(20, (App.Height - Self.Height) / 3)
+          Children:
+            - txtVhpMissingTitle:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="Before you can submit"
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-primary'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =26
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =17
+                  Text: |-
+                      ="Before you can submit"
+                  Wrap: |-
+                      =false
+            - txtVhpMissingIntro:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =If(IsEmpty(Filter(Split(txtVhpMissingPlan.Text & Char(10) & txtVhpMissingItem.Text & Char(10) & txtVhpMissingOps.Text, Char(10)), !IsBlank(Value))), C.'state-ok-fg', C.'text-muted')
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =38
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =13
+                  Text: |-
+                      =If(IsEmpty(Filter(Split(txtVhpMissingPlan.Text & Char(10) & txtVhpMissingItem.Text & Char(10) & txtVhpMissingOps.Text, Char(10)), !IsBlank(Value))), "Everything is in place. You can submit the plan now.", "Complete the steps below. The list updates as you fix them.")
+                  Wrap: |-
+                      =true
+            - conVhpMissingBody:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =Max(0, Min(0 + If(!IsBlank(txtVhpMissingPlan.Text), 0 + (20 + 4 + (With({ t: txtVhpMissingPlan.Text }, (RoundUp(Len(t) / Max(12, RoundDown((Min(520, App.Width - 24) - 36 - 18) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(txtVhpMissingItem.Text), 12 + (20 + 4 + (With({ t: txtVhpMissingItem.Text }, (RoundUp(Len(t) / Max(12, RoundDown((Min(520, App.Width - 24) - 36 - 18) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(txtVhpMissingOps.Text), 12 + (20 + 4 + (With({ t: txtVhpMissingOps.Text }, (RoundUp(Len(t) / Max(12, RoundDown((Min(520, App.Width - 24) - 36 - 18) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0), App.Height - 40 - 172))
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Stretch
+                  LayoutDirection: |-
+                      =LayoutDirection.Vertical
+                  LayoutGap: |-
+                      =12
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Scroll
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - conVhpMissingPlan:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =20 + 4 + (With({ t: txtVhpMissingPlan.Text }, (RoundUp(Len(t) / Max(12, RoundDown((Min(520, App.Width - 24) - 36 - 18) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Stretch
+                        LayoutDirection: |-
+                            =LayoutDirection.Vertical
+                        LayoutGap: |-
+                            =4
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Visible: |-
+                            =!IsBlank(txtVhpMissingPlan.Text)
+                        Width: |-
+                            =Parent.Width
+                      Children:
+                        - txtVhpMissingPlanH:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Plan Header"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =20
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  ="Plan Header"
+                              Wrap: |-
+                                  =false
+                        - txtVhpMissingPlan:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Plan Header: " & Self.Text
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =With({ t: Self.Text }, (RoundUp(Len(t) / Max(12, RoundDown((Min(520, App.Width - 24) - 36 - 18) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  =With(
+                                      { t: VhpPlanMissing },
+                                      If(IsBlank(t), "", "• " & Substitute(t, Char(10), Char(10) & "• "))
+                                  )
+                              Wrap: |-
+                                  =true
+                  - conVhpMissingItem:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =20 + 4 + (With({ t: txtVhpMissingItem.Text }, (RoundUp(Len(t) / Max(12, RoundDown((Min(520, App.Width - 24) - 36 - 18) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Stretch
+                        LayoutDirection: |-
+                            =LayoutDirection.Vertical
+                        LayoutGap: |-
+                            =4
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Visible: |-
+                            =!IsBlank(txtVhpMissingItem.Text)
+                        Width: |-
+                            =Parent.Width
+                      Children:
+                        - txtVhpMissingItemH:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Items"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =20
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  ="Items"
+                              Wrap: |-
+                                  =false
+                        - txtVhpMissingItem:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Items: " & Self.Text
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =With({ t: Self.Text }, (RoundUp(Len(t) / Max(12, RoundDown((Min(520, App.Width - 24) - 36 - 18) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  =With(
+                                      { vhpDirty: With(
+                                      { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                      !IsBlank(varVhpActiveItemId) && (
+                                          Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                          (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                          (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                          (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
+                                          (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
+                                          (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                          Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                      )
+                                  ) },
+                                      With(
+                                      { t: Concat(Filter(Table({ m: VhpItemMissing }, { m: If(vhpDirty, "Save the changes in the Item Editor.", "") }), !IsBlank(m)), m, Char(10)) },
+                                      If(IsBlank(t), "", "• " & Substitute(t, Char(10), Char(10) & "• "))
+                                  )
+                                  )
+                              Wrap: |-
+                                  =true
+                  - conVhpMissingOps:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =20 + 4 + (With({ t: txtVhpMissingOps.Text }, (RoundUp(Len(t) / Max(12, RoundDown((Min(520, App.Width - 24) - 36 - 18) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Stretch
+                        LayoutDirection: |-
+                            =LayoutDirection.Vertical
+                        LayoutGap: |-
+                            =4
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Visible: |-
+                            =!IsBlank(txtVhpMissingOps.Text)
+                        Width: |-
+                            =Parent.Width
+                      Children:
+                        - txtVhpMissingOpsH:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Tasklist and Operations"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =20
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  ="Tasklist and Operations"
+                              Wrap: |-
+                                  =false
+                        - txtVhpMissingOps:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Tasklist and Operations: " & Self.Text
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =With({ t: Self.Text }, (RoundUp(Len(t) / Max(12, RoundDown((Min(520, App.Width - 24) - 36 - 18) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  =With(
+                                      { t: VhpOpsMissing },
+                                      If(IsBlank(t), "", "• " & Substitute(t, Char(10), Char(10) & "• "))
+                                  )
+                              Wrap: |-
+                                  =true
+            - conVhpMissingFooter:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =36
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutJustifyContent: |-
+                      =LayoutJustifyContent.End
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - btnVhpMissingClose:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-default'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varVhpMissingOn, false)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        Text: |-
+                            ="Close"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =77
       - imgVhpMoreScrim:
           Control: Image
           Properties:
@@ -22109,6 +22692,12 @@ Screens:
                                               =2
                                           Color: |-
                                               =RGBA(0, 0, 0, 0)
+                                          DisabledBorderColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          DisabledColor: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          DisabledFill: |-
+                                              =C.'row-pressed'
                                           Fill: |-
                                               =RGBA(0, 0, 0, 0)
                                           FocusedBorderColor: |-
@@ -22291,12 +22880,18 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderThickness: |-
+                =0
             Height: |-
                 =App.Height
+            HoverFill: |-
+                =C.'overlay'
             Image: |-
                 ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><style>.f{opacity:0;animation:f .2s ease-out 0.15s forwards}.s{transform-origin:32px 32px;animation:s .9s linear infinite}@keyframes f{to{opacity:1}}@keyframes s{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.s{animation:none}}</style><g class='f' transform='translate(0 0)'><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path class='s' d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'/></g></svg>")
             ImagePosition: |-
                 =ImagePosition.Center
+            PressedFill: |-
+                =C.'overlay'
             TabIndex: |-
                 =0
             Visible: |-
@@ -22838,10 +23433,16 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderThickness: |-
+                =0
             Height: |-
                 =App.Height
+            HoverFill: |-
+                =C.'overlay'
             Image: |-
                 =""
+            PressedFill: |-
+                =C.'overlay'
             TabIndex: |-
                 =0
             Visible: |-

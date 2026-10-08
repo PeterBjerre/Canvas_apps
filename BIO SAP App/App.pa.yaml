@@ -1882,7 +1882,16 @@ App:
                               VhpSaveableItems,
                               IsBlank(ShortText) || IsBlank(MainWorkCenter) || IsBlank(ActivityType) || IsBlank(FunctionalLocation)
                           ),
-                          "Item " & Text(ItemId) & " (" & Coalesce(ShortText, "no short text") & "): missing required fields.",
+                          With(
+                              {
+                                  f:
+                                      If(IsBlank(ShortText), ", short text", "") &
+                                      If(IsBlank(MainWorkCenter), ", main work center", "") &
+                                      If(IsBlank(ActivityType), ", activity type", "") &
+                                      If(IsBlank(FunctionalLocation), ", functional location", "")
+                              },
+                              "Item " & Text(ItemId) & " (" & Coalesce(ShortText, "no short text") & "): add " & Mid(f, 3) & "."
+                          ),
                           Char(10)
                       ),
                   s1:
@@ -1981,6 +1990,15 @@ App:
       // Reglerne, der rettes i Tasklist and Operations.
       VhpOpsRuleErrors = Concat(Filter(Split(VhpValidationErrors, Char(10)), StartsWith(Value, "S3:") || StartsWith(Value, "S4:") || StartsWith(Value, "S5:") || StartsWith(Value, "M1:")), Value, Char(10));
 
+      // Det, der mangler i Plan Header (issue #220) - een linje pr. krav. Tom = intet.
+      VhpPlanMissing = Concat(Filter(Table({ m: If(!VhpStepPlanDone, "Save the plan header.", "") }, { m: VhpPlanRuleErrors }), !IsBlank(m)), m, Char(10));
+
+      // Det, der mangler i Items (issue #220) - een linje pr. krav. Tom = intet.
+      VhpItemMissing = Concat(Filter(Table({ m: If(!VhpStepItemDone, If(IsEmpty(VhpSaveableItems), "Add at least one item.", "Save every item as valid in the Item Editor."), "") }, { m: VhpItemRuleErrors }), !IsBlank(m)), m, Char(10));
+
+      // Det, der mangler i Tasklist and Operations (issue #220) - een linje pr. krav. Tom = intet.
+      VhpOpsMissing = Concat(Filter(Table({ m: If(!VhpStepTasklistDone, "Choose a task list for every item.", "") }, { m: If(!VhpStepOpsDone, If(varVhpPlan.PlanType = "Strategy", "Give every item operations, each with a package.", "Give every item at least one operation."), "") }, { m: VhpOpsRuleErrors }), !IsBlank(m)), m, Char(10));
+
       // Plan Header er gemt og opfylder sine regler.
       VhpPlanValid = VhpStepPlanDone && IsBlank(VhpPlanRuleErrors);
 
@@ -2027,6 +2045,24 @@ App:
       // Vaerkerne. Eneste opslagsliste appen laeser, og den laeses foerst,
       // naar dropdownen aabnes.
       colMatPlants = Sort(ForAll(PlantList As R, { Value: R.Title }), Value);
+
+      // Vaerkerne. Eneste opslagsliste appen laeser, og den laeses foerst,
+      // naar dropdownen aabnes.
+      colMpPlants = Sort(ForAll(PlantList As R, { Value: R.Title }), Value);
+
+      // Karakteristikker til maalepunkter (issue #210). Genereret af
+      // Measuring Point App/build/domain_config.py - ret ikke i YAML'en.
+      colMpChars = Sort(
+          ForAll(Filter(MD_MpCharacteristic, Active = true) As R, {
+              Value: R.Title,
+              Description: Coalesce(R.Description, ""),
+              Unit: Coalesce(R.Unit, ""),
+              UnitDescription: Coalesce(R.UnitDescription, ""),
+              MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+              DefaultDecimalPlaces: Coalesce(R.DefaultDecimalPlaces, 0)
+          }),
+          Value
+      );
 
       // KKS-opslaget (KKS App/build/kks_parts.py). Samlingerne hentes i
       // skaermens OnVisible; alt herunder regnes i hukommelsen.
@@ -2167,6 +2203,7 @@ App:
           "vhplan", ScreenVhPlan,
           "equipment", ScreenEquipment,
           "material", ScreenMaterial,
+          "measuringpoint", ScreenMeasuringPoint,
           "kks", ScreenKks,
           "issueboard", ScreenIssueBoard,
           ScreenMdHub

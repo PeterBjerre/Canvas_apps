@@ -88,10 +88,37 @@ from fl_picker import fl_picker, known_fx as fl_known_fx, reset_fx as fl_reset_f
 
 # Raekkens felter i een flad liste - raekkefoelgen er sektionernes.
 FIELDS = [f for _sec, fields in cfg.SECTIONS for f in fields]
+# BETINGEDE FELTER (opt-in, issue #210)
+# -------------------------------------
+# cfg.WHEN = { kolonne: Power Fx-udtryk }. Et felt med et udtryk vises kun,
+# naar udtrykket er sandt, og dets vaerdi RYDDES ved gem, saa en aendret
+# type ikke efterlader gamle vaerdier i raekken.
+#
+# Equipment og Materials har ingen WHEN, og deres skaermes YAML er derfor
+# ordret den samme som foer - det er hele pointen med at det er opt-in.
+WHEN = dict(getattr(cfg, "WHEN", {}))
+
+# Felter, der skal skrives af appen i stedet for af brugeren (opt-in):
+# { kolonne: Power Fx-udtryk }. Measuring Point bruger den til IsCounter og
+# ApprovalRequired, der er AFLEDT af typen (issue #210 Q14/Q16). Kolonnerne
+# staar i cfg.READ_FIELDS, saa de hentes og vises, men ikke tastes.
+EXTRA_PATCH = dict(getattr(cfg, "EXTRA_PATCH", {}))
+
 # Raekkens felter i SAMLINGEN: formularens plus dem, appen kun laeser
 # (cfg.READ_FIELDS, fx Equipments SAP-udstyrsnummer - issue #94). De
 # hentes og vises, men skrives aldrig af formularen.
 ROW_FIELDS = FIELDS + list(getattr(cfg, "READ_FIELDS", []))
+
+_COLS = {c for c, _l, _k, _ch in FIELDS}
+_unknown = sorted(set(WHEN) - _COLS)
+if _unknown:
+    raise SystemExit("domain_config.WHEN naevner felter, der ikke staar i "
+                     "SECTIONS: %s" % ", ".join(_unknown))
+_READ_COLS = {c for c, _l, _k, _ch in getattr(cfg, "READ_FIELDS", [])}
+_unknown = sorted(set(EXTRA_PATCH) - _READ_COLS)
+if _unknown:
+    raise SystemExit("domain_config.EXTRA_PATCH naevner felter, der ikke staar i "
+                     "READ_FIELDS: %s" % ", ".join(_unknown))
 
 
 def use(expected):
@@ -365,6 +392,16 @@ def _input_for(col, kind, choices, required_formula="false"):
         # build_helpers sammen med de fire andre og deler deres regel.
         return date_picker(name, v, display_mode=DM_ROW,
                            onchange=f"Set({v}, Self.SelectedDate)")
+    if kind == "dec":
+        # TAL MED DECIMALER, TASTET SOM TEKST (issue #210)
+        #
+        # ModernNumberInput har heltalspraecision (build_helpers.
+        # number_input saetter Precision '0'), og en maaling kan have op
+        # til tre decimaler. Feltet er derfor et tekstfelt, og _patch_value
+        # sender Value(...) til Number-kolonnen. Variablen er TEKST, saa
+        # "ikke udfyldt" kan skelnes fra 0.
+        return text_input(name, v, max_length=20, display_mode=DM_ROW,
+                          onchange=f"Set({v}, Self.Text)")
     if kind == "long":
         # ttype="Multiline" -> Type: TextInputType.Multiline. Det er den
         # form, VH-plan-appens langtekstboks bruger, og dermed den eneste
@@ -489,6 +526,11 @@ def _patch_value(col, kind):
         return f"Trim(Coalesce({v}, \"\"))"
     if kind == "bool":
         return f"Coalesce({v}, false)"
+    if kind == "dec":
+        # Tekstfeltets indhold ind i en Number-kolonne. Tom tekst skal
+        # vaere Blank() og ikke 0: 0 er en maaling, tom er "ikke udfyldt".
+        return (f'If(IsBlank(Trim(Coalesce({v}, ""))), Blank(), '
+                f'IfError(Value(Trim({v})), Blank()))')
     return v
 
 
@@ -528,6 +570,10 @@ def _collect_rows(source):
     for col, _lab, kind, _ch in ROW_FIELDS:
         if kind in ("text", "long", "choice"):
             v = f'Coalesce(R.{col}, "")'
+        elif kind == "dec":
+            # Tallet som TEKST, saa formularens tekstfelt kan vise det
+            # praecis som det staar - og tom betyder tom (issue #210).
+            v = f'If(IsBlank(R.{col}), "", Text(R.{col}))'
         elif kind == "bool":
             v = f"Coalesce(R.{col}, false)"
         elif kind == "num":
@@ -619,7 +665,14 @@ def copy_row_fx():
              f'Set({REQUIRED}, false);',
              f'Set(varDomFText, ThisItem.{cfg.C_TEXT});',
              'Set(varDomFPlant, ThisItem.Plant);']
-    for col, _lab, _kind, _ch in FIELDS:
+    # cfg.COPY_SKIP: felter, der IKKE maa foelge med i en kopi (opt-in).
+    # Measuring Point bruger den til det eksisterende maalepunktsnummer -
+    # to raekker kan ikke vaere det samme punkt (issue #210).
+    skip = set(getattr(cfg, "COPY_SKIP", ()))
+    for col, _lab, kind, _ch in FIELDS:
+        if col in skip:
+            lines.append(f"Set({_var(col)}, {_blank(kind)});")
+            continue
         lines.append(f"Set({_var(col)}, ThisItem.{col});")
     # Dokumenterne foelger IKKE med. De ligger i en mappe, der hedder den
     # gamle raekkes noegle, og kopien har ingen noegle endnu.
@@ -721,12 +774,22 @@ def save_row_fx(status="valid", required=()):
         "            Plant: varDomFPlant,",
     ]
     for col, _lab, kind, _ch in FIELDS:
-        value = HOOKS["patch_override"].get(col) or _patch_value(col, kind)
-        patch.append(f"            {col}: {value},")
+        v = HOOKS["patch_override"].get(col) or _patch_value(col, kind)
+        if col in WHEN:
+            # ET SKJULT FELT GEMMES TOMT (issue #210)
+            #
+            # Skifter brugeren type, skal den gamle types vaerdier ikke
+            # blive staaende paa raekken - saa ville SAP-ordren og
+            # detaljerne vise et felt, formularen ikke laengere viser.
+            v = f"If({WHEN[col]}, {v}, {_blank(kind)})"
+        patch.append(f"            {col}: {v},")
     # Appens egne kolonner, der ikke er et felt i formularen (Materials'
     # Object List) - HOOKS["extra_patch"].
     for col, expr in HOOKS["extra_patch"]:
         patch.append(f"            {col}: {expr},")
+    # Felter, appen afleder af andre (cfg.EXTRA_PATCH, issue #210).
+    for col, fx in EXTRA_PATCH.items():
+        patch.append(f"            {col}: {fx},")
     patch += [
         '            RowStatus: { Value: "%s" },' % status,
         # En admin i en andens anmodning gemmer raekken i EJERENS navn.
@@ -1071,6 +1134,8 @@ def _detail_value(col, row):
             continue
         if kind == "bool":
             return label, f'If({row}.{col}, "Yes", "No")'
+        if kind == "dec":
+            return label, f'If(IsBlank({row}.{col}), "-", {row}.{col})'
         if kind in ("num", "date"):
             return label, f'If(IsBlank({row}.{col}), "-", Text({row}.{col}))'
         return label, f'Coalesce({row}.{col}, "-")'
@@ -1133,11 +1198,16 @@ def _details_gallery(row):
     return gal
 
 
-def build_details(scope=None):
+def build_details(scope=None, extra=()):
     """Alle raekkens felter, med frem og tilbage mellem raekkerne.
 
     scope: det filter, listen viser (standard: LIST_SCOPE), saa frem og
-    tilbage foelger det, brugeren ser."""
+    tilbage foelger det, brugeren ser.
+    extra: appens egne kontroller NEDERST i feltlisten (opt-in) - en
+    funktion, der faar udtrykket for raekken, eller en liste. Measuring
+    Point laegger Master Datas felt til maalepunktsnummeret dér
+    (issue #210). Equipment og Materials giver ingen, og deres popup er
+    uaendret."""
     scope = LIST_SCOPE if scope is None else scope
     # Raekken, ruden viser. Den slaas op HVER gang - saa er den altid den,
     # der staar i samlingen, ogsaa efter en Gem.
@@ -1196,6 +1266,7 @@ def build_details(scope=None):
         kids = [_details_gallery(row)]
         if HOOKS["details_rows"]:
             kids += HOOKS["details_rows"](row)
+        kids += list(extra(row) if callable(extra) else extra)
         box = group("conDomDetRows", kids, direction="Vertical", gap=10)
         modal = group("conDomDetailsModal", [head, box], direction="Vertical",
                       gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT,
@@ -1212,6 +1283,8 @@ def build_details(scope=None):
     for n, (col, label, kind, _ch) in enumerate(ROW_FIELDS, start=len(rows)):
         if kind == "bool":
             v = f'If({row}.{col}, "Yes", "No")'
+        elif kind == "dec":
+            v = f'If(IsBlank({row}.{col}), "-", {row}.{col})'
         elif kind in ("num", "date"):
             v = f'If(IsBlank({row}.{col}), "-", Text({row}.{col}))'
         else:
@@ -1220,6 +1293,7 @@ def build_details(scope=None):
     # Anmodningen, raekken hoerer til - den sidste kolonne i colDomRows,
     # der ikke stod her (issue #101: "all available columns").
     rows.append(_detail_row(len(rows), "Request no.", f'Coalesce({row}.RequestNo, "-")'))
+    rows += list(extra(row) if callable(extra) else extra)
 
     # FELTLISTEN SCROLLER, POPUPPEN GOER IKKE. Equipment har nitten felter;
     # hoejere end en baerbar skaerm. Hovedet med Luk staar fast.
@@ -1269,7 +1343,14 @@ def send_fx(submit):
     kendes bagefter; indtil da staar GUID'en der.
     """
     rows = VALID if submit else SENDABLE
-    status = ri.SUBMITTED if submit else ri.DRAFT
+    # ET DOMAENE UDEN GODKENDELSE KAN GAA DIREKTE VIDERE (opt-in)
+    #
+    # cfg.SUBMIT_STATUS er den status, indeksraekken faar ved Submit.
+    # Measuring Point saetter den til KlarTilSAP: en anmodning uden
+    # Counter-godkendelse og uden manglende taeller gaar direkte til Master
+    # Data (issue #210 Q12). Equipment og Materials saetter den ikke og
+    # indsender som hidtil.
+    status = getattr(cfg, "SUBMIT_STATUS", ri.SUBMITTED) if submit else ri.DRAFT
     # Samme tekster som i VH-plan og FL: "Saved as X" / "Submitted as X".
     # Her stod "Saved as draft", og beskeden blev "Saved as draft as EQ-..".
     label = "Submitted" if submit else "Saved"
@@ -1496,7 +1577,10 @@ def field_grid_cell(col, required=False, visible=None):
     required: stjernen ved etiketten - true, eller et UDTRYK, naar kravet
     afhaenger af noget andet (Materials: min/max kraeves kun for en
     lagervare). visible: et udtryk, feltet kun vises under. Et skjult felt
-    koster ingen plads - gitterets hoejde regnes af de synlige boern."""
+    koster ingen plads - gitterets hoejde regnes af de synlige boern.
+
+    Staar feltet i cfg.WHEN (issue #210), faar cellen ogsaa betingelsen
+    som Visible - sammen med visible, hvis begge er givet."""
     for c, label, kind, choices in FIELDS:
         if c == col:
             req_fx = (f"({REQUIRED} && ({required}))" if isinstance(required, str)
@@ -1509,8 +1593,11 @@ def field_grid_cell(col, required=False, visible=None):
                 # der ikke kraeves lige nu, ville lyve.
                 star = cell.children[0].children[-1]
                 star.vis = required
-            if visible:
-                cell.vis = visible
+            conds = [x for x in (WHEN.get(c), visible) if x]
+            if len(conds) == 1:
+                cell.vis = conds[0]
+            elif conds:
+                cell.vis = " && ".join(f"({x})" for x in conds)
             return cell
     raise SystemExit(f"domain_parts: {col} er ikke et felt i SECTIONS")
 
