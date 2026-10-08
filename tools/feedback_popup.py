@@ -11,12 +11,11 @@ to them, so the team can answer the user directly.
 
 "Send via Outlook" (issue #205) is the old mailto draft from before #189:
 subject, the chosen request and the message open in the user's own Outlook.
-No connector is involved. A mailto link cannot carry files, so the button
-is disabled while files are attached, and the popup says why.
+No connector is involved.
 
-Files go with Send as attachments (JSON with the files as data URIs - the
-flow turns them back into binaries). They are chosen in a separate
-"Attach files" popup (issue #205); the paperclip button shows how many.
+No attachments (issue #215): the popup has no file picker. The flow keeps
+its Attachments input (text_3) so the app's .Run call keeps its five
+arguments; the app always sends "[]" there, and the flow sends no files.
 
 TEGN (issue #205): afsendernavnet kom fra Power Apps' header
 x-ms-user-name, og en HTTP-header baerer ikke ae/oe/aa - de blev til "?".
@@ -56,7 +55,6 @@ from build_helpers import (group, text_ctrl, button, text_input,
 import layout_tokens as lay
 import request_index as ri
 import icons
-import doc_upload as du
 
 OPEN = "gblFbOpen"
 ME = "gblFbMe"
@@ -66,11 +64,10 @@ REQS = "colFbRequests"
 MAILBOX = "sapvedligehold@orsted.com"
 SEND_FLOW = "'BioSap-SendFeedbackMail'"
 BUSY = "gblFbBusy"    # flowet koerer - Send er spaerret, saa intet sendes to gange
-ATT = "gblFbAtt"      # vedhaeftningspopuppen er aaben (issue #205)
-# Vedhaeftninger: faa og smaa nok til, at JSON-kaldet (base64) og mailen
-# holder sig langt under Outlook-forbindelsens graenser.
-MAX_FILES = 3
-MAX_FILE_MB = 5
+# Flowets Attachments-input (text_3) beholdes (issue #215), saa .Run har
+# samme antal argumenter som flowet i solutionen. Appen sender altid en
+# tom liste; flowet laeser den som ingen filer.
+NO_FILES = '"[]"'
 INITIALS = f'Upper(First(Split({ME}, "@")).Value)'
 
 # Brugerens egne anmodninger - aktive og historiske, nyeste foerst.
@@ -110,7 +107,7 @@ _COLLECT = (f"ClearCollect({REQS}, ForAll(FirstN(Sort(Filter('{ri.LIST}', Reques
             f"TypeName: {_type_fx('R.Domain.Value')}, Url: Coalesce(R.AppUrl, \"\")}}))")
 
 OPEN_FX = (f"Set({ME}, Lower(User().Email)); Set({PICK}, false); Set({BUSY}, false); "
-           f"Set({ATT}, false); {_COLLECT}; Set({OPEN}, true)")
+           f"{_COLLECT}; Set({OPEN}, true)")
 
 # Ingen tom "Request:"-linje mere (issue #116): en valgt anmodning saettes
 # ind som en kontekstblok ved afsendelse (CONTEXT_FX).
@@ -346,10 +343,8 @@ def _subject_picker(n, avail):
     return cell, panel, find_name
 
 
-# Raekken med vedhaeftningsknappen (issue #205) og hoejden af det, der staar
-# under knappen "Subject or request": cellen er etiket 20 + 6 + knap 36.
+# Hoejden af cellen "Subject or request": etiket 20 + 6 + knap 36.
 SUBJECT_CELL_H = 62
-ATTACH_ROW_H = 36
 # Listen ligger 4 px under knappen.
 LIST_Y = SUBJECT_CELL_H + 4
 
@@ -365,56 +360,23 @@ def _no_flex(ctrl, x, y):
     return ctrl
 
 
-def _attach_popup(n, files, close_fx):
-    """Vedhaeftningspopuppen (issue #205): den faelles klassiske filvaelger
-    (doc_upload) med loftet. Den skjules med Visible og fjernes aldrig, saa
-    de valgte filer bliver i kontrollen, naar popuppen lukkes og aabnes
-    igen. Close er eneste lukkehandling og nulstiller intet."""
-    vis = f"IfError({OPEN} && {ATT}, false)"
-    title = grow(text_ctrl(n("txt", "AttTitle"), '"Attach files"', size=lay.SIZE_CARD_TITLE,
-                           weight="Semibold", height=26, wrap="false"))
-    close = button(n("btn", "AttClose"), '"Close"', close_fx, width=90, height=32)
-    head = group(n("con", "AttHead"), [title, close], direction="Horizontal", gap=12,
-                 height=32, align_items="Center")
-    intro = text_ctrl(n("txt", "AttIntro"),
-                      '"The files go with the message when you press Send."',
-                      size=13, color=C_MUTED, height=40, wrap="true")
-    picker = du.picker(files, '"Files to attach to the message"', MAX_FILES, MAX_FILE_MB,
-                       display_mode=f"If({BUSY}, DisplayMode.Disabled, DisplayMode.Edit)")
-    limits = du.limits_text(n("txt", "FileLimits"), MAX_FILES, MAX_FILE_MB)
-    modal = group(n("con", "AttModal"), [head, intro, picker, limits],
-                  direction="Vertical", gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT,
-                  radius=lay.RADIUS_MODAL, pad=(18, 18, 18, 18),
-                  width="Min(480, App.Width - 40)", drop_shadow="ExtraBold",
-                  align_in_container="Center")
-    backdrop = group(n("con", "AttBackdrop"), [modal], direction="Vertical", gap=0,
-                     height="App.Height", width="App.Width", fill=C_OVERLAY, visible=vis,
-                     justify="Start", align_items="Center", pad=(20, 0, 20, 0),
-                     overflow_y="Scroll")
-    backdrop.props["X"] = "0"
-    backdrop.props["Y"] = "0"
-    return backdrop
-
-
 def build(p):
-    """[backdrop, attachments backdrop] for one screen. p is the screen's
-    name prefix."""
+    """[backdrop] for one screen. p is the screen's name prefix."""
     vis = f"IfError({OPEN}, false)"
     n = lambda kind, base: f"{kind}{p}Fb{base}"
 
-    # Beskedens hoejde: det faste i popuppen (402 - samme regnestykke som
-    # foer #189, hvor vedhaeftningsraekken staar paa notens plads) og
-    # resten til beskeden. Den afhaenger IKKE af, om listen er foldet ud
-    # (issue #205), saa popuppen staar stille.
-    msg_h = f"If({lay.below('Tablet')}, 220, Max(160, Min(272, App.Height - 40 - 402)))"
-    # Pladsen under vaelgerens knap: resten af cellen, beskeden og
-    # vedhaeftningsraekken.
-    avail = f"({msg_h}) + {12 + 26 + 12 + ATTACH_ROW_H - 4}"
+    # Beskedens hoejde: det faste i popuppen og resten til beskeden. Det
+    # faste er 354: polstring 36, overskrift 32, intro 40, Initials/Email
+    # 62, emnecellen 62, beskedens etiket 26, footer 36 og seks mellemrum
+    # af 12. Vedhaeftningsraekken (36 + 12) er vaek (issue #215), saa
+    # beskeden faar den plads. Den afhaenger IKKE af, om listen er foldet
+    # ud (issue #205), saa popuppen staar stille.
+    msg_h = f"If({lay.below('Tablet')}, 220, Max(160, Min(272, App.Height - 40 - 354)))"
+    # Pladsen under vaelgerens knap: resten af cellen og beskeden.
+    avail = f"({msg_h}) + {12 + 26 - 4}"
     about, panel, find_name = _subject_picker(n, avail)
-    files = n("att", "Files")
-    n_files = f"CountRows({files}.Attachments)"
-    reset = (f"Set({SEL}, Blank()); Set({PICK}, false); Set({ATT}, false); Reset({find_name}); "
-             f"Reset({n('inp', 'Message')}); Reset({files})")
+    reset = (f"Set({SEL}, Blank()); Set({PICK}, false); Reset({find_name}); "
+             f"Reset({n('inp', 'Message')})")
 
     title = grow(text_ctrl(n("txt", "Title"), '"Message SAP maintenance"', size=lay.SIZE_CARD_TITLE,
                            weight="Semibold", height=26, wrap="false"))
@@ -445,31 +407,12 @@ def build(p):
     inpMessage.h = msg_h
     message = _field(n("con", "MessageCell"), "Message", inpMessage)
 
-    # Papirclipsen (issue #205): aabner vedhaeftningspopuppen og viser,
-    # hvor mange filer der er valgt. Det store upload-felt er vaek fra
-    # formularen.
-    attach_text = f'If({n_files} = 0, "Attach files", "Attach files (" & {n_files} & ")")'
-    attach_w = fit_button_width('"Attach files (3)"') + ICON_W
-    btnAttach = button(n("btn", "Attach"), attach_text, f"Set({PICK}, false); Set({ATT}, true)",
-                       width=attach_w, height=ATTACH_ROW_H, icon=icons.FLUENT["attach"],
-                       accessible=(f'If({n_files} = 0, "Attach files", '
-                                   f'"Attach files, " & {n_files} & " attached")'),
-                       display_mode=f"If({BUSY}, DisplayMode.Disabled, DisplayMode.Edit)")
-    btnAttach.props["LayoutMinWidth"] = str(attach_w)
-    # mailto kan ikke baere filer - det siges, i stedet for at de forsvinder.
-    outlook_note = text_ctrl(n("txt", "OutlookNote"), '"Send via Outlook can\'t include files."',
-                             size=lay.SIZE_SMALL, color=C_MUTED, height=ATTACH_ROW_H, wrap="true",
-                             visible=f"{n_files} > 0",
-                             extra={"VerticalAlign": "VerticalAlign.Middle"})
-    attach_row = group(n("con", "AttachRow"), [btnAttach, grow(outlook_note)],
-                       direction="Horizontal", gap=12, height=ATTACH_ROW_H, align_items="Center")
-
     # Formularen under "Subject or request" og listen OVEN PAA den
     # (issue #205): en ManualLayout-container, hvor listen ligger sidst
     # (= oeverst). Formularen beholder sin hoejde og sine vaerdier, naar
     # listen foldes ud; listen er kun saa hoej, som der er plads til
     # (avail), og scroller resten.
-    form = group(n("con", "Form"), [about, message, attach_row], direction="Vertical", gap=12)
+    form = group(n("con", "Form"), [about, message], direction="Vertical", gap=12)
     _no_flex(form, 0, 0)
     _no_flex(panel, 0, LIST_Y)
     area = Ctrl(n("con", "Area"), "GroupContainer", variant="ManualLayout", props={
@@ -482,13 +425,8 @@ def build(p):
     # Flowet sender fra SVC_BioSap og svarer {sent, message}. En afvisning
     # (sent = "no") og en fejl i kaldet giver begge fejlbeskeden; popuppen
     # bliver staaende med teksten, saa intet gaar tabt.
-    # Kun Name og Value: kontrollens Attachments-tabel har ogsaa en skjult
-    # kolonne af typen Control, som JSON ikke kan serialisere (compile-fejl
-    # "nested property ... of type 'Control'" ved deploy).
-    files_json = (f"JSON(ForAll({files}.Attachments, {{Name: ThisRecord.Name, Value: ThisRecord.Value}}), "
-                  "JSONFormat.IncludeBinaryData)")
     run = (f'{SEND_FLOW}.Run("{MAILBOX}", {SUBJECT_FX}, {msg}, '
-           f"{files_json}, {CONTEXT_FX})")
+           f"{NO_FILES}, {CONTEXT_FX})")
     send_app = (f"Set({BUSY}, true);\n"
                 f"IfError(\n"
                 f"    With({{ res: {run} }},\n"
@@ -506,7 +444,6 @@ def build(p):
     # "Send via Outlook" (issue #205) - adfaerden fra foer #189: et udkast i
     # brugerens egen Outlook med emne, anmodning og besked. Hilsenen
     # skaeres fra, for Outlook saetter brugerens egen signatur paa.
-    # Spaerret, mens der er valgt filer: et mailto-link kan ikke baere dem.
     top = f'Left({msg}, Find("Kind regards,", {msg} & "Kind regards,") - 1)'
     send_out = (f'Launch("mailto:{MAILBOX}?subject=" & EncodeUrl({SUBJECT_FX}) & '
                 f'"&body=" & EncodeUrl({OUTLOOK_CONTEXT_FX} & {top}));\n'
@@ -514,11 +451,8 @@ def build(p):
                 'Notify("The mail is ready in Outlook. Press Send there.", NotificationType.Information)')
     btnOutlook = button(n("btn", "SendOutlook"), '"Send via Outlook"', send_out,
                         width=fit_button_width('"Send via Outlook"'), height=36,
-                        display_mode=(f"If(IsBlank(Trim({msg})) || {BUSY} || {n_files} > 0, "
-                                      "DisplayMode.Disabled, DisplayMode.Edit)"),
-                        tooltip=(f'If({n_files} > 0, "Outlook can\'t take the attached files. '
-                                 'Use Send, or remove the files.", '
-                                 '"Open the message as a draft in your own Outlook")'))
+                        display_mode=blank,
+                        tooltip='"Open the message as a draft in your own Outlook"')
     footer = group(n("con", "Footer"), [btnOutlook, btnSend], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
 
@@ -533,5 +467,4 @@ def build(p):
                      overflow_y="Scroll")
     backdrop.props["X"] = "0"
     backdrop.props["Y"] = "0"
-    # Vedhaeftningspopuppen ligger efter (= oven paa) Message us.
-    return [backdrop, _attach_popup(n, files, f"Set({ATT}, false)")]
+    return [backdrop]

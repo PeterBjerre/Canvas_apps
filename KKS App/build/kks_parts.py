@@ -368,7 +368,7 @@ def _suggest_items():
         f"            Len(q) < {SEARCH_MIN} || varKksBusy || Upper(q) = Upper(Coalesce(varKksQuery, \"\")),\n"
         "            hits,\n"
         "            ForAll(Sequence(CountRows(hits) + 1),\n"
-        "                If(Value = 1, s, Index(hits, Value - 1)))\n"
+        "                If(Value = 1, s, IfError(Index(hits, Value - 1), s)))\n"
         "        )\n"
         "    )\n"
         ")"
@@ -468,8 +468,11 @@ def _lane(n, label, keys, selected, onselect, chip_w, note=None, visible=None):
         # plads eller flere elementer.
         idx = f"((ThisItem.Value - 1) * {per} + {k})"
         shown = f"{k} <= {per} && {idx} <= {count}"
+        # IfError: Index paa en tom tabel giver en fejl-banner ("cannot be
+        # called with an empty table"), naar noeglerne genberegnes, mens
+        # galleriet endnu viser de gamle raekker. Saa vises knappen tom.
         text = (f'If({shown}, If({idx} = 1, "ALL", '
-                f'Index({keys}, {idx} - 1).Value), "")')
+                f'IfError(Index({keys}, {idx} - 1).Value, "")), "")')
         chip = button(f"btnKksL{n}_{k:02d}", text, onselect, width=chip_w, height=CHIP_H,
                       accessible=f'"{label.title()} " & Self.Text', visible=shown)
         _selected(chip, selected)
@@ -531,7 +534,7 @@ def _pick_items():
     def one(keys):
         count = f"(CountRows({keys}) + 1)"
         return (f'ForAll(Sequence({count}), With({{k: If(Value = 1, "ALL", '
-                f'Index({keys}, Value - 1).Value)}}, {{Value: k, Desc: If(k = "ALL", '
+                f'IfError(Index({keys}, Value - 1).Value, ""))}}, {{Value: k, Desc: If(k = "ALL", '
                 f'"Show all", Coalesce(LookUp(colKksScope, L1 = "HOME" && Upper(Code) = k, Description), '
                 f'LookUp(colKksScope, Upper(Code) = k, Description), ""))}}))')
     return (f"Switch(varKksPick, 1, {one('colKksL1Keys')}, 2, {one('colKksL2Keys')}, "
