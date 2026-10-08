@@ -54,6 +54,7 @@ gem, hent, kopier og detaljer tager den med af sig selv.
 """
 import domain_config as cfg
 import domain_parts as dp
+import env_config as env
 import object_list as ol
 from gen_screen import C_REQUIRED
 from build_helpers import (text_ctrl, group, button, text_input, card, field_cell,
@@ -114,9 +115,17 @@ EXTRA_STATE = f'Set({EXTRA_OPEN}, false);\nSet(varDomDetCreatedNo, "")'
 # ---------------------------------------------------------------------------
 def _add_fx():
     """Add: laeg det VALGTE resultat i objektlisten. Soegningen er
-    FL-vaelgerens egen - knappen her tilfoejer kun."""
+    FL-vaelgerens egen - knappen her tilfoejer kun.
+
+    Er raekken strategisk, slaas systemet og dets ansvarlige op med det
+    samme (bag flaget), saa initialerne staar under listen, foer raekken
+    gemmes."""
     desc = f'Coalesce(LookUp(colDomFl, Code = {FL_VAR}).Description, "")'
-    return ol.add_fx(OBJECTS, FL_VAR, desc, FL_MSG)
+    fx = ol.add_fx(OBJECTS, FL_VAR, desc, FL_MSG)
+    if APPROVAL_ON:
+        look = "\n".join("    " + l for l in resolve_fx(FORM_CODES).split("\n"))
+        fx += f";\nIf(\n    {STRAT_FORM},\n{look}\n)"
+    return fx
 
 
 def _fl_cell():
@@ -287,6 +296,7 @@ def build_form():
     rows.insert(2, ol.panel(
         "Dom", OBJECTS, width="Parent.Width", msg_var=FL_MSG, add=add,
         display_mode=f"If({NOBOM}, DisplayMode.Disabled, {dp.DM_ROW})",
+        extra=([_approver_line()] if APPROVAL_ON else ()),
         hint='"No functional location yet - search above and press Add."'))
     # De valgfrie oplysninger: een raekke, der kun er der, naar den er
     # foldet ud - skjult koster den ingen plads.
@@ -435,8 +445,13 @@ dp.configure(
     load_extra=OBJ_RESTORE,
     copy_extra=OBJ_RESTORE,
     # Gem: koderne, JSON'en - og FL-kolonnen som den FOERSTE kode.
+    # ApprovalRequired er raekkens eget svar paa "skal den godkendes?".
+    # Den skrives ved HVER gemning, ogsaa som kladde: det er data, ikke
+    # godkendelse, og flowet filtrerer paa den. Saa er den rigtig den dag,
+    # flaget taendes - ogsaa paa raekker, der laa der i forvejen.
     extra_patch=[("ObjectList", ol.codes_fx(OBJECTS)),
-                 ("ObjectListJson", ol.json_fx(OBJECTS))],
+                 ("ObjectListJson", ol.json_fx(OBJECTS)),
+                 ("ApprovalRequired", STRAT_FORM)],
     patch_override={cfg.FL_FIELD: ol.first_fx(OBJECTS)},
     # Grupperet detaljerude, og materialenummeret under felterne.
     details_groups=DETAILS_GROUPS,
@@ -444,3 +459,133 @@ dp.configure(
     details_open=DETAILS_SYNC,
     details_nav=DETAILS_SYNC,
 )
+
+
+# ---------------------------------------------------------------------------
+# SYSTEMGODKENDELSEN (issue #204) - bag feature-flaget material_approval
+#
+# HVORFOR DER SKAL SLAAS OP I ET FLOW
+# -----------------------------------
+# En strategisk raekke skal godkendes af systemets ansvarlige. Hvilket
+# SYSTEM en funktionsplads hoerer til staar i Power BI (Functional
+# Locations, Plant Section Key), og HVEM der er ansvarlig staar i
+# MD_Approver. Appen kan ikke noget af det selv, saa
+# BioSap-Material-ResolveApprovers slaar begge op og svarer med et
+# JSON-array: { code, systemNo, approver, error } pr. kode.
+#
+# Flowet LAESER kun. Det kaldes to steder:
+#   1. naar et objekt er lagt i listen paa en strategisk raekke - saa
+#      brugeren ser initialerne MENS han skriver
+#   2. naar Submit trykkes - for ALLE strategiske raekker i indmeldingen.
+#      Mangler et system eller en ansvarlig, aabner bekraeftelsen ikke,
+#      og beskeden siger hvilken funktionsplads det er. Det er bedre at
+#      stoppe her end at sende noget af sted, ingen kan godkende.
+#
+# BioSap-Material-SystemApproval startes EFTER en lykket indsendelse. Den
+# svarer med det samme og arbejder videre bagefter - en godkendelse kan
+# tage dage, og appen maa ikke vente.
+# ---------------------------------------------------------------------------
+APPROVAL_ON = env.feature_on("material_approval")
+
+RESOLVE_FLOW = "'BioSap-Material-ResolveApprovers'"
+RESOLVE_OUT = "resolveoutput"
+APPROVAL_FLOW = "'BioSap-Material-SystemApproval'"
+
+APPROVERS = "colDomApprovers"
+APPR_SCHEMA = {"Code": '""', "SystemNo": '""', "Approver": '""', "Error": '""'}
+APPR_RAW = "varDomApprRaw"
+APPR_MSG = "varDomApprMsg"
+# Appens tilstand i App.OnStart, naar flaget er taendt.
+APPR_STATE = f'Set({APPR_MSG}, "")'
+
+# Raekkens funktionspladser som een "; "-adskilt tekst - formatet, flowet
+# forventer, og det samme som ObjectList gemmes i.
+FORM_CODES = ol.codes_fx(OBJECTS)
+# De strategiske raekker, Submit ville sende (VALID er domain_parts').
+STRAT_ROWS = ('Filter(colDomRows, Status = "valid" && '
+              + is_strategic("StrategicPart") + ")")
+ROW_CODES = 'Coalesce(ObjectList, Coalesce(FunctionalLocation, ""))'
+SUBMIT_CODES = f'Concat({STRAT_ROWS}, {ROW_CODES}, "{ol.SEP}")'
+# En strategisk raekke UDEN objekt kan slet ikke slaas op.
+NO_OBJECT = (f'CountRows(Filter({STRAT_ROWS}, '
+             f'IsBlank(Trim({ROW_CODES})))) > 0')
+BAD = f'Filter({APPROVERS}, !IsBlank(Trim(Coalesce(Error, ""))))'
+
+
+def resolve_fx(codes):
+    """Slaa system og systemansvarlig op for koderne i codes.
+
+    Svaret lander i colDomApprovers. Fejler kaldet - flowet er ikke
+    importeret, eller Power BI svarer ikke - staar grunden i
+    varDomApprMsg, og Submit spaerrer paa den. Det er med vilje: uden et
+    opslag ved appen ikke, om raekken KAN godkendes."""
+    return (
+        f'Set({APPR_MSG}, "");\n'
+        f"{ol.clear_fx(APPROVERS)};\n"
+        "If(\n"
+        f'    !IsBlank(Trim(Coalesce({codes}, ""))),\n'
+        "    IfError(\n"
+        f"        Set({APPR_RAW}, {RESOLVE_FLOW}.Run({codes}));\n"
+        "        Collect(\n"
+        f"            {APPROVERS},\n"
+        f"            ForAll(Table(ParseJSON({APPR_RAW}.{RESOLVE_OUT})) As R,\n"
+        "                {\n"
+        "                    Code: Text(R.Value.code),\n"
+        "                    SystemNo: Text(R.Value.systemNo),\n"
+        "                    Approver: Text(R.Value.approver),\n"
+        "                    Error: Text(R.Value.error)\n"
+        "                })\n"
+        "        ),\n"
+        f'        Set({APPR_MSG}, "Could not look up the system managers: " & '
+        "FirstError.Message)\n"
+        "    )\n"
+        ")"
+    )
+
+
+def submit_guard():
+    """Submit-vagten (domain_parts.HOOKS["submit_guard"])."""
+    blocked = (f"({NO_OBJECT} || CountRows({BAD}) > 0 || "
+               f'!IsBlank(Trim(Coalesce({APPR_MSG}, ""))))')
+    message = (
+        "If(\n"
+        f'    !IsBlank(Trim(Coalesce({APPR_MSG}, ""))), {APPR_MSG},\n'
+        f'    {NO_OBJECT}, "A strategic row needs at least one functional '
+        'location before it can be submitted.",\n'
+        f'    "Cannot submit: " & First({BAD}).Error\n'
+        ")")
+    return (resolve_fx(SUBMIT_CODES), blocked, message)
+
+
+def _approver_line():
+    """Linjen under objektlisten: hvem godkendelsen vil spoerge.
+
+    Kun raekkens EGNE koder - colDomApprovers kan ogsaa holde svaret fra
+    Submit-opslaget, som daekker hele indmeldingen."""
+    mine = (f"Filter({APPROVERS} As A, CountRows(Filter({OBJECTS}, "
+            "Upper(Trim(Code)) = Upper(Trim(A.Code)))) > 0)")
+    bad = f'Filter({mine}, !IsBlank(Trim(Coalesce(Error, ""))))'
+    ok = f'Filter({mine}, !IsBlank(Trim(Coalesce(Approver, ""))))'
+    text = (
+        "With(\n"
+        f"    {{ bad: {bad}, ok: {ok} }},\n"
+        "    If(\n"
+        f'        !IsBlank(Trim(Coalesce({APPR_MSG}, ""))), {APPR_MSG},\n'
+        '        CountRows(bad) > 0, "Cannot be approved: " & First(bad).Error,\n'
+        '        CountRows(ok) > 0,\n'
+        '        "System approval: " & Concat(Distinct(ok, Approver & " (system " & '
+        'SystemNo & ")"), Value, ", "),\n'
+        '        ""\n'
+        "    )\n"
+        ")")
+    seen = (f'CountRows({mine}) > 0 || '
+            f'!IsBlank(Trim(Coalesce({APPR_MSG}, "")))')
+    return text_ctrl("txtDomObjApprovers", text, size=12, color=C_MUTED,
+                     height=18, wrap="false", visible=seen)
+
+
+# Godkendelsen er bag flaget: er det slukket, er appen praecis som foer -
+# ingen opslag, ingen vagt paa Submit og intet flow-kald. Flaget staar i
+# tools/canvas_apps.json (environments.<miljoe>.features.material_approval).
+if APPROVAL_ON:
+    dp.configure(submit_guard=submit_guard())

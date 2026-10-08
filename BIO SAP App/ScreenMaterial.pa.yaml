@@ -5483,6 +5483,7 @@ Screens:
                                                           ReplacedMaterialNo: Trim(Coalesce(varMatFReplacedMaterialNo, "")),
                                                           ObjectList: Concat(Sort(colMatObjects, Code), Code, "; "),
                                                           ObjectListJson: JSON(ForAll(Sort(colMatObjects, Code) As O, { code: O.Code, desc: O.Description }), JSONFormat.Compact),
+                                                          ApprovalRequired: (Upper(Trim(Coalesce(varMatFStrategicPart, ""))) in ["YES", "JA", "Y", "TRUE", "1"]),
                                                           RowStatus: { Value: "draft" },
                                                           RequesterEmail: If((!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)), Lower(varMatIdx.RequesterEmail), varMatMe),
                                                           RequesterName: If((!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)), varMatIdx.RequesterName, User().FullName)
@@ -5774,6 +5775,7 @@ Screens:
                                                           ReplacedMaterialNo: Trim(Coalesce(varMatFReplacedMaterialNo, "")),
                                                           ObjectList: Concat(Sort(colMatObjects, Code), Code, "; "),
                                                           ObjectListJson: JSON(ForAll(Sort(colMatObjects, Code) As O, { code: O.Code, desc: O.Description }), JSONFormat.Compact),
+                                                          ApprovalRequired: (Upper(Trim(Coalesce(varMatFStrategicPart, ""))) in ["YES", "JA", "Y", "TRUE", "1"]),
                                                           RowStatus: { Value: "valid" },
                                                           RequesterEmail: If((!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)), Lower(varMatIdx.RequesterEmail), varMatMe),
                                                           RequesterName: If((!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)), varMatIdx.RequesterName, User().FullName)

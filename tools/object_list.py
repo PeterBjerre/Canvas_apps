@@ -171,7 +171,7 @@ def summary_fx(list_col, first_col, *, empty='"-"'):
 # Kontrollerne: listen med kode, beskrivelse og Remove
 # ---------------------------------------------------------------------------
 def panel(prefix, coll, *, width, display_mode, msg_var, add=None,
-          label="Object list",
+          label="Object list", extra=(),
           hint='"Search for a functional location and press Add."'):
     """Objektlisten som den ses i formularen: en overskrift med antallet,
     en raekke pr. objekt (kode, beskrivelse, Remove) og en linje, naar den
@@ -229,8 +229,11 @@ def panel(prefix, coll, *, width, display_mode, msg_var, add=None,
         "WrapCount": "1",
         "Visible": f"{count_fx(coll)} > 0",
     }, children=[row], h=gal_h, vis=f"{count_fx(coll)} > 0")
-    box = group(f"con{prefix}Objects", [head, empty, gal], direction="Vertical",
-                gap=4, width=width, align_items="Stretch")
+    # extra: kalderens egne linjer UNDER listen (Materials viser de
+    # systemansvarlige, godkendelsen vil spoerge). Hoejden regnes af
+    # boernene, saa panelet vokser med dem.
+    box = group(f"con{prefix}Objects", [head, empty, gal] + list(extra),
+                direction="Vertical", gap=4, width=width, align_items="Stretch")
     return box
 
 

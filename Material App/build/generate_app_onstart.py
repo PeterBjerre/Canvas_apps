@@ -21,9 +21,15 @@ def main():
     # Materials' eget (issue #204): objektlisten paa den raekke,
     # formularen staar paa, og raekken med de valgfrie oplysninger, der er
     # foldet ind ved opstart.
+    cols = [(parts.OBJECTS, parts.OBJ_SCHEMA)]
+    state = parts.EXTRA_STATE
+    # Systemgodkendelsens svar - kun naar flaget er taendt, saa en app
+    # uden godkendelse ikke slaebber en tom samling rundt.
+    if parts.APPROVAL_ON:
+        cols.append((parts.APPROVERS, parts.APPR_SCHEMA))
+        state += ";\n" + parts.APPR_STATE
     domain_app.write_app(cfg, os.path.join(HERE, ".."),
-                         extra_collections=[(parts.OBJECTS, parts.OBJ_SCHEMA)],
-                         extra_state=parts.EXTRA_STATE)
+                         extra_collections=cols, extra_state=state)
 
 
 if __name__ == "__main__":
