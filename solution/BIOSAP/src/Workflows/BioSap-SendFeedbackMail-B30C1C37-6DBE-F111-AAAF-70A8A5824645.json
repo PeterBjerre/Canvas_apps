@@ -53,7 +53,7 @@
                                     "title": "Body",
                                     "type": "string",
                                     "x-ms-dynamically-added": true,
-                                    "description": "The message as plain text",
+                                    "description": "The message as plain text (no request details)",
                                     "x-ms-content-hint": "TEXT"
                                 },
                                 "text_3": {
@@ -62,13 +62,21 @@
                                     "x-ms-dynamically-added": true,
                                     "description": "JSON from the app: [{Name, Value}] with Value as a data URI, or []",
                                     "x-ms-content-hint": "TEXT"
+                                },
+                                "text_4": {
+                                    "title": "Context",
+                                    "type": "string",
+                                    "x-ms-dynamically-added": true,
+                                    "description": "JSON from the app: {Kind, Topic, Code, Type, Title, Url} - Kind R = request, G = general subject, blank = none",
+                                    "x-ms-content-hint": "TEXT"
                                 }
                             },
                             "required": [
                                 "text",
                                 "text_1",
                                 "text_2",
-                                "text_3"
+                                "text_3",
+                                "text_4"
                             ]
                         }
                     }
@@ -93,7 +101,7 @@
                         "operationMetadataId": "5a2c9e7d-1b4f-4c86-a3d0-8e6f2b1c4a57"
                     },
                     "type": "Compose",
-                    "inputs": "@{replace(replace(replace(coalesce(triggerOutputs()?['headers']?['x-ms-user-name'], outputs('Caller')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}"
+                    "inputs": "@{replace(replace(replace(replace(coalesce(triggerOutputs()?['headers']?['x-ms-user-name'], outputs('Caller')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;'), '\"', '&quot;')}"
                 },
                 "Mailbox": {
                     "runAfter": {
@@ -117,11 +125,78 @@
                         "operationMetadataId": "3c8d1f6a-9e2b-4a7c-85d3-6b0e4f2a1c98"
                     },
                     "type": "Compose",
-                    "inputs": "@{replace(replace(replace(replace(replace(coalesce(triggerBody()?['text_2'], ''), '&', '&amp;'), '<', '&lt;'), '>', '&gt;'), decodeUriComponent('%0D'), ''), decodeUriComponent('%0A'), '<br>')}"
+                    "inputs": "@{replace(replace(replace(replace(replace(replace(replace(coalesce(triggerBody()?['text_2'], ''), '&', '&amp;'), '<', '&lt;'), '>', '&gt;'), '\"', '&quot;'), concat(decodeUriComponent('%0D'), decodeUriComponent('%0A')), '<br>'), decodeUriComponent('%0D'), '<br>'), decodeUriComponent('%0A'), '<br>')}"
+                },
+                "Context": {
+                    "runAfter": {
+                        "Message_html": [
+                            "Succeeded"
+                        ]
+                    },
+                    "metadata": {
+                        "operationMetadataId": "2f6c8a1e-5b3d-4e97-a0c4-8d1e6b7f2a39"
+                    },
+                    "type": "Compose",
+                    "inputs": "@if(empty(trim(coalesce(triggerBody()?['text_4'], ''))), json('{}'), json(triggerBody()?['text_4']))"
+                },
+                "Request": {
+                    "runAfter": {
+                        "Context": [
+                            "Succeeded"
+                        ]
+                    },
+                    "metadata": {
+                        "operationMetadataId": "8a4e2c7b-1d9f-4b36-9e5a-3c7d0f2b6e18"
+                    },
+                    "type": "Compose",
+                    "inputs": {
+                        "IsRequest": "@and(equals(trim(coalesce(outputs('Context')?['Kind'], '')), 'R'), not(empty(trim(coalesce(outputs('Context')?['Code'], '')))))",
+                        "Topic": "@{if(equals(trim(coalesce(outputs('Context')?['Kind'], '')), 'G'), replace(replace(replace(replace(trim(coalesce(outputs('Context')?['Topic'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;'), '\"', '&quot;'), '')}",
+                        "Code": "@{replace(replace(replace(replace(trim(coalesce(outputs('Context')?['Code'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;'), '\"', '&quot;')}",
+                        "Type": "@{replace(replace(replace(replace(trim(coalesce(outputs('Context')?['Type'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;'), '\"', '&quot;')}",
+                        "Title": "@{replace(replace(replace(replace(trim(coalesce(outputs('Context')?['Title'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;'), '\"', '&quot;')}",
+                        "Url": "@{if(startsWith(toLower(trim(coalesce(outputs('Context')?['Url'], ''))), 'https://'), replace(replace(replace(replace(trim(coalesce(outputs('Context')?['Url'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;'), '\"', '&quot;'), '')}"
+                    }
+                },
+                "Heading": {
+                    "runAfter": {
+                        "Request": [
+                            "Succeeded"
+                        ]
+                    },
+                    "metadata": {
+                        "operationMetadataId": "c5b1e9d3-7a2f-4c68-b4e0-9f3a6d1c8b25"
+                    },
+                    "type": "Compose",
+                    "inputs": "@{if(outputs('Request')?['IsRequest'], concat(if(empty(outputs('Request')?['Type']), 'Request', concat(outputs('Request')?['Type'], ' request')), ' ', outputs('Request')?['Code']), if(empty(outputs('Request')?['Topic']), 'Message', outputs('Request')?['Topic']))}"
+                },
+                "Request_html": {
+                    "runAfter": {
+                        "Heading": [
+                            "Succeeded"
+                        ]
+                    },
+                    "metadata": {
+                        "operationMetadataId": "4d9e7b2a-6c1f-4a85-8b3d-2e0f9c5a7d14"
+                    },
+                    "type": "Compose",
+                    "inputs": "@{if(outputs('Request')?['IsRequest'], concat('<tr><td style=\"padding:0 24px 22px 24px;\"><div style=\"font-size:13px;font-weight:600;color:#12405f;text-transform:uppercase;letter-spacing:.06em;padding-bottom:10px;\">Request</div><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"font-size:14px;color:#24313f;\"><tr><td width=\"34%\" style=\"padding:7px 12px 7px 0;color:#6b7b8c;border-bottom:1px solid #eef2f6;vertical-align:top;\">Request no.</td><td style=\"padding:7px 0;border-bottom:1px solid #eef2f6;vertical-align:top;font-weight:600;white-space:nowrap;\">', outputs('Request')?['Code'], '</td></tr><tr><td style=\"padding:7px 12px 7px 0;color:#6b7b8c;border-bottom:1px solid #eef2f6;vertical-align:top;\">Type</td><td style=\"padding:7px 0;border-bottom:1px solid #eef2f6;vertical-align:top;\">', if(empty(outputs('Request')?['Type']), '-', outputs('Request')?['Type']), '</td></tr><tr><td style=\"padding:7px 12px 7px 0;color:#6b7b8c;border-bottom:1px solid #eef2f6;vertical-align:top;\">Title</td><td style=\"padding:7px 0;border-bottom:1px solid #eef2f6;vertical-align:top;\">', if(empty(outputs('Request')?['Title']), '-', outputs('Request')?['Title']), '</td></tr>', if(empty(outputs('Request')?['Url']), '', concat('<tr><td colspan=\"2\" style=\"padding:16px 0 4px 0;\"><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td align=\"center\" bgcolor=\"#1a6ea8\" style=\"padding:11px 24px;\"><a href=\"', outputs('Request')?['Url'], '\" target=\"_blank\" style=\"font-family:Segoe UI,Arial,Helvetica,sans-serif;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;display:inline-block;\">Open the request in the app</a></td></tr></table></td></tr>')), '</table></td></tr>'), '')}"
+                },
+                "Preheader": {
+                    "runAfter": {
+                        "Request_html": [
+                            "Succeeded"
+                        ]
+                    },
+                    "metadata": {
+                        "operationMetadataId": "e1a7c3f9-2b6d-4f04-9c8e-5a3b7d1f0e62"
+                    },
+                    "type": "Compose",
+                    "inputs": "@{replace(replace(replace(replace(substring(replace(replace(trim(coalesce(triggerBody()?['text_2'], '')), decodeUriComponent('%0D'), ' '), decodeUriComponent('%0A'), ' '), 0, min(length(replace(replace(trim(coalesce(triggerBody()?['text_2'], '')), decodeUriComponent('%0D'), ' '), decodeUriComponent('%0A'), ' ')), 110)), '&', '&amp;'), '<', '&lt;'), '>', '&gt;'), '\"', '&quot;')}"
                 },
                 "Files": {
                     "runAfter": {
-                        "Message_html": [
+                        "Preheader": [
                             "Succeeded"
                         ]
                     },
@@ -181,7 +256,7 @@
                                 "parameters": {
                                     "emailMessage/To": "@outputs('Mailbox')",
                                     "emailMessage/Subject": "@{triggerBody()?['text_1']}",
-                                    "emailMessage/Body": "<div style=\"font-family: Segoe UI, Arial, sans-serif; font-size: 14px\"><p style=\"color: #555555\">Sent from the BIO SAP app by @{outputs('Caller_name')} (@{outputs('Caller')}). Reply to this mail to answer the user.</p><hr><p>@{outputs('Message_html')}</p></div>",
+                                    "emailMessage/Body": "<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"margin:0;padding:0;background-color:#eef2f6;\"><tr><td align=\"center\" style=\"padding:24px 12px;\"><div style=\"display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:#eef2f6;\">@{outputs('Preheader')}</div><!--[if mso]><table role=\"presentation\" width=\"640\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td><![endif]--><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"width:100%;max-width:640px;background-color:#ffffff;border:1px solid #d7dee8;font-family:Segoe UI,Arial,Helvetica,sans-serif;\"><tr><td style=\"background-color:#12405f;padding:20px 24px;\"><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td style=\"font-family:Segoe UI,Arial,Helvetica,sans-serif;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#8fc4e5;padding-bottom:4px;\">Message from the BIO SAP app</td></tr><tr><td style=\"font-family:Segoe UI,Arial,Helvetica,sans-serif;font-size:24px;font-weight:600;color:#ffffff;line-height:1.25;\">@{outputs('Heading')}</td></tr></table></td></tr><tr><td style=\"padding:16px 24px;border-bottom:1px solid #e4e9f0;font-size:14px;color:#24313f;line-height:1.5;\"><span style=\"color:#6b7b8c;\">From</span>&nbsp; <strong>@{outputs('Caller_name')}</strong> &middot; <a href=\"mailto:@{outputs('Caller')}\" style=\"color:#1a6ea8;text-decoration:none;\">@{outputs('Caller')}</a></td></tr><tr><td style=\"padding:22px 24px 22px 24px;\"><div style=\"font-size:13px;font-weight:600;color:#12405f;text-transform:uppercase;letter-spacing:.06em;padding-bottom:10px;\">Message</div><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td style=\"background-color:#f4f7fa;border-left:4px solid #1a6ea8;padding:16px 18px;font-family:Segoe UI,Arial,Helvetica,sans-serif;font-size:15px;color:#24313f;line-height:1.6;word-wrap:break-word;word-break:break-word;\">@{outputs('Message_html')}</td></tr></table></td></tr>@{outputs('Request_html')}<tr><td style=\"padding:16px 24px 22px 24px;border-top:1px solid #e4e9f0;font-size:12px;color:#8494a5;line-height:1.6;\">Sent from the Message us form in the BIO SAP app. Reply to this email to answer @{outputs('Caller_name')} directly.</td></tr></table><!--[if mso]></td></tr></table><![endif]--></td></tr></table>",
                                     "emailMessage/ReplyTo": "@outputs('Caller')",
                                     "emailMessage/Attachments": "@body('Files')",
                                     "emailMessage/Importance": "Normal"
