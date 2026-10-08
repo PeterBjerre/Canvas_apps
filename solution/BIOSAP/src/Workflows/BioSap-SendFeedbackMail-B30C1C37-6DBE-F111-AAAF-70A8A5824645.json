@@ -1,124 +1,302 @@
 {
-  "properties": {
-    "connectionReferences": {
-      "shared_office365_1": {
-        "runtimeSource": "invoker",
-        "connection": {
-          "connectionReferenceLogicalName": "orsted_sharedoffice365_0add9"
-        },
-        "api": {
-          "name": "shared_office365"
-        }
-      }
-    },
-    "definition": {
-      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
-      "contentVersion": "1.0.0.0",
-      "parameters": {
-        "$connections": {
-          "defaultValue": {},
-          "type": "Object"
-        },
-        "$authentication": {
-          "defaultValue": {},
-          "type": "SecureObject"
-        }
-      },
-      "triggers": {
-        "manual": {
-          "metadata": {
-            "operationMetadataId": "ebbcc5a8-6d51-4769-be87-92cd9b11afcc"
-          },
-          "type": "Request",
-          "kind": "PowerAppV2",
-          "inputs": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "text": {
-                  "title": "To",
-                  "type": "string",
-                  "x-ms-dynamically-added": true,
-                  "description": "Please enter your input",
-                  "x-ms-content-hint": "TEXT"
+    "properties": {
+        "connectionReferences": {
+            "shared_office365": {
+                "runtimeSource": "embedded",
+                "connection": {
+                    "connectionReferenceLogicalName": "orsted_BioSapOutlookConn"
                 },
-                "text_1": {
-                  "title": "Subject",
-                  "type": "string",
-                  "x-ms-dynamically-added": true,
-                  "description": "Please enter your input",
-                  "x-ms-content-hint": "TEXT"
-                },
-                "text_2": {
-                  "title": "Body",
-                  "type": "string",
-                  "x-ms-dynamically-added": true,
-                  "description": "Please enter your input",
-                  "x-ms-content-hint": "TEXT"
+                "api": {
+                    "name": "shared_office365"
                 }
-              },
-              "required": [
-                "text",
-                "text_1",
-                "text_2"
-              ]
             }
-          }
-        }
-      },
-      "actions": {
-        "Send_an_email_(V2)": {
-          "runAfter": {},
-          "metadata": {
-            "operationMetadataId": "6feb7d89-c52e-4a87-912f-a2e1561b8289"
-          },
-          "type": "OpenApiConnection",
-          "inputs": {
-            "host": {
-              "connectionName": "shared_office365_1",
-              "operationId": "SendEmailV2",
-              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
-            },
+        },
+        "definition": {
+            "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+            "contentVersion": "1.0.0.0",
             "parameters": {
-              "emailMessage/To": "@triggerBody()['text']",
-              "emailMessage/Subject": "@triggerBody()['text_1']",
-              "emailMessage/Body": "<p>@{triggerBody()['text_2']}</p>",
-              "emailMessage/Importance": "Normal"
-            },
-            "authentication": "@parameters('$authentication')"
-          }
-        },
-        "Respond_to_a_Power_App_or_flow": {
-          "runAfter": {
-            "Send_an_email_(V2)": [
-              "Succeeded"
-            ]
-          },
-          "metadata": {
-            "operationMetadataId": "9adcecb7-2dcd-4a2a-aa36-12f2b401a61a"
-          },
-          "type": "Response",
-          "kind": "PowerApp",
-          "inputs": {
-            "statusCode": 200,
-            "body": {
-              "sent": "yes"
-            },
-            "schema": {
-              "type": "object",
-              "properties": {
-                "sent": {
-                  "title": "sent",
-                  "x-ms-dynamically-added": true,
-                  "type": "string"
+                "$connections": {
+                    "defaultValue": {},
+                    "type": "Object"
+                },
+                "$authentication": {
+                    "defaultValue": {},
+                    "type": "SecureObject"
                 }
-              }
+            },
+            "triggers": {
+                "manual": {
+                    "metadata": {
+                        "operationMetadataId": "ebbcc5a8-6d51-4769-be87-92cd9b11afcc"
+                    },
+                    "type": "Request",
+                    "kind": "PowerAppV2",
+                    "inputs": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "text": {
+                                    "title": "To",
+                                    "type": "string",
+                                    "x-ms-dynamically-added": true,
+                                    "description": "The SAP maintenance mailbox",
+                                    "x-ms-content-hint": "TEXT"
+                                },
+                                "text_1": {
+                                    "title": "Subject",
+                                    "type": "string",
+                                    "x-ms-dynamically-added": true,
+                                    "description": "The chosen subject or request",
+                                    "x-ms-content-hint": "TEXT"
+                                },
+                                "text_2": {
+                                    "title": "Body",
+                                    "type": "string",
+                                    "x-ms-dynamically-added": true,
+                                    "description": "The message as plain text",
+                                    "x-ms-content-hint": "TEXT"
+                                },
+                                "text_3": {
+                                    "title": "Attachments",
+                                    "type": "string",
+                                    "x-ms-dynamically-added": true,
+                                    "description": "JSON from the app: [{Name, Value}] with Value as a data URI, or []",
+                                    "x-ms-content-hint": "TEXT"
+                                }
+                            },
+                            "required": [
+                                "text",
+                                "text_1",
+                                "text_2",
+                                "text_3"
+                            ]
+                        }
+                    }
+                }
+            },
+            "actions": {
+                "Caller": {
+                    "runAfter": {},
+                    "metadata": {
+                        "operationMetadataId": "0d6e2b4a-8c1f-4f37-9e25-7a4b3c1d2e90"
+                    },
+                    "type": "Compose",
+                    "inputs": "@toLower(trim(coalesce(triggerOutputs()?['headers']?['x-ms-user-email'], '')))"
+                },
+                "Caller_name": {
+                    "runAfter": {
+                        "Caller": [
+                            "Succeeded"
+                        ]
+                    },
+                    "metadata": {
+                        "operationMetadataId": "5a2c9e7d-1b4f-4c86-a3d0-8e6f2b1c4a57"
+                    },
+                    "type": "Compose",
+                    "inputs": "@{replace(replace(replace(coalesce(triggerOutputs()?['headers']?['x-ms-user-name'], outputs('Caller')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}"
+                },
+                "Mailbox": {
+                    "runAfter": {
+                        "Caller_name": [
+                            "Succeeded"
+                        ]
+                    },
+                    "metadata": {
+                        "operationMetadataId": "9f3b7c2e-6d1a-4e58-b2c7-1a0d9e8f3b64"
+                    },
+                    "type": "Compose",
+                    "inputs": "sapvedligehold@orsted.com"
+                },
+                "Message_html": {
+                    "runAfter": {
+                        "Mailbox": [
+                            "Succeeded"
+                        ]
+                    },
+                    "metadata": {
+                        "operationMetadataId": "3c8d1f6a-9e2b-4a7c-85d3-6b0e4f2a1c98"
+                    },
+                    "type": "Compose",
+                    "inputs": "@{replace(replace(replace(replace(replace(coalesce(triggerBody()?['text_2'], ''), '&', '&amp;'), '<', '&lt;'), '>', '&gt;'), decodeUriComponent('%0D'), ''), decodeUriComponent('%0A'), '<br>')}"
+                },
+                "Files": {
+                    "runAfter": {
+                        "Message_html": [
+                            "Succeeded"
+                        ]
+                    },
+                    "metadata": {
+                        "operationMetadataId": "7e1a4b9c-3f6d-4c25-9b8e-2d5a7c0f1e43"
+                    },
+                    "type": "Select",
+                    "inputs": {
+                        "from": "@if(empty(trim(coalesce(triggerBody()?['text_3'], ''))), json('[]'), json(triggerBody()?['text_3']))",
+                        "select": {
+                            "Name": "@{item()?['Name']}",
+                            "ContentBytes": "@dataUriToBinary(item()?['Value'])"
+                        }
+                    }
+                },
+                "Check": {
+                    "runAfter": {
+                        "Files": [
+                            "Succeeded"
+                        ]
+                    },
+                    "metadata": {
+                        "operationMetadataId": "b6d2e8f1-4a7c-4d93-a1e5-9c3b0f7d2a86"
+                    },
+                    "type": "If",
+                    "expression": {
+                        "and": [
+                            {
+                                "equals": [
+                                    "@toLower(trim(coalesce(triggerBody()?['text'], '')))",
+                                    "@outputs('Mailbox')"
+                                ]
+                            },
+                            {
+                                "not": {
+                                    "equals": [
+                                        "@outputs('Caller')",
+                                        ""
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "actions": {
+                        "Send_an_email_(V2)": {
+                            "runAfter": {},
+                            "metadata": {
+                                "operationMetadataId": "6feb7d89-c52e-4a87-912f-a2e1561b8289"
+                            },
+                            "type": "OpenApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connectionName": "shared_office365",
+                                    "operationId": "SendEmailV2",
+                                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                                },
+                                "parameters": {
+                                    "emailMessage/To": "@outputs('Mailbox')",
+                                    "emailMessage/Subject": "@{triggerBody()?['text_1']}",
+                                    "emailMessage/Body": "<div style=\"font-family: Segoe UI, Arial, sans-serif; font-size: 14px\"><p style=\"color: #555555\">Sent from the BIO SAP app by @{outputs('Caller_name')} (@{outputs('Caller')}). Reply to this mail to answer the user.</p><hr><p>@{outputs('Message_html')}</p></div>",
+                                    "emailMessage/ReplyTo": "@outputs('Caller')",
+                                    "emailMessage/Attachments": "@body('Files')",
+                                    "emailMessage/Importance": "Normal"
+                                },
+                                "authentication": "@parameters('$authentication')"
+                            }
+                        },
+                        "Respond_sent": {
+                            "runAfter": {
+                                "Send_an_email_(V2)": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "metadata": {
+                                "operationMetadataId": "4b1f6f0e-2a7d-4d55-9a0e-6f1c2d9b7a31"
+                            },
+                            "type": "Response",
+                            "kind": "PowerApp",
+                            "inputs": {
+                                "statusCode": 200,
+                                "body": {
+                                    "sent": "yes",
+                                    "message": ""
+                                },
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "sent": {
+                                            "title": "sent",
+                                            "x-ms-dynamically-added": true,
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "title": "message",
+                                            "x-ms-dynamically-added": true,
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "Respond_failed": {
+                            "runAfter": {
+                                "Send_an_email_(V2)": [
+                                    "Failed",
+                                    "TimedOut"
+                                ]
+                            },
+                            "metadata": {
+                                "operationMetadataId": "c2e5a8d4-7b3f-4e1a-8d6c-1f9a0b3e5d72"
+                            },
+                            "type": "Response",
+                            "kind": "PowerApp",
+                            "inputs": {
+                                "statusCode": 200,
+                                "body": {
+                                    "sent": "no",
+                                    "message": "@{concat('The mail service did not accept the message: ', coalesce(outputs('Send_an_email_(V2)')?['body']?['error']?['message'], 'unknown error'))}"
+                                },
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "sent": {
+                                            "title": "sent",
+                                            "x-ms-dynamically-added": true,
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "title": "message",
+                                            "x-ms-dynamically-added": true,
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "else": {
+                        "actions": {
+                            "Respond_rejected": {
+                                "runAfter": {},
+                                "metadata": {
+                                    "operationMetadataId": "e8a3c1b7-5d2f-4a9e-b6c4-3d7f1e0a9b56"
+                                },
+                                "type": "Response",
+                                "kind": "PowerApp",
+                                "inputs": {
+                                    "statusCode": 200,
+                                    "body": {
+                                        "sent": "no",
+                                        "message": "@{if(empty(outputs('Caller')), 'The signed-in user could not be identified.', 'This recipient is not allowed.')}"
+                                    },
+                                    "schema": {
+                                        "type": "object",
+                                        "properties": {
+                                            "sent": {
+                                                "title": "sent",
+                                                "x-ms-dynamically-added": true,
+                                                "type": "string"
+                                            },
+                                            "message": {
+                                                "title": "message",
+                                                "x-ms-dynamically-added": true,
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
-          }
-        }
-      }
+        },
+        "templateName": ""
     },
-    "templateName": ""
-  },
-  "schemaVersion": "1.0.0.0"
+    "schemaVersion": "1.0.0.0"
 }
