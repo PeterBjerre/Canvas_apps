@@ -66,6 +66,10 @@ def formulas(cfg):
         "// Vaerkerne. Eneste opslagsliste appen laeser, og den laeses foerst,\n"
         "// naar dropdownen aabnes.\n"
         f"colDomPlants = Sort(ForAll({cfg.L_PLANTS} As R, {{ Value: R.Title }}), Value);"
+        # Appens EGNE navngivne formler - fx Measuring Points opslagsliste
+        # over karakteristikker (issue #210). Navngivne formler evalueres
+        # dovent, saa en liste, ingen spoerger om, laeses ikke.
+        + ("\n\n" + cfg.EXTRA_FORMULAS if getattr(cfg, "EXTRA_FORMULAS", "") else "")
     )
 
 

@@ -88,10 +88,37 @@ from fl_picker import fl_picker, known_fx as fl_known_fx, reset_fx as fl_reset_f
 
 # Raekkens felter i een flad liste - raekkefoelgen er sektionernes.
 FIELDS = [f for _sec, fields in cfg.SECTIONS for f in fields]
+# BETINGEDE FELTER (opt-in, issue #210)
+# -------------------------------------
+# cfg.WHEN = { kolonne: Power Fx-udtryk }. Et felt med et udtryk vises kun,
+# naar udtrykket er sandt, og dets vaerdi RYDDES ved gem, saa en aendret
+# type ikke efterlader gamle vaerdier i raekken.
+#
+# Equipment og Materials har ingen WHEN, og deres skaermes YAML er derfor
+# ordret den samme som foer - det er hele pointen med at det er opt-in.
+WHEN = dict(getattr(cfg, "WHEN", {}))
+
+# Felter, der skal skrives af appen i stedet for af brugeren (opt-in):
+# { kolonne: Power Fx-udtryk }. Measuring Point bruger den til IsCounter og
+# ApprovalRequired, der er AFLEDT af typen (issue #210 Q14/Q16). Kolonnerne
+# staar i cfg.READ_FIELDS, saa de hentes og vises, men ikke tastes.
+EXTRA_PATCH = dict(getattr(cfg, "EXTRA_PATCH", {}))
+
 # Raekkens felter i SAMLINGEN: formularens plus dem, appen kun laeser
 # (cfg.READ_FIELDS, fx Equipments SAP-udstyrsnummer - issue #94). De
 # hentes og vises, men skrives aldrig af formularen.
 ROW_FIELDS = FIELDS + list(getattr(cfg, "READ_FIELDS", []))
+
+_COLS = {c for c, _l, _k, _ch in FIELDS}
+_unknown = sorted(set(WHEN) - _COLS)
+if _unknown:
+    raise SystemExit("domain_config.WHEN naevner felter, der ikke staar i "
+                     "SECTIONS: %s" % ", ".join(_unknown))
+_READ_COLS = {c for c, _l, _k, _ch in getattr(cfg, "READ_FIELDS", [])}
+_unknown = sorted(set(EXTRA_PATCH) - _READ_COLS)
+if _unknown:
+    raise SystemExit("domain_config.EXTRA_PATCH naevner felter, der ikke staar i "
+                     "READ_FIELDS: %s" % ", ".join(_unknown))
 
 
 def use(expected):
@@ -645,7 +672,17 @@ def save_row_fx(status="valid", required=()):
         "            Plant: varDomFPlant,",
     ]
     for col, _lab, kind, _ch in FIELDS:
-        patch.append(f"            {col}: {_patch_value(col, kind)},")
+        v = _patch_value(col, kind)
+        if col in WHEN:
+            # ET SKJULT FELT GEMMES TOMT (issue #210)
+            #
+            # Skifter brugeren type, skal den gamle types vaerdier ikke
+            # blive staaende paa raekken - saa ville SAP-ordren og
+            # detaljerne vise et felt, formularen ikke laengere viser.
+            v = f"If({WHEN[col]}, {v}, {_blank(kind)})"
+        patch.append(f"            {col}: {v},")
+    for col, fx in EXTRA_PATCH.items():
+        patch.append(f"            {col}: {fx},")
     patch += [
         '            RowStatus: { Value: "%s" },' % status,
         # En admin i en andens anmodning gemmer raekken i EJERENS navn.
@@ -1073,7 +1110,14 @@ def send_fx(submit):
     kendes bagefter; indtil da staar GUID'en der.
     """
     rows = VALID if submit else SENDABLE
-    status = ri.SUBMITTED if submit else ri.DRAFT
+    # ET DOMAENE UDEN GODKENDELSE KAN GAA DIREKTE VIDERE (opt-in)
+    #
+    # cfg.SUBMIT_STATUS er den status, indeksraekken faar ved Submit.
+    # Measuring Point saetter den til KlarTilSAP: en anmodning uden
+    # Counter-godkendelse og uden manglende taeller gaar direkte til Master
+    # Data (issue #210 Q12). Equipment og Materials saetter den ikke og
+    # indsender som hidtil.
+    status = getattr(cfg, "SUBMIT_STATUS", ri.SUBMITTED) if submit else ri.DRAFT
     # Samme tekster som i VH-plan og FL: "Saved as X" / "Submitted as X".
     # Her stod "Saved as draft", og beskeden blev "Saved as draft as EQ-..".
     label = "Submitted" if submit else "Saved"
@@ -1289,11 +1333,19 @@ def grid_cell(name, label, ctrl, required=False):
                       fill_portions_formula="0")
 
 
-def field_grid_cell(col):
-    """Et felt fra SECTIONS som celle i gitteret."""
+def field_grid_cell(col, required=False):
+    """Et felt fra SECTIONS som celle i gitteret.
+
+    Staar feltet i cfg.WHEN, faar cellen betingelsen som Visible - og
+    forelderens hoejde taeller den kun med, naar den vises
+    (gen_screen.stack_height)."""
     for c, label, kind, choices in FIELDS:
         if c == col:
-            return grid_cell(f"conDom{c}", label, _input_for(c, kind, choices))
+            cell = grid_cell(f"conDom{c}", label, _input_for(c, kind, choices),
+                             required=required)
+            if c in WHEN:
+                cell.vis = WHEN[c]
+            return cell
     raise SystemExit(f"domain_parts: {col} er ikke et felt i SECTIONS")
 
 
