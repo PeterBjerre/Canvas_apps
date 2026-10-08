@@ -32,7 +32,6 @@
     "Other Information",
     "Owner",
     "ABC Indic.",
-    "Long text",
     "Manufacturer",
     "Model Number",
     "Manufacturer Part Number",
@@ -40,21 +39,10 @@
     "Room",
     "Sort Field",
     "Atex",
-    "Risiko",
-    "Asbestos",
-    "PTW",
     "Warranty Start",
     "Warranty End",
     "User status",
     "System status",
-    "DLFL",
-    "Superior FL",
-    "Datasheet",
-    "1",
-    "Location",
-    "Unit",
-    "Document number",
-    "2",
   ];
 
   const CLASS_VIEW_PRESETS = {
@@ -120,6 +108,9 @@
     "STR. INDICATOR",
     "USER STATUS",
     "SYSTEM STATUS",
+    // Issue #166: ABC Indic. vaelges ikke af brugeren - TRM-automatikken
+    // saetter den (runTrmValidation).
+    "ABC INDIC.",
   ]);
 
   const DROPDOWN_TABLE_BY_FIELD = Object.freeze({
@@ -146,11 +137,10 @@
     K1420: "TypekredsTabel",
   });
 
+  // Issue #166: af tilladelserne er kun Atex med. Risiko, Asbestos og PTW
+  // vises og valideres ikke (gamle vaerdier i SpoolValuesJson roeres ikke).
   const BUILTIN_ALLOWED_VALUES_BY_FIELD = Object.freeze({
     ATEX: ["X"],
-    RISIKO: ["X"],
-    ASBESTOS: ["X"],
-    PTW: ["X"],
     "ABC INDIC.": ["A"],
     STRINDICATOR: ["KKS", "AKS", "ROS", "KKSKV", "KKSKA"],
     "TRM ASSIGNMENT": ["X"],
@@ -177,6 +167,9 @@
   });
 
   const DATE_FIELD_SET = new Set(["WARRANTY START", "WARRANTY END"]);
+
+  // SCEq-kolonner, der ikke er en klasse, og den klasse, de hoerer under.
+  const SCE_COLUMN_INTO_CLASS = Object.freeze({ MAF: "GIV" });
 
   const CLASS_STEP_RULES = Object.freeze({
     ELF: ["Verify_Master_Data_FL", "ELF", "TRMNEW", "VerifyFunctionalLocationClasses", "KKS_Syntax"],
@@ -898,6 +891,15 @@
       result[className] = dedupeMessages(values);
     }
 
+    // Issue #166: MAF (MEASURING POINTS SETTLEMENT) er ingen klasse, men en
+    // SCEq-kolonne. Den hoerer under GIV: dens vaerdier laegges i GIV's liste.
+    Object.keys(SCE_COLUMN_INTO_CLASS).forEach((column) => {
+      const target = SCE_COLUMN_INTO_CLASS[column];
+      if (!result[column]) return;
+      result[target] = dedupeMessages([...(result[target] || []), ...result[column]]);
+      delete result[column];
+    });
+
     return result;
   }
 
@@ -1242,7 +1244,7 @@
       }
 
       if (DATE_FIELD_SET.has(normalizedField) && value && !isValidWarrantyDate(value)) {
-        addIssue(normalizedField, "Use DD.MM.YYYY or YYYYMMDD.");
+        addIssue(normalizedField, "Use DD.MM.YYYY.");
       }
     });
 
@@ -1441,17 +1443,9 @@
     const text = toText(value);
     if (!text) return true;
 
-    const compact = /^\d{8}$/;
+    // Issue #166: kun DD.MM.YYYY - YYYYMMDD godtages ikke laengere.
     const dotted = /^\d{2}\.\d{2}\.\d{4}$/;
-    if (!compact.test(text) && !dotted.test(text)) return false;
-
-    if (compact.test(text)) {
-      const year = Number.parseInt(text.slice(0, 4), 10);
-      const month = Number.parseInt(text.slice(4, 6), 10);
-      const day = Number.parseInt(text.slice(6, 8), 10);
-      const parsed = new Date(year, month - 1, day);
-      return parsed.getFullYear() === year && parsed.getMonth() === month - 1 && parsed.getDate() === day;
-    }
+    if (!dotted.test(text)) return false;
 
     const [dayText, monthText, yearText] = text.split(".");
     const year = Number.parseInt(yearText, 10);
@@ -2191,6 +2185,10 @@
     const classRules = (state.spoolRules.charByClass && state.spoolRules.charByClass[className]) || {};
     const classRule = classRules[normalizedColumn];
     if (classRule && classRule.maxLength > 0) return classRule.maxLength;
+
+    // Issue #166: stamdatafelterne faar deres maks.-laengde i editoren.
+    const masterRule = MASTERDATA_FIELD_RULES[normalizedColumn];
+    if (masterRule && masterRule.maxLength > 0) return masterRule.maxLength;
 
     if (normalizedColumn === "FUNCTIONAL LOCATION") return 40;
     return 0;

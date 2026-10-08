@@ -51,8 +51,16 @@ def load_part():
 
 
 def ensure_row_part():
-    """En tom anmodning har altid een raekke at skrive i."""
-    return "If(CountRows(colFlRows) = 0, " + P.add_row_fx().replace("\n", " ") + ")"
+    """En tom anmodning har altid een raekke at skrive i - og formularen
+    (issue #166) altid en valgt raekke. Valideringen vaelger den foerste,
+    naar den valgte ikke findes, og regner formularens felter."""
+    return ("If(\n"
+            "    CountRows(colFlRows) = 0,\n"
+            "    " + P.add_row_fx().replace("\n", " ") + ";\n"
+            "    Select(btnFlVerify),\n"
+            "    IsBlank(LookUp(colFlRows, RowGuid = varFlDetailRow)),\n"
+            "    Select(btnFlVerify)\n"
+            ")")
 
 
 def on_visible():
@@ -61,16 +69,17 @@ def on_visible():
 
 def build_screen(render=render_screen):
     """render: gen_screen.render_screen - eller BIO SAP App's opsamler."""
-    # EEN spalte: Validation, Classes og strukturen. Save draft, Submit og
-    # New request staar i bjaelken (issue #77). Detaljerne er en popup, med
-    # sloeret FOERST, saa det ligger bagved.
+    # EEN spalte: Validation (raekkerne), formularen for den valgte raekke
+    # - Master data og Class data (issue #166, erstatter detaljepopuppen) -
+    # Classes og strukturen. Save draft, Submit og New request staar i
+    # bjaelken (issue #77).
     root = app_frame("Fl", P.build_bar(),
-                     [P.build_rows(), P.build_classes(), P.build_structure()])
+                     [P.build_rows(), P.build_master(), P.build_class_data(),
+                      P.build_classes(), P.build_structure()])
     # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
     nav, overlay = side_nav("Fl", "functionallocation")
     return render(cfg.SCREEN, {"Fill": C_APP_BG, "OnVisible": on_visible()},
-                         [root, *nav, P.build_backdrop(), P.build_detail(),
-                          *overlay, *P.build_submit_confirm()])
+                         [root, *nav, *overlay, *P.build_submit_confirm()])
 
 
 def main():

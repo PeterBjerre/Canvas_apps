@@ -175,7 +175,7 @@ def _forall(source, fields, alias="R"):
 STATIC_TABLES = [
     ("colVhpPlanTypeOptions",
      [{"Key": "SingleCycle", "Value": "Single cycle plan (IP41)"},
-      {"Key": "Strategy", "Value": "Strategiplan (IP42)"}],
+      {"Key": "Strategy", "Value": "Strategy plan (IP42)"}],
      "Appens eget begreb, ikke et SAP-felt."),
 ]
 
