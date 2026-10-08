@@ -51,25 +51,30 @@ TRANSPARENT = "RGBA(0, 0, 0, 0)"
 # ---------------------------------------------------------------------------
 # LYST TEMA
 #
-# Vaerdierne er ORDRET dem, apperne har i dag. Det er med vilje: den her
-# aendring flytter farverne et andet sted hen, den laver dem ikke om. Er
-# appen lysegraa i dag, er den ogsaa lysegraa bagefter.
+# ROLIGE FARVER (issue #199). Accentfarverne var Fluent/Tailwind-standard:
+# maettet "Microsoft-blaa" (#0067AE), neonlilla (#9333EA), klar orange og
+# lime. De er nu trukket ned i maetning (CIE-chroma ca. 25-40 % lavere,
+# lilla 40 %) og en anelse mod graa/skifer, saa de passer til appens
+# blaagraa flader. Det er de SAMME farvefamilier - blaa, teal, oliven, ler/
+# orange, lilla - saa et domaene og en status kan genkendes som foer:
 #
-# EN UNDTAGELSE, OG KUN EEN: 'state-ok-fg'. Den laa paa RGBA(21, 127, 92)
-# og gav 4,44:1 mod sin egen chipbaggrund og 4,39 mod bg-app - lige under
-# WCAG AA's 4,5 for broedtekst. Den staar nu paa RGBA(19, 120, 87), som
-# giver mindst 4,81 overalt og dermed lander samme sted som de fire andre
-# statusfarver (4,78-5,39) i stedet for at vaere den ene, der falder
-# udenfor. Forskellen er 8,8 i sRGB - den kan ikke ses ved siden af
-# hinanden, kun maales. CONTRAST nedenfor holder den paa plads.
+#   - brand: daempet staalblaa i stedet for Fluents klare blaa.
+#   - statusfarverne: roed, groen og gul bevarer deres betydning; kun
+#     maetningen er taget ned, og chippens baggrund er justeret sammen med
+#     teksten, saa begge stadig klarer 4,5:1 (CONTRAST nedenfor).
+#   - domaenerne: hvert par er stadig mindst DOMAIN_MIN_DELTA_E fra
+#     hinanden. Lilla er drejet mod blomme (h 313 -> 327), fordi en
+#     daempet lilla ellers kommer for taet paa den daempede blaa.
 #
-# Alt andet er ORDRET de vaerdier, apperne havde i forvejen.
+# Lys/moerk, hover, tryk, fokus og deaktiveret er ikke rettet hver for
+# sig: de er de samme navne som foer, og vagterne herunder (CONTRAST,
+# BALANCED, DOMAIN_MIN_DELTA_E) regner dem efter i begge temaer.
 # ---------------------------------------------------------------------------
 LIGHT = {
     # --- brand ---
-    'color-brand-primary':       "RGBA(0, 103, 174, 1)",
-    'color-brand-primary-hover': "RGBA(0, 122, 204, 1)",
-    'color-brand-primary-soft':  "RGBA(198, 224, 249, 1)",
+    'color-brand-primary':       "RGBA(44, 90, 140, 1)",
+    'color-brand-primary-hover': "RGBA(58, 106, 158, 1)",
+    'color-brand-primary-soft':  "RGBA(212, 224, 238, 1)",
 
     # --- baggrunde ---
     'bg-app':     "RGBA(237, 241, 247, 1)",
@@ -83,8 +88,8 @@ LIGHT = {
     'text-on-primary': "RGBA(255, 255, 255, 1)",
     # Tekst paa en DOMAENEFARVE. Den er hvid i lys tilstand - altsaa den
     # samme som text-on-primary - men de to kan ikke vaere eet navn: i
-    # moerk tilstand er domaenefarverne LYSE (teal-400, amber-400), og hvid
-    # tekst paa amber-400 giver 1,67:1. Se DARK.
+    # moerk tilstand er domaenefarverne LYSE (lyse pasteller), og hvid
+    # tekst paa den lyse orange gav 1,67:1. Se DARK.
     'text-on-domain':  "RGBA(255, 255, 255, 1)",
 
     # --- kanter ---
@@ -106,28 +111,28 @@ LIGHT = {
     # (4,5:1). En 1 px kant skal kun kunne SES (3,0:1), og en forgrund,
     # der er valgt til tekst, bliver en neonstreg, naar den bruges som
     # kant paa en moerk baggrund. I lys tilstand er de to ens; se DARK.
-    'border-ok':        "RGBA(19, 120, 87, 1)",
-    'border-error':     "RGBA(179, 50, 60, 1)",
+    'border-ok':        "RGBA(28, 112, 84, 1)",
+    'border-error':     "RGBA(172, 56, 64, 1)",
 
-    'state-ok-fg':      "RGBA(19, 120, 87, 1)",
-    'state-ok-bg':      "RGBA(232, 245, 238, 1)",
-    'state-warn-fg':    "RGBA(138, 90, 0, 1)",
-    'state-warn-bg':    "RGBA(253, 243, 226, 1)",
-    'state-error-fg':   "RGBA(179, 50, 60, 1)",
-    'state-error-bg':   "RGBA(253, 236, 236, 1)",
-    'state-info-fg':    "RGBA(0, 83, 140, 1)",
-    'state-info-bg':    "RGBA(222, 240, 252, 1)",
+    'state-ok-fg':      "RGBA(28, 112, 84, 1)",
+    'state-ok-bg':      "RGBA(231, 242, 236, 1)",
+    'state-warn-fg':    "RGBA(130, 88, 24, 1)",
+    'state-warn-bg':    "RGBA(249, 241, 228, 1)",
+    'state-error-fg':   "RGBA(172, 56, 64, 1)",
+    'state-error-bg':   "RGBA(250, 236, 236, 1)",
+    'state-info-fg':    "RGBA(40, 84, 128, 1)",
+    'state-info-bg':    "RGBA(229, 237, 246, 1)",
     'state-neutral-fg': "RGBA(89, 102, 122, 1)",
     'state-neutral-bg': "RGBA(228, 233, 241, 1)",
     # Tre farver til, saa hver anmodningsstatus faar sin egen (issue: Draft,
     # Submitted og In progress var alle blaa; Ready for SAP og Created in
     # SAP begge groenne).
-    'state-violet-fg':  "RGBA(91, 33, 182, 1)",
-    'state-violet-bg':  "RGBA(241, 236, 252, 1)",
-    'state-lime-fg':    "RGBA(63, 98, 18, 1)",
-    'state-lime-bg':    "RGBA(238, 246, 220, 1)",
-    'state-rose-fg':    "RGBA(190, 24, 93, 1)",
-    'state-rose-bg':    "RGBA(252, 231, 243, 1)",
+    'state-violet-fg':  "RGBA(98, 70, 148, 1)",
+    'state-violet-bg':  "RGBA(239, 235, 246, 1)",
+    'state-lime-fg':    "RGBA(72, 94, 40, 1)",
+    'state-lime-bg':    "RGBA(236, 241, 226, 1)",
+    'state-rose-fg':    "RGBA(160, 52, 98, 1)",
+    'state-rose-bg':    "RGBA(247, 234, 240, 1)",
 
     # --- modalen. De 2% gennemsigtighed er der i dag og bevares, saa
     #     lys tilstand ser ud praecis som foer ---
@@ -138,22 +143,22 @@ LIGHT = {
     #     #79). Gennemsigtige: laget ligger OVEN PAA raekkens tekster, saa
     #     det farver raekken uden at skjule den. Tekstfarven i ALLE tokens
     #     ovenfor gaelder stadig, fordi tonen er under 10 % ---
-    'row-hover':   "RGBA(0, 95, 184, 0.06)",
-    'row-pressed': "RGBA(0, 95, 184, 0.12)",
+    'row-hover':   "RGBA(44, 90, 140, 0.06)",
+    'row-pressed': "RGBA(44, 90, 140, 0.12)",
 
     # --- de fem domaener paa landingssiden ---
     # Issue #70: fem tydeligt adskilte farver - se DOMAIN_MIN_DELTA_E.
     # -soft er domaenet blandet 8 % ind i bg-card: den valgte flises fyld.
-    'domain-fl':  "RGBA(0, 95, 184, 1)",
-    'domain-eq':  "RGBA(0, 128, 128, 1)",
-    'domain-mp':  "RGBA(90, 120, 10, 1)",
-    'domain-mat': "RGBA(180, 83, 9, 1)",
-    'domain-vhp': "RGBA(147, 51, 234, 1)",
-    'domain-fl-soft':  "RGBA(230, 239, 247, 1)",
-    'domain-eq-soft':  "RGBA(230, 241, 243, 1)",
-    'domain-mp-soft':  "RGBA(237, 241, 234, 1)",
-    'domain-mat-soft': "RGBA(244, 238, 233, 1)",
-    'domain-vhp-soft': "RGBA(242, 235, 251, 1)",
+    'domain-fl':  "RGBA(26, 76, 138, 1)",
+    'domain-eq':  "RGBA(24, 126, 124, 1)",
+    'domain-mp':  "RGBA(98, 114, 40, 1)",
+    'domain-mat': "RGBA(166, 90, 52, 1)",
+    'domain-vhp': "RGBA(158, 66, 158, 1)",
+    'domain-fl-soft':  "RGBA(232, 237, 244, 1)",
+    'domain-eq-soft':  "RGBA(232, 241, 243, 1)",
+    'domain-mp-soft':  "RGBA(238, 240, 236, 1)",
+    'domain-mat-soft': "RGBA(243, 238, 237, 1)",
+    'domain-vhp-soft': "RGBA(243, 236, 245, 1)",
 }
 
 
@@ -165,10 +170,11 @@ LIGHT = {
 #
 # De tre valg, der ikke var frie:
 #
-# 1. 'color-brand-primary' er blue-600 og ikke blue-500. Hvid tekst paa
-#    blue-500 giver 3,68:1 og falder dermed under AA for de 14 px
-#    halvfede knaptekster, appen bruger. Blue-600 giver 5,17:1 og staar
-#    stadig 3,45:1 fra kortet bagved.
+# 1. 'color-brand-primary' er en daempet staalblaa (issue #199), lys nok
+#    til at kunne SES mod det moerke kort - den er ogsaa fokusrammen -
+#    og moerk nok til hvid knaptekst: hvid tekst giver 5,09:1 (AA for de
+#    14 px halvfede knaptekster), og den staar 3,51:1 fra kortet bagved.
+#    Begge krav staar i CONTRAST.
 # 2. 'color-brand-primary-hover' er MOERKERE end grundfarven - ikke
 #    lysere, som man ellers goer paa moerk baggrund. Grunden er den
 #    samme: en lysere hover ville tage knaptekstens kontrast med sig ned.
@@ -181,9 +187,9 @@ LIGHT = {
 # ---------------------------------------------------------------------------
 DARK = {
     # --- brand ---
-    'color-brand-primary':       "RGBA(37, 99, 235, 1)",
-    'color-brand-primary-hover': "RGBA(29, 78, 216, 1)",
-    'color-brand-primary-soft':  "RGBA(30, 58, 138, 1)",
+    'color-brand-primary':       "RGBA(68, 112, 168, 1)",
+    'color-brand-primary-hover': "RGBA(56, 94, 144, 1)",
+    'color-brand-primary-soft':  "RGBA(36, 56, 88, 1)",
 
     # --- baggrunde ---
     'bg-app':     "RGBA(12, 15, 23, 1)",
@@ -195,7 +201,7 @@ DARK = {
     'text-primary':    "RGBA(229, 231, 235, 1)",
     'text-muted':      "RGBA(148, 163, 184, 1)",
     'text-on-primary': "RGBA(255, 255, 255, 1)",
-    # Domaenefarverne er LYSE her (teal-400, amber-400, emerald-400), saa
+    # Domaenefarverne er LYSE her (daempede pasteller), saa
     # teksten paa dem skal vaere moerk. Hvid gav 1,67-2,72:1 - chippen var
     # ulaeselig i moerk tilstand. Slate-950 giver 8,9-13,4.
     'text-on-domain':  "RGBA(2, 6, 23, 1)",
@@ -220,30 +226,31 @@ DARK = {
     'flyout-bg':         "RGBA(255, 255, 255, 1)",
 
     # --- tilstande ---
-    # Emerald-600 og red-500 i stedet for -400 og -400. Kanten paa et
+    # Daempet groen og roed (issue #199; foer emerald-600 og red-500).
+    # Oprindeligt valgt i stedet for -400 og -400. Kanten paa et
     # udfyldt kraevet felt gav 10,49:1 mod feltbaggrunden - dobbelt saa
     # meget som i lys tilstand (5,45), og det SES: hvert udfyldt felt fik
     # en lysende groen streg om sig. Nu 5,35 og 5,36, altsaa det samme
     # indtryk i begge temaer. BALANCED nedenfor holder det paa plads.
-    'border-ok':        "RGBA(5, 150, 105, 1)",
-    'border-error':     "RGBA(239, 68, 68, 1)",
+    'border-ok':        "RGBA(44, 138, 106, 1)",
+    'border-error':     "RGBA(214, 88, 88, 1)",
 
-    'state-ok-fg':      "RGBA(52, 211, 153, 1)",
-    'state-ok-bg':      "RGBA(6, 46, 37, 1)",
-    'state-warn-fg':    "RGBA(251, 191, 36, 1)",
-    'state-warn-bg':    "RGBA(59, 38, 6, 1)",
-    'state-error-fg':   "RGBA(248, 113, 113, 1)",
-    'state-error-bg':   "RGBA(69, 19, 24, 1)",
-    'state-info-fg':    "RGBA(96, 165, 250, 1)",
-    'state-info-bg':    "RGBA(23, 37, 70, 1)",
+    'state-ok-fg':      "RGBA(112, 196, 160, 1)",
+    'state-ok-bg':      "RGBA(20, 46, 38, 1)",
+    'state-warn-fg':    "RGBA(222, 186, 110, 1)",
+    'state-warn-bg':    "RGBA(54, 42, 22, 1)",
+    'state-error-fg':   "RGBA(234, 136, 136, 1)",
+    'state-error-bg':   "RGBA(64, 28, 32, 1)",
+    'state-info-fg':    "RGBA(136, 174, 222, 1)",
+    'state-info-bg':    "RGBA(28, 40, 64, 1)",
     'state-neutral-fg': "RGBA(148, 163, 184, 1)",
     'state-neutral-bg': "RGBA(30, 41, 59, 1)",
-    'state-violet-fg':  "RGBA(196, 181, 253, 1)",
-    'state-violet-bg':  "RGBA(45, 27, 80, 1)",
-    'state-lime-fg':    "RGBA(190, 242, 100, 1)",
-    'state-lime-bg':    "RGBA(38, 50, 14, 1)",
-    'state-rose-fg':    "RGBA(249, 168, 212, 1)",
-    'state-rose-bg':    "RGBA(74, 17, 45, 1)",
+    'state-violet-fg':  "RGBA(186, 170, 228, 1)",
+    'state-violet-bg':  "RGBA(44, 36, 70, 1)",
+    'state-lime-fg':    "RGBA(178, 206, 128, 1)",
+    'state-lime-bg':    "RGBA(38, 48, 26, 1)",
+    'state-rose-fg':    "RGBA(228, 166, 196, 1)",
+    'state-rose-bg':    "RGBA(64, 30, 48, 1)",
 
     # --- modalen. Sloeret er moerkere end i lys tilstand: det skal skille
     #     modalen fra en baggrund, der i forvejen er moerk ---
@@ -251,21 +258,21 @@ DARK = {
     'overlay':  "RGBA(2, 6, 23, 0.72)",
 
     # --- raekke-hover: lys tone paa moerkt, samme styrke som i lys tilstand ---
-    'row-hover':   "RGBA(148, 197, 255, 0.08)",
-    'row-pressed': "RGBA(148, 197, 255, 0.16)",
+    'row-hover':   "RGBA(160, 190, 225, 0.08)",
+    'row-pressed': "RGBA(160, 190, 225, 0.16)",
 
     # --- domaener. Lysere udgaver, saa striben kan ses mod det moerke kort ---
     # -soft: domaenet blandet 16 % ind i bg-card - den valgte flises fyld.
-    'domain-fl':  "RGBA(125, 180, 255, 1)",
-    'domain-eq':  "RGBA(45, 212, 191, 1)",
-    'domain-mp':  "RGBA(163, 230, 53, 1)",
-    'domain-mat': "RGBA(251, 146, 60, 1)",
-    'domain-vhp': "RGBA(232, 121, 249, 1)",
-    'domain-fl-soft':  "RGBA(33, 48, 76, 1)",
-    'domain-eq-soft':  "RGBA(20, 53, 66, 1)",
-    'domain-mp-soft':  "RGBA(39, 56, 44, 1)",
-    'domain-mat-soft': "RGBA(53, 43, 45, 1)",
-    'domain-vhp-soft': "RGBA(50, 39, 75, 1)",
+    'domain-fl':  "RGBA(112, 158, 222, 1)",
+    'domain-eq':  "RGBA(96, 202, 188, 1)",
+    'domain-mp':  "RGBA(176, 206, 110, 1)",
+    'domain-mat': "RGBA(226, 158, 108, 1)",
+    'domain-vhp': "RGBA(222, 130, 214, 1)",
+    'domain-fl-soft':  "RGBA(31, 45, 71, 1)",
+    'domain-eq-soft':  "RGBA(28, 52, 65, 1)",
+    'domain-mp-soft':  "RGBA(41, 52, 53, 1)",
+    'domain-mat-soft': "RGBA(49, 45, 53, 1)",
+    'domain-vhp-soft': "RGBA(48, 40, 70, 1)",
 }
 
 
@@ -350,6 +357,10 @@ CONTRAST = (
     # Hvid tekst paa en farvet chip eller knap.
     [("text-on-primary", bg, TEXT_MIN) for bg in
      ("color-brand-primary", "color-brand-primary-hover")] +
+    # Brandfarven er OGSAA fokusrammen (FocusedBorderColor) og kanten paa
+    # det valgte segment - den skal kunne ses mod fladen bagved (1.4.11).
+    # Tilfoejet med issue #199, da brandfarven blev daempet.
+    [("color-brand-primary", bg, UI_MIN) for bg in ("bg-card", "bg-app")] +
     # Domaenechippen i hubben: hvid i lys tilstand, moerk i moerk.
     [("text-on-domain", bg, TEXT_MIN) for bg in
      ("text-muted", "domain-fl", "domain-eq", "domain-mp", "domain-mat",
