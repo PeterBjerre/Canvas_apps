@@ -112,19 +112,28 @@ Set(varDomFlQuery, "");
 Set(varDomFlLast, "");
 Set(varDomFlBusy, false);
 Set(varDomInfo, "");
-// Listen: false = Compact, true = All columns (issue #67/#68).
-Set(varDomAllCols, false);
-
-// Er formularen blevet tjekket? Styrer om en kraevet feltkant maa vaere
+@@VIEWS@@// Er formularen blevet tjekket? Styrer om en kraevet feltkant maa vaere
 // roed. false ved opstart: en tom formular, ingen har roert, skal ikke
 // staa og lyse roedt. Saettes af Gem/Indsend - se domain_parts.REQUIRED.
 Set(varDomValidated, false)'''
 
 
+def _state(cfg):
+    """Skaermens tilstand. En app med EET fast listelayout (cfg.LIST_VIEWS
+    = False, issue #210) har ingen Compact/All at skifte med - og saa maa
+    varDomAllCols ikke saettes: App checker melder en variabel, der kun
+    saettes (UnusedVariables)."""
+    views = ('// Listen: false = Compact, true = All columns (issue #67/#68).\n'
+             'Set(varDomAllCols, false);\n\n')
+    return STATE.replace("@@VIEWS@@",
+                         views if getattr(cfg, "LIST_VIEWS", True) else "")
+
+
 def onstart(cfg, extra_collections=(), extra_state=""):
     # Temaet saettes FOER resten: skaermen tegner sig selv ud af C, og C
     # laeser darkModeEnabled.
-    body = _collection_block(cfg, extra_collections) + "\n\n" + tok.onstart_block() + "\n\n" + STATE
+    body = (_collection_block(cfg, extra_collections) + "\n\n"
+            + tok.onstart_block() + "\n\n" + _state(cfg))
     if extra_state:
         body += ";\n\n" + extra_state
     return body
@@ -165,11 +174,13 @@ def build_screen(cfg, parts, render):
     # Appens EGNE popupper ([sloer, popup], fx Materials' fakturaimport).
     # De staar efter de faelles og foer sidebarens aabne panel.
     own = parts.build_popups() if hasattr(parts, "build_popups") else []
+    # Appens egne linjer nederst i detaljeruden (opt-in, issue #210).
+    extra = parts.details_extra if hasattr(parts, "details_extra") else ()
     # Sloeret FOER popupperne: kontrollerne tegnes i den raekkefoelge, de
     # staar, saa det, der skal ligge bagved, skal staa foerst.
     return render(cfg.SCREEN,
                   {"Fill": C_APP_BG, "OnVisible": on_visible()},
-                  [root, *nav, dp.build_backdrop(), dp.build_details(),
+                  [root, *nav, dp.build_backdrop(), dp.build_details(extra=extra),
                    dp.build_attachments(), *own, *overlay,
                    # Bekraeftelserne og ventespinneren - oeverst.
                    *dp.build_delete_confirm(), *dp.build_submit_confirm()])

@@ -574,7 +574,14 @@ def copy_row_fx():
              f'Set({REQUIRED}, false);',
              f'Set(varDomFText, ThisItem.{cfg.C_TEXT});',
              'Set(varDomFPlant, ThisItem.Plant);']
-    for col, _lab, _kind, _ch in FIELDS:
+    # cfg.COPY_SKIP: felter, der IKKE maa foelge med i en kopi (opt-in).
+    # Measuring Point bruger den til det eksisterende maalepunktsnummer -
+    # to raekker kan ikke vaere det samme punkt (issue #210).
+    skip = set(getattr(cfg, "COPY_SKIP", ()))
+    for col, _lab, kind, _ch in FIELDS:
+        if col in skip:
+            lines.append(f"Set({_var(col)}, {_blank(kind)});")
+            continue
         lines.append(f"Set({_var(col)}, ThisItem.{col});")
     # Dokumenterne foelger IKKE med. De ligger i en mappe, der hedder den
     # gamle raekkes noegle, og kopien har ingen noegle endnu.
@@ -988,11 +995,16 @@ def _detail_row(i, label, value):
                  height=DETAIL_ROW_H, align_items="Center")
 
 
-def build_details(scope=None):
+def build_details(scope=None, extra=()):
     """Alle raekkens felter, med frem og tilbage mellem raekkerne.
 
     scope: det filter, listen viser (standard: LIST_SCOPE), saa frem og
-    tilbage foelger det, brugeren ser."""
+    tilbage foelger det, brugeren ser.
+    extra: appens egne kontroller NEDERST i feltlisten (opt-in) - en
+    funktion, der faar udtrykket for raekken, eller en liste. Measuring
+    Point laegger Master Datas felt til maalepunktsnummeret dér
+    (issue #210). Equipment og Materials giver ingen, og deres popup er
+    uaendret."""
     scope = LIST_SCOPE if scope is None else scope
     # Raekken, ruden viser. Den slaas op HVER gang - saa er den altid den,
     # der staar i samlingen, ogsaa efter en Gem.
@@ -1061,6 +1073,7 @@ def build_details(scope=None):
     # Anmodningen, raekken hoerer til - den sidste kolonne i colDomRows,
     # der ikke stod her (issue #101: "all available columns").
     rows.append(_detail_row(len(rows), "Request no.", f'Coalesce({row}.RequestNo, "-")'))
+    rows += list(extra(row) if callable(extra) else extra)
 
     # FELTLISTEN SCROLLER, POPUPPEN GOER IKKE. Equipment har nitten felter;
     # hoejere end en baerbar skaerm. Hovedet med Luk staar fast.
@@ -1635,21 +1648,30 @@ class ListLayout:
     plus en lige del af det, der er tilovers. Er der intet tilovers (en
     tablet), er tabellen sine mindstebredder og scroller vandret."""
 
-    def __init__(self, slots):
+    def __init__(self, slots, fixed=False):
         self.slots = slots
+        # FAST LAYOUT (opt-in, issue #210): een visning, ingen Compact/All.
+        # Alle pladser er "Compact"-pladsen, de fylder listens bredde, og
+        # der er ingen varDomAllCols at skifte med.
+        self.fixed = fixed
         self.all_ws = [col_w(a) for _c, a in slots]
         self.all_w = (BADGE_W + sum(self.all_ws) + LIST_MORE_W + LIST_ACTIONS_W
                       + T_GAP * (len(slots) + 2))
         self.compact = [i for i, (c, _a) in enumerate(slots) if c is not None]
-        fixed = BADGE_W + LIST_MORE_W + LIST_ACTIONS_W + T_GAP * (len(self.compact) + 2)
-        self.compact_min = fixed + sum(col_w(slots[i][0]) for i in self.compact)
+        # Det, der ikke kan vokse: maerket, de to knapkolonner og gaps.
+        # (Hed "fixed" og skyggede parameteren af samme navn.)
+        fixed_w = BADGE_W + LIST_MORE_W + LIST_ACTIONS_W + T_GAP * (len(self.compact) + 2)
+        self.compact_min = fixed_w + sum(col_w(slots[i][0]) for i in self.compact)
         self.spare = (f"Max(0, ({TABLE_AVAIL}) - {self.compact_min}) / "
                       f"{len(self.compact)}")
-        self.table_w = (f"If({ALL_COLS}, {self.all_w}, "
+        self.table_w = (f"Max({self.compact_min}, {TABLE_AVAIL})" if self.fixed else
+                        f"If({ALL_COLS}, {self.all_w}, "
                         f"Max({self.compact_min}, {TABLE_AVAIL}))")
 
     def width(self, i):
         c, a = self.slots[i]
+        if self.fixed:
+            return f"{col_w(c)} + {self.spare}"
         if c is None:
             return str(self.all_ws[i])
         cw = f"{col_w(c)} + {self.spare}"
@@ -1657,6 +1679,8 @@ class ListLayout:
 
     def visible(self, i):
         c, a = self.slots[i]
+        if self.fixed:
+            return None
         if c is None:
             return ALL_COLS
         if a is None:
@@ -1667,6 +1691,8 @@ class ListLayout:
         """part 0 = overskriften, 1 = udtrykket."""
         c, a = self.slots[i]
         pick = (lambda s: f'"{s[0]}"') if part == 0 else (lambda s: s[1])
+        if self.fixed:
+            return pick(c)
         if c is None:
             return pick(a)
         if a is None:
@@ -1774,12 +1800,19 @@ def _compact_row(lay_, load_fx, copy_fx, delete_fx):
                  visible=below("Desktop"))
 
 
-def build_list(slots, badge_head, search_placeholder):
+def build_list(slots, badge_head, search_placeholder, views=True, fixed=False):
     """Kortet med de gemte raekker - og indsend under tabellen.
 
     slots: appens pladser (se ovenfor). badge_head: overskriften over
-    statusmaerket ("STATUS" / "VALIDATION")."""
-    lay_ = ListLayout(slots)
+    statusmaerket ("STATUS" / "VALIDATION").
+    views: skal der vaere Compact/All columns? Measuring Point har EET
+    fast layout (issue #210 Q13), og saa er der ingen knapper at skifte
+    med - og ingen varDomAllCols.
+    fixed: pladserne er faste; kun den foerste af hvert par bruges."""
+    if fixed and views:
+        raise SystemExit("domain_parts.build_list: fixed kraever views=False "
+                         "- et fast layout har ingen Compact/All.")
+    lay_ = ListLayout(slots, fixed=fixed)
 
     # --- hovedet: titel, soegning og de to filtre ---------------------
     title = text_ctrl("txtDomRowsH", '"Saved Rows"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
@@ -1806,8 +1839,8 @@ def build_list(slots, badge_head, search_placeholder):
                 ALL_COLS)
     for b in (compact, allc):
         b.props["Size"] = "13"
-    views = group("conDomViewSwitch", [compact, allc], direction="Horizontal", gap=8,
-                  height=32, align_items="Center", justify="End")
+    view_switch = group("conDomViewSwitch", [compact, allc], direction="Horizontal",
+                        gap=8, height=32, align_items="Center", justify="End")
 
     # --- tabellen -----------------------------------------------------------
     heads = [_head_text("txtDomHeadStatus", f'"{badge_head}"', BADGE_W)]
@@ -1819,8 +1852,10 @@ def build_list(slots, badge_head, search_placeholder):
                                     height=20, width=lay_.width(i), wrap="false",
                                     visible=lay_.visible(i))))
     heads.append(_head_text("txtDomHeadMore",
-                            f'If({ALL_COLS}, "ACTIONS", "MORE")', LIST_MORE_W))
-    heads.append(_head_text("txtDomHeadActions", f'If({ALL_COLS}, "", "ACTIONS")',
+                            '"MORE"' if fixed else f'If({ALL_COLS}, "ACTIONS", "MORE")',
+                            LIST_MORE_W))
+    heads.append(_head_text("txtDomHeadActions",
+                            '"ACTIONS"' if fixed else f'If({ALL_COLS}, "", "ACTIONS")',
                             LIST_ACTIONS_W, accessible='"Actions"'))
     cells.append(_row_buttons("conDomRowMore", MORE_BTNS,
                               [open_docs_fx(), copy_row_fx()],
@@ -1873,7 +1908,8 @@ def build_list(slots, badge_head, search_placeholder):
 
     empty = None
 
-    return card("conDomRowsCard", [head, views, table] + _submit_parts())
+    body = [head, view_switch, table] if views else [head, table]
+    return card("conDomRowsCard", body + _submit_parts())
 
 
 # ---------------------------------------------------------------------------

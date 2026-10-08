@@ -232,3 +232,13 @@ EXTRA_FORMULAS = (
 # og flowene kommer i en senere PR, naar #204's delte moduler er paa
 # plads; indtil da er Submit den simple vej: Indsendt -> KlarTilSAP.
 SUBMIT_STATUS = "KlarTilSAP"
+
+# --- Saved Rows og kopi (fase 3) --------------------------------------
+# EET fast layout (Q13): ingen Compact/All columns. Uden de to visninger
+# er der heller ingen varDomAllCols (tools/domain_app.py).
+LIST_VIEWS = False
+
+# Copy laver en NY raekke af en gammel. Et eksisterende maalepunktsnummer
+# maa ikke foelge med - to raekker kan ikke vaere det samme punkt.
+# CreatedMeasuringPointNo staar i READ_FIELDS og kopieres aldrig.
+COPY_SKIP = {"MeasuringPoint"}
