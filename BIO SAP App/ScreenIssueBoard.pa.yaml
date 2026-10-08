@@ -1624,7 +1624,7 @@ Screens:
                                     Text: |-
                                         =""
                                     Width: |-
-                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12
+                                        =(((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 18 - 40) / (Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0))) - 2 * 0) - 12
                                     Wrap: |-
                                         =false
                                     X: |-
@@ -1663,7 +1663,7 @@ Screens:
                                     Text: |-
                                         =ThisItem.TicketNo
                                     Width: |-
-                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 40 - 112 - 8
+                                        =(((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 18 - 40) / (Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0))) - 2 * 0) - 40 - 112 - 8
                                     Wrap: |-
                                         =false
                                     X: |-
@@ -1718,7 +1718,7 @@ Screens:
                                     Wrap: |-
                                         =false
                                     X: |-
-                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 20 - 112
+                                        =(((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 18 - 40) / (Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0))) - 2 * 0) - 20 - 112
                                     Y: |-
                                         =20
                               - txtIbTileTitle:
@@ -1755,7 +1755,7 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Top
                                     Width: |-
-                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 40
+                                        =(((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 18 - 40) / (Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0))) - 2 * 0) - 40
                                     Wrap: |-
                                         =true
                                     X: |-
@@ -1792,7 +1792,7 @@ Screens:
                                     Text: |-
                                         =ThisItem.Application & "  ·  " & ThisItem.Section
                                     Width: |-
-                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 40
+                                        =(((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 18 - 40) / (Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0))) - 2 * 0) - 40
                                     Wrap: |-
                                         =false
                                     X: |-
@@ -1831,7 +1831,7 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Top
                                     Width: |-
-                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 40
+                                        =(((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 18 - 40) / (Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0))) - 2 * 0) - 40
                                     Wrap: |-
                                         =true
                                     X: |-
@@ -1923,7 +1923,7 @@ Screens:
                                     Text: |-
                                         =If(varIbScope = "shared", If(IsBlank(If(varIbScope = "shared", LookUp(colIbMine, TicketNo = ThisItem.TicketNo))), "", "Reported by you"), If(IsAdmin && ThisItem.Reporter <> varIbMe, Upper(First(Split(ThisItem.Reporter, "@")).Value) & "  ·  ", "") & If(IsBlank(ThisItem.Assigned), "Unassigned", "To " & ThisItem.Assigned))
                                     Width: |-
-                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 40 - 80 - 8
+                                        =(((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 18 - 40) / (Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0))) - 2 * 0) - 40 - 80 - 8
                                     Wrap: |-
                                         =false
                                     X: |-
@@ -2019,7 +2019,7 @@ Screens:
                                     Text: |-
                                         ="Open " & ThisItem.TicketNo & " - " & ThisItem.Title & ", " & If(ThisItem.Archived, "Archived", ThisItem.Status)
                                     Width: |-
-                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12
+                                        =(((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 18 - 40) / (Max(1, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 240, 0))) - 2 * 0) - 12
                                     X: |-
                                         =6
                                     Y: |-
