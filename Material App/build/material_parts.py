@@ -261,24 +261,11 @@ MPN = ("MANUFACTURER PART NO.", "ThisItem.ManufacturerPartNo", 150)
 SUPP = ("SUPPLIER", "ThisItem.Supplier", 100)
 DOCS = ("DOCUMENTATION",
         'If(ThisItem.FileCount > 0, Text(ThisItem.FileCount) & " file(s)", "-")', 110)
-SLOTS = [
-    # (Compact, All)
-    (FL_C, FL_C),
-    (DESC, MFR),
-    (MFR, MODEL),
-    (MPN, MPN),
-    (SUPP, DESC),
-    (None, DOCS),
-    (None, ("STOCK UNIT", "ThisItem.StockUnit", 90)),
-    (None, ("PRICE", dp.num_text("Price"), 80)),
-    (None, ("PRICE UNIT", "ThisItem.PriceUnit", 90)),
-    (None, ("DELIVERY TIME", dp.num_text("DeliveringTime"), 110)),
-    (None, ("RECOMMENDED STOCK", dp.num_text("RecommendedStock"), 130)),
-    (None, SUPP),
-    (None, ("SUPPLIER PART NO.", "ThisItem.SupplierPartNo", 130)),
-    (None, ("STRATEGIC PART", "ThisItem.StrategicPart", 100)),
-    (None, ("WEAR PART", "ThisItem.WearPart", 90)),
-]
+# EET fast saet kolonner (issue #204). Compact/All columns er vaek; resten
+# af raekkens felter staar i Details, grupperet. DOCS, pris og lager var
+# kun i "All columns" og er der nu - de staar i Details.
+SLOTS = [FL_C, DESC, MFR, MPN, SUPP]
+
 
 
 def build_rows():

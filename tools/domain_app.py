@@ -106,9 +106,6 @@ Set(varDomFlQuery, "");
 Set(varDomFlLast, "");
 Set(varDomFlBusy, false);
 Set(varDomInfo, "");
-// Listen: false = Compact, true = All columns (issue #67/#68).
-Set(varDomAllCols, false);
-
 // Er formularen blevet tjekket? Styrer om en kraevet feltkant maa vaere
 // roed. false ved opstart: en tom formular, ingen har roert, skal ikke
 // staa og lyse roedt. Saettes af Gem/Indsend - se domain_parts.REQUIRED.

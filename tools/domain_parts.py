@@ -1652,26 +1652,24 @@ def form_buttons(save_fx, save_text, new_text):
 
 
 # ---------------------------------------------------------------------------
-# De gemte raekker (issue #67 / #68)
+# De gemte raekker (issue #67 / #68, aendret i #204)
 #
-# Hoved med soegning, status- og vaerksfilter, Compact/All columns, en
-# tabel der scroller vandret, naar den er bredere end kortet, og indsend
-# under den til hoejre. Kolonnerne er appens egne (SLOTS i
-# material_parts.py / equipment_parts.py).
+# Hoved med soegning, status- og vaerksfilter, en tabel der scroller
+# vandret, naar den er bredere end kortet, og indsend under den.
+# Kolonnerne er appens egne (SLOTS i material_parts.py /
+# equipment_parts.py).
 #
-# EEN RAEKKE, FLERE PLADSER
-# -------------------------
-# Kolonnerne staar i forskellig raekkefoelge i de to visninger. En celle
-# kan ikke flytte sig i et galleri, men dens INDHOLD kan: hver plads viser
-# een kolonne i Compact og en (evt. anden) i All columns. Saa er der ingen
-# celle to gange, og overskriften skifter paa samme maade.
+# EEN VISNING, IKKE TO (issue #204)
+# ---------------------------------
+# Her stod Compact/All columns: hver plads viste een kolonne i Compact og
+# en anden i All columns, og en pille skiftede imellem dem. Det var to
+# sandheder om samme tabel - overskrifter, bredder og indhold skiftede
+# under haanden - og "alle kolonner" var alligevel for bredt til at laese
+# paa en skaerm. Nu er der EET fast saet kolonner, og resten af raekkens
+# felter ses i Details, hvor de staar i grupper.
 #
-# En plads er (Compact, All). Hver af de to er (overskrift, udtryk,
-# mindstebredde) - eller None, naar pladsen er tom i den visning.
+# En plads er (overskrift, udtryk, mindstebredde).
 # ---------------------------------------------------------------------------
-# Compact eller All columns. Sat i App.OnStart og ALDRIG af en genhentning,
-# saa visningen bliver staaende, naar raekkerne hentes forfra.
-ALL_COLS = "varDomAllCols"
 
 # "All plants"/"All status" er LOKALE ord: de betyder "filtrer ikke" og
 # staar ingen steder i SharePoint. De tre andre statusvaerdier ER lagrede
@@ -1746,8 +1744,6 @@ def col_w(spec):
     skoen, der med vilje rammer for bredt; paa sytten overskrifter blev det
     til flere hundrede pixels, og Compact kunne ikke staa uden scroll paa en
     1366-skaerm. 4 px oven i er sikkerheden."""
-    if spec is None:
-        return 0
     header, _expr, min_w = spec
     return max(min_w, label_px(header, HEAD_SIZE) + 2 * CELL_PAD + 4)
 
@@ -1761,51 +1757,27 @@ def date_text(col):
 
 
 class ListLayout:
-    """Bredderne for et saet pladser i de to visninger.
+    """Bredderne for tabellens kolonner.
 
-    All columns har faste bredder. Compact FYLDER listens bredde: hver
-    tekstkolonne faar sin mindstebredde (mindst saa bred som overskriften)
-    plus en lige del af det, der er tilovers. Er der intet tilovers (en
-    tablet), er tabellen sine mindstebredder og scroller vandret."""
+    Tabellen FYLDER listens bredde: hver kolonne faar sin mindstebredde
+    (mindst saa bred som overskriften) plus en lige del af det, der er
+    tilovers. Er der intet tilovers (en tablet), er tabellen sine
+    mindstebredder og scroller vandret."""
 
     def __init__(self, slots):
-        self.slots = slots
-        self.all_ws = [col_w(a) for _c, a in slots]
-        self.all_w = (BADGE_W + sum(self.all_ws) + LIST_MORE_W + LIST_ACTIONS_W
-                      + T_GAP * (len(slots) + 2))
-        self.compact = [i for i, (c, _a) in enumerate(slots) if c is not None]
-        fixed = BADGE_W + LIST_MORE_W + LIST_ACTIONS_W + T_GAP * (len(self.compact) + 2)
-        self.compact_min = fixed + sum(col_w(slots[i][0]) for i in self.compact)
-        self.spare = (f"Max(0, ({TABLE_AVAIL}) - {self.compact_min}) / "
-                      f"{len(self.compact)}")
-        self.table_w = (f"If({ALL_COLS}, {self.all_w}, "
-                        f"Max({self.compact_min}, {TABLE_AVAIL}))")
+        self.slots = list(slots)
+        fixed = BADGE_W + LIST_MORE_W + LIST_ACTIONS_W + T_GAP * (len(self.slots) + 2)
+        self.min_w = fixed + sum(col_w(c) for c in self.slots)
+        self.spare = f"Max(0, ({TABLE_AVAIL}) - {self.min_w}) / {len(self.slots)}"
+        self.table_w = f"Max({self.min_w}, {TABLE_AVAIL})"
 
     def width(self, i):
-        c, a = self.slots[i]
-        if c is None:
-            return str(self.all_ws[i])
-        cw = f"{col_w(c)} + {self.spare}"
-        return cw if a is None else f"If({ALL_COLS}, {self.all_ws[i]}, {cw})"
-
-    def visible(self, i):
-        c, a = self.slots[i]
-        if c is None:
-            return ALL_COLS
-        if a is None:
-            return f"!{ALL_COLS}"
-        return None
+        return f"{col_w(self.slots[i])} + {self.spare}"
 
     def text(self, i, part):
         """part 0 = overskriften, 1 = udtrykket."""
-        c, a = self.slots[i]
-        pick = (lambda s: f'"{s[0]}"') if part == 0 else (lambda s: s[1])
-        if c is None:
-            return pick(a)
-        if a is None:
-            return pick(c)
-        cv, av = pick(c), pick(a)
-        return cv if cv == av else f"If({ALL_COLS}, {av}, {cv})"
+        spec = self.slots[i]
+        return f'"{spec[0]}"' if part == 0 else spec[1]
 
 
 def _pad(ctrl):
@@ -1865,7 +1837,7 @@ def _row_buttons(name, btns, fxs, width, danger=(), modes=None):
 def _compact_row(lay_, load_fx, copy_fx, delete_fx):
     """Card row below Desktop: key + status on top, the next values under it, the actions
     on two short lines. Replaces the wide table, which would scroll sideways on a phone."""
-    cs = [lay_.slots[i][0] for i in lay_.compact]
+    cs = list(lay_.slots)
     s = "ThisItem.Status"
     fg = (f'Switch({s}, "valid", {C_VALID_FG}, "submitted", {C_INFO_FG}, '
           f'"draft", {C_WARN_FG}, {C_NEUTRAL_FG})')
@@ -1928,32 +1900,16 @@ def build_list(slots, badge_head, search_placeholder):
     head = flow_row("conDomRowsTop", [title, search, status, plant], FORM_W, gap=8,
                     flex=title, flex_min=text_px("Saved Rows", 17))
 
-    # --- Compact / All columns --------------------------------------------
-    compact = pill(fit(button("btnDomViewCompact", '"Compact"',
-                              f"Set({ALL_COLS}, false)", height=32,
-                              accessible='"Compact view"'), size=13),
-                   f"!{ALL_COLS}")
-    allc = pill(fit(button("btnDomViewAll", '"All columns"',
-                           f"Set({ALL_COLS}, true)", height=32,
-                           accessible='"All columns view"'), size=13),
-                ALL_COLS)
-    for b in (compact, allc):
-        b.props["Size"] = "13"
-    views = group("conDomViewSwitch", [compact, allc], direction="Horizontal", gap=8,
-                  height=32, align_items="Center", justify="End")
-
     # --- tabellen -----------------------------------------------------------
     heads = [_head_text("txtDomHeadStatus", f'"{badge_head}"', BADGE_W)]
     cells = [_status_badge()]
     for i in range(len(slots)):
         heads.append(_head_text(f"txtDomHead{i}", lay_.text(i, 0), lay_.width(i),
-                                visible=lay_.visible(i), accessible=lay_.text(i, 0)))
+                                accessible=lay_.text(i, 0)))
         cells.append(_pad(text_ctrl(f"txtDomCell{i}", lay_.text(i, 1), size=13,
-                                    height=20, width=lay_.width(i), wrap="false",
-                                    visible=lay_.visible(i))))
-    heads.append(_head_text("txtDomHeadMore",
-                            f'If({ALL_COLS}, "ACTIONS", "MORE")', LIST_MORE_W))
-    heads.append(_head_text("txtDomHeadActions", f'If({ALL_COLS}, "", "ACTIONS")',
+                                    height=20, width=lay_.width(i), wrap="false")))
+    heads.append(_head_text("txtDomHeadMore", '"MORE"', LIST_MORE_W))
+    heads.append(_head_text("txtDomHeadActions", '"ACTIONS"',
                             LIST_ACTIONS_W, accessible='"Actions"'))
     cells.append(_row_buttons("conDomRowMore", MORE_BTNS,
                               [open_docs_fx(), copy_row_fx()],
@@ -2006,7 +1962,7 @@ def build_list(slots, badge_head, search_placeholder):
 
     empty = None
 
-    return card("conDomRowsCard", [head, views, table] + _submit_parts())
+    return card("conDomRowsCard", [head, table] + _submit_parts())
 
 
 # ---------------------------------------------------------------------------

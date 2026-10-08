@@ -5708,14 +5708,14 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =82 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (240) + (170) + (170) + (111) + 24, 36, (26) + 8 + (36) + 8 + (36) + 8 + (36))) + 14 + (0 + If(LayoutRank >= 3, 0 + (34), 0) + (Max(Min(CountRows(Filter(
+                            =36 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (240) + (170) + (170) + (111) + 24, 36, (26) + 8 + (36) + 8 + (36) + 8 + (36))) + 14 + (0 + If(LayoutRank >= 3, 0 + (34), 0) + (Max(Min(CountRows(Filter(
                                 colMatRows,
                                 (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
                                 (drpMatStatusFilter.Selected.Value = "All status" ||
                                  Status = Lower(drpMatStatusFilter.Selected.Value)),
                                 (drpMatPlantFilter.Selected.Value = "All plants" ||
                                  Plant = drpMatPlantFilter.Selected.Value)
-                            )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 130, 46)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), If(varMatAllCols, 2306, Max(1155, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18))))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)), 18, 0)) + If(!IsBlank(varMatRequestNo), 14 + (20), 0)
+                            )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 130, 46)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1155, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)), 18, 0)) + If(!IsBlank(varMatRequestNo), 14 + (20), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -5954,129 +5954,6 @@ Screens:
                                         =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                     Width: |-
                                         =170
-                        - conMatViewSwitch:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =32
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Center
-                              LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
-                              LayoutGap: |-
-                                  =8
-                              LayoutJustifyContent: |-
-                                  =LayoutJustifyContent.End
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              Width: |-
-                                  =Parent.Width
-                            Children:
-                              - btnMatViewCompact:
-                                  Control: ModernButton
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Compact view"
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    Appearance: |-
-                                        =If(!varMatAllCols, ButtonAppearance.Primary, ButtonAppearance.Outline)
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =If(!varMatAllCols, C.'color-brand-primary', C.'border-default')
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =If(!varMatAllCols, C.'text-on-primary', C.'text-primary')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =32
-                                    Layout: |-
-                                        =ButtonLayout.TextOnly
-                                    LayoutMinWidth: |-
-                                        =90
-                                    OnSelect: |-
-                                        =Set(varMatAllCols, false)
-                                    RadiusBottomLeft: |-
-                                        =16
-                                    RadiusBottomRight: |-
-                                        =16
-                                    RadiusTopLeft: |-
-                                        =16
-                                    RadiusTopRight: |-
-                                        =16
-                                    Size: |-
-                                        =13
-                                    Text: |-
-                                        ="Compact"
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Width: |-
-                                        =90
-                              - btnMatViewAll:
-                                  Control: ModernButton
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="All columns view"
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    Appearance: |-
-                                        =If(varMatAllCols, ButtonAppearance.Primary, ButtonAppearance.Outline)
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =If(varMatAllCols, C.'color-brand-primary', C.'border-default')
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =If(varMatAllCols, C.'text-on-primary', C.'text-primary')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =32
-                                    Layout: |-
-                                        =ButtonLayout.TextOnly
-                                    LayoutMinWidth: |-
-                                        =114
-                                    OnSelect: |-
-                                        =Set(varMatAllCols, true)
-                                    RadiusBottomLeft: |-
-                                        =16
-                                    RadiusBottomRight: |-
-                                        =16
-                                    RadiusTopLeft: |-
-                                        =16
-                                    RadiusTopRight: |-
-                                        =16
-                                    Size: |-
-                                        =13
-                                    Text: |-
-                                        ="All columns"
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Width: |-
-                                        =114
                         - conMatTableWrap:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -6095,7 +5972,7 @@ Screens:
                                        Status = Lower(drpMatStatusFilter.Selected.Value)),
                                       (drpMatPlantFilter.Selected.Value = "All plants" ||
                                        Plant = drpMatPlantFilter.Selected.Value)
-                                  )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 130, 46)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), If(varMatAllCols, 2306, Max(1155, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18))))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)), 18, 0)
+                                  )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 130, 46)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1155, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)), 18, 0)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Start
                               LayoutDirection: |-
@@ -6140,7 +6017,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 3
                                     Width: |-
-                                        =If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), If(varMatAllCols, 2306, Max(1155, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18))))
+                                        =If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1155, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))
                                   Children:
                                     - txtMatHeadStatus:
                                         Control: ModernText
@@ -6209,14 +6086,14 @@ Screens:
                                           Text: |-
                                               ="FUNCTIONAL LOCATION"
                                           Width: |-
-                                              =If(varMatAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)
+                                              =154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5
                                           Wrap: |-
                                               =false
                                     - txtMatHead1:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              =If(varMatAllCols, "MANUFACTURER", "MATERIAL DESCRIPTION")
+                                              ="MATERIAL DESCRIPTION"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -6242,16 +6119,16 @@ Screens:
                                           Size: |-
                                               =11
                                           Text: |-
-                                              =If(varMatAllCols, "MANUFACTURER", "MATERIAL DESCRIPTION")
+                                              ="MATERIAL DESCRIPTION"
                                           Width: |-
-                                              =If(varMatAllCols, 115, 153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)
+                                              =153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5
                                           Wrap: |-
                                               =false
                                     - txtMatHead2:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              =If(varMatAllCols, "MODEL NUMBER", "MANUFACTURER")
+                                              ="MANUFACTURER"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -6277,9 +6154,9 @@ Screens:
                                           Size: |-
                                               =11
                                           Text: |-
-                                              =If(varMatAllCols, "MODEL NUMBER", "MANUFACTURER")
+                                              ="MANUFACTURER"
                                           Width: |-
-                                              =If(varMatAllCols, 114, 115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)
+                                              =115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5
                                           Wrap: |-
                                               =false
                                     - txtMatHead3:
@@ -6314,270 +6191,13 @@ Screens:
                                           Text: |-
                                               ="MANUFACTURER PART NO."
                                           Width: |-
-                                              =If(varMatAllCols, 169, 169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)
+                                              =169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5
                                           Wrap: |-
                                               =false
                                     - txtMatHead4:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              =If(varMatAllCols, "MATERIAL DESCRIPTION", "SUPPLIER")
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =18
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =11
-                                          Text: |-
-                                              =If(varMatAllCols, "MATERIAL DESCRIPTION", "SUPPLIER")
-                                          Width: |-
-                                              =If(varMatAllCols, 153, 100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)
-                                          Wrap: |-
-                                              =false
-                                    - txtMatHead5:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="DOCUMENTATION"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =18
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =11
-                                          Text: |-
-                                              ="DOCUMENTATION"
-                                          Visible: |-
-                                              =varMatAllCols
-                                          Width: |-
-                                              =123
-                                          Wrap: |-
-                                              =false
-                                    - txtMatHead6:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="STOCK UNIT"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =18
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =11
-                                          Text: |-
-                                              ="STOCK UNIT"
-                                          Visible: |-
-                                              =varMatAllCols
-                                          Width: |-
-                                              =90
-                                          Wrap: |-
-                                              =false
-                                    - txtMatHead7:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="PRICE"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =18
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =11
-                                          Text: |-
-                                              ="PRICE"
-                                          Visible: |-
-                                              =varMatAllCols
-                                          Width: |-
-                                              =80
-                                          Wrap: |-
-                                              =false
-                                    - txtMatHead8:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="PRICE UNIT"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =18
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =11
-                                          Text: |-
-                                              ="PRICE UNIT"
-                                          Visible: |-
-                                              =varMatAllCols
-                                          Width: |-
-                                              =90
-                                          Wrap: |-
-                                              =false
-                                    - txtMatHead9:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="DELIVERY TIME"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =18
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =11
-                                          Text: |-
-                                              ="DELIVERY TIME"
-                                          Visible: |-
-                                              =varMatAllCols
-                                          Width: |-
-                                              =110
-                                          Wrap: |-
-                                              =false
-                                    - txtMatHead10:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="RECOMMENDED STOCK"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =18
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =11
-                                          Text: |-
-                                              ="RECOMMENDED STOCK"
-                                          Visible: |-
-                                              =varMatAllCols
-                                          Width: |-
-                                              =151
-                                          Wrap: |-
-                                              =false
-                                    - txtMatHead11:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
                                               ="SUPPLIER"
                                           BorderStyle: |-
                                               =BorderStyle.None
@@ -6605,128 +6225,15 @@ Screens:
                                               =11
                                           Text: |-
                                               ="SUPPLIER"
-                                          Visible: |-
-                                              =varMatAllCols
                                           Width: |-
-                                              =100
-                                          Wrap: |-
-                                              =false
-                                    - txtMatHead12:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="SUPPLIER PART NO."
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =18
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =11
-                                          Text: |-
-                                              ="SUPPLIER PART NO."
-                                          Visible: |-
-                                              =varMatAllCols
-                                          Width: |-
-                                              =130
-                                          Wrap: |-
-                                              =false
-                                    - txtMatHead13:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="STRATEGIC PART"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =18
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =11
-                                          Text: |-
-                                              ="STRATEGIC PART"
-                                          Visible: |-
-                                              =varMatAllCols
-                                          Width: |-
-                                              =113
-                                          Wrap: |-
-                                              =false
-                                    - txtMatHead14:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="WEAR PART"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =18
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =11
-                                          Text: |-
-                                              ="WEAR PART"
-                                          Visible: |-
-                                              =varMatAllCols
-                                          Width: |-
-                                              =90
+                                              =100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5
                                           Wrap: |-
                                               =false
                                     - txtMatHeadMore:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              =Self.Text
+                                              ="MORE"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -6752,7 +6259,7 @@ Screens:
                                           Size: |-
                                               =11
                                           Text: |-
-                                              =If(varMatAllCols, "ACTIONS", "MORE")
+                                              ="MORE"
                                           Width: |-
                                               =142
                                           Wrap: |-
@@ -6787,7 +6294,7 @@ Screens:
                                           Size: |-
                                               =11
                                           Text: |-
-                                              =If(varMatAllCols, "", "ACTIONS")
+                                              ="ACTIONS"
                                           Width: |-
                                               =190
                                           Wrap: |-
@@ -6869,7 +6376,7 @@ Screens:
                                     TemplateSize: |-
                                         =If(LayoutRank < 3, 128, 44)
                                     Width: |-
-                                        =(If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), If(varMatAllCols, 2306, Max(1155, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18))))) + 4 + 18
+                                        =(If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1155, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18
                                     WrapCount: |-
                                         =1
                                   Children:
@@ -6956,7 +6463,7 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =If(varMatAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)
+                                              =154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -6991,15 +6498,15 @@ Screens:
                                           Size: |-
                                               =13
                                           Text: |-
-                                              =If(varMatAllCols, ThisItem.Manufacturer, If(IsBlank(Trim(ThisItem.MaterialDescription)), "(no text)", ThisItem.MaterialDescription))
+                                              =If(IsBlank(Trim(ThisItem.MaterialDescription)), "(no text)", ThisItem.MaterialDescription)
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =If(varMatAllCols, 115, 153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)
+                                              =153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMatAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
                                     - txtMatCell2:
@@ -7030,15 +6537,15 @@ Screens:
                                           Size: |-
                                               =13
                                           Text: |-
-                                              =If(varMatAllCols, ThisItem.ModelNumber, ThisItem.Manufacturer)
+                                              =ThisItem.Manufacturer
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =If(varMatAllCols, 114, 115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)
+                                              =115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMatAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 115, 153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
                                     - txtMatCell3:
@@ -7073,11 +6580,11 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =If(varMatAllCols, 169, 169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)
+                                              =169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMatAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 115, 153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 114, 115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6
+                                              =0 + 0 + 0 + (90) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
                                     - txtMatCell4:
@@ -7108,405 +6615,15 @@ Screens:
                                           Size: |-
                                               =13
                                           Text: |-
-                                              =If(varMatAllCols, If(IsBlank(Trim(ThisItem.MaterialDescription)), "(no text)", ThisItem.MaterialDescription), ThisItem.Supplier)
+                                              =ThisItem.Supplier
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =If(varMatAllCols, 153, 100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)
+                                              =100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMatAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 115, 153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 114, 115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 169, 169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6
-                                          Y: |-
-                                              =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
-                                    - txtMatCell5:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =If(ThisItem.FileCount > 0, Text(ThisItem.FileCount) & " file(s)", "-")
-                                          Visible: |-
-                                              =(LayoutRank >= 3) && (varMatAllCols)
-                                          Width: |-
-                                              =123
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMatAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 115, 153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 114, 115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 169, 169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 153, 100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6
-                                          Y: |-
-                                              =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
-                                    - txtMatCell6:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =ThisItem.StockUnit
-                                          Visible: |-
-                                              =(LayoutRank >= 3) && (varMatAllCols)
-                                          Width: |-
-                                              =90
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMatAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 115, 153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 114, 115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 169, 169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 153, 100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + If(varMatAllCols, (123) + 6, 0)
-                                          Y: |-
-                                              =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
-                                    - txtMatCell7:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =If(IsBlank(ThisItem.Price), "", Text(ThisItem.Price))
-                                          Visible: |-
-                                              =(LayoutRank >= 3) && (varMatAllCols)
-                                          Width: |-
-                                              =80
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMatAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 115, 153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 114, 115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 169, 169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 153, 100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + If(varMatAllCols, (123) + 6, 0) + If(varMatAllCols, (90) + 6, 0)
-                                          Y: |-
-                                              =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
-                                    - txtMatCell8:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =ThisItem.PriceUnit
-                                          Visible: |-
-                                              =(LayoutRank >= 3) && (varMatAllCols)
-                                          Width: |-
-                                              =90
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMatAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 115, 153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 114, 115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 169, 169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 153, 100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + If(varMatAllCols, (123) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + If(varMatAllCols, (80) + 6, 0)
-                                          Y: |-
-                                              =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
-                                    - txtMatCell9:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =If(IsBlank(ThisItem.DeliveringTime), "", Text(ThisItem.DeliveringTime))
-                                          Visible: |-
-                                              =(LayoutRank >= 3) && (varMatAllCols)
-                                          Width: |-
-                                              =110
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMatAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 115, 153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 114, 115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 169, 169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 153, 100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + If(varMatAllCols, (123) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + If(varMatAllCols, (80) + 6, 0) + If(varMatAllCols, (90) + 6, 0)
-                                          Y: |-
-                                              =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
-                                    - txtMatCell10:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =If(IsBlank(ThisItem.RecommendedStock), "", Text(ThisItem.RecommendedStock))
-                                          Visible: |-
-                                              =(LayoutRank >= 3) && (varMatAllCols)
-                                          Width: |-
-                                              =151
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMatAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 115, 153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 114, 115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 169, 169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 153, 100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + If(varMatAllCols, (123) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + If(varMatAllCols, (80) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + If(varMatAllCols, (110) + 6, 0)
-                                          Y: |-
-                                              =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
-                                    - txtMatCell11:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =ThisItem.Supplier
-                                          Visible: |-
-                                              =(LayoutRank >= 3) && (varMatAllCols)
-                                          Width: |-
-                                              =100
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMatAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 115, 153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 114, 115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 169, 169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 153, 100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + If(varMatAllCols, (123) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + If(varMatAllCols, (80) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + If(varMatAllCols, (110) + 6, 0) + If(varMatAllCols, (151) + 6, 0)
-                                          Y: |-
-                                              =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
-                                    - txtMatCell12:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =ThisItem.SupplierPartNo
-                                          Visible: |-
-                                              =(LayoutRank >= 3) && (varMatAllCols)
-                                          Width: |-
-                                              =130
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMatAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 115, 153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 114, 115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 169, 169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 153, 100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + If(varMatAllCols, (123) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + If(varMatAllCols, (80) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + If(varMatAllCols, (110) + 6, 0) + If(varMatAllCols, (151) + 6, 0) + If(varMatAllCols, (100) + 6, 0)
-                                          Y: |-
-                                              =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
-                                    - txtMatCell13:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =ThisItem.StrategicPart
-                                          Visible: |-
-                                              =(LayoutRank >= 3) && (varMatAllCols)
-                                          Width: |-
-                                              =113
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMatAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 115, 153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 114, 115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 169, 169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 153, 100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + If(varMatAllCols, (123) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + If(varMatAllCols, (80) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + If(varMatAllCols, (110) + 6, 0) + If(varMatAllCols, (151) + 6, 0) + If(varMatAllCols, (100) + 6, 0) + If(varMatAllCols, (130) + 6, 0)
-                                          Y: |-
-                                              =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
-                                    - txtMatCell14:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =13
-                                          Text: |-
-                                              =ThisItem.WearPart
-                                          Visible: |-
-                                              =(LayoutRank >= 3) && (varMatAllCols)
-                                          Width: |-
-                                              =90
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMatAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 115, 153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 114, 115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 169, 169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 153, 100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + If(varMatAllCols, (123) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + If(varMatAllCols, (80) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + If(varMatAllCols, (110) + 6, 0) + If(varMatAllCols, (151) + 6, 0) + If(varMatAllCols, (100) + 6, 0) + If(varMatAllCols, (130) + 6, 0) + If(varMatAllCols, (113) + 6, 0)
+                                              =0 + 0 + 0 + (90) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (20)) / 2
                                     - btnMatRowDocs:
@@ -7590,7 +6707,7 @@ Screens:
                                           Width: |-
                                               =64
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMatAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 115, 153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 114, 115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 169, 169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 153, 100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + If(varMatAllCols, (123) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + If(varMatAllCols, (80) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + If(varMatAllCols, (110) + 6, 0) + If(varMatAllCols, (151) + 6, 0) + If(varMatAllCols, (100) + 6, 0) + If(varMatAllCols, (130) + 6, 0) + If(varMatAllCols, (113) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + 10 + 0
+                                              =0 + 0 + 0 + (90) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + 10 + 0
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - btnMatRowCopy:
@@ -7672,7 +6789,7 @@ Screens:
                                           Width: |-
                                               =64
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMatAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 115, 153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 114, 115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 169, 169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 153, 100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + If(varMatAllCols, (123) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + If(varMatAllCols, (80) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + If(varMatAllCols, (110) + 6, 0) + If(varMatAllCols, (151) + 6, 0) + If(varMatAllCols, (100) + 6, 0) + If(varMatAllCols, (130) + 6, 0) + If(varMatAllCols, (113) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + 10 + 0 + (64) + 4
+                                              =0 + 0 + 0 + (90) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + 10 + 0 + (64) + 4
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - btnMatRowDetails:
@@ -7723,7 +6840,7 @@ Screens:
                                           Width: |-
                                               =72
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMatAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 115, 153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 114, 115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 169, 169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 153, 100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + If(varMatAllCols, (123) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + If(varMatAllCols, (80) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + If(varMatAllCols, (110) + 6, 0) + If(varMatAllCols, (151) + 6, 0) + If(varMatAllCols, (100) + 6, 0) + If(varMatAllCols, (130) + 6, 0) + If(varMatAllCols, (113) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + (142) + 6 + 10 + 0
+                                              =0 + 0 + 0 + (90) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (142) + 6 + 10 + 0
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - btnMatRowOpen:
@@ -7804,7 +6921,7 @@ Screens:
                                           Width: |-
                                               =60
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMatAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 115, 153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 114, 115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 169, 169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 153, 100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + If(varMatAllCols, (123) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + If(varMatAllCols, (80) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + If(varMatAllCols, (110) + 6, 0) + If(varMatAllCols, (151) + 6, 0) + If(varMatAllCols, (100) + 6, 0) + If(varMatAllCols, (130) + 6, 0) + If(varMatAllCols, (113) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + (142) + 6 + 10 + 0 + (72) + 4
+                                              =0 + 0 + 0 + (90) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (142) + 6 + 10 + 0 + (72) + 4
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - btnMatRowDelete:
@@ -7858,7 +6975,7 @@ Screens:
                                           Width: |-
                                               =40
                                           X: |-
-                                              =0 + 0 + 0 + (90) + 6 + (If(varMatAllCols, 154, 154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 115, 153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 114, 115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 169, 169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + (If(varMatAllCols, 153, 100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5)) + 6 + If(varMatAllCols, (123) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + If(varMatAllCols, (80) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + If(varMatAllCols, (110) + 6, 0) + If(varMatAllCols, (151) + 6, 0) + If(varMatAllCols, (100) + 6, 0) + If(varMatAllCols, (130) + 6, 0) + If(varMatAllCols, (113) + 6, 0) + If(varMatAllCols, (90) + 6, 0) + (142) + 6 + 10 + 0 + (72) + 4 + (60) + 4
+                                              =0 + 0 + 0 + (90) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (153 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (115 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (169 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (100 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1155) / 5) + 6 + (142) + 6 + 10 + 0 + (72) + 4 + (60) + 4
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 128, 44)) - 2) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
                                     - txtMatRowKeyC:
@@ -7895,7 +7012,7 @@ Screens:
                                           Visible: |-
                                               =LayoutRank < 3
                                           Width: |-
-                                              =Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), If(varMatAllCols, 2306, Max(1155, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18))))) + 4 + 18) - 2 * 2 - 18) - 10 - 10)) - ((70) + 8) - 2)
+                                              =Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1155, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 18) - 10 - 10)) - ((70) + 8) - 2)
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -7950,7 +7067,7 @@ Screens:
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 10 + 0 + 0 + (Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), If(varMatAllCols, 2306, Max(1155, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18))))) + 4 + 18) - 2 * 2 - 18) - 10 - 10)) - ((70) + 8) - 2)) + 8
+                                              =0 + 10 + 0 + 0 + (Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1155, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 18) - 10 - 10)) - ((70) + 8) - 2)) + 8
                                           Y: |-
                                               =0 + 8 + 0 + 0 + (((22) - 0 - 0) - (22)) / 2
                                     - txtMatRowMetaC:
@@ -7985,7 +7102,7 @@ Screens:
                                           Visible: |-
                                               =LayoutRank < 3
                                           Width: |-
-                                              =(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), If(varMatAllCols, 2306, Max(1155, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18))))) + 4 + 18) - 2 * 2 - 18) - 10 - 10
+                                              =(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1155, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 18) - 10 - 10
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -14753,8 +13870,6 @@ Screens:
                             Set(varMatAttJson, "");
                             Set(varMatFlMsg, "");
                             Set(varMatFlBusy, false);
-                            // Listen: false = Compact, true = All columns (issue #67/#68).
-                            Set(varMatAllCols, false);
                 
                             Set(varMatExtraOpen, false);
                             Set(varMatDetCreatedNo, "");
