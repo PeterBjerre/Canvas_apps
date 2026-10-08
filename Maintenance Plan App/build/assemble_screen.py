@@ -19,7 +19,7 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import render_screen, C_APP_BG, OUT_DIR
 from build_helpers import app_frame
-from build_hero import build_top_bar, HELP_ON, HELP_ACTION, focus_border, CONFIRM
+from build_hero import build_top_bar, HELP_ON, HELP_ACTION, focus_border, CONFIRM, MORE_MENU
 from build_helpers import loading_overlay
 from gen_screen import C_CARD_BORDER
 from side_nav import side_nav
@@ -59,7 +59,9 @@ def build_screen(render=render_screen):
                           build_modal_backdrop(), *build_ops_modals(),
                           build_tasklist_picker_modal(),
                           build_longtext_modal(), build_object_list_modal(),
-                          *CONFIRM, *overlay,
+                          *CONFIRM,
+                          # More actions i headeren (issue #211): sloer og menu.
+                          *MORE_MENU, *overlay,
                           # Ventespinneren, mens der gemmes - oeverst af alt.
                           loading_overlay("imgVhpSaving", "varVhpSaving")])
 
