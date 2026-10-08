@@ -80,7 +80,10 @@ def latest(log, stage):
     # GroupBy fejler paa en tom (blank) tabel: varMdAprAll er blank, til
     # visningens Set har koert, og galleriets raekker tegnes foer det. Saa
     # er der ingen beslutninger endnu, og T bliver blank (CountRows = 0).
-    return (f'If(IsEmpty({s}), Blank(), ForAll(GroupBy({s}, ItemGuid, colgrp), '
+    # IsEmpty alene var ikke nok i den publicerede app: paa en blank tabel
+    # giver den ikke true, saa GroupBy blev kaldt alligevel. IsBlank tester
+    # det blanke foerst og kortslutter.
+    return (f'If(IsBlank({s}) || IsEmpty({s}), Blank(), ForAll(GroupBy({s}, ItemGuid, colgrp), '
             f'First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))))')
 
 
