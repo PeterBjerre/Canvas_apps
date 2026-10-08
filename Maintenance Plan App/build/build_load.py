@@ -51,7 +51,6 @@ visning og hentes igen ved naeste FL-soegning.
 import sp_config as cfg
 from build_helpers import concurrent
 import permissions as perm
-from build_status import HAS_PKGS
 import submission_notes as sn
 import display_text as dt
 
@@ -350,25 +349,6 @@ def load_block():
         "                        { TasklistKey: Coalesce(tl.Key, \"\"), TasklistName: Coalesce(tl.Name, \"\") }\n"
         "                    )\n"
         "                );\n"
-        # Sektionernes Save/Edit (issue #103): de gemte sektioner aabner
-        # sammenklappet. Items er "valid" (ITEM_FIELDS); Tasklist and
-        # Operations er det for de items, der har tasklist og operationer -
-        # og paa en strategiplan med pakker en pakke pr. operation (trin 3
-        # og 4, build_status). Et ufuldstaendigt item staar foldet ud.
-        "                ClearCollect(\n"
-        "                    colVhpOpsDone,\n"
-        "                    ShowColumns(\n"
-        "                        Filter(\n"
-        "                            colVhpItems As I,\n"
-        "                            !IsBlank(I.TasklistKey) && I.ItemId in colVhpOperations.ItemId &&\n"
-        "                            (varVhpPlan.PlanType <> \"Strategy\" || !(" + HAS_PKGS + ") ||\n"
-        "                                CountRows(Filter(colVhpOperations, ItemId = I.ItemId && "
-        "Len(Coalesce(PackagesKey, \";\")) <= 1)) = 0)\n"
-        "                        ),\n"
-        "                        ItemId\n"
-        "                    )\n"
-        "                );\n"
-        "\n"
         "                // --- hvad der er valgt naar skaermen tegnes -------\n"
         "                Set(varVhpActiveItemId, First(colVhpItems).ItemId);\n"
         "                Set(varVhpNextItemId, Max(colVhpItems, ItemId));\n"

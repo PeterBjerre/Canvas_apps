@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import (Ctrl, C_TRANSPARENT, C_TITLE, C_MUTED, C_REQUIRED, C_INFO_BG, SHELL_W, C_DISABLED_BG, C_DIVIDER,
+from gen_screen import (Ctrl, C_MUTED, C_REQUIRED, C_INFO_BG, SHELL_W, C_DISABLED_BG, C_DIVIDER,
                         C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG, C_NEUTRAL_BG)
 import build_help as bh
 import layout_tokens as lay
@@ -10,167 +10,32 @@ from build_helpers import (child_name, text_min_height, text_ctrl, group, button
                            row_n, text_px, fit_button_width, ICON_W)
 
 DM_PLAN = "If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)"
-# Linjen vises, naar planen er gemt og laast - paa ALLE bredder (issue #123).
-# Foer viste en telefon en "Plan details"-knap i stedet, fordi chipsene var
-# for brede til een linje. Nu ombrydes de til flere raekker (summary_formula).
-SUMMARY_VIS = "varVhpPlanLocked"
 REQ_PLAN = "varVhpPlanValidated"
 
-# Chipsenes maal (issue #136). En chip er 28 hoej med 2 px luft over og
-# under, og raekkerne staar CHIP_PITCH fra hinanden - 8 px luft lodret som
-# vandret. Bredden er et skoen: etiketten er 10 px versaler (ca. 7 px pr.
-# tegn med bogstavafstanden), vaerdien 13 px halvfed - 8 px pr. tegn er
-# rigeligt ogsaa til koder i versaler (FL, arbejdscentre). CHIP_PAD er
-# polstring, kant og afstanden mellem etiket og vaerdi.
-CHIP_H, CHIP_GAP, CHIP_PITCH = 32, 8, 36
-CHIP_PAD, LABEL_PX, VALUE_PX = 34, 7, 8
 
+def section_footer(name, info, buttons, cw):
+    """Sektionens fod (issue #192): teksten til venstre og knapperne til
+    hoejre i een raekke fra Tablet og op. Paa en telefon ville knapperne
+    kun efterlade et par tegn pr. linje til teksten, saa den blev klippet;
+    der staar teksten i fuld bredde og knapperne under den, hoejrestillet.
 
-def summary_formula(segs, max_w, bind=None):
-    """Den sammenklappede sektions linje (issue #54, #103, #123, #136) som
-    EEN navngiven formel: en post { Html, W, H }.
+    info: en lodret gruppe med fodens tekst (evt. med .vis).
+    buttons: knapperne med fast bredde, i raekkefoelge.
+    cw: kortets indholdsbredde.
 
-    segs: (etiket, vaerdi) - begge Power Fx-tekst. En tom vaerdi giver
-    INGEN chip: ingen etiket uden vaerdi og intet tomt hul.
-    max_w: den plads, linjen har. Chipsene laegges fra venstre og
-    ombrydes til en ny raekke, naar den naeste ikke kan vaere der. En
-    vaerdi, der alene er bredere end pladsen, afkortes med en ellipse i
-    stedet for at blive klippet eller skaleret ned.
-    bind: {navn: udtryk} - regnes een gang (fx det aktive item).
-
-    Issue #136: linjen var et SVG-billede, og i appen stod der kun en
-    tynd streg pr. chip - teksten og chippens flade blev aldrig vist. Nu
-    er den HTML i en HtmlViewer (samme vej som operationstabellens
-    overskrift og totaler), og raekkerne skrives ud her: chippens bredde
-    og raekkeskiftene er de SAMME tal, som hoejden regnes af, saa kortet
-    omkring altid passer til det, der staar. Alle tal er hele tal - et
-    decimaltal ville blive skrevet med komma paa et dansk sprog.
-
-    Formlen staar i App.Formulas, saa layoutet regnes een gang og deles af
-    linjen og af hoejderne paa kortet omkring den (H). Hoejderne maa ikke
-    laese kontrollens .Height (layout-tjekkets regel 1)."""
-    from design_tokens import ref_hex
-    esc = lambda e: f'Substitute(Substitute({e}, "&", "&amp;"), "<", "&lt;")'
-    n = len(segs)
-    rng = range(1, n + 1)
-    lab = ", ".join(f"l{i}: {l}" for i, (l, _v) in enumerate(segs, 1))
-    val = ", ".join(f"v{i}: {v}" for i, (_l, v) in enumerate(segs, 1))
-    ell = "…"
-    # Vaerdien, afkortet til pladsen (een tegnplads til ellipsen).
-    disp = ",\n    ".join(
-        f"d{i}: If(Len(v{i}) = 0, \"\", {CHIP_PAD} + Len(l{i}) * {LABEL_PX} + Len(v{i}) * {VALUE_PX} <= mw, v{i}, "
-        f"Left(v{i}, Max(0, RoundDown((mw - {CHIP_PAD + VALUE_PX} - Len(l{i}) * {LABEL_PX}) / {VALUE_PX}, 0))) "
-        f"& \"{ell}\")"
-        for i in rng)
-    wid = ", ".join(f"w{i}: If(Len(d{i}) = 0, 0, {CHIP_PAD} + Len(l{i}) * {LABEL_PX} + Len(d{i}) * {VALUE_PX})"
-                    for i in rng)
-    outer = dict(bind or {})
-    outer["mw"] = f"RoundDown({max_w}, 0)"
-    opens = ["With({ " + ", ".join(f"{k}: {v}" for k, v in outer.items()) + " },",
-             f"With({{ {lab},\n    {val} }},",
-             f"With({{ {disp} }},",
-             f"With({{ {wid} }},"]
-    # Placeringen: x og raekke r for chip i; c er der, hvor den naeste kan
-    # starte. En tom chip (w = 0) flytter ingenting.
-    for i in rng:
-        if i == 1:
-            opens.append(f"With({{ x1: 0, r1: 0, c1: If(w1 = 0, 0, w1 + {CHIP_GAP}) }},")
-            continue
-        pc, pr = f"c{i - 1}", f"r{i - 1}"
-        wrap = f"w{i} > 0 && {pc} > 0 && {pc} + w{i} > mw"
-        opens.append(f"With({{ x{i}: If({wrap}, 0, {pc}), r{i}: {pr} + If({wrap}, 1, 0) }},")
-        opens.append(f"With({{ c{i}: If(w{i} = 0, x{i}, x{i} + w{i} + {CHIP_GAP}) }},")
-    fill, line = ref_hex("state-neutral-bg"), ref_hex("border-default")
-    mut, txt = ref_hex("text-muted"), ref_hex("text-primary")
-    W = "Max(" + ", ".join(f"If(w{i} = 0, 0, x{i} + w{i})" for i in rng) + ", 1)"
-    # Ingen chip (alt er tomt) giver hoejden 0 - ingen tom flade (#176).
-    anyc = " || ".join(f"w{i} > 0" for i in rng)
-    H = f"If({anyc}, r{n} * {CHIP_PITCH} + {CHIP_H}, 0)"
-    # ISSUE #176: KUN INLINE-STYLES OG FASTE POSITIONER.
-    #
-    # Foer stod chipsenes udseende i en <style>-blok med klasser (.s, .r,
-    # .c, ".c b") og flex-raekker. I Power Apps' desktop-preview (plan
-    # MP0143, BIO SAP App/vh-plan_collapsed.png) stod der kun en 1 px
-    # streg pr. chip, i de rigtige bredder og med de rigtige mellemrum -
-    # chippens oeverste pixelraekke, men ingen tekst og ingen badge. Formlen regnede altsaa
-    # rigtigt (stregernes bredder passer til de gemte vaerdier); det var
-    # HTML'en, kontrollen ikke tegnede som en browser. Klasser og flex er
-    # det eneste, linjen havde, som appens andre HtmlViewer'e ikke har -
-    # de staar alle med inline-styles og vises.
-    #
-    # Maalt i skaermbilledet sad stregen paa kontrollens NEDERSTE
-    # pixelraekke (Plan Header og Item Editor): chipsene var skubbet en
-    # hel linje ned, og kontrollen klippede alt under sin kant.
-    #
-    # Nu er der intet at fortolke: <style> nulstiller kun html/body (som
-    # i operationstabellens overskrift, se build_tasklist), een relativt
-    # placeret kasse i praecis W x H (Microsoft: kontrollen antager
-    # relativ placering), og hver chip er en absolut placeret kasse paa
-    # sin x og sin raekke fra formlen. Alle maal og farver staar paa
-    # elementet selv - ingen klasser, ingen flex.
-    box = (f'"<div style=\'position:relative;margin:0;padding:0;width:" & ww & "px;height:" & hh & "px;overflow:hidden;'
-           f'font-family:Segoe UI,sans-serif\'>"')
-    parts = [box]
-    for i in rng:
-        parts.append(
-            f'If(w{i} = 0, "", "<div style=\'position:absolute;left:" & x{i} & "px;top:" & '
-            f'(r{i} * {CHIP_PITCH} + {(CHIP_H - 28) // 2}) & "px;width:" & w{i} & "px;height:28px;'
-            f'box-sizing:border-box;margin:0;padding:0 13px;border:1px solid " & {line} & ";'
-            f'border-radius:14px;background-color:" & {fill} & ";color:" & {txt} & ";'
-            f'font-size:13px;line-height:26px;font-weight:600;white-space:nowrap;overflow:hidden;'
-            f'text-overflow:ellipsis\'><span style=\'font-size:10px;line-height:26px;font-weight:600;'
-            f'letter-spacing:0.5px;margin-right:6px;color:" & {mut} & "\'>" & '
-            f'{esc("l%d" % i)} & "</span>" & {esc("d%d" % i)} & "</div>")')
-    # Nulstillingen staar SIDST: i Studio laa chipsene en linje for lavt,
-    # og et <style>-element, der tegnes som en tom linje, kan kun skubbe
-    # det, der staar efter det. Her staar intet efter det.
-    parts.append('"</div><style>html,body{margin:0;padding:0;overflow:hidden}</style>"')
-    # W og H regnes een gang og bruges baade af kassen og af kontrollen.
-    opens.append(f"With({{ ww: {W}, hh: {H} }},")
-    body = ("{\n    Html: " + " &\n        ".join(parts) + ",\n"
-            "    W: ww,\n    H: hh\n}")
-    return "\n".join(opens) + "\n" + body + "\n" + ")" * len(opens)
-
-
-def summary_chips(name, fx, visible):
-    """HtmlViewer'en, der viser summary_formula'ens post fx (et navn i
-    App.Formulas). Plan Header, Item Editor og Tasklist and Operations
-    bruger den samme, saa de ser ens ud. h er fx.H: kortet omkring foelger
-    linjens hoejde, naar den ombrydes."""
-    return Ctrl(name, "HtmlViewer", props={
-        # Color/Font: hvis kontrollen nogensinde tegner teksten uden
-        # chipsenes egne styles, staar den stadig i appens tekstfarve (#176).
-        "Color": C_TITLE, "Font": "Font.'Segoe UI'",
-        "Fill": C_TRANSPARENT, "Height": f"{fx}.H", "HtmlText": f"{fx}.Html",
-        "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0",
-        "Visible": visible, "Width": f"{fx}.W", "AlignInContainer": "AlignInContainer.Start",
-    }, h=f"{fx}.H", vis=visible)
-
-
-def summary_width(cw, edit_w):
-    """Pladsen til linjen: kortets indholdsbredde minus Edit-knappen ved
-    siden af - paa en telefon hele bredden, for der staar Edit under
-    linjen (collapse_footer)."""
-    return lay.if_below("Tablet", cw, f"{cw} - {edit_w + 8}")
-
-
-def collapse_footer(footer, info, edit, locked):
-    """Sektionens fod, naar den er klappet sammen (issue #123).
-
-    Fra Tablet og op staar linjen til venstre og Edit til hoejre i samme
-    raekke, og raekken er saa hoej som den hoejeste af dem. Paa en telefon
-    ville Edit tage en tredjedel af bredden fra chipsene; der staar linjen
-    i fuld bredde og Edit under den, stadig hoejrestillet. Hoejden er
-    skrevet ud, saa kortet omkring foelger med - ogsaa naar Edit er skjult
-    (View mode), saa der ikke staar et tomt hul under linjen."""
-    stack = f"({lay.below('Tablet')} && {locked})"
-    footer.props["LayoutDirection"] = (f"If({stack}, LayoutDirection.Vertical, "
+    Hoejden er skrevet ud, saa kortet omkring foelger med."""
+    narrow = lay.below("Tablet")
+    btn_w = " + ".join(f"({b.props['Width']})" for b in buttons) + f" + {8 * (len(buttons) - 1)}"
+    row = group(f"{name}Btns", buttons, direction="Horizontal", gap=8, height=36,
+                align_items="Center", justify="End", width=btn_w)
+    row.props["AlignInContainer"] = f"If({narrow}, AlignInContainer.End, AlignInContainer.Center)"
+    info.props["Width"] = f"Max(0, If({narrow}, {cw}, {cw} - ({btn_w}) - 8 - 2))"
+    info.props["LayoutMinWidth"] = "0"
+    footer = group(name, [info, row], direction="Horizontal", gap=8, align_items="Center")
+    footer.props["LayoutDirection"] = (f"If({narrow}, LayoutDirection.Vertical, "
                                        "LayoutDirection.Horizontal)")
-    edit.props["AlignInContainer"] = (f"If({stack}, AlignInContainer.End, "
-                                      "AlignInContainer.Center)")
-    ev = f"({edit.vis})" if edit.vis else "true"
-    h = (f"If({stack}, ({info.h}) + If({ev}, {footer.props['LayoutGap']} + 36, 0), "
-         f"Max(({info.h}), If({ev}, 36, 0)))")
+    iv = f"({info.vis})" if info.vis else "true"
+    h = f"If({narrow}, If({iv}, ({info.h}) + 8, 0) + 36, Max(If({iv}, {info.h}, 0), 36))"
     footer.props["Height"] = h
     footer.h = h
     return footer
@@ -182,7 +47,7 @@ def step_badge(name, step_label, valid_fx, attention_fx=None):
     badge og samme farver paa alle tre sektioner.
 
     valid_fx er den eksisterende validering (build_status: VhpPlanValid,
-    VhpItemsValid, VhpOpsValid), aldrig blot "gemt" eller "sammenklappet".
+    VhpItemsValid, VhpOpsValid), aldrig blot "gemt".
     attention_fx: hvornaar der i stedet skal staa "Invalid" (fx et item,
     der er gemt som ugyldigt)."""
     text = (f'If({valid_fx}, "Valid", ' + (f'{attention_fx}, "Invalid", ' if attention_fx else "")
@@ -196,41 +61,9 @@ def step_badge(name, step_label, valid_fx, attention_fx=None):
     return b
 
 
-def plan_summary_segs():
-    """Plan Headers linje: de gemte vaerdier, der kendetegner planen.
-    Issue #136: kun vaerdier, der findes - en tom foerste kaldedato gav
-    "//", og en manglende cyklus "Every  "; nu giver de ingen chip."""
-    p = "varVhpPlan"
-    first = (f'If(IsBlank({p}.FirstCallDay) || IsBlank({p}.FirstCallMonth) || IsBlank({p}.FirstCallYear), "", '
-             f'Text({p}.FirstCallDay, "00") & "/" & Text({p}.FirstCallMonth, "00") & "/" & '
-             f'Text({p}.FirstCallYear, "0"))')
-    cycle = (f'If({IS_STRATEGY}, Coalesce({p}.Strategy, ""), '
-             f'Coalesce({p}.Cycle, 0) <= 0 || IsBlank({p}.Unit), "", '
-             f'"Every " & Text({p}.Cycle) & " " & {p}.Unit)')
-    return [('"PLANT"', f'Coalesce({p}.Plant, "")'),
-            ('"PLAN TEXT"', f'Coalesce({p}.PlanText, "")'),
-            (f'If({IS_STRATEGY}, "STRATEGY", "CYCLE")', cycle), ('"FIRST CALL"', first),
-            ('"STATUS"', f'Coalesce({p}.Status, "")'),
-            ('"SORT FIELD"', f'Coalesce({p}.SortField, "")')]
-
-
-def summary_formulas():
-    """De tre linjers navngivne formler (generate_app_onstart.build_formulas)."""
-    import build_items as bi
-    import build_tasklist as bt
-    return [
-        ("VhpPlanSummary", summary_formula(plan_summary_segs(), summary_width(PLAN_CW, PLAN_SAVE_W)),
-         "Plan Headers sammenklappede linje (issue #123): chips, bredde og hoejde."),
-        ("VhpItemSummary", bi.item_summary_fx(),
-         "Item Editorens sammenklappede linje for det valgte item (issue #123)."),
-        ("VhpOpsSummary", bt.ops_summary_fx(),
-         "Tasklist and Operations' sammenklappede linje for det valgte item (issue #123)."),
-    ]
-
-
 # Indholdsbredden i et kort: skaermens indholdsbredde minus kortets polstring.
 PLAN_CW = f"({SHELL_W} - 36)"
-# Save/Edit-knappens bredde - linjen har kortets bredde minus den.
+# Save/Edit-knappens bredde.
 PLAN_SAVE_W = fit_button_width("\"Save\"", min_w=96) + ICON_W
 
 # En strategiplan henter sin cyklus fra strategiens pakker. Cycle/Unit paa
@@ -496,11 +329,9 @@ def build_plan_header():
     planMeta = text_ctrl(
         "txtVhpPlanMeta",
         f"If(varVhpPlanCommitted, \"Plan created \" & Text(varVhpPlanCreatedAt, \"{lay.DATETIME_FMT}\"), \"\")",
-        size=12, color=C_MUTED, height=24, wrap="false", visible="!varVhpPlanLocked")
-    # Linjen (issue #123): chipsene ombrydes, og kortet foelger deres hoejde.
-    summary = summary_chips("htmVhpPlanSummary", "VhpPlanSummary", SUMMARY_VIS)
-    footerInfo = grow(group("conVhpPlanFooterInfo", [summary, planMeta], direction="Vertical",
-                            gap=0, justify="Center"))
+        size=12, color=C_MUTED, height=24, wrap="false")
+    footerInfo = group("conVhpPlanFooterInfo", [planMeta], direction="Vertical",
+                       gap=0, justify="Center")
 
     btnSave = button(
         "btnVhpPlanSave", "If(varVhpPlanLocked, \"Edit\", \"Save\")",
@@ -598,22 +429,9 @@ def build_plan_header():
         display_mode="If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)")
     btnSave.props["Width"] = str(PLAN_SAVE_W)
 
-    # Hoejden er den hoejeste af linjen og knapperne: ombrydes chipsene,
-    # vokser raekken med dem (issue #123).
-    footer = collapse_footer(
-        group("conVhpPlanFooter", [footerInfo, btnReset, btnSave], direction="Horizontal",
-              gap=8, align_items="Center"),
-        footerInfo, btnSave, "varVhpPlanLocked")
-
-    # SAMLET SAMMEN, NAAR PLANEN ER GEMT. Felterne og hjaelpepanelet vises kun,
-    # mens planen kan redigeres; derefter staar en linje med det vigtigste, og
-    # Edit folder dem ud igen.
-    OPEN_EDIT = "!varVhpPlanLocked"
-    grid.props["Visible"] = OPEN_EDIT
-    grid.vis = OPEN_EDIT
-    helpPanel.vis = f"({OPEN_EDIT}) && IfError(varVhpShowHints, false)"
-    helpPanel.props["Visible"] = helpPanel.vis
-    btnReset.props["Visible"] = OPEN_EDIT
-    btnReset.vis = OPEN_EDIT
+    # ALTID FOLDET UD (issue #192): felterne, hjaelpepanelet og Reset staar
+    # der i alle tilstande. Efter Save er felterne laast (graa, DM_PLAN), og
+    # Edit laaser dem op igen.
+    footer = section_footer("conVhpPlanFooter", footerInfo, [btnReset, btnSave], PLAN_CW)
 
     return card("conVhpPlanCard", [header, helpPanel, grid, footer], gap=10, pad_y=12)

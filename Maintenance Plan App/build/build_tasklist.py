@@ -9,8 +9,7 @@ from build_helpers import (checkbox_theme, table_surface, flow_row, text_ctrl,
                            group, button, text_input, number_input, themed_dropdown,
                            field_cell, card, pin_widths, grow, row_hit,
                            fit_button_width, fit_button_row, ICON_W, ICON_SAVE, flow_ok, mark_done)
-from build_plan_header import (section_header, help_panel, summary_chips, summary_formula,
-                               summary_width, collapse_footer)
+from build_plan_header import section_header, help_panel, section_footer
 from build_status import HAS_PKGS
 import build_help as bh
 from build_strategy import build_strategy_body, IS_STRATEGY
@@ -431,11 +430,11 @@ ATT_OPS = "Sort(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Value(Ope
 ATT_LINKED = "\";\" & varVhpAttOpNo & \";\" in Coalesce(ThisItem.OperationsKey, \";\")"
 
 
-# Maa der laegges op, slettes og kobles? Ikke i View-tilstand, og ikke
-# naar operationerne er gemt og laast (OPS_LOCKED) - koblingen gemmes med
-# operationerne, og Save er spaerret, saa laenge de er laast (issue #134).
+# Maa der laegges op, slettes og kobles? Ikke i View-tilstand (issue #134).
+# Sektionen klappes ikke laengere sammen (issue #192), saa der er ingen
+# laast tilstand ud over View.
 def _att_edit():
-    return f"(!IfError(varVhpViewOnly, false) && !{OPS_LOCKED})"
+    return "(!IfError(varVhpViewOnly, false))"
 
 
 # Luk dokumentpopuppen: glem de valgte filer og omgangens svar.
@@ -742,23 +741,7 @@ AUTO_SELECT_TL = (
 )
 OPS_SELECTED = "Filter(colVhpOperations, ItemId = varVhpActiveItemId, Selected = true)"
 
-# SAMLET SAMMEN, NAAR SEKTIONEN ER GEMT (issue #103) - Plan Headers
-# moenster (varVhpPlanLocked) for Tasklist and Operations. Sektionen hoerer
-# til det AKTIVE item, saa tilstanden er pr. item: colVhpOpsDone holder de
-# items, hvis tasklist og operationer er gemt i SharePoint. Save saetter
-# varVhpOpsSavePending, og foerst naar gemningen er lykkedes, kommer itemet i
-# colVhpOpsDone (build_save.save_action). Edit tager det ud igen. En aabnet
-# kladde starter med de items, der allerede er komplette (build_load).
-# CountRows, saa layout-tjekket kan regne paa synligheden (se build_items).
-OPS_LOCKED = ("(!IsBlank(varVhpActiveItemId) && "
-              "CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) > 0)")
-# Det modsatte, skrevet ud: layout-tjekket kan ikke regne paa !( ... ).
-OPS_OPEN = ("(IsBlank(varVhpActiveItemId) || "
-            "CountRows(Filter(colVhpOpsDone, ItemId = varVhpActiveItemId)) = 0)")
-# Linjen vises paa alle bredder (issue #123) - chipsene ombrydes.
-OPS_SUMMARY_VIS = OPS_LOCKED
-
-# Hvad der mangler, foer sektionen kan gemmes og klappes sammen - tom, naar
+# Hvad der mangler, foer sektionen kan gemmes - tom, naar
 # intet mangler. Trin 3 og 4 (build_status) for det aktive item; pakke-
 # reglen er S4 og bruger den samme HAS_PKGS.
 OPS_ISSUE = (
@@ -770,31 +753,6 @@ OPS_ISSUE = (
     "    \"Give every operation a package.\",\n"
     "    \"\"\n"
     ")")
-
-
-# Save/Edit-knappens bredde - linjen har resten af kortets bredde.
-OPS_SAVE_W = fit_button_width("\"Save\"", min_w=96) + ICON_W
-
-
-def ops_summary_fx():
-    """Tasklist and Operations' sammenklappede linje (issue #123) for det
-    valgte item. Tallene er operationstabellens egne (samme kolonner og
-    format som _TOTALS) og kommer fra de samme samlinger som tabellen,
-    materialeruden og dokumentruden. Et tal, der er nul, giver ingen chip."""
-    num = '"[$-en-US]#,##0.##"'
-    def tot(col, fmt=num):
-        return f'With({{ t: Sum(ops, {col}) }}, If(Coalesce(t, 0) = 0, "", Text(t, {fmt})))'
-    def cnt(tbl):
-        return f'With({{ n: CountRows({tbl}) }}, If(n = 0, "", Text(n)))'
-    segs = [('"TASK LIST"', 'Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistName, "")'),
-            ('"OPERATIONS"', cnt("ops")),
-            ('"WORK (H)"', tot("WorkHours")),
-            ('"DURATION (H)"', tot("DurationHours")),
-            ('"PEOPLE"', tot("Persons")),
-            ('"COST"', tot("Cost", '"[$-en-US]#,##0.00"')),
-            ('"MATERIALS"', cnt(MAT_ACTIVE)),
-            ('"DOCUMENTS"', cnt("Filter(colVhpAttachments, ItemId = varVhpActiveItemId)"))]
-    return summary_formula(segs, summary_width(OPS_CW, OPS_SAVE_W), bind={"ops": OPS_ACTIVE})
 
 
 def build_tasklist_section():
@@ -932,7 +890,7 @@ def build_tasklist_section():
             "    Notify(\"Select an item first.\", NotificationType.Warning),\n"
             "    IsBlank(drpVhpItemTasklist.Selected.Key),\n"
             "    Notify(\"Select a tasklist first.\", NotificationType.Warning),\n"
-            # Ufuldstaendig sektion: gem ikke, og bliv foldet ud (issue #103).
+            # Ufuldstaendig sektion: gem ikke (issue #103).
             "    With(\n"
             "        { issue: " + OPS_ISSUE.replace("\n", "\n        ") + " },\n"
             "        If(\n"
@@ -942,9 +900,6 @@ def build_tasklist_section():
             "                colVhpItems, ItemId = varVhpActiveItemId,\n"
             "                { TasklistKey: drpVhpItemTasklist.Selected.Key, TasklistName: drpVhpItemTasklist.Selected.Name }\n"
             "            );\n"
-            # Sektionen klappes foerst sammen, naar gemningen er lykkedes
-            # (build_save.save_action laeser varVhpOpsSavePending).
-            "            Set(varVhpOpsSavePending, varVhpActiveItemId);\n"
             "            Select(btnVhpSaveDraft)\n"
             "        )\n"
             "    )\n"
@@ -953,41 +908,20 @@ def build_tasklist_section():
         width=fit_button_width("\"Save\"", min_w=96) + ICON_W, height=36,
         display_mode=("If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, "
                       "btnVhpSaveDraft.DisplayMode)"))
-    # SAVE ELLER EDIT (issue #103) - samme knap som i Plan Header. Edit
-    # tager kun det aktive item ud af colVhpOpsDone; andre items og andre
-    # sektioner roeres ikke. Edit vises kun i Edit mode.
-    btnTlSave.props["Text"] = f'If({OPS_LOCKED}, "Edit", "Save")'
-    btnTlSave.props["Icon"] = f'If({OPS_LOCKED}, "Edit", "{ICON_SAVE}")'
-    btnTlSave.props["OnSelect"] = (
-        f"If(\n    {OPS_LOCKED},\n    RemoveIf(colVhpOpsDone, ItemId = varVhpActiveItemId),\n\n"
-        + btnTlSave.props["OnSelect"] + "\n)")
-    btnTlSave.props["DisplayMode"] = (
-        f"If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, "
-        f"{OPS_LOCKED}, DisplayMode.Edit, btnVhpSaveDraft.DisplayMode)")
-    btnTlSave.props["AccessibleLabel"] = (
-        f'If({OPS_LOCKED}, "Edit the task list and operations", "Save the task list and operations")')
-    btnTlSave.vis = f"(!varVhpViewOnly || {OPS_OPEN})"
-    btnTlReset.vis = f"{OPS_OPEN}"
+    btnTlSave.props["AccessibleLabel"] = '"Save the task list and operations"'
 
-    # DEN SAMMENKLAPPEDE LINJE (issue #103, #123) - Plan Headers chips:
-    # tasklisten og de vigtigste tal, ikke hele tabellen. Paa alle bredder;
-    # layoutet er den navngivne formel VhpOpsSummary (ops_summary_fx).
-    summary = summary_chips("htmVhpOpsSummary", "VhpOpsSummary", OPS_SUMMARY_VIS)
-    # Foldet ud: hvad der mangler, foer sektionen kan gemmes.
+    # ALTID FOLDET UD (issue #192): fanerne og ruderne staar der altid.
+    # Foden siger, hvad der mangler, foer sektionen kan gemmes.
     attention = text_ctrl(
         "txtVhpOpsAttention",
-        f'With({{ issue: {OPS_ISSUE} }}, If(IsBlank(issue), "Save to collapse the section.", issue))',
+        f'With({{ issue: {OPS_ISSUE} }}, If(IsBlank(issue), "Ready to save.", issue))',
         size=12, height=36, wrap="true",
-        visible=f"({OPS_OPEN} && !IsBlank(varVhpActiveItemId) && !varVhpViewOnly)",
+        visible="(!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)",
         extra={"Color": f"If(IsBlank({OPS_ISSUE}), {C_MUTED}, {C_INVALID_FG})",
                "VerticalAlign": "VerticalAlign.Middle"})
-    footerInfo = grow(group("conVhpOpsFooterInfo", [summary, attention],
-                            direction="Vertical", gap=0, justify="Center"))
-    # Hoejden foelger linjen, naar chipsene ombrydes (issue #123).
-    opsFooter = collapse_footer(
-        group("conVhpOpsFooter", [footerInfo, btnTlReset, btnTlSave], direction="Horizontal",
-              gap=8, align_items="Center", justify="End"),
-        footerInfo, btnTlSave, OPS_LOCKED)
+    footerInfo = group("conVhpOpsFooterInfo", [attention], direction="Vertical", gap=0,
+                       justify="Center", visible=attention.vis)
+    opsFooter = section_footer("conVhpOpsFooter", footerInfo, [btnTlReset, btnTlSave], OPS_CW)
 
     tasklistMeta = text_ctrl(
         "txtVhpTasklistMeta",
@@ -1230,17 +1164,12 @@ def build_tasklist_section():
     # materialeruden allerede gjorde.
     opsEmptyM = text_ctrl("txtVhpOpsEmptyM", "\"No operation lines yet...\"", size=13, color=C_MUTED,
                           height=24, wrap="false", visible=f"!{has_ops} && {below('Tablet')}")
-    # Sammenklappet (issue #103): fanerne, ruderne og hjaelpepanelet er
-    # skjult - kun overskriften og linjen staar tilbage.
-    OPEN_EDIT = f"{OPS_OPEN}"
     opsPane = group("conVhpOpsPane", [toolbar, tasklistMeta, opsHint, opsTableWrap, _ops_list_mobile(), opsEmptyM],
                     direction="Vertical", gap=8, width="Parent.Width",
-                    visible=f"{OPEN_EDIT} && {OPS_PANE_ON}")
+                    visible=OPS_PANE_ON)
     pkgPane = build_strategy_body()
-    pkgPane.vis = f"{OPEN_EDIT} && {PKG_PANE_ON}"
+    pkgPane.vis = PKG_PANE_ON
     tabBar = _tab_bar_if_strategy()
-    tabBar.vis = f"{OPEN_EDIT} && {tabBar.vis}"
-    helpPanel.vis = f"({OPEN_EDIT}) && IfError(varVhpShowHints, false)"
 
     # Fanebjaelken staar oeverst, lige under sektionshovedet: foerst vaelger
     # man fanen, saa ser man dens indhold. Den laa foer under baade
