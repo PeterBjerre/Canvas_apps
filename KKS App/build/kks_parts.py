@@ -550,7 +550,7 @@ PICK_SELECT = (
 
 def build_picker():
     """Mobilens vaelgerliste - [sloer, popup]. Kode + beskrivelse, der ombrydes."""
-    from build_helpers import tap_backdrop
+    from build_helpers import tap_backdrop, popup_head
     vis = PICK_OPEN
     backdrop = tap_backdrop("conKksPickBackdrop", vis, "Set(varKksPick, 0)")
     title = text_ctrl("txtKksPickTitle",
@@ -581,11 +581,9 @@ def build_picker():
         "ShowScrollbar": "true", "TabIndex": "0", "TemplatePadding": "0",
         "TemplateSize": "42", "Width": "Parent.Width",
     }, children=[row, rule, hit], h=gal_h)
-    close = button("btnKksPickClose", '"Close"', "Set(varKksPick, 0)",
-                   width=fit_button_width('"Close"'), height=36)
-    footer = group("conKksPickFooter", [close], direction="Horizontal", gap=8,
-                   height=36, justify="End", align_items="Center")
-    modal = group("conKksPickModal", [title, gal, footer], direction="Vertical", gap=12,
+    # Close oeverst til hoejre, ingen bund (issue #237).
+    head = popup_head("conKksPickHead", title, "btnKksPickClose", "Set(varKksPick, 0)")
+    modal = group("conKksPickModal", [head, gal], direction="Vertical", gap=12,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(18, 18, 18, 18), width="Min(460, App.Width - 24)",
                   drop_shadow="ExtraBold", visible=vis)

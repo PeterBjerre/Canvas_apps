@@ -41,7 +41,7 @@ import layout_tokens as lay
 from layout_tokens import below
 from gen_screen import (Ctrl, C_OVERLAY, C_MODAL_BG, C_PRIMARY_SOFT, C_MUTED, C_TITLE,
                         C_CARD_BORDER, C_PRIMARY)
-from build_helpers import group, text_ctrl, button, text_input, fit_button_width
+from build_helpers import group, text_ctrl, button, text_input, fit_button_width, popup_head
 import permissions as perm
 
 LIST = "VHP_NoteToSelf"
@@ -167,23 +167,35 @@ def popup(prefix, open_var, edit, title_fx, intro_fx, a_default, s_default, show
                       weight="Semibold", height=26, wrap="false")
     intro = text_ctrl(f"txt{prefix}NotesIntro", intro_fx, size=13, color=C_MUTED,
                       height=INTRO_H, wrap="true")
-    close = button(f"btn{prefix}NotesClose", '"Close"', f"Set({open_var}, false)",
-                   width=fit_button_width('"Close"'), height=36)
-    btns = [close]
+    # EEN Close, oeverst til hoejre (issue #237). Den sad foer i bunden ved
+    # siden af Submit. Den lukker uden at indsende; det skrevne gemmes
+    # foerst af Submit, saa intet committes ved et luk.
+    head = popup_head(f"con{prefix}NotesHead", title, f"btn{prefix}NotesClose",
+                      f"Set({open_var}, false)")
+    # Hovedet staar fast; intro og noterne scroller, naar popuppen ikke kan
+    # staa paa skaermen (en telefon med begge noter under hinanden), saa
+    # Close altid kan ses.
+    foot_h = "0"
+    foot = []
     if submit_fx:
         ok = button(submit_name or f"btn{prefix}NotesSubmit", '"Submit"',
                     f"Set({open_var}, false);\n{submit_fx}", primary=True,
                     width=fit_button_width('"Submit"'), height=36)
-        ok.props["Visible"] = edit
-        ok.vis = edit
-        btns.append(ok)
-    footer = group(f"con{prefix}NotesFooter", btns, direction="Horizontal", gap=8,
-                   height=36, justify="End", align_items="Center")
-    modal = group(f"con{prefix}NotesModal", [title, intro, split, footer], direction="Vertical",
+        # Bunden har kun Submit og er vaek i visningen - ingen tom plads.
+        footer = group(f"con{prefix}NotesFooter", [ok], direction="Horizontal", gap=8,
+                       height=36, justify="End", align_items="Center", visible=edit)
+        foot = [footer]
+        foot_h = f"If({edit}, 36 + 12, 0)"
+    natural = f"{INTRO_H} + 12 + {row_h}"
+    room = f"App.Height - 32 - {2 * PAD} - 32 - 12 - {foot_h}"
+    body_h = f"Min({natural}, Max(120, {room}))"
+    body = group(f"con{prefix}NotesBody", [intro, split], direction="Vertical", gap=12,
+                 height=body_h, overflow_y="Scroll")
+    modal = group(f"con{prefix}NotesModal", [head, body] + foot, direction="Vertical",
                   gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(PAD, PAD, PAD, PAD), width=pop_w, drop_shadow="ExtraBold",
                   align_in_container="Center")
-    modal.props["Height"] = f"{2 * PAD + 26 + INTRO_H + 36 + 3 * 12} + {row_h}"
+    modal.props["Height"] = f"{2 * PAD} + 32 + 12 + ({body_h}) + {foot_h}"
     backdrop = group(f"con{prefix}NotesBackdrop", [modal], direction="Vertical", gap=0,
                      height="App.Height", width="App.Width", fill=C_OVERLAY, visible=vis,
                      justify="Start", align_items="Center", pad=(16, 0, 16, 0), overflow_y="Scroll")
