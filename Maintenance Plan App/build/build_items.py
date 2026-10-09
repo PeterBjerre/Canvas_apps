@@ -213,6 +213,10 @@ def _copy_record(collection, alias, indent):
     return "{\n" + pad + "    " + (",\n" + pad + "    ").join(fields) + "\n" + pad + "}"
 
 
+# Kortets nummer i Items-listen (Sort(colVhpItems, ItemId)) - issue #230.
+CARD_NO = "CountRows(Filter(colVhpItems, ItemId <= ThisItem.ItemId))"
+
+
 def build_items_rail():
     # Vaerket fra Plan Header staar ved titlen: det er den kontekst, alle
     # items arbejder i - arbejdscentre, tasklister og FL-soegningen er
@@ -241,7 +245,7 @@ def build_items_rail():
             "    Set(varVhpFlMsg, \"\");\n"
             f"    {SEED_FL_PICKER};\n"
             f"    {RESET_EDITOR_CONTROLS};\n"
-            "    Notify(\"Item \" & Text(varVhpNextItemId) & \" added.\", NotificationType.Success)\n"
+            "    Notify(\"Item \" & Text(CountRows(colVhpItems)) & \" added.\", NotificationType.Success)\n"
             ")"
         ), display_mode=VIEW_LOCK)
 
@@ -316,9 +320,13 @@ def build_items_rail():
                    height=36, align_items="Center", width=RAIL_CW)
 
     # --- item card template -------------------------------------------------
+    # Uden kort tekst hedder kortet sit NUMMER i listen (issue #230) - det
+    # samme "Item <nr>", som valideringsbeskederne bruger (build_status.
+    # item_ref). Foer stod ItemId, som efter indlaesning er SharePoint-ID'et
+    # ("Item 199").
     cardTitle = text_ctrl(
         "txtVhpItemCardTitle",
-        "If(IsBlank(ThisItem.ShortText), \"Item \" & Text(ThisItem.ItemId), ThisItem.ShortText)",
+        f"If(IsBlank(ThisItem.ShortText), \"Item \" & Text({CARD_NO}), ThisItem.ShortText)",
         size=14, weight="Semibold", height=20, wrap="false")
     cardFl = text_ctrl(
         "txtVhpItemCardFl",
@@ -346,12 +354,14 @@ def build_items_rail():
     # noget fjernes: raekken, ThisItem peger paa, forsvinder undervejs.
     #
     # Samme sletning som foer: operationer og objekter foelger med.
+    # Beskeden naevner itemets nummer i listen (issue #230), regnet FOER
+    # sletningen - ikke ItemId, som er SharePoint-ID'et.
     DEL_W = fit_button_width("\"Delete\"", size=13, min_w=64)
     btnDelete = button(
         "btnVhpRemoveItem", "\"Delete\"",
         (
             "With(\n"
-            "    { id: ThisItem.ItemId },\n"
+            "    { id: ThisItem.ItemId, no: CountRows(Filter(colVhpItems, ItemId <= ThisItem.ItemId)) },\n"
             "    RemoveIf(colVhpOperations, ItemId = id);\n"
             "    RemoveIf(colVhpItemObjects, ItemId = id);\n"
             # Materialer og dokumentraekker foelger med. Stod de tilbage,
@@ -364,10 +374,10 @@ def build_items_rail():
             "        Set(varVhpActiveItemId, If(CountRows(colVhpItems) > 0, First(colVhpItems).ItemId, Blank()));\n"
             f"        {RESET_EDITOR_CONTROLS}\n"
             "    );\n"
-            "    Notify(\"Item \" & Text(id) & \" deleted.\", NotificationType.Success)\n"
+            "    Notify(\"Item \" & Text(no) & \" deleted.\", NotificationType.Success)\n"
             ")"
         ), danger=True, width=DEL_W, height=30, display_mode=VIEW_LOCK,
-        accessible="\"Delete item \" & Text(ThisItem.ItemId)")
+        accessible=f"\"Delete item \" & Text({CARD_NO})")
     btnDelete.props["Size"] = "13"
     btnDelete.props["_OnTop"] = "true"
     RIGHT_W = max(66, DEL_W)
@@ -400,7 +410,7 @@ def build_items_rail():
          "Set(varVhpFlMsg, \"\");\n"
          f"{SEED_FL_PICKER};\n"
          f"{RESET_EDITOR_CONTROLS}"),
-        "\"Open item \" & Text(ThisItem.ItemId) & \" \" & ThisItem.ShortText",
+        f"\"Open item \" & Text({CARD_NO}) & \" \" & ThisItem.ShortText",
         "Parent.TemplateWidth", f"Parent.TemplateHeight - {ITEM_GAP}",
         radius=10, hover_border=True)
 

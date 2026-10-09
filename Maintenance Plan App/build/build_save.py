@@ -312,7 +312,7 @@ def op_fields(key=None):
         "                Currency: OP.Currency,\n"
         "                CostElem: OP.CostElement,\n"
         # PM02 gemmes med den varegruppe, brugeren har tastet - ingen
-        # standard. M1 i build_status holder Submit tilbage, til den er udfyldt.
+        # standard. PM02-reglen (material_group) i build_status holder Submit tilbage, til den er udfyldt.
         "                MaterialGroup: OP.MaterialGroup,\n"
         # Ydelsesnummeret fra standardoperationen (PM03), se colVhpTasklists.
         "                ServiceNo: OP.ServiceNo,\n"

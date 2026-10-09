@@ -412,20 +412,52 @@ def test_kks_check_finds_flkey_drifting_from_kks(monkeypatch, tmp_path):
 
 
 def test_vhp_every_rule_has_a_section():
-    """Sektionernes badge (issue #123) sorterer VhpValidationErrors efter
-    beskedens begyndelse. En ny regel uden sektion ville aldrig holde et
-    badge fra "Valid" - mens Submit stadig var graa."""
+    """Sektionernes badge (issue #123) laeser sektionens regler. Hver regel
+    staar under praecis een sektion (issue #230: ikke laengere sorteret
+    efter en kode i beskeden), og VhpValidationErrors er de tre samlet."""
     sys.path.insert(0, os.path.join(ROOT, "Maintenance Plan App", "build"))
     import build_status as bs
-    codes = set(re.findall(r'"([A-Z]\d+): ', bs.VALIDATION))
-    assert codes, "fandt ingen regler - testen er forkert"
-    prefixes = [p for ps in bs.RULE_SECTIONS.values() for p in ps]
-    assert len(prefixes) == len(set(prefixes)), "en regel staar i to sektioner"
-    for code in codes:
-        assert code + ":" in prefixes, f"regel {code} hoerer ikke til nogen sektion"
-    # Item-reglen er den eneste uden kode: "Item <id> (...): missing ...".
-    assert '"Item " & Text(ItemId) & " ("' in bs.VALIDATION
-    assert "Item " in bs.RULE_SECTIONS["Item"]
+    assert bs.RULES, "fandt ingen regler - testen er forkert"
+    names = [n for _s, n, _e in bs.RULES]
+    assert len(names) == len(set(names))
+    for sec, _n, _e in bs.RULES:
+        assert sec in bs.SECTIONS
+    for sec in bs.SECTIONS:
+        assert bs.RULE_NAMES[sec] in bs.VALIDATION, sec
+    formulas = dict((n, e) for n, e, _w in bs.formulas())
+    for sec in bs.SECTIONS:
+        for s_, _n, expr in bs.RULES:
+            if s_ == sec:
+                flat = " ".join(expr.split())
+                assert flat in " ".join(formulas[bs.RULE_NAMES[sec]].split()), _n
+
+
+def test_vhp_rule_messages_are_user_facing():
+    """Issue #230: ingen interne regelkoder (S1, M1, R2 ...) og intet
+    SharePoint-ID ("Item 199") i beskederne. Et item hedder sit nummer i
+    Items-listen og sin Item Short Text - regnet af de indlaeste samlinger."""
+    sys.path.insert(0, os.path.join(ROOT, "Maintenance Plan App", "build"))
+    import build_status as bs
+    for _s, name, expr in bs.RULES:
+        assert not re.search(r'"[A-Z]\d+: ', expr), name
+        assert "Text(ItemId)" not in expr, name
+    ref = bs.item_ref("rid")
+    assert "CountRows(Filter(colVhpItems, ItemId <= rid))" in ref
+    assert "ir.ShortText" in ref
+    by = dict((n, " ".join(e.split())) for _s, n, e in bs.RULES)
+    for name in ("item_fields", "tasklist", "package", "material_group", "sort_field", "first_call"):
+        assert " ".join(ref.split()) in by[name], name
+    # Operationsnummeret staar stadig i operationsbeskederne.
+    for name in ("package", "material_group"):
+        assert '", operation " & OperationNo' in by[name], name
+    # Ingen datakald pr. besked - kun de indlaeste samlinger.
+    for _s, name, expr in bs.RULES:
+        for src in re.findall(r"(?:Filter|LookUp|CountRows)\(\s*(\w+)", expr):
+            assert src.startswith(("col", "Vhp", "Filter")), (name, src)
+    with open(os.path.join(ROOT, "BIO SAP App", "App.pa.yaml"), encoding="utf-8") as f:
+        app = f.read()
+    for code in ("S1", "S3", "S4", "S5", "M1", "R1", "R2", "R4"):
+        assert '"%s: ' % code not in app, code
 
 
 def test_vhp_missing_list_reuses_section_rules():
@@ -435,7 +467,7 @@ def test_vhp_missing_list_reuses_section_rules():
     sys.path.insert(0, os.path.join(ROOT, "Maintenance Plan App", "build"))
     import build_status as bs
     names = dict((n, e) for n, e, _w in bs.formulas())
-    for sec in bs.RULE_SECTIONS:
+    for sec in bs.SECTIONS:
         assert bs.RULE_NAMES[sec] in names[bs.MISSING_NAMES[sec]], sec
     with open(os.path.join(ROOT, "BIO SAP App", "ScreenVhPlan.pa.yaml"), encoding="utf-8") as f:
         screen = f.read()

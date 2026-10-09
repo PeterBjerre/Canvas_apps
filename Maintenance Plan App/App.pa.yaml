@@ -297,100 +297,7 @@ App:
       VhpSaveableItems = Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation));
 
       // Reglerne fra den tidligere Validate-knap. Tom = ingen fejl.
-      VhpValidationErrors = With(
-          { isStrat: varVhpPlan.PlanType = "Strategy", hasPkgs: !IsEmpty(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) },
-          With(
-              {
-                  itemErr:
-                      Concat(
-                          Filter(
-                              VhpSaveableItems,
-                              IsBlank(ShortText) || IsBlank(MainWorkCenter) || IsBlank(ActivityType) || IsBlank(FunctionalLocation)
-                          ),
-                          With(
-                              {
-                                  f:
-                                      If(IsBlank(ShortText), ", short text", "") &
-                                      If(IsBlank(MainWorkCenter), ", main work center", "") &
-                                      If(IsBlank(ActivityType), ", activity type", "") &
-                                      If(IsBlank(FunctionalLocation), ", functional location", "")
-                              },
-                              "Item " & Text(ItemId) & " (" & Coalesce(ShortText, "no short text") & "): add " & Mid(f, 3) & "."
-                          ),
-                          Char(10)
-                      ),
-                  s1:
-                      If(isStrat && IsBlank(varVhpPlan.Strategy),
-                          "S1: A strategy must be chosen on a strategy plan.", ""),
-                  s3:
-                      If(isStrat,
-                          Concat(
-                              Filter(VhpSaveableItems, IsBlank(TasklistKey)),
-                              "S3: Item " & Text(ItemId) & " has no task list - the package allocation belongs to the task list.",
-                              Char(10)
-                          ), ""),
-                  s4:
-                      If(isStrat && hasPkgs,
-                          Concat(
-                              Filter(colVhpOperations, Len(Coalesce(PackagesKey, ";")) <= 1),
-                              "S4: Item " & Text(ItemId) & " operation " & OperationNo &
-                              " has no package and would never be carried out.",
-                              Char(10)
-                          ), ""),
-                  s5:
-                      If(isStrat,
-                          Concat(
-                              Filter(
-                                  colVhpStrategyPackages As P,
-                                  P.StrategyKey = varVhpPlan.Strategy &&
-                                  CountRows(Filter(colVhpOperations, ";" & Text(P.PackageNo) & ";" in Coalesce(PackagesKey, ";"))) = 0
-                              ),
-                              "S5: Package " & ShortCode & " (" & Text(CycleLength) & " " & CycleUnit &
-                              ") has no operations - the plan would call an empty order.",
-                              Char(10)
-                          ), ""),
-                  m1:
-                      Concat(
-                          Filter(colVhpOperations,
-                              Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" &&
-                              IsBlank(Trim(Coalesce(MaterialGroup, "")))),
-                          "M1: Item " & Text(ItemId) & " operation " & OperationNo &
-                          " is PM02 and needs a material group.",
-                          Char(10)
-                      ),
-                  r1:
-                      If(
-                          !IsBlank(varVhpPlan.Plant) && !IsBlank(varVhpPlan.PlanText) &&
-                              !StartsWith(Upper(varVhpPlan.PlanText), Upper(varVhpPlan.Plant)),
-                          "R1: Plan Text should start with the plant code " & varVhpPlan.Plant &
-                              " - otherwise the plan cannot be found without searching by plant.", ""),
-                  r2:
-                      With(
-                          { n: CountRows(Filter(VhpSaveableItems, StartsWith(ActivityType, "110") || StartsWith(ActivityType, "115"))) },
-                          If(
-                              n > 0 && IsBlank(varVhpPlan.SortField),
-                              "R2: Sort Field is required: " & Text(n) &
-                                  " item(s) have activity type 110 or 115.", "")),
-                  r4:
-                      With(
-                          { n: CountRows(Filter(VhpSaveableItems, !IsBlank(Revision))) },
-                          If(
-                              n > 0 && (varVhpPlan.FirstCallDay <> 1 || varVhpPlan.FirstCallMonth <> 1),
-                              "R4: " & Text(n) & " item(s) are marked as outage work. " &
-                                  "First call must be 01/01, otherwise the task misses the outage.", ""))
-              },
-              Concat(
-                  Filter(
-                      Table(
-                          { t: itemErr }, { t: s1 }, { t: s3 }, { t: s4 }, { t: s5 },
-                          { t: m1 }, { t: r1 }, { t: r2 }, { t: r4 }
-                      ),
-                      !IsBlank(t)
-                  ),
-                  t, Char(10)
-              )
-          )
-      );
+      VhpValidationErrors = Concat(Filter(Table({ m: VhpPlanRuleErrors }, { m: VhpItemRuleErrors }, { m: VhpOpsRuleErrors }), !IsBlank(m)), m, Char(10));
 
       // Trin 1: planhovedet er gemt og laast.
       VhpStepPlanDone = varVhpPlanCommitted && varVhpPlanLocked;
@@ -407,13 +314,175 @@ App:
           (varVhpPlan.PlanType <> "Strategy" || !(!IsEmpty(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy))) || CountRows(Filter(colVhpOperations, Len(Coalesce(PackagesKey, ";")) <= 1)) = 0);
 
       // Reglerne, der rettes i Plan Header.
-      VhpPlanRuleErrors = Concat(Filter(Split(VhpValidationErrors, Char(10)), StartsWith(Value, "S1:") || StartsWith(Value, "R1:") || StartsWith(Value, "R2:") || StartsWith(Value, "R4:")), Value, Char(10));
+      VhpPlanRuleErrors = Concat(
+          Filter(
+              Table(
+                  { m: If(
+                      varVhpPlan.PlanType = "Strategy" && IsBlank(varVhpPlan.Strategy),
+                      "Choose a Maintenance Strategy in the Plan Header - a strategy plan needs one.",
+                      ""
+                  ) },
+                  { m: If(
+                      !IsBlank(varVhpPlan.Plant) && !IsBlank(varVhpPlan.PlanText) &&
+                          !StartsWith(Upper(varVhpPlan.PlanText), Upper(varVhpPlan.Plant)),
+                      "Start the Plan Text in the Plan Header with the plant code " & varVhpPlan.Plant &
+                          " - otherwise the plan cannot be found without searching by plant.",
+                      ""
+                  ) },
+                  { m: If(
+                      IsBlank(varVhpPlan.SortField),
+                      With(
+                          { l: Concat(
+                              Filter(VhpSaveableItems, StartsWith(ActivityType, "110") || StartsWith(ActivityType, "115")),
+                              With(
+                                  { rid: ItemId },
+                                  With(
+                                      { ir: LookUp(colVhpItems, ItemId = rid) },
+                                      "Item " & Text(CountRows(Filter(colVhpItems, ItemId <= rid))) &
+                                          If(IsBlank(Trim(ir.ShortText)), "", " (" & Trim(ir.ShortText) & ")")
+                                  )
+                              ),
+                              ", "
+                          ) },
+                          If(IsBlank(l), "", "Choose a Sort Field in the Plan Header - it is required for activity type 110 or 115: " & l & ".")
+                      ),
+                      ""
+                  ) },
+                  { m: If(
+                      varVhpPlan.FirstCallDay <> 1 || varVhpPlan.FirstCallMonth <> 1,
+                      With(
+                          { l: Concat(
+                              Filter(VhpSaveableItems, !IsBlank(Revision)),
+                              With(
+                                  { rid: ItemId },
+                                  With(
+                                      { ir: LookUp(colVhpItems, ItemId = rid) },
+                                      "Item " & Text(CountRows(Filter(colVhpItems, ItemId <= rid))) &
+                                          If(IsBlank(Trim(ir.ShortText)), "", " (" & Trim(ir.ShortText) & ")")
+                                  )
+                              ),
+                              ", "
+                          ) },
+                          If(IsBlank(l), "", "Set First call to 01/01 (day 1, month 1) in the Plan Header - otherwise the outage work " &
+                              "misses the outage. Marked as outage work (Revision): " & l & ".")
+                      ),
+                      ""
+                  ) }
+              ),
+              !IsBlank(m)
+          ),
+          m, Char(10)
+      );
 
       // Reglerne, der rettes i Item Editoren.
-      VhpItemRuleErrors = Concat(Filter(Split(VhpValidationErrors, Char(10)), StartsWith(Value, "Item ")), Value, Char(10));
+      VhpItemRuleErrors = Concat(
+          Filter(
+              Table(
+                  { m: Concat(
+                      Filter(
+                          VhpSaveableItems,
+                          IsBlank(ShortText) || IsBlank(MainWorkCenter) || IsBlank(ActivityType) || IsBlank(FunctionalLocation)
+                      ),
+                      With(
+                          { rid: ItemId },
+                          With(
+                              {
+                                  f:
+                                      If(IsBlank(ShortText), ", Item Short Text", "") &
+                                      If(IsBlank(MainWorkCenter), ", Main Work Center", "") &
+                                      If(IsBlank(ActivityType), ", Maintenance Activity Type", "") &
+                                      If(IsBlank(FunctionalLocation), ", Functional Location", "")
+                              },
+                              With(
+                                  { ir: LookUp(colVhpItems, ItemId = rid) },
+                                  "Item " & Text(CountRows(Filter(colVhpItems, ItemId <= rid))) &
+                                      If(IsBlank(Trim(ir.ShortText)), "", " (" & Trim(ir.ShortText) & ")")
+                              ) &
+                                  ": fill in " & Mid(f, 3) & " in the Item Editor."
+                          )
+                      ),
+                      Char(10)
+                  ) }
+              ),
+              !IsBlank(m)
+          ),
+          m, Char(10)
+      );
 
       // Reglerne, der rettes i Tasklist and Operations.
-      VhpOpsRuleErrors = Concat(Filter(Split(VhpValidationErrors, Char(10)), StartsWith(Value, "S3:") || StartsWith(Value, "S4:") || StartsWith(Value, "S5:") || StartsWith(Value, "M1:")), Value, Char(10));
+      VhpOpsRuleErrors = Concat(
+          Filter(
+              Table(
+                  { m: If(
+                      varVhpPlan.PlanType = "Strategy",
+                      Concat(
+                          Filter(VhpSaveableItems, IsBlank(TasklistKey)),
+                          With(
+                              { rid: ItemId },
+                              With(
+                                  { ir: LookUp(colVhpItems, ItemId = rid) },
+                                  "Item " & Text(CountRows(Filter(colVhpItems, ItemId <= rid))) &
+                                      If(IsBlank(Trim(ir.ShortText)), "", " (" & Trim(ir.ShortText) & ")")
+                              ) &
+                                  ": choose a task list - the package allocation belongs to the task list."
+                          ),
+                          Char(10)
+                      ),
+                      ""
+                  ) },
+                  { m: If(
+                      varVhpPlan.PlanType = "Strategy" && !IsEmpty(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)),
+                      Concat(
+                          Filter(colVhpOperations, Len(Coalesce(PackagesKey, ";")) <= 1),
+                          With(
+                              { rid: ItemId },
+                              With(
+                                  { ir: LookUp(colVhpItems, ItemId = rid) },
+                                  "Item " & Text(CountRows(Filter(colVhpItems, ItemId <= rid))) &
+                                      If(IsBlank(Trim(ir.ShortText)), "", " (" & Trim(ir.ShortText) & ")")
+                              ) & ", operation " & OperationNo &
+                                  ": choose a package - without one the operation is never carried out."
+                          ),
+                          Char(10)
+                      ),
+                      ""
+                  ) },
+                  { m: If(
+                      varVhpPlan.PlanType = "Strategy",
+                      Concat(
+                          Filter(
+                              colVhpStrategyPackages As P,
+                              P.StrategyKey = varVhpPlan.Strategy &&
+                              CountRows(Filter(colVhpOperations, ";" & Text(P.PackageNo) & ";" in Coalesce(PackagesKey, ";"))) = 0
+                          ),
+                          "Package " & ShortCode & " (" & Text(CycleLength) & " " & CycleUnit &
+                              "): allocate it to at least one operation - otherwise the plan calls an empty order.",
+                          Char(10)
+                      ),
+                      ""
+                  ) },
+                  { m: Concat(
+                      Filter(
+                          colVhpOperations,
+                          Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" &&
+                          IsBlank(Trim(Coalesce(MaterialGroup, "")))
+                      ),
+                      With(
+                          { rid: ItemId },
+                          With(
+                              { ir: LookUp(colVhpItems, ItemId = rid) },
+                              "Item " & Text(CountRows(Filter(colVhpItems, ItemId <= rid))) &
+                                  If(IsBlank(Trim(ir.ShortText)), "", " (" & Trim(ir.ShortText) & ")")
+                          ) & ", operation " & OperationNo &
+                              ": fill in the material group - control key PM02 requires one."
+                      ),
+                      Char(10)
+                  ) }
+              ),
+              !IsBlank(m)
+          ),
+          m, Char(10)
+      );
 
       // Det, der mangler i Plan Header (issue #220) - een linje pr. krav. Tom = intet.
       VhpPlanMissing = Concat(Filter(Table({ m: If(!VhpStepPlanDone, "Save the plan header.", "") }, { m: VhpPlanRuleErrors }), !IsBlank(m)), m, Char(10));
