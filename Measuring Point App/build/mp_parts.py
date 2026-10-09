@@ -35,6 +35,7 @@ import domain_parts as dp
 from gen_screen import C_INFO_FG, C_MUTED, C_WARN_FG
 import admin_log as alog
 import permissions as perm
+import stepper as st
 from build_helpers import (button, card, fit_button_width, group, grow, text_ctrl,
                            text_input, themed_dropdown)
 
@@ -295,7 +296,10 @@ def build_form():
         if name == "CounterIn":
             rows.append(_counter_info())
     buttons = dp.form_buttons(save_fx, "Save row", "New row")
-    return card("conDomFormCard", [head] + rows + dp.form_footer(buttons))
+    # Trinstriben lige under hovedet - kun naar godkendelsen er med
+    # (features.measuring_point_approval), som i Materials.
+    top = [build_steps()] if APPROVAL_ON else []
+    return card("conDomFormCard", [head] + top + rows + dp.form_footer(buttons))
 
 
 # ---------------------------------------------------------------------------
@@ -381,3 +385,263 @@ def details_extra(row):
     btn.props["LayoutMinWidth"] = btn.props["Width"]
     return [group("conDomDetMpNo", [lbl, inp, btn], direction="Horizontal", gap=12,
                   height=36, align_items="Center")]
+
+
+# ---------------------------------------------------------------------------
+# GODKENDELSEN AF NYE COUNTER-RAEKKER (issue #210, fase 4) - bag flaget
+# features.measuring_point_approval
+#
+# HVEM GODKENDER
+# --------------
+# En NY Counter (ApprovalRequired, Q1/Q16) godkendes af System Manageren
+# for funktionspladsens system - uden undtagelse (Q2). Systemet staar i
+# Power BI og den ansvarlige i MD_Approver; appen kan ikke noget af det
+# selv. Opslaget er Materials' flow BioSap-Material-ResolveApprovers,
+# GENBRUGT uaendret: det tager funktionspladser og svarer med
+# { code, systemNo, approver, error } pr. kode og ved intet om materialer.
+# Et nyt navn ville aendre Materials' skaerm, og det skal den ikke.
+#
+# PRODOS/SRO-OPRETTEREN
+# ---------------------
+# En Counter, hvis taeller mangler i PRODOS, skal oprettes af vaerkets
+# PRODOS/SRO-opretter (Q7). Han staar i MD_Approver med noeglen
+# PRODOS-<vaerk>, een raekke pr. vaerk (Q17). Det opslag kan appen selv -
+# MD_Approver er allerede en datakilde i BIO SAP App.
+#
+# BEGGE SLAAS OP, NAAR SUBMIT TRYKKES
+# ------------------------------------
+# Mangler et system, en System Manager eller en opretter, aabner
+# bekraeftelsen slet ikke, og beskeden siger hvad der mangler
+# (domain_parts.HOOKS["submit_guard"], samme krog som Materials). Det er
+# bedre at stoppe her end at sende noget af sted, ingen kan godkende.
+# Measuring Point-raekker og eksisterende punkter slaas aldrig op.
+# ---------------------------------------------------------------------------
+APPROVAL_ON = cfg.APPROVAL_ON
+
+RESOLVE_FLOW = "'BioSap-Material-ResolveApprovers'"
+RESOLVE_OUT = "resolveoutput"
+
+APPROVERS = "colDomApprovers"
+APPR_SCHEMA = {"Code": '""', "SystemNo": '""', "Approver": '""', "Error": '""'}
+APPR_RAW = "varDomApprRaw"
+APPR_MSG = "varDomApprMsg"
+# Vaerkernes PRODOS/SRO-oprettere - kun de vaerker, Submit sender en
+# manglende taeller til.
+CREATORS = "colDomCreators"
+CRE_SCHEMA = {"Plant": '""', "Creator": '""'}
+# Appens tilstand i App.OnStart, naar flaget er taendt.
+APPR_STATE = f'Set({APPR_MSG}, "")'
+
+# Noeglen i MD_Approver: PRODOS- og vaerkets tre bogstaver (seedet
+# sharepoint/seed/MD_Approver_MeasuringPoint.csv). Samme regel som hubbens
+# vaerksopslag (Upper(Left(Plant, 3))).
+CREATOR_PREFIX = "PRODOS-"
+
+
+def plant_key(expr):
+    return f'Upper(Left(Trim(Coalesce({expr}, "")), 3))'
+
+
+# En raekke i colDomRows (feltnavnene uden praefiks - de bruges i Filter).
+NEEDS_APPROVAL = "Coalesce(ApprovalRequired, false)"
+COUNTER_MISSING = ('MeasuringPointType = "Counter" && ExistsInSap = "No" && '
+                   'InProdos = "Yes" && ProdosCounterExists = "No"')
+# De raekker, Submit ville sende (VALID er domain_parts').
+APPR_ROWS = f'Filter(colDomRows, Status = "valid" && {NEEDS_APPROVAL})'
+CTR_ROWS = f'Filter(colDomRows, Status = "valid" && {COUNTER_MISSING})'
+# Funktionspladserne som een "; "-adskilt tekst - formatet, flowet forventer.
+SUBMIT_CODES = f'Concat({APPR_ROWS}, FunctionalLocation, "; ")'
+BAD = f'Filter({APPROVERS}, !IsBlank(Trim(Coalesce(Error, ""))))'
+BAD_CRE = f"Filter({CREATORS}, IsBlank(Creator))"
+APPR_FAIL = f'!IsBlank(Trim(Coalesce({APPR_MSG}, "")))'
+APPR_BLOCKED = f"(CountRows({BAD}) > 0 || {APPR_FAIL})"
+CRE_BLOCKED = f"CountRows({BAD_CRE}) > 0"
+BLOCKED = f"({APPR_BLOCKED} || {CRE_BLOCKED})"
+MSG_NO_CREATOR = '"Cannot submit: no PRODOS/SRO creator is configured for plant " & '
+
+
+def resolve_fx(codes):
+    """Slaa system og System Manager op for koderne i codes - samme kald
+    som Materials (material_parts.resolve_fx).
+
+    Svaret lander i colDomApprovers. Fejler kaldet - flowet er ikke
+    importeret, eller Power BI svarer ikke - staar grunden i
+    varDomApprMsg, og Submit spaerrer paa den: uden et opslag ved appen
+    ikke, om raekken KAN godkendes."""
+    return (
+        f'Set({APPR_MSG}, "");\n'
+        f"Clear({APPROVERS});\n"
+        "If(\n"
+        f'    !IsBlank(Trim(Coalesce({codes}, ""))),\n'
+        "    IfError(\n"
+        f"        Set({APPR_RAW}, {RESOLVE_FLOW}.Run({codes}));\n"
+        "        Collect(\n"
+        f"            {APPROVERS},\n"
+        f"            ForAll(Table(ParseJSON({APPR_RAW}.{RESOLVE_OUT})) As R,\n"
+        "                {\n"
+        "                    Code: Text(R.Value.code),\n"
+        "                    SystemNo: Text(R.Value.systemNo),\n"
+        "                    Approver: Text(R.Value.approver),\n"
+        "                    Error: Text(R.Value.error)\n"
+        "                })\n"
+        "        );\n"
+        # Begge grene skal give det SAMME (check_layout regel 32).
+        "        true,\n"
+        f'        Set({APPR_MSG}, "Could not look up the system managers: " & '
+        "FirstError.Message);\n"
+        "        false\n"
+        "    )\n"
+        ")"
+    )
+
+
+def creators_fx():
+    """Vaerkernes PRODOS/SRO-oprettere for de raekker, hvis taeller mangler.
+
+    Eet opslag pr. VAERK, ikke pr. raekke (Distinct). LookUp paa
+    ApproverKey delegeres. Approver1Absent -> Approver2, som i flowene."""
+    return (
+        f"ClearCollect(\n    {CREATORS},\n"
+        f"    ForAll(\n        Distinct({CTR_ROWS}, {plant_key('Plant')}) As P,\n"
+        f'        With({{ a: LookUp(MD_Approver, ApproverKey = "{CREATOR_PREFIX}" & P.Value) }},\n'
+        "            {\n"
+        "                Plant: P.Value,\n"
+        "                Creator: Upper(Trim(Coalesce(If(a.Approver1Absent, a.Approver2, "
+        'a.Approver1), "")))\n'
+        "            })\n"
+        "    )\n"
+        ")"
+    )
+
+
+def guard_message():
+    return (
+        "If(\n"
+        f"    {APPR_FAIL}, {APPR_MSG},\n"
+        f'    CountRows({BAD}) > 0, "Cannot submit: " & First({BAD}).Error & ".",\n'
+        f'    {MSG_NO_CREATOR}First({BAD_CRE}).Plant & "."\n'
+        ")")
+
+
+def submit_guard():
+    """Submit-vagten (domain_parts.HOOKS["submit_guard"]): (foer, spaerret,
+    besked). Opslagene koeres kun for de raekker, der skal bruge dem - en
+    anmodning uden nye Counter-raekker kalder intet flow."""
+    return (resolve_fx(SUBMIT_CODES) + ";\n" + creators_fx(), BLOCKED, guard_message())
+
+
+# ---------------------------------------------------------------------------
+# TRINSTRIBEN (issue #210, fase 4) - den delte stribe fra #204
+# (tools/stepper.py)
+#
+# Foer Submit:   Rows -> Approvers -> PRODOS / SRO -> Ready to submit
+# Efter Submit:  Submitted -> Approval -> PRODOS / SRO counter ->
+#                Master Data (SAP) / Created in SAP
+#
+# Det er DE SAMME fire knuder foer og efter, saa billedet ikke skifter
+# under brugeren. Et trin, der ikke gaelder - ingen ny Counter, ingen
+# manglende taeller - staar som "Not required".
+#
+# "Efter" er den AABNE anmodning (varDomRequestGuid), naar den er sendt
+# af sted - ikke "brugeren har en indsendt raekke et sted": colDomRows er
+# alle brugerens raekker. Efter en indsendelse ryddes GUID'en, og striben
+# staar igen ved Rows for den naeste.
+#
+# Hvilket trin en indsendt anmodning er i, staar i indeksraekken:
+# UnderBehandling + LastActionBy "System approval" er godkendelsen,
+# UnderBehandling + LastActionBy "PRODOS/SRO counter" er taelleren - de to
+# tekster skriver flowet BioSap-MeasuringPoint-Approval.
+# ---------------------------------------------------------------------------
+COUNTER_ACTOR = "PRODOS/SRO counter"
+APPROVAL_ACTOR = "System approval"
+
+IDX_ST = 'Coalesce(varDomIdx.Status.Value, "")'
+LAST_BY = 'Coalesce(varDomIdx.LastActionBy, "")'
+AFTER = ('(!IsBlank(varDomRequestGuid) && !IsBlank(varDomIdx) && '
+         'varDomIdx.RequestGuid = varDomRequestGuid && '
+         f'({IDX_ST} = "Indsendt" || {IDX_ST} = "UnderBehandling" || '
+         f'{IDX_ST} = "KlarTilSAP" || {IDX_ST} = "OprettetISAP"))')
+IN_COUNTER = f'({IDX_ST} = "UnderBehandling" && {LAST_BY} = "{COUNTER_ACTOR}")'
+AT_SAP = f'({IDX_ST} = "KlarTilSAP" || {IDX_ST} = "OprettetISAP")'
+# Den aabne anmodnings raekker.
+THIS = 'Filter(colDomRows, !IsBlank(varDomRequestNo) && RequestNo = varDomRequestNo)'
+THIS_APPR = f"CountRows(Filter({THIS}, {NEEDS_APPROVAL})) > 0"
+THIS_CTR = f"CountRows(Filter({THIS}, {COUNTER_MISSING}))"
+CTR_LEFT = f"CountRows(Filter({THIS}, {COUNTER_MISSING} && IsBlank(CounterCreatedOn)))"
+VALID_N = 'CountRows(Filter(colDomRows, Status = "valid"))'
+DRAFTS = 'CountRows(Filter(colDomRows, Status = "draft"))'
+
+
+def _steps():
+    rows = f'If(\n    {AFTER}, "Done",\n    {VALID_N} > 0, "Done",\n    "Current"\n)'
+    appr = (
+        "If(\n"
+        f"    {AFTER},\n"
+        f'    If(!({THIS_APPR}), "Skipped", {IN_COUNTER} || {AT_SAP}, "Done", "Current"),\n'
+        f'    CountRows({APPR_ROWS}) = 0, "Skipped",\n'
+        f'    {APPR_BLOCKED}, "Current",\n'
+        f'    {VALID_N} > 0, "Done",\n'
+        '    "Pending"\n'
+        ")")
+    ctr = (
+        "If(\n"
+        f"    {AFTER},\n"
+        f'    If({THIS_CTR} = 0, "Skipped", {AT_SAP} || {CTR_LEFT} = 0, "Done", '
+        f'{IN_COUNTER}, "Current", "Pending"),\n'
+        f'    CountRows({CTR_ROWS}) = 0, "Skipped",\n'
+        f'    {CRE_BLOCKED}, "Current",\n'
+        f'    {VALID_N} > 0, "Done",\n'
+        '    "Pending"\n'
+        ")")
+    done = (
+        "If(\n"
+        f"    {AFTER},\n"
+        f'    If({IDX_ST} = "OprettetISAP", "Done", {IDX_ST} = "KlarTilSAP", "Current", "Pending"),\n'
+        f'    {VALID_N} > 0 && !{BLOCKED}, "Current",\n'
+        '    "Pending"\n'
+        ")")
+    return [
+        (f'If({AFTER}, "Submitted", "Rows")', rows),
+        (f'If({AFTER}, "Approval", "Approvers")', appr),
+        (f'If({AFTER}, "PRODOS / SRO counter", "PRODOS / SRO")', ctr),
+        (f'If({AFTER}, If({IDX_ST} = "OprettetISAP", "Created in SAP", "Master Data (SAP)"), '
+         '"Ready to submit")', done),
+    ]
+
+
+def _steps_hint():
+    """Linjen under striben - de samme beskeder, Submit ville give."""
+    return (
+        "With(\n"
+        f"    {{ v: {VALID_N}, d: {DRAFTS} }},\n"
+        "    If(\n"
+        f"        {AFTER},\n"
+        "        If(\n"
+        f'            {IDX_ST} = "OprettetISAP", "The measuring points are created in SAP.",\n'
+        f'            {IDX_ST} = "KlarTilSAP", "The request is with Master Data for creation in SAP.",\n'
+        f'            {IN_COUNTER}, "Waiting for the PRODOS/SRO creator: " & {CTR_LEFT} & '
+        '" counter(s) left to create.",\n'
+        '            "Waiting for the System Manager to approve the new counters - you get an '
+        'e-mail when it moves on."\n'
+        "        ),\n"
+        '        v = 0 && d = 0, "Add a row and save it to get started.",\n'
+        f"        {APPR_FAIL}, {APPR_MSG},\n"
+        f'        CountRows({BAD}) > 0, "Cannot submit: " & First({BAD}).Error & ".",\n'
+        f'        {CRE_BLOCKED}, {MSG_NO_CREATOR}First({BAD_CRE}).Plant & ".",\n'
+        '        d > 0 && v = 0, "Finish the draft row before submitting.",\n'
+        '        "Ready: " & v & " row(s) will be submitted." & '
+        f'If(CountRows({APPR_ROWS}) > 0, " New counters are approved by the System Manager.", "") & '
+        'If(d > 0, " " & d & " draft row(s) stay as drafts.", "")\n'
+        "    )\n"
+        ")")
+
+
+def build_steps():
+    return st.strip("Dom", _steps(), hint=_steps_hint(),
+                    label='"Progress of this request"')
+
+
+# Godkendelsen er bag flaget: er det slukket, er skaermen praecis som foer -
+# ingen opslag, ingen vagt paa Submit og ingen stribe.
+if APPROVAL_ON:
+    dp.configure(submit_guard=submit_guard())

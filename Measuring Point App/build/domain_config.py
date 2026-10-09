@@ -193,6 +193,17 @@ WHEN = {
     "CounterCreateIn": COUNTER_MISSING,
 }
 
+# --- valgkolonner i SharePoint ----------------------------------------
+# Provisioneringen (Provision-MeasuringPointLists.ps1) har oprettet de fem
+# ja/nej- og typefelter som CHOICE-kolonner, og udtraekket
+# (sharepoint/inspect/out/schema.md) er sandheden. Appen arbejder stadig
+# med teksten ("Yes", "Counter"), men den skal skrives som { Value: ... }
+# og laeses som .Value - ellers compiler skaermen ikke i Studio.
+# tools/domain_parts.py goer det for felterne her (opt-in); Equipment og
+# Materials har tekstkolonner og roeres ikke.
+SP_CHOICE = {"ExistsInSap", "MeasuringPointType", "InProdos",
+             "ProdosCounterExists", "CounterCreateIn"}
+
 # --- det, appen selv skriver ------------------------------------------
 # "Is the measuring point a counter?" er ET TYPEVALG (Q14), saa IsCounter
 # er afledt og ikke et felt. ApprovalRequired er sand for en NY Counter
@@ -228,10 +239,15 @@ EXTRA_FORMULAS = (
 
 # --- Submit ------------------------------------------------------------
 # En anmodning uden godkendelse og uden manglende taeller gaar direkte til
-# Master Data (Q12). Godkendelsen af nye Counter-raekker, trinindikatoren
-# og flowene kommer i en senere PR, naar #204's delte moduler er paa
-# plads; indtil da er Submit den simple vej: Indsendt -> KlarTilSAP.
+# Master Data (Q12).
 SUBMIT_STATUS = "KlarTilSAP"
+
+# GODKENDELSEN AF NYE COUNTER-RAEKKER ER BAG ET FLAG (fase 4-6)
+#
+# features.measuring_point_approval i tools/canvas_apps.json. Slaaet FRA
+# er skaermen den fra fase 1-3: intet opslag, ingen vagt foer Submit, ingen
+# trinstribe og intet flow-kald.
+APPROVAL_ON = env.feature_on("measuring_point_approval")
 
 # --- Saved Rows og kopi (fase 3) --------------------------------------
 # EET fast layout (Q13): ingen Compact/All columns og ingen varDomAllCols.
