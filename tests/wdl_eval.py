@@ -70,6 +70,10 @@ FUNCS = {
     "greater": lambda a, b: a > b,
     "first": lambda x: x[0] if len(x) else None,
     "toUpper": lambda s: str(s).upper(),
+    # Measuring Points godkendelse (issue #210).
+    "or": lambda *a: any(a),
+    "contains": lambda c, x: x in (c or ()),
+    "string": lambda x: _str(x),
 }
 
 
