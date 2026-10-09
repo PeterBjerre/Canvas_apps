@@ -8640,7 +8640,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =110 + 12 + (Max(160, Min(App.Height - 220, 480)))
+                =68 + 12 + (Max(160, Min(App.Height - 220, 480)))
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -8678,39 +8678,115 @@ Screens:
             Y: |-
                 =Max(12, (App.Height - Self.Height) / 3)
           Children:
-            - txtKksPickTitle:
-                Control: ModernText
+            - conKksPickHead:
+                Control: GroupContainer
+                Variant: AutoLayout
                 Properties:
-                  AccessibleLabel: |-
-                      =Self.Text
                   BorderStyle: |-
                       =BorderStyle.None
-                  BorderThickness: |-
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
                       =0
-                  Color: |-
-                      =C.'text-primary'
-                  Fill: |-
-                      =RGBA(0, 0, 0, 0)
-                  Font: |-
-                      =Font.'Segoe UI'
-                  FontWeight: |-
-                      =FontWeight.Semibold
                   Height: |-
-                      =26
-                  PaddingBottom: |-
+                      =32
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =12
+                  LayoutMinWidth: |-
                       =0
-                  PaddingLeft: |-
-                      =0
-                  PaddingRight: |-
-                      =0
-                  PaddingTop: |-
-                      =0
-                  Size: |-
-                      =17
-                  Text: |-
-                      =Switch(varKksPick, 1, "Letter", 2, "Group", "Subgroup")
-                  Wrap: |-
-                      =false
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - txtKksPickTitle:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            =Self.Text
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =26
+                        LayoutMinWidth: |-
+                            =0
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =17
+                        Text: |-
+                            =Switch(varKksPick, 1, "Letter", 2, "Group", "Subgroup")
+                        Width: |-
+                            =Max(0, (((Min(460, App.Width - 24)) - 18 - 18)) - ((90) + 12) - 2)
+                        Wrap: |-
+                            =false
+                  - btnKksPickClose:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-default'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =32
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varKksPick, 0)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        Text: |-
+                            ="Close"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =90
             - galKksPick:
                 Control: Gallery
                 Variant: VariableHeight
@@ -8935,78 +9011,6 @@ Screens:
                             =0
                         Y: |-
                             =0
-            - conKksPickFooter:
-                Control: GroupContainer
-                Variant: AutoLayout
-                Properties:
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  DropShadow: |-
-                      =DropShadow.None
-                  FillPortions: |-
-                      =0
-                  Height: |-
-                      =36
-                  LayoutAlignItems: |-
-                      =LayoutAlignItems.Center
-                  LayoutDirection: |-
-                      =LayoutDirection.Horizontal
-                  LayoutGap: |-
-                      =8
-                  LayoutJustifyContent: |-
-                      =LayoutJustifyContent.End
-                  LayoutMinWidth: |-
-                      =0
-                  LayoutOverflowX: |-
-                      =LayoutOverflow.Hide
-                  LayoutOverflowY: |-
-                      =LayoutOverflow.Hide
-                  Width: |-
-                      =Parent.Width
-                Children:
-                  - btnKksPickClose:
-                      Control: ModernButton
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Close"
-                        Align: |-
-                            =Align.Center
-                        AlignInContainer: |-
-                            =AlignInContainer.Center
-                        Appearance: |-
-                            =ButtonAppearance.Outline
-                        BorderColor: |-
-                            =C.'border-default'
-                        BorderThickness: |-
-                            =1
-                        Color: |-
-                            =C.'text-primary'
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
-                        Height: |-
-                            =36
-                        Layout: |-
-                            =ButtonLayout.TextOnly
-                        OnSelect: |-
-                            =Set(varKksPick, 0)
-                        RadiusBottomLeft: |-
-                            =10
-                        RadiusBottomRight: |-
-                            =10
-                        RadiusTopLeft: |-
-                            =10
-                        RadiusTopRight: |-
-                            =10
-                        Size: |-
-                            =14
-                        Text: |-
-                            ="Close"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
-                        Width: |-
-                            =77
       - conKksDetailBackdrop:
           Control: Image
           Properties:
@@ -9055,7 +9059,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =110 + 12 + (Max(20, RoundUp(Len(varKksDetailText) / Max(20, RoundDown((Min(460, App.Width - 24) - 36) / 7.5, 0)), 0) * 19))
+                =68 + 12 + (Max(20, RoundUp(Len(varKksDetailText) / Max(20, RoundDown((Min(460, App.Width - 24) - 36) / 7.5, 0)), 0) * 19))
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -9093,39 +9097,115 @@ Screens:
             Y: |-
                 =Max(20, (App.Height - Self.Height) / 3)
           Children:
-            - txtKksDetailTitle:
-                Control: ModernText
+            - conKksDetailHead:
+                Control: GroupContainer
+                Variant: AutoLayout
                 Properties:
-                  AccessibleLabel: |-
-                      =Self.Text
                   BorderStyle: |-
                       =BorderStyle.None
-                  BorderThickness: |-
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
                       =0
-                  Color: |-
-                      =C.'text-primary'
-                  Fill: |-
-                      =RGBA(0, 0, 0, 0)
-                  Font: |-
-                      =Font.'Segoe UI'
-                  FontWeight: |-
-                      =FontWeight.Semibold
                   Height: |-
-                      =26
-                  PaddingBottom: |-
+                      =32
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =12
+                  LayoutMinWidth: |-
                       =0
-                  PaddingLeft: |-
-                      =0
-                  PaddingRight: |-
-                      =0
-                  PaddingTop: |-
-                      =0
-                  Size: |-
-                      =17
-                  Text: |-
-                      =varKksDetailCode
-                  Wrap: |-
-                      =false
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - txtKksDetailTitle:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            =Self.Text
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =26
+                        LayoutMinWidth: |-
+                            =0
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =17
+                        Text: |-
+                            =varKksDetailCode
+                        Width: |-
+                            =Max(0, (((Min(460, App.Width - 24)) - 18 - 18)) - ((90) + 12) - 2)
+                        Wrap: |-
+                            =false
+                  - btnKksDetailClose:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-default'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =32
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varKksDetailOn, false)
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Size: |-
+                            =14
+                        Text: |-
+                            ="Close"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =90
             - txtKksDetailBody:
                 Control: ModernText
                 Properties:
@@ -9157,78 +9237,6 @@ Screens:
                       =varKksDetailText
                   Wrap: |-
                       =true
-            - conKksDetailFooter:
-                Control: GroupContainer
-                Variant: AutoLayout
-                Properties:
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  DropShadow: |-
-                      =DropShadow.None
-                  FillPortions: |-
-                      =0
-                  Height: |-
-                      =36
-                  LayoutAlignItems: |-
-                      =LayoutAlignItems.Center
-                  LayoutDirection: |-
-                      =LayoutDirection.Horizontal
-                  LayoutGap: |-
-                      =8
-                  LayoutJustifyContent: |-
-                      =LayoutJustifyContent.End
-                  LayoutMinWidth: |-
-                      =0
-                  LayoutOverflowX: |-
-                      =LayoutOverflow.Hide
-                  LayoutOverflowY: |-
-                      =LayoutOverflow.Hide
-                  Width: |-
-                      =Parent.Width
-                Children:
-                  - btnKksDetailClose:
-                      Control: ModernButton
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Close"
-                        Align: |-
-                            =Align.Center
-                        AlignInContainer: |-
-                            =AlignInContainer.Center
-                        Appearance: |-
-                            =ButtonAppearance.Outline
-                        BorderColor: |-
-                            =C.'border-default'
-                        BorderThickness: |-
-                            =1
-                        Color: |-
-                            =C.'text-primary'
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
-                        Height: |-
-                            =36
-                        Layout: |-
-                            =ButtonLayout.TextOnly
-                        OnSelect: |-
-                            =Set(varKksDetailOn, false)
-                        RadiusBottomLeft: |-
-                            =10
-                        RadiusBottomRight: |-
-                            =10
-                        RadiusTopLeft: |-
-                            =10
-                        RadiusTopRight: |-
-                            =10
-                        Size: |-
-                            =14
-                        Text: |-
-                            ="Close"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
-                        Width: |-
-                            =77
       - imgKksLoading:
           Control: Image
           Properties:
