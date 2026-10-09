@@ -2,9 +2,12 @@
 """Maintenance Plan-headerens knapper (issue #211).
 
 Knapperne skal altid kunne staa paa linjen: titel + trin + knapper maa
-ikke blive bredere end headeren ved nogen skaermbredde, og More actions
-(...) er kun et ikon med "More actions" som tooltip og tilgaengeligt navn.
-Delete er sidste punkt i menuen."""
+ikke blive bredere end headeren ved nogen skaermbredde.
+
+Issue #230: More actions-menuen (...) er fjernet. Delete request og View
+notes er ikon-knapper direkte i headeren, Delete sidst - med samme
+rettigheder, tooltip og bekraeftelse. "Show all" er et info-ikon ved
+linjen "Ready to submit", som aabner listen "Before you can submit"."""
 import os
 import re
 import sys
@@ -32,7 +35,7 @@ def _layout(app_w):
     inner = app_w - nav - lay.PAGE_PAD_L - lay.PAGE_PAD_R - lay.SCROLLBAR_W
     rest = shell - bh.STEPS_W - 32 if desktop else shell - 16
     compact = (not tablet) or rest - bh.FULL_W < bh.TITLE_MIN
-    btn_w = bh.COMPACT_W if compact else bh.FULL_W
+    btn_w = bh.PHONE_W if not tablet else (bh.COMPACT_W if compact else bh.FULL_W)
     side_w = max(btn_w, rest / 2) if desktop else btn_w
     if not tablet:
         return inner, btn_w, 0, compact
@@ -60,15 +63,23 @@ def _block(text, name):
     return m.group(2)
 
 
-def test_more_actions_is_icon_only():
+def test_delete_is_icon_only_in_header():
     with open(SCREEN, encoding="utf-8") as f:
         y = f.read()
-    b = _block(y, "btnVhpMoreActs")
-    assert '="More actions"' in b.split("AccessibleLabel:")[1].split("\n")[1]
-    assert '="More actions"' in b.split("Tooltip:")[1].split("\n")[1]
+    assert "btnVhpMoreActs" not in y and "conVhpMoreMenu" not in y
+    assert "varVhpMoreOn" not in y
+    b = _block(y, "btnVhpDeleteRequest")
     assert "=ButtonLayout.IconOnly" in b
-    assert '="MoreHorizontal"' in b
+    assert '="Delete"' in b.split("Icon:")[1].split("\n")[1]
     assert '=""' in b.split("Text:")[1].split("\n")[1]
+    assert '="Delete this request"' in b.split("AccessibleLabel:")[1].split("\n")[1]
+    # Samme tooltip, rettigheder og bekraeftelse som i menuen.
+    assert "A submitted plan cannot be deleted." in b.split("Tooltip:")[1]
+    assert "=Set(varVhpDeleteOpen, true)" in b
+    assert "If((VhpSubmitted || varVhpSaving), DisplayMode.Disabled, DisplayMode.Edit)" in b
+    assert "(!IfError(varVhpViewOnly, true) && !IsBlank(varVhpRequestGuid))" in b
+    # Bekraeftelsen findes stadig.
+    assert "IfError(varVhpDeleteOpen, false)" in _block(y, "conVhpReqDelConfirmModal")
 
 
 def test_header_order_and_delete_last():
@@ -77,8 +88,23 @@ def test_header_order_and_delete_last():
     row = _block(y, "conVhpHeadBtns")
     order = re.findall(r"- (btnVhp\w+|conVhpHeadSep):", row)
     assert order == ["btnVhpNewRequest", "conVhpHeadSep", "btnVhpEdit", "btnVhpSaveDraft",
-                     "btnVhpSubmit", "btnVhpMoreActs"]
-    menu = _block(y, "conVhpMoreMenu")
-    items = re.findall(r"- (btnVhp\w+):", menu)
-    assert items[-1] == "btnVhpDeleteRequest"
-    assert "Set(varVhpDeleteOpen, true)" in menu
+                     "btnVhpSubmit", "btnVhpNotes", "btnVhpDeleteRequest"]
+    notes = _block(y, "btnVhpNotes")
+    assert "=ButtonLayout.IconOnly" in notes
+    assert '="View the submission notes"' in notes
+
+
+def test_info_icon_opens_requirements():
+    with open(SCREEN, encoding="utf-8") as f:
+        y = f.read()
+    assert "Show all" not in y
+    row = _block(y, "conVhpReadyRow")
+    assert re.findall(r"- (\w+):", row)[:2] == ["txtVhpReadiness", "btnVhpShowMissing"]
+    b = _block(y, "btnVhpShowMissing")
+    assert '="Info"' in b.split("Icon:")[1].split("\n")[1]
+    assert "=ButtonLayout.IconOnly" in b
+    assert "=Set(varVhpMissingOn, true)" in b
+    assert '="Show the submission requirements"' in b.split("AccessibleLabel:")[1].split("\n")[1]
+    assert "Tooltip:" in b
+    # Popuppen er den samme som foer.
+    assert "IfError(varVhpMissingOn, false)" in _block(y, "conVhpMissingModal")
