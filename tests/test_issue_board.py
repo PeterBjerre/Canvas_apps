@@ -436,9 +436,20 @@ def test_detail_popup_hierarchy_and_single_close():
     assert [k.name for k in modal.children] == ["conIbDetHead", "conIbDetTop", "conIbDetContent"]
     assert [k.name for k in ctrls["conIbDetHead"].children] == ["txtIbDetNo", "txtIbDetTitle",
                                                                "btnIbDetClose"]
+    # Issue #229: Close er et ikon oeverst til hoejre - den eneste vej ud.
+    close = ctrls["btnIbDetClose"]
+    assert close.props["Icon"] == '"Dismiss"' and close.props["Layout"] == "ButtonLayout.IconOnly"
+    assert close.props["AccessibleLabel"] == '"Close"' == close.props["Tooltip"]
+    # Status, prioritet, Application og Section som maerker/vaerdier - ingen
+    # lang streng med skilletegn.
+    assert [k.name for k in ctrls["conIbDetMeta"].children] == ["conIbDetBadges", "conIbDetWhere"]
+    assert "&" not in ctrls["txtIbDetApp"].props["Text"]
+    # Fanerne er centreret og har samme stoerrelse.
+    assert ctrls["conIbDetTabs"].props["LayoutJustifyContent"] == "LayoutJustifyContent.Center"
+    assert len({ctrls[n].props["Width"] for n in ("btnIbTabDetails", "btnIbTabActivity",
+                                                   "btnIbTabFiles")}) == 1
     top = [k.name for k in ctrls["conIbDetTop"].children]
-    order = ["conIbDetMeta", "conIbDetFacts", "conIbDetActions", "conIbActsMenu", "conIbDetRule",
-             "conIbDetTabs"]
+    order = ["conIbDetMeta", "conIbDetFacts", "conIbDetActions", "conIbDetRule", "conIbDetTabs"]
     assert [b for b in top if b in order] == order
     assert "Scroll" not in ctrls["conIbDetTop"].props["LayoutOverflowY"]
     content = ctrls["conIbDetContent"]
@@ -454,20 +465,28 @@ def test_detail_popup_hierarchy_and_single_close():
     assert not [n for n in ctrls if "Cancel" in n]
     dels = {c.name for c in _walk_ctrls(P.build_delete())}
     assert "btnIbDelCancel" not in dels and "btnIbDelClose" in dels
-    # Issue #212: Edit, Archive og Delete i overloebsmenuen - i den
-    # raekkefoelge, hver kun naar den er tilladt; Delete sidst.
-    assert [k.name for k in ctrls["conIbActsBtns"].children] == ["btnIbEdit", "btnIbArchive",
-                                                                 "btnIbDelete"]
+    # Issue #229: ingen overloebsmenu. Edit, Archive og Delete staar direkte
+    # som ikoner i een raekke under fakta - hver kun, naar den er tilladt;
+    # Delete sidst og i fare-farven.
+    assert "btnIbMoreActs" not in ctrls and "conIbActsMenu" not in ctrls
+    assert [k.name for k in ctrls["conIbDetActions"].children] == ["btnIbReopen", "btnIbEdit",
+                                                                   "btnIbArchive", "btnIbDelete"]
     assert ctrls["btnIbEdit"].props["Visible"] == "IbCanEdit"
     assert ctrls["btnIbArchive"].props["Visible"] == "IbCanManage"
     assert ctrls["btnIbDelete"].props["Visible"] == "IbCanManage"
-    assert "IbCanManage" in ctrls["conIbActsMenu"].props["Visible"]
-    assert "IbCanEdit" in ctrls["conIbActsMenu"].props["Visible"]
-    more = ctrls["btnIbMoreActs"]
-    assert more.props["Visible"] == "IbCanEdit || IbCanManage"
-    assert more.props["Layout"] == "ButtonLayout.IconOnly" and more.props["Icon"] == '"MoreHorizontal"'
-    assert more.props["Tooltip"] == '"More actions"' == more.props["AccessibleLabel"]
-    assert [k.name for k in ctrls["conIbDetActions"].children] == ["btnIbReopen", "btnIbMoreActs"]
+    assert ctrls["btnIbReopen"].props["Visible"] == "IbCanReopen"
+    for n, icon in (("btnIbEdit", '"Edit"'), ("btnIbDelete", '"Delete"')):
+        assert ctrls[n].props["Icon"] == icon
+    assert '"Archive"' in ctrls["btnIbArchive"].props["Icon"]
+    for n in ("btnIbEdit", "btnIbArchive", "btnIbDelete"):
+        b = ctrls[n]
+        assert b.props["Layout"] == "ButtonLayout.IconOnly"
+        assert b.props["Tooltip"] and b.props["AccessibleLabel"]
+        assert b.props["BorderColor"] == P.C_TRANSPARENT
+    assert ctrls["btnIbDelete"].props["Color"] == P.C_INVALID_FG
+    assert ctrls["btnIbDelete"].props["OnSelect"].endswith("Set(varIbDelOn, true)")
+    assert "varIbActsOn" not in open(os.path.join(ROOT, "BIO SAP App", "ScreenIssueBoard.pa.yaml"),
+                                     encoding="utf-8").read()
     # Edit kun, naar hele raekken er hentet.
     assert "varIbSelFullFor = varIbSelId" in ctrls["btnIbEdit"].props["DisplayMode"]
     # Issue #212: rapportoeren som kort bruger-id (UFFES) - aldrig mailen.
@@ -496,36 +515,72 @@ def test_activity_shows_role_badges():
     assert ctrls["inpIbComment"].props["TriggerOutput"] == "TriggerOutput.Keypress"
 
 
-def test_tile_fits_its_people_line():
-    """Issue #177: flisen klipper ikke 'hvem' - linjen maa ombrydes, og den
-    staar inden for flisen."""
+def _list_gallery():
     import ib_parts as P
-    tile = {c.name: c for c in _walk_ctrls([P.build_list()])}
-    people = tile["txtIbTilePeople"]
-    assert people.props["Wrap"] == "true"
-    bottom = int(people.props["Y"]) + int(people.props["Height"])
-    assert bottom <= P.TILE_H - P.TILE_M
-    assert tile["galIbList"].props["TemplateSize"] == str(P.TILE_H)
+    return {c.name: c for c in _walk_ctrls([P.build_list()])}
 
 
-def test_tile_has_an_attach_button_after_creation():
-    """Issue #193: vedhaeftninger er en knap paa flisen - kun for
-    rapportoeren og admins, oven paa flisens klikflade, og den aabner sagen
+def test_overview_is_a_list_not_tiles():
+    """Issue #229: en liste som Masterdata Hub - een raekke pr. sag, ingen
+    fliser i et gitter. Hele raekken aabner sagen i View mode."""
+    import ib_parts as P
+    ctrls = _list_gallery()
+    gal = ctrls["galIbList"]
+    assert gal.props["WrapCount"] == "1"
+    assert not [n for n in ctrls if "Tile" in n]
+    hit = ctrls["btnIbRowOpen"]
+    assert hit.control == "Classic/Button" and hit.props["OnSelect"] == P.OPEN_ROW
+    assert 'Set(varIbTab, "details")' in P.OPEN_ROW and "Set(varIbDetailOn, true)" in P.OPEN_ROW
+    from gen_screen import C_ROW_HOVER, C_ROW_PRESSED
+    assert hit.props["HoverFill"] == C_ROW_HOVER and hit.props["PressedFill"] == C_ROW_PRESSED
+    # Tabellen fra Desktop, et kompakt kort paa tre linjer under.
+    assert ctrls["conIbRow"].props["Visible"] == P.TABLE_ON
+    assert ctrls["conIbRowC"].props["Visible"] == P.below("Desktop")
+
+
+def test_list_columns_are_balanced_and_aligned_with_the_header():
+    import ib_parts as P
+    ctrls = _list_gallery()
+    head, row = ctrls["conIbListHead"], ctrls["conIbRow"]
+    assert len(head.children) == len(row.children) == len(P.LIST_COLS)
+    for h, r in zip(head.children, row.children):
+        assert h.props["Width"] == r.props["Width"]
+        assert h.props.get("Visible") == r.props.get("Visible") or r.name == "btnIbRowAttach"
+    heads = [c[1] for c in P.LIST_COLS]
+    for want in ("TICKET ID", "TITLE", "APPLICATION", "SECTION", "REQUESTER", "PRIORITY", "STATUS",
+                 "ASSIGNED TO", "REPORTED", "UPDATED"):
+        assert want in heads
+    # Titlen faar ikke hele den frie bredde.
+    grow = {k: g for k, _h, _b, g, _w in P.LIST_COLS}
+    assert 0 < grow["TITLE"] < sum(grow.values())
+    # Kolonnerne kan staa paa den smalleste Desktop-skaerm.
+    assert P._fixed(False) <= 806
+    # Titlen paa een linje (ellipse); rapportoeren som kort bruger-id.
+    assert ctrls["txtIbRowTitle"].props["Wrap"] == "false"
+    req = ctrls["txtIbRowReq"].props["Text"]
+    assert 'Upper(First(Split(ThisItem.Reporter, "@")).Value)' in req
+    assert "ReporterName" not in req and "ThisItem.Reporter &" not in req
+    # Ingen celle i tabellen skjules pr. raekke - saa flytter kolonnerne sig.
+    for c in row.children:
+        assert c.props.get("Visible") in (None, P.WIDE) or c.name == "btnIbRowAttach"
+
+
+def test_row_has_an_attach_button_after_creation():
+    """Issue #193: vedhaeftninger er en knap i raekken - kun for
+    rapportoeren og admins, oven paa raekkens klikflade, og den aabner sagen
     paa fanen Attachments (klassisk Attachments-kontrol + flowet)."""
     import ib_parts as P
     from permissions import IS_ADMIN
-    gal = {c.name: c for c in _walk_ctrls([P.build_list()])}["galIbList"]
-    names = [c.name for c in gal.children]
-    assert names[-1] == "btnIbTileAttach" and names.index("btnIbTileOpen") < names.index("btnIbTileAttach")
-    att = gal.children[-1]
-    assert att.props["Visible"] == f"!ThisItem.Archived && (ThisItem.Reporter = varIbMe || {IS_ADMIN})"
-    assert 'Set(varIbTab, "files")' in att.props["OnSelect"]
-    assert P.LOAD_FILES in att.props["OnSelect"]
-    assert att.props["Layout"] == "ButtonLayout.IconOnly" and att.props["AccessibleLabel"]
-    # Inden for flisen og ikke oven paa nummeret.
-    no = {c.name: c for c in gal.children}["txtIbTileNo"]
-    assert f"{P.TILE_ATT_W}" in no.props["Width"]
+    ctrls = _list_gallery()
+    for name in ("btnIbRowAttach", "btnIbRowAttachC"):
+        att = ctrls[name]
+        assert f"!ThisItem.Archived && (ThisItem.Reporter = varIbMe || {IS_ADMIN})" in att.props["Visible"]
+        assert 'Set(varIbTab, "files")' in att.props["OnSelect"]
+        assert P.LOAD_FILES in att.props["OnSelect"]
+        assert att.props["Layout"] == "ButtonLayout.IconOnly" and att.props["AccessibleLabel"]
     text = open(os.path.join(ROOT, "BIO SAP App", "ScreenIssueBoard.pa.yaml"), encoding="utf-8").read()
+    # Knapperne ligger efter klikfladen - oeverst.
+    assert text.index("- btnIbRowOpen:") < text.index("- btnIbRowAttachC:") < text.index("- btnIbRowAttach:")
     assert "Control: Attachments@2.3.0" in text and "ModernAttachments" not in text
     assert f'"{cfg.ACT_ATTACH}"' in P.UPLOAD_FILES
 
@@ -577,7 +632,10 @@ def test_github_script_never_sends_who_reported_it():
 # ---------------------------------------------------------------------------
 # Issue #212: vaerktoejslinje, fliser og opdatering uden Refresh
 # ---------------------------------------------------------------------------
-def test_filters_are_a_toolbar_above_the_tiles():
+def test_filters_are_a_toolbar_at_the_top_of_the_list():
+    """Issue #229: vaerktoejslinjen staar oeverst i listekortet - ikke som
+    sit eget barn i kroppen - og galleriet er aldrig hoejere end pladsen
+    under bjaelken, vaerktoejslinjen og kortets egne linjer."""
     import ib_parts as P
     bar = P.build_filters()
     assert bar.name == "conIbToolbar"
@@ -587,22 +645,17 @@ def test_filters_are_a_toolbar_above_the_tiles():
               "drpIbFltSection", "drpIbFltStatus", "drpIbFltPriority"):
         assert n in names
     assert "conIbFilterCard" not in names
-
-
-def test_tile_shows_requester_summary_and_ellipsis():
-    import ib_parts as P
-    gal = {c.name: c for c in _walk_ctrls([P.build_list()])}["galIbList"]
-    tile = {c.name: c for c in gal.children}
-    people = tile["txtIbTilePeople"].props["Text"]
-    assert 'Upper(First(Split(ThisItem.Reporter, "@")).Value)' in people
-    assert "ReporterName" not in people and "ThisItem.Reporter &" not in people
-    summary = tile["txtIbTileSummary"].props["Text"]
-    assert "ThisItem.Description" in summary and "…" in summary
-    assert "…" in tile["txtIbTileTitle"].props["Text"]
-    # Alt inden for flisen.
-    for c in gal.children:
-        if c.props.get("Y", "").isdigit() and str(c.props.get("Height", "")).isdigit():
-            assert int(c.props["Y"]) + int(c.props["Height"]) <= P.TILE_H
+    card = P.build_list()
+    assert card.children[0].name == "conIbToolbar"
+    text = open(os.path.join(ROOT, "BIO SAP App", "ScreenIssueBoard.pa.yaml"), encoding="utf-8").read()
+    body = text[text.index("- conIbBody:"):text.index("- conIbToolbar:")]
+    assert body.count("- con") == 2          # conIbBody og conIbListCard
+    gal_h = {c.name: c for c in _walk_ctrls([card])}["galIbList"].props["Height"]
+    assert "App.Height" in gal_h and "Min(galIbList.AllItemsCount" in gal_h
+    assert "(App.Height - 280)" not in gal_h
+    # Ingen negative forskydninger eller faste Y i vaerktoejslinjen.
+    for c in _walk_ctrls([bar]):
+        assert "Y" not in c.props
 
 
 def test_comment_is_added_locally_and_kept_on_failure():
@@ -624,3 +677,20 @@ def test_refresh_never_empties_what_is_shown():
     # Ingen timer.
     text = open(os.path.join(ROOT, "BIO SAP App", "ScreenIssueBoard.pa.yaml"), encoding="utf-8").read()
     assert "Control: Timer" not in text
+
+
+def test_changes_update_the_open_issue_and_its_row_without_a_reload():
+    """Issue #229: efter status, tildeling, prioritet, Edit, Archive, Reopen
+    og vedhaeftninger opdateres den ene sag og dens raekke (LookUp paa ID +
+    UpdateIf) og dens Activity - listen hentes ikke igen, og filtrene, den
+    aabne sag og den valgte fane roeres ikke."""
+    import ib_parts as P
+    for fx in (P.REOPEN, P.ARCHIVE, P.UPLOAD_FILES, P.SAVE_EDIT, P.POST):
+        assert P.FETCH_ALL not in fx and "ClearCollect(colIbAll" not in fx
+        assert "Set(varIbState" not in fx and "Set(varIbScope" not in fx
+        # Fanen bliver staaende; popuppen lukkes kun, hvis sagen er slettet.
+        assert "Set(varIbTab" not in fx
+    assert "UpdateIf(colIbAll, Id = varIbSelId, varIbSel)" in P.AFTER_CHANGE
+    assert "If(IbSeeActivity," in P.AFTER_CHANGE and "colIbActFresh" in P.AFTER_CHANGE
+    for fx in (P.REOPEN, P.ARCHIVE, P.UPLOAD_FILES):
+        assert P.AFTER_CHANGE.replace("\n", "\n    ") in fx or P.AFTER_CHANGE in fx
