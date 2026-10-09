@@ -397,7 +397,14 @@ SAVE_W = fit_button_width('"Update draft"') + ICON_W
 # klippes "Submit" (issue #211).
 SUB_W = fit_button_width('"Submit"', min_w=72) + ICON_W
 SUBTITLE = '"Plan header, items, task lists and operations - submitted to SAP master data."'
-NEW_W = fit_button_width('"New request"') + ICON_W
+# New request er en ren tekstknap uden plus-ikon (issue #238): bredden er
+# kun teksten + luft, saa teksten staar midt i knappen. Paa en telefon er
+# der ikke plads til "New request" - der staar "New" (som paa de andre
+# anmodningssider, build_helpers.new_text_on_mobile). Bredden er tekstens
+# egen + 11 px i hver side, saa linjen ogsaa kan staa paa 320 px.
+NEW_W = fit_button_width('"New request"')
+NEW_PHONE_W = text_px("New") + 22
+NEW_TEXT = f'If({below("Tablet")}, "New", "New request")'
 EDIT_W = fit_button_width('"Edit"') + ICON_W
 
 RESET_COLLECTIONS = ("colVhpItems", "colVhpOperations", "colVhpItemObjects", "colVhpObjDraft",
@@ -538,7 +545,7 @@ CONFIRM = []
 # med noter blev linjen bredere end pladsen, og Submit blev klippet i
 # hoejre kant. Nu:
 #
-#   [+ New request] | [Edit / Update draft] [Submit] [notes] [delete]
+#   [New request] | [Edit / Update draft] [Submit] [notes] [delete]
 #
 #   New request   til venstre for en lodret streg - den starter en NY
 #                 anmodning og roerer ikke planen, man staar i.
@@ -556,8 +563,8 @@ CONFIRM = []
 # notes staar nu som ikon-knapper direkte i headeren - samme navne,
 # synlighed, DisplayMode, tooltip og bekraeftelse som i menuen.
 #
-# Er der ikke plads til teksterne, er New request, Edit og Update draft
-# kun deres ikon (COMPACT). Submit beholder altid sin tekst. Hvornaar det
+# Er der ikke plads til teksterne, er Edit og Update draft kun deres ikon
+# (COMPACT). New request har intet ikon (issue #238) og beholder sin tekst. Submit beholder altid sin tekst. Hvornaar det
 # sker, afhaenger kun af skaermbredden - se COMPACT nedenfor.
 ICON_BTN = 40
 SEP_W = 1
@@ -568,11 +575,16 @@ TITLE_MIN = 220
 PLAN_W = max(EDIT_W, SAVE_W)
 # Notes og Delete er to ikon-knapper i enden (issue #230).
 FULL_W = NEW_W + SEP_W + PLAN_W + SUB_W + 2 * ICON_BTN + 5 * BTN_GAP
-COMPACT_W = ICON_BTN + SEP_W + ICON_BTN + SUB_W + 2 * ICON_BTN + 5 * BTN_GAP
+# New request beholder sin tekst, ogsaa naar de andre er ikoner (issue #238).
+COMPACT_W = NEW_W + SEP_W + ICON_BTN + SUB_W + 2 * ICON_BTN + 5 * BTN_GAP
 # En telefon har kun plads til EEN af de to: staar Delete der (Edit mode),
 # viger View notes - noterne kan stadig laeses i View mode, og et
 # returneringsnotat staar i linjen under trinene.
-PHONE_W = ICON_BTN + SEP_W + ICON_BTN + SUB_W + ICON_BTN + 4 * BTN_GAP
+#
+# Paa en telefon er New request teksten "New" (issue #238), og stregen er
+# skjult - ellers er der ikke plads paa 320 px. "New" som tekst skiller sig
+# alligevel ud fra ikon-knapperne.
+PHONE_W = NEW_PHONE_W + ICON_BTN + SUB_W + ICON_BTN + 3 * BTN_GAP
 STEPS_W = len(STEPS) * STEP_W
 # Pladsen til titel + knapper paa linjen (trinene og to gaps er trukket fra).
 LINE_REST = if_below("Desktop", f"({SHELL_W} - 16)", f"({SHELL_W} - {STEPS_W} - 32)")
@@ -629,7 +641,7 @@ def _header_actions(notes_vis, notes_fx):
 def build_top_bar():
     """VH-planens topbjaelke - to raekker, saa intet kan klippes:
 
-        [ikon] VH-plan              [+ New request] | [Update draft][Submit][...]
+        [ikon] VH-plan              [New request] | [Update draft][Submit][...]
                undertekst
                  (1)-----(2)-----(3)-----(4)
                  Plan    Item    Task    Ready
@@ -640,12 +652,13 @@ def build_top_bar():
     staar i sidebaren. Knapperne: se KNAPPERNE I HEADEREN ovenfor."""
     from build_save import save_buttons, NOTES_OPEN_VIEW, NOTES_HAVE, SAVEABLE_COUNT
     btnDraft, btnSubmit, confirm = save_buttons(CAN_SUBMIT)
-    btnNew = button("btnVhpNewRequest", '"New request"',
+    # Kun tekst, intet plus-ikon (issue #238) - paa alle skaermbredder.
+    btnNew = button("btnVhpNewRequest", NEW_TEXT,
                     f"If({HAS_UNSAVED}, Set(varVhpConfirmNew, true), {NEW_PLAN_FX})",
-                    width=NEW_W, height=36, icon="Add",
+                    width=if_below("Tablet", str(NEW_PHONE_W), str(NEW_W)), height=36,
                     accessible='"Start a new blank request"',
                     tooltip='"Start a new blank request"')
-    _compact(btnNew, NEW_W)
+    btnNew.props["LayoutMinWidth"] = btnNew.props["Width"]
     # Den faelles Edit (build_helpers.edit_button). Den skifter KUN til Edit
     # mode (issue #103): sektionerne er altid foldet ud (issue #192), og Plan
     # Header laases op med sin egen Edit - foer laaste denne knap ogsaa den op.
@@ -656,7 +669,7 @@ def build_top_bar():
     confirmNew = confirm_modal(
         "VhpNew", "varVhpConfirmNew", "Start a new request?",
         '"Unsaved work on this request is discarded. Save a draft first to keep it."',
-        "Discard and start new", NEW_PLAN_FX, "btnVhpNewConfirm", icon="Add")
+        "Discard and start new", NEW_PLAN_FX, "btnVhpNewConfirm", icon=None)
     CONFIRM[:] = (confirm + confirmNew + delete_modal("Vhp", "varVhpRequestGuid", _cfg.L_INDEX, "MaintenancePlan")
                   + missing_modal())
     btnNotes, btnDelete = _header_actions(NOTES_HAVE, NOTES_OPEN_VIEW)
@@ -684,7 +697,7 @@ def build_top_bar():
     # Stregen mellem New request og planens handlinger.
     sep = group("conVhpHeadSep", [], direction="Horizontal", height=24, width=str(SEP_W),
                 fill=C_DIVIDER, layout_min_width=SEP_W,
-                visible=f"{EDIT_VIS} || {DRAFT_VIS} || {SUBMIT_VIS} || {more_vis}")
+                visible=f"!({below('Tablet')}) && ({EDIT_VIS} || {DRAFT_VIS} || {SUBMIT_VIS} || {more_vis})")
     sep.props["AlignInContainer"] = "AlignInContainer.Center"
     title_bar = top_bar("Vhp", '"Maintenance Plan"', SUBTITLE, [], icon="vhplan", mode_var="varVhpViewOnly",
                      num_var="varVhpPlanKey")
