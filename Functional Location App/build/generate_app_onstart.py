@@ -170,8 +170,8 @@ COLLECTIONS = [
     ("colFlTrm", {"RowGuid": '""', "AnyTrm": "false", "Ue": "false"}),
     # FL5: de FL'er, der staar paa mere end een raekke (fl_validation.DUPS).
     ("colFlDupFl", {"FL": '""'}),
-    # Fold-ud-sektionen for den valgte raekke (issue #166, #184) - regnet,
-    # naar raekken vaelges, og efter hver validering (fl_parts.DET_ITEMS).
+    # Manufacturer/Warranty-popuppens felter (issue #232) - regnet, naar
+    # popuppen aabnes, og efter hver validering (fl_parts.DET_ITEMS).
     ("colFlDet", DET),
     # Class data-popuppens KOPI af raekkens klassefelter (issue #184) -
     # Apply skriver den tilbage, Cancel kasserer den (fl_parts.OPEN_CLS_FX).
@@ -221,10 +221,11 @@ Set(varFlCanEdit, false);
 Set(varFlNextRowNo, 1);
 // Aktiv klassefane. ALL som i renderClassTabs.
 Set(varFlTab, "ALL");
-// Den valgte raekke (issue #166). Valideringen vaelger den foerste, naar
-// den er tom. varFlFoldOpen: er den foldet ud (issue #184)?
+// Raekken bag Manufacturer/Warranty-popuppen (issue #232). Valideringen
+// vaelger den foerste, naar den er tom. varFlPop: navnet paa den aabne
+// popup - Manufacturer, Warranty - og tom, naar ingen er aaben.
 Set(varFlDetailRow, "");
-Set(varFlFoldOpen, true);
+Set(varFlPop, "");
 // Class data-popuppen (issue #184): aaben, for hvilken raekke, og skal
 // valideringen lukke den efter Apply?
 Set(varFlClsOpen, false);
