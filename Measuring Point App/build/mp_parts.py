@@ -369,8 +369,9 @@ def _save_mpno_fx(row):
 
 
 def details_extra(row):
-    """Linjen nederst i detaljeruden: nummeret fra SAP, som Master Data
-    eller en admin kan udfylde og rette."""
+    """Linjerne nederst i detaljeruden: nummeret fra SAP, som Master Data
+    eller en admin kan udfylde og rette - og, med godkendelsen, taellerens
+    tilstand og PRODOS/SRO-opretterens knap (fase 5)."""
     lbl = text_ctrl("txtDomDetMpNoL", '"Set measuring point no."', size=12,
                     color=C_MUTED, weight="Semibold", height=36,
                     width=dp.DETAIL_LBL_W, wrap="false")
@@ -383,8 +384,11 @@ def details_extra(row):
                  display_mode=MPNO_DM,
                  tooltip='"Save the measuring point number from SAP on this row"')
     btn.props["LayoutMinWidth"] = btn.props["Width"]
-    return [group("conDomDetMpNo", [lbl, inp, btn], direction="Horizontal", gap=12,
-                  height=36, align_items="Center")]
+    out = [group("conDomDetMpNo", [lbl, inp, btn], direction="Horizontal", gap=12,
+                 height=36, align_items="Center")]
+    if APPROVAL_ON:
+        out.append(_counter_line(row))
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -430,7 +434,7 @@ APPR_MSG = "varDomApprMsg"
 CREATORS = "colDomCreators"
 CRE_SCHEMA = {"Plant": '""', "Creator": '""'}
 # Appens tilstand i App.OnStart, naar flaget er taendt.
-APPR_STATE = f'Set({APPR_MSG}, "")'
+APPR_STATE = f'Set({APPR_MSG}, "");\nSet(varDomCtrMay, false)'
 
 # Noeglen i MD_Approver: PRODOS- og vaerkets tre bogstaver (seedet
 # sharepoint/seed/MD_Approver_MeasuringPoint.csv). Samme regel som hubbens
@@ -641,7 +645,149 @@ def build_steps():
                     label='"Progress of this request"')
 
 
+# ---------------------------------------------------------------------------
+# GODKENDELSESFLOWET (issue #210, fase 5)
+#
+# BioSap-MeasuringPoint-Approval startes efter en lykket indsendelse. Det
+# svarer appen MED DET SAMME og arbejder videre bagefter - en godkendelse
+# kan tage dage. Det koeres for HVER indsendelse (flaget taendt): det er
+# flowet, der flytter anmodningen fra Indsendt til KlarTilSAP, ogsaa naar
+# der intet er at godkende (Q12).
+# ---------------------------------------------------------------------------
+APPROVAL_FLOW = "'BioSap-MeasuringPoint-Approval'"
+
+
+def after_submit_fx():
+    """domain_parts.HOOKS["after_submit"] - mens varDomRequestGuid staar."""
+    return (
+        "IfError(\n"
+        f"    {APPROVAL_FLOW}.Run(varDomRequestGuid),\n"
+        '    Notify("The request was submitted, but the approval could not be started: " & '
+        "FirstError.Message, NotificationType.Warning)\n"
+        ")"
+    )
+
+
+# ---------------------------------------------------------------------------
+# PRODOS/SRO-TAELLEREN I DETAILS (issue #210, fase 5, Q7)
+#
+# Vaerkets PRODOS/SRO-opretter (MD_Approver, PRODOS-<vaerk>) faar en mail
+# fra flowet og markerer taelleren oprettet her. Det skriver
+# CounterCreatedOn/By paa raekken og en "Done"-raekke i MD_ApprovalLog
+# (Stage "Counter"), saa hubben kan se trinnet. Er det den SIDSTE taeller,
+# og staar anmodningen i taellertrinnet, gaar den til Master Data
+# (KlarTilSAP). En admin kan ogsaa markere.
+#
+# Om brugeren ER opretteren for raekkens vaerk, slaas op EEN gang, naar
+# Details aabnes eller skifter raekke (HOOKS details_open/details_nav) -
+# ikke i knappens DisplayMode, der evalueres igen og igen.
+# ---------------------------------------------------------------------------
+DET_ROW = "LookUp(colDomRows, RowId = varDomDetailsId)"
+CTR_MAY = "varDomCtrMay"
+CTR_ROW = "varDomCtrRow"
+CTR_IDX = "varDomCtrIdx"
+ME_ID = 'Upper(First(Split(User().Email, "@")).Value)'
+
+
+def _missing(r):
+    return (f'({r}.MeasuringPointType = "Counter" && {r}.ExistsInSap = "No" && '
+            f'{r}.InProdos = "Yes" && {r}.ProdosCounterExists = "No")')
+
+
+def _waiting(r):
+    """Raekken har en taeller, der venter paa at blive oprettet."""
+    return f'({_missing(r)} && IsBlank({r}.CounterCreatedOn) && {r}.Status = "submitted")'
+
+
+CTR_SYNC = (
+    f"Set({CTR_MAY}, With({{ r: {DET_ROW} }}, If(\n"
+    f"    {_waiting('r')},\n"
+    f'    With({{ a: LookUp(MD_Approver, ApproverKey = "{CREATOR_PREFIX}" & '
+    f"{plant_key('r.Plant')}) }},\n"
+    f'        !IsBlank(a) && (Upper(Trim(Coalesce(a.Approver1, ""))) = {ME_ID} || '
+    f'Upper(Trim(Coalesce(a.Approver2, ""))) = {ME_ID})),\n'
+    "    false\n"
+    ")))")
+CTR_DM = (f"With({{ r: {DET_ROW} }}, If({_waiting('r')} && ({perm.IS_ADMIN} || {CTR_MAY}), "
+          "DisplayMode.Edit, DisplayMode.Disabled))")
+
+
+def _mark_counter_fx():
+    r = CTR_ROW
+    left = (f"CountRows(Filter(colDomRows, RequestNo = {r}.RequestNo && "
+            f"{COUNTER_MISSING} && IsBlank(CounterCreatedOn)))")
+    return (
+        f"Set({r}, {DET_ROW});\n"
+        "If(\n"
+        f"    !({perm.IS_ADMIN} || {CTR_MAY}),\n"
+        '    Notify("Only the PRODOS/SRO creator for the plant and admins can mark the counter '
+        'as created.", NotificationType.Warning),\n'
+        f"    !{_waiting(r)},\n"
+        '    Notify("This row has no counter waiting to be created.", NotificationType.Warning),\n'
+        "\n"
+        "    IfError(\n"
+        f"    Patch(\n        {cfg.L_ROWS},\n"
+        f"        LookUp({cfg.L_ROWS}, ID = {r}.RowId),\n"
+        "        { CounterCreatedOn: Now(), CounterCreatedBy: Lower(User().Email) }\n"
+        "    );\n"
+        f"    Set({CTR_IDX}, LookUp({cfg.L_INDEX}, RequestNo = {r}.RequestNo));\n"
+        f"    Patch({alog.LIST}, Defaults({alog.LIST}), {{\n"
+        f"        Title: {r}.RequestNo,\n"
+        f"        RequestGuid: {CTR_IDX}.RequestGuid,\n"
+        '        Stage: "Counter",\n'
+        f'        ItemGuid: {r}.ItemKey & "#counter",\n'
+        f'        ItemText: {r}.{cfg.C_TEXT} & " - " & {r}.{cfg.FL_FIELD} & " - " & {r}.ProdosTag,\n'
+        '        Decision: "Done",\n'
+        f'        Detail: "Counter created in " & Coalesce({r}.CounterCreateIn, "PRODOS"),\n'
+        "        DecidedByEmail: Lower(User().Email),\n"
+        "        DecidedOn: Now()\n"
+        "    });\n"
+        + dp.refresh_rows_fx(4) + ";\n"
+        # Den SIDSTE taeller i taellertrinnet: anmodningen gaar til Master
+        # Data. Staar den stadig i godkendelsen, goer flowet det bagefter.
+        "    If(\n"
+        f'        !IsBlank({CTR_IDX}) && {CTR_IDX}.Status.Value = "UnderBehandling" &&\n'
+        f'        Coalesce({CTR_IDX}.LastActionBy, "") = "{COUNTER_ACTOR}" && {left} = 0,\n'
+        f"        Set({CTR_IDX}, Patch({cfg.L_INDEX}, {CTR_IDX}, {{\n"
+        '            Status: { Value: "KlarTilSAP" },\n'
+        "            StatusStep: 4,\n"
+        "            LastActionOn: Now(),\n"
+        "            LastActionBy: Lower(User().Email)\n"
+        "        }));\n"
+        f"        If(!IsBlank(varDomIdx) && varDomIdx.ID = {CTR_IDX}.ID, Set(varDomIdx, {CTR_IDX}));\n"
+        '        Notify("All counters are created - the request is now with Master Data.", '
+        "NotificationType.Success),\n"
+        '        Notify("The counter is marked as created.", NotificationType.Success)\n'
+        "    ),\n"
+        "\n"
+        '    Notify("Save failed: " & FirstError.Message, NotificationType.Error)\n'
+        "    )\n"
+        ")")
+
+
+def _counter_line(row):
+    """Linjen i Details: taellerens tilstand og knappen."""
+    lbl = text_ctrl("txtDomDetCtrL", '"PRODOS/SRO counter"', size=12, color=C_MUTED,
+                    weight="Semibold", height=36, width=dp.DETAIL_LBL_W, wrap="false")
+    state = (
+        f"With({{ r: {row} }}, If(\n"
+        f'    !{_missing("r")}, "Not required",\n'
+        '    !IsBlank(r.CounterCreatedOn), "Created " & Text(r.CounterCreatedOn, "dd-mm-yyyy") & '
+        '" by " & Coalesce(r.CounterCreatedBy, "-"),\n'
+        '    "To be created in " & Coalesce(r.CounterCreateIn, "PRODOS")\n'
+        "))")
+    val = grow(text_ctrl("txtDomDetCtrV", state, size=13, height=36, wrap="false"))
+    text = '"Mark counter created"'
+    btn = button("btnDomDetCtrDone", text, _mark_counter_fx(), primary=True,
+                 width=fit_button_width(text), height=36, display_mode=CTR_DM,
+                 tooltip='"Mark the PRODOS/SRO counter on this row as created"')
+    btn.props["LayoutMinWidth"] = btn.props["Width"]
+    return group("conDomDetCtr", [lbl, val, btn], direction="Horizontal", gap=12,
+                 height=36, align_items="Center")
+
+
 # Godkendelsen er bag flaget: er det slukket, er skaermen praecis som foer -
-# ingen opslag, ingen vagt paa Submit og ingen stribe.
+# ingen opslag, ingen vagt paa Submit, ingen stribe og intet flow.
 if APPROVAL_ON:
-    dp.configure(submit_guard=submit_guard())
+    dp.configure(submit_guard=submit_guard(), after_submit=after_submit_fx(),
+                 details_open=CTR_SYNC, details_nav=CTR_SYNC)
