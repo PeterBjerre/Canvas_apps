@@ -238,16 +238,19 @@ EXTRA_FORMULAS = (
 )
 
 # --- Submit ------------------------------------------------------------
-# En anmodning uden godkendelse og uden manglende taeller gaar direkte til
-# Master Data (Q12).
-SUBMIT_STATUS = "KlarTilSAP"
-
 # GODKENDELSEN AF NYE COUNTER-RAEKKER ER BAG ET FLAG (fase 4-6)
 #
 # features.measuring_point_approval i tools/canvas_apps.json. Slaaet FRA
 # er skaermen den fra fase 1-3: intet opslag, ingen vagt foer Submit, ingen
-# trinstribe og intet flow-kald.
+# trinstribe og intet flow-kald - og en anmodning gaar direkte til Master
+# Data (KlarTilSAP, Q12).
+#
+# Slaaet TIL indsendes anmodningen som Indsendt, og flowet
+# BioSap-MeasuringPoint-Approval afgoer resten: ingen ny Counter -> straks
+# KlarTilSAP (Q12); ellers systemgodkendelsen, PRODOS/SRO-taelleren og
+# saa KlarTilSAP. Status skifter dermed kun eet sted - i flowet.
 APPROVAL_ON = env.feature_on("measuring_point_approval")
+SUBMIT_STATUS = "Indsendt" if APPROVAL_ON else "KlarTilSAP"
 
 # --- Saved Rows og kopi (fase 3) --------------------------------------
 # EET fast layout (Q13): ingen Compact/All columns og ingen varDomAllCols.
