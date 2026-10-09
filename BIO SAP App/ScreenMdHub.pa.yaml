@@ -7608,7 +7608,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =174 + If(LayoutRank < 2 && ((IfError(varMdNoteShowA, false)) && (IfError(varMdNoteShowS, false))), 466, 227)
+                      =36 + 32 + 12 + (Min(40 + 12 + If(LayoutRank < 2 && ((IfError(varMdNoteShowA, false)) && (IfError(varMdNoteShowS, false))), 466, 227), Max(120, App.Height - 32 - 36 - 32 - 12 - 0))) + 0
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -7640,71 +7640,7 @@ Screens:
                   Width: |-
                       =Min(760, App.Width - 24)
                 Children:
-                  - txtMdNotesTitle:
-                      Control: ModernText
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Submission notes"
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        BorderThickness: |-
-                            =0
-                        Color: |-
-                            =C.'text-primary'
-                        Fill: |-
-                            =RGBA(0, 0, 0, 0)
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
-                        Height: |-
-                            =26
-                        PaddingBottom: |-
-                            =0
-                        PaddingLeft: |-
-                            =0
-                        PaddingRight: |-
-                            =0
-                        PaddingTop: |-
-                            =0
-                        Size: |-
-                            =17
-                        Text: |-
-                            ="Submission notes"
-                        Wrap: |-
-                            =false
-                  - txtMdNotesIntro:
-                      Control: ModernText
-                      Properties:
-                        AccessibleLabel: |-
-                            =Self.Text
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        BorderThickness: |-
-                            =0
-                        Color: |-
-                            =C.'text-muted'
-                        Fill: |-
-                            =RGBA(0, 0, 0, 0)
-                        Font: |-
-                            =Font.'Segoe UI'
-                        Height: |-
-                            =40
-                        PaddingBottom: |-
-                            =0
-                        PaddingLeft: |-
-                            =0
-                        PaddingRight: |-
-                            =0
-                        PaddingTop: |-
-                            =0
-                        Size: |-
-                            =13
-                        Text: |-
-                            ="Notes added when " & varMdNoteReq.RequestNo & " was submitted. They are read-only."
-                        Wrap: |-
-                            =true
-                  - conMdNotesSplit:
+                  - conMdNotesHead:
                       Control: GroupContainer
                       Variant: AutoLayout
                       Properties:
@@ -7715,370 +7651,13 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =If(LayoutRank < 2 && ((IfError(varMdNoteShowA, false)) && (IfError(varMdNoteShowS, false))), 466, 227)
-                        LayoutAlignItems: |-
-                            =LayoutAlignItems.Start
-                        LayoutDirection: |-
-                            =If(LayoutRank < 2, LayoutDirection.Vertical, LayoutDirection.Horizontal)
-                        LayoutGap: |-
-                            =16
-                        LayoutMinWidth: |-
-                            =0
-                        LayoutOverflowX: |-
-                            =LayoutOverflow.Hide
-                        LayoutOverflowY: |-
-                            =LayoutOverflow.Hide
-                        PaddingBottom: |-
-                            =2
-                        PaddingLeft: |-
-                            =2
-                        PaddingRight: |-
-                            =2
-                        PaddingTop: |-
-                            =2
-                        Width: |-
-                            =(Min(760, App.Width - 24) - 36)
-                      Children:
-                        - conMdNoteA:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderColor: |-
-                                  =C.'border-default'
-                              BorderThickness: |-
-                                  =1
-                              DropShadow: |-
-                                  =DropShadow.None
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =223
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
-                              LayoutDirection: |-
-                                  =LayoutDirection.Vertical
-                              LayoutGap: |-
-                                  =6
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              PaddingBottom: |-
-                                  =12
-                              PaddingLeft: |-
-                                  =12
-                              PaddingRight: |-
-                                  =12
-                              PaddingTop: |-
-                                  =12
-                              RadiusBottomLeft: |-
-                                  =8
-                              RadiusBottomRight: |-
-                                  =8
-                              RadiusTopLeft: |-
-                                  =8
-                              RadiusTopRight: |-
-                                  =8
-                              Visible: |-
-                                  =IfError(varMdNoteShowA, false)
-                              Width: |-
-                                  =If(LayoutRank < 2 || !((IfError(varMdNoteShowA, false)) && (IfError(varMdNoteShowS, false))), ((Min(760, App.Width - 24) - 36) - 4), (((Min(760, App.Width - 24) - 36) - 4) - 16) / 2)
-                            Children:
-                              - txtMdNoteATitle:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Note to approver"
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =21
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =14
-                                    Text: |-
-                                        ="Note to approver"
-                                    Wrap: |-
-                                        =false
-                              - txtMdNoteAHint:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =Self.Text
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-muted'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =34
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =12
-                                    Text: |-
-                                        =If(false, "Shared with the approvers of this plan. You and administrators can also see it.", "Visible to the requester, administrators and the approvers of this plan.")
-                                    Wrap: |-
-                                        =true
-                              - inpMdNoteA:
-                                  Control: ModernTextInput
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Note to approver"
-                                    Appearance: |-
-                                        =If((If(false, DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderStyle: |-
-                                        =BorderStyle.Solid
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =If((If(false, DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                    Default: |-
-                                        =varMdNoteA
-                                    DisplayMode: |-
-                                        =If((If(false, DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                                    Fill: |-
-                                        =If(If(false, DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =132
-                                    LayoutMinWidth: |-
-                                        =0
-                                    MaxLength: |-
-                                        =4000
-                                    Placeholder: |-
-                                        =If(false, "Optional - for example context for the approval", "No note was added.")
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =If(LayoutRank < 2, 16, 14)
-                                    Type: |-
-                                        =TextInputType.Multiline
-                                    ValidationState: |-
-                                        =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
-                                    Width: |-
-                                        =Parent.Width
-                        - conMdNoteS:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderColor: |-
-                                  =C.'border-default'
-                              BorderThickness: |-
-                                  =1
-                              DropShadow: |-
-                                  =DropShadow.None
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =223
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
-                              LayoutDirection: |-
-                                  =LayoutDirection.Vertical
-                              LayoutGap: |-
-                                  =6
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              PaddingBottom: |-
-                                  =12
-                              PaddingLeft: |-
-                                  =12
-                              PaddingRight: |-
-                                  =12
-                              PaddingTop: |-
-                                  =12
-                              RadiusBottomLeft: |-
-                                  =8
-                              RadiusBottomRight: |-
-                                  =8
-                              RadiusTopLeft: |-
-                                  =8
-                              RadiusTopRight: |-
-                                  =8
-                              Visible: |-
-                                  =IfError(varMdNoteShowS, false)
-                              Width: |-
-                                  =If(LayoutRank < 2 || !((IfError(varMdNoteShowA, false)) && (IfError(varMdNoteShowS, false))), ((Min(760, App.Width - 24) - 36) - 4), (((Min(760, App.Width - 24) - 36) - 4) - 16) / 2)
-                            Children:
-                              - txtMdNoteSTitle:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Note to self"
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =21
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =14
-                                    Text: |-
-                                        ="Note to self"
-                                    Wrap: |-
-                                        =false
-                              - txtMdNoteSHint:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =Self.Text
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-muted'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =34
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =12
-                                    Text: |-
-                                        =If(false, "Private. Only you and administrators can see it - it is never shared with approvers.", "Private to the requester and administrators. Never shared with approvers.")
-                                    Wrap: |-
-                                        =true
-                              - inpMdNoteS:
-                                  Control: ModernTextInput
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Note to self"
-                                    Appearance: |-
-                                        =If((If(false, DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderStyle: |-
-                                        =BorderStyle.Solid
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =If((If(false, DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                    Default: |-
-                                        =varMdNoteS
-                                    DisplayMode: |-
-                                        =If((If(false, DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                                    Fill: |-
-                                        =If(If(false, DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =132
-                                    LayoutMinWidth: |-
-                                        =0
-                                    MaxLength: |-
-                                        =4000
-                                    Placeholder: |-
-                                        =If(false, "Optional - a private reminder", "No note was added.")
-                                    RadiusBottomLeft: |-
-                                        =10
-                                    RadiusBottomRight: |-
-                                        =10
-                                    RadiusTopLeft: |-
-                                        =10
-                                    RadiusTopRight: |-
-                                        =10
-                                    Size: |-
-                                        =If(LayoutRank < 2, 16, 14)
-                                    Type: |-
-                                        =TextInputType.Multiline
-                                    ValidationState: |-
-                                        =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
-                                    Width: |-
-                                        =Parent.Width
-                  - conMdNotesFooter:
-                      Control: GroupContainer
-                      Variant: AutoLayout
-                      Properties:
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        DropShadow: |-
-                            =DropShadow.None
-                        FillPortions: |-
-                            =0
-                        Height: |-
-                            =36
+                            =32
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Center
                         LayoutDirection: |-
                             =LayoutDirection.Horizontal
                         LayoutGap: |-
-                            =8
-                        LayoutJustifyContent: |-
-                            =LayoutJustifyContent.End
+                            =12
                         LayoutMinWidth: |-
                             =0
                         LayoutOverflowX: |-
@@ -8088,6 +7667,45 @@ Screens:
                         Width: |-
                             =Parent.Width
                       Children:
+                        - txtMdNotesTitle:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Submission notes"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-primary'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              FillPortions: |-
+                                  =0
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =26
+                              LayoutMinWidth: |-
+                                  =0
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =17
+                              Text: |-
+                                  ="Submission notes"
+                              Width: |-
+                                  =Max(0, (((Min(760, App.Width - 24)) - 18 - 18)) - ((90) + 12) - 2)
+                              Wrap: |-
+                                  =false
                         - btnMdNotesClose:
                             Control: ModernButton
                             Properties:
@@ -8110,7 +7728,7 @@ Screens:
                               FontWeight: |-
                                   =FontWeight.Semibold
                               Height: |-
-                                  =36
+                                  =32
                               Layout: |-
                                   =ButtonLayout.TextOnly
                               OnSelect: |-
@@ -8130,7 +7748,420 @@ Screens:
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
-                                  =77
+                                  =90
+                  - conMdNotesBody:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =Min(40 + 12 + If(LayoutRank < 2 && ((IfError(varMdNoteShowA, false)) && (IfError(varMdNoteShowS, false))), 466, 227), Max(120, App.Height - 32 - 36 - 32 - 12 - 0))
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Stretch
+                        LayoutDirection: |-
+                            =LayoutDirection.Vertical
+                        LayoutGap: |-
+                            =12
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Scroll
+                        Width: |-
+                            =Parent.Width
+                      Children:
+                        - txtMdNotesIntro:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  =Self.Text
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-muted'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =40
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  ="Notes added when " & varMdNoteReq.RequestNo & " was submitted. They are read-only."
+                              Wrap: |-
+                                  =true
+                        - conMdNotesSplit:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =If(LayoutRank < 2 && ((IfError(varMdNoteShowA, false)) && (IfError(varMdNoteShowS, false))), 466, 227)
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Start
+                              LayoutDirection: |-
+                                  =If(LayoutRank < 2, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                              LayoutGap: |-
+                                  =16
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              PaddingBottom: |-
+                                  =2
+                              PaddingLeft: |-
+                                  =2
+                              PaddingRight: |-
+                                  =2
+                              PaddingTop: |-
+                                  =2
+                              Width: |-
+                                  =(Min(760, App.Width - 24) - 36)
+                            Children:
+                              - conMdNoteA:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =223
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =6
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    PaddingBottom: |-
+                                        =12
+                                    PaddingLeft: |-
+                                        =12
+                                    PaddingRight: |-
+                                        =12
+                                    PaddingTop: |-
+                                        =12
+                                    RadiusBottomLeft: |-
+                                        =8
+                                    RadiusBottomRight: |-
+                                        =8
+                                    RadiusTopLeft: |-
+                                        =8
+                                    RadiusTopRight: |-
+                                        =8
+                                    Visible: |-
+                                        =IfError(varMdNoteShowA, false)
+                                    Width: |-
+                                        =If(LayoutRank < 2 || !((IfError(varMdNoteShowA, false)) && (IfError(varMdNoteShowS, false))), ((Min(760, App.Width - 24) - 36) - 4), (((Min(760, App.Width - 24) - 36) - 4) - 16) / 2)
+                                  Children:
+                                    - txtMdNoteATitle:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Note to approver"
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =21
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =14
+                                          Text: |-
+                                              ="Note to approver"
+                                          Wrap: |-
+                                              =false
+                                    - txtMdNoteAHint:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =Self.Text
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-muted'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =34
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =12
+                                          Text: |-
+                                              =If(false, "Shared with the approvers of this plan. You and administrators can also see it.", "Visible to the requester, administrators and the approvers of this plan.")
+                                          Wrap: |-
+                                              =true
+                                    - inpMdNoteA:
+                                        Control: ModernTextInput
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Note to approver"
+                                          Appearance: |-
+                                              =If((If(false, DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
+                                          BorderColor: |-
+                                              =C.'border-default'
+                                          BorderStyle: |-
+                                              =BorderStyle.Solid
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =If((If(false, DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                          Default: |-
+                                              =varMdNoteA
+                                          DisplayMode: |-
+                                              =If((If(false, DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                          Fill: |-
+                                              =If(If(false, DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =132
+                                          LayoutMinWidth: |-
+                                              =0
+                                          MaxLength: |-
+                                              =4000
+                                          Placeholder: |-
+                                              =If(false, "Optional - for example context for the approval", "No note was added.")
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Size: |-
+                                              =If(LayoutRank < 2, 16, 14)
+                                          Type: |-
+                                              =TextInputType.Multiline
+                                          ValidationState: |-
+                                              =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                          Width: |-
+                                              =Parent.Width
+                              - conMdNoteS:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =223
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =6
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    PaddingBottom: |-
+                                        =12
+                                    PaddingLeft: |-
+                                        =12
+                                    PaddingRight: |-
+                                        =12
+                                    PaddingTop: |-
+                                        =12
+                                    RadiusBottomLeft: |-
+                                        =8
+                                    RadiusBottomRight: |-
+                                        =8
+                                    RadiusTopLeft: |-
+                                        =8
+                                    RadiusTopRight: |-
+                                        =8
+                                    Visible: |-
+                                        =IfError(varMdNoteShowS, false)
+                                    Width: |-
+                                        =If(LayoutRank < 2 || !((IfError(varMdNoteShowA, false)) && (IfError(varMdNoteShowS, false))), ((Min(760, App.Width - 24) - 36) - 4), (((Min(760, App.Width - 24) - 36) - 4) - 16) / 2)
+                                  Children:
+                                    - txtMdNoteSTitle:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Note to self"
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =21
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =14
+                                          Text: |-
+                                              ="Note to self"
+                                          Wrap: |-
+                                              =false
+                                    - txtMdNoteSHint:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =Self.Text
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-muted'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =34
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =12
+                                          Text: |-
+                                              =If(false, "Private. Only you and administrators can see it - it is never shared with approvers.", "Private to the requester and administrators. Never shared with approvers.")
+                                          Wrap: |-
+                                              =true
+                                    - inpMdNoteS:
+                                        Control: ModernTextInput
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Note to self"
+                                          Appearance: |-
+                                              =If((If(false, DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
+                                          BorderColor: |-
+                                              =C.'border-default'
+                                          BorderStyle: |-
+                                              =BorderStyle.Solid
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =If((If(false, DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                          Default: |-
+                                              =varMdNoteS
+                                          DisplayMode: |-
+                                              =If((If(false, DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                          Fill: |-
+                                              =If(If(false, DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =132
+                                          LayoutMinWidth: |-
+                                              =0
+                                          MaxLength: |-
+                                              =4000
+                                          Placeholder: |-
+                                              =If(false, "Optional - a private reminder", "No note was added.")
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Size: |-
+                                              =If(LayoutRank < 2, 16, 14)
+                                          Type: |-
+                                              =TextInputType.Multiline
+                                          ValidationState: |-
+                                              =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                          Width: |-
+                                              =Parent.Width
       - imgMdNavScrim:
           Control: Image
           Properties:

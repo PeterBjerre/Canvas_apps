@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, SHELL_W, C_PRIMARY, C_CARD_BORDER, C_VALID_FG, C_MUTED,
                         C_DIVIDER, C_MODAL_BG, C_PRIMARY_SOFT, stack_height)
 import layout_tokens as lay
-from build_helpers import (group, fit_button_width, text_ctrl, text_px,
+from build_helpers import (group, fit_button_width, popup_head, text_ctrl, text_px,
                            flow_row, page_icon, PAGE_ICON, ICON_W, top_bar, grow,
                            button, confirm_modal, edit_button, delete_modal, tap_backdrop)
 from build_status import MISSING_NAMES, join_lines
@@ -519,15 +519,14 @@ def missing_modal():
         body.h = _lines_h(ref, text_w)
         blocks.append(group(f"conVhpMissing{name[len('txtVhpMissing'):]}", [h, body],
                             direction="Vertical", gap=4, visible=f"!IsBlank({ref})"))
-    fixed = 26 + 38 + 36 + 3 * 12 + 2 * MODAL_PAD
+    # Hovedet (titel + Close, 32) og introen; ingen bund (issue #237).
+    fixed = 32 + 38 + 2 * 12 + 2 * MODAL_PAD
     natural = stack_height(blocks, 12)
     body = group("conVhpMissingBody", blocks, direction="Vertical", gap=12,
                  height=f"Max(0, Min({natural}, App.Height - 40 - {fixed}))", overflow_y="Scroll")
-    close = button("btnVhpMissingClose", '"Close"', MISSING_CLOSE,
-                   width=fit_button_width('"Close"'), height=36)
-    footer = group("conVhpMissingFooter", [close], direction="Horizontal", gap=8,
-                   height=36, justify="End", align_items="Center")
-    modal = group("conVhpMissingModal", [title, intro, body, footer], direction="Vertical", gap=12,
+    # EEN Close, oeverst til hoejre og uden for det, der scroller (#237).
+    head = popup_head("conVhpMissingHead", title, "btnVhpMissingClose", MISSING_CLOSE)
+    modal = group("conVhpMissingModal", [head, intro, body], direction="Vertical", gap=12,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(MODAL_PAD,) * 4, width=MODAL_W, drop_shadow="ExtraBold", visible=vis)
     modal.props["X"] = "(App.Width - Self.Width) / 2"
