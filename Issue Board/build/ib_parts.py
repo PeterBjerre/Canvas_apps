@@ -5,29 +5,31 @@ hentningen.
 
     [ikon] Issue Board                              [Refresh] [+ New issue]
            Report what you find while testing ...
-    [All issues | My issues | Assigned to me]  [Open | Closed | Archived]
-    [Search ..............] [Sort v] [Application v] [Section v] [Status v] [Priority v]
     +------------------------------------------------------------------+
+    | [All issues | My issues | Assigned to me]  [Open | Closed | Arch.] |
+    | [Search .........] [Sort v] [Application v] [Section v] [Status v] [Priority v]
     | 12 open issues                                   [Clear filters] |
-    | +-----------+ +-----------+ +-----------+                        |
-    | | ISS-00142 | | ISS-00141 | | ...       |  fliser i et gitter;   |
-    | | titel     | | titel     | |           |  hele flisen aabner    |
-    | +-----------+ +-----------+ +-----------+  sagen (issue #177)    |
+    | TICKET ID  TITLE        APPLICATION  ...  STATUS   UPDATED       |
+    | ISS-000142 Save does... VH-plan      ...  [New]    09 Oct 2026 [@]|
     +------------------------------------------------------------------+
-    Filtrene er en let vaerktoejslinje direkte over fliserne - intet kort
-    (issue #212). Paa en smallere skaerm staar listerne paa deres egen linje.
+    Issue #229: en liste som Masterdata Hub i stedet for fliser. Filtrene
+    er en kompakt vaerktoejslinje oeverst i listekortet, og galleriet er
+    aldrig hoejere end pladsen under den. Under Desktop er hver raekke et
+    kompakt kort paa tre linjer.
 
     New issue   -> popup: Application/Section, titel, lignende sager,
                    "What happened?", flere detaljer (valgfrit), Submit ->
                    Patch direkte i IB_Tickets (issue #193). Filer laegges
-                   paa bagefter: papirclipsen på flisen.
-    En flise    -> popup i View mode: nummer, titel og Close; status,
-                   Application og Section; fakta; handlingerne (Reopen,
-                   ... -> Edit/Archive/Delete); fanerne Description,
-                   Activity og Attachments - hver kun, naar brugeren maa
-                   (IbCanEdit osv.). Toppen staar fast; kun fanens flade
-                   scroller, og den har samme hoejde for alle tre faner
-                   (issue #212).
+                   paa bagefter: papirclipsen i raekken.
+    En raekke   -> popup i View mode (issue #229): 1) nummer, titel og
+                   Close-ikonet; 2) status, prioritet, Application og
+                   Section; 3) metadata (Requester, Assigned to, Severity,
+                   Reported, Updated); 4) handlingerne som ikoner (Reopen,
+                   Edit, Archive, Delete) - hver kun, naar brugeren maa
+                   (IbCan*); 5) fanerne Description, Activity og
+                   Attachments, centreret; 6) indholdet. Alt til og med
+                   fanerne staar fast; kun indholdet scroller, og det har
+                   samme hoejde for alle tre faner (issue #212).
     Edit        -> samme formular som New issue, udfyldt (Edit mode). En
                    admin faar desuden status, prioritet, tildeling og
                    loesning.
@@ -107,7 +109,6 @@ INIT_STATE = (
     "    Set(varIbDetailOn, false);\n"
     "    Set(varIbDelOn, false);\n"
     "    Set(varIbMore, false);\n"
-    "    Set(varIbActsOn, false);\n"
     "    Set(varIbInternal, false);\n"
     "    Set(varIbFilesFor, -1);\n"
     "    Set(varIbSelFullFor, -1);\n"
@@ -357,7 +358,6 @@ def open_ticket(rec, peek, tab="details"):
         f"Set(varIbSelPeek, {peek});\n"
         f'Set(varIbTab, "{tab}");\n'
         "Set(varIbInternal, false);\n"
-        "Set(varIbActsOn, false);\n"
         "Set(varIbFilesFor, -1);\n"
         "Reset(inpIbComment);\n"
         "Clear(colIbActivity);\n"
@@ -584,10 +584,10 @@ CLEAR_FILTERS = ('Set(varIbApp, "");\nSet(varIbSection, "");\nSet(varIbStatusF, 
                  'Set(varIbPriF, "");\nReset(inpIbSearch);\nReset(drpIbFltApp);\n'
                  "Reset(drpIbFltSection);\nReset(drpIbFltStatus);\nReset(drpIbFltPriority)")
 
-# Vaerktoejslinjen (issue #212): filtrene staar direkte over fliserne - ikke
-# i et kort - og regnes af hele bredden (SHELL_W). Kontakternes bredder paa
-# en bred skaerm; paa en smal deler segmenterne bredden.
-TB_W = f"({SHELL_W})"
+# Vaerktoejslinjen (issue #229): oeverst i listekortet, lige over raekkerne,
+# og regnet af kortets indre bredde. Kontakternes bredder paa en bred
+# skaerm; paa en smal deler segmenterne bredden.
+TB_W = CARD_W
 SCOPE_W = {"btnIbScopeAll": 96, "btnIbScopeMine": 100, "btnIbScopeAssigned": 128}
 STATE_W = {"btnIbStateOpen": 76, "btnIbStateClosed": 84, "btnIbStateArchived": 92}
 SCOPE_ADMIN_W = sum(SCOPE_W.values()) + 2 * 4
@@ -711,34 +711,71 @@ def build_filters():
     line.props["LayoutDirection"] = (f"If({ONE_LINE}, LayoutDirection.Horizontal, "
                                      "LayoutDirection.Vertical)")
 
-    # Ingen kortflade og ingen kant: en let linje over fliserne.
+    # Ingen egen flade: linjen staar oeverst i listekortet (build_list).
     return group("conIbToolbar", [top, line], direction="Vertical", gap=10)
 
 
 # ---------------------------------------------------------------------------
-# Oversigten: fliser i et gitter (issue #177)
+# Oversigten: en liste/tabel som Masterdata Hub (issue #229)
 # ---------------------------------------------------------------------------
+# Fliserne (issue #177, #212) er erstattet af raekker: fra Desktop en tabel
+# med kolonneoverskrifter, der flugter med raekkerne; under Desktop en
+# kompakt raekke paa tre linjer (som hubbens). Hele raekken aabner sagen i
+# View mode (build_helpers.row_hit - hover, tryk og fokus som i hubben).
 NO_W = 96
-TILE_MIN_W = 240
-TILE_H = 252
-TILE_M = 6          # luft om hver flise - 12 px mellem to
-TILE_PAD = 14       # flisens indre polstring
-TILE_CHIP_W = 112
-TILE_PRI_W = 80
-TILE_ATT_W = 32     # papirclipsen (issue #193)
-# Antal kolonner: saa mange fliser paa mindst TILE_MIN_W, der kan staa.
-TILE_COLS = f"Max(1, RoundDown(({CARD_W}) / {TILE_MIN_W}, 0))"
-# Galleriet er saa hoejt som raekkerne - hoejst det, der er plads til paa
-# skaermen (mindst to raekker); resten scroller i galleriet.
-TILE_ROWS = f"RoundUp(galIbList.AllItemsCount / {TILE_COLS}, 0)"
-TILE_MAX_ROWS = f"Max(2, RoundDown((App.Height - 280) / {TILE_H}, 0))"
+TBL_ROW_H = 48       # tabelraekken (Desktop og op)
+CMP_ROW_H = 92       # den kompakte raekke (under Desktop)
+ROW_PAD = 10         # raekkens luft til venstre og hoejre
+COL_GAP = 8
+ACT_BTN = 40         # papirclipsen (issue #193) - kolonnen ACTIONS
 
-OPEN_TILE = open_ticket("ThisItem", "false")
-# Papirclipsen paa flisen (issue #193): sagen aabnes direkte paa fanen
-# Attachments, hvor filerne vises og nye laegges paa.
-OPEN_TILE_FILES = open_ticket("ThisItem", "false", tab="files")
+# (noegle, overskrift, mindstebredde, vaegt, kun Wide). Den frie bredde
+# deles efter vaegtene, saa tabellen fylder hele kortet - uden at titlen
+# faar det hele. Section, Assigned to og Reported vises kun paa en bred
+# skaerm (Wide); paa Desktop staar de i popuppen.
+LIST_COLS = [
+    ("ID", "TICKET ID", 88, 0, False),
+    ("TITLE", "TITLE", 150, 4, False),
+    ("APP", "APPLICATION", 104, 1, False),
+    ("SECTION", "SECTION", 104, 1, True),
+    ("REQ", "REQUESTER", 64, 0, False),
+    ("PRI", "PRIORITY", 72, 0, False),
+    ("STATUS", "STATUS", 116, 0, False),
+    ("ASG", "ASSIGNED TO", 80, 0, True),
+    ("REP", "REPORTED", 80, 0, True),
+    ("UPD", "UPDATED", 80, 0, False),
+    ("ACT", "", ACT_BTN, 0, False),
+]
+WIDE = at_least("Wide")
+TABLE_ON = at_least("Desktop")
+
+
+def _fixed(wide):
+    cols = [c for c in LIST_COLS if wide or not c[4]]
+    return sum(c[2] for c in cols) + COL_GAP * (len(cols) - 1) + 2 * ROW_PAD
+
+
+def _units(wide):
+    return sum(c[3] for c in LIST_COLS if wide or not c[4])
+
+
+# Bredden, raekken har: kortets indre bredde minus kant, galleriets
+# scrollbar og GALLERY_RESERVE - den samme nedre graense som hubben
+# (build_hub.AVAIL). Summen af kolonnerne er aldrig mere end den.
+LIST_AVAIL = f"({SHELL_W} - {2 * lay.CARD_PAD} - 4 - {lay.SCROLLBAR_W} - {lay.GALLERY_RESERVE})"
+LIST_FREE = f"Max(0, {LIST_AVAIL} - If({WIDE}, {_fixed(True)}, {_fixed(False)}))"
+LIST_UNIT = f"({LIST_FREE} / If({WIDE}, {_units(True)}, {_units(False)}))"
+COL_W = {k: (str(base) if grow == 0 else f"({base} + {grow} * {LIST_UNIT})")
+         for k, _h, base, grow, _w in LIST_COLS}
+if _fixed(False) > 1024 - lay.NAV_W - lay.SHELL_INSET - 2 * lay.CARD_PAD - 4 - lay.SCROLLBAR_W - lay.GALLERY_RESERVE:
+    raise SystemExit("ib_parts: tabellens kolonner er bredere end Desktop-skaermen")
+
+OPEN_ROW = open_ticket("ThisItem", "false")
+# Papirclipsen (issue #193): sagen aabnes direkte paa fanen Attachments,
+# hvor filerne vises og nye laegges paa.
+OPEN_ROW_FILES = open_ticket("ThisItem", "false", tab="files")
 # Kun rapportoeren og admins kan laegge filer paa - flowet tjekker det igen.
-TILE_CAN_ATTACH = f"!ThisItem.Archived && (ThisItem.Reporter = varIbMe || {IS_ADMIN})"
+ROW_CAN_ATTACH = f"!ThisItem.Archived && (ThisItem.Reporter = varIbMe || {IS_ADMIN})"
 
 LIST_ITEMS = (
     "With(\n"
@@ -766,8 +803,11 @@ LIST_ITEMS = (
 
 DATE_FMT = '"dd mmm yyyy"'
 DATETIME_FMT = '"dd mmm yyyy hh:mm"'
-TILE_UPDATED = f"DateDiff(ThisItem.CreatedOn, ThisItem.UpdatedOn, TimeUnit.Minutes) >= {UPDATED_AFTER_MIN}"
+# "Updated" kun efter en reel aendring - samme regel som popuppen uden
+# Activity (UPDATED_AFTER_MIN).
+ROW_UPDATED = f"DateDiff(ThisItem.CreatedOn, ThisItem.UpdatedOn, TimeUnit.Minutes) >= {UPDATED_AFTER_MIN}"
 PRIORITY_TONE = {"Urgent": "error", "High": "warn", "Normal": "neutral", "Low": "neutral"}
+PRI_W = 72
 
 
 def _priority_tokens(expr):
@@ -778,6 +818,32 @@ def _priority_tokens(expr):
     return sw("fg"), sw("bg")
 
 
+def _pri_badge(name, expr, width=PRI_W, visible=None):
+    """Prioriteten som maerke - tekst OG farve. I tabellen er cellen altid
+    synlig (en skjult celle ville flytte de naeste kolonner); uden
+    prioritet staar en streg uden flade."""
+    pfg, pbg = _priority_tokens(expr)
+    extra = {"VerticalAlign": "VerticalAlign.Middle", **lay.radius(12)}
+    if visible is None:
+        return text_ctrl(name, f'If(IsBlank({expr}), "-", {expr})', size=lay.SIZE_MICRO,
+                         weight="Semibold", height=CHIP_H, width=width, align="Center",
+                         color=f"If(IsBlank({expr}), {C_MUTED}, {pfg})",
+                         fill=f"If(IsBlank({expr}), {C_TRANSPARENT}, {pbg})",
+                         accessible='"Priority: " & Self.Text', extra=extra)
+    return text_ctrl(name, expr, size=lay.SIZE_MICRO, weight="Semibold", height=CHIP_H,
+                     width=width, align="Center", color=pfg, fill=pbg,
+                     accessible='"Priority: " & Self.Text',
+                     visible=f"({visible}) && !IsBlank({expr})", extra=extra)
+
+
+def _no_badge(name, expr, width=NO_W):
+    """Sagsnummeret som kompakt maerke."""
+    return text_ctrl(name, expr, size=lay.SIZE_SMALL, weight="Semibold", color=C_PRIMARY,
+                     height=CHIP_H, width=width, align="Center", fill=C_MUTED_BG,
+                     accessible='"Ticket " & Self.Text',
+                     extra={"VerticalAlign": "VerticalAlign.Middle", **lay.radius(12)})
+
+
 # Hvem (issue #212): rapportoeren som kort bruger-id - delen foer @ med
 # store bogstaver (uffes@orsted.com -> UFFES), samme metode som MyUserId
 # (tools/permissions.py) og initialerne i Activity. Aldrig hele mailen.
@@ -786,109 +852,129 @@ def requester(r):
 
 
 REPORTER_FX = requester("{r}")
-# Tildelingen kun, naar den siger noget: den tildelte admin - og for en
-# admin "Unassigned" paa en aaben sag.
-TILE_PEOPLE = (
-    f'"Requester " & {requester("ThisItem")} & '
-    'If(!IsBlank(ThisItem.Assigned), "  ·  Assigned " & ThisItem.Assigned, '
-    f'{IS_ADMIN} && !ThisItem.Archived && ThisItem.Status <> "{cfg.STATUS_CLOSED}", "  ·  Unassigned", "")'
-)
 
 
-def _ellipsis(text, width, lines, px):
-    """Teksten afkortet med en ellipse, saa den kan staa paa 'lines' linjer
-    i 'width' (px: et tegns gennemsnitlige bredde). Ombrydningen sker ved
-    ord, saa hver linje regnes et par tegn kortere."""
-    n = f"Max(8, RoundDown(({width}) / {px}, 0) * {lines} - {4 * lines})"
-    return f'With({{ t: {text}, n: {n} }}, If(Len(t) > n, Left(t, n - 1) & "…", t))'
+def _attach_btn(name, visible):
+    b = button(name, '"Attach files"', OPEN_ROW_FILES, width=ACT_BTN, height=32, icon="Attach",
+               visible=visible, accessible='"Add screenshots or files to " & ThisItem.TicketNo',
+               tooltip='"Add screenshots or files"')
+    b.props["Layout"] = "ButtonLayout.IconOnly"
+    b.props["BorderColor"] = C_TRANSPARENT
+    # Oven paa raekkens klikflade - klikket er knappens eget (gen_screen).
+    b.props["_OnTop"] = "true"
+    return b
 
 
-# Resumeet paa flisen: beskrivelsens begyndelse paa een linje - ingen fast tekst.
-TILE_SUMMARY_TEXT = ('Trim(Substitute(Substitute(ThisItem.Description, Char(13), ""), '
-                     'Char(10), " "))')
+def _table_row():
+    """Tabelraekken (Desktop og op) - een celle pr. kolonne i LIST_COLS."""
+    def txt(name, key, expr, **kw):
+        kw.setdefault("size", lay.SIZE_BODY)
+        return text_ctrl(name, expr, height=20, width=COL_W[key], wrap="false", **kw)
+
+    cells = {
+        "ID": _no_badge("txtIbRowNo", "ThisItem.TicketNo", width=COL_W["ID"]),
+        # Kun titlen, paa een linje - en lang titel afkortes med ellipse.
+        "TITLE": txt("txtIbRowTitle", "TITLE", "ThisItem.Title", weight="Semibold",
+                     accessible='"Title: " & ThisItem.Title'),
+        "APP": txt("txtIbRowApp", "APP", "ThisItem.Application",
+                   accessible='"Application: " & Self.Text'),
+        "SECTION": txt("txtIbRowSection", "SECTION", "ThisItem.Section", color=C_MUTED,
+                       accessible='"Section: " & Self.Text'),
+        "REQ": txt("txtIbRowReq", "REQ", requester("ThisItem"),
+                   accessible='"Requester: " & Self.Text'),
+        "PRI": _pri_badge("txtIbRowPriority", "ThisItem.Priority", width=COL_W["PRI"]),
+        "STATUS": _chip("txtIbRowStatus", "ThisItem.Status", "ThisItem.Archived",
+                        width=COL_W["STATUS"]),
+        "ASG": txt("txtIbRowAssigned", "ASG",
+                   'If(IsBlank(ThisItem.Assigned), "Unassigned", ThisItem.Assigned)',
+                   size=lay.SIZE_SMALL,
+                   color=f"If(IsBlank(ThisItem.Assigned), {C_MUTED}, {C_TITLE})",
+                   accessible='"Assigned to: " & Self.Text'),
+        "REP": txt("txtIbRowReported", "REP", f"Text(ThisItem.CreatedOn, {DATE_FMT})",
+                   size=lay.SIZE_SMALL, color=C_MUTED, accessible='"Reported: " & Self.Text'),
+        "UPD": txt("txtIbRowUpdated", "UPD",
+                   f'If({ROW_UPDATED}, Text(ThisItem.UpdatedOn, {DATE_FMT}), "-")',
+                   size=lay.SIZE_SMALL, color=C_MUTED, accessible='"Updated: " & Self.Text'),
+        "ACT": _attach_btn("btnIbRowAttach", f"{TABLE_ON} && {ROW_CAN_ATTACH}"),
+    }
+    kids = []
+    for key, _h, _b, _g, wide_only in LIST_COLS:
+        c = cells[key]
+        if wide_only:
+            c.props["Visible"] = WIDE
+            c.vis = WIDE
+        kids.append(c)
+    return group("conIbRow", kids, direction="Horizontal", gap=COL_GAP,
+                 height="Parent.TemplateHeight - 1", align_items="Center",
+                 width="Parent.TemplateWidth", pad=(0, ROW_PAD, 0, ROW_PAD), visible=TABLE_ON)
+
+
+def _list_head():
+    """Kolonneoverskrifterne - samme bredder som raekken (check_layout 29)."""
+    kids = []
+    for i, (key, head, _b, _g, wide_only) in enumerate(LIST_COLS):
+        h = text_ctrl(f"txtIbListH{i}", f'"{head}"', size=lay.SIZE_MICRO, weight="Semibold",
+                      color=C_MUTED, height=20, wrap="false", width=COL_W[key],
+                      accessible=f'"{head.title() or "Actions"} column"',
+                      visible=WIDE if wide_only else None)
+        kids.append(h)
+    return group("conIbListHead", kids, direction="Horizontal", gap=COL_GAP, height=20,
+                 align_items="Center", pad=(0, ROW_PAD, 0, ROW_PAD), visible=TABLE_ON)
+
+
+def _compact_row():
+    """Under Desktop: nummer, prioritet og status; titlen; hvor og hvem."""
+    no = _no_badge("txtIbRowNoC", "ThisItem.TicketNo")
+    pri = _pri_badge("txtIbRowPriorityC", "ThisItem.Priority", visible=at_least("Tablet"))
+    gap = grow(group("conIbRowGapC", [], direction="Horizontal", height=0))
+    chip = _chip("txtIbRowStatusC", "ThisItem.Status", "ThisItem.Archived")
+    line1 = group("conIbRowLineC1", [no, pri, gap, chip], direction="Horizontal", gap=8,
+                  height=CHIP_H, align_items="Center")
+    title = text_ctrl("txtIbRowTitleC", "ThisItem.Title", size=lay.SIZE_INPUT, weight="Semibold",
+                      height=21, wrap="false", accessible='"Title: " & ThisItem.Title')
+    meta_fx = (f'ThisItem.Application & "  ·  " & ThisItem.Section & "  ·  " & {requester("ThisItem")} & '
+               f'If({below("Tablet")} && !IsBlank(ThisItem.Priority), "  ·  " & ThisItem.Priority, "") & '
+               f'If({ROW_UPDATED}, "  ·  Updated " & Text(ThisItem.UpdatedOn, {DATE_FMT}), '
+               f'"  ·  Reported " & Text(ThisItem.CreatedOn, {DATE_FMT}))')
+    meta = grow(text_ctrl("txtIbRowMetaC", meta_fx, size=lay.SIZE_SMALL, color=C_MUTED,
+                          height=18, wrap="false"))
+    # Plads til papirclipsen til hoejre (den ligger oven paa raekken).
+    room = group("conIbRowAttRoomC", [], direction="Horizontal", height=0, width=ACT_BTN + 4)
+    line3 = group("conIbRowLineC3", [meta, room], direction="Horizontal", gap=8, height=18,
+                  align_items="Center")
+    return group("conIbRowC", [line1, title, line3], direction="Vertical", gap=4,
+                 height="Parent.TemplateHeight - 1", width="Parent.TemplateWidth",
+                 pad=(10, 12, 10, 12), visible=below("Desktop"))
 
 
 def build_list():
-    tw = "Parent.TemplateWidth"
-    th = TILE_H
-    inner = f"{tw} - {2 * (TILE_M + TILE_PAD)}"
-    x0 = str(TILE_M + TILE_PAD)
-    bg = text_ctrl("txtIbTileBg", '""', size=lay.SIZE_MICRO, height=th - 2 * TILE_M,
-                   width=f"{tw} - {2 * TILE_M}", accessible='"Issue tile"',
-                   fill=f"If(ThisItem.Archived, {C_MUTED_BG}, {C_APP_BG})",
-                   extra={"X": str(TILE_M), "Y": str(TILE_M), **lay.radius(lay.RADIUS_CARD),
-                          "BorderColor": C_CARD_BORDER, "BorderStyle": "BorderStyle.Solid",
-                          "BorderThickness": "1"})
-    no = text_ctrl("txtIbTileNo", "ThisItem.TicketNo", size=lay.SIZE_BODY, weight="Semibold",
-                   color=C_PRIMARY, height=20,
-                   width=f"{inner} - {TILE_CHIP_W} - 8 - {TILE_ATT_W} - 6",
-                   extra={"X": x0, "Y": str(TILE_M + TILE_PAD + 2)})
-    chip = _chip("txtIbTileStatus", "ThisItem.Status", "ThisItem.Archived",
-                 x=f"{tw} - {TILE_M + TILE_PAD} - {TILE_CHIP_W}", y=str(TILE_M + TILE_PAD),
-                 width=TILE_CHIP_W)
-    title = text_ctrl("txtIbTileTitle", _ellipsis("ThisItem.Title", "Self.Width", 2, 8.4),
-                      size=lay.SIZE_INPUT, weight="Semibold", height=40, width=inner, wrap="true",
-                      accessible='"Title: " & ThisItem.Title',
-                      extra={"X": x0, "Y": "50", "VerticalAlign": "VerticalAlign.Top"})
-    where = text_ctrl("txtIbTileWhere",
-                      _ellipsis('ThisItem.Application & "  ·  " & ThisItem.Section', "Self.Width", 1, 6.6),
-                      size=lay.SIZE_SMALL, color=C_MUTED, height=18, width=inner,
-                      extra={"X": x0, "Y": "94"})
-    # Resumeet: beskrivelsens begyndelse, hoejst to linjer (issue #212).
-    summary = text_ctrl("txtIbTileSummary", _ellipsis(TILE_SUMMARY_TEXT, "Self.Width", 2, 6.6),
-                        size=lay.SIZE_SMALL, color=C_TITLE, height=34, width=inner, wrap="true",
-                        accessible='"Summary: " & Self.Text',
-                        extra={"X": x0, "Y": "116", "VerticalAlign": "VerticalAlign.Top"})
-    dates = text_ctrl("txtIbTileDates",
-                      f'"Reported " & Text(ThisItem.CreatedOn, {DATE_FMT}) & '
-                      f'If({TILE_UPDATED}, "  ·  Updated " & Text(ThisItem.UpdatedOn, {DATE_FMT}), "")',
-                      size=lay.SIZE_SMALL, color=C_MUTED, height=34, width=inner, wrap="true",
-                      extra={"X": x0, "Y": "154", "VerticalAlign": "VerticalAlign.Top"})
-    # Nederste linje: prioriteten og hvem. "Hvem" maa ombrydes til to
-    # linjer paa en smal flise (en admin ser baade rapportoer og tildeling) -
-    # hellere to linjer end en klippet (issue #177).
-    people_h = 34
-    bottom_y = th - TILE_M - TILE_PAD - people_h
-    pfg, pbg = _priority_tokens("ThisItem.Priority")
-    pri = text_ctrl("txtIbTilePriority", "ThisItem.Priority", size=lay.SIZE_MICRO,
-                    weight="Semibold", height=22, width=TILE_PRI_W, align="Center", color=pfg,
-                    fill=pbg, accessible='"Priority: " & Self.Text',
-                    visible="!IsBlank(ThisItem.Priority)",
-                    extra={"X": x0, "Y": str(bottom_y), "VerticalAlign": "VerticalAlign.Middle",
-                           **lay.radius(11)})
-    people = text_ctrl("txtIbTilePeople", TILE_PEOPLE, size=lay.SIZE_SMALL, color=C_MUTED,
-                       height=people_h, align="Right", width=f"{inner} - {TILE_PRI_W} - 8",
-                       wrap="true",
-                       extra={"X": f"{x0} + {TILE_PRI_W} + 8", "Y": str(bottom_y + 2),
-                              "VerticalAlign": "VerticalAlign.Top"})
-    hit = row_hit("btnIbTileOpen", OPEN_TILE,
+    """Listekortet: vaerktoejslinjen, taelleren, overskrifterne og raekkerne.
+
+    DE BESKAARNE FILTRE (issue #229). Vaerktoejslinjen stod som sit eget
+    barn i kroppen over et kort, hvis galleri var regnet som "App.Height -
+    280" og mindst to flise-raekker (2 x 252 px) - uden at regne med
+    bjaelken, kroppens luft eller vaerktoejslinjens egen hoejde (op til
+    254 px paa en smal skaerm). Kroppens indhold blev dermed hoejere end
+    kroppen, og autolayout giver efter ved at klemme boernene; den
+    lave vaerktoejslinje, der skjuler sit overloeb, blev skaaret ned til
+    sin overkant. Nu staar vaerktoejslinjen i listekortet, og galleriet
+    er aldrig hoejere end pladsen, der er TILBAGE under bjaelken,
+    vaerktoejslinjen og kortets egne linjer - kun galleriet scroller."""
+    toolbar = build_filters()
+    row = _table_row()
+    crow = _compact_row()
+    rule = row_rule("rctIbRowRule", TBL_ROW_H)
+    rule.props["Y"] = "Parent.TemplateHeight - 1"
+    hit = row_hit("btnIbRowOpen", OPEN_ROW,
                   '"Open " & ThisItem.TicketNo & " - " & ThisItem.Title & ", " & '
                   'If(ThisItem.Archived, "Archived", ThisItem.Status)',
-                  f"{tw} - {2 * TILE_M}", th - 2 * TILE_M, radius=lay.RADIUS_CARD,
-                  hover_border=True)
-    hit.props["X"] = str(TILE_M)
-    hit.props["Y"] = str(TILE_M)
-    # Papirclipsen (issue #193): vedhaeftninger efter oprettelsen. Den
-    # ligger OVEN PAA flisens klikflade (sidst i listen), saa klikket er
-    # dens eget: sagen aabnes paa fanen Attachments.
-    att = button("btnIbTileAttach", '"Attach files"', OPEN_TILE_FILES, width=TILE_ATT_W,
-                 height=TILE_ATT_W, icon="Attach", visible=TILE_CAN_ATTACH,
-                 accessible='"Add screenshots or files to " & ThisItem.TicketNo',
-                 tooltip='"Add screenshots or files"')
-    att.props["Layout"] = "ButtonLayout.IconOnly"
-    att.props["X"] = f"{tw} - {TILE_M + TILE_PAD} - {TILE_CHIP_W} - 6 - {TILE_ATT_W}"
-    att.props["Y"] = str(TILE_M + TILE_PAD - 4)
-    gal_h = f"Max(1, Min({TILE_ROWS}, {TILE_MAX_ROWS})) * {TILE_H}"
-    gal = Ctrl("galIbList", "Gallery", variant="Vertical", props={
-        "AccessibleLabel": '"Issues"',
-        "BorderStyle": "BorderStyle.None", "Fill": C_CARD_BG, "FillPortions": "0",
-        "Height": gal_h, "Items": LIST_ITEMS, "LayoutMinWidth": "0",
-        "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
-        "ShowScrollbar": "true", "TabIndex": "0", "TemplatePadding": "0",
-        "TemplateSize": str(TILE_H), "Width": "Parent.Width", "WrapCount": TILE_COLS,
-    }, children=[bg, no, chip, title, where, summary, dates, pri, people, hit, att], h=gal_h,
-        vis="galIbList.AllItemsCount > 0")
+                  "Parent.TemplateWidth", "Parent.TemplateHeight - 1")
+    att_c = _attach_btn("btnIbRowAttachC", f"{below('Desktop')} && {ROW_CAN_ATTACH}")
+    att_c.props["X"] = f"Parent.TemplateWidth - 12 - {ACT_BTN}"
+    att_c.props["Y"] = str(CMP_ROW_H - 1 - 10 - 32 + 7)
+    att_c.props.pop("_OnTop")
 
+    row_h = if_below("Desktop", str(CMP_ROW_H), str(TBL_ROW_H))
     state_word = 'Switch(varIbState, "closed", " closed", "archived", " archived", " open")'
     count = grow(text_ctrl(
         "txtIbCount",
@@ -912,9 +998,11 @@ def build_list():
         f'CountIf(colIbAll, {open_all} && AssignedEmail = varIbMe) & " assigned to you  ·  " & '
         'CountIf(colIbAll, Archived) & " archived"',
         size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true", visible=ADMIN_BOARD)
-    loading = "varIbLoading"
+    head = _list_head()
+    head_rule = group("conIbListRule", [], direction="Horizontal", height=1, fill=C_DIVIDER,
+                      visible=TABLE_ON)
     empty_fx = (
-        f'If({loading}, "Loading issues...", '
+        'If(varIbLoading, "Loading issues...", '
         "IbFailed, \"The issues could not be loaded. Check your connection and try again.\", "
         'varIbScope = "mine" && IsEmpty(IbMine), '
         '"You have not reported any issues yet. Use New issue to report one.", '
@@ -930,7 +1018,25 @@ def build_list():
     retry = button("btnIbRetry", '"Retry"', RETRY, width=fit_button_width('"Retry"'), height=36,
                    visible="IbFailed && !varIbLoading", accessible='"Load the issues again"')
     retry.props["AlignInContainer"] = "AlignInContainer.Start"
-    return card("conIbListCard", [count_row, counts, gal, empty, retry], gap=8)
+
+    # Pladsen, galleriet har: skaermen minus mobilbjaelken, sidens bjaelke,
+    # kroppens luft, kortets polstring og kant og kortets andre linjer.
+    before = [toolbar, count_row, counts, head, head_rule]
+    bar = build_bar()
+    header_h = f"{lay.HEADER_PAD_T} + ({bar.h}) + {lay.HEADER_PAD_B} + 1"
+    room = (f"App.Height - {lay.BAR_OFFSET} - ({header_h}) - {lay.BODY_PAD_T} - {lay.BODY_PAD_B} - "
+            f"{2 * 18} - 2 - ({stack_height(before, 8)}) - 8")
+    # Saa hoej som raekkerne - hoejst pladsen (dog mindst tre raekker).
+    gal_h = f"Min(galIbList.AllItemsCount * ({row_h}), Max(3 * ({row_h}), {room}))"
+    gal = Ctrl("galIbList", "Gallery", variant="Vertical", props={
+        "AccessibleLabel": '"Issues"',
+        "BorderStyle": "BorderStyle.None", "Fill": C_CARD_BG, "FillPortions": "0",
+        "Height": gal_h, "Items": LIST_ITEMS, "LayoutMinWidth": "0",
+        "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
+        "ShowScrollbar": "true", "TabIndex": "0", "TemplatePadding": "0",
+        "TemplateSize": row_h, "Width": "Parent.Width", "WrapCount": "1",
+    }, children=[row, crow, rule, hit, att_c], h=gal_h, vis="galIbList.AllItemsCount > 0")
+    return card("conIbListCard", before + [gal, empty, retry], gap=8)
 
 
 # ---------------------------------------------------------------------------
@@ -985,9 +1091,10 @@ def _popup(prefix, kids, vis, width=POP_W, foot=None, own_scroll=False):
     return backdrop
 
 
-def _head(prefix, title_fx, close_fx, lead=(), title_w=None):
+def _head(prefix, title_fx, close_fx, lead=(), title_w=None, close_icon=False):
     """Titel og Close. title_w: titlens bredde - saa ombrydes en lang titel
-    paa op til tre linjer i stedet for at blive klippet."""
+    paa op til tre linjer i stedet for at blive klippet. close_icon: Close
+    som ikon (Dismiss) oeverst til hoejre - sagens popup (issue #229)."""
     h = 26
     if title_w is not None:
         h = f"Min(3 * 23 + 2, Max(26, {_lines_h(title_fx, title_w, px=9.2, line_h=23)}))"
@@ -996,9 +1103,19 @@ def _head(prefix, title_fx, close_fx, lead=(), title_w=None):
     close = button(f"btn{prefix}Close", '"Close"', close_fx,
                    width=fit_button_width('"Close"'), height=32,
                    accessible='"Close"')
+    if close_icon:
+        close.props["Width"] = "34"
+        close.props["Height"] = "34"
+        close.h = 34
+        close.props["Icon"] = '"Dismiss"'
+        close.props["Layout"] = "ButtonLayout.IconOnly"
+        close.props["Tooltip"] = '"Close"'
+        close.props["BorderColor"] = C_TRANSPARENT
+        close.props["AlignInContainer"] = "AlignInContainer.Start"
     close.props["LayoutMinWidth"] = close.props["Width"]
+    hmin = 34 if close_icon else 32
     return group(f"con{prefix}Head", [*lead, title, close], direction="Horizontal", gap=10,
-                 height=32 if title_w is None else f"Max(32, {h})", align_items="Center")
+                 height=hmin if title_w is None else f"Max({hmin}, {h})", align_items="Center")
 
 
 def _field(name, label, ctrl, required=False, visible=None):
@@ -1074,7 +1191,6 @@ SHOW_NEW = (
     "Set(varIbSelFullFor, varIbSelId);\n"
     'Set(varIbTab, "details");\n'
     "Set(varIbInternal, false);\n"
-    "Set(varIbActsOn, false);\n"
     "Set(varIbFilesFor, -1);\n"
     "Reset(inpIbComment);\n"
     + LOAD_ACTIVITY + ";\n"
@@ -1522,8 +1638,11 @@ ACT_BODY_W = f"({ACT_W} - {2 * ACT_ROW_PAD})"
 DET_MIN_H = 360
 DET_SAFE_MIN_H = 160
 
-# Efter enhver aendring gennem flowet: sagen og dens Activity igen.
-AFTER_CHANGE = RELOAD_SEL + ";\n" + LOAD_ACTIVITY
+# Efter enhver aendring gennem flowet (issue #229 - live): KUN den ene
+# sag (LookUp paa ID, skrevet ind i listen med UpdateIf) og dens Activity
+# - ingen ny hentning af listen. Filtre, sortering, den aabne sag og den
+# valgte fane bliver staaende. Activity kun for rapportoeren og admins.
+AFTER_CHANGE = RELOAD_SEL + ";\nIf(IbSeeActivity,\n" + LOAD_ACTIVITY + "\n)"
 
 
 def _run(action, payload, ok_fx, fail_text, busy="varIbBusy"):
@@ -1572,7 +1691,7 @@ POST = _run(
 REOPEN = _run(
     cfg.ACT_REOPEN, '{ ticketId: varIbSelId, reason: "" }',
     AFTER_CHANGE + ";\n"
-    'Set(varIbState, "open");\n'
+    # Filtrene roeres ikke (issue #229) - raekken er opdateret i listen.
     'Notify("The issue has been reopened. An administrator will look at it again.", '
     "NotificationType.Success)",
     "The issue could not be reopened.")
@@ -1625,87 +1744,77 @@ def _text_block(name, label, expr, visible=None):
     return group(f"con{name}", [lab, body], direction="Vertical", gap=4, visible=visible)
 
 
-TAB_W = 132
+TAB_W = 140
+TAB_H = 32
 
 
 def _tab(name, label_fx, key, accessible, onselect=None):
-    b = button(name, label_fx, onselect or f'Set(varIbTab, "{key}")', width=TAB_W, height=32,
-               accessible=accessible)
-    sel = f'varIbTab = "{key}"'
-    b.props["Appearance"] = "ButtonAppearance.Outline"
-    b.props["BorderColor"] = f"If({sel}, {C_PRIMARY}, {C_CARD_BORDER})"
-    b.props["BorderThickness"] = f"If({sel}, 2, 1)"
-    b.props["Color"] = f"If({sel}, {C_PRIMARY}, {C_TITLE})"
-    b.props["Size"] = str(lay.SIZE_SMALL)
+    """En fane i popuppens navigation - samme kontakt som filtrenes (_seg):
+    valgt = fyldt i primaerfarven, ellers kant (issue #229)."""
+    b = _seg(name, label_fx, f'varIbTab = "{key}"', onselect or f'Set(varIbTab, "{key}")',
+             TAB_W, accessible)
+    b.props["Text"] = label_fx
+    b.props["Height"] = str(TAB_H)
+    b.h = TAB_H
     b.props["LayoutMinWidth"] = "0"
     return b
 
 
-# Overloebsmenuen vises, naar mindst een af dens handlinger er tilladt.
-CAN_MORE = "IbCanEdit || IbCanManage"
+ICON_BTN = 34
+
+
+def _icon_action(name, icon, onselect, visible, label, tooltip, display_mode, danger=False):
+    """En handling paa sagen som ikon (issue #229): kun ikonet, engelsk
+    tooltip og etiket, ingen kant - deaktiveret er den graa, ikke indrammet."""
+    b = button(name, label, onselect, width=ICON_BTN, height=ICON_BTN, icon=icon,
+               visible=visible, accessible=label, tooltip=tooltip, display_mode=display_mode,
+               danger=danger)
+    b.props["Layout"] = "ButtonLayout.IconOnly"
+    b.props["BorderColor"] = C_TRANSPARENT
+    b.props["LayoutMinWidth"] = str(ICON_BTN)
+    return b
+
+
+# Handlingsraekken vises, naar mindst een af handlingerne er tilladt.
+CAN_ACT = "IbCanReopen || IbCanEdit || IbCanManage"
 
 
 def _actions():
     """Handlingerne paa den aabne sag - hver kun, naar brugeren maa (de
-    navngivne formler IbCan*). Paa en bred skaerm staar de til hoejre.
-    Issue #212: Edit, Archive og Delete ligger i overloebsmenuen bag en
-    knap med tre prikker (kun ikonet; "More actions" er tooltip og
-    etiket) - i den raekkefoelge, Delete sidst og i fare-farven; selve
-    sletningen har sin egen bekraeftelse. Reopen staar fremme."""
+    navngivne formler IbCan*). Issue #229: ingen overloebsmenu (More
+    actions) laengere. Edit (blyant), Archive (arkivkassen; Restore er en
+    pil tilbage) og Delete (skraldespanden) staar direkte som ikoner i een
+    kompakt raekke lige under fakta - Delete sidst, i fare-farven og med
+    sin egen bekraeftelse. Reopen er en arbejdsgang for rapportoeren og
+    staar som tekstknap forrest."""
     reopen = button("btnIbReopen", '"Reopen"', REOPEN, width=fit_button_width('"Reopen"'),
-                    height=34, visible="IbCanReopen",
+                    height=ICON_BTN, visible="IbCanReopen",
                     accessible='"Reopen this issue - the problem is still there"',
                     display_mode="If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)")
-    more = button("btnIbMoreActs", '"More actions"', "Set(varIbActsOn, !varIbActsOn)",
-                  width=34, height=34, icon="MoreHorizontal", visible=CAN_MORE,
-                  accessible='"More actions"', tooltip='"More actions"')
-    more.props["Layout"] = "ButtonLayout.IconOnly"
-    more.props["BorderColor"] = f"If(varIbActsOn, {C_PRIMARY}, {C_CARD_BORDER})"
-    for b in (reopen, more):
-        b.props["LayoutMinWidth"] = b.props["Width"]
-    row = group("conIbDetActions", [reopen, more], direction="Horizontal", gap=8,
-                height=34, align_items="Center", justify="End",
-                visible=f"IbCanReopen || {CAN_MORE}")
-    row.props["LayoutJustifyContent"] = (f"If({NARROW}, LayoutJustifyContent.Start, "
-                                         "LayoutJustifyContent.End)")
-
-    # Menuen: en lille flade lige under knappen.
+    reopen.props["LayoutMinWidth"] = reopen.props["Width"]
+    reopen.props["Size"] = str(lay.SIZE_SMALL)
     # Edit foerst, naar sagens hele raekke er hentet - ellers kunne de
     # felter, oversigten ikke henter, blive gemt tomme.
     ready = "varIbSelFullFor = varIbSelId"
-    edit = button("btnIbEdit", '"Edit"', "Set(varIbActsOn, false);\n" + OPEN_EDIT,
-                  width=fit_button_width('"Edit"') + ICON_W, height=34, icon="Edit",
-                  visible="IbCanEdit", accessible='"Edit this issue"',
-                  display_mode=f"If({ready} && !varIbBusy, DisplayMode.Edit, DisplayMode.Disabled)")
-    archive = button("btnIbArchive", f'If({SEL}.Archived, "Restore", "Archive")',
-                     ARCHIVE + ";\nSet(varIbActsOn, false)",
-                     width=fit_button_width('"Restore"') + ICON_W, height=34,
-                     icon=f'If({SEL}.Archived, "ArrowUndo", "Archive")', visible="IbCanManage",
-                     accessible=f'If({SEL}.Archived, "Restore this issue from the archive", '
-                                '"Archive this issue - it is kept with its history, but leaves '
-                                'the active lists")',
-                     display_mode="If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)")
-    delete = button("btnIbDelete", '"Delete"',
-                    "Reset(inpIbDelConfirm);\nSet(varIbActsOn, false);\nSet(varIbDelOn, true)",
-                    width=fit_button_width('"Delete"') + ICON_W, height=34, icon="Delete",
-                    danger=True, visible="IbCanManage", accessible='"Delete this issue permanently"',
-                    display_mode="If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)")
-    for b in (edit, archive, delete):
-        b.props["LayoutMinWidth"] = b.props["Width"]
-    btns = group("conIbActsBtns", [edit, archive, delete], direction="Horizontal", gap=8,
-                 height=34, align_items="Center", justify="End")
-    btns.props["LayoutJustifyContent"] = (f"If({NARROW}, LayoutJustifyContent.Start, "
-                                          "LayoutJustifyContent.End)")
-    hint = text_ctrl("txtIbActsHint",
-                     f'If({SEL}.Archived, "Restore brings the issue back to the active lists.", '
-                     '"Archive keeps the issue, its comments, activity and files, and anyone can '
-                     'still find it under Archived.") & " Delete removes it permanently for '
-                     'everyone and asks you to confirm first."',
-                     size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true",
-                     visible="IbCanManage")
-    menu = group("conIbActsMenu", [btns, hint], direction="Vertical", gap=8, fill=C_MUTED_BG,
-                 radius=10, pad=(10, 10, 10, 10), visible=f"({CAN_MORE}) && varIbActsOn")
-    return row, menu
+    edit = _icon_action("btnIbEdit", "Edit", OPEN_EDIT, "IbCanEdit", '"Edit issue"',
+                        f'If({ready}, "Edit issue", "Edit issue - loading the issue...")',
+                        f"If({ready} && !varIbBusy, DisplayMode.Edit, DisplayMode.Disabled)")
+    archive = _icon_action(
+        "btnIbArchive", f'If({SEL}.Archived, "ArrowUndo", "Archive")', ARCHIVE, "IbCanManage",
+        f'If({SEL}.Archived, "Restore issue", "Archive issue")',
+        f'If({SEL}.Archived, "Restore issue - bring it back to the active lists", '
+        '"Archive issue - keeps the issue, its comments, activity and files under Archived")',
+        "If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)")
+    delete = _icon_action("btnIbDelete", "Delete", "Reset(inpIbDelConfirm);\nSet(varIbDelOn, true)",
+                          "IbCanManage", '"Delete issue"',
+                          '"Delete issue permanently - you confirm first"',
+                          "If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)", danger=True)
+    delete.props["BorderColor"] = C_TRANSPARENT
+    row = group("conIbDetActions", [reopen, edit, archive, delete], direction="Horizontal",
+                gap=4, height=ICON_BTN, align_items="Center", justify="End", visible=CAN_ACT)
+    row.props["LayoutJustifyContent"] = (f"If({NARROW}, LayoutJustifyContent.Start, "
+                                         "LayoutJustifyContent.End)")
+    return row
 
 
 def _files_panel():
@@ -1779,50 +1888,46 @@ def _files_panel():
                  visible='varIbTab = "files"')
 
 
-FACT_H = 40
+FACT_H = 38
 FACT_GAP = 12
-# Seks fakta paa een linje, naar popuppen er bred nok; ellers to og to.
+# Fem fakta paa een linje, naar popuppen er bred nok; ellers tre og to.
 FACTS_OK = f"({DET_IN}) >= 600"
-FACT_W = f"If({FACTS_OK}, (({DET_IN}) - 5 * {FACT_GAP}) / 6, (({DET_IN}) - {FACT_GAP}) / 2)"
+FACT_W = f"If({FACTS_OK}, (({DET_IN}) - 4 * {FACT_GAP}) / 5, (({DET_IN}) - 2 * {FACT_GAP}) / 3)"
 
 
 def _fact(name, label, value_fx, visible=None):
-    """Et faktum: en lille etiket over vaerdien."""
+    """Et faktum: en lille etiket over vaerdien - kompakt, ingen lang streng."""
     lab = text_ctrl(f"txt{name}Label", f'"{label}"', size=lay.SIZE_MICRO, weight="Semibold",
                     color=C_MUTED, height=16)
     val = text_ctrl(f"txt{name}", value_fx, size=lay.SIZE_BODY, height=20,
                     accessible=f'"{label}: " & Self.Text')
-    g = group(f"con{name}", [lab, val], direction="Vertical", gap=2, height=FACT_H, width=FACT_W,
+    g = group(f"con{name}", [lab, val], direction="Vertical", gap=0, height=FACT_H, width=FACT_W,
               visible=visible)
     g.props["LayoutMinWidth"] = "0"
     return g
 
 
 def _facts():
-    """Fakta om sagen som et lille gitter - ikke en lang tekststreng.
-    Hvem: rapportoeren som kort bruger-id (UFFES) - ingen anonymisering
-    (issue #193, #212)."""
+    """Metadata om sagen som etiket/vaerdi (issue #229): Requester,
+    Assigned to, Severity, Reported og Updated. Rapportoeren som kort
+    bruger-id (UFFES) - ingen anonymisering (issue #193, #212). Updated
+    kun efter en reel aendring, og sidst, saa der ikke opstaar et hul."""
     def blank_as(expr, text):
         return f'If(IsBlank({expr}), "{text}", {expr})'
-    sev = _fact("IbFactSeverity", "Severity", blank_as(f"{SEL}.Severity", "Not set"))
-    pri = _fact("IbFactPriority", "Priority", blank_as(f"{SEL}.Priority", "Not set"))
-    asg = _fact("IbFactAssigned", "Assigned to",
-                blank_as(SEL + ".Assigned", "Not assigned"))
-    # Requester som kort bruger-id - det samme som paa flisen (issue #212).
     rep = _fact("IbFactReporter", "Requester", REPORTER_FX.format(r=SEL))
+    asg = _fact("IbFactAssigned", "Assigned to", blank_as(SEL + ".Assigned", "Unassigned"))
+    sev = _fact("IbFactSeverity", "Severity", blank_as(f"{SEL}.Severity", "Not set"))
     reported = _fact("IbFactReported", "Reported", f"Text({SEL}.CreatedOn, {DATE_FMT})")
-    # Updated kun efter en reel aendring (IbSelUpdatedOn) - den staar sidst,
-    # saa der ikke opstaar et hul, naar den ikke vises.
     updated = _fact("IbFactUpdated", "Updated", f"Text(IbSelUpdatedOn, {DATE_FMT})",
                     visible="!IsBlank(IbSelUpdatedOn)")
-    pair_w = f"If({FACTS_OK}, 2 * {FACT_W} + {FACT_GAP}, {DET_IN})"
-    pairs = [group(f"conIbFacts{i}", cells, direction="Horizontal", gap=FACT_GAP, height=FACT_H,
-                   width=pair_w)
-             for i, cells in enumerate([(sev, pri), (asg, rep), (reported, updated)], 1)]
-    for p in pairs:
+    a = group("conIbFacts1", [rep, asg, sev], direction="Horizontal", gap=FACT_GAP,
+              height=FACT_H, width=f"If({FACTS_OK}, 3 * {FACT_W} + 2 * {FACT_GAP}, {DET_IN})")
+    b = group("conIbFacts2", [reported, updated], direction="Horizontal", gap=FACT_GAP,
+              height=FACT_H, width=f"If({FACTS_OK}, 2 * {FACT_W} + {FACT_GAP}, {DET_IN})")
+    for p in (a, b):
         p.props["LayoutMinWidth"] = "0"
-    g = group("conIbDetFacts", pairs, direction="Horizontal", gap=FACT_GAP,
-              height=f"If({FACTS_OK}, {FACT_H}, 3 * {FACT_H} + 2 * 8)")
+    g = group("conIbDetFacts", [a, b], direction="Horizontal", gap=FACT_GAP,
+              height=f"If({FACTS_OK}, {FACT_H}, 2 * {FACT_H} + 8)")
     g.props["LayoutDirection"] = (f"If({FACTS_OK}, LayoutDirection.Horizontal, "
                                   "LayoutDirection.Vertical)")
     g.props["LayoutGap"] = f"If({FACTS_OK}, {FACT_GAP}, 8)"
@@ -1841,26 +1946,44 @@ def _role_tokens(expr):
 
 
 def build_detail():
-    # 1. Sagsnummeret som maerke, titlen og Close.
-    no = text_ctrl("txtIbDetNo", f"{SEL}.TicketNo", size=lay.SIZE_SMALL, weight="Semibold",
-                   color=C_PRIMARY, height=24, width=NO_W, align="Center", fill=C_MUTED_BG,
-                   extra={"VerticalAlign": "VerticalAlign.Middle", **lay.radius(12)})
+    # 1. Sagsnummeret som maerke, titlen og Close (kun ikonet, oeverst til
+    #    hoejre - popuppens eneste vej ud).
+    no = _no_badge("txtIbDetNo", f"{SEL}.TicketNo")
     no.props["LayoutMinWidth"] = str(NO_W)
-    close_w = fit_button_width('"Close"')
-    head = _head("IbDet", f"{SEL}.Title", "Set(varIbDetailOn, false);\nSet(varIbActsOn, false)",
-                 lead=[no], title_w=f"({POP_IN}) - {NO_W} - {close_w} - 20")
+    head = _head("IbDet", f"{SEL}.Title", "Set(varIbDetailOn, false)",
+                 lead=[no], title_w=f"({POP_IN}) - {NO_W} - {ICON_BTN} - 20", close_icon=True)
 
-    # 2. Status, Application og Section.
+    # 2. Status, prioritet, Application og Section - maerker og to korte
+    #    vaerdier, ikke en lang streng. Paa en smal popup paa to linjer.
     chip = _chip("txtIbDetStatus", f"{SEL}.Status", f"{SEL}.Archived")
     chip.props["LayoutMinWidth"] = str(CHIP_W)
-    where = grow(text_ctrl("txtIbDetWhere", f'{SEL}.Application & "  ·  " & {SEL}.Section',
-                           size=lay.SIZE_BODY, weight="Semibold", height=20))
-    meta = group("conIbDetMeta", [chip, where], direction="Horizontal", gap=10, height=24,
-                 align_items="Center")
+    pri = _pri_badge("txtIbDetPriority", f"{SEL}.Priority", visible="true")
+    pri.props["LayoutMinWidth"] = str(PRI_W)
+    badges_w = f"({CHIP_W} + 8 + If(IsBlank({SEL}.Priority), 0, {PRI_W} + 8))"
+    badges = group("conIbDetBadges", [chip, pri], direction="Horizontal", gap=8, height=CHIP_H,
+                   width=f"({badges_w} - 8)", align_items="Center")
+    badges.props["LayoutMinWidth"] = badges.props["Width"]
+    where_w = f"If({FACTS_OK}, ({DET_IN}) - {badges_w} - 4, {DET_IN})"
+    app = text_ctrl("txtIbDetApp", f"{SEL}.Application", size=lay.SIZE_BODY, weight="Semibold",
+                    height=20, width=f"(({where_w}) - 12) / 2",
+                    accessible='"Application: " & Self.Text')
+    sec = text_ctrl("txtIbDetSection", f"{SEL}.Section", size=lay.SIZE_BODY, color=C_MUTED,
+                    height=20, width=f"(({where_w}) - 12) / 2",
+                    accessible='"Section: " & Self.Text')
+    where = group("conIbDetWhere", [app, sec], direction="Horizontal", gap=12, height=20,
+                  width=where_w, align_items="Center")
+    where.props["LayoutMinWidth"] = "0"
+    meta = group("conIbDetMeta", [badges, where], direction="Horizontal", gap=12,
+                 height=f"If({FACTS_OK}, {CHIP_H}, {CHIP_H} + 6 + 20)", align_items="Center")
+    meta.props["LayoutDirection"] = (f"If({FACTS_OK}, LayoutDirection.Horizontal, "
+                                     "LayoutDirection.Vertical)")
+    meta.props["LayoutGap"] = f"If({FACTS_OK}, 12, 6)"
+    meta.props["LayoutAlignItems"] = (f"If({FACTS_OK}, LayoutAlignItems.Center, "
+                                      "LayoutAlignItems.Start)")
 
-    # 3. Fakta.  4. Handlinger (og More actions).
+    # 3. Metadata.  4. Handlingerne (ikoner).
     facts = _facts()
-    actions, menu = _actions()
+    actions = _actions()
 
     peek_note = text_ctrl("txtIbDetPeek",
                           '"Read only - opened from your new report. Close it to continue '
@@ -1888,7 +2011,7 @@ def build_detail():
              '"Attachments" & If(IsBlank(IbFileCount), "", " (" & IbFileCount & ")")', "files",
              '"Show the attachments"',
              onselect='Set(varIbTab, "files");\nIf(varIbFilesFor <> varIbSelId, ' + LOAD_FILES + ")"),
-    ], direction="Horizontal", gap=8, height=32, align_items="Center")
+    ], direction="Horizontal", gap=8, height=TAB_H, align_items="Center", justify="Center")
     # Activity (kommentarerne) kun for rapportoeren og admins (issue #193).
     tabs.children[1].props["Visible"] = "IbSeeActivity"
     tabs.children[1].vis = "IbSeeActivity"
@@ -2025,7 +2148,7 @@ def build_detail():
     # alle tre faner: den fane, der kraever mest, bestemmer den (mindst
     # DET_MIN_H), og den er aldrig hoejere end skaermen tillader. Hver fane
     # scroller selv, saa hver har sin egen scrollposition.
-    top = group("conIbDetTop", [meta, facts, actions, menu, peek_note, retest, rule, tabs],
+    top = group("conIbDetTop", [meta, facts, actions, peek_note, retest, rule, tabs],
                 direction="Vertical", gap=POP_GAP)
     files = _files_panel()
     panels = [details, activity, files]
