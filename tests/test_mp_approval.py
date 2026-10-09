@@ -560,3 +560,114 @@ def test_the_last_counter_hands_the_request_to_master_data(on):
     assert ('varDomCtrIdx.Status.Value = "UnderBehandling"' in fx and
             'Coalesce(varDomCtrIdx.LastActionBy, "") = "PRODOS/SRO counter"' in fx)
     assert 'Status: { Value: "KlarTilSAP" }' in fx
+
+
+# ---------------------------------------------------------------------------
+# HUBBEN (fase 6): MP's trin i striben og popuppen via DOM_STAGES
+# ---------------------------------------------------------------------------
+HUB = os.path.join(APP, "ScreenMdHub.pa.yaml")
+_HUB = r'''
+import json, os, sys
+root, flag = sys.argv[1], sys.argv[2] == "1"
+sys.path.insert(0, os.path.join(root, "tools"))
+import env_config as env
+env.FEATURES["measuring_point_approval"] = flag
+sys.path.insert(0, os.path.join(root, "Masterdata Hub", "build"))
+import approval_flow as a
+json.dump({"stages": {k: [list(s) for s in v] for k, v in a.DOM_STAGES.items()},
+           "applies": a.applies("ThisItem"), "row": a.row_svg(), "open": a.open_fx(),
+           "refresh": a.LOG_REFRESH, "act": a.STAGE_ACT, "timeline": a.timeline_fx(),
+           "mat": a._mat_strip("ThisItem"), "vh": a._vh_strip("ThisItem"),
+           "mp": a._mp_strip("ThisItem"), "final": a.FINAL}, sys.stdout)
+'''
+
+
+def _hub_parts(flag):
+    out = subprocess.run([sys.executable, "-c", _HUB, ROOT, "1" if flag else "0"], cwd=ROOT,
+                         capture_output=True, text=True, encoding="utf-8")
+    assert out.returncode == 0, out.stderr[-2000:]
+    return json.loads(out.stdout)
+
+
+@pytest.fixture(scope="module")
+def hub_on():
+    return _hub_parts(True)
+
+
+@pytest.fixture(scope="module")
+def hub_off():
+    return _hub_parts(False)
+
+
+def test_without_the_flag_the_hub_has_no_mp_flow(hub_off):
+    assert "MeasuringPoint" not in hub_off["stages"]
+    assert "MeasuringPoint" not in hub_off["applies"]
+    assert 'Stage = "Counter"' not in hub_off["refresh"]
+    hub = open(HUB, encoding="utf-8").read()
+    assert 'Domain.Value = "MeasuringPoint"' not in hub
+    assert "PRODOS / SRO counter" not in hub
+
+
+def test_with_the_flag_the_hub_has_mps_stages(hub_on):
+    assert hub_on["stages"]["MeasuringPoint"] == [
+        ["System", "System approval", "S1"], ["Counter", "PRODOS / SRO counter", "S2"]]
+    assert 'ThisItem.Domain.Value = "MeasuringPoint"' in hub_on["applies"]
+    assert 'Stage = "Counter"' in hub_on["refresh"]
+    assert hub_on["act"]["Counter"] == "PRODOS / SRO counter"
+    assert hub_on["final"]["MeasuringPoint"][0] == "Creation in SAP"
+
+
+def test_the_plan_and_material_strips_are_the_same_with_the_flag(hub_on, hub_off):
+    assert hub_on["mat"] == hub_off["mat"]
+    assert hub_on["vh"] == hub_off["vh"]
+
+
+def test_the_mp_strip_has_system_counter_and_sap(hub_on):
+    mp = hub_on["mp"]
+    for name in (">System<", ">Counter<", ">SAP<"):
+        assert name in mp, name
+    assert "Cost" not in mp and "Quality" not in mp and "Handover" not in mp
+    # Uden raekker i nogen af de to trin: intet forloeb.
+    assert 'CountRows(Filter(L, Stage = "System" || Stage = "Counter")) = 0' in mp
+    # Et trin uden "Requested" er ikke noedvendigt - og antallet er
+    # Requested-raekkerne, ikke ItemCount.
+    for stage in ("System", "Counter"):
+        assert ('CountRows(Filter(L, Stage = "%s" && Decision = "Requested")) = 0, "Skipped"'
+                % stage) in mp
+    assert "ItemCount" not in mp
+    # Taelleren er ikke en godkendelse: faerdig er "Done".
+    assert 'If(v = "Approved", "Done", v)' in mp
+    # Den kommer efter godkendelsen.
+    assert "PRODOS" not in mp.split("With({b:")[0]
+
+
+def test_the_row_strip_branches_to_mp(hub_on):
+    row = hub_on["row"]
+    i, j = row.index('ThisItem.Domain.Value = "Material"'), row.index(
+        'ThisItem.Domain.Value = "MeasuringPoint",')
+    assert i < j and ">Counter<" in row
+
+
+def test_the_popup_shows_mps_stages(hub_on):
+    fx = hub_on["open"]
+    assert 'varMdAprReq.Domain.Value = "MeasuringPoint"' in fx
+    for frag in ('Title: "System approval"', 'Title: "PRODOS / SRO counter"',
+                 "Master Data creates the measuring points in SAP - no approval",
+                 '"Not required - no counter missing in PRODOS / SRO"',
+                 '"Not required - no new counter"',
+                 '"PRODOS / SRO creator of the plant"', 'awaiting creation"',
+                 'varMdAprS2 = "In progress", "Counter"',
+                 'Set(varMdAprS3, "")'):
+        assert frag in fx, frag
+    # Taellertrinet starter foerst, naar systemgodkendelsen er forbi.
+    i = fx.index("Set(varMdAprS2, With(")
+    s2 = fx[i:fx.index("Set(varMdAprS3, ", i)]
+    assert "varMdAprS1 = \"Approved\"" in s2
+
+
+def test_a_requested_or_done_row_is_not_shown_as_returned(hub_off):
+    """Tidslinjen viser alle loggens raekker. "Requested" (Materials og MP)
+    og "Done" (MP's taeller) faldt foer i Switch'ens "Returned"."""
+    tl = hub_off["timeline"]
+    assert '"Done", "Done", "Requested", "Pending"' in tl
+    assert '"Requested", "Requested"' in tl
