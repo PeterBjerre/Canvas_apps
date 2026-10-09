@@ -32,6 +32,7 @@ import layout_tokens as lay
 import admin_log as alog
 import submission_notes as sn
 import display_text as dt
+import env_config as env
 from layout_tokens import if_below, at_least
 
 OPEN = "IfError(varMdAprOpen, false)"
@@ -118,18 +119,32 @@ def sap_state(req):
 # Et domaene uden et forloeb viser "Not required" som foer.
 MAT_STAGES = [("System", "System approval", "S1")]
 DOM_STAGES = {"MaintenancePlan": STAGES, "Material": MAT_STAGES}
+# Measuring Points (issue #210): systemgodkendelsen af nye Counter-raekker
+# og PRODOS/SRO-opretterens taeller. Kun med flaget taendt - uden det har
+# MP intet forloeb, og hubben er som foer (striben "Not required").
+MP_STAGES = [("System", "System approval", "S1"), ("Counter", "PRODOS / SRO counter", "S2")]
+MP_ON = env.feature_on("measuring_point_approval")
+if MP_ON:
+    DOM_STAGES["MeasuringPoint"] = MP_STAGES
 # Det sidste trin - uden godkendelse; det laeses af indeksets status.
 FINAL = {
     "MaintenancePlan": ("Creation in SAP",
                         "Master Data creates the plan - no approval"),
     "Material": ("Handover to Master Data",
                  "Master Data creates the material in SAP - no approval"),
+    "MeasuringPoint": ("Creation in SAP",
+                       "Master Data creates the measuring points in SAP - no approval"),
 }
 
 
 def is_mat(rec):
     """Er anmodningen en materialeindmelding?"""
     return f'{rec}.Domain.Value = "Material"'
+
+
+def is_mp(rec):
+    """Er anmodningen en Measuring Point-indmelding?"""
+    return f'{rec}.Domain.Value = "MeasuringPoint"'
 
 
 def applies(req):
@@ -153,6 +168,26 @@ REQUESTED = "Requested"
 def mat_expected(log):
     return (f'Max(1, CountRows(Distinct(Filter({log}, Stage = "System" && '
             f'Decision = "{REQUESTED}"), ItemGuid)))')
+
+
+def mp_expected(log, stage):
+    """Som mat_expected, men for et vilkaarligt MP-trin: System (raekke
+    gange system) eller Counter (een pr. taeller, der mangler i PRODOS)."""
+    return (f'Max(1, CountRows(Distinct(Filter({log}, Stage = "{stage}" && '
+            f'Decision = "{REQUESTED}"), ItemGuid)))')
+
+
+def mp_state(log, stage, prev):
+    """Et MP-trins tilstand. Uden "Requested"-raekker er trinet ikke
+    noedvendigt (fx ingen nye taellere, eller ingen mangler i PRODOS):
+    "Skipped". Taellertrinet er ikke en godkendelse - faerdigt er "Done"."""
+    state = stage_state(decided(latest(log, stage)), mp_expected(log, stage), prev)
+    # CountRows, ikke IsEmpty: se latest() om IsEmpty paa en blank tabel.
+    s = (f'If(CountRows(Filter({log}, Stage = "{stage}" && Decision = "{REQUESTED}")) = 0, '
+         f'"Skipped", {state})')
+    if stage == "Counter":
+        s = f'With({{v: {s}}}, If(v = "Approved", "Done", v))'
+    return s
 
 
 def decided(table):
@@ -191,8 +226,8 @@ NOT_STARTED = (
 # variabel ikke har. Samme kald, samme tidspunkt, samme raekker.
 LOG_LIMIT = 500   # appens Data row limit (som build_hub.ROW_LIMIT)
 LOG_REFRESH = ('Set(varMdAprAll, SortByColumns(Filter(MD_ApprovalLog, '
-               'Stage = "System" || Stage = "Cost" || Stage = "Quality"), "ID", '
-               'SortOrder.Descending))')
+               'Stage = "System" || Stage = "Cost" || Stage = "Quality"%s), "ID", '
+               'SortOrder.Descending))' % (' || Stage = "Counter"' if MP_ON else ""))
 ROW_LOG = ('With({ c: Filter(varMdAprAll, RequestGuid = ThisItem.RequestGuid) }, '
            f'If(IsEmpty(c) && CountRows(varMdAprAll) >= {LOG_LIMIT}, '
            'Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c))')
@@ -268,10 +303,23 @@ def _mat_strip(req):
             f"    With({{d: {sap_state(req)}}},\n{body}))\n)")
 
 
+def _mp_strip(req):
+    """Measuring Points stribe (issue #210): systemgodkendelsen, taelleren i
+    PRODOS/SRO og oprettelsen i SAP. Uden raekker i nogen af de to trin
+    (ingen ny taeller) er der intet forloeb: "Not required"."""
+    body = _strip_body([44, 135, 226], ["System", "Counter", "SAP"], ["a", "b", "d"])
+    return (f'If(\n    CountRows(Filter(L, Stage = "System" || Stage = "Counter")) = 0, '
+            f'{NOT_STARTED},\n'
+            f"    With({{a: {mp_state('L', 'System', 'true')}}},\n"
+            f"    With({{b: {mp_state('L', 'Counter', 'a')}}},\n"
+            f"    With({{d: {sap_state(req)}}},\n{body})))\n)")
+
+
 def row_svg():
     """Power Fx text for the strip's SVG, or "" when the request has no approval flow."""
     req = "ThisItem"
-    inner = (f"If(\n        {is_mat(req)},\n        {_mat_strip(req)},\n"
+    mp = f"        {is_mp(req)},\n        {_mp_strip(req)},\n" if MP_ON else ""
+    inner = (f"If(\n        {is_mat(req)},\n        {_mat_strip(req)},\n{mp}"
              f"        {_vh_strip(req)}\n    )")
     return ("If(\n    !(" + applies(req) + '), ' + NOT_STARTED + ',\n'
             f"    With(\n        {{ L: {ROW_LOG} }},\n"
@@ -348,13 +396,19 @@ def _by(text):
 # Admin: tools/admin_log.py); en ukendt vaerdi vises som den er.
 STAGE_ACT = {"System": "System approval", "Cost": "Cost approval", "Quality": "Quality review",
              "SapCreated": "Creation in SAP", alog.STAGE: "Admin change"}
+if MP_ON:
+    STAGE_ACT["Counter"] = "PRODOS / SRO counter"
 
 
 def _decision_rows(stage, tbl, timeline=False):
+    # "Done" (MP: taelleren er oprettet) og "Requested" (flowets varsel om,
+    # at en enhed er spurgt - Materials og MP) er ikke en tilbagesendelse.
+    # Tidslinjen viste foer "Requested" som "Returned" (issue #210).
     state = ('Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", '
+             f'"Done", "Done", "{REQUESTED}", "Pending", '
              f'"{alog.EDIT}", "Admin", "{alog.DELETE}", "Admin", "Returned")')
     label = (f'Switch(Decision, "{alog.EDIT}", "Admin edit", "{alog.DELETE}", "Admin delete", '
-             f'{state})')
+             f'"{REQUESTED}", "Requested", {state})')
     # Detail (og ItemText) er flowets tekst og vises paa engelsk (#162).
     # Comment er godkenderens egen tekst og vises som den er - undtagen naar
     # flowet har skrevet sin egen tekst i begge (fx en FL-fejl).
@@ -382,11 +436,12 @@ def _waiting_row(stage, svar, n=None, exp=None, who=None):
     antallet staar i loggen og ikke i ItemCount (mat_expected)."""
     n = n or f'CountRows(Filter(colMdAprLatest, Stage = "{stage}"))'
     exp = exp or expected(stage, R)
-    if stage == "System":
+    if stage in ("System", "Counter"):
+        what = "creation" if stage == "Counter" else "a decision"
         rec = _rec(Kind=_q("D"), Stage=_q(stage),
                    Title=_q(who or "System manager of each item"),
                    State=_q("Pending"), Label=_q("Awaiting"),
-                   Sub=f'({exp} - {n}) & " of " & {exp} & " awaiting a decision"')
+                   Sub=f'({exp} - {n}) & " of " & {exp} & " awaiting {what}"')
         return f'If({svar} = "In progress" && {n} < {exp}, Collect(colMdAprRows, {rec}))'
     # Godkenderen slaas op EEN gang - og kun naar trinet venter.
     key = '"COST"' if stage == "Cost" else f"Upper(Left({R}.Plant, 3))"
@@ -572,6 +627,61 @@ def _mat_block(log):
     return lines
 
 
+def _mp_block(log):
+    """Measuring Points forloeb (issue #210): systemgodkendelsen af nye
+    taellere, PRODOS/SRO-opretterens taeller og oprettelsen i SAP.
+
+    Som Materials: antallet laeses af "Requested"-raekkerne. Et trin uden
+    dem er ikke noedvendigt og staar som "Skipped" ("Not required")."""
+    lines = []
+    for i, (stage, _t, _v) in enumerate(MP_STAGES):
+        verb = "ClearCollect" if i == 0 else "Collect"
+        lines.append(f"{verb}(colMdAprLatest, {latest(log, stage)})")
+    lines += [
+        f"Set(varMdAprS1, {mp_state(log, 'System', 'true')})",
+        f"Set(varMdAprS2, {mp_state(log, 'Counter', 'varMdAprS1')})",
+        # VH-planens tredje trin maa ikke staa tilbage fra en plan, brugeren saa foer.
+        'Set(varMdAprS3, "")',
+        f"Set(varMdAprS4, {sap_state(R)})",
+        'Set(varMdAprCur, If(varMdAprS1 = "In progress" || varMdAprS1 = "Returned", "System", '
+        'varMdAprS2 = "In progress", "Counter", varMdAprS4 = "In progress", "SAP", ""))',
+    ]
+    rules = {
+        "System": ('"One approver per system - " & {e} & If({e} = 1, " approval", '
+                   '" approvals in parallel") & ", all must pass"'),
+        "Counter": ('"The PRODOS / SRO creator of the plant creates " & {e} & '
+                    'If({e} = 1, " counter", " counters") & " and marks it in the app"'),
+    }
+    whom = {"System": "System manager of each system",
+            "Counter": "PRODOS / SRO creator of the plant"}
+    for i, (stage, title, v) in enumerate(MP_STAGES):
+        sv = f"varMdApr{v}"
+        tbl = f'Filter(colMdAprLatest, Stage = "{stage}")'
+        exp = mp_expected(log, stage)
+        none = ("no counter missing in PRODOS / SRO" if stage == "Counter"
+                else "no new counter")
+        rule = f'If({sv} = "Skipped", "Not required - {none}", {rules[stage].format(e=exp)})'
+        lines.append(("ClearCollect" if i == 0 else "Collect") + "(colMdAprRows, " + _rec(
+            Kind=_q("H"), Stage=_q(stage), Title=_q(title), State=sv, Label=sv, Rule=rule,
+            Cur=f'varMdAprCur = "{stage}"') + ")")
+        lines.append("Collect(colMdAprRows, " + _decision_rows(stage, decided(tbl)) + ")")
+        lines.append(_waiting_row(stage, sv, n=f"CountRows({decided(tbl)})", exp=exp,
+                                  who=whom[stage]))
+    title, rule = FINAL["MeasuringPoint"]
+    lines.append("Collect(colMdAprRows, " + _rec(
+        Kind=_q("H"), Stage=_q("SAP"), Title=_q(title), State="varMdAprS4",
+        Label="varMdAprS4", Rule=_q(rule), Cur='varMdAprCur = "SAP"') + ")")
+    lines.append(
+        'If(varMdAprS4 <> "Pending", Collect(colMdAprRows, ' + _rec(
+            Kind=_q("D"), Stage=_q("SAP"), Title=_q("Master Data"), State="varMdAprS4",
+            Label='If(varMdAprS4 = "Done", "Created", "Awaiting")',
+            Act='If(varMdAprS4 = "Done", "Created the measuring points in SAP", '
+                '"Ready - waiting for creation in SAP")',
+            Sub=f'If(varMdAprS4 = "Done", "SAP " & {R}.SapObjectNo, "")')
+        + "))")
+    return lines
+
+
 def open_fx():
     log = "colMdAprLog"
     head = [
@@ -587,7 +697,8 @@ def open_fx():
         f"ClearCollect({log}, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid))",
     ]
     ind = lambda ls: ";\n".join("        " + l.replace("\n", "\n        ") for l in ls)
-    body = (f"If(\n    {is_mat(R)},\n{ind(_mat_block(log))},\n{ind(_vh_block(log))}\n)")
+    mp = f"    {is_mp(R)},\n{ind(_mp_block(log))},\n" if MP_ON else ""
+    body = (f"If(\n    {is_mat(R)},\n{ind(_mat_block(log))},\n{mp}{ind(_vh_block(log))}\n)")
     tail = [*INDEX_ROWS, "Set(varMdAprBusy, false)"]
     return ";\n".join(head) + ";\n" + body + ";\n" + ";\n".join(tail)
 
