@@ -341,6 +341,16 @@ CARD_PAD = 18          # kortets indre polstring
 DATE_FMT = "yyyy-mm-dd"
 DATETIME_FMT = "yyyy-mm-dd hh:mm"
 
+# Datovaelgere (issue #235): ALLE datovaelgere i alle apps viser og tolker
+# datoen som DD-MM-YYYY, fx 15-10-2026. Kun visning og indtastning - den
+# gemte vaerdi er stadig en dato (SelectedDate), saa Patch, flows og
+# SAP-mappings er uaendrede. Formatstrengen er dokumenteret for den moderne
+# Date picker ("dd-mm-yyyy" -> 15-01-2024). Pladsholderen viser samme
+# moenster, saa brugeren ser, hvordan en dato tastes.
+# DATE_FMT ovenfor bruges stadig til datoer vist som TEKST i lister.
+DATE_PICKER_FMT = "dd-mm-yyyy"
+DATE_PICKER_PLACEHOLDER = "dd-mm-yyyy"
+
 
 def radius(r):
     """De fire Radius*-egenskaber med samme vaerdi."""
