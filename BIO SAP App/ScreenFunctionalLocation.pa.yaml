@@ -6627,7 +6627,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =84 + (0 + (Max((46), (36))) * 1 + 0) + 12 + (Min(0 + If(IfError(CountRows(Filter(colFlClsDet, Section = "Class")) > 0, false), 0 + (22), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "Class")) > 0, false), 8 + (RoundUp(CountRows(Filter(colFlClsDet, Section = "Class")) / (If(LayoutRank < 2, 1, 2)), 0) * 86), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "TRM")) > 0, false), 8 + (22), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "TRM")) > 0, false), 8 + (RoundUp(CountRows(Filter(colFlClsDet, Section = "TRM")) / (If(LayoutRank < 2, 1, 2)), 0) * 86), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "Ext")) > 0, false), 8 + (22), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "Ext")) > 0, false), 8 + (RoundUp(CountRows(Filter(colFlClsDet, Section = "Ext")) / (If(LayoutRank < 2, 1, 2)), 0) * 86), 0) + If(IfError(CountRows(colFlClsDet) = 0, false), 8 + (20), 0), App.Height - 220))
+                =36 + (0 + (Max((46), (36))) * 1 + 0) + 12 + (Min(0 + If(IfError(CountRows(Filter(colFlClsDet, Section = "Class")) > 0, false), 0 + (22), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "Class")) > 0, false), 8 + (RoundUp(CountRows(Filter(colFlClsDet, Section = "Class")) / (If(LayoutRank < 2, 1, 2)), 0) * 86), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "TRM")) > 0, false), 8 + (22), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "TRM")) > 0, false), 8 + (RoundUp(CountRows(Filter(colFlClsDet, Section = "TRM")) / (If(LayoutRank < 2, 1, 2)), 0) * 86), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "Ext")) > 0, false), 8 + (22), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "Ext")) > 0, false), 8 + (RoundUp(CountRows(Filter(colFlClsDet, Section = "Ext")) / (If(LayoutRank < 2, 1, 2)), 0) * 86), 0) + If(IfError(CountRows(colFlClsDet) = 0, false), 8 + (20), 0), App.Height - 220)) + If(!(varFlViewOnly || varFlStatus = "Indsendt"), 12 + (36), 0)
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -8010,57 +8010,11 @@ Screens:
                       =LayoutOverflow.Hide
                   LayoutOverflowY: |-
                       =LayoutOverflow.Hide
+                  Visible: |-
+                      =!(varFlViewOnly || varFlStatus = "Indsendt")
                   Width: |-
                       =Parent.Width
                 Children:
-                  - btnFlClsCancel:
-                      Control: ModernButton
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Cancel"
-                        Align: |-
-                            =Align.Center
-                        AlignInContainer: |-
-                            =AlignInContainer.Center
-                        Appearance: |-
-                            =ButtonAppearance.Outline
-                        BorderColor: |-
-                            =C.'border-default'
-                        BorderThickness: |-
-                            =1
-                        Color: |-
-                            =C.'text-primary'
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
-                        Height: |-
-                            =36
-                        Layout: |-
-                            =ButtonLayout.TextOnly
-                        LayoutMinWidth: |-
-                            =86
-                        OnSelect: |-
-                            =Set(varFlClsOpen, false);
-                            Clear(colFlClsDet)
-                        RadiusBottomLeft: |-
-                            =10
-                        RadiusBottomRight: |-
-                            =10
-                        RadiusTopLeft: |-
-                            =10
-                        RadiusTopRight: |-
-                            =10
-                        Size: |-
-                            =14
-                        Text: |-
-                            ="Cancel"
-                        Tooltip: |-
-                            ="Discard the changes made since the dialog was opened"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
-                        Width: |-
-                            =86
                   - btnFlClsApply:
                       Control: ModernButton
                       Properties:

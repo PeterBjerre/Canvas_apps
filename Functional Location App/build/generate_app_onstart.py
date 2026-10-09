@@ -174,7 +174,7 @@ COLLECTIONS = [
     # popuppen aabnes, og efter hver validering (fl_parts.DET_ITEMS).
     ("colFlDet", DET),
     # Class data-popuppens KOPI af raekkens klassefelter (issue #184) -
-    # Apply skriver den tilbage, Cancel kasserer den (fl_parts.OPEN_CLS_FX).
+    # Apply skriver den tilbage, Close kasserer den (fl_parts.OPEN_CLS_FX).
     ("colFlClsDet", DET),
     # Raekker, brugeren har slettet. Gem fjerner KUN dem (og tomme
     # raekker) fra listen - ikke raekker, en anden har tilfoejet (D24).

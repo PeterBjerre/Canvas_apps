@@ -676,18 +676,28 @@ def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
     return [backdrop, modal]
 
 
+def popup_head(name, title, close_name, close_fx, accessible=None):
+    """Popuppens hoved: titlen til venstre og EEN Close oeverst til hoejre
+    (issue #237). Hovedet er popuppens foerste barn og ligger uden for
+    det, der scroller, saa Close altid kan ses. Samme maal som
+    feedback-popuppens hoved (90 x 32)."""
+    grow(title)
+    close = button(close_name, '"Close"', close_fx, width=90, height=32,
+                   accessible=accessible)
+    return group(name, [title, close], direction="Horizontal", gap=12,
+                 height=32, align_items="Center")
+
+
 def text_modal(prefix, open_var, title_fx, body_fx, body_h):
-    """Et laeseudsnit: titel, brødtekst og Close - [sloer, popup]."""
+    """Et laeseudsnit: titel med Close oeverst til hoejre og broedtekst -
+    [sloer, popup]. Ingen bund: Close sad der foer (issue #237)."""
     vis = f"IfError({open_var}, false)"
     backdrop = tap_backdrop(f"con{prefix}Backdrop", vis, f"Set({open_var}, false)")
     t = text_ctrl(f"txt{prefix}Title", title_fx, size=lay.SIZE_CARD_TITLE, weight="Semibold",
                   height=26, wrap="false")
+    head = popup_head(f"con{prefix}Head", t, f"btn{prefix}Close", f"Set({open_var}, false)")
     body = text_ctrl(f"txt{prefix}Body", body_fx, size=13, height=body_h, wrap="true")
-    close = button(f"btn{prefix}Close", '"Close"', f"Set({open_var}, false)",
-                   width=fit_button_width('"Close"'), height=36)
-    footer = group(f"con{prefix}Footer", [close], direction="Horizontal", gap=8,
-                   height=36, justify="End", align_items="Center")
-    modal = group(f"con{prefix}Modal", [t, body, footer], direction="Vertical", gap=12,
+    modal = group(f"con{prefix}Modal", [head, body], direction="Vertical", gap=12,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(18, 18, 18, 18), width="Min(460, App.Width - 24)",
                   drop_shadow="ExtraBold", visible=vis)
