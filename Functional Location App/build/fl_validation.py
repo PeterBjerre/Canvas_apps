@@ -431,8 +431,8 @@ def verify_fx(det_items, after=None):
     """btnFlVerify.OnSelect - HELE valideringen. Knappen er skjult; hver
     aendring kalder den med Select(btnFlVerify) (docs/31 PX7, issue #77).
 
-    det_items er fold-ud-sektionens felter for den valgte raekke
-    (fl_parts.DET_ITEMS). De regnes om her, fordi vaerdierne og beskederne
+    det_items er Manufacturer/Warranty-popuppens felter for dens raekke
+    (fl_parts.DET_ITEMS, issue #232). De regnes om her, fordi vaerdierne og beskederne
     lige er aendret. after koerer til sidst - Class data-popuppens Apply
     (fl_parts.CLS_AFTER_VERIFY, issue #184) laeser resultatet dér."""
     return ";\n\n".join([
@@ -443,7 +443,7 @@ def verify_fx(det_items, after=None):
         "// E. Status, foerste besked og galleriets kolonner (FL25, FL26)\n" + status_fx(),
         "// F. TRM og ABC (FL48, FL49)\n" + TRM_SET,
         "// G. Klassefanerne (FL28)\n" + TABS,
-        "// H. Fold-ud-sektionen (issue #166, #184): den valgte raekke - eller den foerste,\n"
+        "// H. Popuppens felter (issue #232): dens raekke - eller den foerste,\n"
         "// naar den valgte ikke findes (slettet, ny anmodning, indlaest) -\n"
         "// med vaerdier og beskeder, der lige er regnet om (fl_parts.DET_ITEMS).\n"
         "If(IsBlank(LookUp(colFlRows, RowGuid = varFlDetailRow)),\n"
