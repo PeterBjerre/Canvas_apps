@@ -8,6 +8,9 @@ import layout_tokens as lay
 from build_helpers import (child_name, text_min_height, text_ctrl, group, button, text_input, number_input,
                            themed_dropdown, field_cell, col_width, badge, card, grow,
                            row_n, text_px, fit_button_width, ICON_W)
+# Sektionsoverskriften og dens trin-badge staar i build_helpers (issue #228),
+# saa Materials kan bruge samme overskrift som Item Editor.
+from build_helpers import section_header, step_badge  # noqa: F401
 
 DM_PLAN = "If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)"
 REQ_PLAN = "varVhpPlanValidated"
@@ -39,26 +42,6 @@ def section_footer(name, info, buttons, cw):
     footer.props["Height"] = h
     footer.h = h
     return footer
-
-
-def step_badge(name, step_label, valid_fx, attention_fx=None):
-    """Sektionens badge (issue #123): "Step N", indtil sektionen er
-    faerdig OG opfylder valideringen - saa "Valid" i ok-farverne. Samme
-    badge og samme farver paa alle tre sektioner.
-
-    valid_fx er den eksisterende validering (build_status: VhpPlanValid,
-    VhpItemsValid, VhpOpsValid), aldrig blot "gemt".
-    attention_fx: hvornaar der i stedet skal staa "Invalid" (fx et item,
-    der er gemt som ugyldigt)."""
-    text = (f'If({valid_fx}, "Valid", ' + (f'{attention_fx}, "Invalid", ' if attention_fx else "")
-            + f'"{step_label}")')
-    b = badge(name, text, width=72)
-    # Self.Text: formlen bag teksten regnes een gang, ikke tre.
-    b.props["Color"] = f'Switch(Self.Text, "Valid", {C_VALID_FG}, "Invalid", {C_INVALID_FG}, {C_MUTED})'
-    b.props["Fill"] = f'Switch(Self.Text, "Valid", {C_VALID_BG}, "Invalid", {C_INVALID_BG}, {C_NEUTRAL_BG})'
-    b.props["AccessibleLabel"] = (f'If(Self.Text = "Valid", "{step_label}: valid", '
-                                  f'"{step_label}: " & If(Self.Text = "Invalid", "invalid", "not complete yet"))')
-    return b
 
 
 # Indholdsbredden i et kort: skaermens indholdsbredde minus kortets polstring.
@@ -102,39 +85,6 @@ def required_legend():
                     width=70, wrap="false")
     return group("conVhpLegend", [star, txt], direction="Horizontal", gap=3, height=20,
                  align_items="Center", width=83)
-
-
-def section_header(name, title, step_label, extra_right=(), extra_left=(), valid_fx=None,
-                   attention_fx=None):
-    """Sektionsoverskrift: titlen til venstre (evt. med noget lige efter
-    den, fx "* Required"), og et trin-badge til hoejre.
-
-    valid_fx (issue #123): badget skifter fra "Step N" til "Valid", naar
-    sektionen opfylder valideringen (step_badge).
-
-    Beskrivelsen under titlen er fjernet (issue #54). Den gentog blot det,
-    sektionen viser, og kostede en linje paa hvert kort."""
-    t = text_ctrl(child_name("txt", name, "Title"), f"\"{title}\"", size=lay.SIZE_CARD_TITLE, weight="Semibold",
-                  height=text_min_height(lay.SIZE_CARD_TITLE),
-                  width=text_px(title, lay.SIZE_CARD_TITLE), wrap="false")
-    t.props["LayoutMinWidth"] = t.props["Width"]
-
-    right = list(extra_right)
-    if step_label and valid_fx:
-        right.append(step_badge(child_name("txt", name, "Badge"), step_label, valid_fx, attention_fx))
-    elif step_label:
-        right.append(badge(child_name("txt", name, "Badge"), f"\"{step_label}\"", width=64))
-
-    # FLAD RAEKKE (issue #54 - titlerne manglede i Studio). Titlen staar
-    # DIREKTE i overskriftens raekke, ikke i en indlejret gruppe, og en tom
-    # gruppe tager resten af bredden. Da titlen flyttede fra en lodret til
-    # en vandret indlejret gruppe, lagde Studio den ikke rigtigt om - det er
-    # netop den flytning mellem foraeldre, deploy advarer om. Uden en
-    # indlejret titelgruppe er der intet at flytte forkert.
-    gap = group(f"{name}Gap", [], direction="Horizontal", height=0)
-    grow(gap)
-    return group(f"{name}", [t] + list(extra_left) + [gap] + right, direction="Horizontal",
-                 gap=12, align_items="Center")
 
 
 # Hoejden paa EET afsnit i hjaelpepanelet.
