@@ -94,8 +94,9 @@ FIELDS = [f for _sec, fields in cfg.SECTIONS for f in fields]
 # naar udtrykket er sandt, og dets vaerdi RYDDES ved gem, saa en aendret
 # type ikke efterlader gamle vaerdier i raekken.
 #
-# Equipment og Materials har ingen WHEN, og deres skaermes YAML er derfor
-# ordret den samme som foer - det er hele pointen med at det er opt-in.
+# Equipment har ingen WHEN, og dens skaerms YAML er derfor ordret den samme
+# som foer - det er hele pointen med at det er opt-in. Materials bruger den
+# til lagerfelterne og det erstattede materiale (issue #228).
 WHEN = dict(getattr(cfg, "WHEN", {}))
 
 # Felter, der skal skrives af appen i stedet for af brugeren (opt-in):
@@ -188,6 +189,10 @@ GAL_ROWS = 8
 #   after_submit    Power Fx efter en LYKKET indsendelse, mens
 #                   varDomRequestGuid stadig staar (Materials: start
 #                   systemgodkendelsen)
+#   row_actions     Saved Rows' knapper (issue #228). None = de faelles
+#                   (Docs, Copy | Details, Edit, Delete). Ellers en liste
+#                   af RowAction i den raekkefoelge, de skal staa - een
+#                   ACTIONS-kolonne, og to linjer i mobilkortet
 # ---------------------------------------------------------------------------
 HOOKS = {
     "field_defaults": {},
@@ -203,6 +208,7 @@ HOOKS = {
     "details_rows": None,
     "submit_guard": None,
     "after_submit": "",
+    "row_actions": None,
 }
 
 
@@ -312,7 +318,9 @@ def submit_press_fx():
     if not HOOKS["submit_guard"]:
         return open_confirm
     before, blocked, message = HOOKS["submit_guard"]
-    return (f"{before};\n"
+    # En vagt uden noget, der skal koeres foerst (Materials uden
+    # godkendelse, issue #228), er bare If'en.
+    return ((f"{before};\n" if before else "") +
             "If(\n"
             f"    {blocked},\n"
             f"    Notify({message}, NotificationType.Warning),\n"
@@ -776,7 +784,7 @@ def _diff_pairs():
     return pairs
 
 
-def save_row_fx(status="valid", required=()):
+def save_row_fx(status="valid", required=(), always=()):
     """Gem raekken i SharePoint - som kladde eller som faerdig.
 
     required: appens EKSTRA krav til en faerdig raekke, som par af
@@ -789,6 +797,10 @@ def save_row_fx(status="valid", required=()):
 
     En FAERDIG raekke kraever ogsaa vaerket, og det er den status, Indsend
     tager med.
+
+    always: krav, der gaelder BAADE kladde og faerdig raekke (opt-in,
+    issue #228) - en vaerdi, der er forkert, ikke bare mangler (Materials:
+    min stock > max stock). Samme form som required.
     """
     patch = [
         f"            {cfg.C_TEXT}: Trim(varDomFText),",
@@ -833,6 +845,8 @@ def save_row_fx(status="valid", required=()):
     # Rettigheden staar ogsaa i selve handlingen, ikke kun i UI'et.
     extra = (f"    {AS_ADMIN} && !{perm.IS_ADMIN},\n"
              f"    {DENIED_OTHER},\n")
+    for cond, text in always:
+        extra += f'    {cond},\n    Notify("{text}", NotificationType.Warning),\n'
     if status != "draft":
         for cond, text in required:
             extra += f'    {cond},\n    Notify("{text}", NotificationType.Warning),\n'
@@ -1775,7 +1789,8 @@ def form_footer(buttons):
     return [actions, info]
 
 
-def form_buttons(save_fx, save_text, new_text):
+def form_buttons(save_fx, save_text, new_text, new_fx=None, new_tooltip=None,
+                 new_icon="Add"):
     """Save draft, Save og New row/Reset form - i den orden, med den
     primaere knap naestsidst som i HTML-projektet.
 
@@ -1784,7 +1799,10 @@ def form_buttons(save_fx, save_text, new_text):
     operationstabel. form_footer regner bredden af de knapper, der er, saa
     pladsen forsvinder med knappen.
 
-    save_fx(status) er appens gem (save_row_fx med evt. egne krav)."""
+    save_fx(status) er appens gem (save_row_fx med evt. egne krav).
+    new_fx / new_tooltip / new_icon: appens egen tredje knap (opt-in,
+    issue #228 - Materials' Reset spoerger foerst, naar der er noget at
+    miste). Standard er den faelles "ryd formularen"."""
     return [
         icon_on_mobile(fit(button("btnDomSaveDraft", '"Save row draft"',
                    with_busy(SAVING_VAR, save_fx("draft")),
@@ -1794,8 +1812,9 @@ def form_buttons(save_fx, save_text, new_text):
                    with_busy(SAVING_VAR, save_fx("valid")),
                    primary=True, display_mode=DM_ROW, icon=ICON_SAVE,
         tooltip='"Save the row as complete, ready to submit"'), icon=True)),
-        icon_on_mobile(fit(button("btnDomNew", f'"{new_text}"', clear_form_fx(), icon="Add",
-        tooltip='"Clear the form and start a new row"'), icon=True)),
+        icon_on_mobile(fit(button("btnDomNew", f'"{new_text}"', new_fx or clear_form_fx(),
+                                  icon=new_icon,
+        tooltip=new_tooltip or '"Clear the form and start a new row"'), icon=True)),
     ]
 
 
@@ -1881,6 +1900,50 @@ def _btns_w(btns):
 
 LIST_MORE_W = _btns_w(MORE_BTNS) + CELL_PAD
 LIST_ACTIONS_W = _btns_w(ACTION_BTNS) + CELL_PAD
+
+
+# ---------------------------------------------------------------------------
+# APPENS EGNE RAEKKEKNAPPER (opt-in, issue #228)
+#
+# HOOKS["row_actions"] er en liste af RowAction. Saa staar ALLE knapper i
+# een ACTIONS-kolonne i den givne raekkefoelge (der er ingen MORE-kolonne),
+# og i mobilkortet paa to linjer efter line. Uden krogen er listen den
+# faelles - Equipment og Measuring Point genereres uaendret.
+# ---------------------------------------------------------------------------
+class RowAction:
+    """En knap paa en gemt raekke.
+
+    name     knappens navn (mobilkortets faar "C" bagpaa)
+    text     Power Fx-teksten - maa vaere et udtryk ("Docs (2)")
+    fx       OnSelect (ThisItem er raekken)
+    width    fast bredde - tekstens LAENGSTE form skal kunne staa i den
+    mode     DisplayMode-udtryk eller None (altid aktiv)
+    danger   destruktiv knap (roed kant)
+    icon     Fluent-ikon; icon_only goer knappen til kun ikonet
+    label    AccessibleLabel/Tooltip; standard er teksten + raekkens noegle
+    line     1 eller 2 - linjen i mobilkortet"""
+
+    def __init__(self, name, text, fx, width, mode=None, danger=False, icon=None,
+                 icon_only=False, label=None, line=1):
+        self.name, self.text, self.fx, self.width = name, text, fx, width
+        self.mode, self.danger, self.icon, self.icon_only = mode, danger, icon, icon_only
+        self.label, self.line = label, line
+
+
+def _actions_w(acts):
+    return sum(a.width for a in acts) + ROW_BTN_GAP * (len(acts) - 1) + CELL_PAD
+
+
+def _action_button(a, suffix=""):
+    who = a.label or f'{a.text} & " " & ThisItem.ItemKey'
+    b = button(a.name + suffix, a.text, a.fx, danger=a.danger, width=a.width,
+               height=ROW_BTN_H, display_mode=a.mode, accessible=who, tooltip=who)
+    b.props["Size"] = "13"
+    if a.icon:
+        b.props["Icon"] = f'"{a.icon}"'
+        b.props["Layout"] = ("ButtonLayout.IconOnly" if a.icon_only
+                             else "ButtonLayout.IconBefore")
+    return b
 # Galleriets egne 2 x 2 px skabelonpolstring og dets lodrette scrollbar.
 TABLE_AVAIL = f"(({FORM_W}) - 4 - {SCROLLBAR_W})"
 
@@ -1914,7 +1977,12 @@ class ListLayout:
 
     def __init__(self, slots):
         self.slots = list(slots)
-        fixed = BADGE_W + LIST_MORE_W + LIST_ACTIONS_W + T_GAP * (len(self.slots) + 2)
+        acts = HOOKS["row_actions"]
+        if acts:
+            # Een ACTIONS-kolonne og ingen MORE (issue #228).
+            fixed = BADGE_W + _actions_w(acts) + T_GAP * (len(self.slots) + 1)
+        else:
+            fixed = BADGE_W + LIST_MORE_W + LIST_ACTIONS_W + T_GAP * (len(self.slots) + 2)
         self.min_w = fixed + sum(col_w(c) for c in self.slots)
         self.spare = f"Max(0, ({TABLE_AVAIL}) - {self.min_w}) / {len(self.slots)}"
         self.table_w = f"Max({self.min_w}, {TABLE_AVAIL})"
@@ -2017,10 +2085,19 @@ def _compact_row(lay_, load_fx, copy_fx, delete_fx):
         return group(name, out, direction="Horizontal", gap=ROW_BTN_GAP, height=ROW_BTN_H,
                      align_items="Center")
 
-    line3 = btns("conDomRowLineC3", ACTION_BTNS, [details_fx(), load_fx, delete_fx],
-                 danger=("btnDomRowDelete",), modes=ROW_MODES)
-    line4 = btns("conDomRowLineC4", MORE_BTNS, [open_docs_fx(), copy_fx],
-                 modes=ROW_MODES)
+    acts = HOOKS["row_actions"]
+    if acts:
+        def act_line(name, n):
+            return group(name, [_action_button(a, "C") for a in acts if a.line == n],
+                         direction="Horizontal", gap=ROW_BTN_GAP, height=ROW_BTN_H,
+                         align_items="Center")
+        line3 = act_line("conDomRowLineC3", 1)
+        line4 = act_line("conDomRowLineC4", 2)
+    else:
+        line3 = btns("conDomRowLineC3", ACTION_BTNS, [details_fx(), load_fx, delete_fx],
+                     danger=("btnDomRowDelete",), modes=ROW_MODES)
+        line4 = btns("conDomRowLineC4", MORE_BTNS, [open_docs_fx(), copy_fx],
+                     modes=ROW_MODES)
     return group("conDomRowC", [line1, line2, line3, line4], direction="Vertical", gap=4,
                  height="Parent.TemplateHeight - 2", align_items="Stretch",
                  width="Parent.TemplateWidth", pad=(8, CELL_PAD, 0, CELL_PAD),
@@ -2056,16 +2133,26 @@ def build_list(slots, badge_head, search_placeholder):
                                 accessible=lay_.text(i, 0)))
         cells.append(_pad(text_ctrl(f"txtDomCell{i}", lay_.text(i, 1), size=13,
                                     height=20, width=lay_.width(i), wrap="false")))
-    heads.append(_head_text("txtDomHeadMore", '"MORE"', LIST_MORE_W))
-    heads.append(_head_text("txtDomHeadActions", '"ACTIONS"',
-                            LIST_ACTIONS_W, accessible='"Actions"'))
-    cells.append(_row_buttons("conDomRowMore", MORE_BTNS,
-                              [open_docs_fx(), copy_row_fx()],
-                              LIST_MORE_W, modes=ROW_MODES))
-    cells.append(_row_buttons("conDomRowActions", ACTION_BTNS,
-                              [details_fx(), load_row_fx(), delete_this_row_fx()],
-                              LIST_ACTIONS_W, danger=("btnDomRowDelete",),
-                              modes=ROW_MODES))
+    acts = HOOKS["row_actions"]
+    if acts:
+        # Appens egne knapper i een kolonne (issue #228).
+        aw = _actions_w(acts)
+        heads.append(_head_text("txtDomHeadActions", '"ACTIONS"', aw,
+                                accessible='"Actions"'))
+        cells.append(group("conDomRowActions", [_action_button(a) for a in acts],
+                           direction="Horizontal", gap=ROW_BTN_GAP, height=ROW_BTN_H,
+                           width=aw, align_items="Center", pad=(0, 0, 0, CELL_PAD)))
+    else:
+        heads.append(_head_text("txtDomHeadMore", '"MORE"', LIST_MORE_W))
+        heads.append(_head_text("txtDomHeadActions", '"ACTIONS"',
+                                LIST_ACTIONS_W, accessible='"Actions"'))
+        cells.append(_row_buttons("conDomRowMore", MORE_BTNS,
+                                  [open_docs_fx(), copy_row_fx()],
+                                  LIST_MORE_W, modes=ROW_MODES))
+        cells.append(_row_buttons("conDomRowActions", ACTION_BTNS,
+                                  [details_fx(), load_row_fx(), delete_this_row_fx()],
+                                  LIST_ACTIONS_W, danger=("btnDomRowDelete",),
+                                  modes=ROW_MODES))
 
     table_w = if_below("Desktop", TABLE_AVAIL, lay_.table_w)
     list_head = group("conDomListHead", heads, direction="Horizontal", gap=T_GAP,
