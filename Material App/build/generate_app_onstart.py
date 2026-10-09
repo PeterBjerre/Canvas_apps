@@ -18,10 +18,9 @@ import material_parts as parts
 
 
 def main():
-    # Materials' eget (issue #204): objektlisten paa den raekke,
-    # formularen staar paa, og raekken med de valgfrie oplysninger, der er
-    # foldet ind ved opstart.
-    cols = [(parts.OBJECTS, parts.OBJ_SCHEMA)]
+    # Materials' eget (issue #204, #228): objekterne en kopi tager med, og
+    # objektlisten i popuppen paa den gemte raekke.
+    cols = [(parts.OBJECTS, parts.OBJ_SCHEMA), (parts.POP, parts.OBJ_SCHEMA)]
     state = parts.EXTRA_STATE
     # Systemgodkendelsens svar - kun naar flaget er taendt, saa en app
     # uden godkendelse ikke slaebber en tom samling rundt.
