@@ -51,9 +51,9 @@ def load_part():
 
 
 def ensure_row_part():
-    """En tom anmodning har altid een raekke at skrive i - og altid en
-    valgt raekke (issue #166). Valideringen vaelger den foerste, naar den
-    valgte ikke findes, og regner fold-ud-sektionens felter."""
+    """En tom anmodning har altid een raekke at skrive i (issue #166).
+    Valideringen vaelger den foerste, naar popuppens raekke ikke findes,
+    og regner dens felter."""
     return ("If(\n"
             "    CountRows(colFlRows) = 0,\n"
             "    " + P.add_row_fx().replace("\n", " ") + ";\n"
@@ -69,15 +69,16 @@ def on_visible():
 
 def build_screen(render=render_screen):
     """render: gen_screen.render_screen - eller BIO SAP App's opsamler."""
-    # EEN spalte: Validation (raekkerne med fold-ud, issue #184), Classes
-    # og strukturen. Klassedata er en popup (build_class_modal). Save
+    # EEN spalte: Validation (raekkerne, issue #232), Classes og
+    # strukturen. Class data, Manufacturer og Warranty er popupper
+    # (build_class_modal, build_field_modal). Save
     # draft, Submit og New request staar i bjaelken (issue #77).
     root = app_frame("Fl", P.build_bar(),
                      [P.build_rows(), P.build_classes(), P.build_structure()])
     # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
     nav, overlay = side_nav("Fl", "functionallocation")
     return render(cfg.SCREEN, {"Fill": C_APP_BG, "OnVisible": on_visible()},
-                         [root, *nav, *overlay, *P.build_class_modal(),
+                         [root, *nav, *overlay, *P.build_class_modal(), *P.build_field_modal(),
                           *P.build_submit_confirm()])
 
 
