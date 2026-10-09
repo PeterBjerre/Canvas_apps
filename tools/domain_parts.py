@@ -114,6 +114,16 @@ _unknown = sorted(set(WHEN) - _COLS)
 if _unknown:
     raise SystemExit("domain_config.WHEN naevner felter, der ikke staar i "
                      "SECTIONS: %s" % ", ".join(_unknown))
+# Felter, der er en CHOICE-kolonne i SharePoint (opt-in, issue #210).
+# Appen holder teksten ("Yes", "Counter") i formularen og i colDomRows,
+# men skriver { Value: ... } og laeser .Value. Equipment og Materials har
+# tekstkolonner, saetter den ikke og genereres uaendret.
+SP_CHOICE = set(getattr(cfg, "SP_CHOICE", ()))
+_unknown = sorted(c for c in SP_CHOICE
+                  if c not in {f for f, _l, k, _ch in FIELDS if k == "choice"})
+if _unknown:
+    raise SystemExit("domain_config.SP_CHOICE naevner felter, der ikke er et "
+                     "'choice'-felt i SECTIONS: %s" % ", ".join(_unknown))
 _READ_COLS = {c for c, _l, _k, _ch in getattr(cfg, "READ_FIELDS", [])}
 _unknown = sorted(set(EXTRA_PATCH) - _READ_COLS)
 if _unknown:
@@ -520,8 +530,17 @@ def _blank(kind):
     return BLANK.get(kind, '""')
 
 
+def _patch_blank(col, kind):
+    """Den tomme vaerdi, der GEMMES. En valgkolonne tager ikke "" - den
+    ryddes med Blank() (SP_CHOICE)."""
+    return "Blank()" if col in SP_CHOICE else _blank(kind)
+
+
 def _patch_value(col, kind):
     v = _var(col)
+    if col in SP_CHOICE:
+        return (f'If(IsBlank(Trim(Coalesce({v}, ""))), Blank(), '
+                f'{{ Value: Trim({v}) }})')
     if kind in ("text", "long", "choice"):
         return f"Trim(Coalesce({v}, \"\"))"
     if kind == "bool":
@@ -568,7 +587,9 @@ def _collect_rows(source):
         "            Plant: Coalesce(R.Plant, \"\"),",
     ]
     for col, _lab, kind, _ch in ROW_FIELDS:
-        if kind in ("text", "long", "choice"):
+        if col in SP_CHOICE:
+            v = f'Coalesce(R.{col}.Value, "")'
+        elif kind in ("text", "long", "choice"):
             v = f'Coalesce(R.{col}, "")'
         elif kind == "dec":
             # Tallet som TEKST, saa formularens tekstfelt kan vise det
@@ -781,7 +802,7 @@ def save_row_fx(status="valid", required=()):
             # Skifter brugeren type, skal den gamle types vaerdier ikke
             # blive staaende paa raekken - saa ville SAP-ordren og
             # detaljerne vise et felt, formularen ikke laengere viser.
-            v = f"If({WHEN[col]}, {v}, {_blank(kind)})"
+            v = f"If({WHEN[col]}, {v}, {_patch_blank(col, kind)})"
         patch.append(f"            {col}: {v},")
     # Appens egne kolonner, der ikke er et felt i formularen (Materials'
     # Object List) - HOOKS["extra_patch"].
