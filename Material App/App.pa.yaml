@@ -208,7 +208,7 @@ App:
       );
       Notify("Something went wrong: " & FirstError.Message, NotificationType.Error)
     OnStart: |
-      =If(false, ClearCollect(colDomRows, { RowId: 0, ItemKey: "", RequestNo: "", Status: "", FileCount: 0, MaterialDescription: "", Plant: "", FunctionalLocation: "", NoBomItem: false, Manufacturer: "", ModelNumber: "", ManufacturerPartNo: "", Supplier: "", SupplierPartNo: "", DeliveringTime: 0, Price: 0, PriceUnit: "", StockUnit: "", RecommendedStock: 0, IsStockItem: false, MinStock: 0, MaxStock: 0, StorageBin: "", StrategicPart: "", WearPart: "", Remarks: "", MaintenanceOrderNo: "", ReplacesExisting: false, ReplacedMaterialNo: "", ObjectList: "", ObjectListJson: "", ApprovalRequired: false, CreatedMaterialNo: "", RequesterName: "", RequesterEmail: "", SubmittedOn: Blank() }));
+      =If(false, ClearCollect(colDomRows, { RowId: 0, ItemKey: "", RequestNo: "", Status: "", FileCount: 0, MaterialDescription: "", Plant: "", Manufacturer: "", ModelNumber: "", ManufacturerPartNo: "", Supplier: "", SupplierPartNo: "", DeliveringTime: 0, Price: 0, PriceUnit: "", StockUnit: "", IsStockItem: false, MinStock: 0, MaxStock: 0, StorageBin: "", StrategicPart: "", WearPart: "", Remarks: "", MaintenanceOrderNo: "", ReplacesExisting: false, ReplacedMaterialNo: "", FunctionalLocation: "", ObjectList: "", ObjectListJson: "", ApprovalRequired: false, CreatedMaterialNo: "", RequesterName: "", RequesterEmail: "", SubmittedOn: Blank() }));
 
       If(false, ClearCollect(colDomAttachments, { RowId: 0, FileName: "", FileUrl: "", Identifier: "", Selected: false }));
 
@@ -220,6 +220,8 @@ App:
       Clear(colAppPrefs);
 
       If(false, ClearCollect(colDomObjects, { Code: "", Description: "" }));
+
+      If(false, ClearCollect(colDomObjPop, { Code: "", Description: "" }));
 
       // TEMAVALGET. Skal staa foerst: alt hvad skaermen tegner, laeser C,
       // og C laeser darkModeEnabled.
@@ -265,8 +267,11 @@ App:
       // staa og lyse roedt. Saettes af Gem/Indsend - se domain_parts.REQUIRED.
       Set(varDomValidated, false);
 
-      Set(varDomExtraOpen, false);
-      Set(varDomDetCreatedNo, "")
+      Set(varDomDetCreatedNo, "");
+      Set(varDomObjRowId, Blank());
+      Set(varDomObjPick, "");
+      Set(varDomPoOpen, false);
+      Set(varDomResetAsk, false)
     StartScreen: |-
         =ScreenMaterial
     Theme: |-

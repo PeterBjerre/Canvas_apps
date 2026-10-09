@@ -17,7 +17,7 @@ DET ER IKKE MM01
 ----------------
 Der er hverken materialenummer, materialetype eller materialegruppe. Det,
 appen samler ind, er reservedelsoplysninger - leverandoer, pris,
-leveringstid, anbefalet lager - knyttet til en funktionsplads. Saadan var
+leveringstid, lager - knyttet til en eller flere funktionspladser. Saadan var
 formularen i Studio, og saadan er listen.
 """
 import os
@@ -63,10 +63,14 @@ TEXT_PLACEHOLDER = '"Short text, max 40 characters"'
 # LaunchTarget.Replace, saa det sker i den fane, brugeren staar i.
 HUB_URL = env.hub_url()
 
-# Feltet der skal have FL-SOEGNING i stedet for et tekstfelt: EEN combobox
-# med Search-knap (tools/fl_picker.py, issue #63) - den samme i alle tre
-# apps. Flowet er allerede datakilde.
-FL_FIELD = "FunctionalLocation"
+# FUNKTIONSPLADSERNE ER IKKE ET FELT I FORMULAREN (issue #228)
+#
+# Her stod FL_FIELD = "FunctionalLocation", og formularen havde FL-soegning,
+# Add og Object List. Nu tilfoejes funktionspladserne paa den GEMTE raekke
+# (Saved Rows -> Objects), og FunctionalLocation er en kolonne, appen
+# laeser og skriver (READ_FIELDS + material_parts' extra_patch) - ikke et
+# felt. Uden FL_FIELD henter og kopierer domain_parts ikke en FL ind i
+# formularens vaelger, som ikke laengere findes.
 
 # --- felterne ---------------------------------------------------------
 # Se Equipment-appens domain_config.py for hvad "art" betyder.
@@ -76,19 +80,15 @@ FL_FIELD = "FunctionalLocation"
 # colYesNo blev aldrig defineret. Derfor er de TEKST her og i SharePoint,
 # indtil listerne findes.
 #
-# NoBomItem er et ja/nej-felt ("bool"). Staar det til, er raekken ikke en
-# BOM-post, og funktionspladsen er hverken kraevet eller til at vaelge -
-# se material_parts.py. Den er en Boolean-kolonne i SharePoint, fordi appen
-# sender sand/falsk og ikke en etiket.
+# NoBomItem og RecommendedStock er fjernet fra formularen (issue #228).
+# Kolonnerne bliver staaende i SharePoint med de vaerdier, der er gemt;
+# appen hverken viser, henter eller skriver dem laengere. En raekke uden
+# funktionspladser ER nu det, No BOM Item sagde.
 #
 # SEKTIONERNE ER GRUPPERING, IKKE OVERSKRIFTER. Formularen viser dem ikke
 # laengere (issue #67); raekkefoelgen paa skaermen staar i
 # material_parts.FORM_ORDER.
 SECTIONS = [
-    ("General", [
-        ("FunctionalLocation", "Functional location", "text", None),
-        ("NoBomItem", "No BOM item", "bool", None),
-    ]),
     ("Master data", [
         ("Manufacturer", "Manufacturer", "text", None),
         ("ModelNumber", "Model number", "text", None),
@@ -103,13 +103,13 @@ SECTIONS = [
         ("Price", "Price", "num", None),
         ("PriceUnit", "Price unit", "text", None),
         ("StockUnit", "Stock unit", "text", None),
-        ("RecommendedStock", "Recommended stock", "num", None),
     ]),
     # LAGER OG PLADS (issue #204). IsStockItem er en rigtig til/fra -
     # kolonnen er Boolean, og appen sender sand/falsk. Min og max kraeves
     # KUN for en lagervare (material_parts.save_fx), og de har ingen
     # standardvaerdi: et tal, ingen har valgt, ser ud som et oensket
-    # lagerniveau. StorageBin foreslaas som "X" i formularen.
+    # lagerniveau. StorageBin foreslaas som "X" i formularen. De tre felter
+    # vises kun for en lagervare (WHEN nedenfor, issue #228).
     ("Stock and storage", [
         ("IsStockItem", "Stock item", "bool", None),
         ("MinStock", "Min stock", "num", None),
@@ -123,18 +123,20 @@ SECTIONS = [
         ("StrategicPart", "Strategic part", "choice", ["Yes", "No"]),
         ("WearPart", "Wear part", "text", None),
     ]),
-    # YDERLIGERE OPLYSNINGER (issue #204) - alle valgfrie. Raekken staar
-    # foldet ind bag knappen i formularens hoved.
+    # YDERLIGERE OPLYSNINGER (issue #204) - alle valgfrie. Remarks hedder
+    # "Purchase order text" paa skaermen (issue #228); kolonnen er den samme.
     ("Additional information", [
-        ("Remarks", "Remarks", "long", None),
+        ("Remarks", "Purchase order text", "long", None),
         ("MaintenanceOrderNo", "Maintenance order no.", "text", None),
-        ("ReplacesExisting", "Replaces existing material", "bool", None),
+        ("ReplacesExisting", "Replace existing material", "bool", None),
         ("ReplacedMaterialNo", "Replaced material no.", "text", None),
     ]),
 ]
 
 # Kolonner appen LAESER, men formularen ikke skriver (issue #204):
 #
+#   FunctionalLocation  raekkens FOERSTE funktionsplads (issue #228: ikke
+#       laengere et felt - se FL_FIELD ovenfor).
 #   ObjectList/ObjectListJson  raekkens funktionspladser. De skrives af
 #       gem (material_parts.OBJECT_PATCH), ikke af et felt.
 #   ApprovalRequired           fastfrosset ved Submit - et filter, ikke et
@@ -145,6 +147,7 @@ SECTIONS = [
 #   RequesterName/Email/SubmittedOn  rekvirenten og tidspunktet. De staar
 #       paa raekken i SharePoint og vises i Details (issue #204).
 READ_FIELDS = [
+    ("FunctionalLocation", "Functional location", "text", None),
     ("ObjectList", "Object list", "long", None),
     ("ObjectListJson", "Object list (json)", "long", None),
     ("ApprovalRequired", "Approval required", "bool", None),
@@ -155,6 +158,19 @@ READ_FIELDS = [
 ]
 
 PLANT_LABEL = "Plant"
+
+# BETINGEDE FELTER (issue #228, domain_parts.WHEN). Min, max og lagerplads
+# vises kun for en lagervare, og det erstattede materialenummer kun, naar
+# materialet erstatter et andet. Et skjult felt gemmes TOMT, saa en raekke,
+# der ikke er lagervare, ikke sender et lagerniveau videre.
+_STOCK = "Coalesce(varDomFIsStockItem, false)"
+_REPLACES = "Coalesce(varDomFReplacesExisting, false)"
+WHEN = {
+    "MinStock": _STOCK,
+    "MaxStock": _STOCK,
+    "StorageBin": _STOCK,
+    "ReplacedMaterialNo": _REPLACES,
+}
 
 # Listens kolonner staar i material_parts.SLOTS.
 

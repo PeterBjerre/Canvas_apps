@@ -1,78 +1,95 @@
 # -*- coding: utf-8 -*-
 """
-Materials' EGNE dele: formularens felter, No BOM Item og listens kolonner
-(issue #67).
+Materials' EGNE dele: formularens felter, popupperne og listens kolonner
+(issue #67, omlagt i #228).
 
-Skaermen er tegnet efter materials.png og "saved row.png" i app-mappen -
-HTML-projektets reservedelsformular. Byggeklodserne - gitteret, knapperne,
-pillerne, dokumentcellen, listen og indsend - er faelles med Equipment og
-staar i tools/domain_parts.py. Her staar kun det, der er Materials': hvilke
-felter, i hvilken raekkefoelge, og hvilke kolonner listen viser.
+Byggeklodserne - gitteret, knapperne, pillerne, dokumentpopuppen, listen og
+indsend - er faelles med Equipment og staar i tools/domain_parts.py. Her
+staar kun det, der er Materials': hvilke felter, i hvilken raekkefoelge,
+hvilke popupper og hvilke kolonner og knapper listen viser.
 
-FORMULAREN
-----------
-    Spare Parts Form  * Required   [No BOM Item: OFF] [More details: OFF]
-    [ Plant       ][ FL + Add     ][ Description  ][ Manufacturer     ]
-    [ Model number][ Manuf. part  ][ Supplier     ][ Supp. part no.   ]
-    [ Stock unit  ][ Price        ][ Price unit   ][ Delivery time    ]
-    [ Stock item  ][ Min stock *  ][ Max stock *  ][ Rec. stock       ]
-    [ Storage bin ][ Strategic    ][ Wear part    ][ Documentation    ]
-    [ Remarks     ][ Order no.    ][ Replaces     ][ Replaced no.     ]   <- foldet ind
-    (Plant: X) (Row status: ...)  [Save draft][Save row][Reset form]
+FORMULAREN (issue #228)
+-----------------------
+    Material Editor  * Required
+    Start with the four key fields ...
+    [ Plant       ][ Description  ][ Stock item  No|Yes ][ Replace existing  No|Yes ]
+    [ Min stock * ][ Max stock *  ][ Storage bin ]                 <- kun lagervare
+    [ Replaced material no. * ]                                    <- kun ved Replace
+    [ Manufacturer][ Model number ][ Manuf. part no. ]
+    [ Supplier    ][ Supp. part no][ Delivery time   ][ Purchase order text [Add text] ]
+    [ Price       ][ Price unit   ][ Stock unit      ]
+    [ Strategic   ][ Wear part    ][ Maintenance order no. ]
+    (Plant: X) (Row status: ...)  [Save row draft][Save row][Reset]
 
-STOCK AND STORAGE (issue #204)
-------------------------------
-Stock item er raekkens til/fra. Staar den til, KRAEVES min og max, og
-min <= max; staar den fra, roeres de ikke. Storage bin foreslaas som "X",
-og standarden staar HER - ikke som en default i SharePoint, hvor den
-ville udfylde et felt bag om brugeren.
+Den FOERSTE raekke er fast: Plant, beskrivelse og de to til/fra-valg. De
+to valg aabner hver deres raekke lige under sig, saa det, de styrer, staar
+hvor brugeren kigger. Skjult koster en raekke ingen plads (gitterets og
+kortets hoejde regnes af de synlige boern). Resten er grupper: producent,
+leverandoer og indkoeb, pris og enhed, klassifikation og ordre.
 
-YDERLIGERE OPLYSNINGER
-----------------------
-Remarks, maintenance order no. og "replaces existing material" er
-valgfrie og staar foldet ind bag knappen "More details" i hovedet - de
-fylder ellers en hel raekke i en formular, de fleste raekker ikke bruger.
-Replaced material no. vises foerst, naar Replaces existing staar til, og
-er saa kraevet.
+Hver raekke er sin egen container, der ombryder til to og een kolonne, saa
+laese- og tab-raekkefoelgen er den samme paa desktop, tablet og mobil.
+
+STOCK ITEM OG REPLACE EXISTING MATERIAL
+---------------------------------------
+To segmenterede valg [ No | Yes ] - samme kontrol som Revision i VH-planens
+Item Editor (build_helpers.segmented). Felterne, de styrer, staar i
+domain_config.WHEN: de vises kun, naar valget er Yes, og gemmes tomme, naar
+det er No. Min <= max tjekkes ved BAADE kladde og faerdig raekke.
+
+PURCHASE ORDER TEXT
+-------------------
+Kolonnen Remarks. Feltet er en knap, der aabner en popup med teksten -
+Close er den eneste vej ud, og teksten bliver staaende i formularen, til
+raekken gemmes.
+
+DOKUMENTER OG FUNKTIONSPLADSER HOERER TIL DEN GEMTE RAEKKE
+---------------------------------------------------------
+De stod i formularen. Dokumenterne ligger i en mappe, der hedder raekkens
+noegle, og funktionspladserne slaas op og godkendes pr. raekke - begge dele
+kraever en gemt raekke. Nu er de knapper paa raekken i Saved Rows
+(Docs, Objects), og formularen siger, at de findes dér.
+
+No BOM Item og Recommended stock er fjernet (issue #228). Kolonnerne staar
+uroert i SharePoint; appen skriver dem ikke laengere.
 
 Created material no. er IKKE et felt her. Nummeret findes foerst, naar
-materialet er oprettet i SAP, altsaa efter godkendelse og overdragelse -
-det udfyldes i Details bagefter (domain_parts' detaljerude).
-
-Raekkefoelgen er issue #159's fire grupper: organisation og identifikation,
-producent og leverandoer, lager/pris/levering, klassifikation og
-dokumentation. Hver raekke er sin egen container, der ombryder til to og
-een kolonne, saa laese- og tab-raekkefoelgen er den samme paa desktop,
-tablet og mobil (felterne har TabIndex 0 og foelger containerens orden).
-
-NO BOM ITEM
------------
-En knap i formularens hoved. Staar den til, er raekken ikke en BOM-post:
-funktionspladsen ryddes og deaktiveres, dens stjerne forsvinder, og Save
-row kraever den ikke. Vaerdien er kolonnen NoBomItem (domain_config), saa
-gem, hent, kopier og detaljer tager den med af sig selv.
+materialet er oprettet i SAP - det udfyldes i Details bagefter.
 """
 import domain_config as cfg
 import domain_parts as dp
 import env_config as env
 import object_list as ol
 import stepper as st
-from gen_screen import C_REQUIRED
-from build_helpers import (text_ctrl, group, button, text_input, card, field_cell,
-                           label_px, fit_button_width)
-from gen_screen import C_MUTED
+import admin_log as alog
+import permissions as perm
+import layout_tokens as lay
+from fl_picker import fl_picker
+from gen_screen import C_MUTED, C_INVALID_FG, C_MODAL_BG, C_PRIMARY_SOFT, C_REQUIRED
+import doc_upload as du
+from build_helpers import (text_ctrl, group, button, text_input, card, grow, segmented,
+                           section_header, tap_backdrop, confirm_modal, text_min_height,
+                           fit_button_width, text_px, label_px)
+from layout_tokens import if_below, fits
 
-NOBOM = dp._var("NoBomItem")
-FL_VAR = dp._var(cfg.FL_FIELD)
 CELL_W = dp.CELL_W
 REQUIRED = dp.REQUIRED
 
-# Lagervare, "erstatter et materiale" og de tre felter, de styrer.
+# Lagervare, "erstatter et materiale" og de felter, de styrer.
 STOCK = dp._var("IsStockItem")
 MIN_S = dp._var("MinStock")
 MAX_S = dp._var("MaxStock")
+BIN = dp._var("StorageBin")
 REPLACES = dp._var("ReplacesExisting")
 REPLACED_NO = dp._var("ReplacedMaterialNo")
+IS_STOCK = f"Coalesce({STOCK}, false)"
+IS_REPL = f"Coalesce({REPLACES}, false)"
+# Purchase order text er kolonnen Remarks (issue #228).
+PO = dp._var("Remarks")
+PO_OPEN = "varDomPoOpen"
+# Kan formularens raekke rettes? Samme regel som domain_parts.DM_ROW.
+READ_ONLY = '(varDomViewOnly || varDomRowStatus = "submitted")'
+
 # Er raekken strategisk? Kolonnen er tekst, og gamle raekker kan staa med
 # Ja, Y eller true. Normaliseringen staar HER og kun her - der skrives
 # altid "Yes"/"No" (domain_config.SECTIONS), og gamle vaerdier laeses som
@@ -85,122 +102,62 @@ def is_strategic(expr):
 
 
 STRAT_FORM = is_strategic(dp._var("StrategicPart"))
-# OBJECT LIST (issue #204)
+
+# OBJECT LIST (issue #204, flyttet til den gemte raekke i #228)
 #
-# Raekkens funktionspladser. Samlingen hoerer til FORMULAREN - den raekke,
-# man staar paa - og den gemmes paa raekken som ObjectList (koderne),
+# Raekkens funktionspladser gemmes paa raekken som ObjectList (koderne),
 # ObjectListJson (kode + beskrivelse) og FunctionalLocation (den foerste
 # kode). Delene staar i tools/object_list.py og er domaeneneutrale.
+#
+# TO SAMLINGER
+#   colDomObjects   formularens. Den holder kun en KOPI's objekter: Copy
+#                   tager dem med til den nye, ugemte raekke, og Save row
+#                   skriver dem paa den. En hentet raekke roerer dem ikke -
+#                   dens objekter staar paa raekken og rettes i popuppen.
+#   colDomObjPop    popuppens - den gemte raekke, popuppen er aabnet for.
+#                   Hver Add og Remove gemmes paa raekken med det samme.
 OBJECTS = "colDomObjects"
+POP = "colDomObjPop"
 OBJ_SCHEMA = ol.schema()
-OBJ_COUNT = ol.count_fx(OBJECTS)
+OBJ_ROW = "varDomObjRowId"
+OBJ_REC = f"LookUp(colDomRows, RowId = {OBJ_ROW})"
+# Det valgte soegeresultat i popuppen.
+PICK = "varDomObjPick"
 FL_MSG = "varDomFlMsg"
 # Mindst 16 tegn foer der kan soeges OG foer der kan tilfoejes (Q11).
 # "SSV13 HFC10AJ010" er praecis 16 - i praksis skal man kende hele koden.
 MIN_FL_LEN = 16
-ADD_READY = f'Len(Trim(Coalesce({FL_VAR}, ""))) >= {MIN_FL_LEN}'
-# Gendannelsen, naar en raekke hentes eller kopieres: JSON'en foerst, saa
-# den "; "-adskilte liste, og til sidst FL-kolonnen alene (gamle raekker).
+ADD_READY = f'Len(Trim(Coalesce({PICK}, ""))) >= {MIN_FL_LEN}'
+# Gendannelsen, naar en raekke kopieres: JSON'en foerst, saa den
+# "; "-adskilte liste, og til sidst FL-kolonnen alene (gamle raekker).
 OBJ_RESTORE = ol.restore_fx(
     OBJECTS, json_src="ThisItem.ObjectListJson", list_src="ThisItem.ObjectList",
-    fl_src=f"ThisItem.{cfg.FL_FIELD}")
+    fl_src="ThisItem.FunctionalLocation")
+# Popuppens liste fra den GEMTE raekke - ved aabning og naar en gemning
+# fejler (saa listen aldrig viser noget, der ikke staar paa raekken).
+POP_RESTORE = ol.restore_fx(
+    POP, json_src=f"{OBJ_REC}.ObjectListJson", list_src=f"{OBJ_REC}.ObjectList",
+    fl_src=f"{OBJ_REC}.FunctionalLocation")
+# Maa popuppens raekke aendres? Samme laas som dokumenterne
+# (domain_parts.DOCS_EDIT): anmodningen kan redigeres, og raekken er ikke
+# indsendt.
+OBJ_EDIT = (f'(!IsBlank({OBJ_ROW}) && !IfError(varDomViewOnly, false) && '
+            f'{OBJ_REC}.Status <> "submitted")')
+DM_OBJ = f"If({OBJ_EDIT}, DisplayMode.Edit, DisplayMode.Disabled)"
+STRAT_POP = is_strategic(f"{OBJ_REC}.StrategicPart")
 
-# Formularens "flere oplysninger" - foldet ind, indtil nogen aabner den.
-EXTRA_OPEN = "varDomExtraOpen"
+# Reset spoerger foerst, naar der er noget at miste.
+RESET_ASK = "varDomResetAsk"
 # Appens egen tilstand i App.OnStart (domain_app.write_app).
-EXTRA_STATE = f'Set({EXTRA_OPEN}, false);\nSet(varDomDetCreatedNo, "")'
+EXTRA_STATE = (f'Set(varDomDetCreatedNo, "");\n'
+               f"Set({OBJ_ROW}, Blank());\n"
+               f'Set({PICK}, "");\n'
+               f"Set({PO_OPEN}, false);\n"
+               f"Set({RESET_ASK}, false)")
 
 
-# ---------------------------------------------------------------------------
-# Functional Location og No BOM Item
-# ---------------------------------------------------------------------------
-def _add_fx():
-    """Add: laeg det VALGTE resultat i objektlisten. Soegningen er
-    FL-vaelgerens egen - knappen her tilfoejer kun.
-
-    Er raekken strategisk, slaas systemet og dets ansvarlige op med det
-    samme (bag flaget), saa initialerne staar under listen, foer raekken
-    gemmes."""
-    desc = f'Coalesce(LookUp(colDomFl, Code = {FL_VAR}).Description, "")'
-    fx = ol.add_fx(OBJECTS, FL_VAR, desc, FL_MSG)
-    if APPROVAL_ON:
-        look = "\n".join("    " + l for l in resolve_fx(FORM_CODES).split("\n"))
-        fx += f";\nIf(\n    {STRAT_FORM},\n{look}\n)"
-    return fx
-
-
-def _fl_cell():
-    """Functional Location - EEN celle med EEN combobox, Search og Add
-    (fl_picker.py, issue #63; objektlisten er issue #204).
-
-    Stjernen staar kun, naar feltet er kraevet: No BOM Item slaar kravet
-    fra, og saa ville en stjerne paa et deaktiveret felt lyve. Kravet er
-    nu objektlisten - der skal vaere MINDST EET objekt."""
-    picker = dp.build_fl_picker(
-        CELL_W, lock=NOBOM, min_len=MIN_FL_LEN,
-        required_formula=f"{REQUIRED} && !{NOBOM} && {OBJ_COUNT} = 0")
-    label = "Functional location"
-    lbl = text_ctrl("txtDomFlLbl", f'"{label}"', size=13, weight="Semibold",
-                    height=20, width=f"Min({label_px(label)}, ({CELL_W}) - 13)",
-                    wrap="false")
-    star = text_ctrl("txtDomFlStar", '"*"', size=13, color=C_REQUIRED,
-                     weight="Semibold", height=20, width=10, wrap="false",
-                     accessible='"Required"', visible=f"!{NOBOM}")
-    head = group("conDomFlLblRow", [lbl, star], direction="Horizontal", gap=3,
-                 height=20, align_items="Center")
-    return group("conDomFl", [head, picker], direction="Vertical", gap=6,
-                 width=CELL_W, align_in_container="Start")
-
-
-def toggle_nobom_fx():
-    """No BOM Item til/fra. TIL rydder funktionspladsen - soegningen, dens
-    svar, det valgte OG objektlisten - saa en No BOM-raekke aldrig gemmes
-    med en.
-
-    En STRATEGISK raekke kan ikke blive No BOM (issue #204): godkendelsen
-    findes gennem funktionspladsen, saa No BOM Item kan ikke bruges til at
-    omgaa kravet."""
-    return (
-        "If(\n"
-        f"    !{NOBOM} && {STRAT_FORM},\n"
-        '    Set(varDomFlMsg, "A strategic part needs at least one functional location."),\n'
-        "\n"
-        f"    Set({NOBOM}, !{NOBOM});\n"
-        "    If(\n"
-        f"        {NOBOM},\n"
-        f'        Set({FL_VAR}, "");\n'
-        f"        {ol.clear_fx(OBJECTS)};\n"
-        f"        {dp.fl_reset_fx_dom()};\n"
-        '        Set(varDomFlMsg, "No BOM item - a functional location is not required."),\n'
-        '        Set(varDomFlMsg, "")\n'
-        "    )\n"
-        ")"
-    )
-
-
-def _extra_button():
-    """More details til/fra - raekken med de valgfrie oplysninger."""
-    off, on = "More details: OFF", "More details: ON"
-    b = button("btnDomMoreDetails", f'"{off}"', f"Set({EXTRA_OPEN}, !{EXTRA_OPEN})",
-               height=32,
-               accessible=f'If({EXTRA_OPEN}, "More details: on", "More details: off")',
-               tooltip='"Remarks, maintenance order no. and replaced material"')
-    b.props["Size"] = "13"
-    dp.fit(b, size=13)
-    b.props["Text"] = f'If({EXTRA_OPEN}, "{on}", "{off}")'
-    return dp.pill(b, EXTRA_OPEN)
-
-
-def _nobom_button():
-    # OFF er den laengste af de to tekster - bredden regnes af den.
-    off, on = "No BOM Item: OFF", "No BOM Item: ON"
-    b = button("btnDomNoBom", f'"{off}"', toggle_nobom_fx(), height=32,
-               display_mode=dp.DM_ROW,
-               accessible=f'If({NOBOM}, "No BOM item: on", "No BOM item: off")')
-    b.props["Size"] = "13"
-    dp.fit(b, size=13)
-    b.props["Text"] = f'If({NOBOM}, "{on}", "{off}")'
-    return dp.pill(b, NOBOM)
+def _indent(text, n):
+    return "\n".join(" " * n + l for l in text.split("\n"))
 
 
 # KRAVENE TIL EN FAERDIG RAEKKE
@@ -208,134 +165,452 @@ def _nobom_button():
 # Hvert krav er (betingelse der betyder "mangler", besked). De staar her,
 # fordi de er Materials' - domain_parts' gem kender dem ikke, og en kladde
 # tjekker dem ikke. Beskederne siger HVAD der mangler.
+#
+# Funktionspladsen er IKKE et krav ved gem laengere (issue #228): den
+# tilfoejes paa den gemte raekke, saa en ny raekke kan ikke have en. En
+# strategisk raekke uden funktionsplads stoppes i stedet ved Submit
+# (submit_guard) - det var der, godkendelsen alligevel kraevede den.
 def _row_rules():
     return [
-        (f"!{NOBOM} && {OBJ_COUNT} = 0",
-         "Add at least one functional location - or turn on No BOM Item."),
-        (f"{STRAT_FORM} && {OBJ_COUNT} = 0",
-         "A strategic row needs at least one functional location."),
-        (f"Coalesce({STOCK}, false) && (IsBlank({MIN_S}) || IsBlank({MAX_S}))",
+        (f"{IS_STOCK} && (IsBlank({MIN_S}) || IsBlank({MAX_S}))",
          "Min stock and max stock are required for a stock item."),
-        (f"Coalesce({STOCK}, false) && !IsBlank({MIN_S}) && !IsBlank({MAX_S}) && "
-         f"{MIN_S} > {MAX_S}",
-         "Min stock must be less than or equal to max stock."),
-        (f'Coalesce({REPLACES}, false) && IsBlank(Trim(Coalesce({REPLACED_NO}, "")))',
+        (f'{IS_REPL} && IsBlank(Trim(Coalesce({REPLACED_NO}, "")))',
          "Replaced material no. is required when the material replaces an existing one."),
     ]
 
 
+# Min > max er en FORKERT vaerdi, ikke en manglende - den stoppes ogsaa paa
+# en kladde, og linjen under felterne siger det, mens der skrives.
+MIN_MAX_BAD = (f"{IS_STOCK} && !IsBlank({MIN_S}) && !IsBlank({MAX_S}) && "
+               f"{MIN_S} > {MAX_S}")
+MIN_MAX_MSG = "Min stock must be less than or equal to max stock."
+
+
 def save_fx(status):
-    """domain_parts' gem, plus Materials' egne krav til en faerdig raekke
-    (_row_rules): funktionspladsen, lagerniveauet og det erstattede
-    materiale."""
-    return dp.save_row_fx(status, required=_row_rules())
+    """domain_parts' gem, plus Materials' egne krav: lagerniveauet og det
+    erstattede materiale."""
+    return dp.save_row_fx(status, required=_row_rules(),
+                          always=[(MIN_MAX_BAD, MIN_MAX_MSG)])
 
 
 # ---------------------------------------------------------------------------
 # Formularen
 # ---------------------------------------------------------------------------
-# Skaermens raekkefoelge - issue #159's fire grupper, fire celler pr.
-# raekke. FL, TEXT, DOCS og PLANT er de celler, der ikke er et almindeligt
-# felt fra SECTIONS.
-SPECIAL = {"FL", "TEXT", "DOCS", "PLANT"}
-MAIN_ORDER = [
-    # Organisation og identifikation - Plant foerst
-    "PLANT", "FL", "TEXT", "Manufacturer",
-    # Producent og leverandoer
-    "ModelNumber", "ManufacturerPartNo", "Supplier", "SupplierPartNo",
-    # Pris og levering
-    "StockUnit", "Price", "PriceUnit", "DeliveringTime",
-    # Lager (issue #204)
-    "IsStockItem", "MinStock", "MaxStock", "RecommendedStock",
-    # Plads, klassifikation og dokumentation
-    "StorageBin", "StrategicPart", "WearPart", "DOCS",
+# Skaermens raekkefoelge (issue #228). Hver liste er een raekke i gitteret;
+# (navn, celler, synlighed). Den FOERSTE er fast. TEXT, PLANT, PO og SEG_*
+# er de celler, der ikke er et almindeligt felt fra SECTIONS.
+SPECIAL = {"TEXT", "PLANT", "PO", "SEG_IsStockItem", "SEG_ReplacesExisting"}
+FORM_ROWS = [
+    ("conDomGridMain", ["PLANT", "TEXT", "SEG_IsStockItem", "SEG_ReplacesExisting"], None),
+    # Lager - kun for en lagervare
+    ("conDomGridStock", ["MinStock", "MaxStock", "StorageBin"], IS_STOCK),
+    # Erstatning - kun naar materialet erstatter et andet
+    ("conDomGridReplace", ["ReplacedMaterialNo"], IS_REPL),
+    # Producent og model
+    ("conDomGridMfr", ["Manufacturer", "ModelNumber", "ManufacturerPartNo"], None),
+    # Leverandoer og indkoeb
+    ("conDomGridSupplier", ["Supplier", "SupplierPartNo", "DeliveringTime", "PO"], None),
+    # Pris og enhed
+    ("conDomGridPrice", ["Price", "PriceUnit", "StockUnit"], None),
+    # Klassifikation og vedligeholdelsesordre
+    ("conDomGridClass", ["StrategicPart", "WearPart", "MaintenanceOrderNo"], None),
 ]
-# Raekken, der er foldet ind (issue #204) - valgfrie oplysninger.
-EXTRA_ORDER = ["Remarks", "MaintenanceOrderNo", "ReplacesExisting",
-               "ReplacedMaterialNo"]
-FORM_ORDER = MAIN_ORDER + EXTRA_ORDER
-# Felter, der ikke er en celle i gitteret: NoBomItem er knappen i hovedet,
-# og FL er cellen "FL".
-NOT_IN_GRID = {"NoBomItem", cfg.FL_FIELD}
+FORM_ORDER = [k for _n, keys, _v in FORM_ROWS for k in keys]
+# Felter, der ikke er en almindelig celle: de to valg er SEG_*, og
+# Purchase order text (Remarks) er PO.
+NOT_IN_GRID = {"IsStockItem", "ReplacesExisting", "Remarks"}
 
-
-# Feltets krav og synlighed, hvor de afhaenger af et andet felt. Et
-# krav, der ikke gaelder lige nu, viser ingen stjerne og giver ingen roed
-# kant (domain_parts.field_grid_cell).
+# Feltets krav, hvor det afhaenger af et andet felt. Et krav, der ikke
+# gaelder lige nu, viser ingen stjerne og giver ingen roed kant
+# (domain_parts.field_grid_cell). Synligheden staar i domain_config.WHEN.
 CONDITIONAL = {
-    "MinStock": {"required": f"Coalesce({STOCK}, false)"},
-    "MaxStock": {"required": f"Coalesce({STOCK}, false)"},
-    "ReplacedMaterialNo": {"required": f"Coalesce({REPLACES}, false)",
-                           "visible": f"Coalesce({REPLACES}, false)"},
+    "MinStock": {"required": IS_STOCK},
+    "MaxStock": {"required": IS_STOCK},
+    "ReplacedMaterialNo": {"required": IS_REPL},
+}
+
+SEG_TIPS = {
+    "IsStockItem": '"Yes: the material is kept in stock - min stock, max stock and '
+                   'storage bin are shown"',
+    "ReplacesExisting": '"Yes: the material replaces an existing material - its '
+                        'number is required"',
 }
 
 
+def _seg_fx(col, on):
+    """Valget [ No | Yes ]. Bliver en raekke lagervare, og har den ingen
+    lagerplads, foreslaas "X" igen - som paa en ny raekke."""
+    v = dp._var(col)
+    fx = f"Set({v}, {'true' if on else 'false'})"
+    if col == "IsStockItem" and on:
+        fx += f'; If(IsBlank(Trim(Coalesce({BIN}, ""))), Set({BIN}, "X"))'
+    return fx
+
+
+def _seg_cell(col):
+    label = next(l for c, l, _k, _ch in dp.FIELDS if c == col)
+    on = f"Coalesce({dp._var(col)}, false)"
+    tip = SEG_TIPS[col]
+    seg = segmented(f"conDom{col}Seg", [
+        ("No", "No", f"!{on}", _seg_fx(col, False), tip),
+        ("Yes", "Yes", on, _seg_fx(col, True), tip),
+    ], display_mode=dp.DM_ROW, label=label)
+    return dp.grid_cell(f"conDom{col}", label, seg)
+
+
+PO_TEXTS = ("Add text", "Edit text", "View text")
+HAS_PO = f'!IsBlank(Trim(Coalesce({PO}, "")))'
+
+
+def _po_cell():
+    """Purchase order text: de foerste ord af teksten og en knap til
+    popuppen. Knappen er udfyldt, naar der ER en tekst."""
+    info = grow(text_input(
+        "inpDomPoInfo",
+        f'If({HAS_PO}, Substitute(Trim({PO}), Char(10), " "), "No text yet")',
+        display_mode="DisplayMode.View", label='"Purchase order text"'))
+    w = max(fit_button_width(f'"{t}"', size=13) for t in PO_TEXTS)
+    btn = button("btnDomPoText",
+                 f'If({READ_ONLY}, "View text", If({HAS_PO}, "Edit text", "Add text"))',
+                 f"Set({PO_OPEN}, true)", width=w, height=32,
+                 accessible='"Open the purchase order text"',
+                 tooltip='"Text for the purchase order"')
+    btn.props["Size"] = "13"
+    btn.props["LayoutMinWidth"] = str(w)
+    dp.pill(btn, HAS_PO)
+    row = group("conDomPoRow", [info, btn], direction="Horizontal", gap=8,
+                height=36, align_items="Center", width=CELL_W)
+    return dp.grid_cell("conDomPo", "Purchase order text", row)
+
+
 def _cell(key):
-    if key == "FL":
-        return _fl_cell()
     if key == "TEXT":
         return dp.text_cell()
-    if key == "DOCS":
-        return dp.docs_cell()
     if key == "PLANT":
         return dp.plant_cell()
+    if key == "PO":
+        return _po_cell()
+    if key.startswith("SEG_"):
+        return _seg_cell(key[4:])
     return dp.field_grid_cell(key, **CONDITIONAL.get(key, {}))
+
+
+EDITOR_HINT = ("Start with the four key fields. Save the row, then add documentation "
+               "and functional locations from Saved Rows.")
+
+
+def _editor_head():
+    """Sektionens overskrift - samme som Item Editor i VH-planen
+    (build_helpers.section_header), med "* Required" efter titlen og en
+    linje, der siger, hvordan formularen bruges."""
+    star = text_ctrl("txtDomFormReqStar", '"*"', size=12, color=C_REQUIRED,
+                     weight="Semibold", height=18, width=8, wrap="false",
+                     accessible='"Required"')
+    legend = text_ctrl("txtDomFormReq", '"Required"', size=12, color=C_MUTED,
+                       height=18, width=text_px("Required", 12, semibold=False),
+                       wrap="false")
+    head = section_header("conDomEditorHead", "Material Editor", None,
+                          extra_left=[star, legend])
+    # Een linje paa en bred skaerm, to eller tre paa en smal - hoejden
+    # foelger kortets bredde, saa intet klippes.
+    need = text_px(EDITOR_HINT, 12, semibold=False)
+    h = fits(dp.FORM_W, need, if_below("Tablet", "54", "36"), "18")
+    hint = text_ctrl("txtDomEditorHint", f'"{EDITOR_HINT}"', size=12, color=C_MUTED,
+                     height=h, wrap="true")
+    return [head, hint]
+
+
+def reset_fx():
+    """Reset: ryd KUN formularen. Saved Rows og anmodningen roeres ikke.
+    Er der noget at miste, spoerges der foerst."""
+    return (f"If(\n{_indent(_dirty(), 4)},\n    Set({RESET_ASK}, true),\n"
+            + _indent(dp.clear_form_fx(), 4) + "\n)")
+
+
+def _dirty():
+    """Er der ugemte aendringer i formularen?
+
+    En NY raekke: noget er udfyldt ud over standardvaerdierne (eller en
+    kopi har taget objekter med). En HENTET raekke: formularen er ikke den
+    samme som raekken i listen - samme sammenligning, som admin-loggen
+    bruger (admin_log.diff)."""
+    new = [f'!IsBlank(Trim(Coalesce(varDomFText, "")))',
+           f'!IsBlank(Trim(Coalesce(varDomFPlant, "")))',
+           f"CountRows({OBJECTS}) > 0"]
+    defaults = dp.HOOKS["field_defaults"]
+    for col, _l, kind, _ch in dp.FIELDS:
+        v = dp._var(col)
+        if col in defaults:
+            new.append(f'Coalesce({v}, "") <> {defaults[col]}')
+        elif kind == "bool":
+            new.append(f"Coalesce({v}, false)")
+        elif kind == "num":
+            new.append(f"!IsBlank({v})")
+        else:
+            new.append(f'!IsBlank(Trim(Coalesce({v}, "")))')
+    changed = (f"!IsBlank(With({{ o: {dp.ACTIVE} }},\n"
+               + _indent(alog.diff(dp._diff_pairs()), 4) + "\n))")
+    return ("If(\n    IsBlank(varDomActiveRowId),\n    "
+            + " ||\n    ".join(new) + ",\n    " + changed + "\n)")
 
 
 def build_form():
     dp.check_form_order(FORM_ORDER, SPECIAL, NOT_IN_GRID)
-    head = dp.form_head("Spare Parts Form",
-                        right=[_nobom_button(), _extra_button()])
-    rows = dp.grid_rows("conDomGrid", [_cell(k) for k in MAIN_ORDER])
-    # Soegningens svar under den foerste raekke - den med FL i.
-    rows.insert(1, dp.build_fl_msg())
-    # Objektlisten i FULD bredde under soegningen: koderne er lange, og i
-    # en fjerdedel af kortet ville de blive klippet.
-    add = ol.add_button(
-        "Dom", _add_fx(),
-        display_mode=f"If({NOBOM} || !({ADD_READY}), DisplayMode.Disabled, {dp.DM_ROW})")
-    rows.insert(2, ol.panel(
-        "Dom", OBJECTS, width="Parent.Width", msg_var=FL_MSG, add=add,
-        display_mode=f"If({NOBOM}, DisplayMode.Disabled, {dp.DM_ROW})",
-        extra=([_approver_line()] if APPROVAL_ON else ()),
-        hint='"No functional location yet - search above and press Add."'))
-    # De valgfrie oplysninger: een raekke, der kun er der, naar den er
-    # foldet ud - skjult koster den ingen plads.
-    extra = dp.grid_row("conDomGridX", [_cell(k) for k in EXTRA_ORDER])
-    extra.vis = EXTRA_OPEN
-    rows.append(extra)
-
-    buttons = dp.form_buttons(save_fx, "Save row", "New row")
+    rows = []
+    for name, keys, vis in FORM_ROWS:
+        row = dp.grid_row(name, [_cell(k) for k in keys])
+        if vis:
+            row.vis = vis
+        rows.append(row)
+        if name == "conDomGridStock":
+            # Min > max siges, mens der skrives - ikke foerst ved gem.
+            rows.append(text_ctrl("txtDomStockMsg", f'"{MIN_MAX_MSG}"', size=12,
+                                  color=C_INVALID_FG, height=18, wrap="false",
+                                  visible=MIN_MAX_BAD))
+    buttons = dp.form_buttons(
+        save_fx, "Save row", "Reset", new_fx=reset_fx(), new_icon="ArrowReset",
+        new_tooltip='"Clear the form and start a new row - saved rows are not changed"')
     # Trinstriben lige under hovedet - foer felterne, saa den er det
     # foerste, man ser (kun naar godkendelsen er med).
     top = [build_steps()] if APPROVAL_ON else []
-    return card("conDomFormCard", [head] + top + rows + dp.form_footer(buttons))
+    return card("conDomFormCard", _editor_head() + top + rows + dp.form_footer(buttons))
 
 
 # ---------------------------------------------------------------------------
-# Listen - kolonnerne, som issue #67 skriver dem
+# Purchase order text - popuppen
+# ---------------------------------------------------------------------------
+PO_W = "Min(640, App.Width - 32)"
+
+
+def _po_popup():
+    """Teksten skrives direkte i formularens variabel, saa den bliver
+    staaende, naar popuppen lukkes, og gemmes med raekken. Close er den
+    eneste vej ud - et tryk ved siden af lukker den ikke."""
+    vis = f"IfError({PO_OPEN}, false)"
+    back = tap_backdrop("conDomPoBackdrop", vis, "false")
+    title = grow(text_ctrl("txtDomPoH", '"Purchase order text"',
+                           size=lay.SIZE_CARD_TITLE, weight="Semibold",
+                           height=text_min_height(lay.SIZE_CARD_TITLE), wrap="false"))
+    close = button("btnDomPoClose", '"Close"', f"Set({PO_OPEN}, false)",
+                   width=84, height=32, accessible='"Close the purchase order text"')
+    close.props["LayoutMinWidth"] = "84"
+    head = group("conDomPoHead", [title, close], direction="Horizontal", gap=12,
+                 align_items="Center")
+    hint = text_ctrl(
+        "txtDomPoHint",
+        f'If({READ_ONLY}, "Read only - this row cannot be changed.", '
+        '"The text is saved with the row when you press Save row or Save row draft.")',
+        size=12, color=C_MUTED, height=if_below("Tablet", "36", "18"), wrap="true")
+    box = text_input("inpDomPoText", PO, height="Min(220, App.Height - 220)",
+                     display_mode=dp.DM_ROW, ttype="Multiline",
+                     placeholder='"Text for the purchase order"',
+                     label='"Purchase order text"',
+                     onchange=f"Set({PO}, Self.Text)")
+    modal = group("conDomPoModal", [head, hint, box], direction="Vertical", gap=12,
+                  fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
+                  pad=(18, 18, 18, 18), width=PO_W, drop_shadow="ExtraBold",
+                  visible=vis)
+    modal.props["X"] = dp.MODAL_X
+    modal.props["Y"] = dp.MODAL_Y
+    return [back, modal]
+
+
+# ---------------------------------------------------------------------------
+# Functional locations / Object List - popuppen paa den gemte raekke
+# ---------------------------------------------------------------------------
+OBJ_W = "Min(760, App.Width - 32)"
+
+
+def open_objects_fx():
+    """Raekkens Objects-knap: peg popuppen paa DENNE raekke og fyld listen
+    fra raekken, som den er gemt. Soegningen starter forfra."""
+    return (f"Set({OBJ_ROW}, ThisItem.RowId);\n"
+            f'Set({PICK}, "");\n'
+            f"{dp.fl_reset_fx_dom()};\n"
+            + ol.restore_fx(POP, json_src="ThisItem.ObjectListJson",
+                            list_src="ThisItem.ObjectList",
+                            fl_src="ThisItem.FunctionalLocation"))
+
+
+def close_objects_fx():
+    return (f"Set({OBJ_ROW}, Blank());\n"
+            f'Set({PICK}, "");\n'
+            f"{ol.clear_fx(POP)};\n"
+            f"{dp.fl_reset_fx_dom()}")
+
+
+def persist_objects_fx():
+    """Gem popuppens liste paa raekken - med det samme, efter hver Add og
+    Remove, saa intet kan gaa tabt ved Close.
+
+    Kun de tre objektkolonner skrives. Samlingen af raekker opdateres med
+    det, SharePoint svarede, i stedet for at hente alle raekker forfra.
+    Fejler gemningen, vises listen, som den staar paa raekken."""
+    key = f'Coalesce({OBJ_REC}.ItemKey, "")'
+    log = alog.write("varDomRequestGuid", "varDomRequestNo", alog.EDIT,
+                     f'"Object list on " & {key} & ": " & '
+                     f'Coalesce(varDomObjSp.ObjectList, "(empty)")', 12)
+    return (
+        "If(\n"
+        # Rettigheden staar ogsaa i selve handlingen, ikke kun i UI'et.
+        f"    {dp.AS_ADMIN} && !{perm.IS_ADMIN},\n"
+        f"    {dp.DENIED_OTHER};\n"
+        + _indent(POP_RESTORE, 4) + ";\n"
+        "    false,\n"
+        "    IfError(\n"
+        "        Set(\n"
+        "            varDomObjSp,\n"
+        f"            Patch({cfg.L_ROWS}, LookUp({cfg.L_ROWS}, ID = {OBJ_ROW}), {{\n"
+        f"                ObjectList: {ol.codes_fx(POP)},\n"
+        f"                ObjectListJson: {ol.json_fx(POP)},\n"
+        f"                FunctionalLocation: {ol.first_fx(POP)}\n"
+        "            })\n"
+        "        );\n"
+        f"        UpdateIf(colDomRows, RowId = {OBJ_ROW}, {{\n"
+        '            ObjectList: Coalesce(varDomObjSp.ObjectList, ""),\n'
+        '            ObjectListJson: Coalesce(varDomObjSp.ObjectListJson, ""),\n'
+        '            FunctionalLocation: Coalesce(varDomObjSp.FunctionalLocation, "")\n'
+        "        });\n"
+        f"        If(\n            {dp.AS_ADMIN},\n{log}\n        );\n"
+        "        true,\n"
+        f'        Set({FL_MSG}, "Could not save the object list: " & FirstError.Message);\n'
+        + _indent(POP_RESTORE, 8) + ";\n"
+        "        false\n"
+        "    )\n"
+        ")"
+    )
+
+
+def _add_fx():
+    """Add: laeg det VALGTE resultat i listen og gem den paa raekken.
+    Dubletter og et tomt valg afvises af ol.add_fx - saa gemmes der intet.
+
+    Er raekken strategisk, slaas systemet og dets ansvarlige op med det
+    samme (bag flaget), saa initialerne staar under listen."""
+    desc = f'Coalesce(LookUp(colDomFl, Code = {PICK}).Description, "")'
+    after = persist_objects_fx()
+    if APPROVAL_ON:
+        look = _indent(resolve_fx(ol.codes_fx(POP)), 4)
+        after += f";\nIf(\n    {STRAT_POP},\n{look}\n)"
+    return (f"Set(varDomObjN, {ol.count_fx(POP)});\n"
+            + ol.add_fx(POP, PICK, desc, FL_MSG) + ";\n"
+            f"If(\n    {ol.count_fx(POP)} > varDomObjN,\n"
+            + _indent(after, 4) + "\n)")
+
+
+def _objects_popup():
+    vis = f"!IsBlank({OBJ_ROW})"
+    back = tap_backdrop("conDomObjPopBackdrop", vis,
+                        f"If(!{dp.FL_BUSY_VAR}, {close_objects_fx()})")
+    title = grow(text_ctrl(
+        "txtDomObjPopH",
+        f'"Functional locations · " & Coalesce({OBJ_REC}.ItemKey, "")',
+        size=lay.SIZE_CARD_TITLE, weight="Semibold",
+        height=text_min_height(lay.SIZE_CARD_TITLE), wrap="false"))
+    close = button("btnDomObjPopClose", '"Close"', close_objects_fx(),
+                   width=84, height=32,
+                   accessible='"Close the functional locations"',
+                   display_mode=f"If({dp.FL_BUSY_VAR}, DisplayMode.Disabled, DisplayMode.Edit)")
+    close.props["LayoutMinWidth"] = "84"
+    head = group("conDomObjPopHead", [title, close], direction="Horizontal", gap=12,
+                 align_items="Center")
+    hint = text_ctrl(
+        "txtDomObjPopHint",
+        f'If({OBJ_EDIT}, "Search with at least {MIN_FL_LEN} characters, pick a result '
+        'and press Add. Each change is saved on the row.", '
+        '"Read only - the row or the request cannot be changed.")',
+        size=12, color=C_MUTED, height=if_below("Tablet", "36", "18"), wrap="true")
+    # Soegningen er FL-vaelgerens egen (tools/fl_picker.py) - den samme som
+    # stod i formularen, med samme mindstelaengde.
+    picker = fl_picker(
+        "Dom", combo=dp.FL_COMBO, results="colDomFl", raw_var="varDomFlRaw",
+        msg_var=FL_MSG, busy_var=dp.FL_BUSY_VAR, query_var=dp.FL_QUERY_VAR,
+        last_var=dp.FL_LAST_VAR, pick_var=PICK,
+        default_items=f"Filter(colDomFl, Code = {PICK})",
+        display_mode="DisplayMode.Edit", min_len=MIN_FL_LEN,
+        width="Parent.Width", stack_search=True)
+    picker.vis = OBJ_EDIT
+    msg = dp.build_fl_msg()
+    add = ol.add_button(
+        "Dom", _add_fx(),
+        display_mode=f"If({OBJ_EDIT} && {ADD_READY}, DisplayMode.Edit, DisplayMode.Disabled)")
+    add.vis = OBJ_EDIT
+    pnl = ol.panel(
+        "Dom", POP, width="Parent.Width", msg_var=FL_MSG, add=add,
+        display_mode=DM_OBJ,
+        extra=([_approver_line()] if APPROVAL_ON else ()),
+        hint='"No functional locations on this row yet."',
+        on_remove=persist_objects_fx())
+    body = du.capped_body("conDomObjPopBody", [hint, picker, msg, pnl],
+                             f"App.Height - 40 - 36 - {head.h} - 14")
+    modal = group("conDomObjPopModal", [head, body], direction="Vertical", gap=14,
+                  fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
+                  pad=(18, 18, 18, 18), width=OBJ_W, drop_shadow="ExtraBold",
+                  visible=vis)
+    modal.props["X"] = dp.MODAL_X
+    modal.props["Y"] = dp.MODAL_Y
+    return [back, modal]
+
+
+def build_popups():
+    """Materials' egne popupper (domain_app.build_screen): objektlisten,
+    indkoebsteksten og Reset's spoergsmaal - [sloer, popup] hver."""
+    ask = confirm_modal(
+        "DomReset", RESET_ASK, "Discard unsaved changes?",
+        '"The form is cleared and starts a new row. Saved rows and the request '
+        'are not changed."',
+        "Reset", dp.clear_form_fx(), "btnDomResetConfirm", icon=None)
+    return _objects_popup() + _po_popup() + ask
+
+
+# ---------------------------------------------------------------------------
+# Listen - kolonnerne og raekkens knapper (issue #228)
 # ---------------------------------------------------------------------------
 # (overskrift, udtryk, mindstebredde). Se domain_parts.build_list for, hvad
-# en plads er.
+# en plads er. Funktionspladsen er ikke en kolonne laengere: den staar paa
+# Objects-knappen og i Details.
 DESC = (cfg.TEXT_LABEL.upper(),
         f'If(IsBlank(Trim(ThisItem.{cfg.C_TEXT})), "(no text)", ThisItem.{cfg.C_TEXT})', 150)
-# "SSV13 HFC10AJ010 +2": den foerste kode og hvor mange flere raekken har
-# (issue #204). Regnet af den GEMTE ObjectList, saa den virker for hver
-# raekke i tabellen.
-FL_C = ("FUNCTIONAL LOCATION",
-        'If(ThisItem.NoBomItem, "No BOM item", '
-        + ol.summary_fx("ThisItem.ObjectList", f"ThisItem.{cfg.FL_FIELD}") + ")", 170)
 MFR = ("MANUFACTURER", "ThisItem.Manufacturer", 110)
-MODEL = ("MODEL NUMBER", "ThisItem.ModelNumber", 110)
 MPN = ("MANUFACTURER PART NO.", "ThisItem.ManufacturerPartNo", 150)
 SUPP = ("SUPPLIER", "ThisItem.Supplier", 100)
-DOCS = ("DOCUMENTATION",
-        'If(ThisItem.FileCount > 0, Text(ThisItem.FileCount) & " file(s)", "-")', 110)
-# EET fast saet kolonner (issue #204). Compact/All columns er vaek; resten
-# af raekkens felter staar i Details, grupperet. DOCS, pris og lager var
-# kun i "All columns" og er der nu - de staar i Details.
-SLOTS = [FL_C, DESC, MFR, MPN, SUPP]
+SLOTS = [DESC, MFR, MPN, SUPP]
 
+# Antal funktionspladser paa en gemt raekke - af den GEMTE ObjectList, og
+# FL-kolonnen alene paa en raekke fra foer objektlisten.
+ROW_OBJ_N = ('With({ n: CountRows(Filter(Split(Coalesce(ThisItem.ObjectList, ""), ";"), '
+             '!IsBlank(Trim(Value)))) }, '
+             'If(n = 0 && !IsBlank(Trim(Coalesce(ThisItem.FunctionalLocation, ""))), 1, n))')
+
+
+def _w(name, longest):
+    """Bredden: den afproevede i domain_parts.ROW_BTN (13 pt, klipper ikke),
+    eller tekstens laengste form + den samme luft (label_px + 32)."""
+    return max(dp.ROW_BTN.get(name, 0), label_px(longest, 13) + 32)
+
+
+def row_actions():
+    """Details, Edit, Docs, Objects, Copy og Delete - Delete sidst og kun
+    som ikon. Docs og Objects viser antallet, naar der er noget."""
+    docs_n = "Coalesce(ThisItem.FileCount, 0)"
+    return [
+        dp.RowAction("btnDomRowDetails", '"Details"', dp.details_fx(), _w("btnDomRowDetails", "Details")),
+        dp.RowAction("btnDomRowOpen", '"Edit"', dp.load_row_fx(), _w("btnDomRowOpen", "Edit"),
+                     mode=dp.DM_ROW_EDIT),
+        dp.RowAction("btnDomRowDocs",
+                     f'If({docs_n} > 0, "Docs (" & {docs_n} & ")", "Docs")',
+                     dp.open_docs_fx(), _w("btnDomRowDocs", "Docs (00)"),
+                     label=f'"Documentation for " & ThisItem.ItemKey & ", " & {docs_n} & " file(s)"'),
+        dp.RowAction("btnDomRowObjects",
+                     f'If({ROW_OBJ_N} > 0, "Objects (" & {ROW_OBJ_N} & ")", "Objects")',
+                     open_objects_fx(), _w("btnDomRowObjects", "Objects (00)"), line=2,
+                     label=f'"Functional locations for " & ThisItem.ItemKey'),
+        dp.RowAction("btnDomRowCopy", '"Copy"', dp.copy_row_fx(), _w("btnDomRowCopy", "Copy"),
+                     mode=dp.ROW_MODES["btnDomRowCopy"], line=2),
+        dp.RowAction("btnDomRowDelete", '"Delete row"', dp.delete_this_row_fx(),
+                     dp.ROW_BTN["btnDomRowDelete"], mode=dp.DM_ROW_DEL, danger=True,
+                     icon="Delete", icon_only=True, line=2),
+    ]
 
 
 def build_rows():
@@ -352,15 +627,13 @@ def build_rows():
 DETAILS_GROUPS = [
     ("Identification", ["KEY", "TEXT", "PLANT", "STATUS"]),
     ("Object list", [
-        ("Functional locations", 'If(Coalesce({row}.NoBomItem, false), "No BOM item", '
-                                 'Coalesce({row}.ObjectList, Coalesce({row}.FunctionalLocation, "-")))'),
+        ("Functional locations", 'Coalesce({row}.ObjectList, Coalesce({row}.FunctionalLocation, "-"))'),
         ("Primary functional location", 'Coalesce({row}.FunctionalLocation, "-")'),
     ]),
     ("Manufacturer and supplier", ["Manufacturer", "ModelNumber", "ManufacturerPartNo",
                                    "Supplier", "SupplierPartNo"]),
     ("Stock and storage", ["StockUnit", "Price", "PriceUnit", "DeliveringTime",
-                           "IsStockItem", "MinStock", "MaxStock", "RecommendedStock",
-                           "StorageBin"]),
+                           "IsStockItem", "MinStock", "MaxStock", "StorageBin"]),
     ("Classification and approval", [
         ("Strategic part", 'If(%s, "Yes", "No")' % is_strategic("{row}.StrategicPart")),
         "WearPart",
@@ -440,29 +713,39 @@ def details_rows(row):
 # De saettes ved IMPORT, fordi delene kaldes af tools/domain_app.py, som
 # kun ser modulet - ikke en opsaetningsfunktion.
 # ---------------------------------------------------------------------------
+# Objektkolonnerne, naar formularen gemmer: en NY raekke (en kopi) faar de
+# objekter, kopien tog med; en hentet raekke beholder sine egne - de rettes
+# i popuppen og staar allerede i colDomRows.
+def _obj_patch(new_fx, col):
+    return (f"If(IsBlank(varDomActiveRowId), {new_fx}, "
+            f'Coalesce({dp.ACTIVE}.{col}, ""))')
+
+
 dp.configure(
     # Storage bin foreslaas som "X", naar formularen ryddes.
     field_defaults={"StorageBin": '"X"'},
-    # Objektlisten foelger raekken: den fyldes, naar en raekke hentes eller
-    # kopieres, og ryddes med formularen.
+    # Formularens objekter er kun en kopis (se OBJECTS): de fyldes ved
+    # Copy og ryddes ellers.
     clear_extra=ol.clear_fx(OBJECTS),
-    load_extra=OBJ_RESTORE,
+    load_extra=ol.clear_fx(OBJECTS),
     copy_extra=OBJ_RESTORE,
-    # Gem: koderne, JSON'en - og FL-kolonnen som den FOERSTE kode.
+    # Gem: koderne, JSON'en og FL-kolonnen som den FOERSTE kode.
     # ApprovalRequired er raekkens eget svar paa "skal den godkendes?".
     # Den skrives ved HVER gemning, ogsaa som kladde: det er data, ikke
-    # godkendelse, og flowet filtrerer paa den. Saa er den rigtig den dag,
-    # flaget taendes - ogsaa paa raekker, der laa der i forvejen.
-    extra_patch=[("ObjectList", ol.codes_fx(OBJECTS)),
-                 ("ObjectListJson", ol.json_fx(OBJECTS)),
+    # godkendelse, og flowet filtrerer paa den.
+    extra_patch=[("FunctionalLocation", _obj_patch(ol.first_fx(OBJECTS), "FunctionalLocation")),
+                 ("ObjectList", _obj_patch(ol.codes_fx(OBJECTS), "ObjectList")),
+                 ("ObjectListJson", _obj_patch(ol.json_fx(OBJECTS), "ObjectListJson")),
                  ("ApprovalRequired", STRAT_FORM)],
-    patch_override={cfg.FL_FIELD: ol.first_fx(OBJECTS)},
     # Grupperet detaljerude, og materialenummeret under felterne.
     details_groups=DETAILS_GROUPS,
     details_rows=details_rows,
     details_open=DETAILS_SYNC,
     details_nav=DETAILS_SYNC,
 )
+# Raekkens knapper bygges af hent/kopier/detaljer OVENFOR - derfor efter
+# den foerste configure.
+dp.configure(row_actions=row_actions())
 
 
 # ---------------------------------------------------------------------------
@@ -502,9 +785,6 @@ APPR_MSG = "varDomApprMsg"
 # Appens tilstand i App.OnStart, naar flaget er taendt.
 APPR_STATE = f'Set({APPR_MSG}, "")'
 
-# Raekkens funktionspladser som een "; "-adskilt tekst - formatet, flowet
-# forventer, og det samme som ObjectList gemmes i.
-FORM_CODES = ol.codes_fx(OBJECTS)
 # De strategiske raekker, Submit ville sende (VALID er domain_parts').
 STRAT_ROWS = ('Filter(colDomRows, Status = "valid" && '
               + is_strategic("StrategicPart") + ")")
@@ -584,11 +864,11 @@ def after_submit_fx():
 
 
 def _approver_line():
-    """Linjen under objektlisten: hvem godkendelsen vil spoerge.
+    """Linjen under objektlisten i popuppen: hvem godkendelsen vil spoerge.
 
     Kun raekkens EGNE koder - colDomApprovers kan ogsaa holde svaret fra
     Submit-opslaget, som daekker hele indmeldingen."""
-    mine = (f"Filter({APPROVERS} As A, CountRows(Filter({OBJECTS}, "
+    mine = (f"Filter({APPROVERS} As A, CountRows(Filter({POP}, "
             "Upper(Trim(Code)) = Upper(Trim(A.Code)))) > 0)")
     bad = f'Filter({mine}, !IsBlank(Trim(Coalesce(Error, ""))))'
     ok = f'Filter({mine}, !IsBlank(Trim(Coalesce(Approver, ""))))'
@@ -701,3 +981,10 @@ def build_steps():
 # tools/canvas_apps.json (environments.<miljoe>.features.material_approval).
 if APPROVAL_ON:
     dp.configure(submit_guard=submit_guard(), after_submit=after_submit_fx())
+else:
+    # Uden godkendelse stopper Submit stadig en strategisk raekke uden
+    # funktionsplads (issue #228). Kravet stod foer ved Save row, men nu
+    # tilfoejes funktionspladserne paa den gemte raekke.
+    dp.configure(submit_guard=(
+        "", NO_OBJECT,
+        '"A strategic row needs at least one functional location before it can be submitted."'))
