@@ -873,8 +873,8 @@ def build_object_list_modal():
 
     Listen er den samme som foer - galleri med ModernCheckbox, filtreret paa
     den valgte Functional Location - men krydserne skrives i en KLADDE,
-    colVhpObjDraft. Foerst "Use selected" skriver dem paa itemet. Close og
-    X lukker uden at aendre noget."""
+    colVhpObjDraft. Foerst "Use selected" skriver dem paa itemet. Close
+    (eneste luk, issue #237) lukker uden at aendre noget."""
     title = text_ctrl("txtVhpObjListTitle", "\"Object List\"", size=lay.SIZE_CARD_TITLE, weight="Semibold",
                       height=26, wrap="false")
     grow(title)
@@ -957,9 +957,8 @@ def build_object_list_modal():
                      "Text(CountRows(colVhpObjDraft)) & \" selected\"",
                      size=12, color=C_MUTED, height=18, wrap="false")
     grow(info)
-    btnCancel = button("btnVhpObjListCancel", "\"Cancel\"",
-                       "Set(varVhpObjListOpen, false); Clear(colVhpObjDraft)",
-                       width=fit_button_width("\"Cancel\""), height=36)
+    # Cancel er fjernet (issue #237): Close oeverst til hoejre er popuppens
+    # eneste luk og kasserer kladden, som Cancel gjorde.
     btnUse = button(
         "btnVhpObjListUse", "\"Use selected\"",
         (
@@ -973,7 +972,7 @@ def build_object_list_modal():
             "Set(varVhpObjListOpen, false)"
         ), primary=True, width=fit_button_width("\"Use selected\""), height=36,
         display_mode=VIEW_LOCK)
-    footer = group("conVhpObjListFooter", [info, btnCancel, btnUse], direction="Horizontal",
+    footer = group("conVhpObjListFooter", [info, btnUse], direction="Horizontal",
                    gap=8, height=36, align_items="Center")
 
     # Maks 640 bred og aldrig bredere end skaermen minus 20 px i hver side.
