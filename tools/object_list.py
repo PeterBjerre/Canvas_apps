@@ -172,7 +172,7 @@ def summary_fx(list_col, first_col, *, empty='"-"'):
 # ---------------------------------------------------------------------------
 def panel(prefix, coll, *, width, display_mode, msg_var, add=None,
           label="Object list", extra=(),
-          hint='"Search for a functional location and press Add."'):
+          hint='"Search for a functional location and press Add."', on_remove=None):
     """Objektlisten som den ses i formularen: en overskrift med antallet,
     en raekke pr. objekt (kode, beskrivelse, Remove) og en linje, naar den
     er tom.
@@ -201,7 +201,10 @@ def panel(prefix, coll, *, width, display_mode, msg_var, add=None,
     desc = grow(text_ctrl(f"txt{prefix}ObjDesc",
                           'Coalesce(ThisItem.Description, "")', size=12,
                           color=C_MUTED, height=20, wrap="false"))
-    rem = button(f"btn{prefix}ObjRemove", '"Remove"', remove_fx(coll, msg_var),
+    # on_remove: det, der skal ske EFTER fjernelsen (Materials gemmer
+    # listen paa raekken med det samme, issue #228).
+    rem_fx = remove_fx(coll, msg_var) + (f";\n{on_remove}" if on_remove else "")
+    rem = button(f"btn{prefix}ObjRemove", '"Remove"', rem_fx,
                  width=REMOVE_W, height=ROW_H - 2, display_mode=display_mode,
                  accessible='"Remove " & ThisItem.Code',
                  tooltip='"Remove " & ThisItem.Code')
