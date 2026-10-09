@@ -649,8 +649,8 @@ def build_classes():
 #              med det samme; Close er den eneste vej ud.
 #   Class data - klassens karakteristikker, TRM og GIV_EXT/WCM for netop
 #              den raekke. Den redigerer en KOPI (colFlClsDet); Apply
-#              skriver kopien tilbage og validerer, Cancel og luk kasserer
-#              den.
+#              skriver kopien tilbage og validerer, Close (eneste luk,
+#              #237) kasserer den.
 # Hvilke felter der er hvor, er Section i colFlColumns (harnessens
 # buildPlan), og editoren er Kind (generate_app_onstart.editor_kind).
 # Klassen bestemmes af KKS-koden (FL16-FL23) - ingen overstyring. En raekke
@@ -895,13 +895,15 @@ def build_class_modal():
                  height=f"Min({inner.h}, App.Height - 220)", overflow_y="Scroll",
                  pad=(0, SCROLLBAR_W, 0, 0))
 
-    cancel = _fit(button("btnFlClsCancel", '"Cancel"', CLOSE_CLS_FX,
-                         tooltip='"Discard the changes made since the dialog was opened"'))
+    # EEN luk-knap (issue #237): Cancel i bunden er fjernet. Close oeverst
+    # til hoejre koerer den samme CLOSE_CLS_FX og kasserer kopien. Bunden
+    # har kun Apply og er vaek, naar Apply er det (laast raekke) - ingen
+    # tom plads under felterne.
     apply_ = _fit(button("btnFlClsApply", '"Apply"', APPLY_CLS_FX, primary=True,
                          visible=f"!({CLS_LOCKED})",
                          tooltip='"Validate and apply the changes to this row"'))
-    foot = group("conFlClsFoot", [cancel, apply_], direction="Horizontal", gap=8, height=36,
-                 justify="End", align_items="Center")
+    foot = group("conFlClsFoot", [apply_], direction="Horizontal", gap=8, height=36,
+                 justify="End", align_items="Center", visible=f"!({CLS_LOCKED})")
     modal = group("conFlClsModal", [head, body, foot], direction="Vertical", gap=12,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(18, 18, 18, 18), width=CLS_W, drop_shadow="ExtraBold", visible=CLS_OPEN)
