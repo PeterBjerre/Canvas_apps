@@ -1572,7 +1572,7 @@ def number_input(name, default, min_v=None, max_v=None, required_formula="false"
 
 def date_picker(name, default_date, required_formula="false",
                 width="Parent.Width", height=36, display_mode=None,
-                onchange=None, label=None, placeholder=f'"{lay.DATE_FMT}"'):
+                onchange=None, label=None, placeholder=f'"{lay.DATE_PICKER_PLACEHOLDER}"'):
     """Datovaelger - med SAMME kant- og baggrundsregel som de andre felter.
 
     Den var bygget i haanden inde i domain_parts.py og havde en FAST graa
@@ -1590,7 +1590,8 @@ def date_picker(name, default_date, required_formula="false",
         "BorderStyle": "BorderStyle.Solid",
         "BorderThickness": "1",
         "DefaultDate": default_date,
-        "Format": f'"{lay.DATE_FMT}"',
+        # Faelles format for alle datovaelgere (issue #235)
+        "Format": f'"{lay.DATE_PICKER_FMT}"',
         "Height": str(height),
         "LayoutMinWidth": "0",
         "Placeholder": placeholder,
