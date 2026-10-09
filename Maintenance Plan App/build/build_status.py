@@ -38,127 +38,173 @@ SAVEABLE = ("Filter(colVhpItems, !IsBlank(Trim(ShortText)) || "
             "!IsBlank(FunctionalLocation))")
 
 # En strategi uden pakker i MD_StrategyPackage (IP11 er ikke indlaest endnu)
-# har intet at allokere. S4 og trin 4 kraever derfor kun en pakke pr.
+# har intet at allokere. Pakkereglen og trin 4 kraever derfor kun en pakke pr.
 # operation, naar strategien HAR pakker - ellers kunne planen aldrig
 # indsendes, mens pakkekortet sagde, at den godt kunne (build_strategy.py).
 HAS_PKGS = ("!IsEmpty(Filter(colVhpStrategyPackages, "
             "StrategyKey = varVhpPlan.Strategy))")
 
-VALIDATION = """With(
-    { isStrat: varVhpPlan.PlanType = "Strategy", hasPkgs: """ + HAS_PKGS + """ },
-    With(
-        {
-            itemErr:
-                Concat(
-                    Filter(
-                        VhpSaveableItems,
-                        IsBlank(ShortText) || IsBlank(MainWorkCenter) || IsBlank(ActivityType) || IsBlank(FunctionalLocation)
-                    ),
-                    With(
-                        {
-                            f:
-                                If(IsBlank(ShortText), ", short text", "") &
-                                If(IsBlank(MainWorkCenter), ", main work center", "") &
-                                If(IsBlank(ActivityType), ", activity type", "") &
-                                If(IsBlank(FunctionalLocation), ", functional location", "")
-                        },
-                        "Item " & Text(ItemId) & " (" & Coalesce(ShortText, "no short text") & "): add " & Mid(f, 3) & "."
-                    ),
-                    Char(10)
-                ),
-            s1:
-                If(isStrat && IsBlank(varVhpPlan.Strategy),
-                    "S1: A strategy must be chosen on a strategy plan.", ""),
-            s3:
-                If(isStrat,
-                    Concat(
-                        Filter(VhpSaveableItems, IsBlank(TasklistKey)),
-                        "S3: Item " & Text(ItemId) & " has no task list - the package allocation belongs to the task list.",
-                        Char(10)
-                    ), ""),
-            s4:
-                If(isStrat && hasPkgs,
-                    Concat(
-                        Filter(colVhpOperations, Len(Coalesce(PackagesKey, ";")) <= 1),
-                        "S4: Item " & Text(ItemId) & " operation " & OperationNo &
-                        " has no package and would never be carried out.",
-                        Char(10)
-                    ), ""),
-            s5:
-                If(isStrat,
-                    Concat(
-                        Filter(
-                            colVhpStrategyPackages As P,
-                            P.StrategyKey = varVhpPlan.Strategy &&
-                            CountRows(Filter(colVhpOperations, ";" & Text(P.PackageNo) & ";" in Coalesce(PackagesKey, ";"))) = 0
-                        ),
-                        "S5: Package " & ShortCode & " (" & Text(CycleLength) & " " & CycleUnit &
-                        ") has no operations - the plan would call an empty order.",
-                        Char(10)
-                    ), ""),
-            m1:
-                Concat(
-                    Filter(colVhpOperations,
-                        Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" &&
-                        IsBlank(Trim(Coalesce(MaterialGroup, "")))),
-                    "M1: Item " & Text(ItemId) & " operation " & OperationNo &
-                    " is PM02 and needs a material group.",
-                    Char(10)
-                ),
-            r1:
-                If(
-                    !IsBlank(varVhpPlan.Plant) && !IsBlank(varVhpPlan.PlanText) &&
-                        !StartsWith(Upper(varVhpPlan.PlanText), Upper(varVhpPlan.Plant)),
-                    "R1: Plan Text should start with the plant code " & varVhpPlan.Plant &
-                        " - otherwise the plan cannot be found without searching by plant.", ""),
-            r2:
-                With(
-                    { n: CountRows(Filter(VhpSaveableItems, StartsWith(ActivityType, "110") || StartsWith(ActivityType, "115"))) },
-                    If(
-                        n > 0 && IsBlank(varVhpPlan.SortField),
-                        "R2: Sort Field is required: " & Text(n) &
-                            " item(s) have activity type 110 or 115.", "")),
-            r4:
-                With(
-                    { n: CountRows(Filter(VhpSaveableItems, !IsBlank(Revision))) },
-                    If(
-                        n > 0 && (varVhpPlan.FirstCallDay <> 1 || varVhpPlan.FirstCallMonth <> 1),
-                        "R4: " & Text(n) & " item(s) are marked as outage work. " &
-                            "First call must be 01/01, otherwise the task misses the outage.", ""))
-        },
-        Concat(
-            Filter(
-                Table(
-                    { t: itemErr }, { t: s1 }, { t: s3 }, { t: s4 }, { t: s5 },
-                    { t: m1 }, { t: r1 }, { t: r2 }, { t: r4 }
-                ),
-                !IsBlank(t)
-            ),
-            t, Char(10)
-        )
-    )
-)"""
+# REGLERNE, PR. SEKTION (issue #123, #230). Hver regel staar under den
+# sektion, den rettes i - saa sektionernes badge ikke behoever at laese
+# beskedens begyndelse. Foer bar beskederne interne koder (S1, M1, R2 ...)
+# og itemets SharePoint-ID ("Item 199"). Brugeren laeste "M1" som et item
+# og kunne ikke finde item 199 nogen steder. Nu:
+#
+#   - ingen regelkoder i teksten,
+#   - itemet hedder sit NUMMER i listen (Item 1, Item 2 ... - samme
+#     raekkefoelge som Items-listen, Sort(colVhpItems, ItemId)) og dets
+#     Item Short Text i parentes,
+#   - operationsnummeret staar der stadig, og beskeden siger, hvilket felt
+#     der skal udfyldes, og hvor.
+#
+# Alt laeses af de indlaeste samlinger (colVhpItems, colVhpOperations) -
+# ingen datakald. Opslagene regnes kun for de raekker, der fejler.
 # R3 er fjernet med vilje - se historikken i build_hero.py (git).
 
-# HVILKEN SEKTION EN REGEL HOERER TIL (issue #123). Sektionernes badge
-# skifter til "Valid", naar trinnet er faerdigt OG ingen af reglerne ovenfor
-# peger paa sektionen. Reglerne er de samme - de sorteres kun efter
-# beskedens begyndelse, saa der ikke opstaar en validering ved siden af
-# VhpValidationErrors. R2 og R4 rettes i Plan Header (Sort Field og First
-# Call), selv om det er items, der udloeser dem. tests/test_checks.py tjekker,
-# at hver regel i VALIDATION har en sektion.
-RULE_SECTIONS = {
-    "Plan": ("S1:", "R1:", "R2:", "R4:"),
-    "Item": ("Item ",),
-    "Ops": ("S3:", "S4:", "S5:", "M1:"),
-}
+
+def join_lines(parts):
+    """Power Fx-tekst: de ikke-tomme dele, een pr. linje (Char(10))."""
+    rows = ", ".join("{ m: %s }" % p for p in parts)
+    return f"Concat(Filter(Table({rows}), !IsBlank(m)), m, Char(10))"
+
+
+def _nest(expr, pad="    "):
+    """expr indrykket, naar den staar inde i et andet udtryk."""
+    return expr.replace("\n", "\n" + pad)
+
+
+IS_STRAT_PLAN = 'varVhpPlan.PlanType = "Strategy"'
+
+
+def item_ref(item_id):
+    """Power Fx-tekst: "Item <nr> (<Item Short Text>)" for itemet med
+    ItemId = item_id. Nummeret er itemets plads i Items-listen (sorteret
+    paa ItemId). Uden kort tekst kun "Item <nr>". item_id skal vaere et
+    navn fra en With - ikke ItemId direkte, for inde i Filter(colVhpItems)
+    er ItemId itemets egen kolonne."""
+    return ("With(\n"
+            f"    {{ ir: LookUp(colVhpItems, ItemId = {item_id}) }},\n"
+            f"    \"Item \" & Text(CountRows(Filter(colVhpItems, ItemId <= {item_id}))) &\n"
+            "        If(IsBlank(Trim(ir.ShortText)), \"\", \" (\" & Trim(ir.ShortText) & \")\")\n"
+            ")")
+
+
+def _per_row(table, msg, sep="Char(10)"):
+    """Een besked pr. raekke i table. rid er raekkens ItemId, fanget FOER
+    item_ref aabner sit eget Filter over colVhpItems."""
+    return (f"Concat(\n    {_nest(table)},\n"
+            f"    With(\n        {{ rid: ItemId }},\n        {_nest(msg, '        ')}\n    ),\n"
+            f"    {sep}\n)")
+
+
+REF = item_ref("rid")
+
+
+def _items_list(table, msg):
+    """Plan-regel, der udloeses af items: msg & listen over dem ("Item 1
+    (...), Item 3"). Tom, naar intet item udloeser den."""
+    return ("With(\n"
+            f"    {{ l: {_nest(_per_row(table, REF, chr(34) + ', ' + chr(34)))} }},\n"
+            f"    If(IsBlank(l), \"\", {msg} & l & \".\")\n"
+            ")")
+
+
+ITEM_RULE = _per_row(
+    "Filter(\n"
+    "    VhpSaveableItems,\n"
+    "    IsBlank(ShortText) || IsBlank(MainWorkCenter) || IsBlank(ActivityType) || IsBlank(FunctionalLocation)\n"
+    ")",
+    "With(\n"
+    "    {\n"
+    "        f:\n"
+    "            If(IsBlank(ShortText), \", Item Short Text\", \"\") &\n"
+    "            If(IsBlank(MainWorkCenter), \", Main Work Center\", \"\") &\n"
+    "            If(IsBlank(ActivityType), \", Maintenance Activity Type\", \"\") &\n"
+    "            If(IsBlank(FunctionalLocation), \", Functional Location\", \"\")\n"
+    "    },\n"
+    f"    {_nest(REF)} &\n"
+    "        \": fill in \" & Mid(f, 3) & \" in the Item Editor.\"\n"
+    ")")
+
+# (sektion, navn, udtryk) - navnet er kun til tests og laesning.
+RULES = [
+    ("Plan", "strategy",
+     f"If(\n    {IS_STRAT_PLAN} && IsBlank(varVhpPlan.Strategy),\n"
+     "    \"Choose a Maintenance Strategy in the Plan Header - a strategy plan needs one.\",\n"
+     "    \"\"\n)"),
+    ("Plan", "plant_prefix",
+     "If(\n"
+     "    !IsBlank(varVhpPlan.Plant) && !IsBlank(varVhpPlan.PlanText) &&\n"
+     "        !StartsWith(Upper(varVhpPlan.PlanText), Upper(varVhpPlan.Plant)),\n"
+     "    \"Start the Plan Text in the Plan Header with the plant code \" & varVhpPlan.Plant &\n"
+     "        \" - otherwise the plan cannot be found without searching by plant.\",\n"
+     "    \"\"\n)"),
+    ("Plan", "sort_field",
+     "If(\n"
+     "    IsBlank(varVhpPlan.SortField),\n"
+     "    " + _nest(_items_list(
+         "Filter(VhpSaveableItems, StartsWith(ActivityType, \"110\") || StartsWith(ActivityType, \"115\"))",
+         "\"Choose a Sort Field in the Plan Header - it is required for activity type 110 or 115: \"")) + ",\n"
+     "    \"\"\n)"),
+    ("Plan", "first_call",
+     "If(\n"
+     "    varVhpPlan.FirstCallDay <> 1 || varVhpPlan.FirstCallMonth <> 1,\n"
+     "    " + _nest(_items_list(
+         "Filter(VhpSaveableItems, !IsBlank(Revision))",
+         "\"Set First call to 01/01 (day 1, month 1) in the Plan Header - otherwise the outage work \" &\n"
+         "        \"misses the outage. Marked as outage work (Revision): \"")) + ",\n"
+     "    \"\"\n)"),
+    ("Item", "item_fields", ITEM_RULE),
+    ("Ops", "tasklist",
+     f"If(\n    {IS_STRAT_PLAN},\n"
+     "    " + _nest(_per_row(
+         "Filter(VhpSaveableItems, IsBlank(TasklistKey))",
+         REF + " &\n    \": choose a task list - the package allocation belongs to the task list.\"")) + ",\n"
+     "    \"\"\n)"),
+    ("Ops", "package",
+     f"If(\n    {IS_STRAT_PLAN} && {HAS_PKGS},\n"
+     "    " + _nest(_per_row(
+         "Filter(colVhpOperations, Len(Coalesce(PackagesKey, \";\")) <= 1)",
+         REF + " & \", operation \" & OperationNo &\n"
+         "    \": choose a package - without one the operation is never carried out.\"")) + ",\n"
+     "    \"\"\n)"),
+    ("Ops", "empty_package",
+     f"If(\n    {IS_STRAT_PLAN},\n"
+     "    Concat(\n"
+     "        Filter(\n"
+     "            colVhpStrategyPackages As P,\n"
+     "            P.StrategyKey = varVhpPlan.Strategy &&\n"
+     "            CountRows(Filter(colVhpOperations, \";\" & Text(P.PackageNo) & \";\" in Coalesce(PackagesKey, \";\"))) = 0\n"
+     "        ),\n"
+     "        \"Package \" & ShortCode & \" (\" & Text(CycleLength) & \" \" & CycleUnit &\n"
+     "            \"): allocate it to at least one operation - otherwise the plan calls an empty order.\",\n"
+     "        Char(10)\n"
+     "    ),\n"
+     "    \"\"\n)"),
+    ("Ops", "material_group",
+     _per_row(
+         "Filter(\n"
+         "    colVhpOperations,\n"
+         "    Upper(Trim(Coalesce(ControlKey, \"\"))) = \"PM02\" &&\n"
+         "    IsBlank(Trim(Coalesce(MaterialGroup, \"\")))\n"
+         ")",
+         REF + " & \", operation \" & OperationNo &\n"
+         "    \": fill in the material group - control key PM02 requires one.\"")),
+]
+SECTIONS = ("Plan", "Item", "Ops")
 
 
 def _section_rules(section):
-    """De linjer i VhpValidationErrors, der hoerer til sektionen - tom tekst,
-    naar der ingen er."""
-    cond = " || ".join(f'StartsWith(Value, "{p}")' for p in RULE_SECTIONS[section])
-    return f"Concat(Filter(Split(VhpValidationErrors, Char(10)), {cond}), Value, Char(10))"
+    """Sektionens regler, een linje pr. fejl - tom tekst, naar der ingen er."""
+    pad = " " * 12
+    rows = (",\n" + pad).join("{ m: %s }" % _nest(expr, pad)
+                               for sec, _n, expr in RULES if sec == section)
+    return ("Concat(\n    Filter(\n        Table(\n" + pad + rows +
+            "\n        ),\n        !IsBlank(m)\n    ),\n    m, Char(10)\n)")
+
+
+# Alle regler - tom = ingen fejl. Submit (VhpCanSubmit) kraever den tom.
+VALIDATION = join_lines(["VhpPlanRuleErrors", "VhpItemRuleErrors", "VhpOpsRuleErrors"])
 
 
 # HVAD DER MANGLER, PR. SEKTION (issue #220). Trinenes egne beskeder plus
@@ -182,12 +228,6 @@ STEP_MISSING = {
 }
 MISSING_NAMES = {"Plan": "VhpPlanMissing", "Item": "VhpItemMissing", "Ops": "VhpOpsMissing"}
 RULE_NAMES = {"Plan": "VhpPlanRuleErrors", "Item": "VhpItemRuleErrors", "Ops": "VhpOpsRuleErrors"}
-
-
-def join_lines(parts):
-    """Power Fx-tekst: de ikke-tomme dele, een pr. linje (Char(10))."""
-    rows = ", ".join("{ m: %s }" % p for p in parts)
-    return f"Concat(Filter(Table({rows}), !IsBlank(m)), m, Char(10))"
 
 
 def _section_missing(section):
