@@ -296,8 +296,8 @@ def _cells(spec, ctrls):
 
 # --- Raekkerne (issue #232) --------------------------------------------------
 # Ingen fold-ud: hvert felt staar i raekken eller bag en popup-knap. Efter
-# Sort Field i praecis denne raekkefoelge:
-#   ABC Indicator | ATEX | Class Data | Manufacturer | Warranty | Actions
+# Assigned Class kommer Class Data (issue #242), efter Sort Field:
+#   ABC Indicator | ATEX | Manufacturer | Warranty | Actions
 # Etiket og maks.-laengde for Room og Sort Field er reglernes
 # (fl_rules.generated.json, ens for alle klasser - tests/test_fl_sections).
 _NO_CLASS = {c["Field"]: c for c in V.R["columns"] if c["Cls"] == "NO CLASS"}
@@ -314,10 +314,11 @@ VGAP = 6
 FL_MIN = 140
 DESC_MIN = 100
 # (navn, overskrift, bredde) efter Description. Delete er et ikon.
-V_FIXED = ([("Kks", "KKS Type", 64), ("Cls", "Assigned Class", 96)]
+# Class Data staar lige efter Assigned Class (issue #242).
+V_FIXED = ([("Kks", "KKS Type", 64), ("Cls", "Assigned Class", 96),
+            ("ClsData", "Class Data", _btn_w("Class data"))]
            + [(n, _NO_CLASS[f]["Column"], w) for n, f, w in ROW_VALS]
            + [("Abc", "ABC Indicator", 88), ("Atex", "ATEX", 40),
-              ("ClsData", "Class Data", _btn_w("Class data")),
               ("Mfr", "Manufacturer", _btn_w("Manufacturer")),
               ("War", "Warranty", _btn_w("Warranty")),
               # "Actions" er 47 px i 11 px - knappen er et ikon.
@@ -331,11 +332,27 @@ V_BASE = FL_MIN + DESC_MIN + sum(w for _n, _l, w in V_FIXED) + VGAP * (len(V_FIX
 V_MIN = f"(If({V_SHOW_NO}, {28 + VGAP}, 0) + {V_BASE})"
 V_SPARE = f"Max(0, ({ROWS_W}) - {V_MIN})"
 V_W = f"Max({ROWS_W}, {V_MIN})"
-# Den ekstra plads deles af Functional Location og Description.
+# DEN EKSTRA PLADS DELES AF ALLE KOLONNER, DER KAN BRUGE DEN (issue #242).
+# Foer fik Functional Location og Description hver halvdelen - paa en
+# 1920 px skaerm 421 og 381 px, med et stort tomt felt. Nu faar de hver
+# V_PAIR_SHARE af den (omtrent halvdelen af den gamle bredde), og resten
+# deles ligeligt af kolonnerne i V_GROW. ATEX (afkrydsning) og Actions
+# (ikon) har fast bredde. Andelene summer til 1, saa raekken er stadig
+# praecis V_W bred, og overskrift og raekke bruger de samme bredder.
+V_PAIR_SHARE = "1 / 8"
+V_GROW = ("Kks", "Cls", "ClsData", "Room", "Sort", "Abc", "Mfr", "War")
+V_GROW_SHARE = f"3 / {4 * len(V_GROW)}"
+assert set(V_GROW) <= {n for n, _l, _w in V_FIXED}
+
+
+def _v_w(n, w):
+    return f"{w} + ({V_SPARE}) * {V_GROW_SHARE}" if n in V_GROW else w
+
+
 V_SPEC = ([("No", "#", 28, V_SHOW_NO),
-           ("Fl", "Functional Location", f"{FL_MIN} + ({V_SPARE}) / 2", None),
-           ("Desc", "Description", f"{DESC_MIN} + ({V_SPARE}) / 2", None)]
-          + [(n, l, w, None) for n, l, w in V_FIXED])
+           ("Fl", "Functional Location", f"{FL_MIN} + ({V_SPARE}) * {V_PAIR_SHARE}", None),
+           ("Desc", "Description", f"{DESC_MIN} + ({V_SPARE}) * {V_PAIR_SHARE}", None)]
+          + [(n, l, _v_w(n, w), None) for n, l, w in V_FIXED])
 V_GAL_W = f"({V_W}) + {SCROLLBAR_W} + {GALLERY_RESERVE}"
 V_WIDE = f"({ROWS_W}) < {V_MIN}"
 
@@ -481,7 +498,9 @@ If(CountRows(colFlRows) = 0, {add_row_fx()});
 {REVERIFY}""", danger=True, width=48, height=30, display_mode=DM_EDIT, icon="Delete",
                     accessible='"Delete row " & ThisItem.Pos', tooltip='"Delete row " & ThisItem.Pos')
     delete.props["Layout"] = "ButtonLayout.IconOnly"
-    return _cells(V_SPEC, [no, fl, desc, kks, cls] + vals + [abc, atex] + pops + [delete])
+    # Samme raekkefoelge som V_FIXED: Class data lige efter Assigned Class.
+    return _cells(V_SPEC, [no, fl, desc, kks, cls, pops[0]] + vals + [abc, atex] + pops[1:]
+                  + [delete])
 
 
 def row_message():
