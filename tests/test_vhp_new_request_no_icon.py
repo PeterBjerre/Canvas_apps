@@ -42,10 +42,10 @@ def test_new_request_has_no_icon():
     assert "Icon:" not in b
     assert _prop(b, "Layout") == "=ButtonLayout.TextOnly"
     assert _prop(b, "Align") == "=Align.Center"
-    # Teksten er den samme; kun en telefon har "New" (der er ikke plads).
-    assert _prop(b, "Text") == '=If(LayoutRank < 2, "New", "New request")'
+    # Praecis "New Request" paa alle skaermbredder (issue #243).
+    assert _prop(b, "Text") == '="New Request"'
     # Bredden er teksten + luft - ingen plads til et ikon.
-    assert bh.NEW_W == fit_button_width('"New request"')
+    assert bh.NEW_W == fit_button_width('"New Request"')
     assert _prop(b, "Width") == "=If(LayoutRank < 2, %d, %d)" % (bh.NEW_PHONE_W, bh.NEW_W)
     # Samme handling og bekraeftelse som foer.
     assert "Set(varVhpConfirmNew, true)" in b
