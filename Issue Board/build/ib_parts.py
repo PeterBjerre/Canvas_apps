@@ -6,16 +6,17 @@ hentningen.
     [ikon] Issue Board                              [Refresh] [+ New issue]
            Report what you find while testing ...
     +------------------------------------------------------------------+
-    | [All issues | My issues | Assigned to me]  [Open | Closed | Arch.] |
-    | [Search .........] [Sort v] [Application v] [Section v] [Status v] [Priority v]
+    | [All issues|My issues|Assigned to me] [Open|Closed|Arch.] [Search...] |
+    | [Application v][Section v] [Status v][Priority v]          [Sort v] |
     | 12 open issues                                   [Clear filters] |
-    | TICKET ID  TITLE        APPLICATION  ...  STATUS   UPDATED       |
-    | ISS-000142 Save does... VH-plan      ...  [New]    09 Oct 2026 [@]|
+    | TICKET ID  REQUESTER TITLE        APPLICATION ... STATUS  UPDATED  |
+    | ISS-000142 UFFES     Save does... VH-plan     ... [New]   09 Oct [@]|
     +------------------------------------------------------------------+
     Issue #229: en liste som Masterdata Hub i stedet for fliser. Filtrene
     er en kompakt vaerktoejslinje oeverst i listekortet, og galleriet er
     aldrig hoejere end pladsen under den. Under Desktop er hver raekke et
-    kompakt kort paa tre linjer.
+    kompakt kort paa tre linjer. Vaerktoejslinjen er to flow_row-raekker
+    direkte i kortet (issue #244 - se build_filters).
 
     New issue   -> popup: Application/Section, titel, lignende sager,
                    "What happened?", flere detaljer (valgfrit), Submit ->
@@ -73,7 +74,7 @@ from gen_screen import (Ctrl, stack_height, C_APP_BG, C_CARD_BG, C_CARD_BORDER, 
                         C_WARN_FG)
 from build_helpers import (button, card, checkbox_theme, concurrent, confirm_modal,
                            fit_button_width, group,
-                           grow, icon_on_mobile, label_row, loading_overlay, row_hit, row_rule,
+                           flow_row, grow, icon_on_mobile, label_row, loading_overlay, row_hit, row_rule,
                            text_ctrl, text_input, themed_dropdown, top_bar, ICON_W)
 from permissions import IS_ADMIN, ADMIN_LIST, ADMIN_GROUP
 from design_tokens import ref as _t
@@ -584,29 +585,66 @@ CLEAR_FILTERS = ('Set(varIbApp, "");\nSet(varIbSection, "");\nSet(varIbStatusF, 
                  'Set(varIbPriF, "");\nReset(inpIbSearch);\nReset(drpIbFltApp);\n'
                  "Reset(drpIbFltSection);\nReset(drpIbFltStatus);\nReset(drpIbFltPriority)")
 
-# Vaerktoejslinjen (issue #229): oeverst i listekortet, lige over raekkerne,
-# og regnet af kortets indre bredde. Kontakternes bredder paa en bred
-# skaerm; paa en smal deler segmenterne bredden.
+# VAERKTOEJSLINJEN (issue #244) - to raekker direkte i listekortet.
+#
+#   [All issues|My issues|Assigned to me] [Open|Closed|Archived] [Search......]
+#   [Application v][Section v] [Status v][Priority v]            [Sort v]
+#
+# HVORFOR KNAPPERNE IKKE KUNNE SES (issue #229 -> #244)
+# -----------------------------------------------------
+# Foer stod kontrollerne tre-fire containere nede: conIbToolbar (lodret) >
+# conIbSwitches / conIbFltLine (raekker, der SKIFTEDE RETNING med en
+# formel, men havde en KONSTANT LayoutAlignItems.Start) > conIbScope /
+# conIbState / conIbFltRow / conIbFltRow2 (indlejrede grupper med
+# LayoutMinWidth = Width) > conIbFltPairA/B > kontrollerne. Hoejderne gik
+# op - 34 + 10 + 36 = 80 px paa en bred skaerm, og regel 2/3 var groen -
+# men i den udgivne app var de 80 px TOMME: indholdet blev tegnet under
+# sin raekkes overkant og skjult af LayoutOverflow.Hide. Det er den samme
+# fejl, topbjaelken havde (build_helpers.top_bar: "en indlejret gruppe
+# ... og en retning, der skiftede efter bredden. I Studio stod knapperne
+# en linje for lavt og blev skaaret over"). De raekker, der VISES i det
+# samme kort (taelleren og overskrifterne), staar direkte i kortet.
+#
+# Nu: hver linje er en build_helpers.flow_row DIREKTE i kortet - samme
+# konstruktion som hubbens filterlinje og KKS-opslagets knapper, der begge
+# ses i den udgivne app: vandret med LayoutAlignItems.Center, eller lodret
+# med Stretch (begge som formel). Hoejst EEN fast, vandret gruppe inde i
+# raekken (segmenterne og listeparrene), og den har sin egen hoejde.
+# Kontrollernes bredder regnes af kortets indre bredde (TB_W, en nedre
+# graense), og soegefeltet tager resten (grow). Ingen Y, ingen forskydning.
 TB_W = CARD_W
+SEG_GAP = 4
 SCOPE_W = {"btnIbScopeAll": 96, "btnIbScopeMine": 100, "btnIbScopeAssigned": 128}
 STATE_W = {"btnIbStateOpen": 76, "btnIbStateClosed": 84, "btnIbStateArchived": 92}
-SCOPE_ADMIN_W = sum(SCOPE_W.values()) + 2 * 4
-SCOPE_USER_W = SCOPE_W["btnIbScopeAll"] + SCOPE_W["btnIbScopeMine"] + 4
-STATE_ALL_W = sum(STATE_W.values()) + 2 * 4
-TOP_OK = f"{TB_W} >= {SCOPE_ADMIN_W + 16 + STATE_ALL_W}"
-# Soegning, sortering og de fire lister: paa EEN linje, naar der er plads
-# til dem alle (soegefeltet mindst SEARCH_MIN); ellers soegning og sortering
-# paa een linje og listerne paa den naeste (to og to paa en telefon).
-DD_W = 150
-SORT_W = 150
+SCOPE_ADMIN_W = sum(SCOPE_W.values()) + 2 * SEG_GAP
+SCOPE_USER_W = SCOPE_W["btnIbScopeAll"] + SCOPE_W["btnIbScopeMine"] + SEG_GAP
+STATE_ALL_W = sum(STATE_W.values()) + 2 * SEG_GAP
+TB_GAP = 12          # mellem grupperne i en linje
 SEARCH_MIN = 240
-LISTS_W = 4 * DD_W + 3 * 8
-ONE_LINE = f"{TB_W} >= {LISTS_W + 8 + SORT_W + 8 + SEARCH_MIN}"
+SORT_W = 150
+DD_MIN = 130         # en filterliste ("All applications" + pilen)
+PAIR_MIN = 2 * DD_MIN + 8
+# Linje 1 paa een linje: begge kontakter + soegefeltets mindstebredde.
+TOP_OK = f"{TB_W} >= {SCOPE_ADMIN_W + TB_GAP + STATE_ALL_W + TB_GAP + SEARCH_MIN}"
+# Linje 2 paa een linje: to listepar + sorteringen.
+FLT_OK = f"{TB_W} >= {2 * PAIR_MIN + TB_GAP + TB_GAP + SORT_W}"
+# Hver linjes hoejde, naar den staar vandret.
+TB_LINE_H = 36
+
+
+def _seg_group(name, segs, wide_w, ok):
+    """En fast, vandret gruppe af segmenter. Paa een linje: de faste
+    bredder. Under hinanden (flow_row lodret, Stretch): hele linjen, og
+    segmenterne deler den."""
+    g = group(name, segs, direction="Horizontal", gap=SEG_GAP, height=SEG_H,
+              align_items="Center", width=f"If({ok}, {wide_w}, {TB_W})")
+    return g
 
 
 def build_filters():
+    """Vaerktoejslinjens to raekker - de staar direkte i listekortet."""
     n_scope = f"If({IS_ADMIN}, 3, 2)"
-    narrow_scope = f"(({TB_W}) - 4 * ({n_scope} - 1)) / {n_scope}"
+    narrow_scope = f"(({TB_W}) - {SEG_GAP} * ({n_scope} - 1)) / {n_scope}"
     all_seg = _seg("btnIbScopeAll", "All issues", SCOPE_ALL,
                    'Set(varIbScope, "all")', SCOPE_W["btnIbScopeAll"],
                    '"Show all issues from all testers"')
@@ -621,10 +659,8 @@ def build_filters():
     for s in (all_seg, mine_seg, asg_seg):
         s.props["Width"] = f"If({TOP_OK}, {SCOPE_W[s.name]}, {narrow_scope})"
         s.props["LayoutMinWidth"] = s.props["Width"]
-    scope = group("conIbScope", [all_seg, mine_seg, asg_seg], direction="Horizontal", gap=4,
-                  height=SEG_H, align_items="Center",
-                  width=f"If({TOP_OK}, If({IS_ADMIN}, {SCOPE_ADMIN_W}, {SCOPE_USER_W}), {TB_W})")
-    scope.props["LayoutMinWidth"] = scope.props["Width"]
+    scope = _seg_group("conIbScope", [all_seg, mine_seg, asg_seg],
+                       f"If({IS_ADMIN}, {SCOPE_ADMIN_W}, {SCOPE_USER_W})", TOP_OK)
 
     states = [("btnIbStateOpen", "Open", "open", '"Show open issues"'),
               ("btnIbStateClosed", "Closed", "closed", '"Show closed issues"'),
@@ -633,39 +669,23 @@ def build_filters():
     for name, label, key, acc in states:
         s = _seg(name, label, f'varIbState = "{key}"', f'Set(varIbState, "{key}")', STATE_W[name],
                  acc)
-        s.props["Width"] = f"If({TOP_OK}, {STATE_W[name]}, (({TB_W}) - 8) / 3)"
+        s.props["Width"] = f"If({TOP_OK}, {STATE_W[name]}, (({TB_W}) - {2 * SEG_GAP}) / 3)"
         s.props["LayoutMinWidth"] = s.props["Width"]
         segs.append(s)
-    state = group("conIbState", segs, direction="Horizontal", gap=4, height=SEG_H,
-                  align_items="Center", width=f"If({TOP_OK}, {STATE_ALL_W}, {TB_W})")
-    state.props["LayoutMinWidth"] = state.props["Width"]
-    top = group("conIbSwitches", [scope, state], direction="Horizontal", gap=16,
-                height=f"If({TOP_OK}, {SEG_H}, {SEG_H} + 8 + {SEG_H})", align_items="Start")
-    top.props["LayoutDirection"] = f"If({TOP_OK}, LayoutDirection.Horizontal, LayoutDirection.Vertical)"
-    top.props["LayoutGap"] = f"If({TOP_OK}, 16, 8)"
+    state = _seg_group("conIbState", segs, STATE_ALL_W, TOP_OK)
 
-    # Soegning og sortering. RW: deres bredde - hele linjen, eller resten
-    # ved siden af listerne, naar alt staar paa een linje.
-    rw = f"If({ONE_LINE}, {TB_W} - {LISTS_W + 8}, {TB_W})"
     search = text_input("inpIbSearch", '""', placeholder='"Search number, title or description"',
                         label='"Search issues"')
     # Listen filtreres i hukommelsen - et lille ophold, saa den ikke regnes
     # om for hvert tegn.
     search.props["TriggerOutput"] = "TriggerOutput.Delayed"
-    drp_sort = themed_dropdown("drpIbSort", '["Last updated", "Newest", "Oldest", "Priority", "Status"]',
-                               "varIbSort", label='"Sort issues"',
-                               onchange="Set(varIbSort, Self.Selected.Value)")
-    ok1 = f"({rw}) >= {SORT_W + 8 + SEARCH_MIN}"
-    drp_sort.props["Width"] = f"If({ok1}, {SORT_W}, {rw})"
-    drp_sort.props["LayoutMinWidth"] = f"If({ok1}, {SORT_W}, 0)"
-    search.props["Width"] = f"If({ok1}, {rw} - {SORT_W + 8}, {rw})"
-    row = group("conIbFltRow", [search, drp_sort], direction="Horizontal", gap=8,
-                height=f"If({ok1}, 36, 2 * 36 + 8)", width=rw)
-    row.props["LayoutDirection"] = f"If({ok1}, LayoutDirection.Horizontal, LayoutDirection.Vertical)"
-    row.props["LayoutMinWidth"] = row.props["Width"]
+    search.props["Width"] = str(SEARCH_MIN)
+    top = flow_row("conIbTbTop", [scope, state, search], TB_W, gap=TB_GAP, flex=search,
+                   flex_min=SEARCH_MIN, ok=TOP_OK)
 
-    # Application og den afhaengige Section, status og prioritet: fire paa
-    # een linje, ellers to og to.
+    # Application og den afhaengige Section, status og prioritet - to og
+    # to - og sorteringen. Paa een linje deler parrene bredden efter
+    # sorteringen; under hinanden faar hvert par hele linjen.
     app_items = ('Ungroup(Table({ x: Table({ Application: "All applications" }) }, '
                  "{ x: IbApps }), x)")
     drp_app = themed_dropdown("drpIbFltApp", app_items,
@@ -690,29 +710,20 @@ def build_filters():
                             display_mode='If(varIbState = "closed", DisplayMode.Disabled, DisplayMode.Edit)')
     drp_pri = _filter_dd("drpIbFltPriority", "All priorities", [p for p, _r in cfg.PRIORITY],
                          "varIbPriF", '"Filter by priority"')
-    r2w = f"If({ONE_LINE}, {LISTS_W}, {TB_W})"
-    ok4 = f"({r2w}) >= {LISTS_W}"
-    half = f"(({r2w}) - 8) / 2"
-    quarter = f"(({r2w}) - 24) / 4"
-    # To og to paa en smal skaerm: hver liste er halvdelen af linjen.
+    drp_sort = themed_dropdown("drpIbSort", '["Last updated", "Newest", "Oldest", "Priority", "Status"]',
+                               "varIbSort", label='"Sort issues"',
+                               onchange="Set(varIbSort, Self.Selected.Value)")
+    drp_sort.props["Width"] = f"If({FLT_OK}, {SORT_W}, {TB_W})"
+    pair_w = f"If({FLT_OK}, (({TB_W}) - {SORT_W + 2 * TB_GAP}) / 2, {TB_W})"
     for c in (drp_app, drp_sec, drp_status, drp_pri):
-        c.props["Width"] = f"If({ok4}, {quarter}, {half})"
-        c.props["LayoutMinWidth"] = "0"
+        c.props["Width"] = f"(({pair_w}) - 8) / 2"
+        c.props["LayoutMinWidth"] = c.props["Width"]
     pair_a = group("conIbFltPairA", [drp_app, drp_sec], direction="Horizontal", gap=8,
-                   height=36, width=f"If({ok4}, {half}, {r2w})")
+                   height=TB_LINE_H, align_items="Center", width=pair_w)
     pair_b = group("conIbFltPairB", [drp_status, drp_pri], direction="Horizontal", gap=8,
-                   height=36, width=f"If({ok4}, {half}, {r2w})")
-    row2 = group("conIbFltRow2", [pair_a, pair_b], direction="Horizontal", gap=8,
-                 height=f"If({ok4}, 36, 2 * 36 + 8)", width=r2w)
-    row2.props["LayoutDirection"] = f"If({ok4}, LayoutDirection.Horizontal, LayoutDirection.Vertical)"
-    row2.props["LayoutMinWidth"] = row2.props["Width"]
-    line = group("conIbFltLine", [row, row2], direction="Horizontal", gap=8,
-                 height=f"If({ONE_LINE}, 36, ({row.h}) + 8 + ({row2.h}))", align_items="Start")
-    line.props["LayoutDirection"] = (f"If({ONE_LINE}, LayoutDirection.Horizontal, "
-                                     "LayoutDirection.Vertical)")
-
-    # Ingen egen flade: linjen staar oeverst i listekortet (build_list).
-    return group("conIbToolbar", [top, line], direction="Vertical", gap=10)
+                   height=TB_LINE_H, align_items="Center", width=pair_w)
+    filters = flow_row("conIbTbFilters", [pair_a, pair_b, drp_sort], TB_W, gap=TB_GAP, ok=FLT_OK)
+    return [top, filters]
 
 
 # ---------------------------------------------------------------------------
@@ -727,24 +738,33 @@ TBL_ROW_H = 48       # tabelraekken (Desktop og op)
 CMP_ROW_H = 92       # den kompakte raekke (under Desktop)
 ROW_PAD = 10         # raekkens luft til venstre og hoejre
 COL_GAP = 8
-ACT_BTN = 40         # papirclipsen (issue #193) - kolonnen ACTIONS
+ACT_BTN = 40         # papirclipsen (issue #193) - kolonnen ACTIONS (raekken under Desktop)
+ACT_W = 52           # kolonnen ACTIONS i tabellen - plads til ikonet og overskriften
 
-# (noegle, overskrift, mindstebredde, vaegt, kun Wide). Den frie bredde
-# deles efter vaegtene, saa tabellen fylder hele kortet - uden at titlen
-# faar det hele. Section, Assigned to og Reported vises kun paa en bred
-# skaerm (Wide); paa Desktop staar de i popuppen.
+# (noegle, overskrift, mindstebredde, vaegt, kun Wide). Raekkefoelgen er
+# issue #244's: Ticket ID | Requester | Title | Application | Section |
+# Priority | Status | Assigned to | Reported | Updated | Actions.
+#
+# Den frie bredde deles efter vaegtene, saa tabellen fylder hele kortet.
+# Issue #244: titlen fik 4 af 6 dele og blev ~950 px bred paa en bred
+# skaerm, mens resten stod klemt til hoejre. Nu deles den paa tekst-
+# kolonnerne (titel 3, Application/Section/Assigned to 2, Requester og
+# datoerne 1); maerkerne (Ticket ID, Priority, Status) og handlingen har
+# fast bredde, saa de aldrig klippes og aldrig vokser. Section, Assigned to
+# og Reported vises kun paa en bred skaerm (Wide); paa Desktop staar de i
+# popuppen, og under Desktop er raekken et kompakt kort.
 LIST_COLS = [
     ("ID", "TICKET ID", 88, 0, False),
-    ("TITLE", "TITLE", 150, 4, False),
-    ("APP", "APPLICATION", 104, 1, False),
-    ("SECTION", "SECTION", 104, 1, True),
-    ("REQ", "REQUESTER", 64, 0, False),
+    ("REQ", "REQUESTER", 64, 1, False),
+    ("TITLE", "TITLE", 140, 3, False),
+    ("APP", "APPLICATION", 100, 2, False),
+    ("SECTION", "SECTION", 104, 2, True),
     ("PRI", "PRIORITY", 72, 0, False),
     ("STATUS", "STATUS", 116, 0, False),
-    ("ASG", "ASSIGNED TO", 80, 0, True),
-    ("REP", "REPORTED", 80, 0, True),
-    ("UPD", "UPDATED", 80, 0, False),
-    ("ACT", "", ACT_BTN, 0, False),
+    ("ASG", "ASSIGNED TO", 92, 2, True),
+    ("REP", "REPORTED", 84, 1, True),
+    ("UPD", "UPDATED", 84, 1, False),
+    ("ACT", "ACTIONS", ACT_W, 0, False),
 ]
 WIDE = at_least("Wide")
 TABLE_ON = at_least("Desktop")
@@ -854,8 +874,8 @@ def requester(r):
 REPORTER_FX = requester("{r}")
 
 
-def _attach_btn(name, visible):
-    b = button(name, '"Attach files"', OPEN_ROW_FILES, width=ACT_BTN, height=32, icon="Attach",
+def _attach_btn(name, visible, width=ACT_BTN):
+    b = button(name, '"Attach files"', OPEN_ROW_FILES, width=width, height=32, icon="Attach",
                visible=visible, accessible='"Add screenshots or files to " & ThisItem.TicketNo',
                tooltip='"Add screenshots or files"')
     b.props["Layout"] = "ButtonLayout.IconOnly"
@@ -895,7 +915,7 @@ def _table_row():
         "UPD": txt("txtIbRowUpdated", "UPD",
                    f'If({ROW_UPDATED}, Text(ThisItem.UpdatedOn, {DATE_FMT}), "-")',
                    size=lay.SIZE_SMALL, color=C_MUTED, accessible='"Updated: " & Self.Text'),
-        "ACT": _attach_btn("btnIbRowAttach", f"{TABLE_ON} && {ROW_CAN_ATTACH}"),
+        "ACT": _attach_btn("btnIbRowAttach", f"{TABLE_ON} && {ROW_CAN_ATTACH}", width=COL_W["ACT"]),
     }
     kids = []
     for key, _h, _b, _g, wide_only in LIST_COLS:
@@ -915,7 +935,7 @@ def _list_head():
     for i, (key, head, _b, _g, wide_only) in enumerate(LIST_COLS):
         h = text_ctrl(f"txtIbListH{i}", f'"{head}"', size=lay.SIZE_MICRO, weight="Semibold",
                       color=C_MUTED, height=20, wrap="false", width=COL_W[key],
-                      accessible=f'"{head.title() or "Actions"} column"',
+                      accessible=f'"{head.capitalize()} column"',
                       visible=WIDE if wide_only else None)
         kids.append(h)
     return group("conIbListHead", kids, direction="Horizontal", gap=COL_GAP, height=20,
@@ -923,7 +943,8 @@ def _list_head():
 
 
 def _compact_row():
-    """Under Desktop: nummer, prioritet og status; titlen; hvor og hvem."""
+    """Under Desktop: nummer, prioritet og status; titlen; hvem og hvor
+    (rapportoeren foerst - samme raekkefoelge som tabellen, issue #244)."""
     no = _no_badge("txtIbRowNoC", "ThisItem.TicketNo")
     pri = _pri_badge("txtIbRowPriorityC", "ThisItem.Priority", visible=at_least("Tablet"))
     gap = grow(group("conIbRowGapC", [], direction="Horizontal", height=0))
@@ -932,7 +953,7 @@ def _compact_row():
                   height=CHIP_H, align_items="Center")
     title = text_ctrl("txtIbRowTitleC", "ThisItem.Title", size=lay.SIZE_INPUT, weight="Semibold",
                       height=21, wrap="false", accessible='"Title: " & ThisItem.Title')
-    meta_fx = (f'ThisItem.Application & "  ·  " & ThisItem.Section & "  ·  " & {requester("ThisItem")} & '
+    meta_fx = (f'{requester("ThisItem")} & "  ·  " & ThisItem.Application & "  ·  " & ThisItem.Section & '
                f'If({below("Tablet")} && !IsBlank(ThisItem.Priority), "  ·  " & ThisItem.Priority, "") & '
                f'If({ROW_UPDATED}, "  ·  Updated " & Text(ThisItem.UpdatedOn, {DATE_FMT}), '
                f'"  ·  Reported " & Text(ThisItem.CreatedOn, {DATE_FMT}))')
@@ -948,18 +969,14 @@ def _compact_row():
 
 
 def build_list():
-    """Listekortet: vaerktoejslinjen, taelleren, overskrifterne og raekkerne.
+    """Listekortet: vaerktoejslinjens to raekker, taelleren, overskrifterne
+    og raekkerne.
 
-    DE BESKAARNE FILTRE (issue #229). Vaerktoejslinjen stod som sit eget
-    barn i kroppen over et kort, hvis galleri var regnet som "App.Height -
-    280" og mindst to flise-raekker (2 x 252 px) - uden at regne med
-    bjaelken, kroppens luft eller vaerktoejslinjens egen hoejde (op til
-    254 px paa en smal skaerm). Kroppens indhold blev dermed hoejere end
-    kroppen, og autolayout giver efter ved at klemme boernene; den
-    lave vaerktoejslinje, der skjuler sit overloeb, blev skaaret ned til
-    sin overkant. Nu staar vaerktoejslinjen i listekortet, og galleriet
-    er aldrig hoejere end pladsen, der er TILBAGE under bjaelken,
-    vaerktoejslinjen og kortets egne linjer - kun galleriet scroller."""
+    Galleriet er aldrig hoejere end pladsen, der er TILBAGE under bjaelken,
+    vaerktoejslinjen og kortets egne linjer - kun galleriet scroller (issue
+    #229: foer var kroppens indhold hoejere end kroppen). Hvorfor
+    vaerktoejslinjen stadig ikke kunne ses, og hvordan den er bygget nu,
+    staar over build_filters (issue #244)."""
     toolbar = build_filters()
     row = _table_row()
     crow = _compact_row()
@@ -1021,7 +1038,7 @@ def build_list():
 
     # Pladsen, galleriet har: skaermen minus mobilbjaelken, sidens bjaelke,
     # kroppens luft, kortets polstring og kant og kortets andre linjer.
-    before = [toolbar, count_row, counts, head, head_rule]
+    before = [*toolbar, count_row, counts, head, head_rule]
     bar = build_bar()
     header_h = f"{lay.HEADER_PAD_T} + ({bar.h}) + {lay.HEADER_PAD_B} + 1"
     room = (f"App.Height - {lay.BAR_OFFSET} - ({header_h}) - {lay.BODY_PAD_T} - {lay.BODY_PAD_B} - "
