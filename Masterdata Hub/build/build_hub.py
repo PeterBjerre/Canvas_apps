@@ -21,7 +21,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
 import layout_tokens as lay
 from build_helpers import (_sum_expr, row_rule, row_hit, text_input, text_ctrl, group, button, card, flow_row, top_bar,
                            fit_button_width, text_px, ICON_W, grow, themed_dropdown, icon_on_mobile,
-                           confirm_modal)
+                           confirm_modal, new_request_label)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET
 from design_tokens import theme_query, ref_hex, ref as _t
 import icons
@@ -390,13 +390,11 @@ def build_bar():
     seg = _view_switch(mobile=True)
     for s in seg:
         s.props["Visible"] = s.vis
-    new = button("btnMdNewRequest", '"New request"', f"Set(varMdNewMenu, !{MENU_OPEN})",
-                 width=fit_button_width('"New request"') + ICON_W, height=38,
-                 icon="Add")
-    for b_, lit in ((new, '"New request"'),):
-        narrow_w = round((fit_button_width(lit, size=12, min_w=0) - 32) * 1.12) + ICON_W + 24
-        b_.props["Width"] = f"If({below('Tablet')}, {narrow_w}, {b_.props['Width']})"
-        b_.props["Size"] = f"If({below('Tablet')}, 12, {lay.SIZE_INPUT})"
+    # "New Request" uden plus-ikon (issue #243) - den faelles
+    # build_helpers.new_request_label: samme tekst, bredde og 12 pt paa en
+    # telefon som paa anmodningssiderne. Menuen den aabner er uaendret.
+    new = new_request_label(button("btnMdNewRequest", '"New Request"',
+                                   f"Set(varMdNewMenu, !{MENU_OPEN})", height=38))
     bar = top_bar("Md", '"Masterdatahub"',
                   '"SAP requests - " & If(varMdView = "mine", varMdMe, "whole department")',
                   seg + [new], icon="hub")
@@ -640,7 +638,8 @@ def build_tiles():
 FLT_LEVELS = ("full", "compact", "short")
 FLT_GAP = {"full": 10, "compact": 6, "short": 4}
 # Luften om teksten i de to smalle trin. Samme luft som VH-planens
-# item-knapper og hubbens egen smalle "New request" (text_px + 24).
+# item-knapper og den smalle "New Request" (text_px + 24,
+# build_helpers.new_request_widths).
 FLT_PAD = 24
 FLT_SIZE = {"full": lay.SIZE_INPUT, "compact": 12, "short": 12}
 SEARCH_W = 280

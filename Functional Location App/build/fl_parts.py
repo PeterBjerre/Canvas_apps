@@ -32,7 +32,7 @@ from design_tokens import ref_hex
 import layout_tokens as lay
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least, below
 import icons
-from build_helpers import (tap_backdrop, checkbox_theme, new_text_on_mobile, text_ctrl, group, button, text_input, themed_dropdown, card,
+from build_helpers import (tap_backdrop, checkbox_theme, new_request_label, text_ctrl, group, button, text_input, themed_dropdown, card,
                            pin_widths, top_bar, grow, badge, fit_button_width, row_rule, mark_done,
                            loading_overlay, with_busy, confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
                            ICON_W)
@@ -130,7 +130,7 @@ def _bar_btn(btn):
 
 
 def build_bar():
-    """Save draft, Submit og New request staar dér, hvor Verify og Export
+    """Save draft, Submit og New Request staar dér, hvor Verify og Export
     JSON stod (issue #77). Valideringen koerer af sig selv (REVERIFY), og
     eksporten er vaek - snapshottet fryses stadig ved Submit (payload_fx).
     Tallene er renderMetrics (FL66)."""
@@ -145,14 +145,18 @@ def build_bar():
                          primary=True, icon=ICON_SUBMIT, display_mode=S.SUBMIT_DM),
                   icon=bool(ICON_SUBMIT))
     submit.props["Tooltip"] = S.SUBMIT_WHY
-    new = _fit(button("btnFlNew", '"New request"', NEW_FX, icon="Add"), icon=True)
+    # "New Request" uden plus-ikon (issue #243) - build_helpers.new_request_label.
+    new = new_request_label(button("btnFlNew", '"New Request"', NEW_FX))
     edit = _fit(button("btnFlEdit", '"Edit"', "Set(varFlViewOnly, false)", icon="Edit",
                        visible="varFlViewOnly && varFlCanEdit",
                        display_mode="If(varFlCanEdit, DisplayMode.Edit, DisplayMode.Disabled)"),
                 icon=True)
     _bar_btn(edit)
     _bar_btn(save)
-    new_text_on_mobile(new, new.props["Width"])
+    # Submit ogsaa kun sit ikon paa en telefon, saa "New Request" kan staa
+    # med hele sin tekst (issue #243).
+    if ICON_SUBMIT:
+        _bar_btn(submit)
     # Temaskiftet og vejen til hubben staar i sidebaren (tools/side_nav.py).
     bar = top_bar("Fl", f'"{cfg.TITLE}"', SUBTITLE,
                   [edit, delete_button("Fl", "varFlViewOnly", "varFlRequestGuid"), save, submit, new],

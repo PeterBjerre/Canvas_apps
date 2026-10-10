@@ -6,7 +6,8 @@ from gen_screen import (Ctrl, SHELL_W, C_PRIMARY, C_CARD_BORDER, C_VALID_FG, C_M
 import layout_tokens as lay
 from build_helpers import (group, fit_button_width, popup_head, text_ctrl, text_px,
                            flow_row, page_icon, PAGE_ICON, ICON_W, top_bar, grow,
-                           button, confirm_modal, edit_button, delete_modal, tap_backdrop)
+                           button, confirm_modal, edit_button, delete_modal, tap_backdrop,
+                           new_request_label, new_request_widths)
 from build_status import MISSING_NAMES, join_lines
 from layout_tokens import if_below, at_least, below
 from design_tokens import ref_hex
@@ -397,14 +398,15 @@ SAVE_W = fit_button_width('"Update draft"') + ICON_W
 # klippes "Submit" (issue #211).
 SUB_W = fit_button_width('"Submit"', min_w=72) + ICON_W
 SUBTITLE = '"Plan header, items, task lists and operations - submitted to SAP master data."'
-# New request er en ren tekstknap uden plus-ikon (issue #238): bredden er
-# kun teksten + luft, saa teksten staar midt i knappen. Paa en telefon er
-# der ikke plads til "New request" - der staar "New" (som paa de andre
-# anmodningssider, build_helpers.new_text_on_mobile). Bredden er tekstens
-# egen + 11 px i hver side, saa linjen ogsaa kan staa paa 320 px.
-NEW_W = fit_button_width('"New request"')
-NEW_PHONE_W = text_px("New") + 22
-NEW_TEXT = f'If({below("Tablet")}, "New", "New request")'
+# New Request er en ren tekstknap uden plus-ikon (issue #238) og hedder
+# praecis "New Request" paa alle skaermbredder (issue #243) - den faelles
+# build_helpers.new_request_label. Bredden er kun teksten + luft, saa
+# teksten staar midt i knappen; paa en telefon er teksten 12 pt.
+NEW_W, NEW_PHONE_W = new_request_widths()
+# Submit paa en telefon: kun sit ikon (Send), saa "New Request" kan staa
+# med hele sin tekst paa 320 px (issue #243). Tooltip og tilgaengeligt
+# navn siger stadig "Submit".
+SUB_PHONE_W = 40
 EDIT_W = fit_button_width('"Edit"') + ICON_W
 
 RESET_COLLECTIONS = ("colVhpItems", "colVhpOperations", "colVhpItemObjects", "colVhpObjDraft",
@@ -563,8 +565,10 @@ CONFIRM = []
 # synlighed, DisplayMode, tooltip og bekraeftelse som i menuen.
 #
 # Er der ikke plads til teksterne, er Edit og Update draft kun deres ikon
-# (COMPACT). New request har intet ikon (issue #238) og beholder sin tekst. Submit beholder altid sin tekst. Hvornaar det
-# sker, afhaenger kun af skaermbredden - se COMPACT nedenfor.
+# (COMPACT). New Request har intet ikon (issue #238) og beholder sin tekst.
+# Submit beholder sin tekst fra Tablet og op; paa en telefon er den kun sit
+# ikon (issue #243). Hvornaar det sker, afhaenger kun af skaermbredden - se
+# COMPACT nedenfor.
 ICON_BTN = 40
 SEP_W = 1
 BTN_GAP = 8
@@ -580,10 +584,10 @@ COMPACT_W = NEW_W + SEP_W + ICON_BTN + SUB_W + 2 * ICON_BTN + 5 * BTN_GAP
 # viger View notes - noterne kan stadig laeses i View mode, og et
 # returneringsnotat staar i linjen under trinene.
 #
-# Paa en telefon er New request teksten "New" (issue #238), og stregen er
-# skjult - ellers er der ikke plads paa 320 px. "New" som tekst skiller sig
-# alligevel ud fra ikon-knapperne.
-PHONE_W = NEW_PHONE_W + ICON_BTN + SUB_W + ICON_BTN + 3 * BTN_GAP
+# Paa en telefon staar "New Request" i 12 pt, Submit er kun sit ikon, og
+# stregen er skjult - ellers er der ikke plads paa 320 px (issue #243).
+# Teksten skiller sig ud fra ikon-knapperne.
+PHONE_W = NEW_PHONE_W + ICON_BTN + SUB_PHONE_W + ICON_BTN + 3 * BTN_GAP
 STEPS_W = len(STEPS) * STEP_W
 # Pladsen til titel + knapper paa linjen (trinene og to gaps er trukket fra).
 LINE_REST = if_below("Desktop", f"({SHELL_W} - 16)", f"({SHELL_W} - {STEPS_W} - 32)")
@@ -651,13 +655,13 @@ def build_top_bar():
     staar i sidebaren. Knapperne: se KNAPPERNE I HEADEREN ovenfor."""
     from build_save import save_buttons, NOTES_OPEN_VIEW, NOTES_HAVE, SAVEABLE_COUNT
     btnDraft, btnSubmit, confirm = save_buttons(CAN_SUBMIT)
-    # Kun tekst, intet plus-ikon (issue #238) - paa alle skaermbredder.
-    btnNew = button("btnVhpNewRequest", NEW_TEXT,
-                    f"If({HAS_UNSAVED}, Set(varVhpConfirmNew, true), {NEW_PLAN_FX})",
-                    width=if_below("Tablet", str(NEW_PHONE_W), str(NEW_W)), height=36,
-                    accessible='"Start a new blank request"',
-                    tooltip='"Start a new blank request"')
-    btnNew.props["LayoutMinWidth"] = btnNew.props["Width"]
+    # "New Request" - kun tekst, intet plus-ikon, paa alle skaermbredder
+    # (issue #238 / #243).
+    btnNew = new_request_label(button(
+        "btnVhpNewRequest", '"New Request"',
+        f"If({HAS_UNSAVED}, Set(varVhpConfirmNew, true), {NEW_PLAN_FX})",
+        height=36, accessible='"Start a new blank request"',
+        tooltip='"Start a new blank request"'))
     # Den faelles Edit (build_helpers.edit_button). Den skifter KUN til Edit
     # mode (issue #103): sektionerne er altid foldet ud (issue #192), og Plan
     # Header laases op med sin egen Edit - foer laaste denne knap ogsaa den op.
@@ -688,8 +692,10 @@ def build_top_bar():
     btnDraft.props["Visible"] = btnDraft.vis = DRAFT_VIS
     focus_border(btnDraft, (4,), C_CARD_BORDER)
     _compact(btnDraft, SAVE_W)
-    btnSubmit.props["Width"] = str(SUB_W)
-    btnSubmit.props["LayoutMinWidth"] = str(SUB_W)
+    btnSubmit.props["Width"] = if_below("Tablet", str(SUB_PHONE_W), str(SUB_W))
+    btnSubmit.props["LayoutMinWidth"] = btnSubmit.props["Width"]
+    btnSubmit.props["Layout"] = (f"If({below('Tablet')}, ButtonLayout.IconOnly, "
+                                 "ButtonLayout.IconBefore)")
     btnSubmit.props["AlignInContainer"] = "AlignInContainer.Center"
     btnSubmit.props["Tooltip"] = _submit_tooltip()
     btnSubmit.props["Visible"] = btnSubmit.vis = SUBMIT_VIS
