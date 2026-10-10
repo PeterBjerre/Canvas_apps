@@ -9,8 +9,8 @@ hentningen.
     | [All issues|My issues|Assigned to me] [Open|Closed|Arch.] [Search...] |
     | [Application v][Section v] [Status v][Priority v]          [Sort v] |
     | 12 open issues                                   [Clear filters] |
-    | TICKET ID  TITLE        APPLICATION  ...  STATUS   UPDATED       |
-    | ISS-000142 Save does... VH-plan      ...  [New]    09 Oct 2026 [@]|
+    | TICKET ID  REQUESTER TITLE        APPLICATION ... STATUS  UPDATED  |
+    | ISS-000142 UFFES     Save does... VH-plan     ... [New]   09 Oct [@]|
     +------------------------------------------------------------------+
     Issue #229: en liste som Masterdata Hub i stedet for fliser. Filtrene
     er en kompakt vaerktoejslinje oeverst i listekortet, og galleriet er
@@ -738,24 +738,33 @@ TBL_ROW_H = 48       # tabelraekken (Desktop og op)
 CMP_ROW_H = 92       # den kompakte raekke (under Desktop)
 ROW_PAD = 10         # raekkens luft til venstre og hoejre
 COL_GAP = 8
-ACT_BTN = 40         # papirclipsen (issue #193) - kolonnen ACTIONS
+ACT_BTN = 40         # papirclipsen (issue #193) - kolonnen ACTIONS (raekken under Desktop)
+ACT_W = 52           # kolonnen ACTIONS i tabellen - plads til ikonet og overskriften
 
-# (noegle, overskrift, mindstebredde, vaegt, kun Wide). Den frie bredde
-# deles efter vaegtene, saa tabellen fylder hele kortet - uden at titlen
-# faar det hele. Section, Assigned to og Reported vises kun paa en bred
-# skaerm (Wide); paa Desktop staar de i popuppen.
+# (noegle, overskrift, mindstebredde, vaegt, kun Wide). Raekkefoelgen er
+# issue #244's: Ticket ID | Requester | Title | Application | Section |
+# Priority | Status | Assigned to | Reported | Updated | Actions.
+#
+# Den frie bredde deles efter vaegtene, saa tabellen fylder hele kortet.
+# Issue #244: titlen fik 4 af 6 dele og blev ~950 px bred paa en bred
+# skaerm, mens resten stod klemt til hoejre. Nu deles den paa tekst-
+# kolonnerne (titel 3, Application/Section/Assigned to 2, Requester og
+# datoerne 1); maerkerne (Ticket ID, Priority, Status) og handlingen har
+# fast bredde, saa de aldrig klippes og aldrig vokser. Section, Assigned to
+# og Reported vises kun paa en bred skaerm (Wide); paa Desktop staar de i
+# popuppen, og under Desktop er raekken et kompakt kort.
 LIST_COLS = [
     ("ID", "TICKET ID", 88, 0, False),
-    ("TITLE", "TITLE", 150, 4, False),
-    ("APP", "APPLICATION", 104, 1, False),
-    ("SECTION", "SECTION", 104, 1, True),
-    ("REQ", "REQUESTER", 64, 0, False),
+    ("REQ", "REQUESTER", 64, 1, False),
+    ("TITLE", "TITLE", 140, 3, False),
+    ("APP", "APPLICATION", 100, 2, False),
+    ("SECTION", "SECTION", 104, 2, True),
     ("PRI", "PRIORITY", 72, 0, False),
     ("STATUS", "STATUS", 116, 0, False),
-    ("ASG", "ASSIGNED TO", 80, 0, True),
-    ("REP", "REPORTED", 80, 0, True),
-    ("UPD", "UPDATED", 80, 0, False),
-    ("ACT", "", ACT_BTN, 0, False),
+    ("ASG", "ASSIGNED TO", 92, 2, True),
+    ("REP", "REPORTED", 84, 1, True),
+    ("UPD", "UPDATED", 84, 1, False),
+    ("ACT", "ACTIONS", ACT_W, 0, False),
 ]
 WIDE = at_least("Wide")
 TABLE_ON = at_least("Desktop")
@@ -865,8 +874,8 @@ def requester(r):
 REPORTER_FX = requester("{r}")
 
 
-def _attach_btn(name, visible):
-    b = button(name, '"Attach files"', OPEN_ROW_FILES, width=ACT_BTN, height=32, icon="Attach",
+def _attach_btn(name, visible, width=ACT_BTN):
+    b = button(name, '"Attach files"', OPEN_ROW_FILES, width=width, height=32, icon="Attach",
                visible=visible, accessible='"Add screenshots or files to " & ThisItem.TicketNo',
                tooltip='"Add screenshots or files"')
     b.props["Layout"] = "ButtonLayout.IconOnly"
@@ -906,7 +915,7 @@ def _table_row():
         "UPD": txt("txtIbRowUpdated", "UPD",
                    f'If({ROW_UPDATED}, Text(ThisItem.UpdatedOn, {DATE_FMT}), "-")',
                    size=lay.SIZE_SMALL, color=C_MUTED, accessible='"Updated: " & Self.Text'),
-        "ACT": _attach_btn("btnIbRowAttach", f"{TABLE_ON} && {ROW_CAN_ATTACH}"),
+        "ACT": _attach_btn("btnIbRowAttach", f"{TABLE_ON} && {ROW_CAN_ATTACH}", width=COL_W["ACT"]),
     }
     kids = []
     for key, _h, _b, _g, wide_only in LIST_COLS:
@@ -926,7 +935,7 @@ def _list_head():
     for i, (key, head, _b, _g, wide_only) in enumerate(LIST_COLS):
         h = text_ctrl(f"txtIbListH{i}", f'"{head}"', size=lay.SIZE_MICRO, weight="Semibold",
                       color=C_MUTED, height=20, wrap="false", width=COL_W[key],
-                      accessible=f'"{head.title() or "Actions"} column"',
+                      accessible=f'"{head.capitalize()} column"',
                       visible=WIDE if wide_only else None)
         kids.append(h)
     return group("conIbListHead", kids, direction="Horizontal", gap=COL_GAP, height=20,
@@ -934,7 +943,8 @@ def _list_head():
 
 
 def _compact_row():
-    """Under Desktop: nummer, prioritet og status; titlen; hvor og hvem."""
+    """Under Desktop: nummer, prioritet og status; titlen; hvem og hvor
+    (rapportoeren foerst - samme raekkefoelge som tabellen, issue #244)."""
     no = _no_badge("txtIbRowNoC", "ThisItem.TicketNo")
     pri = _pri_badge("txtIbRowPriorityC", "ThisItem.Priority", visible=at_least("Tablet"))
     gap = grow(group("conIbRowGapC", [], direction="Horizontal", height=0))
@@ -943,7 +953,7 @@ def _compact_row():
                   height=CHIP_H, align_items="Center")
     title = text_ctrl("txtIbRowTitleC", "ThisItem.Title", size=lay.SIZE_INPUT, weight="Semibold",
                       height=21, wrap="false", accessible='"Title: " & ThisItem.Title')
-    meta_fx = (f'ThisItem.Application & "  ·  " & ThisItem.Section & "  ·  " & {requester("ThisItem")} & '
+    meta_fx = (f'{requester("ThisItem")} & "  ·  " & ThisItem.Application & "  ·  " & ThisItem.Section & '
                f'If({below("Tablet")} && !IsBlank(ThisItem.Priority), "  ·  " & ThisItem.Priority, "") & '
                f'If({ROW_UPDATED}, "  ·  Updated " & Text(ThisItem.UpdatedOn, {DATE_FMT}), '
                f'"  ·  Reported " & Text(ThisItem.CreatedOn, {DATE_FMT}))')

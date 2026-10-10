@@ -546,13 +546,19 @@ def test_list_columns_are_balanced_and_aligned_with_the_header():
     for h, r in zip(head.children, row.children):
         assert h.props["Width"] == r.props["Width"]
         assert h.props.get("Visible") == r.props.get("Visible") or r.name == "btnIbRowAttach"
+    # Issue #244: den praecise raekkefoelge - Requester lige efter Ticket ID.
     heads = [c[1] for c in P.LIST_COLS]
-    for want in ("TICKET ID", "TITLE", "APPLICATION", "SECTION", "REQUESTER", "PRIORITY", "STATUS",
-                 "ASSIGNED TO", "REPORTED", "UPDATED"):
-        assert want in heads
-    # Titlen faar ikke hele den frie bredde.
+    assert heads == ["TICKET ID", "REQUESTER", "TITLE", "APPLICATION", "SECTION", "PRIORITY",
+                     "STATUS", "ASSIGNED TO", "REPORTED", "UPDATED", "ACTIONS"]
+    assert [c.name for c in row.children][:3] == ["txtIbRowNo", "txtIbRowReq", "txtIbRowTitle"]
+    # Titlen faar ikke hele den frie bredde (issue #244: hoejst en fjerdedel),
+    # og maerkerne og handlingen vokser ikke - de har fast, tilstraekkelig plads.
     grow = {k: g for k, _h, _b, g, _w in P.LIST_COLS}
-    assert 0 < grow["TITLE"] < sum(grow.values())
+    assert 0 < grow["TITLE"] <= sum(grow.values()) / 4
+    assert grow["ID"] == grow["PRI"] == grow["STATUS"] == grow["ACT"] == 0
+    assert sum(1 for g in grow.values() if g) >= 6
+    base = {k: b for k, _h, b, _g, _w in P.LIST_COLS}
+    assert base["STATUS"] >= 116 and base["ACT"] >= P.ACT_BTN and base["ID"] >= 88
     # Kolonnerne kan staa paa den smalleste Desktop-skaerm.
     assert P._fixed(False) <= 806
     # Titlen paa een linje (ellipse); rapportoeren som kort bruger-id.
