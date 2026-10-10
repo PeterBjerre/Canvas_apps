@@ -75,11 +75,14 @@ def build_screen(render=render_screen):
     # draft, Submit og New request staar i bjaelken (issue #77).
     root = app_frame("Fl", P.build_bar(),
                      [P.build_rows(), P.build_classes(), P.build_structure()])
-    # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
+    # Sidebaren: skinnen efter rammen, det aabne panel efter popupperne
+    # (tools/side_nav.py, SKILL.md: [root, rail, popups..., *overlay]) - som
+    # paa de andre skaerme. Hver popup er sit eget sloer med popuppen
+    # indeni (fl_parts.scrim_with_popup, issue #242).
     nav, overlay = side_nav("Fl", "functionallocation")
     return render(cfg.SCREEN, {"Fill": C_APP_BG, "OnVisible": on_visible()},
-                         [root, *nav, *overlay, *P.build_class_modal(), *P.build_field_modal(),
-                          *P.build_submit_confirm()])
+                         [root, *nav, *P.build_class_modal(), *P.build_field_modal(),
+                          *overlay, *P.build_submit_confirm()])
 
 
 def main():
