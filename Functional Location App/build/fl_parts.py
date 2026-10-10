@@ -32,7 +32,7 @@ from design_tokens import ref_hex
 import layout_tokens as lay
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least, below
 import icons
-from build_helpers import (tap_backdrop, checkbox_theme, new_text_on_mobile, text_ctrl, group, button, text_input, themed_dropdown, card,
+from build_helpers import (checkbox_theme, new_text_on_mobile, text_ctrl, group, button, text_input, themed_dropdown, card,
                            pin_widths, top_bar, grow, badge, fit_button_width, row_rule, mark_done,
                            loading_overlay, with_busy, confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
                            ICON_W)
@@ -818,6 +818,30 @@ def _group_title(name, text, visible):
                      visible=visible)
 
 
+# --- Sloeret OG popuppen er een kontrol (issue #242) -------------------------
+# Foer var sloeret et Image og popuppen dets naboe paa skaermen - to
+# kontroller, hvis raekkefoelge (z-orden) alene afgjorde, hvem der laa
+# oeverst. I appen laa sloeret OVEN PAA popupperne: Manufacturer og
+# Warranty stod graa og kunne ikke bruges, og Class data viste kun
+# sloeret. Nu er popuppen et BARN af sloeret (Issue Boards og feedback-
+# popuppens moenster), saa den altid tegnes over sloeret og sloeret kun
+# daemper siden under. Et tryk paa sloeret goer intet; Close er vejen ud.
+POP_MARGIN = 16
+
+
+def scrim_with_popup(name, modal, vis):
+    """Sloeret i hele skaermens stoerrelse med popuppen centreret indeni.
+    Popuppens bredde er hoejst App.Width - 2 x POP_MARGIN, og dens hoejde er
+    regnet, saa den aldrig er hoejere end skaermen (kroppen scroller)."""
+    scrim = group(name, [modal], direction="Vertical", gap=0,
+                  height="App.Height", width="App.Width", fill=C_OVERLAY, visible=vis,
+                  justify="Center", align_items="Center",
+                  pad=(POP_MARGIN, 0, POP_MARGIN, 0))
+    scrim.props["X"] = "0"
+    scrim.props["Y"] = "0"
+    return scrim
+
+
 # --- Class data-popuppen ----------------------------------------------------
 CR = "LookUp(colFlRows, RowGuid = varFlClsRow)"
 CLS_TEST = 'Section in ["Class", "TRM", "Ext"]'
@@ -859,8 +883,8 @@ CLS_W = "Min(900, App.Width - 32)"
 
 
 def build_class_modal():
-    """[sloer, popup] - klassedata for raekken varFlClsRow (issue #184)."""
-    backdrop = tap_backdrop("conFlClsBackdrop", CLS_OPEN, CLOSE_CLS_FX)
+    """[sloer med popuppen indeni] - klassedata for raekken varFlClsRow
+    (issue #184, #242)."""
     title = text_ctrl("txtFlClsH", '"Class data"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
                       height=26, wrap="false")
     sub = text_ctrl("txtFlClsSub",
@@ -906,10 +930,9 @@ def build_class_modal():
                  justify="End", align_items="Center", visible=f"!({CLS_LOCKED})")
     modal = group("conFlClsModal", [head, body, foot], direction="Vertical", gap=12,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
-                  pad=(18, 18, 18, 18), width=CLS_W, drop_shadow="ExtraBold", visible=CLS_OPEN)
-    modal.props["X"] = "(App.Width - Self.Width) / 2"
-    modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
-    return [backdrop, modal]
+                  pad=(18, 18, 18, 18), width=CLS_W, drop_shadow="ExtraBold", visible=CLS_OPEN,
+                  align_in_container="Center")
+    return [scrim_with_popup("conFlClsBackdrop", modal, CLS_OPEN)]
 
 
 # --- Manufacturer- og Warranty-popuppen (issue #232) -------------------------
@@ -921,13 +944,12 @@ POP_TEST = " || ".join(f'(varFlPop = "{k}" && Field in {_fields(f)})' for k, f i
 
 
 def build_field_modal():
-    """[sloer, popup] - Manufacturer eller Warranty for raekken
+    """[sloer med popuppen indeni] - Manufacturer eller Warranty for raekken
     varFlDetailRow. Den moderne popup (Materials' Purchase order text):
     titel, Close og felterne. Felterne skriver direkte i raekkens data og
     valideres med det samme - roed/groen kant og besked under feltet, som
     i Class data. Close er den eneste vej ud; et tryk paa sloeret lukker
     ikke."""
-    backdrop = tap_backdrop("conFlPopBackdrop", POP_OPEN, "false")
     title = text_ctrl("txtFlPopH", "varFlPop", size=lay.SIZE_CARD_TITLE, weight="Semibold",
                       height=26, wrap="false")
     sub = text_ctrl("txtFlPopSub",
@@ -953,10 +975,9 @@ def build_field_modal():
                  pad=(0, SCROLLBAR_W, 0, 0))
     modal = group("conFlPopModal", [head, hint, body], direction="Vertical", gap=12,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
-                  pad=(18, 18, 18, 18), width=POP_W, drop_shadow="ExtraBold", visible=POP_OPEN)
-    modal.props["X"] = "(App.Width - Self.Width) / 2"
-    modal.props["Y"] = "Max(20, (App.Height - Self.Height) / 3)"
-    return [backdrop, modal]
+                  pad=(18, 18, 18, 18), width=POP_W, drop_shadow="ExtraBold", visible=POP_OPEN,
+                  align_in_container="Center")
+    return [scrim_with_popup("conFlPopBackdrop", modal, POP_OPEN)]
 
 
 # ---------------------------------------------------------------------------

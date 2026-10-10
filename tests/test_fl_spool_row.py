@@ -172,7 +172,8 @@ def test_manufacturer_and_warranty_popup():
 def test_popup_closes_only_with_close():
     assert _prop("btnFlPopClose", "OnSelect") == 'Set(varFlPop, "")'
     assert _prop("btnFlPopClose", "Text") == '"Close"'
-    assert "varFlPop" not in _prop("conFlPopBackdrop", "OnSelect")
+    # Sloeret har ingen OnSelect - et tryk paa det lukker ikke.
+    assert "OnSelect" not in _ctrl("conFlPopBackdrop")["Properties"]
     assert _prop("conFlPopModal", "Visible") == "IfError(!IsBlank(varFlPop), false)"
     # Ny anmodning lukker den.
     assert 'Set(varFlPop, "");' in _prop("btnFlNew", "OnSelect")
@@ -208,3 +209,37 @@ def test_classes_edit_opens_class_data():
     on = _prop("btnFlCOpen", "OnSelect")
     assert on.startswith("Set(varFlClsRow, ThisItem.RowGuid);")
     assert on.endswith("Set(varFlClsOpen, true)")
+
+
+def _screen_children():
+    import yaml
+    if FL not in _TREE:
+        _TREE[FL] = yaml.safe_load(_text())
+    scr = list(_TREE[FL]["Screens"].values())[0]
+    return [list(c)[0] for c in scr["Children"]]
+
+
+def test_popups_sit_inside_their_backdrop():
+    """Issue #242: sloeret laa oven paa popupperne (graa og uden tryk).
+    Popuppen er nu et barn af sloeret, saa den altid tegnes over det, og
+    sloeret daemper kun siden under."""
+    top = _screen_children()
+    for scrim, modal, vis in (
+            ("conFlClsBackdrop", "conFlClsModal", "IfError(varFlClsOpen, false)"),
+            ("conFlPopBackdrop", "conFlPopModal", "IfError(!IsBlank(varFlPop), false)")):
+        assert scrim in top, scrim
+        assert modal not in top, modal
+        assert _children(scrim) == [modal], scrim
+        s = _ctrl(scrim)
+        assert s["Control"] == "GroupContainer", scrim
+        assert _prop(scrim, "Fill") == "C.'overlay'"
+        assert _prop(scrim, "Width") == "App.Width" and _prop(scrim, "Height") == "App.Height"
+        assert _prop(scrim, "Visible") == vis
+        assert _prop(scrim, "LayoutJustifyContent") == "LayoutJustifyContent.Center"
+        # Popuppen styres af sloeret - ingen egen X/Y.
+        props = _ctrl(modal)["Properties"]
+        assert "X" not in props and "Y" not in props, modal
+        assert _prop(modal, "Fill") == "C.'bg-modal'"
+    # Som paa de andre skaerme: popupperne under sidebarens aabne panel.
+    assert top.index("conFlPopBackdrop") < top.index("conFlNavOpen")
+    assert top.index("conFlClsBackdrop") > top.index("conFlRoot")
