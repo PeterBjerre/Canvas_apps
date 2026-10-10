@@ -58,7 +58,7 @@ from build_helpers import (tap_backdrop, text_ctrl, text_min_height, group, butt
                            card, field_cell, pin_widths, badge, top_bar, grow,
                            flow_row, label_px, text_px, loading_overlay,
                            with_busy, confirm_modal, edit_button, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
-                           ICON_W, icon_on_mobile, new_text_on_mobile)
+                           ICON_W, icon_on_mobile, new_request_label)
 
 # Mens en gemning koerer, staar ventespinneren oven paa skaermen (issue #54).
 SAVING_VAR = "varDomSaving"
@@ -355,11 +355,11 @@ def build_bar():
         display_mode=f'If(varDomViewOnly || CountRows({VALID}) = 0, DisplayMode.Disabled, DisplayMode.Edit)',
         tooltip='"Submit the valid rows - they are locked afterwards (asks first)"'),
         bool(ICON_SUBMIT))
-    new = sized(button(
-        "btnDomNewRequest", '"New request"',
+    # "New Request" uden plus-ikon (issue #243) - build_helpers.new_request_label.
+    new = new_request_label(button(
+        "btnDomNewRequest", '"New Request"',
         'Set(varDomRequestGuid, "");\nSet(varDomRequestNo, "");\nSet(varDomViewOnly, false);\nSet(varDomCanEdit, false);\n' + clear_form_fx(),
-        icon="Add", tooltip='"Start a new request - your saved rows stay in SharePoint"'),
-        True)
+        tooltip='"Start a new request - your saved rows stay in SharePoint"'))
     # Edit og Delete er VH-planens (issue #94): de faelles knapper i
     # build_helpers, samme synlighed, placering og ikon-kun under Tablet.
     # varDomCanEdit er sat af tools/permissions.may_change ved aabningen.
@@ -369,7 +369,11 @@ def build_bar():
     narrow = below("Tablet")
     save.props["Width"] = f"If({narrow}, 40, {save.props['Width']})"
     save.props["Layout"] = f"If({narrow}, ButtonLayout.IconOnly, ButtonLayout.IconBefore)"
-    new_text_on_mobile(new, new.props["Width"])
+    # Submit ogsaa kun sit ikon paa en telefon, saa "New Request" kan staa
+    # med hele sin tekst (issue #243). Tooltip og navn er uaendrede.
+    if ICON_SUBMIT:
+        submit.props["Width"] = f"If({narrow}, 40, {submit.props['Width']})"
+        submit.props["Layout"] = f"If({narrow}, ButtonLayout.IconOnly, ButtonLayout.IconBefore)"
     return top_bar("Dom", f'"{cfg.TITLE}"', f'"{cfg.SUBTITLE}"',
                    [edit, delete_button("Dom", "varDomViewOnly", "varDomRequestGuid", WHAT), save, submit, new],
                    icon=cfg.APP_KEY, mode_var="varDomViewOnly", num_var="varDomRequestNo")

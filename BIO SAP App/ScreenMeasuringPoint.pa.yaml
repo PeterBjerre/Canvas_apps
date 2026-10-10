@@ -161,7 +161,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - (If(IfError(varMpViewOnly && varMpCanEdit, false), (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(!IfError(varMpViewOnly, true) && !IsBlank(varMpRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - ((If(LayoutRank < 2, 40, 135)) + 10) - ((106) + 10) - ((If(LayoutRank < 2, 70, 148)) + 10) - 2)
+                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - (If(IfError(varMpViewOnly && varMpCanEdit, false), (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(!IfError(varMpViewOnly, true) && !IsBlank(varMpRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - ((If(LayoutRank < 2, 40, 135)) + 10) - ((If(LayoutRank < 2, 40, 106)) + 10) - ((If(LayoutRank < 2, 107, 129)) + 10) - 2)
                             Children:
                               - conMpTitleLine:
                                   Control: GroupContainer
@@ -192,7 +192,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 2
                                     Width: |-
-                                        =Max(0, Min(280, ((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - (If(IfError(varMpViewOnly && varMpCanEdit, false), (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(!IfError(varMpViewOnly, true) && !IsBlank(varMpRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - ((If(LayoutRank < 2, 40, 135)) + 10) - ((106) + 10) - ((If(LayoutRank < 2, 70, 148)) + 10) - 2)))))
+                                        =Max(0, Min(280, ((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - (If(IfError(varMpViewOnly && varMpCanEdit, false), (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(!IfError(varMpViewOnly, true) && !IsBlank(varMpRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - ((If(LayoutRank < 2, 40, 135)) + 10) - ((If(LayoutRank < 2, 40, 106)) + 10) - ((If(LayoutRank < 2, 107, 129)) + 10) - 2)))))
                                   Children:
                                     - txtMpTitle:
                                         Control: ModernText
@@ -230,7 +230,7 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 2
                                           Width: |-
-                                              =Max(0, Min(186, ((Max(0, Min(280, ((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - (If(IfError(varMpViewOnly && varMpCanEdit, false), (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(!IfError(varMpViewOnly, true) && !IsBlank(varMpRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - ((If(LayoutRank < 2, 40, 135)) + 10) - ((106) + 10) - ((If(LayoutRank < 2, 70, 148)) + 10) - 2))))))) - (If(IsBlank(varMpRequestNo), 0, 6 + 88))))
+                                              =Max(0, Min(186, ((Max(0, Min(280, ((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - (If(IfError(varMpViewOnly && varMpCanEdit, false), (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(!IfError(varMpViewOnly, true) && !IsBlank(varMpRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - ((If(LayoutRank < 2, 40, 135)) + 10) - ((If(LayoutRank < 2, 40, 106)) + 10) - ((If(LayoutRank < 2, 107, 129)) + 10) - 2))))))) - (If(IsBlank(varMpRequestNo), 0, 6 + 88))))
                                           Wrap: |-
                                               =false
                                     - imgMpNumber:
@@ -648,9 +648,9 @@ Screens:
                               Icon: |-
                                   ="Send"
                               Layout: |-
-                                  =ButtonLayout.IconBefore
+                                  =If(LayoutRank < 2, ButtonLayout.IconOnly, ButtonLayout.IconBefore)
                               LayoutMinWidth: |-
-                                  =106
+                                  =If(LayoutRank < 2, 40, 106)
                               OnSelect: |-
                                   =Set(varMpConfirmSubmit, true)
                               RadiusBottomLeft: |-
@@ -670,12 +670,12 @@ Screens:
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
-                                  =106
+                                  =If(LayoutRank < 2, 40, 106)
                         - btnMpNewRequest:
                             Control: ModernButton
                             Properties:
                               AccessibleLabel: |-
-                                  ="New request"
+                                  ="New Request"
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
@@ -694,12 +694,10 @@ Screens:
                                   =FontWeight.Semibold
                               Height: |-
                                   =36
-                              Icon: |-
-                                  ="Add"
                               Layout: |-
-                                  =If(LayoutRank < 2, ButtonLayout.TextOnly, ButtonLayout.IconBefore)
+                                  =ButtonLayout.TextOnly
                               LayoutMinWidth: |-
-                                  =If(LayoutRank < 2, 70, 148)
+                                  =If(LayoutRank < 2, 107, 129)
                               OnSelect: |-
                                   =Set(varMpRequestGuid, "");
                                   Set(varMpRequestNo, "");
@@ -739,15 +737,15 @@ Screens:
                               RadiusTopRight: |-
                                   =10
                               Size: |-
-                                  =14
+                                  =If(LayoutRank < 2, 12, 14)
                               Text: |-
-                                  =If(LayoutRank < 2, "New", "New request")
+                                  ="New Request"
                               Tooltip: |-
                                   ="Start a new request - your saved rows stay in SharePoint"
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
-                                  =If(LayoutRank < 2, 70, 148)
+                                  =If(LayoutRank < 2, 107, 129)
                   - conMpHeaderRule:
                       Control: GroupContainer
                       Variant: AutoLayout
