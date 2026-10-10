@@ -2,8 +2,9 @@
 """
 Functional Location: raekken uden fold-ud (issue #232).
 
-Raekken har efter Sort Field praecis kolonnerne
-ABC Indicator | ATEX | Class Data | Manufacturer | Warranty | Actions,
+Raekken har Class Data lige efter Assigned Class (issue #242) og efter
+Sort Field praecis kolonnerne ABC Indicator | ATEX | Manufacturer |
+Warranty | Actions,
 Validation-kolonnen er vaek (beskeden staar under raekkens felter), og
 popup-knapperne har Long Text-knappens udfyldt-tilstand (mark_done).
 
@@ -72,7 +73,7 @@ def _parts():
 def test_header_order_after_sort_field():
     heads = [_prop(n, "Text").strip('"') for n in _children("conFlRowsHead")]
     assert heads == ["#", "Functional Location", "Description", "KKS Type", "Assigned Class",
-                     "Room", "Sort Field", "ABC Indicator", "ATEX", "Class Data",
+                     "Class Data", "Room", "Sort Field", "ABC Indicator", "ATEX",
                      "Manufacturer", "Warranty", "Actions"]
 
 
@@ -80,8 +81,8 @@ def test_row_cells_follow_the_header():
     """Raekkens celler (efter udfoldningen i galleriet) i samme raekkefoelge."""
     kids = _children("galFlRows")
     cells = ["txtFlRowNo", "inpFlRowFl", "inpFlRowDesc", "txtFlRowKks", "txtFlRowCls",
-             "inpFlRowRoom", "inpFlRowSort", "txtFlRowAbc", "chkFlRowAtex",
-             "btnFlRowClassData", "btnFlRowMfr", "btnFlRowWar", "btnFlRowDelete"]
+             "btnFlRowClassData", "inpFlRowRoom", "inpFlRowSort", "txtFlRowAbc",
+             "chkFlRowAtex", "btnFlRowMfr", "btnFlRowWar", "btnFlRowDelete"]
     assert [k for k in kids if k in cells] == cells
     # Ingen Warranty Start/End-kolonner og ingen Validation-kolonne.
     assert "inpFlRowWStart" not in kids and "inpFlRowWEnd" not in kids
@@ -243,3 +244,33 @@ def test_popups_sit_inside_their_backdrop():
     # Som paa de andre skaerme: popupperne under sidebarens aabne panel.
     assert top.index("conFlPopBackdrop") < top.index("conFlNavOpen")
     assert top.index("conFlClsBackdrop") > top.index("conFlRoot")
+
+
+def test_spare_width_is_shared_by_the_columns():
+    """Issue #242: Functional Location og Description faar omtrent den
+    halve desktopbredde, og resten af den ekstra plads deles af de andre
+    kolonner. Overskrift og raekke har samme bredde pr. kolonne."""
+    from fractions import Fraction as F
+    p = _parts()
+    pair = F(p.V_PAIR_SHARE.replace(" ", ""))
+    grow = F(p.V_GROW_SHARE.replace(" ", ""))
+    assert 2 * pair + len(p.V_GROW) * grow == 1
+    # Paa en 1920 px skaerm (sidebar 56, ramme 64): FL var 421, Description 381.
+    rows = 1920 - 56 - 64 - 36 - 18 - 40
+    spare = rows - (34 + p.V_BASE)
+    fl = p.FL_MIN + spare * pair
+    desc = p.DESC_MIN + spare * pair
+    assert 0.4 * 421 <= fl <= 0.6 * 421, fl
+    assert 0.4 * 381 <= desc <= 0.6 * 381, desc
+    # Hver celle i raekken har samme bredde som sin overskrift.
+    pairs = (("Fl", "inpFlRowFl"), ("Desc", "inpFlRowDesc"), ("Kks", "txtFlRowKks"),
+             ("Cls", "txtFlRowCls"), ("ClsData", "btnFlRowClassData"),
+             ("Room", "inpFlRowRoom"), ("Sort", "inpFlRowSort"), ("Abc", "txtFlRowAbc"),
+             ("Atex", "chkFlRowAtex"), ("Mfr", "btnFlRowMfr"), ("War", "btnFlRowWar"),
+             ("Act", "btnFlRowDelete"))
+    for head, cell in pairs:
+        assert _prop(f"txtFlRowsHead{head}", "Width") == _prop(cell, "Width"), head
+    for n in p.V_GROW:
+        assert p.V_SPARE in _prop(f"txtFlRowsHead{n}", "Width"), n
+    for n in ("Atex", "Act"):
+        assert "Max(0" not in _prop(f"txtFlRowsHead{n}", "Width"), n
