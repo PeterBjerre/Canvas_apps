@@ -633,29 +633,152 @@ def test_github_script_never_sends_who_reported_it():
 # Issue #212: vaerktoejslinje, fliser og opdatering uden Refresh
 # ---------------------------------------------------------------------------
 def test_filters_are_a_toolbar_at_the_top_of_the_list():
-    """Issue #229: vaerktoejslinjen staar oeverst i listekortet - ikke som
-    sit eget barn i kroppen - og galleriet er aldrig hoejere end pladsen
+    """Issue #229/#244: vaerktoejslinjen er to raekker DIREKTE i listekortet
+    - ikke et eget barn i kroppen og ikke en wrapper med indlejrede,
+    retningsskiftende raekker - og galleriet er aldrig hoejere end pladsen
     under bjaelken, vaerktoejslinjen og kortets egne linjer."""
     import ib_parts as P
-    bar = P.build_filters()
-    assert bar.name == "conIbToolbar"
-    assert "Fill" not in bar.props and "BorderColor" not in bar.props
-    names = {c.name for c in _walk_ctrls([bar])}
-    for n in ("btnIbScopeAll", "btnIbStateOpen", "inpIbSearch", "drpIbSort", "drpIbFltApp",
+    rows = P.build_filters()
+    assert [r.name for r in rows] == ["conIbTbTop", "conIbTbFilters"]
+    names = {c.name for c in _walk_ctrls(rows)}
+    for n in ("btnIbScopeAll", "btnIbScopeMine", "btnIbScopeAssigned", "btnIbStateOpen",
+              "btnIbStateClosed", "btnIbStateArchived", "inpIbSearch", "drpIbSort", "drpIbFltApp",
               "drpIbFltSection", "drpIbFltStatus", "drpIbFltPriority"):
         assert n in names
-    assert "conIbFilterCard" not in names
+    for gone in ("conIbFilterCard", "conIbToolbar", "conIbSwitches", "conIbFltLine",
+                 "conIbFltRow", "conIbFltRow2"):
+        assert gone not in names
+    for r in rows:
+        assert "Fill" not in r.props and "BorderColor" not in r.props
     card = P.build_list()
-    assert card.children[0].name == "conIbToolbar"
+    assert [c.name for c in card.children[:2]] == ["conIbTbTop", "conIbTbFilters"]
     text = open(os.path.join(ROOT, "BIO SAP App", "ScreenIssueBoard.pa.yaml"), encoding="utf-8").read()
-    body = text[text.index("- conIbBody:"):text.index("- conIbToolbar:")]
+    body = text[text.index("- conIbBody:"):text.index("- conIbTbTop:")]
     assert body.count("- con") == 2          # conIbBody og conIbListCard
     gal_h = {c.name: c for c in _walk_ctrls([card])}["galIbList"].props["Height"]
     assert "App.Height" in gal_h and "Min(galIbList.AllItemsCount" in gal_h
     assert "(App.Height - 280)" not in gal_h
     # Ingen negative forskydninger eller faste Y i vaerktoejslinjen.
-    for c in _walk_ctrls([bar]):
+    for c in _walk_ctrls(rows):
         assert "Y" not in c.props
+
+
+def _toolbar_yaml():
+    import yaml
+    doc = yaml.safe_load(open(os.path.join(ROOT, "BIO SAP App", "ScreenIssueBoard.pa.yaml"),
+                              encoding="utf-8"))
+    screen = list(doc["Screens"].values())[0]
+
+    def find(nodes, path):
+        for it in nodes or []:
+            (n, b), = it.items()
+            if n == "conIbListCard":
+                return path + [n], b
+            hit = find(b.get("Children"), path + [n])
+            if hit:
+                return hit
+        return None
+    _path, card = find(screen["Children"], [])
+    rows = [list(k.items())[0] for k in card["Children"]
+            if list(k.keys())[0] in ("conIbTbTop", "conIbTbFilters")]
+    return card, rows
+
+
+def test_toolbar_is_built_like_the_rows_that_render():
+    """Issue #244: de tre knapper (og resten af vaerktoejslinjen) var 80 px
+    tom flade i den udgivne app. Kontrollerne stod i raekker, der skiftede
+    retning med en formel, men havde en KONSTANT LayoutAlignItems.Start, og
+    som indeholdt indlejrede raekker med deres egne formler - den
+    konstruktion, topbjaelken ogsaa blev klippet af (build_helpers.top_bar).
+
+    Nu er hver linje en flow_row (retning OG justering som formel) direkte i
+    kortet, og en kontrol staar hoejst i een fast, vandret gruppe inde i
+    raekken."""
+    card, rows = _toolbar_yaml()
+    assert [n for n, _b in rows] == ["conIbTbTop", "conIbTbFilters"]
+    for name, body in rows:
+        props = body["Properties"]
+        assert "If(" in props["LayoutDirection"] and "If(" in props["LayoutAlignItems"], name
+        assert "LayoutAlignItems.Center" in props["LayoutAlignItems"]
+        assert "LayoutAlignItems.Stretch" in props["LayoutAlignItems"]
+        for it in body["Children"]:
+            (kn, kb), = it.items()
+            if kb["Control"] != "GroupContainer":
+                continue
+            kp = kb["Properties"]
+            # Den indlejrede gruppe er fast: vandret, centreret, ingen formel.
+            assert kp["LayoutDirection"].strip() == "=LayoutDirection.Horizontal", kn
+            assert kp["LayoutAlignItems"].strip() == "=LayoutAlignItems.Center", kn
+            for g in kb["Children"]:
+                (gn, gb), = g.items()
+                assert gb["Control"] != "GroupContainer", f"{kn} > {gn}: ingen tredje lag"
+
+
+def test_toolbar_reserves_its_full_width_and_height_at_every_size():
+    """Issue #244: hver raekke og gruppe i vaerktoejslinjen er hoej og bred
+    nok til sine boern ved hver testbredde (Mobile, Tablet, Desktop, Wide og
+    pixlen under hver graense) - for en admin og en almindelig bruger. Et
+    barn, der er hoejere eller bredere end sin forelder, ville blive klippet
+    af LayoutOverflow.Hide. Bredden maales mod kortets indre bredde med
+    scrollbaren trukket fra (en nedre graense for pladsen)."""
+    import check_layout as cl
+    import layout_tokens as lay
+    card, rows = _toolbar_yaml()
+
+    def ev(expr, w, admin):
+        if expr is None:
+            return None
+        e = expr.replace("IsAdmin", "true" if admin else "false")
+        return cl.evaluate(e, w, 3, 3, 3)
+
+    def shown(kb, w, admin):
+        vis = (kb.get("Properties") or {}).get("Visible")
+        return vis is None or ev(vis, w, admin) not in (0, False)
+
+    checked = 0
+    for w in cl.WIDTHS:
+        nav = lay.NAV_W if lay.rank_for(w) >= 2 else 0
+        # Kortets indre bredde: kroppens padding og scrollbar trukket fra
+        # (FIT_SLACK er luft, ikke optaget plads - soegefeltets grow maa
+        # bruge den), og kortets 2 x 18 px.
+        inner = w - nav - (lay.SHELL_INSET - lay.FIT_SLACK) - 2 * 18
+        for admin in (True, False):
+            for name, body in rows:
+                props = body["Properties"]
+                vertical = cl.is_vertical(props, w)
+                gap = cl.gap_at(props, w)
+                h = ev(props["Height"], w, admin)
+                kids = [(kn, kb) for it in body["Children"] for kn, kb in it.items()
+                        if shown(kb, w, admin)]
+                kh = [ev(kb["Properties"]["Height"], w, admin) for _n, kb in kids]
+                kw = [ev(kb["Properties"]["Width"], w, admin) for _n, kb in kids]
+                assert None not in kh and None not in kw and h is not None, (name, w)
+                need_h = sum(kh) + gap * (len(kh) - 1) if vertical else max(kh)
+                assert h + 0.01 >= need_h, (name, w, admin, h, need_h)
+                if not vertical:
+                    need_w = sum(kw) + gap * (len(kw) - 1)
+                    assert need_w <= inner + 0.5, (name, w, admin, need_w, inner)
+                for (kn, kb), cw, ch in zip(kids, kw, kh):
+                    assert cw <= inner + 0.5, (kn, w, admin, cw, inner)
+                    if kb["Control"] != "GroupContainer":
+                        assert ch <= h + 0.01
+                        continue
+                    gp = kb["Properties"]
+                    ggap = cl.gap_at(gp, w)
+                    gk = [gb for it in kb["Children"] for _gn, gb in it.items()
+                          if shown(gb, w, admin)]
+                    gw = [ev(gb["Properties"]["Width"], w, admin) for gb in gk]
+                    gh = [ev(gb["Properties"]["Height"], w, admin) for gb in gk]
+                    assert sum(gw) + ggap * (len(gw) - 1) <= cw + 0.5, (kn, w, admin)
+                    assert max(gh) <= ch + 0.01, (kn, w, admin)
+                    # Knapperne er mindst 30 px hoeje og ikke smallere end
+                    # deres tekst kan staa i (segmenterne, "Assigned to me").
+                    for gb in gk:
+                        if gb["Control"] == "ModernButton":
+                            assert ev(gb["Properties"]["Height"], w, admin) >= 30
+                            assert ev(gb["Properties"]["Width"], w, admin) >= 60, (kn, w)
+                    checked += 1
+    assert checked
 
 
 def test_comment_is_added_locally_and_kept_on_failure():
