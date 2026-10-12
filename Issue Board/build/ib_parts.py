@@ -72,7 +72,7 @@ from gen_screen import (Ctrl, stack_height, C_APP_BG, C_CARD_BG, C_CARD_BORDER, 
                         C_INFO_FG, C_INVALID_FG, C_MUTED, C_MUTED_BG, C_MODAL_BG, C_OVERLAY,
                         C_PRIMARY, C_PRIMARY_SOFT, C_TITLE, C_TRANSPARENT, C_WARN_BG,
                         C_WARN_FG)
-from build_helpers import (empty_state, ensure_hit, hit_size, button, card, checkbox_theme, concurrent, confirm_modal,
+from build_helpers import (empty_state, skeleton_rows, ensure_hit, hit_size, button, card, checkbox_theme, concurrent, confirm_modal,
                            fit_button_width, group,
                            flow_row, grow, icon_on_mobile, label_row, loading_overlay, row_hit, row_rule,
                            text_ctrl, text_input, themed_dropdown, top_bar, ICON_W)
@@ -1018,7 +1018,7 @@ def build_list():
     empty = empty_state("conIbEmpty", empty_fx, "Clear filters", CLEAR_FILTERS,
                         icon_key=cfg.APP_KEY, primary=False, button_name="btnIbEmptyAction",
                         action_visible=f"({FILTERED}) && !IbFailed && !varIbLoading",
-                        visible="galIbList.AllItemsCount = 0")
+                        visible="galIbList.AllItemsCount = 0 && !varIbLoading")
     empty.children[1].props["Color"] = f"If(IbFailed, {C_INVALID_FG}, {C_MUTED})"
     retry = button("btnIbRetry", '"Retry"', RETRY, width=fit_button_width('"Retry"'), height=36,
                    visible="IbFailed && !varIbLoading", accessible='"Load the issues again"')
@@ -1041,7 +1041,10 @@ def build_list():
         "ShowScrollbar": "true", "TabIndex": "0", "TemplatePadding": "0",
         "TemplateSize": row_h, "Width": "Parent.Width", "WrapCount": "1",
     }, children=[row, crow, rule, hit, att_c], h=gal_h, vis="galIbList.AllItemsCount > 0")
-    return card("conIbListCard", before + [gal, empty, retry], gap=8)
+    # Pladsholder-raekker mens sagerne hentes (UX-review M7) - i stedet for
+    # hjulet over hele skaermen. Saa mange raekker, som listen ville vise.
+    loading = skeleton_rows("conIbSkeleton", "varIbLoading", label="Loading issues...")
+    return card("conIbListCard", before + [loading, gal, empty, retry], gap=8)
 
 
 # ---------------------------------------------------------------------------
@@ -2205,8 +2208,9 @@ def build_delete():
 
 
 def build_loading():
-    return [loading_overlay("imgIbLoading", "varIbLoading", "Loading issues, please wait"),
-            loading_overlay("imgIbBusy", "(varIbBusy || varIbPosting) && !varIbUploading",
+    # Hentningen af listen har pladsholder-raekker (conIbSkeleton, M7);
+    # hjulet daekker kun det, brugeren selv har sat i gang.
+    return [loading_overlay("imgIbBusy", "(varIbBusy || varIbPosting) && !varIbUploading",
                             "Sending, please wait"),
             loading_overlay("imgIbUploading", "varIbUploading", "Uploading files, please wait",
                             caption="Uploading files...")]
