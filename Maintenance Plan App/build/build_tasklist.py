@@ -8,10 +8,13 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
 import layout_tokens as lay
 import icons
 from build_helpers import (ensure_hit, empty_state, checkbox_theme, table_surface, flow_row, text_ctrl,
-                           group, button, text_input, number_input, themed_dropdown,
+                           group, button, text_input, number_field, num_value, themed_dropdown,
                            field_cell, card, pin_widths, grow, row_hit,
                            fit_button_width, fit_button_row, ICON_W, ICON_SAVE, flow_ok, mark_done)
 from build_plan_header import section_header, help_panel, section_footer
+
+# Talfeltets vaerdi (UX-review T10): heltal, Blank() ved tomt felt eller ikke-tal.
+NV = num_value()
 from build_status import HAS_PKGS
 import build_help as bh
 from build_strategy import build_strategy_body, IS_STRATEGY
@@ -363,8 +366,9 @@ def _materials_modal():
     txtDesc = text_ctrl("txtVhpMatDesc",
                         'If(IsBlank(ThisItem.Description), "-", ThisItem.Description)',
                         size=12, color=C_MUTED, height=30, width=w["DESCRIPTION"], wrap="false")
-    numQty = number_input("numVhpMatQty", "ThisItem.Quantity", width=w["QTY"], height=30, label="\"Quantity\"")
-    numQty.props["OnChange"] = "Patch(colVhpMaterials, ThisItem, { Quantity: Self.Value })"
+    numQty = number_field("inpVhpMatQty", "ThisItem.Quantity", width=w["QTY"], height=30,
+                          label="\"Quantity\"",
+                          onchange=f"Patch(colVhpMaterials, ThisItem, {{ Quantity: {NV} }})")
     txtUnit = text_ctrl("txtVhpMatUnit",
                         'If(IsBlank(ThisItem.Unit), "-", ThisItem.Unit)',
                         size=12, color=C_MUTED, height=30, width=w["UNIT"], wrap="false")
@@ -601,20 +605,18 @@ def _op_detail_modal():
     short = text_input("inpVhpOpMText", f"{OPM}.OperationShortText", width=MODAL_CW, height=32,
                        onchange=f"Patch(colVhpOperations, {OPM}, {{ OperationShortText: Self.Text }})",
                        label='"Operation text"')
-    work = number_input("numVhpOpMWork", f"{OPM}.WorkHours", width=MODAL_CW, height=32,
-                        label='"Work hours"')
-    cost = cost_expr("Self.Value").replace("ThisItem", "r")
-    work.props["OnChange"] = (
+    cost = cost_expr(NV).replace("ThisItem", "r")
+    work = number_field("inpVhpOpMWork", f"{OPM}.WorkHours", width=MODAL_CW, height=32,
+                        label='"Work hours"', unit="h", onchange=(
         "With(\n    { r: " + OPM + " },\n    Patch(\n        colVhpOperations, r,\n"
-        "        {\n            WorkHours: Self.Value,\n"
-        f"            DurationHours: {cfg.duration_expr('Self.Value', 'r.Persons')},\n"
-        f"            Cost: {cost}\n        }}\n    )\n)")
-    persons = number_input("numVhpOpMPersons", f"{OPM}.Persons", width=MODAL_CW, height=32,
-                           label='"Number of people"')
-    persons.props["OnChange"] = (
+        f"        {{\n            WorkHours: {NV},\n"
+        f"            DurationHours: {cfg.duration_expr(NV, 'r.Persons')},\n"
+        f"            Cost: {cost}\n        }}\n    )\n)"))
+    persons = number_field("inpVhpOpMPersons", f"{OPM}.Persons", width=MODAL_CW, height=32,
+                           label='"Number of people"', unit="people", onchange=(
         "With(\n    { r: " + OPM + " },\n    Patch(\n        colVhpOperations, r,\n"
-        "        {\n            Persons: Self.Value,\n"
-        f"            DurationHours: {cfg.duration_expr('r.WorkHours', 'Self.Value')}\n        }}\n    )\n)")
+        f"        {{\n            Persons: {NV},\n"
+        f"            DurationHours: {cfg.duration_expr('r.WorkHours', NV)}\n        }}\n    )\n)"))
     dur = text_ctrl("txtVhpOpMDur",
                     f'"Duration: " & {lay.num_text(OPM + ".DurationHours")} & " h   Work center: " & '
                     f'Coalesce({OPM}.MainWorkCenter, "-")', size=13, color=C_MUTED, height=20,
@@ -643,9 +645,9 @@ def _op_detail_modal():
                         display_mode=on_op(DM_PURCHASE),
                         onchange=f"Patch(colVhpOperations, {OPM}, {{ Vendor: Self.Text }})",
                         label='"Supplier"')
-    price = number_input("numVhpOpMCost", f"{OPM}.Cost", width=MODAL_CW, height=32,
-                         display_mode=on_op(DM_PURCHASE), label='"Price"')
-    price.props["OnChange"] = f"Patch(colVhpOperations, {OPM}, {{ Cost: Self.Value }})"
+    price = number_field("inpVhpOpMCost", f"{OPM}.Cost", width=MODAL_CW, height=32,
+                         display_mode=on_op(DM_PURCHASE), label='"Price"',
+                         onchange=f"Patch(colVhpOperations, {OPM}, {{ Cost: {NV} }})")
     matgrp = text_input("inpVhpOpMMatGrp", f"{OPM}.MaterialGroup", width=MODAL_CW, height=32,
                         display_mode=on_op(DM_PURCHASE),
                         onchange=f"Patch(colVhpOperations, {OPM}, {{ MaterialGroup: Self.Text }})",
@@ -973,27 +975,27 @@ def build_tasklist_section():
     # begge. Gjorde kun den ene det, ville et skift i den anden efterlade en
     # varighed, der ikke passer til linjen - og det er varigheden, der
     # gemmes i TaskListMain.Duration og sendes videre til SAP.
-    numOpWork = number_input("numVhpOpWork", "ThisItem.WorkHours", width=w["WORK (H)"], height=32, label="\"Work hours\"")
-    numOpWork.props["OnChange"] = (
+    numOpWork = number_field("inpVhpOpWork", "ThisItem.WorkHours", width=w["WORK (H)"], height=32,
+                             label="\"Work hours\"", onchange=(
         "Patch(\n"
         "    colVhpOperations, ThisItem,\n"
         "    {\n"
-        "        WorkHours: Self.Value,\n"
-        f"        DurationHours: {cfg.duration_expr('Self.Value', 'ThisItem.Persons')},\n"
-        f"        Cost: {cost_expr('Self.Value')}\n"
+        f"        WorkHours: {NV},\n"
+        f"        DurationHours: {cfg.duration_expr(NV, 'ThisItem.Persons')},\n"
+        f"        Cost: {cost_expr(NV)}\n"
         "    }\n"
-        ")")
-    numOpPersons = number_input("numVhpOpPersons", "ThisItem.Persons", width=w["NO."], height=32, label="\"Number of people\"")
-    numOpPersons.props["OnChange"] = (
+        ")"))
+    numOpPersons = number_field("inpVhpOpPersons", "ThisItem.Persons", width=w["NO."], height=32,
+                                label="\"Number of people\"", onchange=(
         "Patch(\n"
         "    colVhpOperations, ThisItem,\n"
         "    {\n"
-        "        Persons: Self.Value,\n"
-        f"        DurationHours: {cfg.duration_expr('ThisItem.WorkHours', 'Self.Value')}\n"
+        f"        Persons: {NV},\n"
+        f"        DurationHours: {cfg.duration_expr('ThisItem.WorkHours', NV)}\n"
         "    }\n"
-        ")")
+        ")"))
     # Varigheden vises, men tastes ikke - den ER Work / No.
-    numOpDur = number_input("numVhpOpDur", "ThisItem.DurationHours", width=w["DUR. (H)"], height=32,
+    numOpDur = number_field("inpVhpOpDur", "ThisItem.DurationHours", width=w["DUR. (H)"], height=32,
                             display_mode="DisplayMode.View", label="\"Duration hours\"")
     # Arbejdscenteret kommer fra standardarbejdsplanen og bestemmer baade
     # kontrolnoeglen og indkoebsfelterne. Kan man rette det i hoejre hus,
@@ -1031,9 +1033,9 @@ def build_tasklist_section():
     txtOpVendor = text_input("inpVhpOpVendor", "ThisItem.Vendor", width=w["VENDOR"], height=32,
                              display_mode=DM_PURCHASE,
                              onchange="Patch(colVhpOperations, ThisItem, { Vendor: Self.Text })", label="\"Supplier\"")
-    numOpCost = number_input("numVhpOpCost", "ThisItem.Cost", width=w["COST"], height=32,
-                             display_mode=DM_PURCHASE, label="\"Price\"")
-    numOpCost.props["OnChange"] = "Patch(colVhpOperations, ThisItem, { Cost: Self.Value })"
+    numOpCost = number_field("inpVhpOpCost", "ThisItem.Cost", width=w["COST"], height=32,
+                             display_mode=DM_PURCHASE, label="\"Price\"",
+                             onchange=f"Patch(colVhpOperations, ThisItem, {{ Cost: {NV} }})")
     txtOpMatGrp = text_input("inpVhpOpMatGrp", "ThisItem.MaterialGroup", width=w["MAT.GRP"],
                              height=32, display_mode=DM_PURCHASE,
                              onchange="Patch(colVhpOperations, ThisItem, { MaterialGroup: Self.Text })", label="\"Material group\"")

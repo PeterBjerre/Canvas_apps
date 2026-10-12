@@ -49,12 +49,12 @@ from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_MUTED_BG, C_REQUIRED, C_PRIMARY, C_WHITE,
                         C_TRANSPARENT, C_NEUTRAL_BG, C_NEUTRAL_FG, C_INFO_FG,
                         C_INFO_BG, C_VALID_FG, C_VALID_BG, C_WARN_FG,
-                        C_WARN_BG, C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY)
+                        C_WARN_BG, C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY, C_DIVIDER)
 import layout_tokens as lay
 from layout_tokens import fits, if_below, below, at_least
 from build_helpers import (ensure_hit, validation_summary, tap_backdrop, text_ctrl, text_min_height, group, button, text_input,
                            checkbox_theme, date_picker, fit_button_row,
-                           fit_button_width, number_input, themed_dropdown,
+                           fit_button_width, number_field, num_value, themed_dropdown,
                            card, field_cell, pin_widths, badge, top_bar, grow,
                            flow_row, label_px, text_px, loading_overlay,
                            with_busy, confirm_modal, edit_button, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
@@ -423,13 +423,12 @@ def _var(col):
 def _input_for(col, kind, choices, required_formula="false"):
     # Praefikset foelger kontroltypen (REVIEW.md A4): inp = tekst,
     # num = tal, dte = dato.
-    name = {"num": "numDom", "date": "dteDom", "bool": "chkDom"}.get(kind, "inpDom") + col
+    # Tal er tekstfelter uden spin-pile (UX-review T10) - derfor ogsaa inp.
+    name = {"date": "dteDom", "bool": "chkDom"}.get(kind, "inpDom") + col
     v = _var(col)
     if kind == "num":
-        c = number_input(name, v, display_mode=DM_ROW,
-                         required_formula=required_formula)
-        c.props["OnChange"] = f"Set({v}, Self.Value)"
-        return c
+        return number_field(name, v, display_mode=DM_ROW, required_formula=required_formula,
+                            onchange=f"Set({v}, {num_value()})")
     if kind == "date":
         # Rigtig datovaelger. Den haandbyggede app gemte
         # Text(..., "dd/mm/yyyy") - en streng, der ikke kan sorteres, ikke
@@ -1844,6 +1843,34 @@ def docs_cell():
 # ---------------------------------------------------------------------------
 # Formularens hoved og fod
 # ---------------------------------------------------------------------------
+# SEKTIONER (UX-review 2026-10, M2): formularen er grupper med en
+# overskrift - Identification, Location, Manufacturer ... - i stedet for
+# fire anonyme raekker felter. Overskriften er en tynd streg og et ord;
+# den foerste har ingen streg (hovedet staar lige over den).
+SECTION_TITLE_H = 20
+
+
+def form_section(key, title, visible=None, first=False):
+    """Sektionens overskrift: [streg] Titel. key: navnets hale (conDomSec<key>)."""
+    t = text_ctrl(f"txtDomSec{key}", f'"{title}"', size=lay.SIZE_BODY, weight="Semibold",
+                  height=SECTION_TITLE_H, wrap="false")
+    kids = [t] if first else [group(f"conDomSec{key}Rule", [], direction="Horizontal",
+                                    height=1, fill=C_DIVIDER), t]
+    return group(f"conDomSec{key}", kids, direction="Vertical", gap=10,
+                 visible=visible, pad=(0 if first else 6, 0, 0, 0))
+
+
+def sectioned(sections):
+    """[(key, titel, synlighed, [kontroller...]), ...] -> een liste: hver
+    sektions overskrift efterfulgt af dens raekker. En sektion uden synlige
+    raekker skjules med sin synlighed (fx Stock kun for en lagervare)."""
+    out = []
+    for i, (key, title, vis, ctrls) in enumerate(sections):
+        out.append(form_section(key, title, visible=vis, first=(i == 0)))
+        out.extend(ctrls)
+    return out
+
+
 def form_head(title_txt, right=()):
     """Titlen, "* Required" og evt. kontroller til hoejre (No BOM Item)."""
     title = text_ctrl("txtDomFormH", f'"{title_txt}"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
