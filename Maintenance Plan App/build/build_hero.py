@@ -662,6 +662,9 @@ def _header_actions(notes_vis, notes_fx):
     return ensure_hit(_icon_only(notes)), ensure_hit(_icon_only(delete))
 
 
+
+BAR_ACTIONS = []
+
 def build_top_bar():
     """VH-planens topbjaelke - to raekker, saa intet kan klippes:
 
@@ -676,6 +679,8 @@ def build_top_bar():
     staar i sidebaren. Knapperne: se KNAPPERNE I HEADEREN ovenfor."""
     from build_save import save_buttons, NOTES_OPEN_VIEW, NOTES_HAVE, SAVEABLE_COUNT
     btnDraft, btnSubmit, confirm = save_buttons(CAN_SUBMIT)
+    # Bundbjaelken under Desktop (UX-review M8) kopierer disse to.
+    BAR_ACTIONS[:] = [btnDraft, btnSubmit]
     # "New Request" - kun tekst, intet plus-ikon, paa alle skaermbredder
     # (issue #238 / #243).
     btnNew = new_request_label(button(
