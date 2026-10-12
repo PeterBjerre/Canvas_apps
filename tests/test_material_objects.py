@@ -275,8 +275,7 @@ def test_the_tables_keep_the_columns_compact_showed():
     # Funktionspladsen er ikke en kolonne i Materials laengere (issue #228).
     assert '"FUNCTIONAL LOCATION"' not in y
     eq = open(EQ, encoding="utf-8").read()
-    for head in ("TYPE", "PLANT", "FUNCTIONAL LOCATION", "EQUIPMENT NUMBER",
-                 "DESCRIPTION", "EQUIPMENT TYPE"):
+    for head in ("STATUS", "DESCRIPTION", "FUNCTIONAL LOCATION", "TYPE", "PLANT"):
         assert '"%s"' % head in eq, head
 
 

@@ -47,7 +47,7 @@ sys.path.insert(0, HERE)
 
 from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_MUTED_BG, C_REQUIRED, C_PRIMARY, C_WHITE,
-                        C_TRANSPARENT, C_NEUTRAL_BG, C_NEUTRAL_FG, C_INFO_FG,
+                        C_TRANSPARENT, C_ROW_PRESSED, C_NEUTRAL_BG, C_NEUTRAL_FG, C_INFO_FG,
                         C_INFO_BG, C_VALID_FG, C_VALID_BG, C_WARN_FG,
                         C_WARN_BG, C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY, C_DIVIDER)
 import layout_tokens as lay
@@ -326,6 +326,8 @@ def submit_press_fx():
     # gyldige kan stadig sendes, saa bekraeftelsen aabner som foer.
     open_confirm = (f"Set({FIX_VAR}, CountRows({DRAFTS}) > 0);\n"
                     f"Set({CONFIRM_VAR}, true)")
+    if getattr(cfg, "ROW_PANEL_ENABLED", False):
+        open_confirm = f"Set({CONFIRM_VAR}, true)"
     if not HOOKS["submit_guard"]:
         return open_confirm
     before, blocked, message = HOOKS["submit_guard"]
@@ -1712,6 +1714,16 @@ PANEL_CELL_W = fits(PANEL_FORM_W, PANEL_NEED_2, PANEL_FORM_W,
                     f"(({PANEL_FORM_W}) - {GRID_GAP}) / 2")
 
 
+# Felter, der fylder hele panelets bredde (mockuppen: FL og Description).
+PANEL_FULL_KEYS = {"FL", "TEXT", "DOCS"}
+PANEL_FULL_NAMES = {"conDomFl", "conDomText", "conDomDocs"}
+
+
+def panel_cell_w(key, cell_width):
+    """Cellebredden for et felt i panelet: hele bredden for FL/TEXT/DOCS."""
+    return PANEL_FORM_W if key in PANEL_FULL_KEYS and cell_width == PANEL_CELL_W else cell_width
+
+
 def _line_h(hs):
     """Den hoejeste af cellerne paa en linje - tal, hvis de alle er tal."""
     if all(isinstance(h, (int, float)) for h in hs):
@@ -1742,12 +1754,26 @@ def grid_row(name, cells, container_w=None, columns=None, cell_width=None):
                  _chunk_h(hs, 4))
     elif columns == 2:
         pairs = []
-        for offset in range(0, len(cells), 2):
-            pair = cells[offset:offset + 2]
+        lines, cur = [], []
+        for cell in cells:
+            if cell.name in PANEL_FULL_NAMES:
+                if cur:
+                    lines.append(cur)
+                    cur = []
+                lines.append([cell])
+                continue
+            cur.append(cell)
+            if len(cur) == 2:
+                lines.append(cur)
+                cur = []
+        if cur:
+            lines.append(cur)
+        for index, pair in enumerate(lines):
             pair_heights = [cell.h for cell in pair]
-            pair_height = fits(calc_w, PANEL_NEED_2,
-                               _chunk_h(pair_heights, 1), _chunk_h(pair_heights, 2))
-            pairs.append(group(f"{name}Pair{offset // 2}", pair,
+            pair_height = (pair_heights[0] if len(pair) == 1 else
+                           fits(calc_w, PANEL_NEED_2,
+                                _chunk_h(pair_heights, 1), _chunk_h(pair_heights, 2)))
+            pairs.append(group(f"{name}Pair{index}", pair,
                                direction="Horizontal", gap=GRID_GAP,
                                height=pair_height, width=container_w or "Parent.Width",
                                wrap="true"))
@@ -1931,12 +1957,10 @@ SECTION_TITLE_H = 20
 
 def form_section(key, title, visible=None, first=False):
     """Sektionens overskrift: [streg] Titel. key: navnets hale (conDomSec<key>)."""
-    t = text_ctrl(f"txtDomSec{key}", f'"{title}"', size=lay.SIZE_BODY, weight="Semibold",
-                  height=SECTION_TITLE_H, wrap="false")
-    kids = [t] if first else [group(f"conDomSec{key}Rule", [], direction="Horizontal",
-                                    height=1, fill=C_DIVIDER), t]
-    return group(f"conDomSec{key}", kids, direction="Vertical", gap=10,
-                 visible=visible, pad=(0 if first else 6, 0, 0, 0))
+    t = text_ctrl(f"txtDomSec{key}", f'Upper("{title}")', size=lay.SIZE_MICRO,
+                  weight="Semibold", color=C_MUTED, height=SECTION_TITLE_H, wrap="false")
+    return group(f"conDomSec{key}", [t], direction="Vertical", gap=0,
+                 visible=visible, pad=(0 if first else 8, 0, 0, 0))
 
 
 def sectioned(sections):
@@ -1952,20 +1976,22 @@ def sectioned(sections):
 
 def form_head(title_txt, right=()):
     """Titlen, "* Required" og evt. kontroller til hoejre (No BOM Item)."""
-    title = text_ctrl("txtDomFormH", f'"{title_txt}"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
-                      height=text_min_height(lay.SIZE_CARD_TITLE),
-                      width=text_px(title_txt, lay.SIZE_CARD_TITLE), wrap="false")
+    title = None if title_txt is None else text_ctrl(
+        "txtDomFormH", f'"{title_txt}"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
+        height=text_min_height(lay.SIZE_CARD_TITLE),
+        width=text_px(title_txt, lay.SIZE_CARD_TITLE), wrap="false")
     star = text_ctrl("txtDomFormReqStar", '"*"', size=12, color=C_REQUIRED,
                      weight="Semibold", height=18, width=8, wrap="false",
                      accessible='"Required"')
     legend = text_ctrl("txtDomFormReq", '"Required"', size=12, color=C_MUTED,
                        height=18, width=text_px("Required", 12, semibold=False),
                        wrap="false")
-    left = group("conDomFormTitle", [title, star, legend], direction="Horizontal",
+    parts = [c for c in (title, star, legend) if c is not None]
+    left = group("conDomFormTitle", parts, direction="Horizontal",
                  gap=4, height=26, align_items="Center")
     if not right:
         return left
-    left_w = sum(int(c.props["Width"]) for c in (title, star, legend)) + 2 * 4
+    left_w = sum(int(c.props["Width"]) for c in parts) + (len(parts) - 1) * 4
     return flow_row("conDomFormHead", [left] + list(right), FORM_W, gap=12,
                     flex=left, flex_min=left_w)
 
@@ -2204,10 +2230,12 @@ class ListLayout:
     tilovers. Er der intet tilovers (en tablet), er tabellen sine
     mindstebredder og scroller vandret."""
 
-    def __init__(self, slots):
+    def __init__(self, slots, actions=True):
         self.slots = list(slots)
         acts = HOOKS["row_actions"]
-        if acts:
+        if not actions:
+            fixed = BADGE_W + T_GAP * (len(self.slots) + 1)
+        elif acts:
             # Een ACTIONS-kolonne og ingen MORE (issue #228).
             fixed = BADGE_W + _actions_w(acts) + T_GAP * (len(self.slots) + 1)
         else:
@@ -2340,12 +2368,29 @@ def build_list(slots, badge_head, search_placeholder):
                             width="170", label='"Filter by plant"',
                             onchange=tok.prefs_save({"prefDomPlant": "Self.Selected.Value"}))
     row_add = []
-    if getattr(cfg, "ROW_PANEL_ENABLED", False):
+    panel_on = bool(getattr(cfg, "ROW_PANEL_ENABLED", False))
+    count = text_ctrl("txtDomRowsCount", "Text(CountRows(colDomRows))", size=lay.SIZE_BODY,
+                      color=C_MUTED, height=20, width=28, wrap="false")
+    if panel_on:
+        copy_active = copy_row_fx().replace("ThisItem.", ACTIVE + ".")
+        row_add.append(button(
+            "btnDomToolbarCopy", '"Copy row"', copy_active, icon="Copy",
+            width=fit_button_width('"Copy row"') + ICON_W, height=36,
+            display_mode=("If(varDomViewOnly || IsBlank(varDomActiveRowId), "
+                          "DisplayMode.Disabled, DisplayMode.Edit)"),
+            visible="!varDomViewOnly"))
         row_add.append(button("btnDomNewRow", '"Add row"', new_row_fx(), primary=True,
                               width=fit_button_width('"Add row"'), height=36,
                               visible="!varDomViewOnly"))
-    head = flow_row("conDomRowsTop", [title] + row_add + [search, status, plant], FORM_W, gap=8,
-                    flex=title, flex_min=text_px("Rows", 17))
+    head_title = title
+    head_flex = text_px("Rows", 17)
+    if panel_on:
+        head_title = group("conDomRowsTitle", [title, count], direction="Horizontal", gap=8,
+                           height=text_min_height(lay.SIZE_CARD_TITLE),
+                           width=head_flex + 8 + 28, align_items="Center")
+        head_flex += 8 + 28
+    head = flow_row("conDomRowsTop", [head_title, search] + row_add + [status, plant], FORM_W,
+                    gap=8, flex=head_title, flex_min=head_flex)
 
     # --- tabellen -----------------------------------------------------------
     heads = [_head_text("txtDomHeadStatus", f'"{badge_head}"', BADGE_W)]
@@ -2392,6 +2437,10 @@ def build_list(slots, badge_head, search_placeholder):
                    [row, row_c], gal_h, if_below("Desktop", str(ROW_H_C), str(ROW_H)),
                    onselect=load_row_fx(), width=f"({table_w}) + 4 + {SCROLLBAR_W}",
                    accessible="Saved rows")
+    if panel_on:
+        gal.props["TemplateFill"] = (
+            f"If(ThisItem.RowId = varDomActiveRowId && IfError(varDomEditorOpen, false), "
+            f"{C_ROW_PRESSED}, {C_TRANSPARENT})")
 
     # Vandret scroll, naar tabellen er bredere end kortet (All columns, og
     # Compact paa en tablet). Start, ikke Stretch - check_layout regel 14.
@@ -2423,13 +2472,16 @@ def build_list(slots, badge_head, search_placeholder):
     fix = validation_summary(
         "Dom", f"Sort({DRAFTS}, RowId, SortOrder.Descending)",
         f'ThisItem.ItemKey & If(IsBlank(ThisItem.{cfg.C_TEXT}), "", "  \u00b7  " & ThisItem.{cfg.C_TEXT})',
-        "Open row", load_row_fx(),
-        f'{dt.plural(f"CountRows({DRAFTS})", "draft row")} & '
-        f'If(CountRows({DRAFTS}) = 1, " - complete it to submit it too", '
-        '" - complete them to submit them too")',
-        f"IfError({FIX_VAR}, false) && CountRows({DRAFTS}) > 0 && !varDomViewOnly",
-        f"Set({FIX_VAR}, false)")
-    return card("conDomRowsCard", [head, fix, table, empty] + _submit_parts())
+        "Open row" if not panel_on else "Go to field", load_row_fx(),
+        (f'{dt.plural(f"CountRows({DRAFTS})", "draft row")} & '
+         f'If(CountRows({DRAFTS}) = 1, " - complete it to submit it too", '
+         '" - complete them to submit them too")') if not panel_on else '"Before you can submit"',
+        (f"IfError({FIX_VAR}, false) && CountRows({DRAFTS}) > 0 && !varDomViewOnly"
+         if not panel_on else f"CountRows({DRAFTS}) > 0 && !varDomViewOnly"),
+        f"Set({FIX_VAR}, false)", closable=not panel_on)
+    parts = [head, table, empty] + _submit_parts()
+    parts.insert(1 if not panel_on else 3, fix)
+    return card("conDomRowsCard", parts)
 
 
 # ---------------------------------------------------------------------------

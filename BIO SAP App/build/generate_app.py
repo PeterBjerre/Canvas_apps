@@ -20,6 +20,7 @@ De fem appers App.pa.yaml laeses, efter at deres egne generatorer er koert
 igen, saa den samlede app aldrig bygges af en forældet udgave.
 """
 import os
+import re
 import subprocess
 import sys
 
@@ -28,6 +29,7 @@ import combined as cb
 if cb.TOOLS not in sys.path:
     sys.path.insert(0, cb.TOOLS)
 import app_yaml  # noqa: E402
+import layout_tokens as lay  # noqa: E402
 import toast  # noqa: E402
 
 
@@ -52,10 +54,18 @@ def regenerate_sources():
 def build_formulas():
     merged, owner = {}, {}
     order = []
+    inset_vars = []
     for d in cb.DOMAINS:
         for name, text in cb.split_formulas(cb.app_yaml(d)["Formulas"]):
             text = cb.rename(text, d)
             name = cb.rename(name, d)
+            if name == lay.INSET:
+                # Hvert domaene har sin egen aaben-variabel; de samles i een formel.
+                inset_vars += re.findall(r"IfError\((\w+), false\)", text)
+                if name not in merged:
+                    merged[name], owner[name] = text, d["folder"]
+                    order.append(name)
+                continue
             if name in merged:
                 if merged[name] != text:
                     raise SystemExit(
@@ -65,6 +75,10 @@ def build_formulas():
                 continue
             merged[name], owner[name] = text, d["folder"]
             order.append(name)
+    if inset_vars:
+        cond = " || ".join(f"IfError({v}, false)" for v in inset_vars)
+        merged[lay.INSET] = ("%s = If(App.Width >= %d && (%s), %d, 0);"
+                             % (lay.INSET, lay.PANEL_SIDE_MIN, cond, lay.PANEL_W))
     # Sidebarens app-logo (issue #203) - kun den samlede app har sidebaren.
     import side_nav
     if side_nav.LOGO in merged:

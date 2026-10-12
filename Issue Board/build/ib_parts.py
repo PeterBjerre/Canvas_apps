@@ -1094,7 +1094,7 @@ def _popup(prefix, kids, vis, width=POP_W, foot=None, own_scroll=False,
                   drop_shadow="ExtraBold", align_in_container="Center")
     if side_panel:
         backdrop = tap_backdrop(f"img{prefix}Backdrop", vis,
-                                "Set(varIbDetailOn, false)")
+                                "Set(varIbDetailOn, false)", fill=C_TRANSPARENT)
         modal.props["Height"] = "App.Height"
         modal.h = "App.Height"
         modal.props["Width"] = f"If({at_least('Desktop')}, 480, App.Width)"

@@ -373,7 +373,7 @@ def build_form(panel=False):
         if name in SECTION_STARTS:
             key, title = SECTION_STARTS[name]
             rows.append(dp.form_section(key, title, first=not rows))
-        row = dp.grid_row(name, [_cell(k, cell_width) for k in keys],
+        row = dp.grid_row(name, [_cell(k, dp.panel_cell_w(k, cell_width)) for k in keys],
                           container_w=form_width, columns=2 if panel else None,
                   cell_width=cell_width)
         if vis:
