@@ -273,14 +273,42 @@ def icon_on_mobile(btn, w=40):
     return btn
 
 
-def new_text_on_mobile(btn, full_w):
-    """"New request" with a plus on Tablet and up; a compact text button "New" below."""
+# "NEW REQUEST" - DEN SAMME KNAP OVERALT (issue #243)
+#
+# Hver knap, der starter en ny anmodning, hedder praecis "New Request" -
+# uden plus-ikon og uden "+" i teksten, paa alle skaermbredder. Foer var den
+# "New request" med et plus fra Tablet og op og "New" paa en telefon.
+# Bredden er teksten + den faelles luft (fit_button_width), saa teksten
+# staar midt i knappen. Paa en telefon er der ikke plads til 14 pt - der er
+# teksten den samme i 12 pt med 12 px luft i hver side (text_px + 24, samme
+# luft som hubbens smalle filterknapper). Submit er kun sit ikon dér.
+NEW_REQUEST = '"New Request"'
+NEW_REQUEST_PHONE_SIZE = 12
+
+
+def new_request_widths():
+    """(bredde fra Tablet og op, bredde paa en telefon) for "New Request"."""
+    return (fit_button_width(NEW_REQUEST),
+            text_px(NEW_REQUEST[1:-1], NEW_REQUEST_PHONE_SIZE) + 24)
+
+
+def new_request_label(btn):
+    """Goer btn til den faelles "New Request"-knap (issue #243): praecis den
+    tekst, intet ikon, centreret tekst og en bredde regnet af teksten.
+    OnSelect, tooltip, synlighed og DisplayMode roeres ikke."""
     narrow = lay.below("Tablet")
-    w = fit_button_width('"New"', min_w=0) + 8
-    btn.props["Text"] = f'If({narrow}, "New", "New request")'
-    btn.props["Width"] = f"If({narrow}, {w}, {full_w})"
+    full_w, phone_w = new_request_widths()
+    # En egen skaermlaesertekst (VH-planens "Start a new blank request")
+    # bliver staaende; var den bare knappens tekst, foelger den med.
+    if btn.props.get("AccessibleLabel") in (None, btn.props.get("Text")):
+        btn.props["AccessibleLabel"] = NEW_REQUEST
+    btn.props["Text"] = NEW_REQUEST
+    btn.props.pop("Icon", None)
+    btn.props["Layout"] = "ButtonLayout.TextOnly"
+    btn.props["Align"] = "Align.Center"
+    btn.props["Size"] = f"If({narrow}, {NEW_REQUEST_PHONE_SIZE}, {lay.SIZE_INPUT})"
+    btn.props["Width"] = f"If({narrow}, {phone_w}, {full_w})"
     btn.props["LayoutMinWidth"] = btn.props["Width"]
-    btn.props["Layout"] = f"If({narrow}, ButtonLayout.TextOnly, ButtonLayout.IconBefore)"
     return btn
 
 
