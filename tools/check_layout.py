@@ -2362,6 +2362,19 @@ def rule_40(ctx):
             break
 
 
+def rule_42(ctx):
+    """Tekststoerrelser er paa typeskalaen T.* (UX-review M6)"""
+    # gen_screen skriver T.body osv. for hver Size, der ER et trin paa
+    # typeskalaen (layout_tokens.NAMED["T"]). Staar der stadig et rent tal,
+    # er det uden for skalaen - en 15 eller en 18, der ikke ligner resten.
+    for _p, name, body in ctx.all_nodes:
+        v = str((body.get("Properties") or {}).get("Size", "")).strip().lstrip("=").strip()
+        if re.fullmatch(r"\d+(\.\d+)?", v):
+            ctx.problems.append(
+                f"[42] {name}.Size = {v} - ikke paa typeskalaen. Brug layout_tokens.SIZE_* "
+                f"(T.micro/small/body/input/cardTitle/pageTitle)")
+
+
 RULES = [
     Rule('0', 'Hvert kontrolnavn findes kun een gang', rule_0),
     Rule('1', 'Ingen kontrol-til-kontrol hoejdereferencer', rule_1),
@@ -2411,6 +2424,7 @@ RULES = [
     Rule('38', 'Billeder, figurer, tekster og inputs skal have en AccessibleLabel (issue #165)', rule_38),
     Rule('39', 'Ingen Notify - beskeder er appens egne (tools/toast.py, UX-review B1)', rule_39),
     Rule('40', 'Ikonknapper har mindst klikfladen H.hit (UX-review F6/T10)', rule_40),
+    Rule('42', 'Tekststoerrelser er paa typeskalaen T.* (UX-review M6)', rule_42),
 ]
 
 

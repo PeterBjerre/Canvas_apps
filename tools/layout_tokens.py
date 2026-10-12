@@ -370,6 +370,26 @@ NAMED = {
           ("hit", "If(LayoutRank < 3, 44, 32)"),
           ("badge", "22")],
 }
+# T (typografi) og R (radier) - samme tal som SIZE_* og RADIUS_* ovenfor.
+# gen_screen skriver navnet i stedet for tallet, naar en Size eller en
+# Radius* er et af dem (UX-review M6) - saa kan den, der retter i Studio,
+# se, at 13 er "broedtekst" og 14 "kort".
+NAMED["T"] = [("micro", str(SIZE_MICRO)), ("small", str(SIZE_SMALL)),
+              ("body", str(SIZE_BODY)), ("input", str(SIZE_INPUT)),
+              ("inputMobile", str(SIZE_INPUT_MOBILE)), ("cardTitle", str(SIZE_CARD_TITLE)),
+              ("pageTitle", str(SIZE_PAGE_TITLE))]
+NAMED["R"] = [("input", str(RADIUS_INPUT)), ("card", str(RADIUS_CARD)),
+              ("modal", str(RADIUS_MODAL))]
+
+
+def named_constant(record, value):
+    """"T.body" for (T, 13) - eller None, naar tallet ikke har et navn."""
+    for f, expr in NAMED.get(record, ()):
+        if expr == str(value):
+            return f"{record}.{f}"
+    return None
+
+
 HIT = "H.hit"   # klikfladen - se NAMED
 CONTROL = "H.control"   # feltets hoejde - se NAMED
 HIT_DESKTOP = 32
