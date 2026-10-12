@@ -225,6 +225,7 @@ Set(varFlTab, "ALL");
 // vaelger den foerste, naar den er tom. varFlPop: navnet paa den aabne
 // popup - Manufacturer, Warranty - og tom, naar ingen er aaben.
 Set(varFlDetailRow, "");
+Set(varFlPanelOpen, false);
 Set(varFlPop, "");
 // Class data-popuppen (issue #184): aaben, for hvilken raekke, og skal
 // valideringen lukke den efter Apply?

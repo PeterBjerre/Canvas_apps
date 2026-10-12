@@ -84,7 +84,7 @@ def build_screen(render=render_screen):
     nav, overlay = side_nav("Fl", "functionallocation")
     return render(cfg.SCREEN, {"Fill": C_APP_BG, "OnVisible": on_visible()},
                          [root, *nav, *P.build_class_modal(), *P.build_field_modal(),
-                          *overlay, *P.build_submit_confirm()])
+                          *overlay, *P.build_row_panel(), *P.build_submit_confirm()])
 
 
 def main():

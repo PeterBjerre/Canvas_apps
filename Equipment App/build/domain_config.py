@@ -31,6 +31,7 @@ APP_KEY = "equipment"
 SCREEN = "ScreenEquipment"
 TITLE = "Equipment"
 SUBTITLE = "Create, change and delete equipment"
+ROW_PANEL_ENABLED = True
 
 # Praefikset i noeglerne: EQ-000912.
 PREFIX = "EQ"

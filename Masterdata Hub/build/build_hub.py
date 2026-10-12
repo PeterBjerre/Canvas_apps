@@ -1047,7 +1047,7 @@ _FILTERED = (
 # foerst. SortByColumns faar kolonnens navn som KONSTANT i hver gren (een
 # Switch), saa SharePoint stadig sorterer - et variabelt kolonnenavn kan
 # ikke delegeres.
-SORT_COLS = {"REQUEST": COL_NO, "PLANT": "Plant", "STATUS": "StatusStep",
+SORT_COLS = {"REQUEST": "Title", "PLANT": "Plant", "STATUS": "StatusStep",
              "UPDATED": "LastActionOn"}
 SORT_DEFAULT = "UPDATED"
 SORT_ORDER = "If(IfError(varMdSortAsc, false), SortOrder.Ascending, SortOrder.Descending)"
