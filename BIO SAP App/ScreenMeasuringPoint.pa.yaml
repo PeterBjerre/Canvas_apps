@@ -259,7 +259,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =12
+                                              =T.small
                                           Text: |-
                                               ="  /  Measuring Points" & If(IsBlank(varMpRequestNo), "", "  /  " & varMpRequestNo)
                                           Width: |-
@@ -327,7 +327,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =22
+                                              =T.pageTitle
                                           Text: |-
                                               ="Measuring Points"
                                           Visible: |-
@@ -387,7 +387,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =13
+                                        =T.body
                                     Text: |-
                                         ="Report counters and measuring points for a functional location."
                                     Visible: |-
@@ -479,13 +479,13 @@ Screens:
                                   Set(varMpFlQuery, ""); Set(varMpFlLast, ""); Set(varMpFlMsg, ""); Clear(colMpFl); Reset(cmbMpFl);
                                   Set(varMpInfo, "")
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
                                   =If(LayoutRank < 2, 12, 14)
                               Text: |-
@@ -560,15 +560,15 @@ Screens:
                               OnSelect: |-
                                   =Set(varMpViewOnly, false)
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   ="Edit"
                               Tooltip: |-
@@ -766,15 +766,15 @@ Screens:
                                   );
                                   Set(varMpSaving, false)
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   ="Save draft"
                               Tooltip: |-
@@ -814,15 +814,15 @@ Screens:
                                   =Set(varMpFixOn, CountRows(Filter(colMpRows, Status = "draft")) > 0);
                                   Set(varMpConfirmSubmit, true)
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   =With({ _f: CountRows(Filter(colMpRows, Status = "draft")) }, "Submit" & If(_f > 0, " (" & Text(_f) & " to fix)", ""))
                               Tooltip: |-
@@ -863,15 +863,15 @@ Screens:
                               OnSelect: |-
                                   =Set(varMpDeleteOpen, true)
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   ="Delete"
                               Tooltip: |-
@@ -984,13 +984,13 @@ Screens:
                         PaddingTop: |-
                             =18
                         RadiusBottomLeft: |-
-                            =14
+                            =R.card
                         RadiusBottomRight: |-
-                            =14
+                            =R.card
                         RadiusTopLeft: |-
-                            =14
+                            =R.card
                         RadiusTopRight: |-
-                            =14
+                            =R.card
                         Width: |-
                             =Parent.Width
                       Children:
@@ -1049,7 +1049,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =17
+                                        =T.cardTitle
                                     Text: |-
                                         ="Row details"
                                     Width: |-
@@ -1084,7 +1084,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =12
+                                        =T.small
                                     Text: |-
                                         ="*"
                                     Width: |-
@@ -1117,7 +1117,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =12
+                                        =T.small
                                     Text: |-
                                         ="Required"
                                     Width: |-
@@ -1237,7 +1237,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="Plant"
                                                 Width: |-
@@ -1272,7 +1272,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="*"
                                                 Width: |-
@@ -1319,13 +1319,13 @@ Screens:
                                           OnChange: |-
                                               =Set(varMpFPlant, Self.Selected.Value)
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -1416,7 +1416,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="Functional location"
                                                 Width: |-
@@ -1451,7 +1451,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="*"
                                                 Width: |-
@@ -1659,13 +1659,13 @@ Screens:
                                                           )
                                                           )
                                                       RadiusBottomLeft: |-
-                                                          =10
+                                                          =R.input
                                                       RadiusBottomRight: |-
-                                                          =10
+                                                          =R.input
                                                       RadiusTopLeft: |-
-                                                          =10
+                                                          =R.input
                                                       RadiusTopRight: |-
-                                                          =10
+                                                          =R.input
                                                       SelectMultiple: |-
                                                           =false
                                                       Size: |-
@@ -1765,15 +1765,15 @@ Screens:
                                                               )
                                                           )
                                                       RadiusBottomLeft: |-
-                                                          =10
+                                                          =R.input
                                                       RadiusBottomRight: |-
-                                                          =10
+                                                          =R.input
                                                       RadiusTopLeft: |-
-                                                          =10
+                                                          =R.input
                                                       RadiusTopRight: |-
-                                                          =10
+                                                          =R.input
                                                       Size: |-
-                                                          =14
+                                                          =T.input
                                                       Text: |-
                                                           ="Search"
                                                       VerticalAlign: |-
@@ -1912,7 +1912,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="Description"
                                                 Width: |-
@@ -1947,7 +1947,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="*"
                                                 Width: |-
@@ -1994,13 +1994,13 @@ Screens:
                                           Placeholder: |-
                                               ="Short text, max 40 characters"
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -2091,7 +2091,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="Exists in SAP"
                                                 Width: |-
@@ -2126,7 +2126,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="*"
                                                 Width: |-
@@ -2226,7 +2226,7 @@ Screens:
                                                 RadiusTopRight: |-
                                                     =15
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="No"
                                                 VerticalAlign: |-
@@ -2277,7 +2277,7 @@ Screens:
                                                 RadiusTopRight: |-
                                                     =15
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="Yes"
                                                 VerticalAlign: |-
@@ -2310,7 +2310,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   =varMpFlMsg
                               Visible: |-
@@ -2343,7 +2343,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="This functional location and characteristic are already on another row in this request."
                               Visible: |-
@@ -2467,7 +2467,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="Measuring point no."
                                                 Width: |-
@@ -2502,7 +2502,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="*"
                                                 Width: |-
@@ -2549,13 +2549,13 @@ Screens:
                                           Placeholder: |-
                                               =""
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -2679,7 +2679,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="Measuring point type"
                                                 Width: |-
@@ -2714,7 +2714,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="*"
                                                 Width: |-
@@ -2764,13 +2764,13 @@ Screens:
                                                   Set(varMpFCharacteristicUnitDescription, "")
                                               )
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -2863,7 +2863,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="Characteristic"
                                                 Width: |-
@@ -2898,7 +2898,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="*"
                                                 Width: |-
@@ -2945,13 +2945,13 @@ Screens:
                                               Set(varMpFCharacteristicUnitDescription, Self.Selected.UnitDescription);
                                               Set(varMpFDecimalPlaces, Self.Selected.DefaultDecimalPlaces)
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -3017,7 +3017,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               ="Characteristic description"
                                           Width: |-
@@ -3050,7 +3050,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =14
+                                              =T.input
                                           Text: |-
                                               =Coalesce(varMpFCharacteristicDescription, "-")
                                           VerticalAlign: |-
@@ -3116,7 +3116,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               ="Unit"
                                           Width: |-
@@ -3149,7 +3149,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =14
+                                              =T.input
                                           Text: |-
                                               =Coalesce(varMpFCharacteristicUnit, "-")
                                           VerticalAlign: |-
@@ -3246,7 +3246,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               ="Unit description"
                                           Width: |-
@@ -3279,7 +3279,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =14
+                                              =T.input
                                           Text: |-
                                               =Coalesce(varMpFCharacteristicUnitDescription, "-")
                                           VerticalAlign: |-
@@ -3372,7 +3372,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="Decimal places"
                                                 Width: |-
@@ -3407,7 +3407,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="*"
                                                 Width: |-
@@ -3452,13 +3452,13 @@ Screens:
                                           Precision: |-
                                               =DecimalPrecision.'0'
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -3555,7 +3555,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               ="Target value"
                                           Width: |-
@@ -3598,13 +3598,13 @@ Screens:
                                           Placeholder: |-
                                               =""
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -3670,7 +3670,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               ="Lower limit"
                                           Width: |-
@@ -3713,13 +3713,13 @@ Screens:
                                           Placeholder: |-
                                               =""
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -3785,7 +3785,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               ="Upper limit"
                                           Width: |-
@@ -3828,13 +3828,13 @@ Screens:
                                           Placeholder: |-
                                               =""
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -3958,7 +3958,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="Expected annual usage"
                                                 Width: |-
@@ -3993,7 +3993,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="*"
                                                 Width: |-
@@ -4036,13 +4036,13 @@ Screens:
                                           Placeholder: |-
                                               =""
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -4166,7 +4166,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="In PRODOS"
                                                 Width: |-
@@ -4201,7 +4201,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="*"
                                                 Width: |-
@@ -4301,7 +4301,7 @@ Screens:
                                                 RadiusTopRight: |-
                                                     =15
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="No"
                                                 VerticalAlign: |-
@@ -4352,7 +4352,7 @@ Screens:
                                                 RadiusTopRight: |-
                                                     =15
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="Yes"
                                                 VerticalAlign: |-
@@ -4476,7 +4476,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="PRODOS tag"
                                                 Width: |-
@@ -4511,7 +4511,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="*"
                                                 Width: |-
@@ -4558,13 +4558,13 @@ Screens:
                                           Placeholder: |-
                                               =""
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -4688,7 +4688,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="Counter exists in PRODOS"
                                                 Width: |-
@@ -4723,7 +4723,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="*"
                                                 Width: |-
@@ -4823,7 +4823,7 @@ Screens:
                                                 RadiusTopRight: |-
                                                     =15
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="No"
                                                 VerticalAlign: |-
@@ -4874,7 +4874,7 @@ Screens:
                                                 RadiusTopRight: |-
                                                     =15
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="Yes"
                                                 VerticalAlign: |-
@@ -4998,7 +4998,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="Counter to be created in"
                                                 Width: |-
@@ -5033,7 +5033,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="*"
                                                 Width: |-
@@ -5080,13 +5080,13 @@ Screens:
                                           OnChange: |-
                                               =Set(varMpFCounterCreateIn, Self.Selected.Value)
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -5119,7 +5119,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="The counter must be created in PRODOS or SRO before the measuring point can be created in SAP. The PRODOS/SRO creator for the plant is asked to create it."
                               Visible: |-
@@ -5212,7 +5212,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               ="Remarks"
                                           Width: |-
@@ -5253,13 +5253,13 @@ Screens:
                                           Placeholder: |-
                                               =""
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           Type: |-
@@ -5325,7 +5325,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               ="Documentation"
                                           Width: |-
@@ -5393,13 +5393,13 @@ Screens:
                                                 Placeholder: |-
                                                     =""
                                                 RadiusBottomLeft: |-
-                                                    =10
+                                                    =R.input
                                                 RadiusBottomRight: |-
-                                                    =10
+                                                    =R.input
                                                 RadiusTopLeft: |-
-                                                    =10
+                                                    =R.input
                                                 RadiusTopRight: |-
-                                                    =10
+                                                    =R.input
                                                 Size: |-
                                                     =If(LayoutRank < 2, 16, 14)
                                                 ValidationState: |-
@@ -5473,15 +5473,15 @@ Screens:
                                                         )
                                                     )
                                                 RadiusBottomLeft: |-
-                                                    =10
+                                                    =R.input
                                                 RadiusBottomRight: |-
-                                                    =10
+                                                    =R.input
                                                 RadiusTopLeft: |-
-                                                    =10
+                                                    =R.input
                                                 RadiusTopRight: |-
-                                                    =10
+                                                    =R.input
                                                 Size: |-
-                                                    =14
+                                                    =T.input
                                                 Text: |-
                                                     ="Documents"
                                                 VerticalAlign: |-
@@ -5576,7 +5576,7 @@ Screens:
                                           RadiusTopRight: |-
                                               =8
                                           Size: |-
-                                              =12
+                                              =T.small
                                           Text: |-
                                               ="Plant: " & Coalesce(varMpFPlant, "-")
                                           VerticalAlign: |-
@@ -5619,7 +5619,7 @@ Screens:
                                           RadiusTopRight: |-
                                               =8
                                           Size: |-
-                                              =12
+                                              =T.small
                                           Text: |-
                                               =If(
                                                   IsBlank(varMpActiveRowId),
@@ -6128,15 +6128,15 @@ Screens:
                                               );
                                               Set(varMpSaving, false)
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
-                                              =14
+                                              =T.input
                                           Text: |-
                                               =If(IsBlank(varMpActiveRowId), "Add row", "Update row")
                                           Tooltip: |-
@@ -6201,15 +6201,15 @@ Screens:
                                               Set(varMpFlQuery, ""); Set(varMpFlLast, ""); Set(varMpFlMsg, ""); Clear(colMpFl); Reset(cmbMpFl);
                                               Set(varMpInfo, "")
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
-                                              =14
+                                              =T.input
                                           Text: |-
                                               ="New row"
                                           Tooltip: |-
@@ -6244,7 +6244,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   =varMpInfo
                               Visible: |-
@@ -6309,13 +6309,13 @@ Screens:
                         PaddingTop: |-
                             =18
                         RadiusBottomLeft: |-
-                            =14
+                            =R.card
                         RadiusBottomRight: |-
-                            =14
+                            =R.card
                         RadiusTopLeft: |-
-                            =14
+                            =R.card
                         RadiusTopRight: |-
-                            =14
+                            =R.card
                         Width: |-
                             =Parent.Width
                       Children:
@@ -6378,7 +6378,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =17
+                                        =T.cardTitle
                                     Text: |-
                                         ="Rows"
                                     Width: |-
@@ -6419,13 +6419,13 @@ Screens:
                                     Placeholder: |-
                                         ="Search FL, measuring point, characteristic, PRODOS tag"
                                     RadiusBottomLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusBottomRight: |-
-                                        =10
+                                        =R.input
                                     RadiusTopLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusTopRight: |-
-                                        =10
+                                        =R.input
                                     Size: |-
                                         =If(LayoutRank < 2, 16, 14)
                                     ValidationState: |-
@@ -6468,13 +6468,13 @@ Screens:
                                         Patch(colAppPrefs, First(colAppPrefs), { prefMpStatus: Self.Selected.Value });
                                         IfError(SaveData(colAppPrefs, "prefs"), Blank())
                                     RadiusBottomLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusBottomRight: |-
-                                        =10
+                                        =R.input
                                     RadiusTopLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusTopRight: |-
-                                        =10
+                                        =R.input
                                     Size: |-
                                         =If(LayoutRank < 2, 16, 14)
                                     ValidationState: |-
@@ -6525,13 +6525,13 @@ Screens:
                                         Patch(colAppPrefs, First(colAppPrefs), { prefMpPlant: Self.Selected.Value });
                                         IfError(SaveData(colAppPrefs, "prefs"), Blank())
                                     RadiusBottomLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusBottomRight: |-
-                                        =10
+                                        =R.input
                                     RadiusTopLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusTopRight: |-
-                                        =10
+                                        =R.input
                                     Size: |-
                                         =If(LayoutRank < 2, 16, 14)
                                     ValidationState: |-
@@ -6573,13 +6573,13 @@ Screens:
                               PaddingTop: |-
                                   =8
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Visible: |-
                                   =IfError(varMpFixOn, false) && CountRows(Filter(colMpRows, Status = "draft")) > 0 && !varMpViewOnly
                               Width: |-
@@ -6644,7 +6644,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               =With({ _c: CountRows(Filter(colMpRows, Status = "draft")) }, Text(_c) & If(_c = 1, " draft row", " draft rows")) & If(CountRows(Filter(colMpRows, Status = "draft")) = 1, " - complete it to submit it too", " - complete them to submit them too")
                                           Width: |-
@@ -6683,15 +6683,15 @@ Screens:
                                           OnSelect: |-
                                               =Set(varMpFixOn, false)
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
-                                              =14
+                                              =T.input
                                           Text: |-
                                               ="Dismiss"
                                           Tooltip: |-
@@ -6761,7 +6761,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               =ThisItem.ItemKey & If(IsBlank(ThisItem.Description), "", "  ·  " & ThisItem.Description)
                                           Width: |-
@@ -6826,15 +6826,15 @@ Screens:
                                                   Collect(colMpFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
                                               )
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
-                                              =12
+                                              =T.small
                                           Text: |-
                                               ="Open row"
                                           VerticalAlign: |-
@@ -6947,7 +6947,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="STATUS"
                                           Width: |-
@@ -6982,7 +6982,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="PLANT"
                                           Width: |-
@@ -7017,7 +7017,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="FUNCTIONAL LOCATION"
                                           Width: |-
@@ -7052,7 +7052,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="MEASURING POINT"
                                           Width: |-
@@ -7087,7 +7087,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="TYPE"
                                           Width: |-
@@ -7122,7 +7122,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="CHARACTERISTIC"
                                           Width: |-
@@ -7157,7 +7157,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="UNIT"
                                           Width: |-
@@ -7192,7 +7192,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="PRODOS TAG"
                                           Width: |-
@@ -7227,7 +7227,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="MORE"
                                           Width: |-
@@ -7262,7 +7262,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="ACTIONS"
                                           Width: |-
@@ -7405,7 +7405,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               =ThisItem.Plant
                                           Visible: |-
@@ -7444,7 +7444,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               =ThisItem.FunctionalLocation
                                           Visible: |-
@@ -7483,7 +7483,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               =If(!IsBlank(ThisItem.CreatedMeasuringPointNo), ThisItem.CreatedMeasuringPointNo, !IsBlank(ThisItem.MeasuringPoint), ThisItem.MeasuringPoint, "New")
                                           Visible: |-
@@ -7522,7 +7522,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               =ThisItem.MeasuringPointType
                                           Visible: |-
@@ -7561,7 +7561,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               =ThisItem.Characteristic
                                           Visible: |-
@@ -7600,7 +7600,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               =ThisItem.CharacteristicUnit
                                           Visible: |-
@@ -7639,7 +7639,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               =ThisItem.ProdosTag
                                           Visible: |-
@@ -7713,15 +7713,15 @@ Screens:
                                                   )
                                               )
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               ="Docs"
                                           Tooltip: |-
@@ -7791,15 +7791,15 @@ Screens:
                                               );
                                               Set(varMpInfo, "Copied to a new row - not saved yet. Documents were not copied.")
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               ="Copy"
                                           Tooltip: |-
@@ -7840,15 +7840,15 @@ Screens:
                                           OnSelect: |-
                                               =Set(varMpDetailsId, ThisItem.RowId)
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               ="Details"
                                           Tooltip: |-
@@ -7917,15 +7917,15 @@ Screens:
                                                   Collect(colMpFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
                                               )
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               ="Edit"
                                           Tooltip: |-
@@ -7971,15 +7971,15 @@ Screens:
                                               =Set(varMpDeleteId, ThisItem.RowId);
                                               Set(varMpConfirmDelete, true)
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               ="Delete row"
                                           Tooltip: |-
@@ -8022,7 +8022,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =14
+                                              =T.input
                                           Text: |-
                                               =ThisItem.Plant
                                           Visible: |-
@@ -8094,7 +8094,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =12
+                                              =T.small
                                           Text: |-
                                               =Text(ThisItem.FunctionalLocation) & "  ·  " & Text(If(!IsBlank(ThisItem.CreatedMeasuringPointNo), ThisItem.CreatedMeasuringPointNo, !IsBlank(ThisItem.MeasuringPoint), ThisItem.MeasuringPoint, "New")) & "  ·  " & Text(ThisItem.MeasuringPointType)
                                           Visible: |-
@@ -8133,15 +8133,15 @@ Screens:
                                           OnSelect: |-
                                               =Set(varMpDetailsId, ThisItem.RowId)
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               ="Details"
                                           Tooltip: |-
@@ -8210,15 +8210,15 @@ Screens:
                                                   Collect(colMpFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
                                               )
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               ="Edit"
                                           Tooltip: |-
@@ -8264,15 +8264,15 @@ Screens:
                                               =Set(varMpDeleteId, ThisItem.RowId);
                                               Set(varMpConfirmDelete, true)
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               ="Delete row"
                                           Tooltip: |-
@@ -8348,15 +8348,15 @@ Screens:
                                                   )
                                               )
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               ="Docs"
                                           Tooltip: |-
@@ -8426,15 +8426,15 @@ Screens:
                                               );
                                               Set(varMpInfo, "Copied to a new row - not saved yet. Documents were not copied.")
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               ="Copy"
                                           Tooltip: |-
@@ -8542,7 +8542,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =13
+                                        =T.body
                                     Text: |-
                                         =If(IsEmpty(colMpRows), "No rows yet - fill in the details and choose Add row.", "No rows match the search and filters.")
                                     VerticalAlign: |-
@@ -9013,15 +9013,15 @@ Screens:
                                         );
                                         Set(varMpSaving, false)
                                     RadiusBottomLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusBottomRight: |-
-                                        =10
+                                        =R.input
                                     RadiusTopLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusTopRight: |-
-                                        =10
+                                        =R.input
                                     Size: |-
-                                        =14
+                                        =T.input
                                     Text: |-
                                         ="Add row"
                                     VerticalAlign: |-
@@ -9056,7 +9056,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =If(
                                       IsBlank(varMpRequestNo),
@@ -9743,7 +9743,7 @@ Screens:
                   PaddingTop: |-
                       =0
                   Size: |-
-                      =16
+                      =T.inputMobile
                   Text: |-
                       ="Measuring Points"
                   Width: |-
@@ -9823,13 +9823,13 @@ Screens:
             PaddingTop: |-
                 =18
             RadiusBottomLeft: |-
-                =16
+                =R.modal
             RadiusBottomRight: |-
-                =16
+                =R.modal
             RadiusTopLeft: |-
-                =16
+                =R.modal
             RadiusTopRight: |-
-                =16
+                =R.modal
             Visible: |-
                 =!IsBlank(varMpDetailsId)
             Width: |-
@@ -9921,7 +9921,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =17
+                                  =T.cardTitle
                               Text: |-
                                   =Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).ItemKey, "Row " & Text(varMpDetailsId))
                               Wrap: |-
@@ -9952,7 +9952,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="" & Text(CountRows(Filter(Sort(Filter(
                                       colMpRows,
@@ -10024,15 +10024,15 @@ Screens:
                                  Plant = drpMpPlantFilter.Selected.Value)
                             ), RowId, SortOrder.Descending), RowId > varMpDetailsId)) + 1 - 1)).RowId)
                         RadiusBottomLeft: |-
-                            =10
+                            =R.input
                         RadiusBottomRight: |-
-                            =10
+                            =R.input
                         RadiusTopLeft: |-
-                            =10
+                            =R.input
                         RadiusTopRight: |-
-                            =10
+                            =R.input
                         Size: |-
-                            =14
+                            =T.input
                         Text: |-
                             ="Previous"
                         VerticalAlign: |-
@@ -10106,15 +10106,15 @@ Screens:
                                  Plant = drpMpPlantFilter.Selected.Value)
                             ), RowId, SortOrder.Descending), RowId > varMpDetailsId)) + 1 + 1)).RowId)
                         RadiusBottomLeft: |-
-                            =10
+                            =R.input
                         RadiusBottomRight: |-
-                            =10
+                            =R.input
                         RadiusTopLeft: |-
-                            =10
+                            =R.input
                         RadiusTopRight: |-
-                            =10
+                            =R.input
                         Size: |-
-                            =14
+                            =T.input
                         Text: |-
                             ="Next"
                         VerticalAlign: |-
@@ -10176,15 +10176,15 @@ Screens:
                             );
                             Set(varMpDetailsId, Blank())
                         RadiusBottomLeft: |-
-                            =10
+                            =R.input
                         RadiusBottomRight: |-
-                            =10
+                            =R.input
                         RadiusTopLeft: |-
-                            =10
+                            =R.input
                         RadiusTopRight: |-
-                            =10
+                            =R.input
                         Size: |-
-                            =14
+                            =T.input
                         Text: |-
                             ="Edit this row"
                         VerticalAlign: |-
@@ -10221,15 +10221,15 @@ Screens:
                         OnSelect: |-
                             =Set(varMpDetailsId, Blank())
                         RadiusBottomLeft: |-
-                            =10
+                            =R.input
                         RadiusBottomRight: |-
-                            =10
+                            =R.input
                         RadiusTopLeft: |-
-                            =10
+                            =R.input
                         RadiusTopRight: |-
-                            =10
+                            =R.input
                         Size: |-
-                            =14
+                            =T.input
                         Text: |-
                             ="Close"
                         VerticalAlign: |-
@@ -10318,7 +10318,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Description"
                               Width: |-
@@ -10355,7 +10355,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).Description, "-")
                               Width: |-
@@ -10417,7 +10417,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Plant"
                               Width: |-
@@ -10454,7 +10454,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).Plant, "-")
                               Width: |-
@@ -10516,7 +10516,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Status"
                               Width: |-
@@ -10553,7 +10553,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).Status, "-")
                               Width: |-
@@ -10615,7 +10615,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Documents"
                               Width: |-
@@ -10652,7 +10652,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =Text(Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).FileCount, 0))
                               Width: |-
@@ -10714,7 +10714,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Functional location"
                               Width: |-
@@ -10751,7 +10751,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).FunctionalLocation, "-")
                               Width: |-
@@ -10813,7 +10813,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Exists in SAP"
                               Width: |-
@@ -10850,7 +10850,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).ExistsInSap, "-")
                               Width: |-
@@ -10912,7 +10912,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Measuring point no."
                               Width: |-
@@ -10949,7 +10949,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).MeasuringPoint, "-")
                               Width: |-
@@ -11011,7 +11011,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Measuring point type"
                               Width: |-
@@ -11048,7 +11048,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).MeasuringPointType, "-")
                               Width: |-
@@ -11110,7 +11110,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Characteristic"
                               Width: |-
@@ -11147,7 +11147,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).Characteristic, "-")
                               Width: |-
@@ -11209,7 +11209,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Characteristic description"
                               Width: |-
@@ -11246,7 +11246,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).CharacteristicDescription, "-")
                               Width: |-
@@ -11308,7 +11308,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Unit"
                               Width: |-
@@ -11345,7 +11345,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).CharacteristicUnit, "-")
                               Width: |-
@@ -11407,7 +11407,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Unit description"
                               Width: |-
@@ -11444,7 +11444,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).CharacteristicUnitDescription, "-")
                               Width: |-
@@ -11506,7 +11506,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Decimal places"
                               Width: |-
@@ -11543,7 +11543,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =If(IsBlank(LookUp(colMpRows, RowId = varMpDetailsId).DecimalPlaces), "-", With({ _n: LookUp(colMpRows, RowId = varMpDetailsId).DecimalPlaces }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))))
                               Width: |-
@@ -11605,7 +11605,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Target value"
                               Width: |-
@@ -11642,7 +11642,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =If(IsBlank(LookUp(colMpRows, RowId = varMpDetailsId).TargetValue), "-", LookUp(colMpRows, RowId = varMpDetailsId).TargetValue)
                               Width: |-
@@ -11704,7 +11704,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Lower limit"
                               Width: |-
@@ -11741,7 +11741,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =If(IsBlank(LookUp(colMpRows, RowId = varMpDetailsId).LowerLimit), "-", LookUp(colMpRows, RowId = varMpDetailsId).LowerLimit)
                               Width: |-
@@ -11803,7 +11803,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Upper limit"
                               Width: |-
@@ -11840,7 +11840,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =If(IsBlank(LookUp(colMpRows, RowId = varMpDetailsId).UpperLimit), "-", LookUp(colMpRows, RowId = varMpDetailsId).UpperLimit)
                               Width: |-
@@ -11902,7 +11902,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Expected annual usage"
                               Width: |-
@@ -11939,7 +11939,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =If(IsBlank(LookUp(colMpRows, RowId = varMpDetailsId).ExpectedAnnualUsage), "-", LookUp(colMpRows, RowId = varMpDetailsId).ExpectedAnnualUsage)
                               Width: |-
@@ -12001,7 +12001,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="In PRODOS"
                               Width: |-
@@ -12038,7 +12038,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).InProdos, "-")
                               Width: |-
@@ -12100,7 +12100,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="PRODOS tag"
                               Width: |-
@@ -12137,7 +12137,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).ProdosTag, "-")
                               Width: |-
@@ -12199,7 +12199,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Counter exists in PRODOS"
                               Width: |-
@@ -12236,7 +12236,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).ProdosCounterExists, "-")
                               Width: |-
@@ -12298,7 +12298,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Counter to be created in"
                               Width: |-
@@ -12335,7 +12335,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).CounterCreateIn, "-")
                               Width: |-
@@ -12397,7 +12397,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Remarks"
                               Width: |-
@@ -12434,7 +12434,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).Remarks, "-")
                               Width: |-
@@ -12496,7 +12496,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Is a counter"
                               Width: |-
@@ -12533,7 +12533,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =If(LookUp(colMpRows, RowId = varMpDetailsId).IsCounter, "Yes", "No")
                               Width: |-
@@ -12595,7 +12595,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Approval required"
                               Width: |-
@@ -12632,7 +12632,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =If(LookUp(colMpRows, RowId = varMpDetailsId).ApprovalRequired, "Yes", "No")
                               Width: |-
@@ -12694,7 +12694,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Created measuring point no."
                               Width: |-
@@ -12731,7 +12731,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).CreatedMeasuringPointNo, "-")
                               Width: |-
@@ -12793,7 +12793,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Counter created on"
                               Width: |-
@@ -12830,7 +12830,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =If(IsBlank(LookUp(colMpRows, RowId = varMpDetailsId).CounterCreatedOn), "-", Text(LookUp(colMpRows, RowId = varMpDetailsId).CounterCreatedOn, "dd-mm-yyyy"))
                               Width: |-
@@ -12892,7 +12892,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Counter created by"
                               Width: |-
@@ -12929,7 +12929,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).CounterCreatedBy, "-")
                               Width: |-
@@ -12991,7 +12991,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="SAP result"
                               Width: |-
@@ -13028,7 +13028,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).SapResult, "-")
                               Width: |-
@@ -13090,7 +13090,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Request no."
                               Width: |-
@@ -13127,7 +13127,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =Coalesce(LookUp(colMpRows, RowId = varMpDetailsId).RequestNo, "-")
                               Width: |-
@@ -13189,7 +13189,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Set measuring point no."
                               Width: |-
@@ -13232,13 +13232,13 @@ Screens:
                               Placeholder: |-
                                   ="Number from SAP"
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
                                   =If(LayoutRank < 2, 16, 14)
                               ValidationState: |-
@@ -13383,15 +13383,15 @@ Screens:
                                       )
                                   )
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   ="Save no."
                               Tooltip: |-
@@ -13437,13 +13437,13 @@ Screens:
             PaddingTop: |-
                 =18
             RadiusBottomLeft: |-
-                =16
+                =R.modal
             RadiusBottomRight: |-
-                =16
+                =R.modal
             RadiusTopLeft: |-
-                =16
+                =R.modal
             RadiusTopRight: |-
-                =16
+                =R.modal
             Visible: |-
                 =!IsBlank(varMpDocsId)
             Width: |-
@@ -13512,7 +13512,7 @@ Screens:
                         PaddingTop: |-
                             =0
                         Size: |-
-                            =17
+                            =T.cardTitle
                         Text: |-
                             ="Documents · " & Coalesce(LookUp(colMpRows, RowId = varMpDocsId).ItemKey, "")
                         Width: |-
@@ -13552,15 +13552,15 @@ Screens:
                             Clear(colMpAttUp);
                             Set(varMpAttRemove, Blank())
                         RadiusBottomLeft: |-
-                            =10
+                            =R.input
                         RadiusBottomRight: |-
-                            =10
+                            =R.input
                         RadiusTopLeft: |-
-                            =10
+                            =R.input
                         RadiusTopRight: |-
-                            =10
+                            =R.input
                         Size: |-
-                            =14
+                            =T.input
                         Text: |-
                             ="Close"
                         VerticalAlign: |-
@@ -13651,7 +13651,7 @@ Screens:
                         PaddingTop: |-
                             =0
                         Size: |-
-                            =12
+                            =T.small
                         Text: |-
                             ="Up to 10 files at a time, 10 MB each."
                         Visible: |-
@@ -13756,15 +13756,15 @@ Screens:
                                       Set(varMpAttBusy, false)
                                   )
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   ="Refresh"
                               VerticalAlign: |-
@@ -13876,15 +13876,15 @@ Screens:
                                       )
                                   )
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   ="Upload"
                               VerticalAlign: |-
@@ -13928,7 +13928,7 @@ Screens:
                         PaddingTop: |-
                             =0
                         Size: |-
-                            =12
+                            =T.small
                         Text: |-
                             =If(
                                 IfError(Coalesce(varMpAttBusy, false), false),
@@ -13981,13 +13981,13 @@ Screens:
                         PaddingTop: |-
                             =10
                         RadiusBottomLeft: |-
-                            =10
+                            =R.input
                         RadiusBottomRight: |-
-                            =10
+                            =R.input
                         RadiusTopLeft: |-
-                            =10
+                            =R.input
                         RadiusTopRight: |-
-                            =10
+                            =R.input
                         Visible: |-
                             =!IsBlank(varMpAttRemove)
                         Width: |-
@@ -14019,7 +14019,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   ="Remove " & varMpAttRemove & " from SharePoint? This cannot be undone."
                               Wrap: |-
@@ -14083,15 +14083,15 @@ Screens:
                                     OnSelect: |-
                                         =Set(varMpAttRemove, Blank())
                                     RadiusBottomLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusBottomRight: |-
-                                        =10
+                                        =R.input
                                     RadiusTopLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusTopRight: |-
-                                        =10
+                                        =R.input
                                     Size: |-
-                                        =14
+                                        =T.input
                                     Text: |-
                                         ="Cancel"
                                     VerticalAlign: |-
@@ -14142,15 +14142,15 @@ Screens:
                                         Set(varMpAttRemove, Blank());
                                         Set(varMpAttBusy, false)
                                     RadiusBottomLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusBottomRight: |-
-                                        =10
+                                        =R.input
                                     RadiusTopLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusTopRight: |-
-                                        =10
+                                        =R.input
                                     Size: |-
-                                        =14
+                                        =T.input
                                     Text: |-
                                         ="Remove"
                                     VerticalAlign: |-
@@ -14230,7 +14230,7 @@ Screens:
                               RadiusTopRight: |-
                                   =6
                               Size: |-
-                                  =11
+                                  =T.micro
                               Text: |-
                                   =If(IsBlank(Find(".", ThisItem.FileName)), "FILE", Upper(Left(Last(Split(ThisItem.FileName, ".")).Value, 4)))
                               VerticalAlign: |-
@@ -14269,7 +14269,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   =ThisItem.FileName
                               Width: |-
@@ -14308,15 +14308,15 @@ Screens:
                               OnSelect: |-
                                   =Launch(ThisItem.FileUrl, { }, LaunchTarget.New)
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   ="Open"
                               VerticalAlign: |-
@@ -14357,15 +14357,15 @@ Screens:
                               OnSelect: |-
                                   =Set(varMpAttRemove, ThisItem.FileName)
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   ="Remove"
                               Tooltip: |-
@@ -14406,7 +14406,7 @@ Screens:
                         PaddingTop: |-
                             =0
                         Size: |-
-                            =13
+                            =T.body
                         Text: |-
                             =If(
                                 IsBlank(LookUp(colMpRows, RowId = varMpDocsId).ItemKey),
@@ -14443,7 +14443,7 @@ Screens:
                         PaddingTop: |-
                             =0
                         Size: |-
-                            =12
+                            =T.small
                         Text: |-
                             ="Read only. You can open the documents, but not add or remove them."
                         Visible: |-
@@ -15092,13 +15092,13 @@ Screens:
                   PaddingTop: |-
                       =18
                   RadiusBottomLeft: |-
-                      =16
+                      =R.modal
                   RadiusBottomRight: |-
-                      =16
+                      =R.modal
                   RadiusTopLeft: |-
-                      =16
+                      =R.modal
                   RadiusTopRight: |-
-                      =16
+                      =R.modal
                   Width: |-
                       =Min(560, App.Width - 40)
                 Children:
@@ -15161,7 +15161,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =17
+                                  =T.cardTitle
                               Text: |-
                                   ="Message SAP maintenance"
                               Width: |-
@@ -15196,15 +15196,15 @@ Screens:
                               OnSelect: |-
                                   =Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpMpFbSubjectFind); Reset(inpMpFbMessage)
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   ="Close"
                               VerticalAlign: |-
@@ -15237,7 +15237,7 @@ Screens:
                         PaddingTop: |-
                             =0
                         Size: |-
-                            =13
+                            =T.body
                         Text: |-
                             ="Questions, ideas or something not working? Your message goes to sapvedligehold@orsted.com."
                         Wrap: |-
@@ -15324,7 +15324,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =12
+                                        =T.small
                                     Text: |-
                                         ="Initials"
                                     Wrap: |-
@@ -15357,7 +15357,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =14
+                                        =T.input
                                     Text: |-
                                         =Upper(First(Split(gblFbMe, "@")).Value)
                                     VerticalAlign: |-
@@ -15419,7 +15419,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =12
+                                        =T.small
                                     Text: |-
                                         ="Email"
                                     Wrap: |-
@@ -15452,7 +15452,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =14
+                                        =T.input
                                     Text: |-
                                         =gblFbMe
                                     VerticalAlign: |-
@@ -15558,7 +15558,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =12
+                                              =T.small
                                           Text: |-
                                               ="Subject or request (optional)"
                                           Wrap: |-
@@ -15600,13 +15600,13 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -15774,7 +15774,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =12
+                                              =T.small
                                           Text: |-
                                               ="Message"
                                           Wrap: |-
@@ -15811,13 +15811,13 @@ Screens:
                                           Placeholder: |-
                                               ="Write your message"
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           Type: |-
@@ -15859,13 +15859,13 @@ Screens:
                               PaddingTop: |-
                                   =6
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Visible: |-
                                   =gblFbPick
                               Width: |-
@@ -15942,13 +15942,13 @@ Screens:
                                           Placeholder: |-
                                               ="Search number, title or type"
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -16029,7 +16029,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               =ThisItem.Label
                                           Visible: |-
@@ -16124,7 +16124,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               =With({t: ThisItem.Label, c: RoundDown((Self.Width) / 7, 0)}, If(Len(t) > c, Left(t, Max(1, c - 3)) & "...", t))
                                           Visible: |-
@@ -16258,15 +16258,15 @@ Screens:
                                   Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpMpFbSubjectFind); Reset(inpMpFbMessage);
                                   Set(gblToast, { Text: "The mail is ready in Outlook. Press Send there.", Kind: "Information", At: Now() }); true
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   ="Send via Outlook"
                               Tooltip: |-
@@ -16310,15 +16310,15 @@ Screens:
                                       Set(gblToast, { Text: "The message could not be sent.", Kind: "Error", At: Now() }); true);
                                   Set(gblFbBusy, false)
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   ="Send"
                               VerticalAlign: |-
@@ -16395,13 +16395,13 @@ Screens:
             PaddingTop: |-
                 =18
             RadiusBottomLeft: |-
-                =16
+                =R.modal
             RadiusBottomRight: |-
-                =16
+                =R.modal
             RadiusTopLeft: |-
-                =16
+                =R.modal
             RadiusTopRight: |-
-                =16
+                =R.modal
             Visible: |-
                 =IfError(varMpConfirmDelete, false)
             Width: |-
@@ -16439,7 +16439,7 @@ Screens:
                   PaddingTop: |-
                       =0
                   Size: |-
-                      =17
+                      =T.cardTitle
                   Text: |-
                       ="Delete row?"
                   Wrap: |-
@@ -16470,7 +16470,7 @@ Screens:
                   PaddingTop: |-
                       =0
                   Size: |-
-                      =13
+                      =T.body
                   Text: |-
                       ="Row " & LookUp(colMpRows, RowId = varMpDeleteId).ItemKey & " is deleted in SharePoint. The documents remain in the library."
                   Wrap: |-
@@ -16532,15 +16532,15 @@ Screens:
                         OnSelect: |-
                             =Set(varMpConfirmDelete, false)
                         RadiusBottomLeft: |-
-                            =10
+                            =R.input
                         RadiusBottomRight: |-
-                            =10
+                            =R.input
                         RadiusTopLeft: |-
-                            =10
+                            =R.input
                         RadiusTopRight: |-
-                            =10
+                            =R.input
                         Size: |-
-                            =14
+                            =T.input
                         Text: |-
                             ="Close"
                         VerticalAlign: |-
@@ -16723,15 +16723,15 @@ Screens:
                             Set(varMpDeleteId, Blank());
                             Set(varMpSaving, false)
                         RadiusBottomLeft: |-
-                            =10
+                            =R.input
                         RadiusBottomRight: |-
-                            =10
+                            =R.input
                         RadiusTopLeft: |-
-                            =10
+                            =R.input
                         RadiusTopRight: |-
-                            =10
+                            =R.input
                         Size: |-
-                            =14
+                            =T.input
                         Text: |-
                             ="Delete"
                         VerticalAlign: |-
@@ -16808,13 +16808,13 @@ Screens:
             PaddingTop: |-
                 =18
             RadiusBottomLeft: |-
-                =16
+                =R.modal
             RadiusBottomRight: |-
-                =16
+                =R.modal
             RadiusTopLeft: |-
-                =16
+                =R.modal
             RadiusTopRight: |-
-                =16
+                =R.modal
             Visible: |-
                 =IfError(varMpConfirmSubmit, false)
             Width: |-
@@ -16852,7 +16852,7 @@ Screens:
                   PaddingTop: |-
                       =0
                   Size: |-
-                      =17
+                      =T.cardTitle
                   Text: |-
                       ="Submit request?"
                   Wrap: |-
@@ -16883,7 +16883,7 @@ Screens:
                   PaddingTop: |-
                       =0
                   Size: |-
-                      =13
+                      =T.body
                   Text: |-
                       ="The valid rows are sent to the landing page as Submitted and locked."
                   Wrap: |-
@@ -16945,15 +16945,15 @@ Screens:
                         OnSelect: |-
                             =Set(varMpConfirmSubmit, false)
                         RadiusBottomLeft: |-
-                            =10
+                            =R.input
                         RadiusBottomRight: |-
-                            =10
+                            =R.input
                         RadiusTopLeft: |-
-                            =10
+                            =R.input
                         RadiusTopRight: |-
-                            =10
+                            =R.input
                         Size: |-
-                            =14
+                            =T.input
                         Text: |-
                             ="Close"
                         VerticalAlign: |-
@@ -17162,15 +17162,15 @@ Screens:
                             );
                             Set(varMpSaving, false)
                         RadiusBottomLeft: |-
-                            =10
+                            =R.input
                         RadiusBottomRight: |-
-                            =10
+                            =R.input
                         RadiusTopLeft: |-
-                            =10
+                            =R.input
                         RadiusTopRight: |-
-                            =10
+                            =R.input
                         Size: |-
-                            =14
+                            =T.input
                         Text: |-
                             ="Submit"
                         VerticalAlign: |-
@@ -17247,13 +17247,13 @@ Screens:
             PaddingTop: |-
                 =18
             RadiusBottomLeft: |-
-                =16
+                =R.modal
             RadiusBottomRight: |-
-                =16
+                =R.modal
             RadiusTopLeft: |-
-                =16
+                =R.modal
             RadiusTopRight: |-
-                =16
+                =R.modal
             Visible: |-
                 =IfError(varMpDeleteOpen, false)
             Width: |-
@@ -17291,7 +17291,7 @@ Screens:
                   PaddingTop: |-
                       =0
                   Size: |-
-                      =17
+                      =T.cardTitle
                   Text: |-
                       ="Delete request"
                   Wrap: |-
@@ -17322,7 +17322,7 @@ Screens:
                   PaddingTop: |-
                       =0
                   Size: |-
-                      =13
+                      =T.body
                   Text: |-
                       ="Delete this measuringpoint request? This cannot be undone."
                   Wrap: |-
@@ -17384,15 +17384,15 @@ Screens:
                         OnSelect: |-
                             =Set(varMpDeleteOpen, false)
                         RadiusBottomLeft: |-
-                            =10
+                            =R.input
                         RadiusBottomRight: |-
-                            =10
+                            =R.input
                         RadiusTopLeft: |-
-                            =10
+                            =R.input
                         RadiusTopRight: |-
-                            =10
+                            =R.input
                         Size: |-
-                            =14
+                            =T.input
                         Text: |-
                             ="Close"
                         VerticalAlign: |-
@@ -17468,15 +17468,15 @@ Screens:
                                 )
                             )
                         RadiusBottomLeft: |-
-                            =10
+                            =R.input
                         RadiusBottomRight: |-
-                            =10
+                            =R.input
                         RadiusTopLeft: |-
-                            =10
+                            =R.input
                         RadiusTopRight: |-
-                            =10
+                            =R.input
                         Size: |-
-                            =14
+                            =T.input
                         Text: |-
                             ="Delete"
                         VerticalAlign: |-
@@ -17825,15 +17825,15 @@ Screens:
                 Set(gblNavigating, false);
                 Set(gblNavTo, "")
             RadiusBottomLeft: |-
-                =10
+                =R.input
             RadiusBottomRight: |-
-                =10
+                =R.input
             RadiusTopLeft: |-
-                =10
+                =R.input
             RadiusTopRight: |-
-                =10
+                =R.input
             Size: |-
-                =14
+                =T.input
             Text: |-
                 ="Open"
             VerticalAlign: |-
@@ -17914,13 +17914,13 @@ Screens:
             PaddingTop: |-
                 =22
             RadiusBottomLeft: |-
-                =16
+                =R.modal
             RadiusBottomRight: |-
-                =16
+                =R.modal
             RadiusTopLeft: |-
-                =16
+                =R.modal
             RadiusTopRight: |-
-                =16
+                =R.modal
             Visible: |-
                 =IfError(varMpLoading, false) || IfError(varMpLoadFailed, false)
             Width: |-
@@ -17981,7 +17981,7 @@ Screens:
                   PaddingTop: |-
                       =0
                   Size: |-
-                      =17
+                      =T.cardTitle
                   Text: |-
                       =If(IfError(varMpLoadFailed, false), "Could not open the request", IsBlank(gblMpReqId), "Preparing a new request", "Opening request")
                   Wrap: |-
@@ -18014,7 +18014,7 @@ Screens:
                   PaddingTop: |-
                       =0
                   Size: |-
-                      =13
+                      =T.body
                   Text: |-
                       =If(IfError(varMpLoadFailed, false), "Stopped while " & Lower(Left(Coalesce(varMpLoadStep, ""), 1)) & Mid(Coalesce(varMpLoadStep, ""), 2), Coalesce(varMpLoadStep, ""))
                   Wrap: |-
@@ -18047,7 +18047,7 @@ Screens:
                   PaddingTop: |-
                       =0
                   Size: |-
-                      =12
+                      =T.small
                   Text: |-
                       =If(IfError(varMpLoadFailed, false), "Check your connection and try again.", IfError(varMpLoadSlow, false) && IfError(varMpLoading, false), "Taking longer than usual. " & Switch(Coalesce(varMpLoadStep, ""), "Finding the request", "The request list is responding slowly.", "Loading plan details", "Still waiting for the plan details.", "Loading items and operations", "Plans with many items and operations take longer.", "Loading materials and documents", "Plans with many materials and documents take longer.", "Loading standard task lists", "Standard task lists load once per session.", "Loading functional locations", "Requests with many rows take longer to load.", "Loading saved rows", "Many saved rows take longer to load.", "Still working on it."), "")
                   Wrap: |-
@@ -18114,15 +18114,15 @@ Screens:
                             Set(varMpOpened, "");
                             Navigate(ScreenMdHub, ScreenTransition.None)
                         RadiusBottomLeft: |-
-                            =10
+                            =R.input
                         RadiusBottomRight: |-
-                            =10
+                            =R.input
                         RadiusTopLeft: |-
-                            =10
+                            =R.input
                         RadiusTopRight: |-
-                            =10
+                            =R.input
                         Size: |-
-                            =14
+                            =T.input
                         Text: |-
                             ="Close"
                         VerticalAlign: |-
@@ -18157,15 +18157,15 @@ Screens:
                             Set(varMpLoading, true);
                             Select(btnMpOpen)
                         RadiusBottomLeft: |-
-                            =10
+                            =R.input
                         RadiusBottomRight: |-
-                            =10
+                            =R.input
                         RadiusTopLeft: |-
-                            =10
+                            =R.input
                         RadiusTopRight: |-
-                            =10
+                            =R.input
                         Size: |-
-                            =14
+                            =T.input
                         Text: |-
                             ="Retry"
                         VerticalAlign: |-
@@ -18232,13 +18232,13 @@ Screens:
             PaddingTop: |-
                 =8
             RadiusBottomLeft: |-
-                =10
+                =R.input
             RadiusBottomRight: |-
-                =10
+                =R.input
             RadiusTopLeft: |-
-                =10
+                =R.input
             RadiusTopRight: |-
-                =10
+                =R.input
             Visible: |-
                 =!IsBlank(IfError(gblToast.Text, ""))
             Width: |-
@@ -18303,7 +18303,7 @@ Screens:
                   PaddingTop: |-
                       =0
                   Size: |-
-                      =13
+                      =T.body
                   Text: |-
                       =IfError(gblToast.Text, "")
                   VerticalAlign: |-
@@ -18344,15 +18344,15 @@ Screens:
                   OnSelect: |-
                       =Set(gblToast, { Text: "", Kind: "", At: Now() })
                   RadiusBottomLeft: |-
-                      =10
+                      =R.input
                   RadiusBottomRight: |-
-                      =10
+                      =R.input
                   RadiusTopLeft: |-
-                      =10
+                      =R.input
                   RadiusTopRight: |-
-                      =10
+                      =R.input
                   Size: |-
-                      =14
+                      =T.input
                   Text: |-
                       =""
                   Tooltip: |-
