@@ -204,6 +204,15 @@ cellelinje, dokumentlisternes `doc_upload.ROW_H` og domænekortets
 knaplinjer). En position regnes af `Self.Width`/`Self.Height`, ikke af et
 fast tal.
 
+### Regel E3 — Tal er tekstfelter (regel 41)
+
+ModernNumberInput har spin-pile, der ikke kan skjules, og som ændrer tallet
+ved et uheld på en touch-skærm. Et tal er `build_helpers.number_field()`:
+et tekstfelt med tallet som tekst, læst med `num_value()` (heltal, tom ved
+et tomt felt eller ved tekst, der ikke er et tal). `unit="h"` sætter
+enheden efter feltet; i et galleri siger kolonneoverskriften den
+(containere i gallerier er forbudt, regel 26c).
+
 ### Regel F — Overløb skjules, med mindre det skal scrolle
 
 Hver container skriver `LayoutOverflowX/Y = Hide`, med mindre den er
