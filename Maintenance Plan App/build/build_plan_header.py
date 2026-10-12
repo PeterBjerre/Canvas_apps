@@ -157,6 +157,20 @@ PLAN_CONTROLS = ("drpVhpPlanType", "drpVhpStrategy", "drpVhpPlant", "drpVhpStatu
                  "dteVhpFirstCall")
 
 
+# Den foldede linje (UX-review M5) - laest af felterne.
+SHOW_VAR = "varVhpPlanShow"
+_SEP = '"  \u00b7  "'
+PLAN_SUMMARY = (
+    '"Plant " & Coalesce(drpVhpPlant.Selected.Value, "-") & ' + _SEP + ' & '
+    'Coalesce(drpVhpPlanType.Selected.Value, "-") & '
+    'If(drpVhpPlanType.Selected.Key = "Strategy", '
+    + _SEP + ' & Coalesce(drpVhpStrategy.Selected.Value, "-"), '
+    + _SEP + ' & "Every " & Text(varVhpPlan.Cycle) & " " & Coalesce(drpVhpUnit.Selected.Value, "")) & '
+    + _SEP + ' & "First call " & If(IsBlank(dteVhpFirstCall.SelectedDate), "-", '
+    f'Text(dteVhpFirstCall.SelectedDate, "{lay.DATE_FMT}"))'
+)
+
+
 def build_plan_header():
     # "* Required" staar lige efter titlen i venstre side. I hoejre side,
     # mellem titlen og trin-badget, blev den klippet (issue #54).
@@ -329,6 +343,7 @@ def build_plan_header():
             "            );\n"
             "            Set(varVhpPlanCommitted, true);\n"
             "            Set(varVhpPlanLocked, true);\n"
+            "            Set(varVhpPlanShow, false);\n"
             "            Set(varVhpPlanCreatedAt, Now());\n"
             # PLANT ER FAELLES KONTEKST (issue #54). Arbejdscentre, tasklister
             # og FL-soegningen laeser varVhpPlan.Plant. Skifter vaerket, viser
@@ -375,9 +390,28 @@ def build_plan_header():
         display_mode="If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)")
     btnSave.props["Width"] = str(PLAN_SAVE_W)
 
-    # ALTID FOLDET UD (issue #192): felterne, hjaelpepanelet og Reset staar
-    # der i alle tilstande. Efter Save er felterne laast (graa, DM_PLAN), og
-    # Edit laaser dem op igen.
     footer = section_footer("conVhpPlanFooter", footerInfo, [btnReset, btnSave], PLAN_CW)
 
-    return card("conVhpPlanCard", [header, helpPanel, grid, footer], gap=10, pad_y=12)
+    # FOLDET SAMMEN, NAAR PLANEN ER GEMT (UX-review M5, VH-plan-mockuppen).
+    # Issue #192 lod felterne staa foldet ud i alle tilstande. Mockuppen
+    # samler en gemt (laast) plan i een linje - "Plant ASV · Strategy plan
+    # · Z-MONTH · First call ..." - saa Items staar hoejere paa skaermen.
+    # Show folder felterne ud igen (stadig laast; Edit laaser op og folder
+    # ud). Linjen laeser felterne selv, saa den siger det, der staar i dem.
+    fold = f"varVhpPlanLocked && !IfError({SHOW_VAR}, false)"
+    summary = text_ctrl("txtVhpPlanSummary", PLAN_SUMMARY, size=lay.SIZE_BODY, height=20,
+                        wrap="false", accessible='"Plan header: " & Self.Text')
+    toggle_txt = f'If(IfError({SHOW_VAR}, false), "Hide", "Show")'
+    toggle = button("btnVhpPlanShow", toggle_txt, f"Set({SHOW_VAR}, !IfError({SHOW_VAR}, false))",
+                    width=fit_button_width('"Hide"'), height=32,
+                    accessible=f'{toggle_txt} & " the plan header fields"')
+    toggle.props["LayoutMinWidth"] = toggle.props["Width"]
+    summary_row = group("conVhpPlanSummary", [grow(summary), toggle], direction="Horizontal",
+                        gap=8, height=32, align_items="Center", visible="varVhpPlanLocked")
+    for part in (helpPanel, grid):
+        v = part.props.get("Visible")
+        part.props["Visible"] = f"!({fold})" if not v else f"!({fold}) && ({v})"
+        part.vis = part.props["Visible"]
+
+    return card("conVhpPlanCard", [header, summary_row, helpPanel, grid, footer], gap=10,
+                pad_y=12)

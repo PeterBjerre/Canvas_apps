@@ -2948,13 +2948,13 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =50 + If(IfError(varVhpShowHints, false), 10 + (24 + (Max(CountRows(Sort(
+                            =50 + If(varVhpPlanLocked, 10 + (32), 0) + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)) && (IfError(varVhpShowHints, false)), 10 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "plan" && Kind = "Panel"),
                                 Ord
                             )), 1) * 88) + If(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "plan" && Kind = "Panel"),
                                 Ord
-                            )) = 0, 4 + (32), 0)), 0) + 10 + (0 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 60, Max((62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))))) + 10 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 60, Max((62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))))) + If((drpVhpPlanType.Selected.Key = "Strategy"), 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)), 0)) + 10 + (If(LayoutRank < 2, If(true, (24) + 8, 0) + 36, Max(If(true, 24, 0), 36)))
+                            )) = 0, 4 + (32), 0)), 0) + If(!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)), 10 + (0 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 60, Max((62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))))) + 10 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) < 640, (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 60, Max((62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)), (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))))) + If((drpVhpPlanType.Selected.Key = "Strategy"), 10 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)), 0)), 0) + 10 + (If(LayoutRank < 2, If(true, (24) + 8, 0) + 36, Max(If(true, 24, 0), 36)))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -3220,6 +3220,117 @@ Screens:
                                         =72
                                     Wrap: |-
                                         =false
+                        - conVhpPlanSummary:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =32
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Center
+                              LayoutDirection: |-
+                                  =LayoutDirection.Horizontal
+                              LayoutGap: |-
+                                  =8
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              Visible: |-
+                                  =varVhpPlanLocked
+                              Width: |-
+                                  =Parent.Width
+                            Children:
+                              - txtVhpPlanSummary:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Plan header: " & Self.Text
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    FillPortions: |-
+                                        =0
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =20
+                                    LayoutMinWidth: |-
+                                        =0
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        ="Plant " & Coalesce(drpVhpPlant.Selected.Value, "-") & "  ·  " & Coalesce(drpVhpPlanType.Selected.Value, "-") & If(drpVhpPlanType.Selected.Key = "Strategy", "  ·  " & Coalesce(drpVhpStrategy.Selected.Value, "-"), "  ·  " & "Every " & Text(varVhpPlan.Cycle) & " " & Coalesce(drpVhpUnit.Selected.Value, "")) & "  ·  " & "First call " & If(IsBlank(dteVhpFirstCall.SelectedDate), "-", Text(dteVhpFirstCall.SelectedDate, "dd-mm-yyyy"))
+                                    Width: |-
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18)) - ((72) + 8) - 2)
+                                    Wrap: |-
+                                        =false
+                              - btnVhpPlanShow:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =If(IfError(varVhpPlanShow, false), "Hide", "Show") & " the plan header fields"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =32
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
+                                        =72
+                                    OnSelect: |-
+                                        =Set(varVhpPlanShow, !IfError(varVhpPlanShow, false))
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        =If(IfError(varVhpPlanShow, false), "Hide", "Show")
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =72
                         - conVhpPlanHelp:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -3269,7 +3380,7 @@ Screens:
                               RadiusTopRight: |-
                                   =10
                               Visible: |-
-                                  =IfError(varVhpShowHints, false)
+                                  =!(varVhpPlanLocked && !IfError(varVhpPlanShow, false)) && (IfError(varVhpShowHints, false))
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -3442,6 +3553,8 @@ Screens:
                                   =LayoutOverflow.Hide
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
+                              Visible: |-
+                                  =!(varVhpPlanLocked && !IfError(varVhpPlanShow, false))
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -5525,6 +5638,7 @@ Screens:
                                                           );
                                                           Set(varVhpPlanCommitted, true);
                                                           Set(varVhpPlanLocked, true);
+                                                          Set(varVhpPlanShow, false);
                                                           Set(varVhpPlanCreatedAt, Now());
                                                           If(
                                                               !IsBlank(varVhpPrevPlant) && Upper(varVhpPrevPlant) <> Upper(drpVhpPlant.Selected.Value),
