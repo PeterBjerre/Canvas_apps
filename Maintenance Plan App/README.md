@@ -109,6 +109,13 @@ Kør den efter enhver ændring i builderne.
 - "Step 3"-chippen og de overflødige Reset-knapper er væk; tomme tabeller
   har en tom-tilstand; et låst planhoved vises som View.
 
+### UX-review 2026-10 (etape 2, M5)
+
+- Når planhovedet er gemt (låst), står det som én linje: "Plant ASV ·
+  Strategy plan · Z-MONTH · First call dd-mm-yyyy" med *Show*. *Edit*
+  låser op og folder felterne ud; *Save* folder dem sammen igen. Det
+  ændrer issue #192, hvor felterne altid stod foldet ud.
+
 ## Strategiplaner
 
 Pakkerne hører til **arbejdsplanens operationer**, ikke til planen. I SAP ejer
