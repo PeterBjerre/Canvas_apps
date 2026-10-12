@@ -113,7 +113,8 @@ def _submit(t):
     """Submit-knappens OnSelect i den byggede skaerm."""
     i = t.index("btnDomSubmit:")
     j = t.index("OnSelect:", i)
-    return t[j:t.index("Text:", j)]
+    # Naeste YAML-egenskab (ikke "Text:" inde i en besked - tools/toast.py).
+    return t[j:t.index("Text: |-", j)]
 
 
 def test_submit_looks_up_the_system_manager_only_for_new_counters(on):
@@ -139,7 +140,7 @@ def test_submit_looks_up_the_prodos_creator_per_plant(on):
 def test_a_missing_manager_or_creator_stops_the_confirmation(on):
     fx = _submit(on)
     # Spaerret -> en besked; ellers aabner bekraeftelsen.
-    assert fx.index("Notify(If(") < fx.index("Set(varDomConfirmSubmit, true)")
+    assert fx.index("Set(gblToast, { Text: If(") < fx.index("Set(varDomConfirmSubmit, true)")
     for msg in ('"Cannot submit: " & First(Filter(colDomApprovers',
                 '"Cannot submit: no PRODOS/SRO creator is configured for plant " & '
                 'First(Filter(colDomCreators, IsBlank(Creator))).Plant & "."',

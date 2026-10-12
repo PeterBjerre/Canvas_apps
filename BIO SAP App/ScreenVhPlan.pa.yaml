@@ -1546,7 +1546,7 @@ Screens:
                                               );
                                               Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist);
                                               Reset(drpVhpPlanType); Reset(drpVhpStrategy); Reset(drpVhpPlant); Reset(drpVhpStatus); Reset(inpVhpPlanText); Reset(drpVhpSortField); Reset(numVhpCycle); Reset(drpVhpUnit); Reset(numVhpFirstCallDay); Reset(numVhpFirstCallMonth); Reset(numVhpFirstCallYear);
-                                              Notify("New request started.", NotificationType.Success))
+                                              Set(gblToast, { Text: "New request started.", Kind: "Success", At: Now() }); true)
                                           RadiusBottomLeft: |-
                                               =10
                                           RadiusBottomRight: |-
@@ -1687,7 +1687,7 @@ Screens:
                                               =If(
                                                   !varVhpPlanCommitted || CountRows(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))) = 0,
                                                   Set(varVhpSubmitting, false);
-                                                  Notify("Create the plan and at least one item first.", NotificationType.Warning),
+                                                  Set(gblToast, { Text: "Create the plan and at least one item first.", Kind: "Warning", At: Now() }); true,
                                               
                                               Set(varVhpSaving, true);
                                               Clear(colVhpSaveErrors);
@@ -2346,14 +2346,14 @@ Screens:
                                                                   DecidedOn: Now()
                                                               });
                                                               true,
-                                                              Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                              Set(gblToast, { Text: "The change was saved, but the admin log entry failed: " & FirstError.Message, Kind: "Warning", At: Now() });
                                                               false
                                                           )
                                                       )
                                                   )
                                               );
-                                                  If(varVhpSubmitting, Notify("Submitted as " & varVhpPlanKey & " - see it on the landing page.", NotificationType.Success), Notify("Saved as " & varVhpPlanKey & " - see it on the landing page.", NotificationType.Success)),
-                                                  If(varVhpSubmitting, Notify("Submit failed: " & First(colVhpSaveErrors).Where & ": " & First(colVhpSaveErrors).Msg, NotificationType.Error), Notify("Save failed: " & First(colVhpSaveErrors).Where & ": " & First(colVhpSaveErrors).Msg, NotificationType.Error))
+                                                  If(varVhpSubmitting, Set(gblToast, { Text: "Submitted as " & varVhpPlanKey & " - see it on the landing page.", Kind: "Success", At: Now() }); true, Set(gblToast, { Text: "Saved as " & varVhpPlanKey & " - see it on the landing page.", Kind: "Success", At: Now() }); true),
+                                                  If(varVhpSubmitting, Set(gblToast, { Text: "Submit failed: " & First(colVhpSaveErrors).Where & ": " & First(colVhpSaveErrors).Msg, Kind: "Error", At: Now() }); true, Set(gblToast, { Text: "Save failed: " & First(colVhpSaveErrors).Where & ": " & First(colVhpSaveErrors).Msg, Kind: "Error", At: Now() }); true)
                                               );
                                               Set(varVhpSubmitting, false);
                                               Set(varVhpSaving, false)
@@ -5524,7 +5524,7 @@ Screens:
                                                   varVhpPlanLocked,
                                                   Set(varVhpViewOnly, false);
                                                   Set(varVhpPlanLocked, false);
-                                                  Notify("Plan unlocked for editing.", NotificationType.Success),
+                                                  Set(gblToast, { Text: "Plan unlocked for editing.", Kind: "Success", At: Now() }); true,
                                               
                                                   Set(varVhpPlanValidated, true);
                                                   With(
@@ -5540,7 +5540,7 @@ Screens:
                                                           IsBlank(numVhpFirstCallMonth.Value) || numVhpFirstCallMonth.Value < 1 || numVhpFirstCallMonth.Value > 12 ||
                                                           IsBlank(numVhpFirstCallYear.Value) || numVhpFirstCallYear.Value < 2020 || numVhpFirstCallYear.Value > 2100 ||
                                                           Month(Date(numVhpFirstCallYear.Value, numVhpFirstCallMonth.Value, numVhpFirstCallDay.Value)) <> numVhpFirstCallMonth.Value,
-                                                          Notify("Plan contains issues. Fix plan fields before creating items.", NotificationType.Warning),
+                                                          Set(gblToast, { Text: "Plan contains issues. Fix plan fields before creating items.", Kind: "Warning", At: Now() }); true,
                                               
                                                           Set(varVhpPrevPlant, varVhpPlan.Plant);
                                                           Set(
@@ -5565,17 +5565,11 @@ Screens:
                                                           If(
                                                               !IsBlank(varVhpPrevPlant) && Upper(varVhpPrevPlant) <> Upper(drpVhpPlant.Selected.Value),
                                                               Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemTasklist); Reset(cmbVhpItemFL);
-                                                              Notify(
-                                                                  "Plant changed to " & drpVhpPlant.Selected.Value &
-                                                                      ". Check work centre, task list and functional location on existing items.",
-                                                                  NotificationType.Warning
-                                                              )
+                                                              Set(gblToast, { Text: "Plant changed to " & drpVhpPlant.Selected.Value &
+                                                                      ". Check work centre, task list and functional location on existing items.", Kind: "Warning", At: Now() }); true
                                                           );
-                                                          Notify(
-                                                              "Plan saved and locked: " & drpVhpPlant.Selected.Value & " " & Trim(inpVhpPlanText.Text) &
-                                                              If(isStrat, " (strategy " & drpVhpStrategy.Selected.Key & ").", "."),
-                                                              NotificationType.Success
-                                                          )
+                                                          Set(gblToast, { Text: "Plan saved and locked: " & drpVhpPlant.Selected.Value & " " & Trim(inpVhpPlanText.Text) &
+                                                              If(isStrat, " (strategy " & drpVhpStrategy.Selected.Key & ").", "."), Kind: "Success", At: Now() }); true
                                                       )
                                                   )
                                               )
@@ -5898,7 +5892,7 @@ Screens:
                                           OnSelect: |-
                                               =If(
                                                   !varVhpPlanCommitted,
-                                                  Notify("Save the plan before adding items.", NotificationType.Warning),
+                                                  Set(gblToast, { Text: "Save the plan before adding items.", Kind: "Warning", At: Now() }); true,
                                               
                                                   Set(varVhpNextItemId, varVhpNextItemId + 1);
                                                   Collect(
@@ -5927,7 +5921,7 @@ Screens:
                                                   )
                                               );
                                                   Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist);
-                                                  Notify("Item " & Text(CountRows(colVhpItems)) & " added.", NotificationType.Success)
+                                                  Set(gblToast, { Text: "Item " & Text(CountRows(colVhpItems)) & " added.", Kind: "Success", At: Now() }); true
                                               )
                                           RadiusBottomLeft: |-
                                               =10
@@ -5977,7 +5971,7 @@ Screens:
                                           OnSelect: |-
                                               =If(
                                                   IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId)) = 0,
-                                                  Notify("Select an item to copy first.", NotificationType.Warning),
+                                                  Set(gblToast, { Text: "Select an item to copy first.", Kind: "Warning", At: Now() }); true,
                                               
                                                   With(
                                                       { src: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
@@ -6059,7 +6053,7 @@ Screens:
                                                   )
                                               );
                                                       Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist);
-                                                      Notify("Item copied. Functional Location cleared on the copied item.", NotificationType.Success)
+                                                      Set(gblToast, { Text: "Item copied. Functional Location cleared on the copied item.", Kind: "Success", At: Now() }); true
                                                   )
                                               )
                                           RadiusBottomLeft: |-
@@ -6462,7 +6456,7 @@ Screens:
                                                       Set(varVhpActiveItemId, If(CountRows(colVhpItems) > 0, First(colVhpItems).ItemId, Blank()));
                                                       Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist)
                                                   );
-                                                  Notify("Item " & Text(no) & " deleted.", NotificationType.Success)
+                                                  Set(gblToast, { Text: "Item " & Text(no) & " deleted.", Kind: "Success", At: Now() }); true
                                               )
                                           RadiusBottomLeft: |-
                                               =10
@@ -8684,10 +8678,7 @@ Screens:
                                                                           { q: Upper(Trim(varVhpFlQuery)) },
                                                                           If(
                                                                               Len(q) < 8,
-                                                                              Notify(
-                                                                                  "Type at least 8 characters before searching.",
-                                                                                  NotificationType.Warning
-                                                                              ),
+                                                                              Set(gblToast, { Text: "Type at least 8 characters before searching.", Kind: "Warning", At: Now() }); true,
                                                                       
                                                                               Set(varVhpFlBusy, true);
                                                                               Set(varVhpFlLast, q);
@@ -8716,7 +8707,7 @@ Screens:
                                                                                   );
                                                                                   If(
                                                                                       CountRows(colVhpFl) = 0,
-                                                                                      Notify("No functional locations found for " & Upper(q) & ".", NotificationType.Warning),
+                                                                                      Set(gblToast, { Text: "No functional locations found for " & Upper(q) & ".", Kind: "Warning", At: Now() }); true,
                                                                                           Set(varVhpFlPick, First(colVhpFl).Code);
                                                                                           Reset(cmbVhpItemFL)
                                                                                   );
@@ -8738,7 +8729,7 @@ Screens:
                                                                                   ),
                                                                                   Clear(colVhpFl);
                                                                                   Set(varVhpFlMsg, "Search failed: " & FirstError.Message);
-                                                                                  Notify("The functional locations search failed. Try again.", NotificationType.Error)
+                                                                                  Set(gblToast, { Text: "The functional locations search failed. Try again.", Kind: "Error", At: Now() }); true
                                                                               );
                                                                               Set(varVhpFlBusy, false)
                                                                           )
@@ -8831,10 +8822,7 @@ Screens:
                                                                                 { q: Upper(Trim(Coalesce(cmbVhpItemFL.SearchText, varVhpFlQuery))) },
                                                                                 If(
                                                                                     Len(q) < 8,
-                                                                                    Notify(
-                                                                                        "Type at least 8 characters before searching.",
-                                                                                        NotificationType.Warning
-                                                                                    ),
+                                                                                    Set(gblToast, { Text: "Type at least 8 characters before searching.", Kind: "Warning", At: Now() }); true,
                                                                             
                                                                                     Set(varVhpFlBusy, true);
                                                                                     Set(varVhpFlLast, q);
@@ -8863,7 +8851,7 @@ Screens:
                                                                                         );
                                                                                         If(
                                                                                             CountRows(colVhpFl) = 0,
-                                                                                            Notify("No functional locations found for " & Upper(q) & ".", NotificationType.Warning),
+                                                                                            Set(gblToast, { Text: "No functional locations found for " & Upper(q) & ".", Kind: "Warning", At: Now() }); true,
                                                                                                 Set(varVhpFlPick, First(colVhpFl).Code);
                                                                                                 Reset(cmbVhpItemFL)
                                                                                         );
@@ -8885,7 +8873,7 @@ Screens:
                                                                                         ),
                                                                                         Clear(colVhpFl);
                                                                                         Set(varVhpFlMsg, "Search failed: " & FirstError.Message);
-                                                                                        Notify("The functional locations search failed. Try again.", NotificationType.Error)
+                                                                                        Set(gblToast, { Text: "The functional locations search failed. Try again.", Kind: "Error", At: Now() }); true
                                                                                     );
                                                                                     Set(varVhpFlBusy, false)
                                                                                 )
@@ -9636,7 +9624,7 @@ Screens:
                                                 OnSelect: |-
                                                     =If(
                                                         IsBlank(varVhpActiveItemId),
-                                                        Notify("Select or add an item first.", NotificationType.Warning),
+                                                        Set(gblToast, { Text: "Select or add an item first.", Kind: "Warning", At: Now() }); true,
                                                     
                                                         Set(varVhpItemValidated, true);
                                                         If(
@@ -9646,7 +9634,7 @@ Screens:
                                                             Len(Trim(inpVhpItemInitials.Text)) <> 5 ||
                                                             IsBlank(cmbVhpItemFL.Selected.Code),
                                                             UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { Status: "invalid" });
-                                                            Notify("Item contains issues. Fix required fields (marked with *).", NotificationType.Warning),
+                                                            Set(gblToast, { Text: "Item contains issues. Fix required fields (marked with *).", Kind: "Warning", At: Now() }); true,
                                                     
                                                             With(
                                                                 { code: cmbVhpItemFL.Selected.Code },
@@ -9669,12 +9657,9 @@ Screens:
                                                             );
                                                             If(
                                                                 CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId)) = 0,
-                                                                Notify(
-                                                                    "Item " & Text(varVhpActiveItemId) & " is not in the list - nothing was saved.",
-                                                                    NotificationType.Error
-                                                                ),
+                                                                Set(gblToast, { Text: "Item " & Text(varVhpActiveItemId) & " is not in the list - nothing was saved.", Kind: "Error", At: Now() }); true,
                                                                 With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist)))));
-                                                                Notify("Item saved: " & Trim(inpVhpItemShortText.Text) & ".", NotificationType.Success)
+                                                                Set(gblToast, { Text: "Item saved: " & Trim(inpVhpItemShortText.Text) & ".", Kind: "Success", At: Now() }); true
                                                             )
                                                         )
                                                     )
@@ -10436,7 +10421,7 @@ Screens:
                                                             colVhpItems, ItemId = varVhpActiveItemId,
                                                             { TasklistKey: drpVhpItemTasklist.Selected.Key, TasklistName: drpVhpItemTasklist.Selected.Name }
                                                         );
-                                                        Notify("Tasklist " & drpVhpItemTasklist.Selected.Key & " selected for this item.", NotificationType.Success)
+                                                        Set(gblToast, { Text: "Tasklist " & drpVhpItemTasklist.Selected.Key & " selected for this item.", Kind: "Success", At: Now() }); true
                                                     )
                                                 RadiusBottomLeft: |-
                                                     =10
@@ -10486,10 +10471,10 @@ Screens:
                                           OnSelect: |-
                                               =If(
                                                   IsBlank(varVhpActiveItemId),
-                                                  Notify("Select an item first.", NotificationType.Warning),
+                                                  Set(gblToast, { Text: "Select an item first.", Kind: "Warning", At: Now() }); true,
                                                   If(
                                                       IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey),
-                                                      Notify("Select a tasklist first.", NotificationType.Warning),
+                                                      Set(gblToast, { Text: "Select a tasklist first.", Kind: "Warning", At: Now() }); true,
                                                       Clear(colVhpPickerSelected);
                                                       Reset(inpVhpPickerSearch);
                                                       Set(varVhpTasklistPickerOpen, true)
@@ -10549,7 +10534,7 @@ Screens:
                                           OnSelect: |-
                                               =If(
                                                   IsBlank(varVhpActiveItemId),
-                                                  Notify("Select an item first.", NotificationType.Warning),
+                                                  Set(gblToast, { Text: "Select an item first.", Kind: "Warning", At: Now() }); true,
                                                   Collect(
                                                       colVhpOperations,
                                                       {
@@ -10572,7 +10557,7 @@ Screens:
                                                           Selected: false
                                                       }
                                                   );
-                                                  Notify("Operation line added.", NotificationType.Success)
+                                                  Set(gblToast, { Text: "Operation line added.", Kind: "Success", At: Now() }); true
                                               )
                                           RadiusBottomLeft: |-
                                               =10
@@ -10634,10 +10619,10 @@ Screens:
                                                   Self.Selected.Value,
                                                   "Add lines from tasklist", If(
                                                   IsBlank(varVhpActiveItemId),
-                                                  Notify("Select an item first.", NotificationType.Warning),
+                                                  Set(gblToast, { Text: "Select an item first.", Kind: "Warning", At: Now() }); true,
                                                   If(
                                                       IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey),
-                                                      Notify("Select a tasklist first.", NotificationType.Warning),
+                                                      Set(gblToast, { Text: "Select a tasklist first.", Kind: "Warning", At: Now() }); true,
                                                       Clear(colVhpPickerSelected);
                                                       Reset(inpVhpPickerSearch);
                                                       Set(varVhpTasklistPickerOpen, true)
@@ -10645,7 +10630,7 @@ Screens:
                                               ),
                                                   "Add manual operation", If(
                                                   IsBlank(varVhpActiveItemId),
-                                                  Notify("Select an item first.", NotificationType.Warning),
+                                                  Set(gblToast, { Text: "Select an item first.", Kind: "Warning", At: Now() }); true,
                                                   Collect(
                                                       colVhpOperations,
                                                       {
@@ -10668,7 +10653,7 @@ Screens:
                                                           Selected: false
                                                       }
                                                   );
-                                                  Notify("Operation line added.", NotificationType.Success)
+                                                  Set(gblToast, { Text: "Operation line added.", Kind: "Success", At: Now() }); true
                                               )
                                               );
                                               Reset(Self)
@@ -11631,7 +11616,7 @@ Screens:
                                                 OnSelect: |-
                                                     =RemoveIf(colVhpMaterials, ItemId = ThisItem.ItemId && OperationNo = ThisItem.OperationNo);
                                                     RemoveIf(colVhpOperations, ItemId = ThisItem.ItemId && OperationNo = ThisItem.OperationNo);
-                                                    Notify("Operation line removed.", NotificationType.Success)
+                                                    Set(gblToast, { Text: "Operation line removed.", Kind: "Success", At: Now() }); true
                                                 RadiusBottomLeft: |-
                                                     =10
                                                 RadiusBottomRight: |-
@@ -12310,7 +12295,7 @@ Screens:
                                           OnSelect: |-
                                               =If(
                                                   IsBlank(varVhpActiveItemId),
-                                                  Notify("Select an item first.", NotificationType.Warning),
+                                                  Set(gblToast, { Text: "Select an item first.", Kind: "Warning", At: Now() }); true,
                                                   With(
                                                       { src: Filter(colVhpOperations, ItemId = varVhpActiveItemId) },
                                                       Patch(
@@ -12337,7 +12322,7 @@ Screens:
                                                           )
                                                       )
                                                   );
-                                                  Notify("Packages filled in by hierarchy.", NotificationType.Success)
+                                                  Set(gblToast, { Text: "Packages filled in by hierarchy.", Kind: "Success", At: Now() }); true
                                               )
                                           RadiusBottomLeft: |-
                                               =10
@@ -12387,12 +12372,12 @@ Screens:
                                           OnSelect: |-
                                               =If(
                                                   IsBlank(varVhpActiveItemId),
-                                                  Notify("Select an item first.", NotificationType.Warning),
+                                                  Set(gblToast, { Text: "Select an item first.", Kind: "Warning", At: Now() }); true,
                                                   UpdateIf(
                                                       colVhpOperations, ItemId = varVhpActiveItemId,
                                                       { PackagesKey: ";" & Concat(Sort(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy), PackageNo), Text(PackageNo) & ";") }
                                                   );
-                                                  Notify("All packages ticked on every operation.", NotificationType.Success)
+                                                  Set(gblToast, { Text: "All packages ticked on every operation.", Kind: "Success", At: Now() }); true
                                               )
                                           RadiusBottomLeft: |-
                                               =10
@@ -12442,9 +12427,9 @@ Screens:
                                           OnSelect: |-
                                               =If(
                                                   IsBlank(varVhpActiveItemId),
-                                                  Notify("Select an item first.", NotificationType.Warning),
+                                                  Set(gblToast, { Text: "Select an item first.", Kind: "Warning", At: Now() }); true,
                                                   UpdateIf(colVhpOperations, ItemId = varVhpActiveItemId, { PackagesKey: ";" });
-                                                  Notify("Package selections cleared.", NotificationType.Success)
+                                                  Set(gblToast, { Text: "Package selections cleared.", Kind: "Success", At: Now() }); true
                                               )
                                           RadiusBottomLeft: |-
                                               =10
@@ -13165,7 +13150,7 @@ Screens:
                                               =ButtonLayout.TextOnly
                                           OnSelect: |-
                                               =Reset(drpVhpItemTasklist);
-                                              Notify("Tasklist selection reset.", NotificationType.Information)
+                                              Set(gblToast, { Text: "Tasklist selection reset.", Kind: "Information", At: Now() }); true
                                           RadiusBottomLeft: |-
                                               =10
                                           RadiusBottomRight: |-
@@ -13210,9 +13195,9 @@ Screens:
                                           OnSelect: |-
                                               =If(
                                                   IsBlank(varVhpActiveItemId),
-                                                  Notify("Select an item first.", NotificationType.Warning),
+                                                  Set(gblToast, { Text: "Select an item first.", Kind: "Warning", At: Now() }); true,
                                                   IsBlank(drpVhpItemTasklist.Selected.Key),
-                                                  Notify("Select a tasklist first.", NotificationType.Warning),
+                                                  Set(gblToast, { Text: "Select a tasklist first.", Kind: "Warning", At: Now() }); true,
                                                   With(
                                                       { issue: If(
                                                           IsBlank(drpVhpItemTasklist.Selected.Key), "Choose a task list.",
@@ -13224,7 +13209,7 @@ Screens:
                                                       ) },
                                                       If(
                                                           !IsBlank(issue),
-                                                          Notify(issue, NotificationType.Warning),
+                                                          Set(gblToast, { Text: issue, Kind: "Warning", At: Now() }); true,
                                                           UpdateIf(
                                                               colVhpItems, ItemId = varVhpActiveItemId,
                                                               { TasklistKey: drpVhpItemTasklist.Selected.Key, TasklistName: drpVhpItemTasklist.Selected.Name }
@@ -15319,7 +15304,7 @@ Screens:
                                     Selected: false
                                 }
                             );
-                            Notify("Material line added.", NotificationType.Success)
+                            Set(gblToast, { Text: "Material line added.", Kind: "Success", At: Now() }); true
                         RadiusBottomLeft: |-
                             =10
                         RadiusBottomRight: |-
@@ -15365,7 +15350,7 @@ Screens:
                             =ButtonLayout.TextOnly
                         OnSelect: |-
                             =RemoveIf(colVhpMaterials, ItemId = varVhpActiveItemId, OperationNo = varVhpMatOpNo, Selected = true);
-                            Notify("Removed selected material line(s).", NotificationType.Success)
+                            Set(gblToast, { Text: "Removed selected material line(s).", Kind: "Success", At: Now() }); true
                         RadiusBottomLeft: |-
                             =10
                         RadiusBottomRight: |-
@@ -16098,7 +16083,7 @@ Screens:
                               OnSelect: |-
                                   =If(
                                       IsBlank(LookUp(colVhpSavedItems, LocalId = varVhpActiveItemId).ItemKey),
-                                      Notify("Save the plan before attaching documents - the folder is named after the item.", NotificationType.Warning),
+                                      Set(gblToast, { Text: "Save the plan before attaching documents - the folder is named after the item.", Kind: "Warning", At: Now() }); true,
                                   
                                       Set(varVhpAttBusy, true);
                                       ClearCollect(
@@ -16192,10 +16177,10 @@ Screens:
                               OnSelect: |-
                                   =If(
                                       IsBlank(LookUp(colVhpSavedItems, LocalId = varVhpActiveItemId).ItemKey),
-                                      Notify("Save the plan before attaching documents - the folder is named after the item.", NotificationType.Warning),
+                                      Set(gblToast, { Text: "Save the plan before attaching documents - the folder is named after the item.", Kind: "Warning", At: Now() }); true,
                                   
                                       CountRows(attVhpAttPicker.Attachments) = 0,
-                                      Notify("Choose one or more files first.", NotificationType.Warning),
+                                      Set(gblToast, { Text: "Choose one or more files first.", Kind: "Warning", At: Now() }); true,
                                   
                                       Set(varVhpAttBusy, true);
                                       If(CountRows(Filter(colVhpAttUp, !Ok)) = 0, Clear(colVhpAttUp));
@@ -16272,13 +16257,10 @@ Screens:
                                   
                                       If(
                                           CountRows(Filter(colVhpAttUp, !Ok)) > 0,
-                                          Notify(
-                                              "Not uploaded: " &
+                                          Set(gblToast, { Text: "Not uploaded: " &
                                               Concat(Filter(colVhpAttUp, !Ok), Name, ", ") &
-                                              ". Select Upload again to retry.",
-                                              NotificationType.Error
-                                          ),
-                                          Notify("Document(s) uploaded.", NotificationType.Success)
+                                              ". Select Upload again to retry.", Kind: "Error", At: Now() }); true,
+                                          Set(gblToast, { Text: "Document(s) uploaded.", Kind: "Success", At: Now() }); true
                                       )
                                   );
                                   UpdateIf(
@@ -16548,8 +16530,8 @@ Screens:
                                                 IsBlank(d.Identifier) ||
                                                     IfError('BioSap-DeleteSubmittedAttachments'.Run(d.Identifier); true, false),
                                                 RemoveIf(colVhpAttachments, ItemId = varVhpActiveItemId && FileName = d.FileName);
-                                                Notify(d.FileName & " removed.", NotificationType.Success),
-                                                Notify(d.FileName & " could not be removed. Try again.", NotificationType.Error)
+                                                Set(gblToast, { Text: d.FileName & " removed.", Kind: "Success", At: Now() }); true,
+                                                Set(gblToast, { Text: d.FileName & " could not be removed. Try again.", Kind: "Error", At: Now() }); true
                                             )
                                         );
                                         Set(varVhpAttRemove, Blank());
@@ -18016,7 +17998,7 @@ Screens:
                         OnSelect: |-
                             =If(
                                 CountRows(colVhpPickerSelected) = 0,
-                                Notify("Select one or more lines first.", NotificationType.Warning),
+                                Set(gblToast, { Text: "Select one or more lines first.", Kind: "Warning", At: Now() }); true,
                                 With(
                                     { tl: LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey) },
                                     Collect(
@@ -18042,7 +18024,7 @@ Screens:
                                         )
                                     )
                                 );
-                                Notify("Added " & Text(CountRows(colVhpPickerSelected)) & " operation line(s) from tasklist.", NotificationType.Success);
+                                Set(gblToast, { Text: "Added " & Text(CountRows(colVhpPickerSelected)) & " operation line(s) from tasklist.", Kind: "Success", At: Now() });
                                 Clear(colVhpPickerSelected);
                                 Set(varVhpTasklistPickerOpen, false)
                             )
@@ -19835,7 +19817,7 @@ Screens:
                             );
                             Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist);
                             Reset(drpVhpPlanType); Reset(drpVhpStrategy); Reset(drpVhpPlant); Reset(drpVhpStatus); Reset(inpVhpPlanText); Reset(drpVhpSortField); Reset(numVhpCycle); Reset(drpVhpUnit); Reset(numVhpFirstCallDay); Reset(numVhpFirstCallMonth); Reset(numVhpFirstCallYear);
-                            Notify("New request started.", NotificationType.Success)
+                            Set(gblToast, { Text: "New request started.", Kind: "Success", At: Now() }); true
                         RadiusBottomLeft: |-
                             =10
                         RadiusBottomRight: |-
@@ -20102,40 +20084,40 @@ Screens:
                             Set(varVhpDelIdx, LookUp(MD_RequestIndex, RequestGuid = varVhpRequestGuid));
                             If(
                                 IsBlank(varVhpDelIdx),
-                                Notify("This request no longer exists.", NotificationType.Warning),
+                                Set(gblToast, { Text: "This request no longer exists.", Kind: "Warning", At: Now() }); true,
                                 !((Lower(Coalesce(varVhpDelIdx.RequesterEmail, "")) = varVhpMe && (varVhpDelIdx.Status.Value = "Kladde")) || (IsAdmin && (varVhpDelIdx.Status.Value = "Kladde" || varVhpDelIdx.Status.Value = "AfventerInfo"))),
-                                If(IsAdmin, Notify("Only drafts and requests awaiting info can be deleted.", NotificationType.Warning), Notify("Only drafts can be deleted.", NotificationType.Warning)),
+                                If(IsAdmin, Set(gblToast, { Text: "Only drafts and requests awaiting info can be deleted.", Kind: "Warning", At: Now() }); true, Set(gblToast, { Text: "Only drafts can be deleted.", Kind: "Warning", At: Now() }); true),
                                 Set(varVhpDelGuid, varVhpDelIdx.RequestGuid);
                                 Set(varVhpDelSp, varVhpDelIdx.SourceItemId);
                                 Set(varVhpDelKey, varVhpDelIdx.RequestNo);
                                 If(!IsBlank(varVhpDelKey), Remove(MD_TasklistMaterial, Filter(MD_TasklistMaterial, PlanKey = varVhpDelKey)));
                                 If(
                                     !IsBlank(varVhpDelKey) && !IsEmpty(Errors(MD_TasklistMaterial)),
-                                    Notify("The request could not be deleted: " & First(Errors(MD_TasklistMaterial)).Message, NotificationType.Error),
+                                    Set(gblToast, { Text: "The request could not be deleted: " & First(Errors(MD_TasklistMaterial)).Message, Kind: "Error", At: Now() }); true,
                                     If(!IsBlank(varVhpDelKey), Remove(MD_TasklistAttachment, Filter(MD_TasklistAttachment, PlanKey = varVhpDelKey)));
                                     If(
                                         !IsBlank(varVhpDelKey) && !IsEmpty(Errors(MD_TasklistAttachment)),
-                                        Notify("The request could not be deleted: " & First(Errors(MD_TasklistAttachment)).Message, NotificationType.Error),
+                                        Set(gblToast, { Text: "The request could not be deleted: " & First(Errors(MD_TasklistAttachment)).Message, Kind: "Error", At: Now() }); true,
                                         If(!IsBlank(varVhpDelKey), Remove(TaskListMain, Filter(TaskListMain, MaintenancePlanID.Value = varVhpDelKey)));
                                         If(
                                             !IsBlank(varVhpDelKey) && !IsEmpty(Errors(TaskListMain)),
-                                            Notify("The request could not be deleted: " & First(Errors(TaskListMain)).Message, NotificationType.Error),
+                                            Set(gblToast, { Text: "The request could not be deleted: " & First(Errors(TaskListMain)).Message, Kind: "Error", At: Now() }); true,
                                             If(!IsBlank(varVhpDelKey), Remove(MaintenanceItems, Filter(MaintenanceItems, MaintenancePlanNo.Value = varVhpDelKey)));
                                             If(
                                                 !IsBlank(varVhpDelKey) && !IsEmpty(Errors(MaintenanceItems)),
-                                                Notify("The request could not be deleted: " & First(Errors(MaintenanceItems)).Message, NotificationType.Error),
+                                                Set(gblToast, { Text: "The request could not be deleted: " & First(Errors(MaintenanceItems)).Message, Kind: "Error", At: Now() }); true,
                                                 Remove(VHP_NoteToSelf, Filter(VHP_NoteToSelf, RequestGuid = varVhpDelGuid));
                                                 If(
                                                     !IsEmpty(Errors(VHP_NoteToSelf)),
-                                                    Notify("The request could not be deleted: " & First(Errors(VHP_NoteToSelf)).Message, NotificationType.Error),
+                                                    Set(gblToast, { Text: "The request could not be deleted: " & First(Errors(VHP_NoteToSelf)).Message, Kind: "Error", At: Now() }); true,
                                                     If(!IsBlank(varVhpDelSp), Remove(MaintenancePlans, Filter(MaintenancePlans, ID = varVhpDelSp)));
                                                     If(
                                                         !IsBlank(varVhpDelSp) && !IsEmpty(Errors(MaintenancePlans)),
-                                                        Notify("The request could not be deleted: " & First(Errors(MaintenancePlans)).Message, NotificationType.Error),
+                                                        Set(gblToast, { Text: "The request could not be deleted: " & First(Errors(MaintenancePlans)).Message, Kind: "Error", At: Now() }); true,
                                                         Remove(MD_RequestIndex, Filter(MD_RequestIndex, RequestGuid = varVhpDelGuid));
                                                         If(
                                                             !IsEmpty(Errors(MD_RequestIndex)),
-                                                            Notify("The request could not be deleted: " & First(Errors(MD_RequestIndex)).Message, NotificationType.Error),
+                                                            Set(gblToast, { Text: "The request could not be deleted: " & First(Errors(MD_RequestIndex)).Message, Kind: "Error", At: Now() }); true,
                                                             If(
                                                                 (IsAdmin && !(Lower(Coalesce(varVhpDelIdx.RequesterEmail, "")) = varVhpMe)),
                                                                 IfError(
@@ -20150,7 +20132,7 @@ Screens:
                                                                         DecidedOn: Now()
                                                                     });
                                                                     true,
-                                                                    Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                                    Set(gblToast, { Text: "The change was saved, but the admin log entry failed: " & FirstError.Message, Kind: "Warning", At: Now() });
                                                                     false
                                                                 )
                                                             );
@@ -20158,7 +20140,7 @@ Screens:
                                                             Set(gblVhpStale, true);
                                                             Set(gblVhpWant, Blank());
                                                             Set(varVhpOpened, "");
-                                                            Notify("Request deleted.", NotificationType.Success);
+                                                            Set(gblToast, { Text: "Request deleted.", Kind: "Success", At: Now() });
                                                             Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None)
                                                         )
                                                     )
@@ -22578,7 +22560,7 @@ Screens:
                                   =Launch("mailto:sapvedligehold@orsted.com?subject=" & EncodeUrl("SAP maintenance - " & Switch(gblFbSel.Kind, "R", gblFbSel.TypeName & " request " & gblFbSel.Code, "G", gblFbSel.Label, "question")) & "&body=" & EncodeUrl(If(gblFbSel.Kind = "R", "Request: " & gblFbSel.Code & Char(10) & "Type: " & gblFbSel.TypeName & Char(10) & "Title: " & gblFbSel.Title & Char(10) & If(IsBlank(gblFbSel.Url), "", "Link: " & gblFbSel.Url & Char(10)) & Char(10), "") & Left(inpVhpFbMessage.Text, Find("Kind regards,", inpVhpFbMessage.Text & "Kind regards,") - 1)));
                                   Set(gblFbOpen, false);
                                   Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpVhpFbSubjectFind); Reset(inpVhpFbMessage);
-                                  Notify("The mail is ready in Outlook. Press Send there.", NotificationType.Information)
+                                  Set(gblToast, { Text: "The mail is ready in Outlook. Press Send there.", Kind: "Information", At: Now() }); true
                               RadiusBottomLeft: |-
                                   =10
                               RadiusBottomRight: |-
@@ -22627,9 +22609,9 @@ Screens:
                                   IfError(
                                       With({ res: 'BioSap-SendFeedbackMail'.Run("sapvedligehold@orsted.com", "SAP maintenance - " & Switch(gblFbSel.Kind, "R", gblFbSel.TypeName & " request " & gblFbSel.Code, "G", gblFbSel.Label, "question"), inpVhpFbMessage.Text, "[]", JSON({Kind: gblFbSel.Kind, Topic: gblFbSel.Label, Code: gblFbSel.Code, Type: gblFbSel.TypeName, Title: gblFbSel.Title, Url: gblFbSel.Url, Name: User().FullName}, JSONFormat.Compact)) },
                                           If(res.sent = "yes",
-                                              Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpVhpFbSubjectFind); Reset(inpVhpFbMessage); Notify("Message sent.", NotificationType.Success),
-                                              Notify("The message could not be sent. " & res.message, NotificationType.Error))),
-                                      Notify("The message could not be sent.", NotificationType.Error));
+                                              Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpVhpFbSubjectFind); Reset(inpVhpFbMessage); Set(gblToast, { Text: "Message sent.", Kind: "Success", At: Now() }); true,
+                                              Set(gblToast, { Text: "The message could not be sent. " & res.message, Kind: "Error", At: Now() }); true)),
+                                      Set(gblToast, { Text: "The message could not be sent.", Kind: "Error", At: Now() }); true);
                                   Set(gblFbBusy, false)
                               RadiusBottomLeft: |-
                                   =10
@@ -22929,10 +22911,7 @@ Screens:
                                             // Linket peger paa noget, der ikke er her - fx en
                                             // indmelding fra et andet miljoe. Sig det, og aabn
                                             // som en ny plan i stedet for at staa tom og tavs.
-                                            Notify(
-                                                "Could not find the request behind this link. Opening a new plan.",
-                                                NotificationType.Warning
-                                            );
+                                            Set(gblToast, { Text: "Could not find the request behind this link. Opening a new plan.", Kind: "Warning", At: Now() });
                                             Set(varVhpRequestGuid, "");
                                             Set(varVhpPlanSpId, 0);
                                             Set(varVhpPlanModified, Blank());
@@ -23128,12 +23107,9 @@ Screens:
                                             // --- hvad der er valgt naar skaermen tegnes -------
                                             Set(varVhpActiveItemId, First(colVhpItems).ItemId);
                                             Set(varVhpNextItemId, Max(colVhpItems, ItemId));
-                                            Notify(
-                                                "Opened " & idx.RequestNo & " - " &
+                                            Set(gblToast, { Text: "Opened " & idx.RequestNo & " - " &
                                                     Text(CountRows(colVhpItems)) & " item(s), " &
-                                                    Text(CountRows(colVhpOperations)) & " operation line(s).",
-                                                NotificationType.Success
-                                            );
+                                                    Text(CountRows(colVhpOperations)) & " operation line(s).", Kind: "Success", At: Now() });
                                             // Den indlaeste plan ER den gemte - Save-trinnet er groent,
                                             // til noget aendres.
                                             Set(varVhpSavedJson, VhpStateJson);
@@ -23545,6 +23521,197 @@ Screens:
                 =!IfError(varVhpLoading, false)
             Start: |-
                 =IfError(varVhpLoading, false)
+            Visible: |-
+                =false
+            Width: |-
+                =1
+      - conVhpToast:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =If(IfError(gblToast.Kind, "") = "Error", C.'border-error', C.'border-default')
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.Bold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =64
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Center
+            LayoutDirection: |-
+                =LayoutDirection.Horizontal
+            LayoutGap: |-
+                =10
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =8
+            PaddingLeft: |-
+                =14
+            PaddingRight: |-
+                =8
+            PaddingTop: |-
+                =8
+            RadiusBottomLeft: |-
+                =10
+            RadiusBottomRight: |-
+                =10
+            RadiusTopLeft: |-
+                =10
+            RadiusTopRight: |-
+                =10
+            Visible: |-
+                =!IsBlank(IfError(gblToast.Text, ""))
+            Width: |-
+                =Min(420, App.Width - 32)
+            X: |-
+                =Max(16, App.Width - Self.Width - 24)
+            Y: |-
+                =App.Height - Self.Height - 24
+          Children:
+            - imgVhpToastIcon:
+                Control: Image
+                Properties:
+                  AccessibleLabel: |-
+                      =IfError(gblToast.Kind, "Message")
+                  AlignInContainer: |-
+                      =AlignInContainer.Center
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Height: |-
+                      =20
+                  Image: |-
+                      ="data:image/svg+xml;utf8," & EncodeUrl(Switch(IfError(gblToast.Kind, ""), "Success", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M8 12.2l2.8 2.8L16 9.5'/></g></svg>", "Warning", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 7.5v5.5M12 16.5v.01'/></g></svg>", "Error", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-error-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M9 9l6 6M15 9l-6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 11v5.5M12 7.5v.01'/></g></svg>"))
+                  ImagePosition: |-
+                      =ImagePosition.Fit
+                  LayoutMinWidth: |-
+                      =20
+                  OnSelect: |-
+                      =false
+                  TabIndex: |-
+                      =0
+                  Width: |-
+                      =20
+            - txtVhpToastText:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-primary'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  FillPortions: |-
+                      =0
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =40
+                  LayoutMinWidth: |-
+                      =0
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =13
+                  Text: |-
+                      =IfError(gblToast.Text, "")
+                  VerticalAlign: |-
+                      =VerticalAlign.Middle
+                  Width: |-
+                      =Max(0, ((Min(420, App.Width - 32)) - 14 - 8) - ((20) + 10) - ((32) + 10) - 2)
+                  Wrap: |-
+                      =true
+            - btnVhpToastClose:
+                Control: ModernButton
+                Properties:
+                  AccessibleLabel: |-
+                      ="Close the message"
+                  Align: |-
+                      =Align.Center
+                  AlignInContainer: |-
+                      =AlignInContainer.Center
+                  Appearance: |-
+                      =ButtonAppearance.Outline
+                  BorderColor: |-
+                      =RGBA(0, 0, 0, 0)
+                  BorderThickness: |-
+                      =1
+                  Color: |-
+                      =C.'text-muted'
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =32
+                  Icon: |-
+                      ="Dismiss"
+                  Layout: |-
+                      =ButtonLayout.IconOnly
+                  LayoutMinWidth: |-
+                      =32
+                  OnSelect: |-
+                      =Set(gblToast, { Text: "", Kind: "", At: Now() })
+                  RadiusBottomLeft: |-
+                      =10
+                  RadiusBottomRight: |-
+                      =10
+                  RadiusTopLeft: |-
+                      =10
+                  RadiusTopRight: |-
+                      =10
+                  Size: |-
+                      =14
+                  Text: |-
+                      =""
+                  Tooltip: |-
+                      ="Close"
+                  VerticalAlign: |-
+                      =VerticalAlign.Middle
+                  Width: |-
+                      =32
+      - tmrVhpToast:
+          Control: Timer
+          Properties:
+            AutoPause: |-
+                =true
+            AutoStart: |-
+                =false
+            Duration: |-
+                =500
+            Height: |-
+                =1
+            OnTimerEnd: |-
+                =If(
+                    !IsBlank(IfError(gblToast.Text, "")) && !(IfError(gblToast.Kind, "") = "Error") &&
+                    DateDiff(gblToast.At, Now(), TimeUnit.Milliseconds) >= 4000,
+                    Set(gblToast, { Text: "", Kind: "", At: Now() })
+                )
+            Repeat: |-
+                =true
+            Start: |-
+                =!IsBlank(IfError(gblToast.Text, "")) && !(IfError(gblToast.Kind, "") = "Error")
             Visible: |-
                 =false
             Width: |-
