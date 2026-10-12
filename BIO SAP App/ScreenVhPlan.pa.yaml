@@ -6926,7 +6926,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =0
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     =If(IsBlank(varVhpActiveItemId), "", Text(CountRows(Filter(colVhpItems, ItemId <= varVhpActiveItemId))) & If(IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).ShortText), "", "  ·  " & LookUp(colVhpItems, ItemId = varVhpActiveItemId).ShortText))
                                                 Width: |-
@@ -7015,15 +7015,15 @@ Screens:
                                                         Set(gblToast, { Text: "Item " & Text(no) & " deleted.", Kind: "Success", At: Now() }); true
                                                     )
                                                 RadiusBottomLeft: |-
-                                                    =10
+                                                    =R.input
                                                 RadiusBottomRight: |-
-                                                    =10
+                                                    =R.input
                                                 RadiusTopLeft: |-
-                                                    =10
+                                                    =R.input
                                                 RadiusTopRight: |-
-                                                    =10
+                                                    =R.input
                                                 Size: |-
-                                                    =13
+                                                    =T.body
                                                 Text: |-
                                                     ="Delete item"
                                                 VerticalAlign: |-
@@ -14443,15 +14443,15 @@ Screens:
                                   Set(varVhpSaving, false)
                                   )
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   ="Save draft"
                               Tooltip: |-
@@ -14510,15 +14510,15 @@ Screens:
                                   Reset(inpVhpNoteS);
                                   Set(varVhpConfirmSubmit, true)
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   =If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 416 - 32)) - 566 < 220), With({ _f: CountRows(Filter(Split(txtVhpMissingPlan.Text & Char(10) & txtVhpMissingItem.Text & Char(10) & txtVhpMissingOps.Text, Char(10)), !IsBlank(Value))) }, "Submit" & If(_f > 0, " (" & Text(_f) & ")", "")), With({ _f: CountRows(Filter(Split(txtVhpMissingPlan.Text & Char(10) & txtVhpMissingItem.Text & Char(10) & txtVhpMissingOps.Text, Char(10)), !IsBlank(Value))) }, "Submit" & If(_f > 0, " (" & Text(_f) & " to fix)", "")))
                               Tooltip: |-
