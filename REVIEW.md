@@ -46,6 +46,7 @@ Grundlag: designreviewet af BIO SAP (designlærredet "BIO SAP — UX review"), t
 |---|---|---|
 | M7 | 2a: pladsholder-rækker (`skeleton_rows()`) mens hubben og Issue Board henter; hubbens "No requests match" og Issue Boards hjul over hele skærmen under hentningen er væk. KKS beholder sit hjul (alt hentes samlet én gang pr. session, uden data er der intet at vise). | `build_helpers.skeleton_rows` |
 | M4 | 2b: `validation_summary()` — efter Submit står kladde-rækkerne over rækkelisten med "Open row" (Equipments/Materials/Measuring points). VH's "Before you can submit" har "Go to …" pr. sektion, som lukker listen og fremhæver sektionen. SetFocus kan ikke nå ind i containere (regel 10b), så "Go to" åbner rækken/fremhæver afsnittet. | `build_helpers.validation_summary`, `domain_parts`, `build_hero` |
+| M3 | 2c: fliserne er 72 px (før 148) med en (+)-knap for ny anmodning (teksten "New" alene er forbudt, issue #243); "Continue where you left off" viser brugerens senest ændrede kladde med Continue; REQUEST, PLANT, STATUS og UPDATED sorterer ved klik (konstant kolonnenavn pr. gren, så SharePoint stadig sorterer). | `build_hub.py` |
 
 **Etape 3**: se de enkelte PR'er; afsnittet opdateres pr. etape.
 
