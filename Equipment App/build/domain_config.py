@@ -106,7 +106,7 @@ FL_FIELD = "FunctionalLocation"
 # equipment_parts.FORM_ORDER.
 SECTIONS = [
     ("What should happen", [
-        ("RequestType", "Type", "text", None),
+        ("RequestType", "Status", "text", None),
     ]),
     ("Master data", [
         ("EquipmentCategory", "Equipment type", "text", None),

@@ -248,7 +248,8 @@ ACTIVE = "LookUp(colDomRows, RowId = varDomActiveRowId)"
 #
 # Kortets padding er 18 i hver side; det er de 36.
 FORM_W = f"({SHELL_W} - 36)"
-PANEL_FORM_W = f"If({at_least('Desktop')}, 400, App.Width - 80)"
+PANEL_FORM_W = (f"If({at_least('Desktop')}, 480, App.Width) "
+                f"- 2 * 20 - 2 * 20 - {SCROLLBAR_W}")
 
 # DOKUMENTERNE OG DETALJERNE ER POPUPS
 # ------------------------------------
@@ -1700,12 +1701,15 @@ CELL_MIN_4 = 200
 CELL_MIN_2 = 220
 NEED_4 = 4 * CELL_MIN_4 + 3 * GRID_GAP
 NEED_2 = 2 * CELL_MIN_2 + GRID_GAP
+PANEL_NEED_2 = 360
 GRID_COLS = 4
 
 # Een celles bredde - maalt paa KORTETS bredde, ikke paa App.Width.
 CELL_W = fits(FORM_W, NEED_4,
               fits(FORM_W, NEED_2, FORM_W, f"(({FORM_W}) - {GRID_GAP}) / 2"),
               f"(({FORM_W}) - {3 * GRID_GAP}) / 4")
+PANEL_CELL_W = fits(PANEL_FORM_W, PANEL_NEED_2, PANEL_FORM_W,
+                    f"(({PANEL_FORM_W}) - {GRID_GAP}) / 2")
 
 
 def _line_h(hs):
@@ -1736,6 +1740,19 @@ def grid_row(name, cells, container_w=None, columns=None, cell_width=None):
         h = fits(calc_w, NEED_4,
                  fits(calc_w, NEED_2, _chunk_h(hs, 1), _chunk_h(hs, 2)),
                  _chunk_h(hs, 4))
+    elif columns == 2:
+        pairs = []
+        for offset in range(0, len(cells), 2):
+            pair = cells[offset:offset + 2]
+            pair_heights = [cell.h for cell in pair]
+            pair_height = fits(calc_w, PANEL_NEED_2,
+                               _chunk_h(pair_heights, 1), _chunk_h(pair_heights, 2))
+            pairs.append(group(f"{name}Pair{offset // 2}", pair,
+                               direction="Horizontal", gap=GRID_GAP,
+                               height=pair_height, width=container_w or "Parent.Width",
+                               wrap="true"))
+        return group(name, pairs, direction="Vertical", gap=GRID_GAP,
+                     width=container_w or "Parent.Width", wrap="false")
     else:
         if columns < 1 or columns > GRID_COLS:
             raise ValueError("grid_row columns must be between 1 and 4")

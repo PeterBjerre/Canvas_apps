@@ -57,6 +57,10 @@ def _children(ctrl):
     return [list(c)[0] for c in _ctrl(ctrl).get("Children", [])]
 
 
+def _grid_cells(ctrl):
+    return [cell for pair in _children(ctrl) for cell in _children(pair)]
+
+
 # ---------------------------------------------------------------------------
 # Objektlisten
 # ---------------------------------------------------------------------------
@@ -176,7 +180,7 @@ def test_stock_item_requires_min_and_max_and_min_below_max():
 
 
 def test_the_first_row_is_plant_description_stock_item_and_replace():
-    assert _children("conMatGridMain") == [
+    assert _grid_cells("conMatGridMain") == [
         "conMatPlant", "conMatText", "conMatIsStockItem", "conMatReplacesExisting"]
     # Begge valg er segmenterede [ No | Yes ] - som Revision i Item Editor.
     assert _children("conMatIsStockItemSeg") == ["conMatIsStockItemSegNo",
@@ -190,8 +194,8 @@ def test_the_first_row_is_plant_description_stock_item_and_replace():
 def test_stock_fields_show_only_for_a_stock_item_and_are_saved_blank_otherwise():
     stock = "Coalesce(varMatFIsStockItem, false)"
     assert _prop("conMatGridStock", "Visible") == stock
-    assert _children("conMatGridStock") == ["conMatMinStock", "conMatMaxStock",
-                                            "conMatStorageBin"]
+    assert _grid_cells("conMatGridStock") == ["conMatMinStock", "conMatMaxStock",
+                                               "conMatStorageBin"]
     save = _prop("btnMatSave", "OnSelect")
     assert f"MinStock: If({stock}, varMatFMinStock, Blank())" in save
     assert f'StorageBin: If({stock}, Trim(Coalesce(varMatFStorageBin, "")), "")' in save

@@ -70,6 +70,26 @@ def test_equipment_and_measuring_point_use_the_responsive_row_panel():
         assert props[f"btn{prefix}EditorClose"]["OnSelect"].startswith(f"=Set(var{prefix}ActiveRowId")
 
 
+def test_domain_panels_match_the_bright_two_column_mockup():
+    panels = [
+        ("ScreenEquipment.pa.yaml", "Eq", "conEqGridIdent0"),
+        ("ScreenMaterial.pa.yaml", "Mat", "conMatGridMain"),
+        ("ScreenMeasuringPoint.pa.yaml", "Mp", "conMpGridObject"),
+    ]
+    for screen, prefix, grid in panels:
+        props = _properties(screen)
+        assert props[f"img{prefix}EditorBackdrop"]["Fill"] == "=RGBA(0, 0, 0, 0)"
+        assert props[grid]["LayoutDirection"] == "=LayoutDirection.Vertical"
+        pair = props[f"{grid}Pair0"]
+        assert pair["LayoutDirection"] == "=LayoutDirection.Horizontal"
+        assert pair["LayoutWrap"] == "=true"
+
+
+def test_issue_board_detail_panel_does_not_dim_the_workspace():
+    props = _properties("ScreenIssueBoard.pa.yaml")
+    assert props["imgIbDetBackdrop"]["Fill"] == "=RGBA(0, 0, 0, 0)"
+
+
 def test_material_editor_exposes_the_three_requested_tabs():
     props = _properties("ScreenMaterial.pa.yaml")
     for name in ("conMatEditorTabsDetails", "conMatEditorTabsObjects",

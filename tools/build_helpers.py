@@ -739,7 +739,7 @@ def open_overlay(prefix, busy_var, failed_var, slow_var, *, title_fx, step_fx, h
     return [scrim, card, timer]
 
 
-def tap_backdrop(name, vis, close_fx):
+def tap_backdrop(name, vis, close_fx, fill=C_OVERLAY):
     """Sloeret bag en popup. Paa mobil lukker et tryk udenfor popuppen den;
     sloeret daekker hele skaermen, saa siden under ikke kan trykkes paa. Er
     ventespinneren oppe, ligger den oven paa og tager trykket.
@@ -754,7 +754,7 @@ def tap_backdrop(name, vis, close_fx):
         "AccessibleLabel": '"Close the dialog"',
         "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0",
-        **stable_scrim(),
+        **stable_scrim(fill),
         "Height": "App.Height",
         "Image": '""',
         "OnSelect": f"If({below}, {close_fx})",
@@ -1729,7 +1729,7 @@ def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
         "AccessibleLabel": '"Close row editor"',
         "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0",
-        **stable_scrim(),
+        **stable_scrim(C_TRANSPARENT),
         "Height": "App.Height",
         "Image": '""',
         "OnSelect": close_fx,
