@@ -298,7 +298,7 @@ def save_fx(status):
 def build_form(panel=False):
     dp.check_form_order(FORM_ORDER, SPECIAL, NOT_IN_GRID)
     form_width = dp.PANEL_FORM_W if panel else dp.FORM_W
-    cell_width = form_width if panel else dp.CELL_W
+    cell_width = dp.PANEL_CELL_W if panel else dp.CELL_W
     head = dp.form_head("Row details")
     rows = []
     for name, cond, keys in ROWS:
@@ -306,7 +306,7 @@ def build_form(panel=False):
             title, vis = SECTION_STARTS[name]
             rows.append(dp.form_section(name, title, visible=vis, first=not rows))
         row = dp.grid_row(f"conDomGrid{name}", [_cell(k, cell_width) for k in keys],
-                  container_w=form_width, columns=1 if panel else None,
+                          container_w=form_width, columns=2 if panel else None,
                   cell_width=cell_width)
         if cond:
             row.vis = cond

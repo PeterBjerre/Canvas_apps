@@ -45,9 +45,9 @@ from build_helpers import card
 # SEKTIONERNE (UX-review M2, Equipment-mockuppen): hver sektion er sine
 # egne raekker af fire celler, der ombryder til to og een. FL, TEXT, DOCS
 # og PLANT er de celler, der ikke er et almindeligt felt fra SECTIONS.
-SPECIAL = {"FL", "TEXT", "DOCS", "PLANT"}
+SPECIAL = {"FL", "TEXT", "DOCS", "PLANT", "EQNO"}
 SECTIONS = [
-    ("Ident", "Identification", ["PLANT", "RequestType", "EquipmentCategory", "TEXT"]),
+    ("Ident", "Identification", ["PLANT", "RequestType", "EquipmentCategory", "EQNO", "TEXT"]),
     ("Loc", "Location", ["FL", "RoomCoordinates", "Placement"]),
     ("Mfr", "Manufacturer", ["Manufacturer", "TypeDesignation", "SerialNumber", "ClassData"]),
     ("Warranty", "Warranty and documents", ["WarrantyStart", "WarrantyEnd", "DOCS"]),
@@ -66,18 +66,26 @@ def _cell(key, width=dp.CELL_W):
         return dp.docs_cell(width)
     if key == "PLANT":
         return dp.plant_cell(width)
+    if key == "EQNO":
+        value = ('If(IsBlank(varDomActiveRowId), "Set by SAP", '
+                 'Coalesce(LookUp(colDomRows, RowId = varDomActiveRowId).EquipmentNumber, ""))')
+        return dp.grid_cell(
+            "conDomEquipmentNumber", "Equipment number",
+            dp.text_ctrl("txtDomEquipmentNumber", value, size=13, height=36,
+                         wrap="false", accessible='"Equipment number: " & Self.Text'),
+            width=width)
     return dp.field_grid_cell(key, width=width)
 
 
 def build_form(panel=False):
     dp.check_form_order(FORM_ORDER, SPECIAL, NOT_IN_GRID)
     form_width = dp.PANEL_FORM_W if panel else dp.FORM_W
-    cell_width = form_width if panel else dp.CELL_W
+    cell_width = dp.PANEL_CELL_W if panel else dp.CELL_W
     head = dp.form_head("Row details")
     secs = []
     for key, title, keys in SECTIONS:
         rows = dp.grid_rows(f"conDomGrid{key}", [_cell(k, cell_width) for k in keys],
-                            container_w=form_width, columns=1 if panel else None,
+                            container_w=form_width, columns=2 if panel else None,
                             cell_width=cell_width)
         if "FL" in keys:
             # Soegningens svar under raekken med FL i.
