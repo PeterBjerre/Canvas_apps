@@ -40,7 +40,13 @@ Grundlag: designreviewet af BIO SAP (designlærredet "BIO SAP — UX review"), t
 | Hub | Gjort: domæne+ID i én kolonne, Requester skjult i My requests, stepper uden mikroetiketter og "-", Delete kun på kladder, grupperet filterlinje med 360 px søgning, Stuck kun for Indsendt/UnderBehandling/AfventerInfo (`STUCK_DAYS`). | `build_hub.py`, `request_index.py` |
 | Øvrige | Gjort: tooltips på deaktiverede knapper, MP's beskrivelser som tekst, FL Spool (fyldt tilstand, "2 of 5 valid"), KKS (søg mens der skrives, kopier-ikon), VH (ingen "Step 3"-chip, ingen ekstra Reset, låst hoved som View). | — |
 
-**Etape 2 og 3**: se de enkelte PR'er; afsnittet opdateres pr. etape.
+**Etape 2 — middel** (små PR'er, `claude/ux-etape-2*`)
+
+| ID | Status | Hvor |
+|---|---|---|
+| M4 | 2b: `validation_summary()` — efter Submit står kladde-rækkerne over rækkelisten med "Open row" (Equipments/Materials/Measuring points). VH's "Before you can submit" har "Go to …" pr. sektion, som lukker listen og fremhæver sektionen. SetFocus kan ikke nå ind i containere (regel 10b), så "Go to" åbner rækken/fremhæver afsnittet. | `build_helpers.validation_summary`, `domain_parts`, `build_hero` |
+
+**Etape 3**: se de enkelte PR'er; afsnittet opdateres pr. etape.
 
 **Ikke efterprøvet i Studio** — kør `python tools\canvas_mcp.py deploy --app biosap` og se især: beskeden nederst til højre (auto-skjul, luk-kryds), datovælgerne i dd-mm-yyyy, statuschips i lys og mørk tilstand, `H.hit` på touch, de gemte filtre efter genstart, KKS-søgningen mens der skrives, Fluent-ikonerne `ArrowClockwise`/`Copy`/`Checkmark`.
 

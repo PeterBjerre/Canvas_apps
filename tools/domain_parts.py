@@ -52,7 +52,7 @@ from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_WARN_BG, C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY)
 import layout_tokens as lay
 from layout_tokens import fits, if_below, below, at_least
-from build_helpers import (ensure_hit, tap_backdrop, text_ctrl, text_min_height, group, button, text_input,
+from build_helpers import (ensure_hit, validation_summary, tap_backdrop, text_ctrl, text_min_height, group, button, text_input,
                            checkbox_theme, date_picker, fit_button_row,
                            fit_button_width, number_input, themed_dropdown,
                            card, field_cell, pin_widths, badge, top_bar, grow,
@@ -70,6 +70,8 @@ SAVING_VAR = "varDomSaving"
 ROW_LIMIT = 500
 # Bekraeftelsen foer Submit.
 CONFIRM_VAR = "varDomConfirmSubmit"
+# Listen over kladde-raekker efter Submit (UX-review M4, validation_summary).
+FIX_VAR = "varDomFixOn"
 # Sletning sker bag en bekraeftelse: hvilken raekke, og om popuppen er aaben.
 DELETE_ID = "varDomDeleteId"
 DELETE_VAR = "varDomConfirmDelete"
@@ -318,7 +320,10 @@ def submit_press_fx():
     er indmeldingen spaerret, aabner bekraeftelsen slet ikke - brugeren
     faar beskeden om, hvad der mangler. Vagten staar her og ikke i
     send_fx, fordi den skal kunne stoppe POPUPPEN, ikke bare gemningen."""
-    open_confirm = f"Set({CONFIRM_VAR}, true)"
+    # Er der kladder, viser listen "Rows to fix" dem (UX-review M4) - de
+    # gyldige kan stadig sendes, saa bekraeftelsen aabner som foer.
+    open_confirm = (f"Set({FIX_VAR}, CountRows({DRAFTS}) > 0);\n"
+                    f"Set({CONFIRM_VAR}, true)")
     if not HOOKS["submit_guard"]:
         return open_confirm
     before, blocked, message = HOOKS["submit_guard"]
@@ -2309,7 +2314,19 @@ def build_list(slots, badge_head, search_placeholder):
     table.vis = f"!IsEmpty({LIST_SCOPE})"
     table.props["Visible"] = table.vis
 
-    return card("conDomRowsCard", [head, table, empty] + _submit_parts())
+    # HVAD MANGLER (UX-review M4): efter Submit staar kladde-raekkerne her
+    # med "Open row" - den samme handling som raekkens Edit. Listen gaar
+    # selv vaek, naar der ikke er flere kladder.
+    fix = validation_summary(
+        "Dom", f"Sort({DRAFTS}, RowId, SortOrder.Descending)",
+        f'ThisItem.ItemKey & If(IsBlank(ThisItem.{cfg.C_TEXT}), "", "  \u00b7  " & ThisItem.{cfg.C_TEXT})',
+        "Open row", load_row_fx(),
+        f'{dt.plural(f"CountRows({DRAFTS})", "draft row")} & '
+        f'If(CountRows({DRAFTS}) = 1, " - complete it to submit it too", '
+        '" - complete them to submit them too")',
+        f"IfError({FIX_VAR}, false) && CountRows({DRAFTS}) > 0 && !varDomViewOnly",
+        f"Set({FIX_VAR}, false)")
+    return card("conDomRowsCard", [head, fix, table, empty] + _submit_parts())
 
 
 # ---------------------------------------------------------------------------
