@@ -17,6 +17,7 @@ Screens:
           If(IsBlank(varMdView), Set(varMdView, "mine"));
           If(IsBlank(varMdStatusMode), Set(varMdStatusMode, "open"));
           If(IsBlank(varMdFlag), Set(varMdFlag, ""));
+          Set(varMdLoading, true);
           Concurrent(
               ClearCollect(colMdScope, ForAll(If(
                   varMdView = "mine",
@@ -33,7 +34,8 @@ Screens:
               ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe })),
               Set(varMdAprAll, SortByColumns(Filter(MD_ApprovalLog, Stage = "System" || Stage = "Cost" || Stage = "Quality"), "ID", SortOrder.Descending)),
               Set(varMdSelfNotes, If(IsAdmin, ShowColumns(VHP_NoteToSelf, RequestGuid), ShowColumns(Filter(VHP_NoteToSelf, OwnerEmail = varMdMe), RequestGuid)))
-          )
+          );
+          Set(varMdLoading, false)
     Children:
       - conMdRoot:
           Control: GroupContainer
@@ -1911,7 +1913,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =If(LayoutRank < 2, 540 + If(varMdDomain <> "", 0 + (30), 0) + If(LayoutRank >= 4, 8 + (20), 0) + If(LayoutRank >= 4, 8 + (1), 0) + If(galMdRequests.AllItemsCount = 0, 8 + (156), 0), If(LayoutRank < 4, 828 + If(varMdDomain <> "", 0 + (30), 0) + If(LayoutRank >= 4, 8 + (20), 0) + If(LayoutRank >= 4, 8 + (1), 0) + If(galMdRequests.AllItemsCount = 0, 8 + (156), 0), 772 + If(varMdDomain <> "", 0 + (30), 0) + If(LayoutRank >= 4, 8 + (20), 0) + If(LayoutRank >= 4, 8 + (1), 0) + If(galMdRequests.AllItemsCount = 0, 8 + (156), 0)))
+                            =If(LayoutRank < 2, 540 + If(varMdDomain <> "", 0 + (30), 0) + If(LayoutRank >= 4, 8 + (20), 0) + If(LayoutRank >= 4, 8 + (1), 0) + If(varMdLoading && galMdRequests.AllItemsCount = 0, 8 + (26 + (44) + (44) + (44) + (44) + (44)), 0) + If(galMdRequests.AllItemsCount = 0 && !varMdLoading, 8 + (156), 0), If(LayoutRank < 4, 828 + If(varMdDomain <> "", 0 + (30), 0) + If(LayoutRank >= 4, 8 + (20), 0) + If(LayoutRank >= 4, 8 + (1), 0) + If(varMdLoading && galMdRequests.AllItemsCount = 0, 8 + (26 + (44) + (44) + (44) + (44) + (44)), 0) + If(galMdRequests.AllItemsCount = 0 && !varMdLoading, 8 + (156), 0), 772 + If(varMdDomain <> "", 0 + (30), 0) + If(LayoutRank >= 4, 8 + (20), 0) + If(LayoutRank >= 4, 8 + (1), 0) + If(varMdLoading && galMdRequests.AllItemsCount = 0, 8 + (26 + (44) + (44) + (44) + (44) + (44)), 0) + If(galMdRequests.AllItemsCount = 0 && !varMdLoading, 8 + (156), 0)))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -2398,6 +2400,619 @@ Screens:
                                   =LayoutRank >= 4
                               Width: |-
                                   =Parent.Width
+                        - conMdSkeleton:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =26 + (44) + (44) + (44) + (44) + (44)
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Stretch
+                              LayoutDirection: |-
+                                  =LayoutDirection.Vertical
+                              LayoutGap: |-
+                                  =0
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              PaddingBottom: |-
+                                  =4
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =4
+                              Visible: |-
+                                  =varMdLoading && galMdRequests.AllItemsCount = 0
+                              Width: |-
+                                  =Parent.Width
+                            Children:
+                              - txtMdSkeletonSay:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Loading requests..."
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =18
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =12
+                                    Text: |-
+                                        ="Loading requests..."
+                                    Wrap: |-
+                                        =false
+                              - conMdSkeletonRow0:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =44
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =16
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    PaddingBottom: |-
+                                        =4
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =4
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - conMdSkeletonBar0A:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          Fill: |-
+                                              =C.'bg-muted'
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =10
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          RadiusBottomLeft: |-
+                                              =5
+                                          RadiusBottomRight: |-
+                                              =5
+                                          RadiusTopLeft: |-
+                                              =5
+                                          RadiusTopRight: |-
+                                              =5
+                                          Width: |-
+                                              =Parent.Width
+                                    - conMdSkeletonBar0B:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Start
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          Fill: |-
+                                              =C.'bg-muted'
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =10
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          RadiusBottomLeft: |-
+                                              =5
+                                          RadiusBottomRight: |-
+                                              =5
+                                          RadiusTopLeft: |-
+                                              =5
+                                          RadiusTopRight: |-
+                                              =5
+                                          Width: |-
+                                              =160
+                              - conMdSkeletonRow1:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =44
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =16
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    PaddingBottom: |-
+                                        =4
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =4
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - conMdSkeletonBar1A:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          Fill: |-
+                                              =C.'bg-muted'
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =10
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          RadiusBottomLeft: |-
+                                              =5
+                                          RadiusBottomRight: |-
+                                              =5
+                                          RadiusTopLeft: |-
+                                              =5
+                                          RadiusTopRight: |-
+                                              =5
+                                          Width: |-
+                                              =Parent.Width
+                                    - conMdSkeletonBar1B:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Start
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          Fill: |-
+                                              =C.'bg-muted'
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =10
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          RadiusBottomLeft: |-
+                                              =5
+                                          RadiusBottomRight: |-
+                                              =5
+                                          RadiusTopLeft: |-
+                                              =5
+                                          RadiusTopRight: |-
+                                              =5
+                                          Width: |-
+                                              =160
+                              - conMdSkeletonRow2:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =44
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =16
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    PaddingBottom: |-
+                                        =4
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =4
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - conMdSkeletonBar2A:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          Fill: |-
+                                              =C.'bg-muted'
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =10
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          RadiusBottomLeft: |-
+                                              =5
+                                          RadiusBottomRight: |-
+                                              =5
+                                          RadiusTopLeft: |-
+                                              =5
+                                          RadiusTopRight: |-
+                                              =5
+                                          Width: |-
+                                              =Parent.Width
+                                    - conMdSkeletonBar2B:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Start
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          Fill: |-
+                                              =C.'bg-muted'
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =10
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          RadiusBottomLeft: |-
+                                              =5
+                                          RadiusBottomRight: |-
+                                              =5
+                                          RadiusTopLeft: |-
+                                              =5
+                                          RadiusTopRight: |-
+                                              =5
+                                          Width: |-
+                                              =160
+                              - conMdSkeletonRow3:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =44
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =16
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    PaddingBottom: |-
+                                        =4
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =4
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - conMdSkeletonBar3A:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          Fill: |-
+                                              =C.'bg-muted'
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =10
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          RadiusBottomLeft: |-
+                                              =5
+                                          RadiusBottomRight: |-
+                                              =5
+                                          RadiusTopLeft: |-
+                                              =5
+                                          RadiusTopRight: |-
+                                              =5
+                                          Width: |-
+                                              =Parent.Width
+                                    - conMdSkeletonBar3B:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Start
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          Fill: |-
+                                              =C.'bg-muted'
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =10
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          RadiusBottomLeft: |-
+                                              =5
+                                          RadiusBottomRight: |-
+                                              =5
+                                          RadiusTopLeft: |-
+                                              =5
+                                          RadiusTopRight: |-
+                                              =5
+                                          Width: |-
+                                              =160
+                              - conMdSkeletonRow4:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =44
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =16
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    PaddingBottom: |-
+                                        =4
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =4
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - conMdSkeletonBar4A:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          Fill: |-
+                                              =C.'bg-muted'
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =10
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          RadiusBottomLeft: |-
+                                              =5
+                                          RadiusBottomRight: |-
+                                              =5
+                                          RadiusTopLeft: |-
+                                              =5
+                                          RadiusTopRight: |-
+                                              =5
+                                          Width: |-
+                                              =Parent.Width
+                                    - conMdSkeletonBar4B:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Start
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          Fill: |-
+                                              =C.'bg-muted'
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =10
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          RadiusBottomLeft: |-
+                                              =5
+                                          RadiusBottomRight: |-
+                                              =5
+                                          RadiusTopLeft: |-
+                                              =5
+                                          RadiusTopRight: |-
+                                              =5
+                                          Width: |-
+                                              =160
                         - galMdRequests:
                             Control: Gallery
                             Variant: Vertical
@@ -4272,7 +4887,7 @@ Screens:
                               PaddingTop: |-
                                   =12
                               Visible: |-
-                                  =galMdRequests.AllItemsCount = 0
+                                  =galMdRequests.AllItemsCount = 0 && !varMdLoading
                             Children:
                               - imgMdEmptyIcon:
                                   Control: Image

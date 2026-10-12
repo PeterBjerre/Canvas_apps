@@ -40,7 +40,13 @@ Grundlag: designreviewet af BIO SAP (designlærredet "BIO SAP — UX review"), t
 | Hub | Gjort: domæne+ID i én kolonne, Requester skjult i My requests, stepper uden mikroetiketter og "-", Delete kun på kladder, grupperet filterlinje med 360 px søgning, Stuck kun for Indsendt/UnderBehandling/AfventerInfo (`STUCK_DAYS`). | `build_hub.py`, `request_index.py` |
 | Øvrige | Gjort: tooltips på deaktiverede knapper, MP's beskrivelser som tekst, FL Spool (fyldt tilstand, "2 of 5 valid"), KKS (søg mens der skrives, kopier-ikon), VH (ingen "Step 3"-chip, ingen ekstra Reset, låst hoved som View). | — |
 
-**Etape 2 og 3**: se de enkelte PR'er; afsnittet opdateres pr. etape.
+**Etape 2 — middel** (små PR'er, `claude/ux-etape-2*`)
+
+| ID | Status | Hvor |
+|---|---|---|
+| M7 | 2a: pladsholder-rækker (`skeleton_rows()`) mens hubben og Issue Board henter; hubbens "No requests match" og Issue Boards hjul over hele skærmen under hentningen er væk. KKS beholder sit hjul (alt hentes samlet én gang pr. session, uden data er der intet at vise). | `build_helpers.skeleton_rows` |
+
+**Etape 3**: se de enkelte PR'er; afsnittet opdateres pr. etape.
 
 **Ikke efterprøvet i Studio** — kør `python tools\canvas_mcp.py deploy --app biosap` og se især: beskeden nederst til højre (auto-skjul, luk-kryds), datovælgerne i dd-mm-yyyy, statuschips i lys og mørk tilstand, `H.hit` på touch, de gemte filtre efter genstart, KKS-søgningen mens der skrives, Fluent-ikonerne `ArrowClockwise`/`Copy`/`Checkmark`.
 
