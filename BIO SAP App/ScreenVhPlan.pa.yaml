@@ -933,7 +933,7 @@ Screens:
                                               Control: ModernText
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Plan header, items, task lists and operations - submitted to SAP master data."
+                                                    =Self.Text
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
@@ -957,7 +957,7 @@ Screens:
                                                 Size: |-
                                                     =13
                                                 Text: |-
-                                                    ="Plan header, items, task lists and operations - submitted to SAP master data."
+                                                    =If(IsBlank(Trim(varVhpPlan.PlanText)), "Plan header, items, task lists and operations - submitted to SAP master data.", varVhpPlan.PlanText)
                                                 Visible: |-
                                                     =LayoutRank >= 2
                                                 Wrap: |-
@@ -5680,13 +5680,13 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =(If(LayoutRank < 3, (110 + 12 + (Max(CountRows(colVhpItems), 1) * 94) + If(IfError(CountRows(colVhpItems) = 0, true), 12 + (156), 0)) + 20 + (36 + (26 + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
+                            =(If(LayoutRank < 3, (110 + 12 + (Max(CountRows(colVhpItems), 1) * 94) + If(IfError(CountRows(colVhpItems) = 0, true), 12 + (156), 0)) + 20 + (36 + (30 + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "item" && Kind = "Panel"),
                                 Ord
                             )), 1) * 88) + If(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "item" && Kind = "Panel"),
                                 Ord
-                            )) = 0, 4 + (32), 0)), 0) + 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (60 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 40, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (60 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))) + 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && Len(Trim(cmbVhpItemFL.SearchText)) < 8, 6 + (18), 0) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)) + (20 + 6 + (34 + If((Len(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "")) > 0 && If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "") <> "ZBOW"), 4 + (32), 0)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 20, Max((20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && Len(Trim(cmbVhpItemFL.SearchText)) < 8, 6 + (18), 0) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)), (20 + 6 + (34 + If((Len(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "")) > 0 && If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "") <> "ZBOW"), 4 + (32), 0)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))) + 14 + (If(LayoutRank < 2, If(((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)), (0 + If((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)) + 8, 0) + 36, Max(If(((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)), 0 + If((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0), 0), 36)))), Max((110 + 12 + (Max(CountRows(colVhpItems), 1) * 94) + If(IfError(CountRows(colVhpItems) = 0, true), 12 + (156), 0)), (36 + (26 + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
+                            )) = 0, 4 + (32), 0)), 0) + 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (60 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 40, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (60 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))) + 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640, (20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && Len(Trim(cmbVhpItemFL.SearchText)) < 8, 6 + (18), 0) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)) + (20 + 6 + (34 + If((Len(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "")) > 0 && If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "") <> "ZBOW"), 4 + (32), 0)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 20, Max((20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && Len(Trim(cmbVhpItemFL.SearchText)) < 8, 6 + (18), 0) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)), (20 + 6 + (34 + If((Len(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "")) > 0 && If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "") <> "ZBOW"), 4 + (32), 0)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))) + 14 + (If(LayoutRank < 2, If(((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)), (0 + If((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)) + 8, 0) + 36, Max(If(((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)), 0 + If((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0), 0), 36)))), Max((110 + 12 + (Max(CountRows(colVhpItems), 1) * 94) + If(IfError(CountRows(colVhpItems) = 0, true), 12 + (156), 0)), (36 + (30 + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "item" && Kind = "Panel"),
                                 Ord
                             )), 1) * 88) + If(CountRows(Sort(
@@ -6763,7 +6763,7 @@ Screens:
                               FillPortions: |-
                                   =If(LayoutRank >= 3, 1, 0)
                               Height: |-
-                                  =36 + (26 + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
+                                  =36 + (30 + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
                                       Filter(colVhpHelp, Key = "item" && Kind = "Panel"),
                                       Ord
                                   )), 1) * 88) + If(CountRows(Sort(
@@ -6814,7 +6814,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =26 + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
+                                        =30 + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
                                             Filter(colVhpHelp, Key = "item" && Kind = "Panel"),
                                             Ord
                                         )), 1) * 88) + If(CountRows(Sort(
@@ -6847,7 +6847,7 @@ Screens:
                                           FillPortions: |-
                                               =0
                                           Height: |-
-                                              =26
+                                              =30
                                           LayoutAlignItems: |-
                                               =LayoutAlignItems.Center
                                           LayoutDirection: |-
@@ -6900,6 +6900,39 @@ Screens:
                                                     =43
                                                 Wrap: |-
                                                     =false
+                                          - txtVhpEditorWhich:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    =Self.Text
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    =If(IsBlank(varVhpActiveItemId), "", Text(CountRows(Filter(colVhpItems, ItemId <= varVhpActiveItemId))) & If(IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).ShortText), "", "  ·  " & LookUp(colVhpItems, ItemId = varVhpActiveItemId).ShortText))
+                                                Width: |-
+                                                    =260
+                                                Wrap: |-
+                                                    =false
                                           - conVhpEditorHeadGap:
                                               Control: GroupContainer
                                               Variant: AutoLayout
@@ -6925,7 +6958,7 @@ Screens:
                                                 LayoutOverflowY: |-
                                                     =LayoutOverflow.Hide
                                                 Width: |-
-                                                    =Max(0, ((((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20)) - 18 - 18))) - ((43) + 12) - (If(((VhpItemsValid && !(With(
+                                                    =Max(0, ((((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), (App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 360 - 20)) - 18 - 18))) - ((43) + 12) - ((260) + 12) - (If(!IsBlank(varVhpActiveItemId), (110) + 12, 0)) - (If(((VhpItemsValid && !(With(
                                                         { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
                                                         !IsBlank(varVhpActiveItemId) && (
                                                             Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
@@ -6937,6 +6970,68 @@ Screens:
                                                             Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                                         )
                                                     )))) || (LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status = "invalid"), (72) + 12, 0)) - 2)
+                                          - btnVhpEditorDelete:
+                                              Control: ModernButton
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Delete item " & Text(CountRows(Filter(colVhpItems, ItemId <= varVhpActiveItemId)))
+                                                Align: |-
+                                                    =Align.Center
+                                                AlignInContainer: |-
+                                                    =AlignInContainer.Center
+                                                Appearance: |-
+                                                    =ButtonAppearance.Outline
+                                                BorderColor: |-
+                                                    =C.'border-error'
+                                                BorderThickness: |-
+                                                    =1
+                                                Color: |-
+                                                    =C.'state-error-fg'
+                                                DisplayMode: |-
+                                                    =If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =30
+                                                Layout: |-
+                                                    =ButtonLayout.TextOnly
+                                                LayoutMinWidth: |-
+                                                    =110
+                                                OnSelect: |-
+                                                    =With(
+                                                        { id: varVhpActiveItemId, no: CountRows(Filter(colVhpItems, ItemId <= varVhpActiveItemId)) },
+                                                        RemoveIf(colVhpOperations, ItemId = id);
+                                                        RemoveIf(colVhpItemObjects, ItemId = id);
+                                                        RemoveIf(colVhpMaterials, ItemId = id);
+                                                        RemoveIf(colVhpAttachments, ItemId = id);
+                                                        RemoveIf(colVhpItems, ItemId = id);
+                                                        If(
+                                                            varVhpActiveItemId = id,
+                                                            Set(varVhpActiveItemId, If(CountRows(colVhpItems) > 0, First(colVhpItems).ItemId, Blank()));
+                                                            Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist)
+                                                        );
+                                                        Set(gblToast, { Text: "Item " & Text(no) & " deleted.", Kind: "Success", At: Now() }); true
+                                                    )
+                                                RadiusBottomLeft: |-
+                                                    =10
+                                                RadiusBottomRight: |-
+                                                    =10
+                                                RadiusTopLeft: |-
+                                                    =10
+                                                RadiusTopRight: |-
+                                                    =10
+                                                Size: |-
+                                                    =13
+                                                Text: |-
+                                                    ="Delete item"
+                                                VerticalAlign: |-
+                                                    =VerticalAlign.Middle
+                                                Visible: |-
+                                                    =!IsBlank(varVhpActiveItemId)
+                                                Width: |-
+                                                    =110
                                           - txtVhpEditorHeadBadge:
                                               Control: ModernText
                                               Properties:
