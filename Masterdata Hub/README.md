@@ -50,6 +50,24 @@ Efter `image.png`, med to afvigelser:
   overskriften. Et aktivt domænefilter står som en lille knap i domænets
   farve over tabellen (klik = fjern filteret).
 
+**UX-review 2026-10 (etape 1):**
+
+- Undertitlen er "Requests for SAP master data".
+- **REQUEST-kolonnen** har domænets ikon, nummeret og domænets navn i én
+  celle (før tre gange). *Requester* skjules i *My requests*, og TEXT får
+  pladsen.
+- Godkendelsesstriben har ingen mikroetiketter (trinene står i
+  tooltip'en), og "Not required" er "-".
+- Status er den fælles statuschip (`tools/status_chip.py`). *Updated*
+  viser datoen (dd-mm-yyyy); den relative tid står i rækkens tooltip.
+- **Stuck** gælder kun Indsendt, UnderBehandling og AfventerInfo, efter
+  `request_index.STUCK_DAYS` (5) dage.
+- *Delete* står kun på kladder.
+- Filterlinjen er grupperet: Open / Closed / All (i) | Waiting for me,
+  Stuck — og søgefeltet er op til 360 px.
+- Filtrene og søgningen huskes mellem besøg (`SaveData`, docs/26).
+- En tom liste siger det og har *Clear filters*.
+
 "New request" i bjælken åbner en menu med de fem domæner.
 
 ## Filer

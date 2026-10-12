@@ -113,7 +113,8 @@ def _submit(t):
     """Submit-knappens OnSelect i den byggede skaerm."""
     i = t.index("btnDomSubmit:")
     j = t.index("OnSelect:", i)
-    return t[j:t.index("Text:", j)]
+    # Naeste YAML-egenskab (ikke "Text:" inde i en besked - tools/toast.py).
+    return t[j:t.index("Text: |-", j)]
 
 
 def test_submit_looks_up_the_system_manager_only_for_new_counters(on):
@@ -139,7 +140,7 @@ def test_submit_looks_up_the_prodos_creator_per_plant(on):
 def test_a_missing_manager_or_creator_stops_the_confirmation(on):
     fx = _submit(on)
     # Spaerret -> en besked; ellers aabner bekraeftelsen.
-    assert fx.index("Notify(If(") < fx.index("Set(varDomConfirmSubmit, true)")
+    assert fx.index("Set(gblToast, { Text: If(") < fx.index("Set(varDomConfirmSubmit, true)")
     for msg in ('"Cannot submit: " & First(Filter(colDomApprovers',
                 '"Cannot submit: no PRODOS/SRO creator is configured for plant " & '
                 'First(Filter(colDomCreators, IsBlank(Creator))).Plant & "."',
@@ -624,8 +625,10 @@ def test_the_plan_and_material_strips_are_the_same_with_the_flag(hub_on, hub_off
 
 def test_the_mp_strip_has_system_counter_and_sap(hub_on):
     mp = hub_on["mp"]
-    for name in (">System<", ">Counter<", ">SAP<"):
-        assert name in mp, name
+    # System, Counter og SAP: tre knuder (etiketterne er vaek, UX-review).
+    assert mp.count("<circle") == 3
+    for stage in ("System", "Counter"):
+        assert 'Stage = "%s"' % stage in mp, stage
     assert "Cost" not in mp and "Quality" not in mp and "Handover" not in mp
     # Uden raekker i nogen af de to trin: intet forloeb.
     assert 'CountRows(Filter(L, Stage = "System" || Stage = "Counter")) = 0' in mp
@@ -645,7 +648,7 @@ def test_the_row_strip_branches_to_mp(hub_on):
     row = hub_on["row"]
     i, j = row.index('ThisItem.Domain.Value = "Material"'), row.index(
         'ThisItem.Domain.Value = "MeasuringPoint",')
-    assert i < j and ">Counter<" in row
+    assert i < j and 'Stage = "Counter"' in row
 
 
 def test_the_popup_shows_mps_stages(hub_on):

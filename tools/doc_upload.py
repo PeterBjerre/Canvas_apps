@@ -34,7 +34,7 @@ Value ligesom den klassiske, og det er de to, flowet faar.
 from gen_screen import (Ctrl, C_MUTED, C_MUTED_BG, C_INVALID_FG, C_VALID_FG, C_CARD_BORDER,
                         C_INFO_BG)
 import layout_tokens as lay
-from build_helpers import text_ctrl, button, group, grow, fit_button_width, ICON_W
+from build_helpers import text_ctrl, button, group, grow, fit_button_width, ICON_W, ensure_hit
 
 CONTROL = "Attachments@2.3.0"
 
@@ -44,8 +44,12 @@ PICKER_H = 112
 PICKER_FILE_H = 36
 PICKER_MAX_FILES_SHOWN = 4
 
-# Raekkerne i listen over gemte filer.
-ROW_H = 40
+# Raekkerne i listen over gemte filer. Remove er en ikonknap og skal have
+# klikfladen H.hit (UX-review F6, regel 40): 32 px fra Desktop, 44 under -
+# derfor er raekken 48 px under Desktop. ROW_H er en formel; TEMPLATE_H er
+# galleriets skabelon (raekken minus 2 px polstring).
+ROW_H = f"({lay.HIT} + 8)"
+TEMPLATE_H = f"{lay.HIT} + 6"
 BADGE_W = 44
 REMOVE_W = 40
 
@@ -147,6 +151,7 @@ def remove_button(name, pane, file_expr, can_edit):
                display_mode=f"If({pane.busy}, DisplayMode.Disabled, DisplayMode.Edit)")
     b.props["Layout"] = "ButtonLayout.IconOnly"
     b.props["LayoutMinWidth"] = str(REMOVE_W)
+    ensure_hit(b)
     return b
 
 

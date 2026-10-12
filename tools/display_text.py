@@ -38,6 +38,29 @@ def formula():
     )
 
 
+def plural(n_expr, one, many=None):
+    """'1 row' / '2 rows' - aldrig 'row(s)' (UX-review 2026-10, B4).
+
+    n_expr er et Power Fx-tal. Udtrykket regnes een gang (With)."""
+    many = many or one + "s"
+    return f'With({{ _c: {n_expr} }}, Text(_c) & If(_c = 1, " {one}", " {many}"))'
+
+
+# GAMLE OPSUMMERINGER (B4). MD_RequestIndex.ShortText blev skrevet som
+# "Materials: 1 raekke(r)" og senere "Equipment: 2 row(s)". Raekkerne
+# staar stadig i listen; de vises paa engelsk her - data roeres ikke.
+LEGACY_SHORT = ((" 1 raekke(r)", " 1 row"), (" raekke(r)", " rows"),
+                (" 1 row(s)", " 1 row"), (" row(s)", " rows"))
+
+
+def short_text(expr):
+    """ShortText til visning: gamle "raekke(r)"/"row(s)" som "row"/"rows"."""
+    e = expr
+    for old, new in LEGACY_SHORT:
+        e = f'Substitute({e}, "{old}", "{new}")'
+    return e
+
+
 def status(expr, fallback=None):
     """Den engelske etiket for en lagret statusvaerdi. En ukendt vaerdi
     vises som den er (eller som fallback, et Power Fx-udtryk)."""

@@ -198,6 +198,9 @@ def _evaluate_n(expr, w, n):
     # skifter. De blev alle 15 sprunget over med et tavst "kan ikke".
     e = re.sub(r'LayoutContext\s*=\s*"(\w+)"',
                lambda m: "True" if m.group(1) == lay.tier_for(w) else "False", e)
+    # De navngivne maal (H.hit ...) - layout_tokens.NAMED (UX-review F6).
+    e = re.sub(r"\b(%s)\.(\w+)\b" % "|".join(lay.NAMED),
+               lambda m: str(lay.named_value(m.group(1), m.group(2), w)), e)
     e = re.sub(r"\bLayoutRank\b", str(lay.rank_for(w)), e)
 
     e = e.replace("App.Width", str(w)).replace("App.Height", "900")
@@ -2306,6 +2309,59 @@ def rule_38(ctx):
                 f"AccessibleLabelNeeded. Giv en kort engelsk etiket om det, den viser")
 
 
+def rule_39(ctx):
+    """Ingen Notify - beskeder er appens egne (tools/toast.py, UX-review B1)"""
+    # Platformens Notify-banner ligger OEVERST paa skaermen, oven paa
+    # headeren, og klippede VH-planens titel. gen_screen.render_screen
+    # omskriver hvert Notify til gblToast; et Notify, der naar ud i YAML'en,
+    # er sluppet uden om den vej.
+    for p_, name, body in ctx.all_nodes:
+        for key, val in (body.get("Properties") or {}).items():
+            if isinstance(val, str) and re.search(r"\bNotify\s*\(", val):
+                ctx.problems.append(f"[39] {name}.{key}: Notify( i skaermen - beskeder "
+                                    f"vises med tools/toast.py (gblToast)")
+    for key, val in (ctx.screen.get("Properties") or {}).items():
+        if isinstance(val, str) and re.search(r"\bNotify\s*\(", val):
+            ctx.problems.append(f"[39] skaermen.{key}: Notify( - brug tools/toast.py")
+
+
+def rule_40(ctx):
+    """Ikonknapper har mindst klikfladen H.hit (UX-review F6/T10)"""
+    # En knap, der kun er sit ikon, og et klikbart ikonbillede skal vaere
+    # mindst H.hit hoej og bred: 32 px fra Desktop, 44 px under (touch,
+    # WCAG 2.5.5). Ikonet beholder sin stoerrelse - kun fladen vokser.
+    # Hoejden regnes ud for hver testbredde; kan den ikke regnes (et
+    # galleri), springes kontrollen over.
+    for p_, name, body in ctx.all_nodes:
+        ctl = (body.get("Control") or "").split("@")[0]
+        props = body.get("Properties") or {}
+        val = lambda k: str(props.get(k, "")).strip().lstrip("=").strip()
+        if ctl == "ModernButton":
+            if val("Layout") != "ButtonLayout.IconOnly":
+                continue
+        elif ctl == "Image":
+            on = val("OnSelect")
+            if not on or on == "false" or val("TabIndex").startswith("-"):
+                continue
+            w0 = evaluate(val("Width"), 1366, 1, 1, 1)
+            if w0 is None or w0 > 60:
+                continue                  # fliser, sloer og store billeder
+        else:
+            continue
+        for w in lay.test_widths():
+            need = lay.named_value("H", "hit", w)
+            for k in ("Height", "Width"):
+                got = evaluate(val(k), w, 1, 1, 1)
+                if got is not None and got + 0.5 < need:
+                    ctx.problems.append(
+                        f"[40] {name}.{k} = {got:g} ved App.Width={w} - en ikonknap skal "
+                        f"vaere mindst H.hit ({need}). Brug layout_tokens.HIT")
+                    break
+            else:
+                continue
+            break
+
+
 RULES = [
     Rule('0', 'Hvert kontrolnavn findes kun een gang', rule_0),
     Rule('1', 'Ingen kontrol-til-kontrol hoejdereferencer', rule_1),
@@ -2353,6 +2409,8 @@ RULES = [
     Rule('36', 'AllItemsCount i stedet for CountRows(galleri.AllItems) (issue #165)', rule_36),
     Rule('37', 'Billeder, figurer og klassiske knapper skal have TabIndex >= 0 (issue #165)', rule_37),
     Rule('38', 'Billeder, figurer, tekster og inputs skal have en AccessibleLabel (issue #165)', rule_38),
+    Rule('39', 'Ingen Notify - beskeder er appens egne (tools/toast.py, UX-review B1)', rule_39),
+    Rule('40', 'Ikonknapper har mindst klikfladen H.hit (UX-review F6/T10)', rule_40),
 ]
 
 

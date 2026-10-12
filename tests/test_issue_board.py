@@ -803,9 +803,11 @@ def test_refresh_never_empties_what_is_shown():
     assert "ClearCollect(colIbFresh," in P.SYNC
     assert P.SYNC.index("varIbSyncFailed,") < P.SYNC.index("ClearCollect(colIbAll, colIbFresh)")
     assert "If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh)" in P.LOAD_ACTIVITY
-    # Ingen timer.
+    # Ingen timer til hentningen. Den eneste timer er beskedens
+    # (tools/toast.py), der kun taeller, mens en besked er synlig.
     text = open(os.path.join(ROOT, "BIO SAP App", "ScreenIssueBoard.pa.yaml"), encoding="utf-8").read()
-    assert "Control: Timer" not in text
+    assert text.count("Control: Timer") == 1
+    assert "tmrIbToast:" in text
 
 
 def test_changes_update_the_open_issue_and_its_row_without_a_reload():

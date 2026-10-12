@@ -239,7 +239,13 @@ def _image(name, svg, width, height, onselect, label, tooltip=None, hover=True):
     }
     if tooltip:
         props["Tooltip"] = tooltip
-    return Ctrl(name, "Image", props=props, h=height)
+    img = Ctrl(name, "Image", props=props, h=height)
+    # Klikfladen er mindst H.hit (UX-review F6) - punktets tegning er den
+    # samme og staar midt i fladen.
+    if onselect != "false":
+        from build_helpers import ensure_hit
+        ensure_hit(img)
+    return img
 
 
 

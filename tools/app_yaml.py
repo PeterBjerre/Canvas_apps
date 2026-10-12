@@ -10,19 +10,24 @@ det samme med smaa forskelle, og ingen af dem satte App.OnError.
     app_yaml.write(out_dir, formulas=..., onstart=..., start_screen="ScreenX")
 """
 import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import toast  # noqa: E402
 
 # APP.OnError - DEN SAMME I ALLE APPS
 #
 # OnError koerer kun for fejl, ingen formel har fanget med IfError. Uden den
 # viser Power Apps sin egen standardbanner, og fejlen findes ingen andre
 # steder. Her logges den til Monitor/Application Insights (Trace) og vises
-# med vores egen tekst (REVIEW.md D26).
+# med vores egen tekst (REVIEW.md D26) - som en besked nederst til hoejre
+# (tools/toast.py), ikke platformens banner oven paa headeren.
 ON_ERROR = """Trace(
     "Unhandled error",
     TraceSeverity.Error,
     { Message: FirstError.Message, Source: FirstError.Source, Observed: FirstError.Observed }
 );
-Notify("Something went wrong: " & FirstError.Message, NotificationType.Error)"""
+""" + toast.show_fx('"Something went wrong: " & FirstError.Message', "Error")
 
 
 def block(prop, text):
@@ -43,6 +48,7 @@ def block(prop, text):
 def render(formulas, onstart, start_screen, on_error=ON_ERROR):
     """Hele App.pa.yaml som tekst. start_screen er et skaermnavn eller en
     formel (BIO SAP vaelger skaerm efter dyblinket)."""
+    on_error = toast.rewrite(on_error)
     out = ["App:", "  Properties:"]
     out += block("Formulas", formulas)
     out += block("OnError", on_error)

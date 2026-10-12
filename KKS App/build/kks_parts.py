@@ -35,7 +35,8 @@ from gen_screen import (Ctrl, C_CARD_BG, C_DISABLED_BG, C_DIVIDER, C_INFO_BG,
                         C_PRIMARY_SOFT, C_MODAL_BG, C_TRANSPARENT, C_WHITE)
 from build_helpers import (border_rule, button, card, concurrent, fit_button_width, flow_row, group, grow,
                            input_theme, loading_overlay, row_hit, row_rule, text_ctrl,
-                           text_modal, themed_dropdown, top_bar, app_frame)
+                           text_modal, themed_dropdown, top_bar, app_frame, text_input,
+                           ensure_hit, hit_size)
 from fl_picker import BUSY_W, SEARCH_W, busy_box, HEIGHT as SEARCH_H, ROW_PAD as SEARCH_PAD, _timer
 import layout_tokens as lay
 from layout_tokens import SHELL_W, SCROLLBAR_W, GALLERY_RESERVE
@@ -93,7 +94,12 @@ TABLE_W = (f"({RES_W} - {SCROLLBAR_W} - If({lay.below('Tablet')}, 0, {GALLERY_RE
 ROW_PAD = 8
 ROW_GAP = 8
 CODE_W = 72
-DESC_W = f"({TABLE_W} - {2 * ROW_PAD} - {CODE_W} - {ROW_GAP})"
+# Kopier-ikonet yderst til hoejre i raekken (UX-review, KKS) - beskrivelsen
+# giver plads til det.
+COPY_W = 32
+# Kopier-knappen er H.hit bred (44 under Desktop - UX-review F6, regel 40).
+DESC_W = (f"({TABLE_W} - {2 * ROW_PAD} - {CODE_W} - {ROW_GAP} - "
+          f"Max({COPY_W}, {lay.HIT}) - {ROW_GAP})")
 # Beskrivelserne ombrydes. Hoejden regnes af laengden: tegn pr. linje ved
 # 13 pt (mange er VERSALER, derfor et bredt skoen - hellere en linje luft
 # end en klippet linje), 19 px pr. linje.
@@ -116,8 +122,7 @@ def row_h(ref):
 # Tilstand
 # ---------------------------------------------------------------------------
 CLEAR_LEVELS = 'Set(varKksL1, "ALL");\nSet(varKksL2, "");\nSet(varKksL3, "")'
-CLEAR_QUERY = ('Set(varKksQuery, "");\nSet(varKksTyped, "");\n'
-               'Set(varKksBusy, false);\nReset(cmbKksFind)')
+CLEAR_QUERY = 'Set(varKksQuery, "");\nReset(inpKksFind)'
 
 # Foerste besoeg: tilstanden saettes, hvis den ikke findes. Staar i
 # skaermens OnVisible og ikke i App.OnStart, saa den ogsaa gaelder i BIO
@@ -128,13 +133,10 @@ INIT_STATE = (
     '    Set(varKksKey, "function");\n'
     "    " + CLEAR_LEVELS.replace("\n", "\n    ") + ";\n"
     '    Set(varKksQuery, "");\n'
-    '    Set(varKksTyped, "");\n'
-    '    Set(varKksPending, "");\n'
     '    Set(varKksDetailCode, "");\n'
     '    Set(varKksDetailText, "");\n'
     '    Set(varKksDetailOn, false);\n'
-    '    Set(varKksPick, 0);\n'
-    "    Set(varKksBusy, false)\n"
+    '    Set(varKksPick, 0)\n'
     ")"
 )
 
@@ -233,6 +235,10 @@ def _cap(expr):
     return f"Upper(Left(Lower({expr}), 1)) & Mid(Lower({expr}), 2)"
 
 
+# Noegletypens navn (Function/Aggregate/Component) foerst i overskriften (UX-review).
+KEY_SW = ("Switch(varKksKey, " + ", ".join('"%s", "%s"' % (k, t) for k, t, _s in cfg.KEYS)
+          + ', "")')
+
 FORMULAS = f'''// KKS-opslaget (KKS App/build/kks_parts.py). Samlingerne hentes i
 // skaermens OnVisible; alt herunder regnes i hukommelsen.
 // varKksLoaded staar med for at tvinge en genberegning, naar noeglerne er hentet.
@@ -251,12 +257,12 @@ colKksL2Rows = If(IsBlank(varKksL2), colKksBaseQ, Filter(colKksBaseQ, P2 = varKk
 colKksL3Keys = Sort(Distinct(Filter(colKksL2Rows, KksHasL3 && !IsBlank(varKksL2) && Len(P3) = 3 && StartsWith(P3, varKksL2)), P3), Value);
 colKksL3Rows = If(!KksHasL3 || IsBlank(varKksL3), colKksL2Rows, Filter(colKksL2Rows, P3 = varKksL3));
 colKksResults = If(varKksL1 = "ALL" && IsBlank(varKksQuery) && KksHasL3, Filter(colKksScope, L1 = "HOME"), colKksL3Rows);
-KksNote2 = If(varKksL1 = "ALL", "Pick a letter to see its groups.", CountRows(colKksL2Keys) = 0, If(IsBlank(varKksQuery), "No groups under this letter.", "No groups match the search."), "");
-KksNote3 = If(!KksHasL3, "", varKksL1 = "ALL", "Pick a letter to see its subgroups.", IsBlank(varKksL2), "Pick a group to see its subgroups.", CountRows(colKksL3Keys) = 0, If(IsBlank(varKksQuery), "No subgroups under this group.", "No subgroups match the search."), "");
+KksNote2 = If(varKksL1 = "ALL", "", CountRows(colKksL2Keys) = 0, If(IsBlank(varKksQuery), "No groups under this letter.", "No groups match the search."), "");
+KksNote3 = If(!KksHasL3, "", varKksL1 = "ALL", "", IsBlank(varKksL2), "", CountRows(colKksL3Keys) = 0, If(IsBlank(varKksQuery), "No subgroups under this group.", "No subgroups match the search."), "");
 KksHeadL1 = If(varKksL1 = "ALL", "", Coalesce(LookUp(colKksScope, L1 = "HOME" && Upper(Code) = varKksL1, Description), LookUp(colKksBase, Upper(Code) = varKksL1, Description), LookUp(colKksBase, Len(P2) = 2 && Upper(Code) = P2 && StartsWith(P2, varKksL1), Description), ""));
 KksHeadL2 = If(IsBlank(varKksL2), "", Coalesce(LookUp(colKksScope, Upper(Code) = varKksL2, Description), ""));
 KksHeadL3 = If(IsBlank(varKksL3), "", Coalesce(LookUp(colKksScope, Upper(Code) = varKksL3, Description), ""));
-KksTitle = If(varKksL1 = "ALL", "All sections" & If(IsBlank(varKksQuery), "", " - search results"), varKksL1 & If(IsBlank(varKksL2) && IsBlank(varKksL3) && !IsBlank(KksHeadL1), " - " & {_cap("KksHeadL1")}, "") & If(IsBlank(varKksL2), "", " / " & varKksL2 & If(IsBlank(varKksL3) && !IsBlank(KksHeadL2), " - " & {_cap("KksHeadL2")}, "")) & If(IsBlank(varKksL3), "", " / " & varKksL3 & If(!IsBlank(KksHeadL3), " - " & {_cap("KksHeadL3")}, "")) & If(IsBlank(varKksQuery), "", " - search results"));'''
+KksTitle = {KEY_SW} & " / " & If(varKksL1 = "ALL", "All groups", varKksL1 & If(IsBlank(varKksL2) && IsBlank(varKksL3) && !IsBlank(KksHeadL1), " - " & {_cap("KksHeadL1")}, "") & If(IsBlank(varKksL2), "", " / " & varKksL2 & If(IsBlank(varKksL3) && !IsBlank(KksHeadL2), " - " & {_cap("KksHeadL2")}, "")) & If(IsBlank(varKksL3), "", " / " & varKksL3 & If(!IsBlank(KksHeadL3), " - " & {_cap("KksHeadL3")}, ""))) & If(IsBlank(varKksQuery), "", " - search results") & " \u00b7 " & Text(CountRows(colKksResults)) & If(CountRows(colKksResults) = 1, " code", " codes");'''
 
 
 
@@ -337,117 +343,51 @@ def _key_tabs():
     return flow_row("conKksKeys", tabs, CARD_W, gap=8)
 
 
-SEARCH_CODE = "?search"
 SEARCH_MIN = 2
 SEARCH_ROW_W = f"If({lay.below('Tablet')}, {CARD_W}, Max(460, {CARD_W} / 3))"
-RESET_FX = ('Set(varKksKey, "function");\n' + CLEAR_LEVELS + ";\n" + CLEAR_QUERY
-            + ';\nSet(varKksPending, "");\nSet(varKksDetailOn, false)')
-NOTHING_TO_RESET = ('varKksKey = "function" && varKksL1 = "ALL" && IsBlank(varKksL2) && '
-                    'IsBlank(varKksL3) && IsBlank(varKksQuery) && IsBlank(varKksTyped) && '
-                    'IsBlank(cmbKksFind.SearchText)')
-
-
-def _suggest_items():
-    """Comboboksens Items: de raekker, der matcher det skrevne (hoejst 50),
-    plus en soegeraekke foerst, naar teksten er en ny soegning - Enter
-    vaelger den, og ModernCombobox har ingen anden Enter-haendelse. Samme
-    moenster som FL-vaelgeren (tools/fl_picker.py), men paa de lokale
-    samlinger: intet flowkald."""
-    s = (f'{{ L1: "", Code: "{SEARCH_CODE}", Description: q, P2: "", P3: "", '
-         f'Display: q & "  -  press Enter to search" }}')
-    return (
-        "With(\n"
-        "    { q: Trim(Self.SearchText) },\n"
-        "    With(\n"
-        "        {\n"
-        f"            hits: FirstN(AddColumns(Filter(colKksScope, Len(q) >= {SEARCH_MIN} && "
-        "(q in Code || q in Description)), Display, Code & \" - \" & Description), 50),\n"
-        f"            s: {s}\n"
-        "        },\n"
-        "        If(\n"
-        f"            Len(q) < {SEARCH_MIN} || varKksBusy || Upper(q) = Upper(Coalesce(varKksQuery, \"\")),\n"
-        "            hits,\n"
-        "            ForAll(Sequence(CountRows(hits) + 1),\n"
-        "                If(Value = 1, s, IfError(Index(hits, Value - 1), s)))\n"
-        "        )\n"
-        "    )\n"
-        ")"
-    )
+# Soegningen (UX-review, KKS): et tekstfelt med soegeikon og et kryds, der
+# rydder det. Den soeger, mens man skriver - en timer laegger teksten i
+# varKksQuery et kort ophold efter sidste tastetryk, saa filtreringen over
+# alle raekker ikke regnes om for hvert tegn. Search og Reset er vaek; et
+# klik paa en raekke gaar stadig til dens plads (ROW_SELECT).
+QUERY_OF_TEXT = (f'With({{ _t: Trim(inpKksFind.Text) }}, '
+                 f'If(Len(_t) >= {SEARCH_MIN}, _t, ""))')
+SEARCH_ICON = 20
 
 
 def _search_row():
-    query = "Coalesce(cmbKksFind.SearchText, varKksTyped)"
-    run = f"Set(varKksPending, Trim({query}));\nSet(varKksBusy, true)"
-    pick = ROW_SELECT.replace("ThisItem.", "Self.Selected.")
-    on_change = (
-        "If(\n"
-        f'    Self.Selected.Code = "{SEARCH_CODE}",\n'
-        "    Set(varKksPending, Self.Selected.Description);\n"
-        "    Set(varKksBusy, true);\n"
-        "    Reset(cmbKksFind),\n"
-        "    !IsBlank(Self.Selected.Code),\n"
-        f"    {pick.replace(chr(10), chr(10) + '    ')}\n"
-        ")"
-    )
-    cmb = Ctrl("cmbKksFind", "ModernCombobox", props=input_theme({
-        "AccessibleLabel": '"Search KKS codes and descriptions - type, then Search or Enter"',
-        "BorderColor": border_rule("IsBlank(Self.SearchText)", "false"),
-        "BorderStyle": "BorderStyle.Solid",
-        "BorderThickness": "1",
-        "DelayOutput": "false",
-        "Height": str(SEARCH_H),
-        "InputTextPlaceholder": '"Search code or description"',
-        "IsSearchable": "true",
-        "ItemDisplayText": "ThisItem.Display",
-        "Items": _suggest_items(),
-        "LayoutMinWidth": "0",
-        "OnChange": on_change,
-        **lay.radius(lay.RADIUS_INPUT),
-        "SelectMultiple": "false",
-        "Width": "0",
-    }, None), h=SEARCH_H)
-    grow(cmb)
-
-    btn = button("btnKksFind", '"Search"', run, width=SEARCH_W, height=SEARCH_H,
-                 accessible='"Search KKS codes"', visible="!varKksBusy")
-    btn.props["LayoutMinWidth"] = str(SEARCH_W)
-    btn.props["Size"] = str(lay.SIZE_SMALL)
-    reset_w = fit_button_width('"Reset"')
-    reset = button("btnKksReset", '"Reset"', RESET_FX, width=reset_w, height=SEARCH_H,
-                   accessible='"Reset the KKS lookup"',
-                   display_mode=f'If({NOTHING_TO_RESET}, DisplayMode.Disabled, DisplayMode.Edit)')
-    reset.props["LayoutMinWidth"] = str(reset_w)
-    reset.props["Size"] = str(lay.SIZE_SMALL)
-    btns = group("conKksFindBtns", [btn, reset], direction="Horizontal", gap=8,
-                 height=SEARCH_H, width=str(SEARCH_W + 8 + reset_w), align_items="Center",
-                 visible="!varKksBusy")
-    btns.props["LayoutMinWidth"] = str(SEARCH_W + 8 + reset_w)
-    busy = busy_box("imgKksFindBusy", "varKksBusy")
-    stk = lay.below("Tablet")
-    for c in (btns, busy):
-        c.props["AlignInContainer"] = f"If({stk}, AlignInContainer.End, AlignInContainer.Center)"
-
-    row = group("conKksFindRow", [cmb, btns, busy], direction="Horizontal", gap=8,
-                height=SEARCH_H + 2 * SEARCH_PAD, pad=(SEARCH_PAD, 0, SEARCH_PAD, 0),
+    import icons
+    from design_tokens import ref_hex
+    col = '" & %s & "' % ref_hex("text-muted")
+    glyph = icons.svg("M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z M20 20l-4-4", col, size=SEARCH_ICON)
+    ico = Ctrl("imgKksFindIcon", "Image", props={
+        "AccessibleLabel": '"Search"',
+        "AlignInContainer": "AlignInContainer.Center",
+        "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+        "Height": str(SEARCH_ICON),
+        "Image": f'"data:image/svg+xml;utf8," & EncodeUrl("{glyph}")',
+        "ImagePosition": "ImagePosition.Fit",
+        "LayoutMinWidth": str(SEARCH_ICON),
+        "OnSelect": "false", "TabIndex": "0", "Width": str(SEARCH_ICON),
+    }, h=SEARCH_ICON)
+    inp = text_input("inpKksFind", "varKksQuery", placeholder='"Search code or description"',
+                     height=SEARCH_H, ttype="Search", label='"Search KKS codes and descriptions"')
+    inp.props["TriggerOutput"] = "TriggerOutput.Keypress"
+    grow(inp)
+    clear = button("btnKksFindClear", '""', CLEAR_QUERY, width=SEARCH_H, height=SEARCH_H,
+                   icon="Dismiss", accessible='"Clear the search"',
+                   tooltip='"Clear the search"', visible="!IsBlank(inpKksFind.Text)")
+    clear.props["Layout"] = "ButtonLayout.IconOnly"
+    clear.props["BorderColor"] = C_TRANSPARENT
+    clear.props["LayoutMinWidth"] = str(SEARCH_H)
+    ensure_hit(clear)                  # H.hit (UX-review F6, regel 40)
+    row = group("conKksFindRow", [ico, inp, clear], direction="Horizontal", gap=8,
+                height=f"{hit_size(SEARCH_H)} + {2 * SEARCH_PAD}", pad=(SEARCH_PAD, 0, SEARCH_PAD, 0),
                 align_items="Center", width=SEARCH_ROW_W)
-    row.props["LayoutDirection"] = (f"If({stk}, LayoutDirection.Vertical, "
-                                    "LayoutDirection.Horizontal)")
-    row.props["LayoutAlignItems"] = (f"If({stk}, LayoutAlignItems.Stretch, "
-                                     "LayoutAlignItems.Center)")
-    row.props["Height"] = (f"If({stk}, {2 * SEARCH_H + 8 + 2 * SEARCH_PAD}, "
-                           f"{SEARCH_H + 2 * SEARCH_PAD})")
-    row.h = row.props["Height"]
-    # Soegeteksten gemmes, mens der skrives: trykker man paa Search, mister
-    # comboboksen fokus og kan rydde sin tekst (se fl_picker).
-    capture = _timer("tmrKksFindCapture", "!IsBlank(cmbKksFind.SearchText)", 300,
-                     "If(!IsBlank(cmbKksFind.SearchText), "
-                     "Set(varKksTyped, cmbKksFind.SearchText))")
-    # Spinneren faar tid til at blive tegnet, foer filtreringen over alle
-    # raekker bliver regnet.
-    apply = _timer("tmrKksFindApply", "varKksBusy", 300,
-                   "Set(varKksQuery, varKksPending);\nSet(varKksBusy, false)")
+    apply = _timer("tmrKksFindApply", f'{QUERY_OF_TEXT} <> Coalesce(varKksQuery, "")', 350,
+                   f"Set(varKksQuery, {QUERY_OF_TEXT})")
     apply.props["Repeat"] = "false"
-    return group("conKksFindWrap", [row, capture, apply], direction="Vertical", gap=0,
+    return group("conKksFindWrap", [row, apply], direction="Vertical", gap=0,
                  width=SEARCH_ROW_W, align_in_container="Start")
 
 
@@ -602,11 +542,11 @@ def build_browse():
                'If(Self.Text = "ALL", IsBlank(varKksL2), varKksL2 = Self.Text)',
                'Set(varKksL2, If(Self.Text = "ALL", "", Self.Text));\n'
                'Set(varKksL3, "")', 56,
-               note="KksNote2", visible=wide)
+               note="KksNote2", visible=f'{wide} && varKksL1 <> "ALL"')
     l3 = _lane(3, "SUBGROUP", "colKksL3Keys",
                'If(Self.Text = "ALL", IsBlank(varKksL3), varKksL3 = Self.Text)',
                'Set(varKksL3, If(Self.Text = "ALL", "", Self.Text))', 56,
-               note="KksNote3", visible=f"KksHasL3 && {wide}")
+               note="KksNote3", visible=f"KksHasL3 && {wide} && !IsBlank(varKksL2)")
     m1 = _level_menu(1, "Letter", "colKksL1Keys", "varKksL1", None, "true")
     m2 = _level_menu(2, "Group", "colKksL2Keys", "varKksL2", None,
                      'varKksL1 <> "ALL" && CountRows(colKksL2Keys) > 0')
@@ -646,7 +586,8 @@ def _crumbs():
     crumbs = []
     # (navn, tekst, handling, synlig, bredde, "her er du", etiket)
     spec = [
-        ("All", '"All"', CLEAR_LEVELS, None, 44, 'varKksL1 = "ALL"', '"All sections"'),
+        ("All", '"All groups"', CLEAR_LEVELS, 'varKksL1 <> "ALL"', 84, 'varKksL1 = "ALL"',
+         '"All groups"'),
         ("L1", '"› " & varKksL1', 'Set(varKksL2, "");\nSet(varKksL3, "")',
          'varKksL1 <> "ALL"', 48, "IsBlank(varKksL2)", '"Letter " & varKksL1'),
         ("L2", '"› " & varKksL2', 'Set(varKksL3, "")', "!IsBlank(varKksL2)", 56,
@@ -700,6 +641,19 @@ def build_results():
     info.props["X"] = f"Parent.TemplateWidth - {ROW_PAD} - 30"
     info.props["Y"] = f"({rh}) - 33"
     info.props["LayoutMinWidth"] = "30"
+    # KOPIER KODEN (UX-review, KKS): brugeren skrev den af. Copy() laegger
+    # den i udklipsholderen, og beskeden siger "Copied" (tools/toast.py).
+    copy = button("btnKksRowCopy", '""',
+                  'Copy(ThisItem.Code);\nNotify("Copied " & ThisItem.Code & " to the clipboard.", '
+                  'NotificationType.Success)',
+                  width=COPY_W, height=COPY_W, icon="Copy",
+                  accessible='"Copy " & ThisItem.Code', tooltip='"Copy " & ThisItem.Code')
+    copy.props["Layout"] = "ButtonLayout.IconOnly"
+    copy.props["BorderColor"] = C_TRANSPARENT
+    ensure_hit(copy)
+    copy.props["X"] = f"Parent.TemplateWidth - {ROW_PAD} - Self.Width"
+    copy.props["Y"] = "0"
+    copy.props["_OnTop"] = "true"
     gal_h = f"If(CountRows(colKksResults) = 0, 0, {TABLE_MAX_H})"
     gal = Ctrl("galKksRows", "Gallery", variant="VariableHeight", props={
         "AccessibleLabel": '"KKS codes. Select a row to go to its place."',
@@ -708,7 +662,7 @@ def build_results():
         "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
         "ShowScrollbar": "true", "TabIndex": "0", "TemplatePadding": "0",
         "TemplateSize": "42", "Width": "Parent.Width",
-    }, children=[row, rule, hit], h=gal_h, vis="CountRows(colKksResults) > 0")
+    }, children=[row, rule, hit, copy], h=gal_h, vis="CountRows(colKksResults) > 0")
 
     empty = text_ctrl(
         "txtKksEmpty",

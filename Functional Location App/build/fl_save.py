@@ -40,6 +40,7 @@ import messages as msg
 import admin_log as alog
 import permissions as perm
 import request_index as ri
+import display_text as dt
 from fl_validation import BUCKETS
 
 LIVE = 'Filter(colFlRows, Status <> "draft")'
@@ -53,9 +54,9 @@ SUBMIT_OK = (f'!varFlStale && {ERRS} = 0 && {READY} > 0 && '
 SUBMIT_DM = f"If({SUBMIT_OK}, DisplayMode.Edit, DisplayMode.Disabled)"
 SUBMIT_WHY = (f'If(varFlStatus = "Indsendt", "Request " & varFlRequestNo & " is submitted and locked.",\n'
               f'   varFlStale, "The rows are being checked - try again in a moment.",\n'
-              f'   {ERRS} > 0, "Submit is blocked: " & {ERRS} & " row(s) have errors.",\n'
+              f'   {ERRS} > 0, "Submit is blocked: " & {dt.plural(ERRS, "row has", "rows have")} & " errors.",\n'
               f'   {READY} = 0, "There are no rows ready for SAP.",\n'
-              f'   "Ready to submit " & {READY} & " row(s).")')
+              f'   "Ready to submit " & {dt.plural(READY, "row")} & ".")')
 
 
 # Gemmer en admin en ANDENS anmodning? varFlReqNow er hovedet, som det
@@ -79,7 +80,7 @@ def _admin_log():
         + "\n".join(" " * 16 + l for l in row.split("\n")) + ")\n"
         "            )\n        ),\n        !IsBlank(Value)\n    ),\n    Value,\n    \"; \"\n)")
     added = (f'With({{ k: CountRows(Filter({LIVE}, !(RowGuid in colFlAdmOld.RowGuid))) }}, '
-             'If(k > 0, k & " row(s) added", ""))')
+             'If(k > 0, ' + dt.plural("k", "row") + ' & " added", ""))')
     comment = alog.join(rows, added)
     return (f"If(\n    {AS_ADMIN},\n    With(\n        {{ c: {comment} }},\n"
             "        If(\n            !IsBlank(c),\n"
@@ -122,7 +123,7 @@ def _index_patch(status, step=None):
     rec = ri.record(
         cfg.DOMAIN, cfg.APP_KEY, status,
         request_no="varFlRequestNo", guid="varFlRequestGuid", me="varFlMe",
-        short_text=f'"{cfg.TITLE}: " & CountRows({LIVE}) & " row(s)"',
+        short_text=ri.rows_text(cfg.TITLE, f"CountRows({LIVE})"),
         plant=f'Coalesce(Left(First(Sort({LIVE}, RowNo)).FL, 3), "")',
         item_count=f"CountRows({LIVE})", source_id="varFlReq.ID",
         # Ejeren bevares, ogsaa naar en admin gemmer (tools/permissions.py).
@@ -293,7 +294,7 @@ If(
     Set(varFlInfo, "");
     {ok},
     Set(varFlInfo, "Saving failed (" & First(colFlSaveErrors).Where & "): " & First(colFlSaveErrors).Msg);
-    Notify(CountRows(colFlSaveErrors) & " step(s) failed. What was saved is kept - try again.", NotificationType.Error)
+    Notify({dt.plural("CountRows(colFlSaveErrors)", "step")} & " failed. What was saved is kept - try again.", NotificationType.Error)
 )"""
 
 

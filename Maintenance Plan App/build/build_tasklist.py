@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
+import display_text as dt
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_PRIMARY, C_WHITE, C_MODAL_BG, C_PRIMARY_SOFT,
                         C_INVALID_FG, C_DIVIDER, C_TRANSPARENT, SHELL_W)
 import layout_tokens as lay
-from build_helpers import (checkbox_theme, table_surface, flow_row, text_ctrl,
+import icons
+from build_helpers import (ensure_hit, empty_state, checkbox_theme, table_surface, flow_row, text_ctrl,
                            group, button, text_input, number_input, themed_dropdown,
                            field_cell, card, pin_widths, grow, row_hit,
                            fit_button_width, fit_button_row, ICON_W, ICON_SAVE, flow_ok, mark_done)
@@ -139,14 +141,14 @@ def _ops_header_html():
 # det var derfor overskriften blev genereret herfra til at begynde med.
 OPS_ACTIVE = "Filter(colVhpOperations, ItemId = varVhpActiveItemId)"
 
-# Timer og antal kan vaere halve; kroner vises med to decimaler. Formatet er
-# laast til en kultur, saa tusindtalsseparatoren ikke skifter med brugerens
-# sprogindstilling midt i en tabel.
+# Timer, antal og kroner i appens ENE talformat (layout_tokens.num_text,
+# UX-review B2): "7" og "1,192" - ikke "7," og "1.192,00". Kulturen er
+# givet som argument, saa separatoren ikke skifter med brugerens sprog.
 _TOTALS = {
-    "WORK (H)": f'Text(Sum({OPS_ACTIVE}, WorkHours), "[$-en-US]#,##0.##")',
-    "NO.":      f'Text(Sum({OPS_ACTIVE}, Persons), "[$-en-US]#,##0.##")',
-    "DUR. (H)": f'Text(Sum({OPS_ACTIVE}, DurationHours), "[$-en-US]#,##0.##")',
-    "COST":     f'Text(Sum({OPS_ACTIVE}, Cost), "[$-en-US]#,##0.00")',
+    "WORK (H)": lay.num_text(f"Sum({OPS_ACTIVE}, WorkHours)"),
+    "NO.":      lay.num_text(f"Sum({OPS_ACTIVE}, Persons)"),
+    "DUR. (H)": lay.num_text(f"Sum({OPS_ACTIVE}, DurationHours)"),
+    "COST":     lay.num_text(f"Sum({OPS_ACTIVE}, Cost)"),
 }
 
 
@@ -330,7 +332,7 @@ def _materials_modal():
         (
             "RemoveIf(colVhpMaterials, ItemId = varVhpActiveItemId, "
             "OperationNo = varVhpMatOpNo, Selected = true);\n"
-            "Notify(\"Removed selected material line(s).\", NotificationType.Success)"
+            "Notify(\"Removed the selected material lines.\", NotificationType.Success)"
         ), danger=True, width=fit_button_width('"Remove material"'),
         display_mode=(f"If(CountRows(Filter({MAT_OP}, Selected = true)) = 0, "
                       "DisplayMode.Disabled, DisplayMode.Edit)"))
@@ -393,13 +395,14 @@ def _materials_modal():
     # Neutral flade og een streg pr. raekke - ikke graat fyld (issue #78).
     table_surface(gallery, "rctVhpMatRule")
 
-    empty = text_ctrl("txtVhpMatEmpty",
-                      '"No materials on this operation yet. Use Add material to add one."',
-                      size=13, color=C_MUTED, height=24, wrap="false",
-                      visible=f"IfError(CountRows({MAT_OP}) = 0, false)")
+    # Tom tilstand (UX-review F4) - knappen Add material staar lige over.
+    empty = empty_state("conVhpMatEmpty",
+                        '"No materials on this operation yet - choose Add material."',
+                        icon_path=icons.MATERIAL,
+                        visible=f"IfError(CountRows({MAT_OP}) = 0, false)")
 
     note = text_ctrl("txtVhpMatNote",
-                     '"Description and Unit are filled in by the material lookup. '
+                     '"Description and unit are filled in by the material lookup. '
                      'Until it is in place they stay empty."',
                      size=12, color=C_MUTED, height=32, wrap="true")
 
@@ -552,7 +555,7 @@ def _attachments_modal():
         "ShowScrollbar": "false",
         "TabIndex": "0",
         "TemplatePadding": "2",
-        "TemplateSize": str(du.ROW_H - 2),
+        "TemplateSize": du.TEMPLATE_H,
         "Width": "Parent.Width",
         "WrapCount": "1",
     }, children=[row], h=gal_h)
@@ -613,7 +616,7 @@ def _op_detail_modal():
         "        {\n            Persons: Self.Value,\n"
         f"            DurationHours: {cfg.duration_expr('r.WorkHours', 'Self.Value')}\n        }}\n    )\n)")
     dur = text_ctrl("txtVhpOpMDur",
-                    f'"Duration: " & Text({OPM}.DurationHours, "[$-en-US]#,##0.##") & " h   Work center: " & '
+                    f'"Duration: " & {lay.num_text(OPM + ".DurationHours")} & " h   Work center: " & '
                     f'Coalesce({OPM}.MainWorkCenter, "-")', size=13, color=C_MUTED, height=20,
                     wrap="false")
     mats = button("btnVhpOpMMat", f'"Materials (" & Text(CountRows(Filter(colVhpMaterials, ItemId = varVhpActiveItemId && '
@@ -684,7 +687,7 @@ def _ops_list_mobile():
     line = grow(text_ctrl(
         "txtVhpOpMRow",
         'ThisItem.OperationNo & "  \u00b7  " & Coalesce(ThisItem.OperationShortText, "") & "  \u00b7  " & '
-        'Text(ThisItem.WorkHours, "[$-en-US]#,##0.##") & " h"',
+        + lay.num_text("ThisItem.WorkHours") + ' & " h"',
         size=13, height=24, wrap="false"))
     chev = text_ctrl("txtVhpOpMChev", '"\u203a"', size=18, color=C_MUTED, height=24, width=16,
                      wrap="false")
@@ -758,7 +761,7 @@ OPS_ISSUE = (
 def build_tasklist_section():
     # Trin-badget (issue #123): "Valid", naar alle items har tasklist og
     # operationer, og ingen tasklist-/operationsregel fejler.
-    header = section_header("conVhpOpsHead", "Tasklist and Operations", "Step 3",
+    header = section_header("conVhpOpsHead", "Task list and operations", "Step 3",
                             valid_fx="VhpOpsValid")
     helpPanel = help_panel("conVhpOpsHelp", "ops")
 
@@ -785,7 +788,7 @@ def build_tasklist_section():
         "    colVhpItems, ItemId = varVhpActiveItemId,\n"
         "    { TasklistKey: drpVhpItemTasklist.Selected.Key, TasklistName: drpVhpItemTasklist.Selected.Name }\n"
         ");\n"
-        "Notify(\"Tasklist \" & drpVhpItemTasklist.Selected.Key & \" selected for this item.\", NotificationType.Success)")
+        "Notify(\"Task list \" & drpVhpItemTasklist.Selected.Key & \" selected for this item.\", NotificationType.Success)")
     drpTasklist.props["OnChange"] = (
         "If(\n"
         "    !IsBlank(varVhpActiveItemId) && !IsBlank(Self.Selected.Key) &&\n"
@@ -794,18 +797,18 @@ def build_tasklist_section():
         ")")
     # Tasklist-feltet har en fast, begraenset bredde og staar til venstre.
     TL_W = fits(OPS_CW, TWO_COL_MIN, OPS_CW, "360")
-    tasklistCell = field_cell("conVhpCellTasklist", "Tasklist For Active Item", drpTasklist, required=True,
+    tasklistCell = field_cell("conVhpCellTasklist", "Task list", drpTasklist, required=True,
                               width=TL_W, container_w=OPS_CW, fill_portions_formula="0")
 
     btnAddLines = button(
-        "btnVhpAddTasklistLines", "\"Lines from tasklist\"",
+        "btnVhpAddTasklistLines", "\"Add lines from task list\"",
         (
             "If(\n"
             "    IsBlank(varVhpActiveItemId),\n"
             "    Notify(\"Select an item first.\", NotificationType.Warning),\n"
             "    If(\n"
             "        IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey),\n"
-            "        Notify(\"Select a tasklist first.\", NotificationType.Warning),\n"
+            "        Notify(\"Select a task list first.\", NotificationType.Warning),\n"
             "        Clear(colVhpPickerSelected);\n"
             "        Reset(inpVhpPickerSearch);\n"
             "        Set(varVhpTasklistPickerOpen, true)\n"
@@ -814,8 +817,8 @@ def build_tasklist_section():
         # Sekundaer outline som Manual operation (issue #157): Save er
         # sektionens eneste primaere, blaa handling.
         ), display_mode=DM_ITEM, icon="Add",
-        accessible="\"Add lines from the tasklist\"",
-        tooltip="\"Add operation lines from the selected tasklist\"")
+        accessible="\"Add lines from the task list\"",
+        tooltip="\"Add operation lines from the selected task list\"")
 
     btnAddOp = button(
         "btnVhpAddOperation", "\"Manual operation\"",
@@ -860,12 +863,12 @@ def build_tasklist_section():
         b.vis = at_least("Tablet")
     opsMenu = themed_dropdown(
         "drpVhpOpsActions",
-        'Table({ Value: "Add lines from tasklist" }, { Value: "Add manual operation" })',
-        '""', width="190", height=36, label='"Tasklist actions"',
+        'Table({ Value: "Add lines from task list" }, { Value: "Add manual operation" })',
+        '""', width="190", height=36, label='"Task list actions"',
         onchange=(
             "Switch(\n"
             "    Self.Selected.Value,\n"
-            f"    \"Add lines from tasklist\", {btnAddLines.props['OnSelect']},\n"
+            f"    \"Add lines from task list\", {btnAddLines.props['OnSelect']},\n"
             f"    \"Add manual operation\", {btnAddOp.props['OnSelect']}\n"
             ");\nReset(Self)"))
     opsMenu.props["LayoutMinWidth"] = "190"
@@ -877,11 +880,8 @@ def build_tasklist_section():
         b.props["AlignInContainer"] = f"If({on_line}, AlignInContainer.End, AlignInContainer.Start)"
     toolbar = flow_row("conVhpOpsToolbar", tb_kids, OPS_CW, gap=12)
 
-    btnTlReset = button(
-        "btnVhpTasklistReset", "\"Reset\"",
-        "Reset(drpVhpItemTasklist);\n"
-        "Notify(\"Tasklist selection reset.\", NotificationType.Information)",
-        width=fit_button_width("\"Reset\""), height=36, display_mode=DM_ITEM)
+    # Reset (kun dropdownen tilbage) er fjernet (UX-review): task listen
+    # vaelges bare om. Sektionen gemmes med Save.
     btnTlSave = button(
         "btnVhpTasklistSave", "\"Save\"",
         (
@@ -889,7 +889,7 @@ def build_tasklist_section():
             "    IsBlank(varVhpActiveItemId),\n"
             "    Notify(\"Select an item first.\", NotificationType.Warning),\n"
             "    IsBlank(drpVhpItemTasklist.Selected.Key),\n"
-            "    Notify(\"Select a tasklist first.\", NotificationType.Warning),\n"
+            "    Notify(\"Select a task list first.\", NotificationType.Warning),\n"
             # Ufuldstaendig sektion: gem ikke (issue #103).
             "    With(\n"
             "        { issue: " + OPS_ISSUE.replace("\n", "\n        ") + " },\n"
@@ -921,18 +921,18 @@ def build_tasklist_section():
                "VerticalAlign": "VerticalAlign.Middle"})
     footerInfo = group("conVhpOpsFooterInfo", [attention], direction="Vertical", gap=0,
                        justify="Center", visible=attention.vis)
-    opsFooter = section_footer("conVhpOpsFooter", footerInfo, [btnTlReset, btnTlSave], OPS_CW)
+    opsFooter = section_footer("conVhpOpsFooter", footerInfo, [btnTlSave], OPS_CW)
 
     tasklistMeta = text_ctrl(
         "txtVhpTasklistMeta",
         (
             "If(\n"
-            "    IsBlank(varVhpActiveItemId), \"Select an item to manage its tasklist and operations.\",\n"
+            "    IsBlank(varVhpActiveItemId), \"Select an item to manage its task list and operations.\",\n"
             "    If(\n"
             "        IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey),\n"
-            "        \"No tasklist linked yet.\",\n"
+            "        \"No task list linked yet.\",\n"
             "        \"Tasklist \" & LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistName & \" linked. \" &\n"
-            "        Text(CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId))) & \" operation line(s) on this item.\"\n"
+            "        " + dt.plural("CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId))", "operation") + " & \" on this item.\"\n"
             "    )\n"
             ")"
         ), size=12, color=C_MUTED, height=18, wrap="true")
@@ -964,6 +964,7 @@ def build_tasklist_section():
         accessible='"Delete operation " & ThisItem.OperationNo')
     btnOpDel.props["Layout"] = "ButtonLayout.IconOnly"
     btnOpDel.props["Tooltip"] = '"Delete operation line"'
+    ensure_hit(btnOpDel)               # H.hit (UX-review F6, regel 40)
     txtOpNo = text_ctrl("txtVhpOpNo", "ThisItem.OperationNo", size=13, height=32, width=w["OP NO."], wrap="false")
     txtOpShort = text_input("inpVhpOpShortText", "ThisItem.OperationShortText", width=w["OPERATION SHORT TEXT"],
                             height=32,
@@ -1116,7 +1117,7 @@ def build_tasklist_section():
     gallery = Ctrl(
         "galVhpOps", "Gallery", variant="Vertical",
         props={
-            "AccessibleLabel": "\"Tasklist operations for active item\"",
+            "AccessibleLabel": "\"Task list operations for the active item\"",
             "BorderStyle": "BorderStyle.None",
             "Fill": C_CARD_BG,
             "FillPortions": "0",
@@ -1137,8 +1138,11 @@ def build_tasklist_section():
         },
         children=[opRow], h=gal_h, vis=has_ops)
 
-    opsEmpty = text_ctrl("txtVhpOpsEmpty", "\"No operation lines yet...\"", size=13, color=C_MUTED,
-                         height=24, wrap="false", visible=f"!{has_ops}")
+    # Tom tilstand (UX-review F4): hvad man goer - task listens linjer eller
+    # en manuel operation (knapperne staar i vaerktoejslinjen over).
+    OPS_EMPTY = ('"No operations yet - choose Add lines from task list or Manual operation."')
+    opsEmpty = empty_state("conVhpOpsEmpty", OPS_EMPTY, icon_path=icons.LIST,
+                           visible=f"!{has_ops}", width=str(OPS_TABLE_W))
 
     opsTotalsDivider = group("conVhpOpsTotalsDivider", [], height=1, fill=C_DIVIDER,
                              direction="Horizontal", width=str(OPS_TABLE_W),
@@ -1162,8 +1166,8 @@ def build_tasklist_section():
     # saa blev "Add operation" staaende paa materialefanen, hvor den ikke
     # hoerer hjemme. Hver fane ejer nu sine egne knapper, praecis som
     # materialeruden allerede gjorde.
-    opsEmptyM = text_ctrl("txtVhpOpsEmptyM", "\"No operation lines yet...\"", size=13, color=C_MUTED,
-                          height=24, wrap="false", visible=f"!{has_ops} && {below('Tablet')}")
+    opsEmptyM = empty_state("conVhpOpsEmptyM", OPS_EMPTY, icon_path=icons.LIST,
+                            visible=f"!{has_ops} && {below('Tablet')}")
     opsPane = group("conVhpOpsPane", [toolbar, tasklistMeta, opsHint, opsTableWrap, _ops_list_mobile(), opsEmptyM],
                     direction="Vertical", gap=8, width="Parent.Width",
                     visible=OPS_PANE_ON)

@@ -21,15 +21,18 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
 import layout_tokens as lay
 from build_helpers import (_sum_expr, row_rule, row_hit, text_input, text_ctrl, group, button, card, flow_row, top_bar,
                            fit_button_width, text_px, ICON_W, grow, themed_dropdown, icon_on_mobile,
-                           confirm_modal, new_request_label)
+                           confirm_modal, new_request_label, empty_state, ensure_hit)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET
 from design_tokens import theme_query, ref_hex, ref as _t
+import design_tokens as tok
 import icons
 import approval_flow
 import submission_notes as sn
 import permissions as perm
 import request_delete as rd
 import display_text as dt
+import request_index as ri
+import status_chip as sc
 from layout_tokens import (if_below, below, at_least, SCROLLBAR_W, GALLERY_RESERVE, PAGE_PAD_R,
                            HEADER_PAD_T)
 
@@ -237,10 +240,14 @@ SCOPE = (
 # vises, og naar "My requests" eller Open/Closed/All skifter. Tallene
 # taelles i samlingen. Rammer den loftet, staar der "500+".
 ROW_LIMIT = 500   # appens Data row limit (Studio -> Settings)
+# Stuck (tools/request_index.py): kun de statusser, hvor nogen anden skal handle.
+STUCK_IN = "[" + ", ".join('"%s"' % k for k in ri.STUCK_STATUSES) + "]"
+STUCK_LABEL = "Stuck > %d d" % ri.STUCK_DAYS
 SCOPE_REFRESH = (
     f"ClearCollect(colMdScope, ForAll({SCOPE} As R, {{ Id: R.ID, Domain: R.Domain.Value, "
     "Mine: R.AssignedToEmail = varMdMe, "
-    "Stuck: R.IsOpen && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), "
+    f"Stuck: R.IsOpen && R.Status.Value in {STUCK_IN} && "
+    f"R.LastActionOn < DateAdd(Now(), -{ri.STUCK_DAYS}, TimeUnit.Days), "
     'Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))')
 SCOPE_FULL = f"CountRows(colMdScope) >= {ROW_LIMIT}"
 
@@ -252,8 +259,21 @@ SCOPE_FULL = f"CountRows(colMdScope) >= {ROW_LIMIT}"
 # fliserne talte HELE afdelingen under overskriften "my requests" - til man
 # trykkede paa en knap. Skaermen saetter derfor selv det, den taeller med,
 # hvis det ikke er sat endnu.
+# FILTRENE HUSKES (UX-review F8): foerste besoeg i sessionen laeses de fra
+# SaveData-lageret (design_tokens.prefs_save), og hver aendring gemmes der.
+# Kommer man tilbage fra et domaene, staar de, som man forlod dem.
+SAVE_HUB = tok.prefs_save({"prefMdView": "varMdView", "prefMdStatus": "varMdStatusMode",
+                           "prefMdFlag": "varMdFlag", "prefMdDomain": "varMdDomain",
+                           "prefMdSearch": "varMdSearch"})
 HUB_ON_VISIBLE = (
     "Set(varMdMe, Lower(User().Email));\n"
+    "If(\n    !IfError(varMdPrefsRead, false),\n"
+    "    Set(varMdView, " + tok.pref_get("prefMdView", '"mine"') + ");\n"
+    "    Set(varMdStatusMode, " + tok.pref_get("prefMdStatus", '"open"') + ");\n"
+    f"    Set(varMdFlag, {tok.pref_get('prefMdFlag')});\n"
+    f"    Set(varMdDomain, {tok.pref_get('prefMdDomain')});\n"
+    f"    Set(varMdSearch, {tok.pref_get('prefMdSearch')});\n"
+    "    Set(varMdPrefsRead, true)\n);\n"
     "If(IsBlank(varMdView), Set(varMdView, \"mine\"));\n"
     "If(IsBlank(varMdStatusMode), Set(varMdStatusMode, \"open\"));\n"
     "If(IsBlank(varMdFlag), Set(varMdFlag, \"\"));\n"
@@ -307,10 +327,17 @@ PEEK_OPEN = "IfError(varMdClosedPeek, false)"
 # Actions har en fast tegning (striben, ikonerne); deres ekstra bredde
 # staar som luft til hoejre for tegningen i kolonnen.
 DOM_TEXT = 156
-COLS = [("DOMAIN", 160), ("PLANT", 72), ("REQUEST ID", 96), ("REQUEST", 150), ("REQUESTER", 72),
-        ("APPROVAL", 270), ("STATUS", 140), ("UPDATED", 80), ("ACTIONS", 156)]
+# UX-review (hub): domaenet stod TRE gange (ikon, navn og farvet ID-pille).
+# Nu er det EEN kolonne, REQUEST: ikonet, nummeret og domaenets navn som
+# anden linje. Teksten (TEXT) faar den plads, der blev fri. Requester
+# skjules i "My requests" - det er altid brugeren selv.
+COLS = [("REQUEST", 176), ("TEXT", 150), ("PLANT", 72), ("REQUESTER", 72),
+        ("APPROVAL", 270), ("STATUS", 140), ("UPDATED", 84), ("ACTIONS", 156)]
 CW = dict(COLS)
-TL_W = 28
+# Et ikons klikflade i raekken. 32 = H.hit fra Desktop (UX-review F6,
+# check_layout regel 40); under Desktop er ikonerne H.hit (44) - se HIT_W.
+TL_W = 32
+HIT_W = lay.HIT
 GAP = 16
 ROW_PAD = 12
 FIXED = sum(w for _, w in COLS) + GAP * (len(COLS) - 1) + 2 * ROW_PAD
@@ -320,13 +347,19 @@ FIXED = sum(w for _, w in COLS) + GAP * (len(COLS) - 1) + 2 * ROW_PAD
 # scrollbar fra.
 AVAIL = f"({SHELL_W} - 36 - 4 - {SCROLLBAR_W} - {GALLERY_RESERVE})"
 FREE = f"Max(0, {AVAIL} - {FIXED})"
-GROW_UNITS = {"DOMAIN": 1, "PLANT": 1, "REQUEST ID": 1, "REQUEST": 5, "REQUESTER": 1,
+GROW_UNITS = {"REQUEST": 1, "TEXT": 5, "PLANT": 1, "REQUESTER": 1,
               "APPROVAL": 2, "STATUS": 2, "UPDATED": 1, "ACTIONS": 1}
 if set(GROW_UNITS) != set(CW):
     raise SystemExit("build_hub: GROW_UNITS skal have en vaegt for hver kolonne")
 UNIT = f"({FREE} / {sum(GROW_UNITS.values())})"
 CWF = {k: (f"({CW[k]} + {UNIT})" if GROW_UNITS[k] == 1 else f"({CW[k]} + {GROW_UNITS[k]} * {UNIT})")
        for k in CW}
+# REQUESTER er altid brugeren selv i "My requests" - saa er kolonnen 0 bred
+# og skjult, og TEXT faar dens plads. Summen af bredderne er den samme.
+MINE = 'varMdView = "mine"'
+_REQ_W = CWF["REQUESTER"]
+CWF["TEXT"] = f"({CWF['TEXT']} + If({MINE}, {_REQ_W}, 0))"
+CWF["REQUESTER"] = f"If({MINE}, 0, {_REQ_W})"
 
 ROW_H = 52
 GAL_ROWS = 14
@@ -339,9 +372,14 @@ WHEN_FX = ("With(\n    { d: DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days
            "    If(d <= 0, \"Today\", If(d = 1, \"Yesterday\", Text(d) & \" days ago\"))\n)")
 
 _AGE = "DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days)"
-STUCK = f"ThisItem.IsOpen && {_AGE} > 5"
+STUCK = f"ThisItem.IsOpen && ThisItem.Status.Value in {STUCK_IN} && {_AGE} > {ri.STUCK_DAYS}"
 STUCK_TXT = f'"Stuck " & Text({_AGE}) & " d"'
-WHEN_SHORT = f'With({{ d: {_AGE} }}, If(d <= 0, "Today", Text(d) & " d ago"))'
+# Kolonnen Updated viser DATOEN (dd-mm-yyyy, som alle andre datoer i appen
+# - UX-review T8). Den relative tid ("2 days ago") staar i raekkens tooltip
+# (btnMdRowHit) og i skaermlaeserens tekst: en ModernText har ingen
+# Tooltip (check_layout regel 10), men raekkens klikflade har.
+WHEN_SHORT = f'If(IsBlank(ThisItem.LastActionOn), "-", Text(ThisItem.LastActionOn, "{lay.DATE_FMT}"))'
+WHEN_AGO = f'"Updated " & Lower({WHEN_FX})'
 INITIALS = 'Upper(First(Split(Coalesce(ThisItem.RequesterEmail, "?@"), "@")).Value)'
 
 # Aktivitet og noter: de faelles ikoner (tools/icons.py, issue #139). Uret
@@ -359,6 +397,8 @@ if set(STATUS_ICON) != {s[0] for s in STATUS}:
 # Statusteksten i raekken: den lagrede vaerdi (Kladde, Indsendt ...) vist
 # paa engelsk via appens ene statustabel (tools/display_text.py, #162).
 # Filtrene bruger stadig den lagrede vaerdi.
+# Opsummeringen: gamle "raekke(r)"/"row(s)" vist som "row"/"rows" (B4).
+SHORT_TEXT = dt.short_text("ThisItem.ShortText")
 STATUS_TEXT = dt.status("ThisItem.Status.Value", '"Unknown"')
 
 # Etiketterne paa raekkernes domaene- og statusikoner (issue #165): App
@@ -393,10 +433,11 @@ def build_bar():
     # "New Request" uden plus-ikon (issue #243) - den faelles
     # build_helpers.new_request_label: samme tekst, bredde og 12 pt paa en
     # telefon som paa anmodningssiderne. Menuen den aabner er uaendret.
-    new = new_request_label(button("btnMdNewRequest", '"New Request"',
+    new = new_request_label(button("btnMdNewRequest", '"New request"',
                                    f"Set(varMdNewMenu, !{MENU_OPEN})", height=38))
-    bar = top_bar("Md", '"Masterdatahub"',
-                  '"SAP requests - " & If(varMdView = "mine", varMdMe, "whole department")',
+    # "Masterdata Hub" som i sidebaren, og en undertitel uden brugerens
+    # e-mail (UX-review B4/F1).
+    bar = top_bar("Md", '"Masterdata Hub"', '"Requests for SAP master data"',
                   seg + [new], icon="hub")
     return bar
 
@@ -412,7 +453,7 @@ def _view_switch(mobile=False):
         label = short if mobile else wide
         w = fit_button_width(f'"{label}"', size=size, min_w=0) + 20
         b = button(name + ("M" if mobile else ""), f'"{label}"',
-                   f'Set(varMdView, "{key}"); Set(varMdDomain, "");\n' + SCOPE_REFRESH,
+                   f'Set(varMdView, "{key}"); Set(varMdDomain, "");\n' + SCOPE_REFRESH + ";\n" + SAVE_HUB,
                    width=w, height=36, accessible=f'"{wide}"')
         _selected_style(b, f'varMdView = "{key}"', idle_color=C_MUTED)
         b.props["Size"] = str(size)
@@ -593,7 +634,7 @@ def build_tiles():
         st = _tile_state(d, sel)
         face = _image(f"imgMdTile{n}", _svg_uri(_tile_face(d, count)), "Parent.Width",
                       if_below("Tablet", str(TILE_H_M), str(TILE_H)),
-                      onselect=f'Set(varMdDomain, If({sel}, "", "{d["key"]}"))',
+                      onselect=f'Set(varMdDomain, If({sel}, "", "{d["key"]}"));\n' + SAVE_HUB,
                       # Uden tallet: det ville vaere endnu en forespoergsel.
                       label=f'If({sel}, "Show all domains", "Show only {d["name"].lower()}")',
                       hover=st["hover"])
@@ -642,13 +683,17 @@ FLT_GAP = {"full": 10, "compact": 6, "short": 4}
 # build_helpers.new_request_widths).
 FLT_PAD = 24
 FLT_SIZE = {"full": lay.SIZE_INPUT, "compact": 12, "short": 12}
-SEARCH_W = 280
-SEARCH_MIN = {"full": 140, "compact": 120, "short": 80}
+# Soegefeltet er 360 px, naar der er plads (UX-review, hub: "for smalt").
+SEARCH_W = 360
+SEARCH_MIN = {"full": 140, "compact": 120, "short": 64}
 # Taelleren skal kunne rumme fire cifre i hvert trin.
 COUNT_W = {"full": 110,
            "compact": text_px("9999 requests", 12, semibold=False) + 4,
            "short": text_px("9999", 12, semibold=False) + 4}
-PEEK_BTN_W = {"full": 36, "compact": 36, "short": 32}
+# Info-knappen er en ikonknap: klikfladen er H.hit (44 under Desktop,
+# UX-review F6, regel 40) - derfor 44 i alle trin.
+PEEK_BTN_W = {"full": 44, "compact": 44, "short": 44}
+FLT_ROW_H = "Max(36, %s)" % lay.HIT
 # Pr. kontrolnavn: {trin: (bredde, Layout, kort tekst)}. Ctrl har __slots__,
 # saa trinnene staar her og ikke paa kontrollen. Tooltip'en (kun kort trin)
 # staar i _FLT_TIP.
@@ -662,7 +707,7 @@ def _tight(label, icon=False):
 
 
 def _chip(name, label, value, icon):
-    b = button(name, f'"{label}"', f'Set(varMdStatusMode, "{value}");\n' + SCOPE_REFRESH,
+    b = button(name, f'"{label}"', f'Set(varMdStatusMode, "{value}");\n' + SCOPE_REFRESH + ";\n" + SAVE_HUB,
                width=fit_button_width(f'"{label}"') + ICON_W, height=36, icon=icon)
     # Pr. trin: (bredde, Layout, tekst). None = teksten er den samme.
     _FLT_LV[b.name] = {"full": (int(b.props["Width"]), "ButtonLayout.IconBefore", None),
@@ -676,7 +721,7 @@ def _flag_pill(name, flag, label, field, icon):
     full_txt = f'"{label} (" & {n} & ")"'
     b = button(name, full_txt,
                f'Set(varMdFlag, If(varMdFlag = "{flag}", "", "{flag}"));\n'
-               'If(varMdFlag <> "", Set(varMdStatusMode, "open"));\n' + SCOPE_REFRESH,
+               'If(varMdFlag <> "", Set(varMdStatusMode, "open"));\n' + SCOPE_REFRESH + ";\n" + SAVE_HUB,
                width=fit_button_width(f'"{label} (99)"') + ICON_W, height=36, icon=icon)
     # Kort trin: ikonet og tallet. Skaermlaeseren faar stadig hele teksten
     # (AccessibleLabel = full_txt fra button()), og tooltip'en har ordene
@@ -718,9 +763,10 @@ def build_filters():
     soegefeltet, og dropdown'en (_mobile_filter) tager knapperne."""
     # Det SAMME felt som alle andre (build_helpers.text_input -> input_theme,
     # issue #78) - ikke et haandbygget med sine egne farver.
-    search = text_input("inpMdFind", '""', placeholder='"Search number, text or plant..."',
+    search = text_input("inpMdFind", "varMdSearch", placeholder='"Search number, text or plant..."',
                         width=str(SEARCH_W), ttype="Search",
-                        label='"Search number, text or plant"')
+                        label='"Search number, text or plant"',
+                        onchange="Set(varMdSearch, Self.Text);\n" + SAVE_HUB)
     shown = scope_count('varMdDomain = "" || Domain = varMdDomain')
     count = text_ctrl("txtMdTotal", f'{shown} & " requests"',
                       size=12, color=C_MUTED, height=36, align="Right", width=110, wrap="false")
@@ -728,10 +774,17 @@ def build_filters():
     # Statisk: tooltip'en hentede de seneste lukkede (en forespoergsel) ved
     # hver visning af skaermen. Info-knappen ved siden af viser dem.
     closed.props["Tooltip"] = '"Show closed requests - the (i) button lists the latest"'
-    chips = [_chip("btnMdFltOpen", "Open", "open", "MailInbox"), closed, _peek_button(),
-             _chip("btnMdFltAll", "All", "all", "TextBulletListLtr"),
+    # GRUPPERET (UX-review, hub): Open/Closed/All (og info-knappen) | de to
+    # flag | - og til hoejre My requests/Department og antallet. Stregen
+    # skiller de to foerste grupper.
+    sep = group("conMdFltSep", [], direction="Horizontal", height=24, width="1",
+                fill=C_DIVIDER, layout_min_width=1)
+    sep.props["AlignInContainer"] = "AlignInContainer.Center"
+    _FLT_LV[sep.name] = {k: (1, None, None) for k in FLT_LEVELS}
+    chips = [_chip("btnMdFltOpen", "Open", "open", "MailInbox"), closed,
+             _chip("btnMdFltAll", "All", "all", "TextBulletListLtr"), _peek_button(), sep,
              _flag_pill("btnMdFltMe", "me", "Waiting for me", "Mine", "Person"),
-             _flag_pill("btnMdFltStuck", "stuck", "Stuck > 5 d", "Stuck", "Clock")]
+             _flag_pill("btnMdFltStuck", "stuck", STUCK_LABEL, "Stuck", "Clock")]
     # Soegefelt og knapper staar til venstre; My requests | Department og
     # tallet til hoejre. Under Tablet erstattes knapperne af EN dropdown
     # (+ info-knappen), og raekken er kun soegefeltet i fuld bredde.
@@ -740,7 +793,7 @@ def build_filters():
     mobile = _mobile_filter()
     spacer = group("conMdFltGap", [], direction="Horizontal", height=0)
     spacer.vis = at_least("Tablet")
-    _FLT_LV[chips[2].name] = {k: (PEEK_BTN_W[k], None, None) for k in FLT_LEVELS}
+    _FLT_LV[chips[3].name] = {k: (PEEK_BTN_W[k], None, None) for k in FLT_LEVELS}
     _FLT_LV[count.name] = {k: (COUNT_W[k], None, None) for k in FLT_LEVELS}
     fixed = chips + _view_switch() + [count]
     n_gaps = len(fixed) + 1          # soegefeltet + mellemrummet (spacer)
@@ -768,7 +821,7 @@ def build_filters():
         txt = _FLT_LV[c.name]["short"][2]
         if txt is not None:
             c.props["Text"] = f"If({is_short}, {txt}, {c.props['Text']})"
-        if c.props.get("Size") and c is not count and c is not chips[2]:
+        if c.props.get("Size") and c is not count and c is not chips[3]:
             c.props["Size"] = lvl(*(FLT_SIZE[k] for k in FLT_LEVELS))
         if c.name in _FLT_TIP:
             c.props["Tooltip"] = f'If({is_short}, {_FLT_TIP[c.name]}, "")'
@@ -787,33 +840,33 @@ def build_filters():
         f'If(Self.Width < {text_px(long_ph, 14, semibold=False) + 48}, '
         f'"Search...", "{long_ph}")')
     search.props["Size"] = f"If({below('Tablet')}, {lay.SIZE_INPUT_MOBILE}, {is_short}, 12, {lay.SIZE_INPUT})"
-    row = flow_row("conMdFltRow", [search] + fixed[:6] + [spacer] + fixed[6:], SHELL_W,
+    row = flow_row("conMdFltRow", [search] + fixed[:7] + [spacer] + fixed[7:], SHELL_W,
                    gap=gap, flex=spacer, flex_min=0, ok=at_least("Tablet"))
     # Altid een linje: vandret fra Tablet, og under Tablet er soegefeltet
     # det eneste synlige barn. flow_rows stablede hoejde ville aldrig blive
     # brugt, saa den skrives ikke ud.
-    row.props["Height"] = "36"
-    row.h = 36
+    row.props["Height"] = FLT_ROW_H
+    row.h = FLT_ROW_H
     return group("conMdFlt", [row, mobile], direction="Vertical", gap=8)
 
 
-_MOBILE_FILTERS = ("Open", "Closed", "All", "Waiting for me", "Stuck > 5 d")
+_MOBILE_FILTERS = ("Open", "Closed", "All", "Waiting for me", STUCK_LABEL)
 
 
 def _mobile_filter():
     """Telefon: een dropdown med de samme valg som knapperne + info-knappen."""
     items = "Table(" + ", ".join(f'{{ Value: "{v}" }}' for v in _MOBILE_FILTERS) + ")"
-    cur = ('Switch(varMdFlag, "me", "Waiting for me", "stuck", "Stuck > 5 d", '
+    cur = ('Switch(varMdFlag, "me", "Waiting for me", "stuck", "' + STUCK_LABEL + '", '
            'Switch(varMdStatusMode, "done", "Closed", "all", "All", "Open"))')
     on_change = ('With({ v: Self.Selected.Value },\n'
-                 '    Set(varMdFlag, Switch(v, "Waiting for me", "me", "Stuck > 5 d", "stuck", ""));\n'
+                 '    Set(varMdFlag, Switch(v, "Waiting for me", "me", "' + STUCK_LABEL + '", "stuck", ""));\n'
                  '    Set(varMdStatusMode, Switch(v, "Closed", "done", "All", "all", "open"))\n'
-                 ');\n' + SCOPE_REFRESH)
+                 ');\n' + SCOPE_REFRESH + ";\n" + SAVE_HUB)
     dd = themed_dropdown("ddMdFltMobile", items, cur, width="Parent.Width",
                          label='"Filter requests"', onchange=on_change)
     dd = grow(dd, 80)
     peek = _peek_button("btnMdFltPeekM")
-    row = group("conMdFltMobile", [dd, peek], direction="Horizontal", gap=8, height=36,
+    row = group("conMdFltMobile", [dd, peek], direction="Horizontal", gap=8, height=FLT_ROW_H,
                 width=f"({SHELL_W})", align_items="Center", visible=below("Tablet"))
     return row
 
@@ -831,10 +884,12 @@ PEEK_ROW_H = 48
 
 def _peek_button(name="btnMdFltPeek"):
     b = button(name, '""', f"Set(varMdClosedPeek, !{PEEK_OPEN})",
-               width=36, height=36, icon="Info",
+               width=PEEK_BTN_W["full"], height=36, icon="Info",
                accessible='"Show the latest closed requests"')
     b.props["Layout"] = "ButtonLayout.IconOnly"
     b.props["Tooltip"] = '"Latest closed requests"'
+    ensure_hit(b)
+    b.props["Width"] = b.props["LayoutMinWidth"] = str(PEEK_BTN_W["full"])
     return _selected_style(b, PEEK_OPEN, idle_color=C_MUTED)
 
 
@@ -873,7 +928,7 @@ def build_closed_peek():
                       f'ThisItem.{COL_NO} & "  -  " & ' +
                       _domain_switch(lambda d: f'"{d["name"]}"', '""'),
                       size=13, weight="Semibold", height=20, wrap="false")
-    line2 = text_ctrl("txtMdPeekText", "ThisItem.ShortText", size=12, color=C_MUTED,
+    line2 = text_ctrl("txtMdPeekText", SHORT_TEXT, size=12, color=C_MUTED,
                       height=18, wrap="false")
     for i, t in enumerate((line1, line2)):
         t.props["X"] = "38"
@@ -916,7 +971,8 @@ ITEMS = (
     f"        {SCOPE},\n"
     '        varMdDomain = "" || Domain.Value = varMdDomain,\n'
     '        varMdFlag <> "me" || AssignedToEmail = varMdMe,\n'
-    '        varMdFlag <> "stuck" || (IsOpen = true && LastActionOn < DateAdd(Now(), -5, TimeUnit.Days)),\n'
+    f'        varMdFlag <> "stuck" || (IsOpen = true && StatusStep >= {ri.STUCK_STEPS[0]} && '
+    f'StatusStep <= {ri.STUCK_STEPS[1]} && LastActionOn < DateAdd(Now(), -{ri.STUCK_DAYS}, TimeUnit.Days)),\n'
     '        varMdFlag <> "ret" || (Status.Value = "AfventerInfo" && RequesterEmail = varMdMe),\n'
     '        IsBlank(Trim(inpMdFind.Text)) ||\n'
     f"            StartsWith({COL_NO}, Trim(inpMdFind.Text)) ||\n"
@@ -926,6 +982,11 @@ ITEMS = (
     '    "LastActionOn", SortOrder.Descending\n'
     ")"
 )
+
+
+# "Clear filters" - i den tomme liste og i filterlinjen (UX-review F4/M3).
+CLEAR_FILTERS = ('Set(varMdDomain, "");\nSet(varMdFlag, "");\nSet(varMdSearch, "");\n'
+                 'Reset(inpMdFind);\nSet(varMdStatusMode, "open");\n' + SCOPE_REFRESH + ";\n" + SAVE_HUB)
 
 
 def _open_action(mode="view"):
@@ -964,82 +1025,83 @@ def _open_action(mode="view"):
         ")")
 
 
+# Trinnenes navne staar i stribens tooltip, ikke som smaa etiketter i
+# raekken (UX-review, hub). approval_flow.DOM_STAGES er domaenernes trin.
+APPROVAL_TIP = ("Switch(ThisItem.Domain.Value, " + ", ".join(
+    '"%s", "%s"' % (dom, "Approval: " + " \u2192 ".join(
+        [lab for _s, lab, _c in stages] + [approval_flow.FINAL[dom][0]]))
+    for dom, stages in approval_flow.DOM_STAGES.items()) + ', "No approval for this kind of request")')
+
+
+def _tile_icon_svg(d, size=32):
+    """Domaenets ikon i en tonet firkant - som sideoverskriftens (page_icon)."""
+    c = _hx(d["token"])
+    pad = (size - 18) / 2
+    return (f"<svg xmlns='http://www.w3.org/2000/svg' width='{size}' height='{size}' "
+            f"viewBox='0 0 {size} {size}'><rect width='{size}' height='{size}' rx='8' "
+            f"fill='{c}' fill-opacity='0.12'/>" + _dglyph(d, c, x=pad, y=pad, size=18) + "</svg>")
+
+
 def build_list():
     head = group("conMdListHead",
                  [text_ctrl(f"txtMdH{i}", f'"{t}"', size=lay.SIZE_MICRO, weight="Semibold", color=C_MUTED,
                             height=20, wrap="false",
-                            width=CWF[k])
+                            width=CWF[k], visible=(f"!({MINE})" if k == "REQUESTER" else None))
                   for i, (t, _w) in enumerate(COLS) for k in [t]],
                  direction="Horizontal", gap=GAP, height=20, align_items="Center",
                  pad=(0, ROW_PAD, 0, ROW_PAD), visible=at_least("Wide"))
 
-    # DOMAIN: ikonet i domaenets farve og navnet.
+    # REQUEST (UX-review, hub): domaenets ikon i en tonet firkant, nummeret
+    # og domaenets navn som anden linje - een kolonne i stedet for tre.
     dom_icon = _image("imgMdRowDomain",
                       _svg_uri(_domain_switch(
-                          lambda d: _icon_svg(d["icon"], _hx(d["token"]), size=24,
-                                              mirror=d.get("mirror", False)), '""')),
-                      24, 24, label=DOMAIN_LABEL)
-    dom_name = text_ctrl("txtMdRowDomain",
-                         _domain_switch(lambda d: f'"{d["name"]}"', '"?"'),
-                         size=13, height=20, width=DOM_TEXT - 24 - 12, wrap="false")
-    dom = group("conMdRowDom", [dom_icon, dom_name], direction="Horizontal", gap=12,
-                width=CWF["DOMAIN"], align_items="Center")
-
-    # DEN TOMME MIDTE (issue #74). Raekken viste kun nummer og kort tekst,
-    # og resten af den bredeste kolonne stod tom. Nu staar det, indekset
-    # ALLEREDE har, ud for nummeret: hvem der har oprettet den, hvor mange
-    # linjer, SAP-nummeret, naar det findes, og hvem der sidst roerte den.
-    # Ingen nye kald - det er kolonner i MD_RequestIndex, som galleriet
-    # alligevel henter.
-    #
-    # REQUEST ID OG REQUEST ER TO KOLONNER (issue #178). Nummeret er den
-    # samme pille som i anmodningsappens sidehoved (approval_flow.
-    # number_badge = build_helpers.number_badge) i domaenets farve, og
-    # nummeret staar uaendret - kun bindestregen MELLEM nummer og titel er
-    # vaek. Pillen staar til venstre i sin kolonne; kolonnens ekstra bredde
-    # er luft efter den.
-    no_badge = approval_flow.number_badge("imgMdRowNo", rec="ThisItem")
-    no = group("conMdRowNo", [no_badge], direction="Horizontal", gap=0, width=CWF["REQUEST ID"],
-               height=26, align_items="Center")
+                          lambda d: '"' + _tile_icon_svg(d) + '"', '""')),
+                      32, 32, label=DOMAIN_LABEL)
+    no_txt = text_ctrl("txtMdRowNo", f"ThisItem.{COL_NO}", size=13, weight="Semibold",
+                       height=20, wrap="false", width=f"{CWF['REQUEST']} - 42")
+    dom_txt = text_ctrl("txtMdRowDomain", _domain_switch(lambda d: f'"{d["name"]}"', '"?"'),
+                        size=12, color=C_MUTED, height=18, wrap="false",
+                        width=f"{CWF['REQUEST']} - 42")
+    who = group("conMdRowWho", [no_txt, dom_txt], direction="Vertical", gap=0,
+                width=f"{CWF['REQUEST']} - 42")
+    dom = group("conMdRowDom", [dom_icon, who], direction="Horizontal", gap=10,
+                width=CWF["REQUEST"], align_items="Center")
     # Kun titlen, paa een linje; en lang titel afkortes med ellipse (Wrap false).
-    main = text_ctrl("txtMdRowText", "ThisItem.ShortText", size=13, height=20,
-                     width=CWF["REQUEST"], wrap="false")
+    main = text_ctrl("txtMdRowText", SHORT_TEXT, size=13, height=20,
+                     width=CWF["TEXT"], wrap="false")
     req = text_ctrl("txtMdRowReq", INITIALS, size=13, height=20, width=CWF["REQUESTER"], wrap="false",
-                    accessible='"Requested by " & Coalesce(ThisItem.RequesterName, ThisItem.RequesterEmail)')
+                    accessible='"Requested by " & Coalesce(ThisItem.RequesterName, ThisItem.RequesterEmail)',
+                    visible=f"!({MINE})")
 
     plant = text_ctrl("txtMdRowPlant", "ThisItem.Plant", size=13, height=20,
                       width=CWF["PLANT"], wrap="false")
 
     approval = _image("imgMdRowApproval", _svg_uri(approval_flow.row_svg()), CW["APPROVAL"], 30,
                       label='"Approval progress"')
+    approval.props["Tooltip"] = APPROVAL_TIP
     # Striben har en fast tegning; kolonnen kan vaere bredere (issue #178).
     approval = group("conMdRowApr", [approval], direction="Horizontal", gap=0,
                      width=CWF["APPROVAL"], height=30, align_items="Center")
 
-    st_icon = _image("imgMdRowStatus", _svg_uri(
-        "Switch(\n    ThisItem.Status.Value,\n    " +
-        ",\n    ".join(f'"{k}", {_icon_svg(path, _hx(tok), size=22)}'
-                       for k, (path, tok) in STATUS_ICON.items()) +
-        f',\n    {_icon_svg(STATUS_ICON["Kladde"][0], _hx("state-neutral-fg"), size=22)}\n)'),
-        22, 22, label=STATUS_LABEL)
-    st_lbl = text_ctrl("txtMdRowStatus", STATUS_TEXT, size=13,
-                       height=20, width=f"{CWF['STATUS']} - 22 - 10", wrap="false")
-    st_top = group("conMdRowStatTop", [st_icon, st_lbl], direction="Horizontal", gap=10,
-                   width=CWF["STATUS"], height=22, align_items="Center")
+    # Statussen er den faelles statuschip (tools/status_chip.py, UX-review
+    # T4) - samme ikon, farve og tekst som i domaenerne og Issue Board.
+    st_top = sc.status_chip("imgMdRowStatus", "ThisItem.Status.Value", sc.REQUEST,
+                            default=("", "Unknown", sc.REQUEST[0][2], "neutral"))
     stuck = text_ctrl("txtMdRowStuck", STUCK_TXT, size=12, color=C_WARN_FG, weight="Semibold",
                       height=16, width=CWF["STATUS"], wrap="false", visible=STUCK,
-                      extra={"PaddingLeft": "32"})
+                      extra={"PaddingLeft": "4"})
     stat = group("conMdRowStat", [st_top, stuck], direction="Vertical", gap=0,
                  width=CWF["STATUS"], align_items="Stretch")
 
     when = text_ctrl("txtMdRowWhen", WHEN_SHORT, size=12, height=20, width=CWF["UPDATED"],
-                     wrap="false", color=C_MUTED)
+                     wrap="false", color=C_MUTED,
+                     accessible=f'"Updated " & Self.Text & ", " & Lower({WHEN_FX})')
 
     act = _open_action()
     edit_btn, del_btn = _owner_buttons(_open_action("edit"), "")
     actions = [edit_btn, del_btn]
 
-    row = group("conMdRow", [dom, plant, no, main, req, approval, stat, when],
+    row = group("conMdRow", [dom, main, plant, req, approval, stat, when],
                 direction="Horizontal", gap=GAP, height="Parent.TemplateHeight - 1",
                 align_items="Center", width="Parent.TemplateWidth", fill=C_CARD_BG,
                 pad=(0, ROW_PAD, 0, ROW_PAD), visible=at_least("Wide"))
@@ -1056,19 +1118,21 @@ def build_list():
     rule.props["Y"] = "Parent.TemplateHeight - 1"
     # HELE RAEKKEN ER KLIKBAR (issue #79) - samme handling som Open.
     hit = row_hit("btnMdRowHit", act,
-                  f'"Open " & ThisItem.{COL_NO} & " - " & ThisItem.ShortText',
+                  f'"Open " & ThisItem.{COL_NO} & " - " & ' + SHORT_TEXT,
                   "Parent.TemplateWidth", "Parent.TemplateHeight - 1")
-    strip_x = (f"{ROW_PAD} + {CWF['DOMAIN']} + {GAP} + {CWF['PLANT']} + {GAP} + {CWF['REQUEST ID']} + {GAP} + "
-               f"{CWF['REQUEST']} + {GAP} + {CWF['REQUESTER']} + {GAP}")
+    hit.props["Tooltip"] = WHEN_AGO
+    strip_x = (f"{ROW_PAD} + {CWF['REQUEST']} + {GAP} + {CWF['TEXT']} + {GAP} + {CWF['PLANT']} + {GAP} + "
+               f"{CWF['REQUESTER']} + {GAP}")
     tl_x = (f"{strip_x} + {CWF['APPROVAL']} + {GAP} + {CWF['STATUS']} + {GAP} + {CWF['UPDATED']} + {GAP}")
     timeline = _image("imgMdRowTimeline", _svg_uri(_icon_svg(ICON_HISTORY, _hx("text-muted"), size=ACTION_GLYPH, box=TL_W)), TL_W,
                       TL_W, onselect=approval_flow.timeline_fx(),
                       label=f'"Activity for " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
-    timeline.props["X"] = if_below("Wide", f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {TL_W}", tl_x)
-    timeline.props["Y"] = if_below("Wide", "8", f"(Parent.TemplateHeight - 1 - {TL_W}) / 2")
+    ensure_hit(timeline)
+    timeline.props["X"] = if_below("Wide", f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {HIT_W}", tl_x)
+    timeline.props["Y"] = if_below("Wide", "8", "(Parent.TemplateHeight - 1 - Self.Height) / 2")
     for i, b in enumerate(actions):
         b.props["X"] = f"{tl_x} + {TL_W} + 12 + {i * 40}"
-        b.props["Y"] = "(Parent.TemplateHeight - 1 - 30) / 2"
+        b.props["Y"] = "(Parent.TemplateHeight - 1 - Self.Height) / 2"
         b.props["Visible"] = f"{at_least('Wide')} && ({b.props['Visible']})"
     strip = approval_flow.strip_hits(
         CW["APPROVAL"], strip_x,
@@ -1095,10 +1159,11 @@ def build_list():
                    label=f'"View notes for " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
     notes.props["Tooltip"] = f'"{sn.TIP}"'
     icons.hit_radius(notes.props)
+    ensure_hit(notes)
     notes.props["X"] = if_below(
-        "Desktop", f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {TL_W} - 8 - {TL_W}",
+        "Desktop", f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {HIT_W} - 8 - {HIT_W}",
         if_below("Wide", f"{c_base} - 40", f"{tl_x} + {TL_W} + 12 + 80"))
-    notes.props["Y"] = if_below("Desktop", "8", if_below("Wide", "6", "(Parent.TemplateHeight - 1 - 30) / 2"))
+    notes.props["Y"] = if_below("Desktop", "8", if_below("Wide", "6", "(Parent.TemplateHeight - 1 - Self.Height) / 2"))
     notes.props["Visible"] = sn.hub_has_visible("ThisItem")
     notes.vis = notes.props["Visible"]
     zone_w = 40 + 80 + 8 + TL_W + 8
@@ -1128,11 +1193,13 @@ def build_list():
         "WrapCount": "1",
     }, children=[row, compact_row, compact_strip, rule, hit, *strip, zone, timeline, notes, *actions, *c_actions], h=GAL_ROWS * ROW_H)
 
-    empty = text_ctrl("txtMdEmpty", '"No requests match the filters."', size=13,
-                      color=C_MUTED, height=24, wrap="true",
-                      # GALLERIETS egne raekker - ikke en ny forespoergsel.
-                      # En hoejde maa ikke kunne fejle paa netvaerket.
-                      visible="IsEmpty(galMdRequests.AllItems)")
+    # Tom liste: een saetning og een knap (UX-review F4). Clear filters
+    # nulstiller domaenet, flaget og soegningen og viser de aabne igen.
+    # Synligheden er GALLERIETS egne raekker - ikke en ny forespoergsel.
+    empty = empty_state("conMdEmpty", '"No requests match the filters."', "Clear filters",
+                        CLEAR_FILTERS, icon_key="hub", primary=False,
+                        button_name="btnMdClearFilters",
+                        visible="galMdRequests.AllItemsCount = 0")
 
     # Streg mellem overskriften og den foerste raekke.
     head_rule = group("conMdListRule", [], direction="Horizontal", height=1,
@@ -1176,6 +1243,7 @@ def _owner_buttons(act, suffix):
                            + _icon_svg(EDIT_ICON, _hx("text-muted"), size=ACTION_GLYPH, box=TL_W,
                                        opacity=icons.DISABLED_OPACITY) + "\n)"),
                   TL_W, TL_W, onselect=act, label=f'"Edit " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
+    ensure_hit(edit)
     edit.props["DisplayMode"] = f"If({can_edit}, DisplayMode.Edit, DisplayMode.Disabled)"
     # DEAKTIVERET EDIT ER KUN ET FALMET IKON (issue #138). Ingen ramme,
     # flade, hover, tryk eller fokus, naar Edit ikke kan bruges - kun den
@@ -1191,8 +1259,11 @@ def _owner_buttons(act, suffix):
                   _svg_uri(_icon_svg(icons.DELETE, _hx("state-error-fg"), size=ACTION_GLYPH, box=TL_W)),
                   TL_W, TL_W, onselect="Set(varMdDelItem, ThisItem);\nSet(varMdDeleteOpen, true)",
                   label=f'"Delete " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
-    for b in (edit, dele):
-        b.props["Visible"] = own
+    ensure_hit(dele)
+    edit.props["Visible"] = own
+    # Delete KUN paa en kladde (UX-review, hub): den roede skraldespand stod
+    # paa alle raekker, ogsaa indsendte, og var raekkens staerkeste farve.
+    dele.props["Visible"] = f'({own}) && ThisItem.Status.Value = "{ri.DRAFT}"'
     return edit, dele
 
 
@@ -1231,26 +1302,19 @@ def _compact_row(act):
                       label=DOMAIN_LABEL)
     no = grow(text_ctrl("txtMdRowNoC", f"ThisItem.{COL_NO}", size=14, weight="Semibold",
                         height=22, wrap="false"))
-    st_icon = _image("imgMdRowStatusC", _svg_uri(
-        "Switch(\n    ThisItem.Status.Value,\n    " +
-        ",\n    ".join(f'"{k}", {_icon_svg(path, _hx(tok), size=18)}'
-                       for k, (path, tok) in STATUS_ICON.items()) +
-        f',\n    {_icon_svg(STATUS_ICON["Kladde"][0], _hx("state-neutral-fg"), size=18)}\n)'), 18, 18,
-        label=STATUS_LABEL)
-    st_lbl = text_ctrl("txtMdRowStatusC", STATUS_TEXT, size=12,
-                       height=20, width=96, wrap="false")
-    line1 = group("conMdRowLineC1", [dom_icon, no, st_icon, st_lbl], direction="Horizontal", gap=8,
+    st_icon = sc.status_chip("imgMdRowStatusC", "ThisItem.Status.Value", sc.REQUEST,
+                             default=("", "Unknown", sc.REQUEST[0][2], "neutral"))
+    line1 = group("conMdRowLineC1", [dom_icon, no, st_icon], direction="Horizontal", gap=8,
                   height=22, align_items="Center",
-                  pad=(0, if_below("Tablet", str(2 * TL_W + 14), str(TL_W + 6 + 144)), 0, 0))
-    st_lbl.vis = at_least("Tablet")
+                  pad=(0, if_below("Tablet", f"2 * {HIT_W} + 14", f"{HIT_W} + 6 + 144"), 0, 0))
     line2 = text_ctrl("txtMdRowTextC",
                       f'If({below("Tablet")}, ' + _domain_switch(lambda d: f'"{d["name"]}"', '"?"') +
-                      ' & "  \u00b7  " & ThisItem.ShortText, ThisItem.ShortText)',
+                      ' & "  \u00b7  " & ' + SHORT_TEXT + ', ' + SHORT_TEXT + ')',
                       size=13, height=18, wrap="false")
     # Samme raekkefoelge som tabellen (issue #163): Plant lige efter domaenet.
     line3 = text_ctrl("txtMdRowMetaC",
                       _domain_switch(lambda d: f'"{d["name"]}"', '"?"') +
-                      f' & "  \u00b7  Plant " & ThisItem.Plant & "  \u00b7  " & {INITIALS} & "  \u00b7  " & {WHEN_FX} & '
+                      f' & "  \u00b7  Plant " & ThisItem.Plant & "  \u00b7  " & {INITIALS} & "  \u00b7  Updated " & {WHEN_SHORT} & '
                       f'If({STUCK}, "  \u00b7  " & {STUCK_TXT}, "")',
                       size=12, color=C_MUTED, height=18, wrap="false", visible=at_least("Tablet"))
     row = group("conMdRowC", [line1, line2, line3], direction="Vertical", gap=2,

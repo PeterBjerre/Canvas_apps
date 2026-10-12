@@ -518,6 +518,8 @@ layoutfejl bor:
 | 36 | AllItemsCount i stedet for CountRows(galleri.AllItems) (issue #165) |
 | 37 | Billeder, figurer og klassiske knapper skal have TabIndex >= 0 (issue #165) |
 | 38 | Billeder, figurer, tekster og inputs skal have en AccessibleLabel (issue #165) |
+| 39 | Ingen Notify - beskeder er appens egne (tools/toast.py, UX-review B1) |
+| 40 | Ikonknapper har mindst klikfladen H.hit (UX-review F6/T10) |
 <!-- rules:end -->
 
 Punkt 7 fanger den klassiske: du sletter en kontrol og glemmer en

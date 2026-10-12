@@ -47,7 +47,7 @@ DOKUMENTER OG FUNKTIONSPLADSER HOERER TIL DEN GEMTE RAEKKE
 ---------------------------------------------------------
 De stod i formularen. Dokumenterne ligger i en mappe, der hedder raekkens
 noegle, og funktionspladserne slaas op og godkendes pr. raekke - begge dele
-kraever en gemt raekke. Nu er de knapper paa raekken i Saved Rows
+kraever en gemt raekke. Nu er de knapper paa raekken i Rows
 (Docs, Objects), og formularen siger, at de findes dér.
 
 No BOM Item og Recommended stock er fjernet (issue #228). Kolonnerne staar
@@ -56,6 +56,7 @@ uroert i SharePoint; appen skriver dem ikke laengere.
 Created material no. er IKKE et felt her. Nummeret findes foerst, naar
 materialet er oprettet i SAP - det udfyldes i Details bagefter.
 """
+import display_text as dt
 import domain_config as cfg
 import domain_parts as dp
 import env_config as env
@@ -295,8 +296,10 @@ def _cell(key):
     return dp.field_grid_cell(key, **CONDITIONAL.get(key, {}))
 
 
-EDITOR_HINT = ("Start with the four key fields. Save the row, then add documentation "
-               "and functional locations from Saved Rows.")
+# UX-review F2: "Add row" gemmer raekken (som kladde, til kravene er
+# opfyldt); dokumenter og funktionspladser laegges paa den gemte raekke.
+EDITOR_HINT = ("Start with the four key fields and choose Add row. Documents and "
+               "functional locations are added on the saved row in the list below.")
 
 
 def _editor_head():
@@ -309,7 +312,7 @@ def _editor_head():
     legend = text_ctrl("txtDomFormReq", '"Required"', size=12, color=C_MUTED,
                        height=18, width=text_px("Required", 12, semibold=False),
                        wrap="false")
-    head = section_header("conDomEditorHead", "Material Editor", None,
+    head = section_header("conDomEditorHead", "Row details", None,
                           extra_left=[star, legend])
     # Een linje paa en bred skaerm, to eller tre paa en smal - hoejden
     # foelger kortets bredde, saa intet klippes.
@@ -321,7 +324,7 @@ def _editor_head():
 
 
 def reset_fx():
-    """Reset: ryd KUN formularen. Saved Rows og anmodningen roeres ikke.
+    """Reset: ryd KUN formularen. Rows og anmodningen roeres ikke.
     Er der noget at miste, spoerges der foerst."""
     return (f"If(\n{_indent(_dirty(), 4)},\n    Set({RESET_ASK}, true),\n"
             + _indent(dp.clear_form_fx(), 4) + "\n)")
@@ -399,7 +402,7 @@ def _po_popup():
     hint = text_ctrl(
         "txtDomPoHint",
         f'If({READ_ONLY}, "Read only - this row cannot be changed.", '
-        '"The text is saved with the row when you press Save row or Save row draft.")',
+        '"The text is saved with the row when you choose Add row or Update row.")',
         size=12, color=C_MUTED, height=if_below("Tablet", "36", "18"), wrap="true")
     box = text_input("inpDomPoText", PO, height="Min(220, App.Height - 220)",
                      display_mode=dp.DM_ROW, ttype="Multiline",
@@ -600,7 +603,7 @@ def row_actions():
         dp.RowAction("btnDomRowDocs",
                      f'If({docs_n} > 0, "Docs (" & {docs_n} & ")", "Docs")',
                      dp.open_docs_fx(), _w("btnDomRowDocs", "Docs (00)"),
-                     label=f'"Documentation for " & ThisItem.ItemKey & ", " & {docs_n} & " file(s)"'),
+                     label=f'"Documentation for " & ThisItem.ItemKey & ", " & {dt.plural(docs_n, "file")}'),
         dp.RowAction("btnDomRowObjects",
                      f'If({ROW_OBJ_N} > 0, "Objects (" & {ROW_OBJ_N} & ")", "Objects")',
                      open_objects_fx(), _w("btnDomRowObjects", "Objects (00)"), line=2,
@@ -965,8 +968,8 @@ def _steps_hint():
         f'        CountRows({BAD}) > 0, "Cannot submit: " & First({BAD}).Error,\n'
         f'        !IsBlank(Trim(Coalesce({APPR_MSG}, ""))), {APPR_MSG},\n'
         '        d > 0 && v = 0, "Finish the draft row before submitting.",\n'
-        '        "Ready: " & v & " row(s) will be submitted." & '
-        'If(d > 0, " " & d & " draft row(s) stay as drafts.", "")\n'
+        '        "Ready: " & ' + dt.plural("v", "row") + ' & " will be submitted." & '
+        'If(d > 0, " " & ' + dt.plural("d", "draft row") + ' & " stay as drafts.", "")\n'
         "    )\n"
         ")")
 

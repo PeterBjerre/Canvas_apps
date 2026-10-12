@@ -183,7 +183,7 @@ def reset_fx(*, combo, results, msg_var, query_var, last_var, pick_var=None,
     Soegetekst, valgt resultat, resultaterne og beskeden ryddes, og
     comboboksen faar sin pladsholder tilbage. Alle navne er vaelgerens
     egne, saa en Reset i een formular aldrig roerer en anden formulars
-    comboboks. extra: vaelgerens egne afhaengigheder (fx Object List)."""
+    comboboks. extra: vaelgerens egne afhaengigheder (fx Object list)."""
     parts = [f'Set({query_var}, "")', f'Set({last_var}, "")',
              f'Set({msg_var}, "")', f"Clear({results})"]
     if pick_var:

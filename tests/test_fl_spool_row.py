@@ -72,8 +72,9 @@ def _parts():
 
 def test_header_order_after_sort_field():
     heads = [_prop(n, "Text").strip('"') for n in _children("conFlRowsHead")]
-    assert heads == ["#", "Functional Location", "Description", "KKS Type", "Assigned Class",
-                     "Class Data", "Room", "Sort Field", "ABC Indicator", "ATEX",
+    # Sentence case (UX-review F1/T7); Functional Location og ATEX er navne.
+    assert heads == ["#", "Functional Location", "Description", "KKS type", "Assigned class",
+                     "Class data", "Room", "Sort field", "ABC indicator", "ATEX",
                      "Manufacturer", "Warranty", "Actions"]
 
 
@@ -194,8 +195,11 @@ def test_validation_message_under_the_row():
         bc = _prop(n, "BorderColor")
         assert f'Field = "{f}"' in bc and "C.'border-error'" in bc and "C.'border-ok'" in bc
     # Raekken er hoejere, naar der er beskeder at vise.
+    # Under Desktop er cellelinjen H.hit hoej (Delete, UX-review F6), og
+    # raekken vokser med forskellen.
     assert _prop("galFlRows", "TemplateSize") == (
-        'If(IfError(!IsEmpty(Filter(colFlRows, Status <> "draft")), false), 70, 44)')
+        'If(IfError(!IsEmpty(Filter(colFlRows, Status <> "draft")), false), 70, 44)'
+        ' + (Max(40, H.hit) - 40)')
 
 
 def test_table_scrolls_sideways_instead_of_hiding_columns():

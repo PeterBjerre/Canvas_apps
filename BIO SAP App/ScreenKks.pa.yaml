@@ -25,13 +25,10 @@ Screens:
               Set(varKksL2, "");
               Set(varKksL3, "");
               Set(varKksQuery, "");
-              Set(varKksTyped, "");
-              Set(varKksPending, "");
               Set(varKksDetailCode, "");
               Set(varKksDetailText, "");
               Set(varKksDetailOn, false);
-              Set(varKksPick, 0);
-              Set(varKksBusy, false)
+              Set(varKksPick, 0)
           );
           // Noeglerne hentes EEN gang - se KKS App/build/kks_parts.py, load_fx().
           If(
@@ -245,7 +242,7 @@ Screens:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="KKS Lookup"
+                                        ="KKS lookup"
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -271,7 +268,7 @@ Screens:
                                     Size: |-
                                         =22
                                     Text: |-
-                                        ="KKS Lookup"
+                                        ="KKS lookup"
                                     Visible: |-
                                         =LayoutRank >= 2
                                     Wrap: |-
@@ -391,7 +388,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =36 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 16) / 3, 116)) + 16, 32, (32) + 8 + (32) + 8 + (32))) + If(LayoutRank >= 2, 12 + (12 + (RoundUp((CountRows(colKksL1Keys) + 1) / Max(1, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 20 - 34) + 8) / 58, 0)), 0) * 40)), 0) + If(LayoutRank >= 2, 12 + (12 + If(KksNote2 <> "", 0 + (28), 0) + If(KksNote2 = "", 0 + (RoundUp((CountRows(colKksL2Keys) + 1) / Max(1, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 20 - 34) + 8) / 64, 0)), 0) * 40), 0)), 0) + If(KksHasL3 && LayoutRank >= 2, 12 + (12 + If(KksNote3 <> "", 0 + (28), 0) + If(KksNote3 = "", 0 + (RoundUp((CountRows(colKksL3Keys) + 1) / Max(1, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 20 - 34) + 8) / 64, 0)), 0) * 40), 0)), 0) + If(LayoutRank < 2, 12 + (40), 0) + If(LayoutRank < 2, 12 + (40), 0) + If(KksHasL3 && LayoutRank < 2, 12 + (40), 0) + 12 + (0 + (If(LayoutRank < 2, 84, 40)) + If(false, 0 + (1), 0) + If(false, 0 + (1), 0))
+                            =36 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) >= (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 16) / 3, 116)) + 16, 32, (32) + 8 + (32) + 8 + (32))) + If(LayoutRank >= 2, 12 + (12 + (RoundUp((CountRows(colKksL1Keys) + 1) / Max(1, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 20 - 34) + 8) / 58, 0)), 0) * 40)), 0) + If(LayoutRank >= 2 && varKksL1 <> "ALL", 12 + (12 + If(KksNote2 <> "", 0 + (28), 0) + If(KksNote2 = "", 0 + (RoundUp((CountRows(colKksL2Keys) + 1) / Max(1, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 20 - 34) + 8) / 64, 0)), 0) * 40), 0)), 0) + If(KksHasL3 && LayoutRank >= 2 && !IsBlank(varKksL2), 12 + (12 + If(KksNote3 <> "", 0 + (28), 0) + If(KksNote3 = "", 0 + (RoundUp((CountRows(colKksL3Keys) + 1) / Max(1, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) - 20 - 34) + 8) / 64, 0)), 0) * 40), 0)), 0) + If(LayoutRank < 2, 12 + (40), 0) + If(LayoutRank < 2, 12 + (40), 0) + If(KksHasL3 && LayoutRank < 2, 12 + (40), 0) + 12 + (0 + (Max(36, H.hit) + 4) + If(false, 0 + (1), 0))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -485,9 +482,7 @@ Screens:
                                         Set(varKksL2, "");
                                         Set(varKksL3, "");
                                         Set(varKksQuery, "");
-                                        Set(varKksTyped, "");
-                                        Set(varKksBusy, false);
-                                        Reset(cmbKksFind)
+                                        Reset(inpKksFind)
                                     RadiusBottomLeft: |-
                                         =14
                                     RadiusBottomRight: |-
@@ -539,9 +534,7 @@ Screens:
                                         Set(varKksL2, "");
                                         Set(varKksL3, "");
                                         Set(varKksQuery, "");
-                                        Set(varKksTyped, "");
-                                        Set(varKksBusy, false);
-                                        Reset(cmbKksFind)
+                                        Reset(inpKksFind)
                                     RadiusBottomLeft: |-
                                         =14
                                     RadiusBottomRight: |-
@@ -593,9 +586,7 @@ Screens:
                                         Set(varKksL2, "");
                                         Set(varKksL3, "");
                                         Set(varKksQuery, "");
-                                        Set(varKksTyped, "");
-                                        Set(varKksBusy, false);
-                                        Reset(cmbKksFind)
+                                        Reset(inpKksFind)
                                     RadiusBottomLeft: |-
                                         =14
                                     RadiusBottomRight: |-
@@ -2065,7 +2056,7 @@ Screens:
                               RadiusTopRight: |-
                                   =14
                               Visible: |-
-                                  =LayoutRank >= 2
+                                  =LayoutRank >= 2 && varKksL1 <> "ALL"
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -3492,7 +3483,7 @@ Screens:
                               RadiusTopRight: |-
                                   =14
                               Visible: |-
-                                  =KksHasL3 && LayoutRank >= 2
+                                  =KksHasL3 && LayoutRank >= 2 && !IsBlank(varKksL2)
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -5014,7 +5005,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =0 + (If(LayoutRank < 2, 84, 40)) + If(false, 0 + (1), 0) + If(false, 0 + (1), 0)
+                                  =0 + (Max(36, H.hit) + 4) + If(false, 0 + (1), 0)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -5041,11 +5032,11 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =If(LayoutRank < 2, 84, 40)
+                                        =Max(36, H.hit) + 4
                                     LayoutAlignItems: |-
-                                        =If(LayoutRank < 2, LayoutAlignItems.Stretch, LayoutAlignItems.Center)
+                                        =LayoutAlignItems.Center
                                     LayoutDirection: |-
-                                        =If(LayoutRank < 2, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                                        =LayoutDirection.Horizontal
                                     LayoutGap: |-
                                         =8
                                     LayoutMinWidth: |-
@@ -5065,25 +5056,50 @@ Screens:
                                     Width: |-
                                         =If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18), Max(460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) / 3))
                                   Children:
-                                    - cmbKksFind:
-                                        Control: ModernCombobox
+                                    - imgKksFindIcon:
+                                        Control: Image
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Search KKS codes and descriptions - type, then Search or Enter"
+                                              ="Search"
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Height: |-
+                                              =20
+                                          Image: |-
+                                              ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z M20 20l-4-4'/></g></svg>")
+                                          ImagePosition: |-
+                                              =ImagePosition.Fit
+                                          LayoutMinWidth: |-
+                                              =20
+                                          OnSelect: |-
+                                              =false
+                                          TabIndex: |-
+                                              =0
+                                          Width: |-
+                                              =20
+                                    - inpKksFind:
+                                        Control: ModernTextInput
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Search KKS codes and descriptions"
                                           Appearance: |-
                                               =Appearance.FilledDarker
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
-                                              =C.'border-default'
+                                              =C.'border-input'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
                                               =1
                                           Color: |-
                                               =C.'input-fg'
-                                          DelayOutput: |-
-                                              =false
+                                          Default: |-
+                                              =varKksQuery
                                           Fill: |-
                                               =C.'input-bg'
                                           FillPortions: |-
@@ -5092,54 +5108,10 @@ Screens:
                                               =Font.'Segoe UI'
                                           Height: |-
                                               =36
-                                          InputTextPlaceholder: |-
-                                              ="Search code or description"
-                                          IsSearchable: |-
-                                              =true
-                                          ItemDisplayText: |-
-                                              =ThisItem.Display
-                                          Items: |-
-                                              =With(
-                                                  { q: Trim(Self.SearchText) },
-                                                  With(
-                                                      {
-                                                          hits: FirstN(AddColumns(Filter(colKksScope, Len(q) >= 2 && (q in Code || q in Description)), Display, Code & " - " & Description), 50),
-                                                          s: { L1: "", Code: "?search", Description: q, P2: "", P3: "", Display: q & "  -  press Enter to search" }
-                                                      },
-                                                      If(
-                                                          Len(q) < 2 || varKksBusy || Upper(q) = Upper(Coalesce(varKksQuery, "")),
-                                                          hits,
-                                                          ForAll(Sequence(CountRows(hits) + 1),
-                                                              If(Value = 1, s, IfError(Index(hits, Value - 1), s)))
-                                                      )
-                                                  )
-                                              )
                                           LayoutMinWidth: |-
                                               =0
-                                          OnChange: |-
-                                              =If(
-                                                  Self.Selected.Code = "?search",
-                                                  Set(varKksPending, Self.Selected.Description);
-                                                  Set(varKksBusy, true);
-                                                  Reset(cmbKksFind),
-                                                  !IsBlank(Self.Selected.Code),
-                                                  With(
-                                                      {c: Upper(Self.Selected.Code), s: Self.Selected.L1},
-                                                      With(
-                                                          {isTop: Len(c) = 1 && !IsBlank(LookUp(colKksL1Keys, Value = c))},
-                                                          With(
-                                                              {l1: If(isTop, c, With({t: If(s = "HOME", Left(c, 1), s)}, If(!IsBlank(LookUp(colKksL1Keys, Value = t)), t, "ALL")))},
-                                                              Set(varKksL1, l1);
-                                                              Set(varKksL2, If(l1 = "ALL" || isTop || Len(c) < 2 || !StartsWith(c, l1), "", Left(c, 2)));
-                                                              Set(varKksL3, If(l1 = "ALL" || isTop || !KksHasL3 || Len(c) < 3 || !StartsWith(c, l1), "", Left(c, 3)));
-                                                              Set(varKksQuery, "");
-                                                              Set(varKksTyped, "");
-                                                              Set(varKksBusy, false);
-                                                              Reset(cmbKksFind)
-                                                          )
-                                                      )
-                                                  )
-                                              )
+                                          Placeholder: |-
+                                              ="Search code or description"
                                           RadiusBottomLeft: |-
                                               =10
                                           RadiusBottomRight: |-
@@ -5148,195 +5120,68 @@ Screens:
                                               =10
                                           RadiusTopRight: |-
                                               =10
-                                          SelectMultiple: |-
-                                              =false
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
+                                          TriggerOutput: |-
+                                              =TriggerOutput.Keypress
+                                          Type: |-
+                                              =TextInputType.Search
+                                          ValidationState: |-
+                                              =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                           Width: |-
-                                              =Max(0, (((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18), Max(460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) / 3))))) - (If(!varKksBusy, (239) + 8, 0)) - (If(varKksBusy, (154) + 8, 0)) - 2)
-                                    - conKksFindBtns:
-                                        Control: GroupContainer
-                                        Variant: AutoLayout
-                                        Properties:
-                                          AlignInContainer: |-
-                                              =If(LayoutRank < 2, AlignInContainer.End, AlignInContainer.Center)
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          DropShadow: |-
-                                              =DropShadow.None
-                                          FillPortions: |-
-                                              =0
-                                          Height: |-
-                                              =36
-                                          LayoutAlignItems: |-
-                                              =LayoutAlignItems.Center
-                                          LayoutDirection: |-
-                                              =LayoutDirection.Horizontal
-                                          LayoutGap: |-
-                                              =8
-                                          LayoutMinWidth: |-
-                                              =239
-                                          LayoutOverflowX: |-
-                                              =LayoutOverflow.Hide
-                                          LayoutOverflowY: |-
-                                              =LayoutOverflow.Hide
-                                          Visible: |-
-                                              =!varKksBusy
-                                          Width: |-
-                                              =239
-                                        Children:
-                                          - btnKksFind:
-                                              Control: ModernButton
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="Search KKS codes"
-                                                Align: |-
-                                                    =Align.Center
-                                                AlignInContainer: |-
-                                                    =AlignInContainer.Center
-                                                Appearance: |-
-                                                    =ButtonAppearance.Outline
-                                                BorderColor: |-
-                                                    =C.'border-default'
-                                                BorderThickness: |-
-                                                    =1
-                                                Color: |-
-                                                    =C.'text-primary'
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =36
-                                                Layout: |-
-                                                    =ButtonLayout.TextOnly
-                                                LayoutMinWidth: |-
-                                                    =154
-                                                OnSelect: |-
-                                                    =Set(varKksPending, Trim(Coalesce(cmbKksFind.SearchText, varKksTyped)));
-                                                    Set(varKksBusy, true)
-                                                RadiusBottomLeft: |-
-                                                    =10
-                                                RadiusBottomRight: |-
-                                                    =10
-                                                RadiusTopLeft: |-
-                                                    =10
-                                                RadiusTopRight: |-
-                                                    =10
-                                                Size: |-
-                                                    =12
-                                                Text: |-
-                                                    ="Search"
-                                                VerticalAlign: |-
-                                                    =VerticalAlign.Middle
-                                                Visible: |-
-                                                    =!varKksBusy
-                                                Width: |-
-                                                    =154
-                                          - btnKksReset:
-                                              Control: ModernButton
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="Reset the KKS lookup"
-                                                Align: |-
-                                                    =Align.Center
-                                                AlignInContainer: |-
-                                                    =AlignInContainer.Center
-                                                Appearance: |-
-                                                    =ButtonAppearance.Outline
-                                                BorderColor: |-
-                                                    =C.'border-default'
-                                                BorderThickness: |-
-                                                    =1
-                                                Color: |-
-                                                    =C.'text-primary'
-                                                DisplayMode: |-
-                                                    =If(varKksKey = "function" && varKksL1 = "ALL" && IsBlank(varKksL2) && IsBlank(varKksL3) && IsBlank(varKksQuery) && IsBlank(varKksTyped) && IsBlank(cmbKksFind.SearchText), DisplayMode.Disabled, DisplayMode.Edit)
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =36
-                                                Layout: |-
-                                                    =ButtonLayout.TextOnly
-                                                LayoutMinWidth: |-
-                                                    =77
-                                                OnSelect: |-
-                                                    =Set(varKksKey, "function");
-                                                    Set(varKksL1, "ALL");
-                                                    Set(varKksL2, "");
-                                                    Set(varKksL3, "");
-                                                    Set(varKksQuery, "");
-                                                    Set(varKksTyped, "");
-                                                    Set(varKksBusy, false);
-                                                    Reset(cmbKksFind);
-                                                    Set(varKksPending, "");
-                                                    Set(varKksDetailOn, false)
-                                                RadiusBottomLeft: |-
-                                                    =10
-                                                RadiusBottomRight: |-
-                                                    =10
-                                                RadiusTopLeft: |-
-                                                    =10
-                                                RadiusTopRight: |-
-                                                    =10
-                                                Size: |-
-                                                    =12
-                                                Text: |-
-                                                    ="Reset"
-                                                VerticalAlign: |-
-                                                    =VerticalAlign.Middle
-                                                Width: |-
-                                                    =77
-                                    - imgKksFindBusy:
-                                        Control: Image
+                                              =Max(0, (((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18), Max(460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) / 3))))) - ((20) + 8) - (If(!IsBlank(inpKksFind.Text), (Max(36, H.hit)) + 8, 0)) - 2)
+                                    - btnKksFindClear:
+                                        Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Searching"
+                                              ="Clear the search"
+                                          Align: |-
+                                              =Align.Center
                                           AlignInContainer: |-
-                                              =If(LayoutRank < 2, AlignInContainer.End, AlignInContainer.Center)
-                                          BorderStyle: |-
-                                              =BorderStyle.None
+                                              =AlignInContainer.Center
+                                          Appearance: |-
+                                              =ButtonAppearance.Outline
+                                          BorderColor: |-
+                                              =RGBA(0, 0, 0, 0)
                                           BorderThickness: |-
-                                              =0
+                                              =1
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
                                           Height: |-
-                                              =36
-                                          Image: |-
-                                              ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='154' height='36' viewBox='0 0 154 36'><rect x='0.5' y='0.5' width='153' height='35' rx='10' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='34.0' cy='18' r='8' fill='none' stroke='" & C.'hex-border-default' & "' stroke-width='2.5'/><circle cx='34.0' cy='18' r='8' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2.5' stroke-linecap='round' stroke-dasharray='14 40'><animateTransform attributeName='transform' type='rotate' from='0 34.0 18' to='360 34.0 18' dur='0.8s' repeatCount='indefinite'/></circle><text x='50.0' y='23' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Searching..." & "</text></svg>")
-                                          ImagePosition: |-
-                                              =ImagePosition.Fit
+                                              =Max(36, H.hit)
+                                          Icon: |-
+                                              ="Dismiss"
+                                          Layout: |-
+                                              =ButtonLayout.IconOnly
                                           LayoutMinWidth: |-
-                                              =154
+                                              =Max(36, H.hit)
                                           OnSelect: |-
-                                              =false
-                                          TabIndex: |-
-                                              =0
+                                              =Set(varKksQuery, "");
+                                              Reset(inpKksFind)
+                                          RadiusBottomLeft: |-
+                                              =10
+                                          RadiusBottomRight: |-
+                                              =10
+                                          RadiusTopLeft: |-
+                                              =10
+                                          RadiusTopRight: |-
+                                              =10
+                                          Size: |-
+                                              =14
+                                          Text: |-
+                                              =""
+                                          Tooltip: |-
+                                              ="Clear the search"
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
                                           Visible: |-
-                                              =varKksBusy
+                                              =!IsBlank(inpKksFind.Text)
                                           Width: |-
-                                              =154
-                              - tmrKksFindCapture:
-                                  Control: Timer
-                                  Properties:
-                                    AutoPause: |-
-                                        =false
-                                    AutoStart: |-
-                                        =false
-                                    Duration: |-
-                                        =300
-                                    Height: |-
-                                        =1
-                                    OnTimerEnd: |-
-                                        =If(!IsBlank(cmbKksFind.SearchText), Set(varKksTyped, cmbKksFind.SearchText))
-                                    Repeat: |-
-                                        =true
-                                    Start: |-
-                                        =!IsBlank(cmbKksFind.SearchText)
-                                    Visible: |-
-                                        =false
-                                    Width: |-
-                                        =1
+                                              =Max(36, H.hit)
                               - tmrKksFindApply:
                                   Control: Timer
                                   Properties:
@@ -5345,16 +5190,15 @@ Screens:
                                     AutoStart: |-
                                         =false
                                     Duration: |-
-                                        =300
+                                        =350
                                     Height: |-
                                         =1
                                     OnTimerEnd: |-
-                                        =Set(varKksQuery, varKksPending);
-                                        Set(varKksBusy, false)
+                                        =Set(varKksQuery, With({ _t: Trim(inpKksFind.Text) }, If(Len(_t) >= 2, _t, "")))
                                     Repeat: |-
                                         =false
                                     Start: |-
-                                        =varKksBusy
+                                        =With({ _t: Trim(inpKksFind.Text) }, If(Len(_t) >= 2, _t, "")) <> Coalesce(varKksQuery, "")
                                     Visible: |-
                                         =false
                                     Width: |-
@@ -5374,7 +5218,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =78 + (If((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))) >= (44) + (48) + (56) + (72) + 6, 32, (32) + If(varKksL1 <> "ALL", 2 + (32), 0) + If(!IsBlank(varKksL2), 2 + (32), 0) + If(!IsBlank(varKksL3), 2 + (32), 0))) + 8 + (Max(20, RoundUp(Len(KksTitle) / Max(24, RoundDown(If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 7.5, 0)), 0) * 20)) + If(CountRows(colKksResults) > 0, 8 + (If(CountRows(colKksResults) = 0, 0, If(LayoutRank < 2, 1120, Max(560, App.Height - 600)))), 0) + If(CountRows(colKksResults) = 0, 8 + (40), 0)
+                            =78 + (If((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))) >= (84) + (48) + (56) + (72) + 6, 32, If(varKksL1 <> "ALL", 0 + (32), 0) + If(varKksL1 <> "ALL", 2 + (32), 0) + If(!IsBlank(varKksL2), 2 + (32), 0) + If(!IsBlank(varKksL3), 2 + (32), 0))) + 8 + (Max(20, RoundUp(Len(KksTitle) / Max(24, RoundDown(If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) / 7.5, 0)), 0) * 20)) + If(CountRows(colKksResults) > 0, 8 + (If(CountRows(colKksResults) = 0, 0, If(LayoutRank < 2, 1120, Max(560, App.Height - 600)))), 0) + If(CountRows(colKksResults) = 0, 8 + (40), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -5417,11 +5261,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))) >= (44) + (48) + (56) + (72) + 6, 32, (32) + If(varKksL1 <> "ALL", 2 + (32), 0) + If(!IsBlank(varKksL2), 2 + (32), 0) + If(!IsBlank(varKksL3), 2 + (32), 0))
+                                  =If((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))) >= (84) + (48) + (56) + (72) + 6, 32, If(varKksL1 <> "ALL", 0 + (32), 0) + If(varKksL1 <> "ALL", 2 + (32), 0) + If(!IsBlank(varKksL2), 2 + (32), 0) + If(!IsBlank(varKksL3), 2 + (32), 0))
                               LayoutAlignItems: |-
-                                  =If((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))) >= (44) + (48) + (56) + (72) + 6, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                                  =If((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))) >= (84) + (48) + (56) + (72) + 6, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =If((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))) >= (44) + (48) + (56) + (72) + 6, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                  =If((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))) >= (84) + (48) + (56) + (72) + 6, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =2
                               LayoutMinWidth: |-
@@ -5437,7 +5281,7 @@ Screens:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="All sections"
+                                        ="All groups"
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -5459,7 +5303,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))) >= (44) + (48) + (56) + (72) + 6, 44, 0)
+                                        =If((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))) >= (84) + (48) + (56) + (72) + 6, 84, 0)
                                     OnSelect: |-
                                         =Set(varKksL1, "ALL");
                                         Set(varKksL2, "");
@@ -5475,11 +5319,13 @@ Screens:
                                     Size: |-
                                         =12
                                     Text: |-
-                                        ="All"
+                                        ="All groups"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
+                                    Visible: |-
+                                        =varKksL1 <> "ALL"
                                     Width: |-
-                                        =44
+                                        =84
                               - btnKksCrumbL1:
                                   Control: ModernButton
                                   Properties:
@@ -5506,7 +5352,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))) >= (44) + (48) + (56) + (72) + 6, 48, 0)
+                                        =If((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))) >= (84) + (48) + (56) + (72) + 6, 48, 0)
                                     OnSelect: |-
                                         =Set(varKksL2, "");
                                         Set(varKksL3, "")
@@ -5554,7 +5400,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))) >= (44) + (48) + (56) + (72) + 6, 56, 0)
+                                        =If((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))) >= (84) + (48) + (56) + (72) + 6, 56, 0)
                                     OnSelect: |-
                                         =Set(varKksL3, "")
                                     RadiusBottomLeft: |-
@@ -5601,7 +5447,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))) >= (44) + (48) + (56) + (72) + 6, 72, 0)
+                                        =If((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18))) >= (84) + (48) + (56) + (72) + 6, 72, 0)
                                     OnSelect: |-
                                         =false
                                     RadiusBottomLeft: |-
@@ -5767,7 +5613,7 @@ Screens:
                                     Text: |-
                                         ="DESCRIPTION"
                                     Width: |-
-                                        =((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 18 - If(LayoutRank < 2, 0, 40)) - 16 - 72 - 8)
+                                        =((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 18 - If(LayoutRank < 2, 0, 40)) - 16 - 72 - 8 - Max(32, H.hit) - 8)
                                     Wrap: |-
                                         =false
                         - galKksRows:
@@ -5819,7 +5665,7 @@ Screens:
                                     Fill: |-
                                         =C.'bg-card'
                                     Height: |-
-                                        =Max(1, RoundUp(Len(ThisItem.Description) / Max(14, RoundDown(((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 18 - If(LayoutRank < 2, 0, 40)) - 16 - 72 - 8) / 7.5, 0)), 0)) * 19 + 1 + 22
+                                        =Max(1, RoundUp(Len(ThisItem.Description) / Max(14, RoundDown(((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 18 - If(LayoutRank < 2, 0, 40)) - 16 - 72 - 8 - Max(32, H.hit) - 8) / 7.5, 0)), 0)) * 19 + 1 + 22
                                     OnSelect: |-
                                         =false
                                     TabIndex: |-
@@ -5885,7 +5731,7 @@ Screens:
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
-                                        =Max(1, RoundUp(Len(ThisItem.Description) / Max(14, RoundDown(((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 18 - If(LayoutRank < 2, 0, 40)) - 16 - 72 - 8) / 7.5, 0)), 0)) * 19 + 1
+                                        =Max(1, RoundUp(Len(ThisItem.Description) / Max(14, RoundDown(((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 18 - If(LayoutRank < 2, 0, 40)) - 16 - 72 - 8 - Max(32, H.hit) - 8) / 7.5, 0)), 0)) * 19 + 1
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -5899,7 +5745,7 @@ Screens:
                                     Text: |-
                                         =ThisItem.Description
                                     Width: |-
-                                        =((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 18 - If(LayoutRank < 2, 0, 40)) - 16 - 72 - 8)
+                                        =((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 18 - If(LayoutRank < 2, 0, 40)) - 16 - 72 - 8 - Max(32, H.hit) - 8)
                                     Wrap: |-
                                         =true
                                     X: |-
@@ -5928,7 +5774,7 @@ Screens:
                                     X: |-
                                         =0
                                     Y: |-
-                                        =(Max(1, RoundUp(Len(ThisItem.Description) / Max(14, RoundDown(((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 18 - If(LayoutRank < 2, 0, 40)) - 16 - 72 - 8) / 7.5, 0)), 0)) * 19 + 1 + 22) - 1
+                                        =(Max(1, RoundUp(Len(ThisItem.Description) / Max(14, RoundDown(((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 18 - If(LayoutRank < 2, 0, 40)) - 16 - 72 - 8 - Max(32, H.hit) - 8) / 7.5, 0)), 0)) * 19 + 1 + 22) - 1
                               - btnKksRowHit:
                                   Control: Classic/Button
                                   Properties:
@@ -5953,7 +5799,7 @@ Screens:
                                     FocusedBorderThickness: |-
                                         =2
                                     Height: |-
-                                        =(Max(1, RoundUp(Len(ThisItem.Description) / Max(14, RoundDown(((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 18 - If(LayoutRank < 2, 0, 40)) - 16 - 72 - 8) / 7.5, 0)), 0)) * 19 + 1 + 22) - 1
+                                        =(Max(1, RoundUp(Len(ThisItem.Description) / Max(14, RoundDown(((If(LayoutRank < 2, (App.Width - If(LayoutRank >= 2, 56, 0) - 64), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18)) - 18 - If(LayoutRank < 2, 0, 40)) - 16 - 72 - 8 - Max(32, H.hit) - 8) / 7.5, 0)), 0)) * 19 + 1 + 22) - 1
                                     HoverBorderColor: |-
                                         =RGBA(0, 0, 0, 0)
                                     HoverColor: |-
@@ -5971,9 +5817,7 @@ Screens:
                                                     Set(varKksL2, If(l1 = "ALL" || isTop || Len(c) < 2 || !StartsWith(c, l1), "", Left(c, 2)));
                                                     Set(varKksL3, If(l1 = "ALL" || isTop || !KksHasL3 || Len(c) < 3 || !StartsWith(c, l1), "", Left(c, 3)));
                                                     Set(varKksQuery, "");
-                                                    Set(varKksTyped, "");
-                                                    Set(varKksBusy, false);
-                                                    Reset(cmbKksFind)
+                                                    Reset(inpKksFind)
                                                 )
                                             )
                                         )
@@ -5999,6 +5843,58 @@ Screens:
                                         =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - If(LayoutRank < 2, 0, 18) - If(LayoutRank < 2, 0, 18)) - 2 * 0 - 18 - 40)
                                     X: |-
                                         =0
+                                    Y: |-
+                                        =0
+                              - btnKksRowCopy:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Copy " & ThisItem.Code
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =H.hit
+                                    Icon: |-
+                                        ="Copy"
+                                    Layout: |-
+                                        =ButtonLayout.IconOnly
+                                    OnSelect: |-
+                                        =Copy(ThisItem.Code);
+                                        Set(gblToast, { Text: "Copied " & ThisItem.Code & " to the clipboard.", Kind: "Success", At: Now() }); true
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        =""
+                                    Tooltip: |-
+                                        ="Copy " & ThisItem.Code
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =H.hit
+                                    X: |-
+                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - If(LayoutRank < 2, 0, 18) - If(LayoutRank < 2, 0, 18)) - 2 * 0 - 18 - 40) - 8 - Self.Width
                                     Y: |-
                                         =0
                         - txtKksEmpty:
@@ -6094,7 +5990,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =380
+                      =44 + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Start
                   LayoutDirection: |-
@@ -6132,7 +6028,7 @@ Screens:
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='44' viewBox='0 0 56 44'><image x='15' y='9' width='26' height='26' preserveAspectRatio='xMidYMid meet' href='" & AppLogo & "'/></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None)
                         PressedFill: |-
@@ -6157,13 +6053,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l6 6-6 6 M12 6l6 6-6 6'/></g></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, true)
                         PressedFill: |-
@@ -6190,13 +6086,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 11 12 3' stroke='" & C.'hex-domain-fl' & "'/><path d='M12 3l9.5 8' stroke='" & C.'hex-domain-vhp' & "'/><path d='M12 14a2 2 0 0 0-2 2v4.5H6.5A1.5 1.5 0 0 1 5 19V9' stroke='" & C.'hex-domain-mat' & "'/><path d='M12 14a2 2 0 0 1 2 2v4.5h3.5A1.5 1.5 0 0 0 19 19V9' stroke='" & C.'hex-domain-eq' & "'/></g></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None)
                         PressedFill: |-
@@ -6223,13 +6119,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblNavTo, "Fl"); Navigate(ScreenFunctionalLocation, ScreenTransition.None)
                         PressedFill: |-
@@ -6256,13 +6152,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblNavTo, "Vhp"); Navigate(ScreenVhPlan, ScreenTransition.None)
                         PressedFill: |-
@@ -6289,13 +6185,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblNavTo, "Mat"); Navigate(ScreenMaterial, ScreenTransition.None)
                         PressedFill: |-
@@ -6322,13 +6218,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblNavTo, "Eq"); Navigate(ScreenEquipment, ScreenTransition.None)
                         PressedFill: |-
@@ -6355,13 +6251,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =RGBA(0, 0, 0, 0)
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><rect x='8' y='0' width='40' height='40' rx='8' fill='" & C.'hex-state-info-bg' & "'/><rect x='0' y='10' width='3' height='20' rx='1.5' fill='" & C.'hex-text-muted' & "'/><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M3 6h11M3 11h7M3 16h5M15.5 11.5a3.5 3.5 0 1 1 0 7a3.5 3.5 0 1 1 0-7ZM18.1 18.1 21 21'/></g></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false)
                         PressedFill: |-
@@ -6388,13 +6284,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 6h16a1 1 0 0 1 1 1v3a2 2 0 0 0 0 4v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-3a2 2 0 0 0 0-4V7a1 1 0 0 1 1-1Z M15 6.5v2M15 11v2M15 15.5v2'/></g></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblNavFrom, "kks"); Navigate(ScreenIssueBoard, ScreenTransition.None)
                         PressedFill: |-
@@ -6416,7 +6312,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =139
+                      =47 + 10 + (Max(36, H.hit)) + 10 + (Max(36, H.hit))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Start
                   LayoutDirection: |-
@@ -6484,13 +6380,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =36
+                            =Max(36, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'><g transform='translate(9 9) scale(0.75)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-4.5 3.5v-3.5H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2Z'/></g></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblFbMe, Lower(User().Email)); Set(gblFbPick, false); Set(gblFbBusy, false); ClearCollect(colFbRequests, ForAll(FirstN(Sort(Filter('MD_RequestIndex', RequesterEmail = gblFbMe), LastActionOn, SortOrder.Descending), 100) As R, {Code: R.RequestNo, Title: Coalesce(R.ShortText, ""), Domain: R.Domain.Value, TypeName: Switch(R.Domain.Value, "FunctionalLocation", "Functional location", "Equipment", "Equipment", "MeasuringPoint", "Measuring point", "Material", "Material", "MaintenancePlan", "Maintenance plan", "Request"), Url: Coalesce(R.AppUrl, "")})); Set(gblFbOpen, true)
                         PressedFill: |-
@@ -6508,7 +6404,7 @@ Screens:
                         Tooltip: |-
                             ="Message SAP maintenance"
                         Width: |-
-                            =36
+                            =Max(36, H.hit)
                   - imgKksNavLang:
                       Control: Image
                       Properties:
@@ -6556,7 +6452,7 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =36
+                            =Max(36, H.hit)
                         HoverFill: |-
                             =RGBA(0, 0, 0, 0)
                         Image: |-
@@ -6565,17 +6461,18 @@ Screens:
                                 "<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'><rect x='1' y='1' width='34' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='18' cy='18' r='14' fill='" & C.'hex-bg-surface' & "'/><circle cx='18' cy='18' r='4' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8'/><line x1='24.5' y1='18.0' x2='27.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='22.6' y1='22.6' x2='24.4' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='18.0' y1='24.5' x2='18.0' y2='27.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='13.4' y1='22.6' x2='11.6' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='11.5' y1='18.0' x2='9.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='13.4' y1='13.4' x2='11.6' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='18.0' y1='11.5' x2='18.0' y2='9.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='22.6' y1='13.4' x2='24.4' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/></svg>"
                             ))
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(darkModeEnabled, !darkModeEnabled);
-                            ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
+                            If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
+                            Patch(colAppPrefs, First(colAppPrefs), { Dark: darkModeEnabled });
                             IfError(SaveData(colAppPrefs, "prefs"), Blank())
                         PressedFill: |-
                             =RGBA(0, 0, 0, 0)
                         TabIndex: |-
                             =0
                         Width: |-
-                            =36
+                            =Max(36, H.hit)
       - conKksMobileBar:
           Control: GroupContainer
           Variant: AutoLayout
@@ -6637,13 +6534,13 @@ Screens:
                   FocusedBorderThickness: |-
                       =2
                   Height: |-
-                      =40
+                      =Max(40, H.hit)
                   HoverFill: |-
                       =C.'bg-muted'
                   Image: |-
                       ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 7h16M4 12h16M4 17h16'/></g></svg>")
                   ImagePosition: |-
-                      =ImagePosition.Fit
+                      =ImagePosition.Center
                   OnSelect: |-
                       =Set(gblNavOpen, true)
                   PressedFill: |-
@@ -6807,7 +6704,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =380
+                      =44 + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Start
                   LayoutDirection: |-
@@ -6845,7 +6742,7 @@ Screens:
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='44' viewBox='0 0 232 44'><image x='15' y='9' width='26' height='26' preserveAspectRatio='xMidYMid meet' href='" & AppLogo & "'/><text x='56' y='28' font-family='Segoe UI, sans-serif' font-size='16' font-weight='600' fill='" & C.'hex-text-primary' & "'>BIO SAP</text></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None)
                         PressedFill: |-
@@ -6870,13 +6767,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M18 6l-6 6 6 6 M12 6l-6 6 6 6'/></g></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false)
                         PressedFill: |-
@@ -6903,13 +6800,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 11 12 3' stroke='" & C.'hex-domain-fl' & "'/><path d='M12 3l9.5 8' stroke='" & C.'hex-domain-vhp' & "'/><path d='M12 14a2 2 0 0 0-2 2v4.5H6.5A1.5 1.5 0 0 1 5 19V9' stroke='" & C.'hex-domain-mat' & "'/><path d='M12 14a2 2 0 0 1 2 2v4.5h3.5A1.5 1.5 0 0 0 19 19V9' stroke='" & C.'hex-domain-eq' & "'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-muted' & "'>" & "Masterdata Hub" & "</text></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None)
                         PressedFill: |-
@@ -6934,13 +6831,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-muted' & "'>" & "Functional Location" & "</text></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblNavTo, "Fl"); Navigate(ScreenFunctionalLocation, ScreenTransition.None)
                         PressedFill: |-
@@ -6965,13 +6862,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-muted' & "'>" & "Maintenance Plan" & "</text></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblNavTo, "Vhp"); Navigate(ScreenVhPlan, ScreenTransition.None)
                         PressedFill: |-
@@ -6996,13 +6893,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-muted' & "'>" & "Materials" & "</text></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblNavTo, "Mat"); Navigate(ScreenMaterial, ScreenTransition.None)
                         PressedFill: |-
@@ -7027,13 +6924,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-muted' & "'>" & "Equipments" & "</text></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblNavTo, "Eq"); Navigate(ScreenEquipment, ScreenTransition.None)
                         PressedFill: |-
@@ -7058,13 +6955,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =RGBA(0, 0, 0, 0)
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><rect x='8' y='0' width='216' height='40' rx='8' fill='" & C.'hex-state-info-bg' & "'/><rect x='0' y='10' width='3' height='20' rx='1.5' fill='" & C.'hex-text-muted' & "'/><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M3 6h11M3 11h7M3 16h5M15.5 11.5a3.5 3.5 0 1 1 0 7a3.5 3.5 0 1 1 0-7ZM18.1 18.1 21 21'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='700' fill='" & C.'hex-state-info-fg' & "'>" & "KKS lookup" & "</text></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false)
                         PressedFill: |-
@@ -7089,13 +6986,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 6h16a1 1 0 0 1 1 1v3a2 2 0 0 0 0 4v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-3a2 2 0 0 0 0-4V7a1 1 0 0 1 1-1Z M15 6.5v2M15 11v2M15 15.5v2'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-muted' & "'>" & "Issue Board" & "</text></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblNavFrom, "kks"); Navigate(ScreenIssueBoard, ScreenTransition.None)
                         PressedFill: |-
@@ -7115,7 +7012,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =139
+                      =93 + 10 + (Max(36, H.hit))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Start
                   LayoutDirection: |-
@@ -7183,13 +7080,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =36
+                            =Max(36, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='148' height='36' viewBox='0 0 148 36'><g transform='translate(12 9) scale(0.75)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-4.5 3.5v-3.5H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2Z'/></g><text x='40' y='23' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Message us" & "</text></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblFbMe, Lower(User().Email)); Set(gblFbPick, false); Set(gblFbBusy, false); ClearCollect(colFbRequests, ForAll(FirstN(Sort(Filter('MD_RequestIndex', RequesterEmail = gblFbMe), LastActionOn, SortOrder.Descending), 100) As R, {Code: R.RequestNo, Title: Coalesce(R.ShortText, ""), Domain: R.Domain.Value, TypeName: Switch(R.Domain.Value, "FunctionalLocation", "Functional location", "Equipment", "Equipment", "MeasuringPoint", "Measuring point", "Material", "Material", "MaintenancePlan", "Maintenance plan", "Request"), Url: Coalesce(R.AppUrl, "")})); Set(gblFbOpen, true)
                         PressedFill: |-
@@ -7267,7 +7164,8 @@ Screens:
                             =ImagePosition.Fit
                         OnSelect: |-
                             =Set(darkModeEnabled, !darkModeEnabled);
-                            ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
+                            If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
+                            Patch(colAppPrefs, First(colAppPrefs), { Dark: darkModeEnabled });
                             IfError(SaveData(colAppPrefs, "prefs"), Blank())
                         PressedFill: |-
                             =RGBA(0, 0, 0, 0)
@@ -7337,7 +7235,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =242 + 12 + (0 + (62) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354))))))
+                      =242 + 12 + (0 + (20 + 6 + (H.control)) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354))))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -7737,7 +7635,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + (62) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354)))))
+                            =0 + (20 + 6 + (H.control)) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354)))))
                         LayoutMinWidth: |-
                             =0
                         Width: |-
@@ -7752,7 +7650,7 @@ Screens:
                               DropShadow: |-
                                   =DropShadow.None
                               Height: |-
-                                  =0 + (62) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354)))))
+                                  =0 + (20 + 6 + (H.control)) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354)))))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -7781,7 +7679,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =62
+                                        =20 + 6 + (H.control)
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
@@ -7845,7 +7743,7 @@ Screens:
                                           FillPortions: |-
                                               =0
                                           Height: |-
-                                              =36
+                                              =H.control
                                           LayoutAlignItems: |-
                                               =LayoutAlignItems.Center
                                           LayoutDirection: |-
@@ -7863,7 +7761,7 @@ Screens:
                                           PaddingLeft: |-
                                               =12
                                           PaddingRight: |-
-                                              =10
+                                              =4
                                           PaddingTop: |-
                                               =0
                                           RadiusBottomLeft: |-
@@ -7895,7 +7793,7 @@ Screens:
                                                 ImagePosition: |-
                                                     =ImagePosition.Fit
                                                 OnSelect: |-
-                                                    =Set(gblFbPick, !gblFbPick)
+                                                    =false
                                                 TabIndex: |-
                                                     =0
                                                 Visible: |-
@@ -7962,7 +7860,7 @@ Screens:
                                                 VerticalAlign: |-
                                                     =VerticalAlign.Middle
                                                 Width: |-
-                                                    =Max(0, ((((((Min(560, App.Width - 40)) - 18 - 18)))) - 12 - 10) - (If(gblFbSel.Kind = "R", (20) + 8, 0)) - ((20) + 8) - 2)
+                                                    =Max(0, ((((((Min(560, App.Width - 40)) - 18 - 18)))) - 12 - 4) - (If(gblFbSel.Kind = "R", (20) + 8, 0)) - ((H.hit) + 8) - 2)
                                           - imgKksFbSubjectChevron:
                                               Control: Image
                                               Properties:
@@ -7975,17 +7873,17 @@ Screens:
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Height: |-
-                                                    =20
+                                                    =H.hit
                                                 Image: |-
                                                     ="data:image/svg+xml;utf8," & EncodeUrl(If(gblFbPick, "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 15l6-6 6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></g></svg>"))
                                                 ImagePosition: |-
-                                                    =ImagePosition.Fit
+                                                    =ImagePosition.Center
                                                 OnSelect: |-
                                                     =Set(gblFbPick, !gblFbPick)
                                                 TabIndex: |-
                                                     =0
                                                 Width: |-
-                                                    =20
+                                                    =H.hit
                               - conKksFbMessageCell:
                                   Control: GroupContainer
                                   Variant: AutoLayout
@@ -8056,7 +7954,7 @@ Screens:
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
-                                              =C.'border-default'
+                                              =C.'border-input'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -8189,7 +8087,7 @@ Screens:
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
-                                              =C.'border-default'
+                                              =C.'border-input'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -8523,7 +8421,7 @@ Screens:
                                   =Launch("mailto:sapvedligehold@orsted.com?subject=" & EncodeUrl("SAP maintenance - " & Switch(gblFbSel.Kind, "R", gblFbSel.TypeName & " request " & gblFbSel.Code, "G", gblFbSel.Label, "question")) & "&body=" & EncodeUrl(If(gblFbSel.Kind = "R", "Request: " & gblFbSel.Code & Char(10) & "Type: " & gblFbSel.TypeName & Char(10) & "Title: " & gblFbSel.Title & Char(10) & If(IsBlank(gblFbSel.Url), "", "Link: " & gblFbSel.Url & Char(10)) & Char(10), "") & Left(inpKksFbMessage.Text, Find("Kind regards,", inpKksFbMessage.Text & "Kind regards,") - 1)));
                                   Set(gblFbOpen, false);
                                   Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpKksFbSubjectFind); Reset(inpKksFbMessage);
-                                  Notify("The mail is ready in Outlook. Press Send there.", NotificationType.Information)
+                                  Set(gblToast, { Text: "The mail is ready in Outlook. Press Send there.", Kind: "Information", At: Now() }); true
                               RadiusBottomLeft: |-
                                   =10
                               RadiusBottomRight: |-
@@ -8572,9 +8470,9 @@ Screens:
                                   IfError(
                                       With({ res: 'BioSap-SendFeedbackMail'.Run("sapvedligehold@orsted.com", "SAP maintenance - " & Switch(gblFbSel.Kind, "R", gblFbSel.TypeName & " request " & gblFbSel.Code, "G", gblFbSel.Label, "question"), inpKksFbMessage.Text, "[]", JSON({Kind: gblFbSel.Kind, Topic: gblFbSel.Label, Code: gblFbSel.Code, Type: gblFbSel.TypeName, Title: gblFbSel.Title, Url: gblFbSel.Url, Name: User().FullName}, JSONFormat.Compact)) },
                                           If(res.sent = "yes",
-                                              Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpKksFbSubjectFind); Reset(inpKksFbMessage); Notify("Message sent.", NotificationType.Success),
-                                              Notify("The message could not be sent. " & res.message, NotificationType.Error))),
-                                      Notify("The message could not be sent.", NotificationType.Error));
+                                              Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpKksFbSubjectFind); Reset(inpKksFbMessage); Set(gblToast, { Text: "Message sent.", Kind: "Success", At: Now() }); true,
+                                              Set(gblToast, { Text: "The message could not be sent. " & res.message, Kind: "Error", At: Now() }); true)),
+                                      Set(gblToast, { Text: "The message could not be sent.", Kind: "Error", At: Now() }); true);
                                   Set(gblFbBusy, false)
                               RadiusBottomLeft: |-
                                   =10
@@ -9270,3 +9168,194 @@ Screens:
                 =0
             Y: |-
                 =0
+      - conKksToast:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =If(IfError(gblToast.Kind, "") = "Error", C.'border-error', C.'border-default')
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.Bold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =64
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Center
+            LayoutDirection: |-
+                =LayoutDirection.Horizontal
+            LayoutGap: |-
+                =10
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =8
+            PaddingLeft: |-
+                =14
+            PaddingRight: |-
+                =8
+            PaddingTop: |-
+                =8
+            RadiusBottomLeft: |-
+                =10
+            RadiusBottomRight: |-
+                =10
+            RadiusTopLeft: |-
+                =10
+            RadiusTopRight: |-
+                =10
+            Visible: |-
+                =!IsBlank(IfError(gblToast.Text, ""))
+            Width: |-
+                =Min(420, App.Width - 32)
+            X: |-
+                =Max(16, App.Width - Self.Width - 24)
+            Y: |-
+                =App.Height - Self.Height - 24
+          Children:
+            - imgKksToastIcon:
+                Control: Image
+                Properties:
+                  AccessibleLabel: |-
+                      =IfError(gblToast.Kind, "Message")
+                  AlignInContainer: |-
+                      =AlignInContainer.Center
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Height: |-
+                      =20
+                  Image: |-
+                      ="data:image/svg+xml;utf8," & EncodeUrl(Switch(IfError(gblToast.Kind, ""), "Success", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M8 12.2l2.8 2.8L16 9.5'/></g></svg>", "Warning", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 7.5v5.5M12 16.5v.01'/></g></svg>", "Error", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-error-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M9 9l6 6M15 9l-6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 11v5.5M12 7.5v.01'/></g></svg>"))
+                  ImagePosition: |-
+                      =ImagePosition.Fit
+                  LayoutMinWidth: |-
+                      =20
+                  OnSelect: |-
+                      =false
+                  TabIndex: |-
+                      =0
+                  Width: |-
+                      =20
+            - txtKksToastText:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-primary'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  FillPortions: |-
+                      =0
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =40
+                  LayoutMinWidth: |-
+                      =0
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =13
+                  Text: |-
+                      =IfError(gblToast.Text, "")
+                  VerticalAlign: |-
+                      =VerticalAlign.Middle
+                  Width: |-
+                      =Max(0, ((Min(420, App.Width - 32)) - 14 - 8) - ((20) + 10) - ((H.hit) + 10) - 2)
+                  Wrap: |-
+                      =true
+            - btnKksToastClose:
+                Control: ModernButton
+                Properties:
+                  AccessibleLabel: |-
+                      ="Close the message"
+                  Align: |-
+                      =Align.Center
+                  AlignInContainer: |-
+                      =AlignInContainer.Center
+                  Appearance: |-
+                      =ButtonAppearance.Outline
+                  BorderColor: |-
+                      =RGBA(0, 0, 0, 0)
+                  BorderThickness: |-
+                      =1
+                  Color: |-
+                      =C.'text-muted'
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =H.hit
+                  Icon: |-
+                      ="Dismiss"
+                  Layout: |-
+                      =ButtonLayout.IconOnly
+                  LayoutMinWidth: |-
+                      =H.hit
+                  OnSelect: |-
+                      =Set(gblToast, { Text: "", Kind: "", At: Now() })
+                  RadiusBottomLeft: |-
+                      =10
+                  RadiusBottomRight: |-
+                      =10
+                  RadiusTopLeft: |-
+                      =10
+                  RadiusTopRight: |-
+                      =10
+                  Size: |-
+                      =14
+                  Text: |-
+                      =""
+                  Tooltip: |-
+                      ="Close"
+                  VerticalAlign: |-
+                      =VerticalAlign.Middle
+                  Width: |-
+                      =H.hit
+      - tmrKksToast:
+          Control: Timer
+          Properties:
+            AutoPause: |-
+                =true
+            AutoStart: |-
+                =false
+            Duration: |-
+                =500
+            Height: |-
+                =1
+            OnTimerEnd: |-
+                =If(
+                    !IsBlank(IfError(gblToast.Text, "")) && !(IfError(gblToast.Kind, "") = "Error") &&
+                    DateDiff(gblToast.At, Now(), TimeUnit.Milliseconds) >= 4000,
+                    Set(gblToast, { Text: "", Kind: "", At: Now() })
+                )
+            Repeat: |-
+                =true
+            Start: |-
+                =!IsBlank(IfError(gblToast.Text, "")) && !(IfError(gblToast.Kind, "") = "Error")
+            Visible: |-
+                =false
+            Width: |-
+                =1
