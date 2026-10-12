@@ -257,6 +257,23 @@ Som `C` for farverne står højderne som en navngiven formel i
 `ButtonLayout.IconOnly` og hvert klikbart billede op til 60 px —
 `named_value` regner `H.*` ud for hver testbredde.
 
+## Navngivne størrelser: `T` og `R` (UX-review 2026-10, M6)
+
+Typeskalaen og radierne står også som navngivne formler:
+
+| Navn | Værdi | Bruges til |
+|---|---|---|
+| `T.micro` / `T.small` / `T.body` | 11 / 12 / 13 | kolonneoverskrifter, hjælpetekst, brødtekst |
+| `T.input` / `T.inputMobile` | 14 / 16 | felter og knapper (16 på telefon, så iOS ikke zoomer) |
+| `T.cardTitle` / `T.pageTitle` | 17 / 22 | kortets og sidens titel |
+| `R.input` / `R.card` / `R.modal` | 10 / 14 / 16 | felter og knapper, kort og fliser, popups |
+
+Byggerne skriver stadig tallene (`lay.SIZE_BODY`, `lay.RADIUS_CARD`) —
+de skal regnes med i Python, fx tekstens mindstehøjde. `gen_screen`
+skriver navnet i YAML'en, når en `Size` eller en `Radius*` er præcis et af
+tallene (`_named_sizes`); et udtryk røres ikke. **check_layout regel 42**
+afviser en `Size`, der stadig er et rent tal — den er uden for skalaen.
+
 ## Datoer og tal
 
 - **Datoer: `dd-mm-yyyy`** (`DATE_FMT`) og `dd-mm-yyyy hh:mm`

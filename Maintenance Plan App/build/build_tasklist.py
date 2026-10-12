@@ -691,7 +691,7 @@ def _ops_list_mobile():
         'ThisItem.OperationNo & "  \u00b7  " & Coalesce(ThisItem.OperationShortText, "") & "  \u00b7  " & '
         + lay.num_text("ThisItem.WorkHours") + ' & " h"',
         size=13, height=24, wrap="false"))
-    chev = text_ctrl("txtVhpOpMChev", '"\u203a"', size=18, color=C_MUTED, height=24, width=16,
+    chev = text_ctrl("txtVhpOpMChev", '"\u203a"', size=lay.SIZE_CARD_TITLE, color=C_MUTED, height=24, width=16,
                      wrap="false")
     row = group("conVhpOpMRow", [line, chev], direction="Horizontal", gap=8,
                 height="Parent.TemplateHeight - 2", align_items="Center",
