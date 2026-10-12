@@ -9,21 +9,23 @@ Materials og staar i tools/domain_parts.py. Her staar kun det, der er
 Equipments: hvilke felter, i hvilken raekkefoelge, og hvilke kolonner
 listen viser.
 
-FORMULAREN - I RAEKKE-ORDEN (issue #160)
-----------------------------------------
-    Equipment Form  * Required
-    [ Plant         ][ Func. location   ][ Description       ][ Equipment type ]
-    [ Type          ][ Manufacturer     ][ Type designation  ][ Serial number  ]
-    [ Class data    ][ Placement text   ][ Room coordinates  ][ Documentation  ]
-    [ Warranty from ][ Warranty to      ]
-    (Plant: X) (Row status: ...)   [Save draft][Save][New row]
+FORMULAREN - I SEKTIONER (issue #160, UX-review M2)
+--------------------------------------------------
+    Row details  * Required
+    Identification
+    [ Plant         ][ Type             ][ Equipment type    ][ Description    ]
+    ─ Location
+    [ Func. location][ Room coordinates ][ Placement text    ]
+    ─ Manufacturer
+    [ Manufacturer  ][ Type designation ][ Serial number     ][ Class data     ]
+    ─ Warranty and documents
+    [ Warranty from ][ Warranty to      ][ Documentation     ]
+    (Plant: X) (Row status: ...)   [Add row][New row]
 
-Raekke 1 er organisationen (Plant foerst, saa funktionspladsen), raekke 2
-identifikationen, raekke 3 placeringen og dokumenterne (dokumenter kan
-foerst tilfoejes, naar raekken er gemt), raekke 4 garantien i kronologisk
-orden. Hver raekke er sin egen container, der ombryder til to og een
-kolonne, saa laese- og tab-raekkefoelgen er den samme paa desktop, tablet
-og mobil (felterne har TabIndex 0 og foelger containerens orden).
+Sektionerne er Equipment-mockuppens. Hver sektions raekke er sin egen
+container, der ombryder til to og een kolonne, saa laese- og
+tab-raekkefoelgen er den samme paa desktop, tablet og mobil (felterne har
+TabIndex 0 og foelger containerens orden).
 
 Equipment number, Func. loc. 1 og Functional location 2 er fjernet fra
 formularen (issue #94). FL-soegningen er den eneste maade at vaelge en
@@ -40,19 +42,17 @@ import domain_config as cfg
 import domain_parts as dp
 from build_helpers import card
 
-# Skaermens raekkefoelge - issue #160's, fire celler pr. raekke. FL, TEXT,
-# DOCS og PLANT er de celler, der ikke er et almindeligt felt fra SECTIONS.
+# SEKTIONERNE (UX-review M2, Equipment-mockuppen): hver sektion er sine
+# egne raekker af fire celler, der ombryder til to og een. FL, TEXT, DOCS
+# og PLANT er de celler, der ikke er et almindeligt felt fra SECTIONS.
 SPECIAL = {"FL", "TEXT", "DOCS", "PLANT"}
-FORM_ORDER = [
-    # Organisation - Plant foerst, saa funktionspladsen
-    "PLANT", "FL", "TEXT", "EquipmentCategory",
-    # Identifikation af udstyret
-    "RequestType", "Manufacturer", "TypeDesignation", "SerialNumber",
-    # Placering og dokumenter
-    "ClassData", "Placement", "RoomCoordinates", "DOCS",
-    # Garanti - fra foer til
-    "WarrantyStart", "WarrantyEnd",
+SECTIONS = [
+    ("Ident", "Identification", ["PLANT", "RequestType", "EquipmentCategory", "TEXT"]),
+    ("Loc", "Location", ["FL", "RoomCoordinates", "Placement"]),
+    ("Mfr", "Manufacturer", ["Manufacturer", "TypeDesignation", "SerialNumber", "ClassData"]),
+    ("Warranty", "Warranty and documents", ["WarrantyStart", "WarrantyEnd", "DOCS"]),
 ]
+FORM_ORDER = [k for _k, _t, keys in SECTIONS for k in keys]
 NOT_IN_GRID = {cfg.FL_FIELD}
 
 
@@ -72,9 +72,14 @@ def _cell(key):
 def build_form():
     dp.check_form_order(FORM_ORDER, SPECIAL, NOT_IN_GRID)
     head = dp.form_head("Row details")
-    rows = dp.grid_rows("conDomGrid", [_cell(k) for k in FORM_ORDER])
-    # Soegningens svar under den foerste raekke - den med FL i.
-    rows.insert(1, dp.build_fl_msg())
+    secs = []
+    for key, title, keys in SECTIONS:
+        rows = dp.grid_rows(f"conDomGrid{key}", [_cell(k) for k in keys])
+        if "FL" in keys:
+            # Soegningens svar under raekken med FL i.
+            rows.append(dp.build_fl_msg())
+        secs.append((key, title, None, rows))
+    rows = dp.sectioned(secs)
     buttons = dp.form_buttons(dp.save_row_fx, "Save row", "New row")
     return card("conDomFormCard", [head] + rows + dp.form_footer(buttons))
 

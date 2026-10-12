@@ -2362,6 +2362,18 @@ def rule_40(ctx):
             break
 
 
+def rule_41(ctx):
+    """Ingen ModernNumberInput - tal er number_field (UX-review T10)"""
+    # ModernNumberInput har spin-pile, der ikke kan skjules, og som aendrer
+    # tallet ved et uheld paa en touch-skaerm. Tal er tekstfelter
+    # (build_helpers.number_field, laest med num_value()).
+    for _p, name, body in ctx.all_nodes:
+        if (body.get("Control") or "").split("@")[0] == "ModernNumberInput":
+            ctx.problems.append(
+                f"[41] {name}: ModernNumberInput - brug build_helpers.number_field "
+                f"(tekstfelt uden spin-pile, vaerdi via num_value())")
+
+
 def rule_42(ctx):
     """Tekststoerrelser er paa typeskalaen T.* (UX-review M6)"""
     # gen_screen skriver T.body osv. for hver Size, der ER et trin paa
@@ -2424,6 +2436,7 @@ RULES = [
     Rule('38', 'Billeder, figurer, tekster og inputs skal have en AccessibleLabel (issue #165)', rule_38),
     Rule('39', 'Ingen Notify - beskeder er appens egne (tools/toast.py, UX-review B1)', rule_39),
     Rule('40', 'Ikonknapper har mindst klikfladen H.hit (UX-review F6/T10)', rule_40),
+    Rule('41', 'Ingen ModernNumberInput - tal er number_field (UX-review T10)', rule_41),
     Rule('42', 'Tekststoerrelser er paa typeskalaen T.* (UX-review M6)', rule_42),
 ]
 

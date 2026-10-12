@@ -520,6 +520,7 @@ layoutfejl bor:
 | 38 | Billeder, figurer, tekster og inputs skal have en AccessibleLabel (issue #165) |
 | 39 | Ingen Notify - beskeder er appens egne (tools/toast.py, UX-review B1) |
 | 40 | Ikonknapper har mindst klikfladen H.hit (UX-review F6/T10) |
+| 41 | Ingen ModernNumberInput - tal er number_field (UX-review T10) |
 | 42 | Tekststoerrelser er paa typeskalaen T.* (UX-review M6) |
 <!-- rules:end -->
 
