@@ -4,10 +4,21 @@ import glob
 import os
 import re
 
-import check_layout as ck
+import importlib.util
+
 import layout_tokens as lay
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def _check_layout():
+    """tools/check_layout.py via stien - flere tests laegger en app's
+    build-mappe (med sin egen check_layout.py) forrest i sys.path."""
+    spec = importlib.util.spec_from_file_location(
+        "tools_check_layout", os.path.join(ROOT, "tools", "check_layout.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 
 def test_t_and_r_are_the_type_scale_and_the_radii():
@@ -35,5 +46,5 @@ def test_rule_42_flags_an_off_scale_size():
         problems = []
         all_nodes = [("p", "txtXOdd", {"Control": "ModernText", "Properties": {"Size": "=15"}}),
                      ("p", "txtXOk", {"Control": "ModernText", "Properties": {"Size": "=T.body"}})]
-    ck.rule_42(Ctx)
+    _check_layout().rule_42(Ctx)
     assert len(Ctx.problems) == 1 and "txtXOdd" in Ctx.problems[0]
