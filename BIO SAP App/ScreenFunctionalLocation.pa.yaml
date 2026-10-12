@@ -259,7 +259,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =12
+                                              =T.small
                                           Text: |-
                                               ="  /  Functional Location" & If(IsBlank(varFlRequestNo), "", "  /  " & varFlRequestNo)
                                           Width: |-
@@ -294,7 +294,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =22
+                                        =T.pageTitle
                                     Text: |-
                                         ="Functional Location - Spool"
                                     Visible: |-
@@ -327,7 +327,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =13
+                                        =T.body
                                     Text: |-
                                         =If(IsBlank(varFlRequestNo), "Verify KKS codes, classes and spool fields - and pass the request on.", "Request " & varFlRequestNo & If(varFlStatus = "Indsendt", " - submitted and locked.", " - draft."))
                                     Visible: |-
@@ -413,13 +413,13 @@ Screens:
                                   Set(varFlInfo, "");
                                   Select(btnFlVerify)
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
                                   =If(LayoutRank < 2, 12, 14)
                               Text: |-
@@ -494,15 +494,15 @@ Screens:
                               OnSelect: |-
                                   =Set(varFlViewOnly, false)
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   ="Edit"
                               VerticalAlign: |-
@@ -800,15 +800,15 @@ Screens:
                                   );
                                   Set(varFlSaving, false)
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   ="Save draft"
                               Tooltip: |-
@@ -849,15 +849,15 @@ Screens:
                               OnSelect: |-
                                   =Set(varFlConfirmSubmit, true)
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   =With({ _f: CountRows(Filter(colFlRows, Status = "invalid")) }, "Submit" & If(_f > 0, " (" & Text(_f) & " to fix)", ""))
                               Tooltip: |-
@@ -904,15 +904,15 @@ Screens:
                               OnSelect: |-
                                   =Set(varFlDeleteOpen, true)
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   ="Delete"
                               Tooltip: |-
@@ -1025,13 +1025,13 @@ Screens:
                         PaddingTop: |-
                             =18
                         RadiusBottomLeft: |-
-                            =14
+                            =R.card
                         RadiusBottomRight: |-
-                            =14
+                            =R.card
                         RadiusTopLeft: |-
-                            =14
+                            =R.card
                         RadiusTopRight: |-
-                            =14
+                            =R.card
                         Width: |-
                             =Parent.Width
                       Children:
@@ -1092,7 +1092,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =17
+                                        =T.cardTitle
                                     Text: |-
                                         ="Rows"
                                     Width: |-
@@ -1129,7 +1129,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =13
+                                        =T.body
                                     Text: |-
                                         =Text(CountRows(Filter(colFlRows, Status = "valid" || Status = "warning"))) & " of " & Text(CountRows(colFlRows)) & " valid"
                                     Width: |-
@@ -1169,15 +1169,15 @@ Screens:
                                         Set(varFlStale, true);
                                         Select(btnFlVerify)
                                     RadiusBottomLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusBottomRight: |-
-                                        =10
+                                        =R.input
                                     RadiusTopLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusTopRight: |-
-                                        =10
+                                        =R.input
                                     Size: |-
-                                        =14
+                                        =T.input
                                     Text: |-
                                         ="Add row"
                                     VerticalAlign: |-
@@ -1268,7 +1268,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="#"
                                           Visible: |-
@@ -1305,7 +1305,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="Functional Location"
                                           Width: |-
@@ -1340,7 +1340,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="Description"
                                           Width: |-
@@ -1375,7 +1375,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="KKS type"
                                           Width: |-
@@ -1410,7 +1410,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="Assigned class"
                                           Width: |-
@@ -1445,7 +1445,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="Class data"
                                           Width: |-
@@ -1480,7 +1480,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="Room"
                                           Width: |-
@@ -1515,7 +1515,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="Sort field"
                                           Width: |-
@@ -1550,7 +1550,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="ABC indicator"
                                           Width: |-
@@ -1587,7 +1587,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="ATEX"
                                           Width: |-
@@ -1622,7 +1622,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="Manufacturer"
                                           Width: |-
@@ -1657,7 +1657,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="Warranty"
                                           Width: |-
@@ -1694,7 +1694,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               ="Actions"
                                           Width: |-
@@ -1790,7 +1790,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               =Text(ThisItem.Pos)
                                           Visible: |-
@@ -1839,13 +1839,13 @@ Screens:
                                           Placeholder: |-
                                               =""
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -1892,13 +1892,13 @@ Screens:
                                           Placeholder: |-
                                               =""
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -1935,7 +1935,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               =If(IsBlank(ThisItem.KksType), "-", ThisItem.KksType)
                                           Width: |-
@@ -1974,7 +1974,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               =If(IsBlank(ThisItem.AssignedClass), "-", ThisItem.AssignedClass)
                                           Width: |-
@@ -2041,15 +2041,15 @@ Screens:
                                               ));
                                               Set(varFlClsOpen, true)
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               ="Class data"
                                           Tooltip: |-
@@ -2109,13 +2109,13 @@ Screens:
                                           Placeholder: |-
                                               =""
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -2173,13 +2173,13 @@ Screens:
                                           Placeholder: |-
                                               =""
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -2218,7 +2218,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               =With({ v: LookUp(colFlVals, RowGuid = ThisItem.RowGuid && Field = "ABC INDIC.").Value }, If(IsBlank(v), "-", v))
                                           Width: |-
@@ -2279,7 +2279,7 @@ Screens:
                                               Set(varFlStale, true);
                                               Select(btnFlVerify)
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Width: |-
                                               =40
                                           X: |-
@@ -2342,15 +2342,15 @@ Screens:
                                               ));
                                               Set(varFlPop, "Manufacturer")
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               ="Manufacturer"
                                           Tooltip: |-
@@ -2419,15 +2419,15 @@ Screens:
                                               ));
                                               Set(varFlPop, "Warranty")
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               ="Warranty"
                                           Tooltip: |-
@@ -2477,15 +2477,15 @@ Screens:
                                               Set(varFlStale, true);
                                               Select(btnFlVerify)
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
-                                              =14
+                                              =T.input
                                           Text: |-
                                               ="Delete"
                                           Tooltip: |-
@@ -2524,7 +2524,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =12
+                                              =T.small
                                           Text: |-
                                               =Switch(ThisItem.Status, "draft", "", "valid", "Valid", "warning", "Warning" & If(IsBlank(ThisItem.FirstWarning), "", " - " & ThisItem.FirstWarning), If(IsBlank(ThisItem.FirstIssue), "Invalid", ThisItem.FirstIssue))
                                           Visible: |-
@@ -2565,15 +2565,15 @@ Screens:
                                           OnSelect: |-
                                               =Set(gblToast, { Text: ThisItem.Hint, Kind: "Information", At: Now() }); true
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
-                                              =14
+                                              =T.input
                                           Text: |-
                                               ="?"
                                           Tooltip: |-
@@ -2637,7 +2637,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   =Coalesce(varFlInfo, "Submit is blocked: " & With({ _c: CountRows(Filter(colFlRows, Status = "invalid")) }, Text(_c) & If(_c = 1, " row has", " rows have")) & " errors.")
                               Visible: |-
@@ -3044,15 +3044,15 @@ Screens:
                                       )
                                   )
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   ="Verify"
                               VerticalAlign: |-
@@ -3098,13 +3098,13 @@ Screens:
                         PaddingTop: |-
                             =18
                         RadiusBottomLeft: |-
-                            =14
+                            =R.card
                         RadiusBottomRight: |-
-                            =14
+                            =R.card
                         RadiusTopLeft: |-
-                            =14
+                            =R.card
                         RadiusTopRight: |-
-                            =14
+                            =R.card
                         Width: |-
                             =Parent.Width
                       Children:
@@ -3136,7 +3136,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =17
+                                  =T.cardTitle
                               Text: |-
                                   ="Classes"
                               Wrap: |-
@@ -3208,15 +3208,15 @@ Screens:
                                     OnSelect: |-
                                         =Set(varFlTab, ThisItem.Key)
                                     RadiusBottomLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusBottomRight: |-
-                                        =10
+                                        =R.input
                                     RadiusTopLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusTopRight: |-
-                                        =10
+                                        =R.input
                                     Size: |-
-                                        =14
+                                        =T.input
                                     Text: |-
                                         =ThisItem.Label
                                     Tooltip: |-
@@ -3251,7 +3251,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="Compact view - Edit opens the class data of the row."
                               Visible: |-
@@ -3317,7 +3317,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =11
+                                        =T.micro
                                     Text: |-
                                         ="#"
                                     Visible: |-
@@ -3354,7 +3354,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =11
+                                        =T.micro
                                     Text: |-
                                         ="Functional Location"
                                     Width: |-
@@ -3389,7 +3389,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =11
+                                        =T.micro
                                     Text: |-
                                         ="Description"
                                     Width: |-
@@ -3426,7 +3426,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =11
+                                        =T.micro
                                     Text: |-
                                         ="StrIndicator"
                                     Visible: |-
@@ -3465,7 +3465,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =11
+                                        =T.micro
                                     Text: |-
                                         ="Class"
                                     Visible: |-
@@ -3502,7 +3502,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =11
+                                        =T.micro
                                     Text: |-
                                         ="Info"
                                     Width: |-
@@ -3539,7 +3539,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =11
+                                        =T.micro
                                     Text: |-
                                         ="Edit"
                                     Width: |-
@@ -3644,7 +3644,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =13
+                                        =T.body
                                     Text: |-
                                         =Text(ThisItem.Pos)
                                     Visible: |-
@@ -3693,13 +3693,13 @@ Screens:
                                     Placeholder: |-
                                         =""
                                     RadiusBottomLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusBottomRight: |-
-                                        =10
+                                        =R.input
                                     RadiusTopLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusTopRight: |-
-                                        =10
+                                        =R.input
                                     Size: |-
                                         =If(LayoutRank < 2, 16, 14)
                                     ValidationState: |-
@@ -3746,13 +3746,13 @@ Screens:
                                     Placeholder: |-
                                         =""
                                     RadiusBottomLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusBottomRight: |-
-                                        =10
+                                        =R.input
                                     RadiusTopLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusTopRight: |-
-                                        =10
+                                        =R.input
                                     Size: |-
                                         =If(LayoutRank < 2, 16, 14)
                                     ValidationState: |-
@@ -3789,7 +3789,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =13
+                                        =T.body
                                     Text: |-
                                         =ThisItem.KksType
                                     Visible: |-
@@ -3830,7 +3830,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =13
+                                        =T.body
                                     Text: |-
                                         =ThisItem.AssignedClass
                                     Visible: |-
@@ -3869,7 +3869,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =13
+                                        =T.body
                                     Text: |-
                                         =Coalesce(ThisItem.FirstIssue, ThisItem.FirstWarning, "")
                                     Width: |-
@@ -3932,15 +3932,15 @@ Screens:
                                         ));
                                         Set(varFlClsOpen, true)
                                     RadiusBottomLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusBottomRight: |-
-                                        =10
+                                        =R.input
                                     RadiusTopLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusTopRight: |-
-                                        =10
+                                        =R.input
                                     Size: |-
-                                        =14
+                                        =T.input
                                     Text: |-
                                         ="Edit"
                                     VerticalAlign: |-
@@ -4000,7 +4000,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   ="No classified rows yet - a row appears here once its Functional Location is valid."
                               Visible: |-
@@ -4044,13 +4044,13 @@ Screens:
                         PaddingTop: |-
                             =18
                         RadiusBottomLeft: |-
-                            =14
+                            =R.card
                         RadiusBottomRight: |-
-                            =14
+                            =R.card
                         RadiusTopLeft: |-
-                            =14
+                            =R.card
                         RadiusTopRight: |-
-                            =14
+                            =R.card
                         Width: |-
                             =Parent.Width
                       Children:
@@ -4082,7 +4082,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =17
+                                  =T.cardTitle
                               Text: |-
                                   ="Structure"
                               Wrap: |-
@@ -4113,7 +4113,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =12
+                                  =T.small
                               Text: |-
                                   ="The KKS keys the rules read, per plant. For viewing only - edit the rows above."
                               Wrap: |-
@@ -4175,7 +4175,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =13
+                                  =T.body
                               Text: |-
                                   ="Enter a Functional Location above to see its structure."
                               Visible: |-
@@ -5277,7 +5277,7 @@ Screens:
                   PaddingTop: |-
                       =0
                   Size: |-
-                      =16
+                      =T.inputMobile
                   Text: |-
                       ="Functional Location"
                   Width: |-
@@ -5368,13 +5368,13 @@ Screens:
                   PaddingTop: |-
                       =18
                   RadiusBottomLeft: |-
-                      =16
+                      =R.modal
                   RadiusBottomRight: |-
-                      =16
+                      =R.modal
                   RadiusTopLeft: |-
-                      =16
+                      =R.modal
                   RadiusTopRight: |-
-                      =16
+                      =R.modal
                   Visible: |-
                       =IfError(varFlClsOpen, false)
                   Width: |-
@@ -5462,7 +5462,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =17
+                                        =T.cardTitle
                                     Text: |-
                                         ="Class data"
                                     Wrap: |-
@@ -5493,7 +5493,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =12
+                                        =T.small
                                     Text: |-
                                         =With({ r: LookUp(colFlRows, RowGuid = varFlClsRow) }, "Row " & r.Pos & " - " & If(IsBlank(r.FL), "no Functional Location", r.FL) & " - class " & r.AssignedClass & With({ hp: LookUp(colFlClassHelp, Key = r.AssignedClass).Help }, If(IsBlank(hp), "", " (" & hp & ")")))
                                     Wrap: |-
@@ -5529,15 +5529,15 @@ Screens:
                                   =Set(varFlClsOpen, false);
                                   Clear(colFlClsDet)
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   ="Close"
                               Tooltip: |-
@@ -5636,7 +5636,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =14
+                                        =T.input
                                     Text: |-
                                         ="Class characteristics"
                                     Visible: |-
@@ -5708,7 +5708,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =12
+                                              =T.small
                                           Text: |-
                                               =ThisItem.Column & If(ThisItem.Field = "DESCRIPTION", " *", "")
                                           Width: |-
@@ -5753,13 +5753,13 @@ Screens:
                                           Placeholder: |-
                                               =If(ThisItem.Field = "WARRANTY START" || ThisItem.Field = "WARRANTY END", "DD.MM.YYYY", "")
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -5830,13 +5830,13 @@ Screens:
                                           OnChange: |-
                                               =Patch(colFlClsDet, LookUp(colFlClsDet, Field = ThisItem.Field), { Value: Coalesce(Self.Selected.Value, "") })
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -5873,7 +5873,7 @@ Screens:
                                           OnUncheck: |-
                                               =Patch(colFlClsDet, LookUp(colFlClsDet, Field = ThisItem.Field), { Value: "" })
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Visible: |-
                                               =ThisItem.Kind = "check"
                                           Width: |-
@@ -5910,7 +5910,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =14
+                                              =T.input
                                           Text: |-
                                               =If(IsBlank(ThisItem.Value), "-", ThisItem.Value)
                                           Visible: |-
@@ -5949,7 +5949,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =12
+                                              =T.small
                                           Text: |-
                                               =Coalesce(ThisItem.Issue, Switch(ThisItem.Field, "STRINDICATOR", "Derived from the KKS code.", "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
                                           Width: |-
@@ -5988,7 +5988,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =14
+                                        =T.input
                                     Text: |-
                                         ="TRM"
                                     Visible: |-
@@ -6060,7 +6060,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =12
+                                              =T.small
                                           Text: |-
                                               =ThisItem.Column & If(ThisItem.Field = "DESCRIPTION", " *", "")
                                           Width: |-
@@ -6105,13 +6105,13 @@ Screens:
                                           Placeholder: |-
                                               =If(ThisItem.Field = "WARRANTY START" || ThisItem.Field = "WARRANTY END", "DD.MM.YYYY", "")
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -6182,13 +6182,13 @@ Screens:
                                           OnChange: |-
                                               =Patch(colFlClsDet, LookUp(colFlClsDet, Field = ThisItem.Field), { Value: Coalesce(Self.Selected.Value, "") })
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -6225,7 +6225,7 @@ Screens:
                                           OnUncheck: |-
                                               =Patch(colFlClsDet, LookUp(colFlClsDet, Field = ThisItem.Field), { Value: "" })
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Visible: |-
                                               =ThisItem.Kind = "check"
                                           Width: |-
@@ -6262,7 +6262,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =14
+                                              =T.input
                                           Text: |-
                                               =If(IsBlank(ThisItem.Value), "-", ThisItem.Value)
                                           Visible: |-
@@ -6301,7 +6301,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =12
+                                              =T.small
                                           Text: |-
                                               =Coalesce(ThisItem.Issue, Switch(ThisItem.Field, "STRINDICATOR", "Derived from the KKS code.", "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
                                           Width: |-
@@ -6340,7 +6340,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =14
+                                        =T.input
                                     Text: |-
                                         ="GIV_EXT / WCM"
                                     Visible: |-
@@ -6412,7 +6412,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =12
+                                              =T.small
                                           Text: |-
                                               =ThisItem.Column & If(ThisItem.Field = "DESCRIPTION", " *", "")
                                           Width: |-
@@ -6457,13 +6457,13 @@ Screens:
                                           Placeholder: |-
                                               =If(ThisItem.Field = "WARRANTY START" || ThisItem.Field = "WARRANTY END", "DD.MM.YYYY", "")
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -6534,13 +6534,13 @@ Screens:
                                           OnChange: |-
                                               =Patch(colFlClsDet, LookUp(colFlClsDet, Field = ThisItem.Field), { Value: Coalesce(Self.Selected.Value, "") })
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -6577,7 +6577,7 @@ Screens:
                                           OnUncheck: |-
                                               =Patch(colFlClsDet, LookUp(colFlClsDet, Field = ThisItem.Field), { Value: "" })
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Visible: |-
                                               =ThisItem.Kind = "check"
                                           Width: |-
@@ -6614,7 +6614,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =14
+                                              =T.input
                                           Text: |-
                                               =If(IsBlank(ThisItem.Value), "-", ThisItem.Value)
                                           Visible: |-
@@ -6653,7 +6653,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =12
+                                              =T.small
                                           Text: |-
                                               =Coalesce(ThisItem.Issue, Switch(ThisItem.Field, "STRINDICATOR", "Derived from the KKS code.", "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
                                           Width: |-
@@ -6690,7 +6690,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =13
+                                        =T.body
                                     Text: |-
                                         ="This class has no class data fields."
                                     Visible: |-
@@ -6761,15 +6761,15 @@ Screens:
                                   Set(varFlStale, true);
                                   Select(btnFlVerify)
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   ="Apply"
                               Tooltip: |-
@@ -6864,13 +6864,13 @@ Screens:
                   PaddingTop: |-
                       =18
                   RadiusBottomLeft: |-
-                      =16
+                      =R.modal
                   RadiusBottomRight: |-
-                      =16
+                      =R.modal
                   RadiusTopLeft: |-
-                      =16
+                      =R.modal
                   RadiusTopRight: |-
-                      =16
+                      =R.modal
                   Visible: |-
                       =IfError(!IsBlank(varFlPop), false)
                   Width: |-
@@ -6958,7 +6958,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =17
+                                        =T.cardTitle
                                     Text: |-
                                         =varFlPop
                                     Wrap: |-
@@ -6989,7 +6989,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =12
+                                        =T.small
                                     Text: |-
                                         =With({ r: LookUp(colFlRows, RowGuid = varFlDetailRow) }, "Row " & r.Pos & " - " & If(IsBlank(r.FL), "no Functional Location", r.FL))
                                     Wrap: |-
@@ -7024,15 +7024,15 @@ Screens:
                               OnSelect: |-
                                   =Set(varFlPop, "")
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   ="Close"
                               VerticalAlign: |-
@@ -7065,7 +7065,7 @@ Screens:
                         PaddingTop: |-
                             =0
                         Size: |-
-                            =12
+                            =T.small
                         Text: |-
                             =If(varFlViewOnly || varFlStatus = "Indsendt", "Read only - this request cannot be changed.", "Changes are kept on the row and saved with Save draft or Submit.")
                         Wrap: |-
@@ -7170,7 +7170,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =12
+                                        =T.small
                                     Text: |-
                                         =ThisItem.Column & If(ThisItem.Field = "DESCRIPTION", " *", "")
                                     Width: |-
@@ -7228,13 +7228,13 @@ Screens:
                                     Placeholder: |-
                                         =If(ThisItem.Field = "WARRANTY START" || ThisItem.Field = "WARRANTY END", "DD.MM.YYYY", "")
                                     RadiusBottomLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusBottomRight: |-
-                                        =10
+                                        =R.input
                                     RadiusTopLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusTopRight: |-
-                                        =10
+                                        =R.input
                                     Size: |-
                                         =If(LayoutRank < 2, 16, 14)
                                     ValidationState: |-
@@ -7318,13 +7318,13 @@ Screens:
                                         Set(varFlStale, true);
                                         Select(btnFlVerify)
                                     RadiusBottomLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusBottomRight: |-
-                                        =10
+                                        =R.input
                                     RadiusTopLeft: |-
-                                        =10
+                                        =R.input
                                     RadiusTopRight: |-
-                                        =10
+                                        =R.input
                                     Size: |-
                                         =If(LayoutRank < 2, 16, 14)
                                     ValidationState: |-
@@ -7387,7 +7387,7 @@ Screens:
                                         Set(varFlStale, true);
                                         Select(btnFlVerify)
                                     Size: |-
-                                        =13
+                                        =T.body
                                     Visible: |-
                                         =ThisItem.Kind = "check"
                                     Width: |-
@@ -7424,7 +7424,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =14
+                                        =T.input
                                     Text: |-
                                         =If(IsBlank(ThisItem.Value), "-", ThisItem.Value)
                                     Visible: |-
@@ -7463,7 +7463,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =12
+                                        =T.small
                                     Text: |-
                                         =Coalesce(ThisItem.Issue, Switch(ThisItem.Field, "STRINDICATOR", "Derived from the KKS code.", "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
                                     Width: |-
@@ -8116,13 +8116,13 @@ Screens:
                   PaddingTop: |-
                       =18
                   RadiusBottomLeft: |-
-                      =16
+                      =R.modal
                   RadiusBottomRight: |-
-                      =16
+                      =R.modal
                   RadiusTopLeft: |-
-                      =16
+                      =R.modal
                   RadiusTopRight: |-
-                      =16
+                      =R.modal
                   Width: |-
                       =Min(560, App.Width - 40)
                 Children:
@@ -8185,7 +8185,7 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =17
+                                  =T.cardTitle
                               Text: |-
                                   ="Message SAP maintenance"
                               Width: |-
@@ -8220,15 +8220,15 @@ Screens:
                               OnSelect: |-
                                   =Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpFlFbSubjectFind); Reset(inpFlFbMessage)
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   ="Close"
                               VerticalAlign: |-
@@ -8261,7 +8261,7 @@ Screens:
                         PaddingTop: |-
                             =0
                         Size: |-
-                            =13
+                            =T.body
                         Text: |-
                             ="Questions, ideas or something not working? Your message goes to sapvedligehold@orsted.com."
                         Wrap: |-
@@ -8348,7 +8348,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =12
+                                        =T.small
                                     Text: |-
                                         ="Initials"
                                     Wrap: |-
@@ -8381,7 +8381,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =14
+                                        =T.input
                                     Text: |-
                                         =Upper(First(Split(gblFbMe, "@")).Value)
                                     VerticalAlign: |-
@@ -8443,7 +8443,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =12
+                                        =T.small
                                     Text: |-
                                         ="Email"
                                     Wrap: |-
@@ -8476,7 +8476,7 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =14
+                                        =T.input
                                     Text: |-
                                         =gblFbMe
                                     VerticalAlign: |-
@@ -8582,7 +8582,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =12
+                                              =T.small
                                           Text: |-
                                               ="Subject or request (optional)"
                                           Wrap: |-
@@ -8624,13 +8624,13 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Width: |-
                                               =Parent.Width
                                         Children:
@@ -8798,7 +8798,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =12
+                                              =T.small
                                           Text: |-
                                               ="Message"
                                           Wrap: |-
@@ -8835,13 +8835,13 @@ Screens:
                                           Placeholder: |-
                                               ="Write your message"
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           Type: |-
@@ -8883,13 +8883,13 @@ Screens:
                               PaddingTop: |-
                                   =6
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Visible: |-
                                   =gblFbPick
                               Width: |-
@@ -8966,13 +8966,13 @@ Screens:
                                           Placeholder: |-
                                               ="Search number, title or type"
                                           RadiusBottomLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusBottomRight: |-
-                                              =10
+                                              =R.input
                                           RadiusTopLeft: |-
-                                              =10
+                                              =R.input
                                           RadiusTopRight: |-
-                                              =10
+                                              =R.input
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
@@ -9053,7 +9053,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =11
+                                              =T.micro
                                           Text: |-
                                               =ThisItem.Label
                                           Visible: |-
@@ -9148,7 +9148,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Size: |-
-                                              =13
+                                              =T.body
                                           Text: |-
                                               =With({t: ThisItem.Label, c: RoundDown((Self.Width) / 7, 0)}, If(Len(t) > c, Left(t, Max(1, c - 3)) & "...", t))
                                           Visible: |-
@@ -9282,15 +9282,15 @@ Screens:
                                   Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpFlFbSubjectFind); Reset(inpFlFbMessage);
                                   Set(gblToast, { Text: "The mail is ready in Outlook. Press Send there.", Kind: "Information", At: Now() }); true
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   ="Send via Outlook"
                               Tooltip: |-
@@ -9334,15 +9334,15 @@ Screens:
                                       Set(gblToast, { Text: "The message could not be sent.", Kind: "Error", At: Now() }); true);
                                   Set(gblFbBusy, false)
                               RadiusBottomLeft: |-
-                                  =10
+                                  =R.input
                               RadiusBottomRight: |-
-                                  =10
+                                  =R.input
                               RadiusTopLeft: |-
-                                  =10
+                                  =R.input
                               RadiusTopRight: |-
-                                  =10
+                                  =R.input
                               Size: |-
-                                  =14
+                                  =T.input
                               Text: |-
                                   ="Send"
                               VerticalAlign: |-
@@ -9419,13 +9419,13 @@ Screens:
             PaddingTop: |-
                 =18
             RadiusBottomLeft: |-
-                =16
+                =R.modal
             RadiusBottomRight: |-
-                =16
+                =R.modal
             RadiusTopLeft: |-
-                =16
+                =R.modal
             RadiusTopRight: |-
-                =16
+                =R.modal
             Visible: |-
                 =IfError(varFlConfirmSubmit, false)
             Width: |-
@@ -9463,7 +9463,7 @@ Screens:
                   PaddingTop: |-
                       =0
                   Size: |-
-                      =17
+                      =T.cardTitle
                   Text: |-
                       ="Submit request?"
                   Wrap: |-
@@ -9494,7 +9494,7 @@ Screens:
                   PaddingTop: |-
                       =0
                   Size: |-
-                      =13
+                      =T.body
                   Text: |-
                       ="A JSON snapshot is frozen and the rows are locked."
                   Wrap: |-
@@ -9556,15 +9556,15 @@ Screens:
                         OnSelect: |-
                             =Set(varFlConfirmSubmit, false)
                         RadiusBottomLeft: |-
-                            =10
+                            =R.input
                         RadiusBottomRight: |-
-                            =10
+                            =R.input
                         RadiusTopLeft: |-
-                            =10
+                            =R.input
                         RadiusTopRight: |-
-                            =10
+                            =R.input
                         Size: |-
-                            =14
+                            =T.input
                         Text: |-
                             ="Close"
                         VerticalAlign: |-
@@ -9938,15 +9938,15 @@ Screens:
                             );
                             Set(varFlSaving, false)
                         RadiusBottomLeft: |-
-                            =10
+                            =R.input
                         RadiusBottomRight: |-
-                            =10
+                            =R.input
                         RadiusTopLeft: |-
-                            =10
+                            =R.input
                         RadiusTopRight: |-
-                            =10
+                            =R.input
                         Size: |-
-                            =14
+                            =T.input
                         Text: |-
                             ="Submit"
                         VerticalAlign: |-
@@ -10023,13 +10023,13 @@ Screens:
             PaddingTop: |-
                 =18
             RadiusBottomLeft: |-
-                =16
+                =R.modal
             RadiusBottomRight: |-
-                =16
+                =R.modal
             RadiusTopLeft: |-
-                =16
+                =R.modal
             RadiusTopRight: |-
-                =16
+                =R.modal
             Visible: |-
                 =IfError(varFlDeleteOpen, false)
             Width: |-
@@ -10067,7 +10067,7 @@ Screens:
                   PaddingTop: |-
                       =0
                   Size: |-
-                      =17
+                      =T.cardTitle
                   Text: |-
                       ="Delete request"
                   Wrap: |-
@@ -10098,7 +10098,7 @@ Screens:
                   PaddingTop: |-
                       =0
                   Size: |-
-                      =13
+                      =T.body
                   Text: |-
                       ="Delete this request? This cannot be undone."
                   Wrap: |-
@@ -10160,15 +10160,15 @@ Screens:
                         OnSelect: |-
                             =Set(varFlDeleteOpen, false)
                         RadiusBottomLeft: |-
-                            =10
+                            =R.input
                         RadiusBottomRight: |-
-                            =10
+                            =R.input
                         RadiusTopLeft: |-
-                            =10
+                            =R.input
                         RadiusTopRight: |-
-                            =10
+                            =R.input
                         Size: |-
-                            =14
+                            =T.input
                         Text: |-
                             ="Close"
                         VerticalAlign: |-
@@ -10249,15 +10249,15 @@ Screens:
                                 )
                             )
                         RadiusBottomLeft: |-
-                            =10
+                            =R.input
                         RadiusBottomRight: |-
-                            =10
+                            =R.input
                         RadiusTopLeft: |-
-                            =10
+                            =R.input
                         RadiusTopRight: |-
-                            =10
+                            =R.input
                         Size: |-
-                            =14
+                            =T.input
                         Text: |-
                             ="Delete"
                         VerticalAlign: |-
@@ -10514,15 +10514,15 @@ Screens:
                 Set(gblNavigating, false);
                 Set(gblNavTo, "")
             RadiusBottomLeft: |-
-                =10
+                =R.input
             RadiusBottomRight: |-
-                =10
+                =R.input
             RadiusTopLeft: |-
-                =10
+                =R.input
             RadiusTopRight: |-
-                =10
+                =R.input
             Size: |-
-                =14
+                =T.input
             Text: |-
                 ="Open"
             VerticalAlign: |-
@@ -10603,13 +10603,13 @@ Screens:
             PaddingTop: |-
                 =22
             RadiusBottomLeft: |-
-                =16
+                =R.modal
             RadiusBottomRight: |-
-                =16
+                =R.modal
             RadiusTopLeft: |-
-                =16
+                =R.modal
             RadiusTopRight: |-
-                =16
+                =R.modal
             Visible: |-
                 =IfError(varFlLoading, false) || IfError(varFlLoadFailed, false)
             Width: |-
@@ -10670,7 +10670,7 @@ Screens:
                   PaddingTop: |-
                       =0
                   Size: |-
-                      =17
+                      =T.cardTitle
                   Text: |-
                       =If(IfError(varFlLoadFailed, false), "Could not open the request", IsBlank(gblFlReqId), "Preparing a new request", "Opening request")
                   Wrap: |-
@@ -10703,7 +10703,7 @@ Screens:
                   PaddingTop: |-
                       =0
                   Size: |-
-                      =13
+                      =T.body
                   Text: |-
                       =If(IfError(varFlLoadFailed, false), "Stopped while " & Lower(Left(Coalesce(varFlLoadStep, ""), 1)) & Mid(Coalesce(varFlLoadStep, ""), 2), Coalesce(varFlLoadStep, ""))
                   Wrap: |-
@@ -10736,7 +10736,7 @@ Screens:
                   PaddingTop: |-
                       =0
                   Size: |-
-                      =12
+                      =T.small
                   Text: |-
                       =If(IfError(varFlLoadFailed, false), "Check your connection and try again.", IfError(varFlLoadSlow, false) && IfError(varFlLoading, false), "Taking longer than usual. " & Switch(Coalesce(varFlLoadStep, ""), "Finding the request", "The request list is responding slowly.", "Loading plan details", "Still waiting for the plan details.", "Loading items and operations", "Plans with many items and operations take longer.", "Loading materials and documents", "Plans with many materials and documents take longer.", "Loading standard task lists", "Standard task lists load once per session.", "Loading functional locations", "Requests with many rows take longer to load.", "Loading saved rows", "Many saved rows take longer to load.", "Still working on it."), "")
                   Wrap: |-
@@ -10803,15 +10803,15 @@ Screens:
                             Set(varFlOpened, "");
                             Navigate(ScreenMdHub, ScreenTransition.None)
                         RadiusBottomLeft: |-
-                            =10
+                            =R.input
                         RadiusBottomRight: |-
-                            =10
+                            =R.input
                         RadiusTopLeft: |-
-                            =10
+                            =R.input
                         RadiusTopRight: |-
-                            =10
+                            =R.input
                         Size: |-
-                            =14
+                            =T.input
                         Text: |-
                             ="Close"
                         VerticalAlign: |-
@@ -10846,15 +10846,15 @@ Screens:
                             Set(varFlLoading, true);
                             Select(btnFlOpen)
                         RadiusBottomLeft: |-
-                            =10
+                            =R.input
                         RadiusBottomRight: |-
-                            =10
+                            =R.input
                         RadiusTopLeft: |-
-                            =10
+                            =R.input
                         RadiusTopRight: |-
-                            =10
+                            =R.input
                         Size: |-
-                            =14
+                            =T.input
                         Text: |-
                             ="Retry"
                         VerticalAlign: |-
@@ -10921,13 +10921,13 @@ Screens:
             PaddingTop: |-
                 =8
             RadiusBottomLeft: |-
-                =10
+                =R.input
             RadiusBottomRight: |-
-                =10
+                =R.input
             RadiusTopLeft: |-
-                =10
+                =R.input
             RadiusTopRight: |-
-                =10
+                =R.input
             Visible: |-
                 =!IsBlank(IfError(gblToast.Text, ""))
             Width: |-
@@ -10992,7 +10992,7 @@ Screens:
                   PaddingTop: |-
                       =0
                   Size: |-
-                      =13
+                      =T.body
                   Text: |-
                       =IfError(gblToast.Text, "")
                   VerticalAlign: |-
@@ -11033,15 +11033,15 @@ Screens:
                   OnSelect: |-
                       =Set(gblToast, { Text: "", Kind: "", At: Now() })
                   RadiusBottomLeft: |-
-                      =10
+                      =R.input
                   RadiusBottomRight: |-
-                      =10
+                      =R.input
                   RadiusTopLeft: |-
-                      =10
+                      =R.input
                   RadiusTopRight: |-
-                      =10
+                      =R.input
                   Size: |-
-                      =14
+                      =T.input
                   Text: |-
                       =""
                   Tooltip: |-

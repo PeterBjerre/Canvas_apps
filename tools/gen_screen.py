@@ -820,12 +820,30 @@ def _toast_rewrite(children, screen_props):
             screen_props[k] = toast.rewrite(v)
 
 
+_RADII = ("RadiusBottomLeft", "RadiusBottomRight", "RadiusTopLeft", "RadiusTopRight")
+
+
+def _named_sizes(children):
+    """Size 13 -> T.body, Radius* 14 -> R.card (UX-review M6): de
+    navngivne formler i App.Formulas (layout_tokens.NAMED). Kun et rent
+    tal, der ER et af dem, skrives om - et udtryk roeres ikke."""
+    import layout_tokens as lay
+    for n in _walk(children):
+        for k, v in list(n.props.items()):
+            rec = "T" if k == "Size" else ("R" if k in _RADII else None)
+            if rec and isinstance(v, (str, int)) and str(v).strip().isdigit():
+                name = lay.named_constant(rec, str(v).strip())
+                if name:
+                    n.props[k] = name
+
+
 def render_screen(screen_name, screen_props, children):
     resolve_templates(children)
     flatten_galleries(children)
     _lock_inputs_in_view(children)
     screen_props = dict(screen_props)
     _toast_rewrite(children, screen_props)
+    _named_sizes(children)
     lines = ["Screens:", f"  {screen_name}:", "    Properties:"]
     ppad = " " * 6
     cpad = " " * 10
