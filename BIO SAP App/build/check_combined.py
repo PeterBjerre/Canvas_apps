@@ -37,7 +37,9 @@ import combined as cb
 # Navne uden domaenepraefiks, der er FAELLES med vilje.
 SHARED = {"gblFbOpen", "gblFbMe", "gblFbSel", "gblFbPick", "gblFbBusy", "colFbRequests", "gblNavOpen", "colAppPrefs", "darkModeEnabled", cb.NEW_SEQ, "gblNavigating", "gblNavTo",
           # Skaermen, man kom fra, naar man aabner Issue Board (issue #114).
-          "gblNavFrom"}
+          "gblNavFrom",
+          # Beskederne nederst til hoejre (tools/toast.py, UX-review B1).
+          "gblToast"}
 # Hubbens egne - de har aldrig haft et praefiks.
 HUB_OWN = {"varMdMe", "varMdView", "varMdDomain", "varMdStatusMode", "varMdNewMenu", "varMdClosedPeek"}
 

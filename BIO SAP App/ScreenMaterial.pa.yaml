@@ -455,7 +455,7 @@ Screens:
                                   =Set(varMatSaving, true);
                                   If(
                                       CountRows(Filter(colMatRows, Status <> "submitted")) = 0,
-                                      Notify("There are no rows to save.", NotificationType.Warning),
+                                      Set(gblToast, { Text: "There are no rows to save.", Kind: "Warning", At: Now() }); true,
                                   
                                       Set(
                                           varMatIdx,
@@ -464,7 +464,7 @@ Screens:
                                       If(
                                           !IsBlank(varMatIdx) &&
                                           !((Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe && (varMatIdx.Status.Value = "Kladde")) || (IsAdmin && (varMatIdx.Status.Value = "Kladde" || varMatIdx.Status.Value = "AfventerInfo"))),
-                                          Notify("This request can no longer be changed.", NotificationType.Warning),
+                                          Set(gblToast, { Text: "This request can no longer be changed.", Kind: "Warning", At: Now() }); true,
                                   
                                       IfError(
                                           If(
@@ -604,10 +604,10 @@ Screens:
                                           );
                                   
                                           Set(varMatInfo, "Saved: " & varMatRequestNo);
-                                          Notify("Saved as " & varMatRequestNo & " - see it on the landing page.", NotificationType.Success),
+                                          Set(gblToast, { Text: "Saved as " & varMatRequestNo & " - see it on the landing page.", Kind: "Success", At: Now() }); true,
                                   
                                           Set(varMatInfo, "Save failed: " & FirstError.Message);
-                                          Notify("Save failed: " & FirstError.Message, NotificationType.Error)
+                                          Set(gblToast, { Text: "Save failed: " & FirstError.Message, Kind: "Error", At: Now() }); true
                                       )
                                       )
                                   );
@@ -660,7 +660,7 @@ Screens:
                               OnSelect: |-
                                   =If(
                                       CountRows(Filter(Filter(colMatRows, Status = "valid" && (Upper(Trim(Coalesce(StrategicPart, ""))) in ["YES", "JA", "Y", "TRUE", "1"])), IsBlank(Trim(Coalesce(ObjectList, Coalesce(FunctionalLocation, "")))))) > 0,
-                                      Notify("A strategic row needs at least one functional location before it can be submitted.", NotificationType.Warning),
+                                      Set(gblToast, { Text: "A strategic row needs at least one functional location before it can be submitted.", Kind: "Warning", At: Now() }); true,
                                       Set(varMatConfirmSubmit, true)
                                   )
                               RadiusBottomLeft: |-
@@ -4504,11 +4504,11 @@ Screens:
                                               Set(varMatValidated, true);
                                               If(
                                                   IsBlank(Trim(Coalesce(varMatFText, ""))),
-                                                  Notify("Material description is required - also on a draft.", NotificationType.Warning),
+                                                  Set(gblToast, { Text: "Material description is required - also on a draft.", Kind: "Warning", At: Now() }); true,
                                                   (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)) && !IsAdmin,
-                                                  Notify("You can only change your own requests.", NotificationType.Warning),
+                                                  Set(gblToast, { Text: "You can only change your own requests.", Kind: "Warning", At: Now() }); true,
                                                   Coalesce(varMatFIsStockItem, false) && !IsBlank(varMatFMinStock) && !IsBlank(varMatFMaxStock) && varMatFMinStock > varMatFMaxStock,
-                                                  Notify("Min stock must be less than or equal to max stock.", NotificationType.Warning),
+                                                  Set(gblToast, { Text: "Min stock must be less than or equal to max stock.", Kind: "Warning", At: Now() }); true,
                                               
                                                   Set(varMatAdmNew, IsBlank(varMatActiveRowId));
                                                   Set(
@@ -4628,7 +4628,7 @@ Screens:
                                                               DecidedOn: Now()
                                                           });
                                                           true,
-                                                          Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                          Set(gblToast, { Text: "The change was saved, but the admin log entry failed: " & FirstError.Message, Kind: "Warning", At: Now() });
                                                           false
                                                       )
                                                   );
@@ -4722,10 +4722,10 @@ Screens:
                                                   );
                                               
                                                   Set(varMatInfo, "Draft saved as " & LookUp(colMatRows, RowId = varMatActiveRowId).ItemKey);
-                                                  Notify("Draft saved as " & LookUp(colMatRows, RowId = varMatActiveRowId).ItemKey, NotificationType.Success),
+                                                  Set(gblToast, { Text: "Draft saved as " & LookUp(colMatRows, RowId = varMatActiveRowId).ItemKey, Kind: "Success", At: Now() }); true,
                                               
                                                   Set(varMatInfo, "Save failed: " & FirstError.Message);
-                                                  Notify("Save failed: " & FirstError.Message, NotificationType.Error)
+                                                  Set(gblToast, { Text: "Save failed: " & FirstError.Message, Kind: "Error", At: Now() }); true
                                                   )
                                               );
                                               Set(varMatSaving, false)
@@ -4779,15 +4779,15 @@ Screens:
                                               Set(varMatValidated, true);
                                               If(
                                                   IsBlank(Trim(Coalesce(varMatFText, ""))) || IsBlank(varMatFPlant),
-                                                  Notify("Material description and Plant are required.", NotificationType.Warning),
+                                                  Set(gblToast, { Text: "Material description and Plant are required.", Kind: "Warning", At: Now() }); true,
                                                   (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)) && !IsAdmin,
-                                                  Notify("You can only change your own requests.", NotificationType.Warning),
+                                                  Set(gblToast, { Text: "You can only change your own requests.", Kind: "Warning", At: Now() }); true,
                                                   Coalesce(varMatFIsStockItem, false) && !IsBlank(varMatFMinStock) && !IsBlank(varMatFMaxStock) && varMatFMinStock > varMatFMaxStock,
-                                                  Notify("Min stock must be less than or equal to max stock.", NotificationType.Warning),
+                                                  Set(gblToast, { Text: "Min stock must be less than or equal to max stock.", Kind: "Warning", At: Now() }); true,
                                                   Coalesce(varMatFIsStockItem, false) && (IsBlank(varMatFMinStock) || IsBlank(varMatFMaxStock)),
-                                                  Notify("Min stock and max stock are required for a stock item.", NotificationType.Warning),
+                                                  Set(gblToast, { Text: "Min stock and max stock are required for a stock item.", Kind: "Warning", At: Now() }); true,
                                                   Coalesce(varMatFReplacesExisting, false) && IsBlank(Trim(Coalesce(varMatFReplacedMaterialNo, ""))),
-                                                  Notify("Replaced material no. is required when the material replaces an existing one.", NotificationType.Warning),
+                                                  Set(gblToast, { Text: "Replaced material no. is required when the material replaces an existing one.", Kind: "Warning", At: Now() }); true,
                                               
                                                   Set(varMatAdmNew, IsBlank(varMatActiveRowId));
                                                   Set(
@@ -4907,7 +4907,7 @@ Screens:
                                                               DecidedOn: Now()
                                                           });
                                                           true,
-                                                          Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                          Set(gblToast, { Text: "The change was saved, but the admin log entry failed: " & FirstError.Message, Kind: "Warning", At: Now() });
                                                           false
                                                       )
                                                   );
@@ -5001,10 +5001,10 @@ Screens:
                                                   );
                                               
                                                   Set(varMatInfo, "Saved as " & LookUp(colMatRows, RowId = varMatActiveRowId).ItemKey);
-                                                  Notify("Saved as " & LookUp(colMatRows, RowId = varMatActiveRowId).ItemKey, NotificationType.Success),
+                                                  Set(gblToast, { Text: "Saved as " & LookUp(colMatRows, RowId = varMatActiveRowId).ItemKey, Kind: "Success", At: Now() }); true,
                                               
                                                   Set(varMatInfo, "Save failed: " & FirstError.Message);
-                                                  Notify("Save failed: " & FirstError.Message, NotificationType.Error)
+                                                  Set(gblToast, { Text: "Save failed: " & FirstError.Message, Kind: "Error", At: Now() }); true
                                                   )
                                               );
                                               Set(varMatSaving, false)
@@ -8719,8 +8719,8 @@ Screens:
                                                     )
                                                 )
                                             );
-                                            Notify("Created material no. saved.", NotificationType.Success),
-                                            Notify("Save failed: " & FirstError.Message, NotificationType.Error)
+                                            Set(gblToast, { Text: "Created material no. saved.", Kind: "Success", At: Now() }); true,
+                                            Set(gblToast, { Text: "Save failed: " & FirstError.Message, Kind: "Error", At: Now() }); true
                                         )
                                     RadiusBottomLeft: |-
                                         =10
@@ -9108,7 +9108,7 @@ Screens:
                               OnSelect: |-
                                   =If(
                                       IsBlank(LookUp(colMatRows, RowId = varMatDocsId).ItemKey),
-                                      Notify("Save the row first - the folder is named after the row key.", NotificationType.Warning),
+                                      Set(gblToast, { Text: "Save the row first - the folder is named after the row key.", Kind: "Warning", At: Now() }); true,
                                   
                                       Set(varMatAttBusy, true);
                                       Set(
@@ -9190,10 +9190,10 @@ Screens:
                               OnSelect: |-
                                   =If(
                                       IsBlank(LookUp(colMatRows, RowId = varMatDocsId).ItemKey),
-                                      Notify("Save the row first - the folder is named after the row key.", NotificationType.Warning),
+                                      Set(gblToast, { Text: "Save the row first - the folder is named after the row key.", Kind: "Warning", At: Now() }); true,
                                   
                                       CountRows(attMatPicker.Attachments) = 0,
-                                      Notify("Choose one or more files first.", NotificationType.Warning),
+                                      Set(gblToast, { Text: "Choose one or more files first.", Kind: "Warning", At: Now() }); true,
                                   
                                       Set(varMatAttBusy, true);
                                       If(CountRows(Filter(colMatAttUp, !Ok)) = 0, Clear(colMatAttUp));
@@ -9258,13 +9258,10 @@ Screens:
                                   
                                       If(
                                           CountRows(Filter(colMatAttUp, !Ok)) > 0,
-                                          Notify(
-                                              "Not uploaded: " &
+                                          Set(gblToast, { Text: "Not uploaded: " &
                                               Concat(Filter(colMatAttUp, !Ok), Name, ", ") &
-                                              ". Select Upload again to retry.",
-                                              NotificationType.Error
-                                          ),
-                                          Notify("Document(s) uploaded.", NotificationType.Success)
+                                              ". Select Upload again to retry.", Kind: "Error", At: Now() }); true,
+                                          Set(gblToast, { Text: "Document(s) uploaded.", Kind: "Success", At: Now() }); true
                                       )
                                   )
                               RadiusBottomLeft: |-
@@ -9527,8 +9524,8 @@ Screens:
                                                 IsBlank(d.Identifier) ||
                                                     IfError('BioSap-DeleteSubmittedAttachments'.Run(d.Identifier); true, false),
                                                 RemoveIf(colMatAttachments, RowId = varMatDocsId && FileName = d.FileName);
-                                                Notify(d.FileName & " removed.", NotificationType.Success),
-                                                Notify(d.FileName & " could not be removed. Try again.", NotificationType.Error)
+                                                Set(gblToast, { Text: d.FileName & " removed.", Kind: "Success", At: Now() }); true,
+                                                Set(gblToast, { Text: d.FileName & " could not be removed. Try again.", Kind: "Error", At: Now() }); true
                                             )
                                         );
                                         Set(varMatAttRemove, Blank());
@@ -10240,10 +10237,7 @@ Screens:
                                             { q: Upper(Trim(varMatFlQuery)) },
                                             If(
                                                 Len(q) < 16,
-                                                Notify(
-                                                    "Type at least 16 characters before searching.",
-                                                    NotificationType.Warning
-                                                ),
+                                                Set(gblToast, { Text: "Type at least 16 characters before searching.", Kind: "Warning", At: Now() }); true,
                                         
                                                 Set(varMatFlBusy, true);
                                                 Set(varMatFlLast, q);
@@ -10272,7 +10266,7 @@ Screens:
                                                     );
                                                     If(
                                                         CountRows(colMatFl) = 0,
-                                                        Notify("No functional locations found for " & Upper(q) & ".", NotificationType.Warning),
+                                                        Set(gblToast, { Text: "No functional locations found for " & Upper(q) & ".", Kind: "Warning", At: Now() }); true,
                                                             Set(varMatObjPick, First(colMatFl).Code);
                                                             Reset(cmbMatFl)
                                                     );
@@ -10294,7 +10288,7 @@ Screens:
                                                     ),
                                                     Clear(colMatFl);
                                                     Set(varMatFlMsg, "Search failed: " & FirstError.Message);
-                                                    Notify("The functional locations search failed. Try again.", NotificationType.Error)
+                                                    Set(gblToast, { Text: "The functional locations search failed. Try again.", Kind: "Error", At: Now() }); true
                                                 );
                                                 Set(varMatFlBusy, false)
                                             )
@@ -10356,10 +10350,7 @@ Screens:
                                             { q: Upper(Trim(Coalesce(cmbMatFl.SearchText, varMatFlQuery))) },
                                             If(
                                                 Len(q) < 16,
-                                                Notify(
-                                                    "Type at least 16 characters before searching.",
-                                                    NotificationType.Warning
-                                                ),
+                                                Set(gblToast, { Text: "Type at least 16 characters before searching.", Kind: "Warning", At: Now() }); true,
                                         
                                                 Set(varMatFlBusy, true);
                                                 Set(varMatFlLast, q);
@@ -10388,7 +10379,7 @@ Screens:
                                                     );
                                                     If(
                                                         CountRows(colMatFl) = 0,
-                                                        Notify("No functional locations found for " & Upper(q) & ".", NotificationType.Warning),
+                                                        Set(gblToast, { Text: "No functional locations found for " & Upper(q) & ".", Kind: "Warning", At: Now() }); true,
                                                             Set(varMatObjPick, First(colMatFl).Code);
                                                             Reset(cmbMatFl)
                                                     );
@@ -10410,7 +10401,7 @@ Screens:
                                                     ),
                                                     Clear(colMatFl);
                                                     Set(varMatFlMsg, "Search failed: " & FirstError.Message);
-                                                    Notify("The functional locations search failed. Try again.", NotificationType.Error)
+                                                    Set(gblToast, { Text: "The functional locations search failed. Try again.", Kind: "Error", At: Now() }); true
                                                 );
                                                 Set(varMatFlBusy, false)
                                             )
@@ -10650,7 +10641,7 @@ Screens:
                                             CountRows(colMatObjPop) > varMatObjN,
                                             If(
                                                 (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)) && !IsAdmin,
-                                                Notify("You can only change your own requests.", NotificationType.Warning);
+                                                Set(gblToast, { Text: "You can only change your own requests.", Kind: "Warning", At: Now() });
                                                 Clear(colMatObjPop);
                                                 If(
                                                     !IsBlank(Trim(Coalesce(LookUp(colMatRows, RowId = varMatObjRowId).ObjectListJson, ""))),
@@ -10699,7 +10690,7 @@ Screens:
                                                                 DecidedOn: Now()
                                                             });
                                                             true,
-                                                            Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                            Set(gblToast, { Text: "The change was saved, but the admin log entry failed: " & FirstError.Message, Kind: "Warning", At: Now() });
                                                             false
                                                         )
                                                     );
@@ -10924,7 +10915,7 @@ Screens:
                                         Set(varMatFlMsg, "Removed " & ThisItem.Code & ".");
                                         If(
                                             (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)) && !IsAdmin,
-                                            Notify("You can only change your own requests.", NotificationType.Warning);
+                                            Set(gblToast, { Text: "You can only change your own requests.", Kind: "Warning", At: Now() });
                                             Clear(colMatObjPop);
                                             If(
                                                 !IsBlank(Trim(Coalesce(LookUp(colMatRows, RowId = varMatObjRowId).ObjectListJson, ""))),
@@ -10973,7 +10964,7 @@ Screens:
                                                             DecidedOn: Now()
                                                         });
                                                         true,
-                                                        Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                        Set(gblToast, { Text: "The change was saved, but the admin log entry failed: " & FirstError.Message, Kind: "Warning", At: Now() });
                                                         false
                                                     )
                                                 );
@@ -13393,7 +13384,7 @@ Screens:
                                   =Launch("mailto:sapvedligehold@orsted.com?subject=" & EncodeUrl("SAP maintenance - " & Switch(gblFbSel.Kind, "R", gblFbSel.TypeName & " request " & gblFbSel.Code, "G", gblFbSel.Label, "question")) & "&body=" & EncodeUrl(If(gblFbSel.Kind = "R", "Request: " & gblFbSel.Code & Char(10) & "Type: " & gblFbSel.TypeName & Char(10) & "Title: " & gblFbSel.Title & Char(10) & If(IsBlank(gblFbSel.Url), "", "Link: " & gblFbSel.Url & Char(10)) & Char(10), "") & Left(inpMatFbMessage.Text, Find("Kind regards,", inpMatFbMessage.Text & "Kind regards,") - 1)));
                                   Set(gblFbOpen, false);
                                   Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpMatFbSubjectFind); Reset(inpMatFbMessage);
-                                  Notify("The mail is ready in Outlook. Press Send there.", NotificationType.Information)
+                                  Set(gblToast, { Text: "The mail is ready in Outlook. Press Send there.", Kind: "Information", At: Now() }); true
                               RadiusBottomLeft: |-
                                   =10
                               RadiusBottomRight: |-
@@ -13442,9 +13433,9 @@ Screens:
                                   IfError(
                                       With({ res: 'BioSap-SendFeedbackMail'.Run("sapvedligehold@orsted.com", "SAP maintenance - " & Switch(gblFbSel.Kind, "R", gblFbSel.TypeName & " request " & gblFbSel.Code, "G", gblFbSel.Label, "question"), inpMatFbMessage.Text, "[]", JSON({Kind: gblFbSel.Kind, Topic: gblFbSel.Label, Code: gblFbSel.Code, Type: gblFbSel.TypeName, Title: gblFbSel.Title, Url: gblFbSel.Url, Name: User().FullName}, JSONFormat.Compact)) },
                                           If(res.sent = "yes",
-                                              Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpMatFbSubjectFind); Reset(inpMatFbMessage); Notify("Message sent.", NotificationType.Success),
-                                              Notify("The message could not be sent. " & res.message, NotificationType.Error))),
-                                      Notify("The message could not be sent.", NotificationType.Error));
+                                              Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpMatFbSubjectFind); Reset(inpMatFbMessage); Set(gblToast, { Text: "Message sent.", Kind: "Success", At: Now() }); true,
+                                              Set(gblToast, { Text: "The message could not be sent. " & res.message, Kind: "Error", At: Now() }); true)),
+                                      Set(gblToast, { Text: "The message could not be sent.", Kind: "Error", At: Now() }); true);
                                   Set(gblFbBusy, false)
                               RadiusBottomLeft: |-
                                   =10
@@ -13712,16 +13703,16 @@ Screens:
                             Set(varMatSaving, true);
                             If(
                                 IsBlank(varMatDeleteId) || IsBlank(LookUp(colMatRows, RowId = varMatDeleteId)),
-                                Notify("Select a row in the list first.", NotificationType.Warning),
+                                Set(gblToast, { Text: "Select a row in the list first.", Kind: "Warning", At: Now() }); true,
                             
                                 LookUp(colMatRows, RowId = varMatDeleteId).Status = "submitted",
-                                Notify("A submitted row cannot be deleted.", NotificationType.Warning),
+                                Set(gblToast, { Text: "A submitted row cannot be deleted.", Kind: "Warning", At: Now() }); true,
                             
                                 If(
                                     IfError(
                                         Remove(MaterialItems, LookUp(MaterialItems, ID = varMatDeleteId));
                                         true,
-                                        Notify("Delete failed: " & FirstError.Message, NotificationType.Error);
+                                        Set(gblToast, { Text: "Delete failed: " & FirstError.Message, Kind: "Error", At: Now() });
                                         false
                                     ),
                                     RemoveIf(colMatAttachments, RowId = varMatDeleteId);
@@ -13741,7 +13732,7 @@ Screens:
                                                 DecidedOn: Now()
                                             });
                                             true,
-                                            Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                            Set(gblToast, { Text: "The change was saved, but the admin log entry failed: " & FirstError.Message, Kind: "Warning", At: Now() });
                                             false
                                         )
                                     );
@@ -13862,7 +13853,7 @@ Screens:
                                         )
                                     );
                                     Set(varMatInfo, "Row deleted. The documents remain in the library.");
-                                    Notify("Row deleted. The documents remain in the library.", NotificationType.Success)
+                                    Set(gblToast, { Text: "Row deleted. The documents remain in the library.", Kind: "Success", At: Now() }); true
                                 )
                             );
                             Set(varMatDeleteId, Blank());
@@ -14133,7 +14124,7 @@ Screens:
                             Set(varMatSaving, true);
                             If(
                                 CountRows(Filter(colMatRows, Status = "valid")) = 0,
-                                Notify("There are no completed rows to submit.", NotificationType.Warning),
+                                Set(gblToast, { Text: "There are no completed rows to submit.", Kind: "Warning", At: Now() }); true,
                             
                                 Set(
                                     varMatIdx,
@@ -14142,7 +14133,7 @@ Screens:
                                 If(
                                     !IsBlank(varMatIdx) &&
                                     !((Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe && (varMatIdx.Status.Value = "Kladde")) || (IsAdmin && (varMatIdx.Status.Value = "Kladde" || varMatIdx.Status.Value = "AfventerInfo"))),
-                                    Notify("This request can no longer be changed.", NotificationType.Warning),
+                                    Set(gblToast, { Text: "This request can no longer be changed.", Kind: "Warning", At: Now() }); true,
                             
                                 IfError(
                                     If(
@@ -14296,18 +14287,18 @@ Screens:
                                                 DecidedOn: Now()
                                             });
                                             true,
-                                            Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                            Set(gblToast, { Text: "The change was saved, but the admin log entry failed: " & FirstError.Message, Kind: "Warning", At: Now() });
                                             false
                                         )
                                     );
                             
                                     Set(varMatInfo, "Submitted: " & varMatRequestNo);
-                                    Notify("Submitted as " & varMatRequestNo & " - see it on the landing page.", NotificationType.Success);
+                                    Set(gblToast, { Text: "Submitted as " & varMatRequestNo & " - see it on the landing page.", Kind: "Success", At: Now() });
                                     Set(varMatRequestGuid, "");
                                     Set(varMatRequestNo, ""),
                             
                                     Set(varMatInfo, "Submit failed: " & FirstError.Message);
-                                    Notify("Submit failed: " & FirstError.Message, NotificationType.Error)
+                                    Set(gblToast, { Text: "Submit failed: " & FirstError.Message, Kind: "Error", At: Now() }); true
                                 )
                                 )
                             );
@@ -14578,19 +14569,19 @@ Screens:
                             Set(varMatDelIdx, LookUp(MD_RequestIndex, RequestGuid = varMatRequestGuid));
                             If(
                                 IsBlank(varMatDelIdx),
-                                Notify("This request no longer exists.", NotificationType.Warning),
+                                Set(gblToast, { Text: "This request no longer exists.", Kind: "Warning", At: Now() }); true,
                                 !((Lower(Coalesce(varMatDelIdx.RequesterEmail, "")) = varMatMe && (varMatDelIdx.Status.Value = "Kladde")) || (IsAdmin && (varMatDelIdx.Status.Value = "Kladde" || varMatDelIdx.Status.Value = "AfventerInfo"))),
-                                If(IsAdmin, Notify("Only drafts and requests awaiting info can be deleted.", NotificationType.Warning), Notify("Only drafts can be deleted.", NotificationType.Warning)),
+                                If(IsAdmin, Set(gblToast, { Text: "Only drafts and requests awaiting info can be deleted.", Kind: "Warning", At: Now() }); true, Set(gblToast, { Text: "Only drafts can be deleted.", Kind: "Warning", At: Now() }); true),
                                 Set(varMatDelGuid, varMatDelIdx.RequestGuid);
                                 Set(varMatDelKey, varMatDelIdx.RequestNo);
                                 Remove(MaterialItems, Filter(MaterialItems, RequestGuid = varMatDelGuid));
                                 If(
                                     !IsEmpty(Errors(MaterialItems)),
-                                    Notify("The request could not be deleted: " & First(Errors(MaterialItems)).Message, NotificationType.Error),
+                                    Set(gblToast, { Text: "The request could not be deleted: " & First(Errors(MaterialItems)).Message, Kind: "Error", At: Now() }); true,
                                     Remove(MD_RequestIndex, Filter(MD_RequestIndex, RequestGuid = varMatDelGuid));
                                     If(
                                         !IsEmpty(Errors(MD_RequestIndex)),
-                                        Notify("The request could not be deleted: " & First(Errors(MD_RequestIndex)).Message, NotificationType.Error),
+                                        Set(gblToast, { Text: "The request could not be deleted: " & First(Errors(MD_RequestIndex)).Message, Kind: "Error", At: Now() }); true,
                                         If(
                                             (IsAdmin && !(Lower(Coalesce(varMatDelIdx.RequesterEmail, "")) = varMatMe)),
                                             IfError(
@@ -14605,7 +14596,7 @@ Screens:
                                                     DecidedOn: Now()
                                                 });
                                                 true,
-                                                Notify("The change was saved, but the admin log entry failed: " & FirstError.Message, NotificationType.Warning);
+                                                Set(gblToast, { Text: "The change was saved, but the admin log entry failed: " & FirstError.Message, Kind: "Warning", At: Now() });
                                                 false
                                             )
                                         );
@@ -14613,7 +14604,7 @@ Screens:
                                         Set(gblMatStale, true);
                                         Set(gblMatWant, Blank());
                                         Set(varMatOpened, "");
-                                        Notify("Request deleted.", NotificationType.Success);
+                                        Set(gblToast, { Text: "Request deleted.", Kind: "Success", At: Now() });
                                         Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None)
                                     )
                                 )
@@ -14801,8 +14792,7 @@ Screens:
                                 Set(varMatIdx, LookUp(MD_RequestIndex, RequestGuid = varMatRequestGuid));
                                 If(
                                     IsBlank(varMatIdx),
-                                    Notify("Could not find the request behind this link. Rows you save start a new request.",
-                                        NotificationType.Warning);
+                                    Set(gblToast, { Text: "Could not find the request behind this link. Rows you save start a new request.", Kind: "Warning", At: Now() });
                                     Set(varMatRequestGuid, ""); Set(varMatRequestNo, ""),
                                     Set(varMatRequestNo, varMatIdx.RequestNo);
                                     Set(varMatCanEdit, ((Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe && (varMatIdx.Status.Value = "Kladde")) || (IsAdmin && (varMatIdx.Status.Value = "Kladde" || varMatIdx.Status.Value = "AfventerInfo"))));
@@ -15367,6 +15357,197 @@ Screens:
                 =!IfError(varMatLoading, false)
             Start: |-
                 =IfError(varMatLoading, false)
+            Visible: |-
+                =false
+            Width: |-
+                =1
+      - conMatToast:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =If(IfError(gblToast.Kind, "") = "Error", C.'border-error', C.'border-default')
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.Bold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =64
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Center
+            LayoutDirection: |-
+                =LayoutDirection.Horizontal
+            LayoutGap: |-
+                =10
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =8
+            PaddingLeft: |-
+                =14
+            PaddingRight: |-
+                =8
+            PaddingTop: |-
+                =8
+            RadiusBottomLeft: |-
+                =10
+            RadiusBottomRight: |-
+                =10
+            RadiusTopLeft: |-
+                =10
+            RadiusTopRight: |-
+                =10
+            Visible: |-
+                =!IsBlank(IfError(gblToast.Text, ""))
+            Width: |-
+                =Min(420, App.Width - 32)
+            X: |-
+                =Max(16, App.Width - Self.Width - 24)
+            Y: |-
+                =App.Height - Self.Height - 24
+          Children:
+            - imgMatToastIcon:
+                Control: Image
+                Properties:
+                  AccessibleLabel: |-
+                      =IfError(gblToast.Kind, "Message")
+                  AlignInContainer: |-
+                      =AlignInContainer.Center
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Height: |-
+                      =20
+                  Image: |-
+                      ="data:image/svg+xml;utf8," & EncodeUrl(Switch(IfError(gblToast.Kind, ""), "Success", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M8 12.2l2.8 2.8L16 9.5'/></g></svg>", "Warning", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 7.5v5.5M12 16.5v.01'/></g></svg>", "Error", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-error-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M9 9l6 6M15 9l-6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 11v5.5M12 7.5v.01'/></g></svg>"))
+                  ImagePosition: |-
+                      =ImagePosition.Fit
+                  LayoutMinWidth: |-
+                      =20
+                  OnSelect: |-
+                      =false
+                  TabIndex: |-
+                      =0
+                  Width: |-
+                      =20
+            - txtMatToastText:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-primary'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  FillPortions: |-
+                      =0
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =40
+                  LayoutMinWidth: |-
+                      =0
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =13
+                  Text: |-
+                      =IfError(gblToast.Text, "")
+                  VerticalAlign: |-
+                      =VerticalAlign.Middle
+                  Width: |-
+                      =Max(0, ((Min(420, App.Width - 32)) - 14 - 8) - ((20) + 10) - ((32) + 10) - 2)
+                  Wrap: |-
+                      =true
+            - btnMatToastClose:
+                Control: ModernButton
+                Properties:
+                  AccessibleLabel: |-
+                      ="Close the message"
+                  Align: |-
+                      =Align.Center
+                  AlignInContainer: |-
+                      =AlignInContainer.Center
+                  Appearance: |-
+                      =ButtonAppearance.Outline
+                  BorderColor: |-
+                      =RGBA(0, 0, 0, 0)
+                  BorderThickness: |-
+                      =1
+                  Color: |-
+                      =C.'text-muted'
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =32
+                  Icon: |-
+                      ="Dismiss"
+                  Layout: |-
+                      =ButtonLayout.IconOnly
+                  LayoutMinWidth: |-
+                      =32
+                  OnSelect: |-
+                      =Set(gblToast, { Text: "", Kind: "", At: Now() })
+                  RadiusBottomLeft: |-
+                      =10
+                  RadiusBottomRight: |-
+                      =10
+                  RadiusTopLeft: |-
+                      =10
+                  RadiusTopRight: |-
+                      =10
+                  Size: |-
+                      =14
+                  Text: |-
+                      =""
+                  Tooltip: |-
+                      ="Close"
+                  VerticalAlign: |-
+                      =VerticalAlign.Middle
+                  Width: |-
+                      =32
+      - tmrMatToast:
+          Control: Timer
+          Properties:
+            AutoPause: |-
+                =true
+            AutoStart: |-
+                =false
+            Duration: |-
+                =500
+            Height: |-
+                =1
+            OnTimerEnd: |-
+                =If(
+                    !IsBlank(IfError(gblToast.Text, "")) && !(IfError(gblToast.Kind, "") = "Error") &&
+                    DateDiff(gblToast.At, Now(), TimeUnit.Milliseconds) >= 4000,
+                    Set(gblToast, { Text: "", Kind: "", At: Now() })
+                )
+            Repeat: |-
+                =true
+            Start: |-
+                =!IsBlank(IfError(gblToast.Text, "")) && !(IfError(gblToast.Kind, "") = "Error")
             Visible: |-
                 =false
             Width: |-

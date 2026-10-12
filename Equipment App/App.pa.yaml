@@ -206,7 +206,7 @@ App:
           TraceSeverity.Error,
           { Message: FirstError.Message, Source: FirstError.Source, Observed: FirstError.Observed }
       );
-      Notify("Something went wrong: " & FirstError.Message, NotificationType.Error)
+      Set(gblToast, { Text: "Something went wrong: " & FirstError.Message, Kind: "Error", At: Now() })
     OnStart: |
       =If(false, ClearCollect(colDomRows, { RowId: 0, ItemKey: "", RequestNo: "", Status: "", FileCount: 0, Description: "", Plant: "", RequestType: "", EquipmentCategory: "", Manufacturer: "", TypeDesignation: "", SerialNumber: "", FunctionalLocation: "", ClassData: "", RoomCoordinates: "", Placement: "", WarrantyStart: Blank(), WarrantyEnd: Blank(), EquipmentNumber: "" }));
 

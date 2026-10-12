@@ -2306,6 +2306,22 @@ def rule_38(ctx):
                 f"AccessibleLabelNeeded. Giv en kort engelsk etiket om det, den viser")
 
 
+def rule_39(ctx):
+    """Ingen Notify - beskeder er appens egne (tools/toast.py, UX-review B1)"""
+    # Platformens Notify-banner ligger OEVERST paa skaermen, oven paa
+    # headeren, og klippede VH-planens titel. gen_screen.render_screen
+    # omskriver hvert Notify til gblToast; et Notify, der naar ud i YAML'en,
+    # er sluppet uden om den vej.
+    for p_, name, body in ctx.all_nodes:
+        for key, val in (body.get("Properties") or {}).items():
+            if isinstance(val, str) and re.search(r"\bNotify\s*\(", val):
+                ctx.problems.append(f"[39] {name}.{key}: Notify( i skaermen - beskeder "
+                                    f"vises med tools/toast.py (gblToast)")
+    for key, val in (ctx.screen.get("Properties") or {}).items():
+        if isinstance(val, str) and re.search(r"\bNotify\s*\(", val):
+            ctx.problems.append(f"[39] skaermen.{key}: Notify( - brug tools/toast.py")
+
+
 RULES = [
     Rule('0', 'Hvert kontrolnavn findes kun een gang', rule_0),
     Rule('1', 'Ingen kontrol-til-kontrol hoejdereferencer', rule_1),
@@ -2353,6 +2369,7 @@ RULES = [
     Rule('36', 'AllItemsCount i stedet for CountRows(galleri.AllItems) (issue #165)', rule_36),
     Rule('37', 'Billeder, figurer og klassiske knapper skal have TabIndex >= 0 (issue #165)', rule_37),
     Rule('38', 'Billeder, figurer, tekster og inputs skal have en AccessibleLabel (issue #165)', rule_38),
+    Rule('39', 'Ingen Notify - beskeder er appens egne (tools/toast.py, UX-review B1)', rule_39),
 ]
 
 

@@ -801,10 +801,25 @@ def _lock_inputs_in_view(children):
                     "DisplayMode.Edit, DisplayMode.View)")
 
 
+def _toast_rewrite(children, screen_props):
+    """Notify(...) -> appens egen besked nederst til hoejre (tools/toast.py,
+    UX-review B1). Platformens banner laa oven paa headeren."""
+    import toast
+    for n in _walk(children):
+        for k, v in list(n.props.items()):
+            if isinstance(v, str) and "Notify" in v:
+                n.props[k] = toast.rewrite(v)
+    for k, v in list(screen_props.items()):
+        if isinstance(v, str) and "Notify" in v:
+            screen_props[k] = toast.rewrite(v)
+
+
 def render_screen(screen_name, screen_props, children):
     resolve_templates(children)
     flatten_galleries(children)
     _lock_inputs_in_view(children)
+    screen_props = dict(screen_props)
+    _toast_rewrite(children, screen_props)
     lines = ["Screens:", f"  {screen_name}:", "    Properties:"]
     ppad = " " * 6
     cpad = " " * 10

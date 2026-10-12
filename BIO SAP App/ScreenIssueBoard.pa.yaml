@@ -45,7 +45,7 @@ Screens:
               Set(varIbSyncFailed, IfError(ClearCollect(colIbFresh, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
               If(
                   varIbSyncFailed,
-                  Notify("The issues could not be refreshed. The list shows what was loaded last.", NotificationType.Error),
+                  Set(gblToast, { Text: "The issues could not be refreshed. The list shows what was loaded last.", Kind: "Error", At: Now() }); true,
                   ClearCollect(colIbAll, colIbFresh);
                   Clear(colIbFresh);
                   Set(varIbSyncedAt, Now())
@@ -320,7 +320,7 @@ Screens:
                                       Set(varIbSyncFailed, IfError(ClearCollect(colIbFresh, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
                                       If(
                                           varIbSyncFailed,
-                                          Notify("The issues could not be refreshed. The list shows what was loaded last.", NotificationType.Error),
+                                          Set(gblToast, { Text: "The issues could not be refreshed. The list shows what was loaded last.", Kind: "Error", At: Now() }); true,
                                           ClearCollect(colIbAll, colIbFresh);
                                           Clear(colIbFresh);
                                           Set(varIbSyncedAt, Now())
@@ -5499,7 +5499,7 @@ Screens:
                                   =Launch("mailto:sapvedligehold@orsted.com?subject=" & EncodeUrl("SAP maintenance - " & Switch(gblFbSel.Kind, "R", gblFbSel.TypeName & " request " & gblFbSel.Code, "G", gblFbSel.Label, "question")) & "&body=" & EncodeUrl(If(gblFbSel.Kind = "R", "Request: " & gblFbSel.Code & Char(10) & "Type: " & gblFbSel.TypeName & Char(10) & "Title: " & gblFbSel.Title & Char(10) & If(IsBlank(gblFbSel.Url), "", "Link: " & gblFbSel.Url & Char(10)) & Char(10), "") & Left(inpIbFbMessage.Text, Find("Kind regards,", inpIbFbMessage.Text & "Kind regards,") - 1)));
                                   Set(gblFbOpen, false);
                                   Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpIbFbSubjectFind); Reset(inpIbFbMessage);
-                                  Notify("The mail is ready in Outlook. Press Send there.", NotificationType.Information)
+                                  Set(gblToast, { Text: "The mail is ready in Outlook. Press Send there.", Kind: "Information", At: Now() }); true
                               RadiusBottomLeft: |-
                                   =10
                               RadiusBottomRight: |-
@@ -5548,9 +5548,9 @@ Screens:
                                   IfError(
                                       With({ res: 'BioSap-SendFeedbackMail'.Run("sapvedligehold@orsted.com", "SAP maintenance - " & Switch(gblFbSel.Kind, "R", gblFbSel.TypeName & " request " & gblFbSel.Code, "G", gblFbSel.Label, "question"), inpIbFbMessage.Text, "[]", JSON({Kind: gblFbSel.Kind, Topic: gblFbSel.Label, Code: gblFbSel.Code, Type: gblFbSel.TypeName, Title: gblFbSel.Title, Url: gblFbSel.Url, Name: User().FullName}, JSONFormat.Compact)) },
                                           If(res.sent = "yes",
-                                              Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpIbFbSubjectFind); Reset(inpIbFbMessage); Notify("Message sent.", NotificationType.Success),
-                                              Notify("The message could not be sent. " & res.message, NotificationType.Error))),
-                                      Notify("The message could not be sent.", NotificationType.Error));
+                                              Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpIbFbSubjectFind); Reset(inpIbFbMessage); Set(gblToast, { Text: "Message sent.", Kind: "Success", At: Now() }); true,
+                                              Set(gblToast, { Text: "The message could not be sent. " & res.message, Kind: "Error", At: Now() }); true)),
+                                      Set(gblToast, { Text: "The message could not be sent.", Kind: "Error", At: Now() }); true);
                                   Set(gblFbBusy, false)
                               RadiusBottomLeft: |-
                                   =10
@@ -8528,7 +8528,7 @@ Screens:
                                             false,
                                             !(!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && (!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))),
                                             Set(varIbTried, true);
-                                            Notify(If(varIbFormMode = "edit", "To save, add ", "To submit, add ") & Concat(Filter(Table({ m: "an application", ok: !IsBlank(varIbFormApp) }, { m: "a section", ok: !IsBlank(varIbFormSection) }, { m: "where it happened", ok: !IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text)) }, { m: "a title of at least 4 characters", ok: Len(Trim(inpIbTitle.Text)) >= 4 }, { m: "what happened", ok: !IsBlank(Trim(inpIbDesc.Text)) }), !ok), m, ", ") & ".", NotificationType.Warning),
+                                            Set(gblToast, { Text: If(varIbFormMode = "edit", "To save, add ", "To submit, add ") & Concat(Filter(Table({ m: "an application", ok: !IsBlank(varIbFormApp) }, { m: "a section", ok: !IsBlank(varIbFormSection) }, { m: "where it happened", ok: !IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text)) }, { m: "a title of at least 4 characters", ok: Len(Trim(inpIbTitle.Text)) >= 4 }, { m: "what happened", ok: !IsBlank(Trim(inpIbDesc.Text)) }), !ok), m, ", ") & ".", Kind: "Warning", At: Now() }); true,
                                             If(
                                                 varIbFormMode = "edit",
                                                 Set(varIbBusy, true);
@@ -8536,9 +8536,9 @@ Screens:
                                                 Set(varIbCur, IfError(LookUp(IB_Tickets, ID = varIbSelId), Blank()));
                                                 If(
                                                     IsBlank(varIbCur),
-                                                    Notify("The issue could not be loaded. It may have been deleted - close it and try again.", NotificationType.Error),
+                                                    Set(gblToast, { Text: "The issue could not be loaded. It may have been deleted - close it and try again.", Kind: "Error", At: Now() }); true,
                                                     !IsAdmin && (varIbCur.Status.Value <> "New" || Coalesce(varIbCur.IsArchived, false)),
-                                                    Notify("You can edit your issue only while it is New. Add a comment instead.", NotificationType.Warning),
+                                                    Set(gblToast, { Text: "You can edit your issue only while it is New. Add a comment instead.", Kind: "Warning", At: Now() }); true,
                                                     IfError(
                                                         Set(varIbEdited, Patch(
                                                             IB_Tickets,
@@ -8563,7 +8563,7 @@ Screens:
                                                             }
                                                         ));
                                                         Set(varIbSaved, true),
-                                                        Notify("The changes could not be saved. " & FirstError.Message, NotificationType.Error)
+                                                        Set(gblToast, { Text: "The changes could not be saved. " & FirstError.Message, Kind: "Error", At: Now() }); true
                                                     )
                                                 );
                                                 If(
@@ -8618,8 +8618,8 @@ Screens:
                                                     Set(varIbDetailOn, true);
                                                     If(
                                                         varIbRes.ok = "yes",
-                                                        Notify("Your changes have been saved.", NotificationType.Success),
-                                                        Notify("Your changes have been saved, but they could not be added to the activity. " & Coalesce(varIbRes.message, ""), NotificationType.Warning)
+                                                        Set(gblToast, { Text: "Your changes have been saved.", Kind: "Success", At: Now() }); true,
+                                                        Set(gblToast, { Text: "Your changes have been saved, but they could not be added to the activity. " & Coalesce(varIbRes.message, ""), Kind: "Warning", At: Now() }); true
                                                     )
                                                 );
                                                 Set(varIbBusy, false),
@@ -8651,7 +8651,7 @@ Screens:
                                                         }
                                                     ));
                                                     Set(varIbSaved, true),
-                                                    Notify("The issue could not be submitted. " & FirstError.Message, NotificationType.Error)
+                                                    Set(gblToast, { Text: "The issue could not be submitted. " & FirstError.Message, Kind: "Error", At: Now() }); true
                                                 );
                                                 If(
                                                     varIbSaved,
@@ -8708,7 +8708,7 @@ Screens:
                                                     If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
                                                     Set(varIbActBusy, false);
                                                     Set(varIbDetailOn, true);
-                                                    Notify("Thank you. Issue " & varIbNew.TicketNo & " has been submitted. To add screenshots or files, select Attachments here or the paperclip on the issue.", NotificationType.Success)
+                                                    Set(gblToast, { Text: "Thank you. Issue " & varIbNew.TicketNo & " has been submitted. To add screenshots or files, select Attachments here or the paperclip on the issue.", Kind: "Success", At: Now() }); true
                                                 );
                                                 Set(varIbBusy, false)
                                             )
@@ -10205,8 +10205,8 @@ Screens:
                                             If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
                                             Set(varIbActBusy, false)
                                             );
-                                            Notify("The issue has been reopened. An administrator will look at it again.", NotificationType.Success),
-                                            Notify("The issue could not be reopened. " & varIbRes.message, NotificationType.Error)
+                                            Set(gblToast, { Text: "The issue has been reopened. An administrator will look at it again.", Kind: "Success", At: Now() }); true,
+                                            Set(gblToast, { Text: "The issue could not be reopened. " & varIbRes.message, Kind: "Error", At: Now() }); true
                                         );
                                         Set(varIbBusy, false)
                                     RadiusBottomLeft: |-
@@ -10384,8 +10384,8 @@ Screens:
                                             If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
                                             Set(varIbActBusy, false)
                                             );
-                                            Notify(If(varIbSel.Archived, "The issue has been archived. It is kept under Archived.", "The issue has been restored."), NotificationType.Success),
-                                            Notify("The issue could not be changed. " & varIbRes.message, NotificationType.Error)
+                                            Set(gblToast, { Text: If(varIbSel.Archived, "The issue has been archived. It is kept under Archived.", "The issue has been restored."), Kind: "Success", At: Now() }); true,
+                                            Set(gblToast, { Text: "The issue could not be changed. " & varIbRes.message, Kind: "Error", At: Now() }); true
                                         );
                                         Set(varIbBusy, false)
                                     RadiusBottomLeft: |-
@@ -11969,10 +11969,10 @@ Screens:
                                                   Reset(inpIbComment);
                                                   UpdateIf(colIbAll, Id = varIbSelId, { UpdatedOn: Now() });
                                                   Set(varIbSel, Patch(varIbSel, { UpdatedOn: Now() }));
-                                                  Notify(If(varIbInternal, "Internal note added.", "Comment posted."), NotificationType.Success);
+                                                  Set(gblToast, { Text: If(varIbInternal, "Internal note added.", "Comment posted."), Kind: "Success", At: Now() });
                                                   Set(varIbInternal, false);
                                                   Reset(chkIbInternal),
-                                                  Notify("The comment could not be posted. " & varIbRes.message, NotificationType.Error)
+                                                  Set(gblToast, { Text: "The comment could not be posted. " & varIbRes.message, Kind: "Error", At: Now() }); true
                                               );
                                               Set(varIbPosting, false)
                                           RadiusBottomLeft: |-
@@ -12453,7 +12453,7 @@ Screens:
                                           OnSelect: |-
                                               =If(
                                                   CountRows(attIbFiles.Attachments) = 0,
-                                                  Notify("Choose one or more files first.", NotificationType.Warning),
+                                                  Set(gblToast, { Text: "Choose one or more files first.", Kind: "Warning", At: Now() }); true,
                                                   Set(varIbUploading, true);
                                                   ClearCollect(
                                                       colIbUp,
@@ -12507,8 +12507,8 @@ Screens:
                                                   Set(varIbUploading, false);
                                                   If(
                                                       CountRows(Filter(colIbUp, !IsBlank(Msg))) > 0,
-                                                      Notify("Not attached: " & Concat(Filter(colIbUp, !IsBlank(Msg)), Name & " (" & Msg & ")", "; "), NotificationType.Error),
-                                                      Notify("The file(s) have been attached.", NotificationType.Success)
+                                                      Set(gblToast, { Text: "Not attached: " & Concat(Filter(colIbUp, !IsBlank(Msg)), Name & " (" & Msg & ")", "; "), Kind: "Error", At: Now() }); true,
+                                                      Set(gblToast, { Text: "The file(s) have been attached.", Kind: "Success", At: Now() }); true
                                                   )
                                               )
                                           RadiusBottomLeft: |-
@@ -12967,8 +12967,8 @@ Screens:
                                       Set(varIbDelOn, false);
                                       Set(varIbDiscardOn, false);
                                       Set(varIbDetailOn, false);
-                                      Notify(varIbSel.TicketNo & " has been deleted permanently.", NotificationType.Success),
-                                      Notify("The issue could not be deleted. " & varIbRes.message, NotificationType.Error)
+                                      Set(gblToast, { Text: varIbSel.TicketNo & " has been deleted permanently.", Kind: "Success", At: Now() }); true,
+                                      Set(gblToast, { Text: "The issue could not be deleted. " & varIbRes.message, Kind: "Error", At: Now() }); true
                                   );
                                   Set(varIbBusy, false)
                               RadiusBottomLeft: |-
@@ -13086,3 +13086,194 @@ Screens:
                 =0
             Y: |-
                 =0
+      - conIbToast:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =If(IfError(gblToast.Kind, "") = "Error", C.'border-error', C.'border-default')
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.Bold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =64
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Center
+            LayoutDirection: |-
+                =LayoutDirection.Horizontal
+            LayoutGap: |-
+                =10
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =8
+            PaddingLeft: |-
+                =14
+            PaddingRight: |-
+                =8
+            PaddingTop: |-
+                =8
+            RadiusBottomLeft: |-
+                =10
+            RadiusBottomRight: |-
+                =10
+            RadiusTopLeft: |-
+                =10
+            RadiusTopRight: |-
+                =10
+            Visible: |-
+                =!IsBlank(IfError(gblToast.Text, ""))
+            Width: |-
+                =Min(420, App.Width - 32)
+            X: |-
+                =Max(16, App.Width - Self.Width - 24)
+            Y: |-
+                =App.Height - Self.Height - 24
+          Children:
+            - imgIbToastIcon:
+                Control: Image
+                Properties:
+                  AccessibleLabel: |-
+                      =IfError(gblToast.Kind, "Message")
+                  AlignInContainer: |-
+                      =AlignInContainer.Center
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Height: |-
+                      =20
+                  Image: |-
+                      ="data:image/svg+xml;utf8," & EncodeUrl(Switch(IfError(gblToast.Kind, ""), "Success", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M8 12.2l2.8 2.8L16 9.5'/></g></svg>", "Warning", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 7.5v5.5M12 16.5v.01'/></g></svg>", "Error", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-error-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M9 9l6 6M15 9l-6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 11v5.5M12 7.5v.01'/></g></svg>"))
+                  ImagePosition: |-
+                      =ImagePosition.Fit
+                  LayoutMinWidth: |-
+                      =20
+                  OnSelect: |-
+                      =false
+                  TabIndex: |-
+                      =0
+                  Width: |-
+                      =20
+            - txtIbToastText:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-primary'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  FillPortions: |-
+                      =0
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =40
+                  LayoutMinWidth: |-
+                      =0
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =13
+                  Text: |-
+                      =IfError(gblToast.Text, "")
+                  VerticalAlign: |-
+                      =VerticalAlign.Middle
+                  Width: |-
+                      =Max(0, ((Min(420, App.Width - 32)) - 14 - 8) - ((20) + 10) - ((32) + 10) - 2)
+                  Wrap: |-
+                      =true
+            - btnIbToastClose:
+                Control: ModernButton
+                Properties:
+                  AccessibleLabel: |-
+                      ="Close the message"
+                  Align: |-
+                      =Align.Center
+                  AlignInContainer: |-
+                      =AlignInContainer.Center
+                  Appearance: |-
+                      =ButtonAppearance.Outline
+                  BorderColor: |-
+                      =RGBA(0, 0, 0, 0)
+                  BorderThickness: |-
+                      =1
+                  Color: |-
+                      =C.'text-muted'
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =32
+                  Icon: |-
+                      ="Dismiss"
+                  Layout: |-
+                      =ButtonLayout.IconOnly
+                  LayoutMinWidth: |-
+                      =32
+                  OnSelect: |-
+                      =Set(gblToast, { Text: "", Kind: "", At: Now() })
+                  RadiusBottomLeft: |-
+                      =10
+                  RadiusBottomRight: |-
+                      =10
+                  RadiusTopLeft: |-
+                      =10
+                  RadiusTopRight: |-
+                      =10
+                  Size: |-
+                      =14
+                  Text: |-
+                      =""
+                  Tooltip: |-
+                      ="Close"
+                  VerticalAlign: |-
+                      =VerticalAlign.Middle
+                  Width: |-
+                      =32
+      - tmrIbToast:
+          Control: Timer
+          Properties:
+            AutoPause: |-
+                =true
+            AutoStart: |-
+                =false
+            Duration: |-
+                =500
+            Height: |-
+                =1
+            OnTimerEnd: |-
+                =If(
+                    !IsBlank(IfError(gblToast.Text, "")) && !(IfError(gblToast.Kind, "") = "Error") &&
+                    DateDiff(gblToast.At, Now(), TimeUnit.Milliseconds) >= 4000,
+                    Set(gblToast, { Text: "", Kind: "", At: Now() })
+                )
+            Repeat: |-
+                =true
+            Start: |-
+                =!IsBlank(IfError(gblToast.Text, "")) && !(IfError(gblToast.Kind, "") = "Error")
+            Visible: |-
+                =false
+            Width: |-
+                =1
