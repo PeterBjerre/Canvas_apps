@@ -734,7 +734,9 @@ def build_top_bar():
                 fill=C_DIVIDER, layout_min_width=SEP_W,
                 visible=f"!({below('Tablet')}) && ({EDIT_VIS} || {DRAFT_VIS} || {SUBMIT_VIS} || {more_vis})")
     sep.props["AlignInContainer"] = "AlignInContainer.Center"
-    title_bar = top_bar("Vhp", '"Maintenance Plan"', SUBTITLE, [], icon="vhplan", mode_var="varVhpViewOnly",
+    # Undertitlen er planens navn, naar den har et (UX-review M5).
+    plan_sub = f'If(IsBlank(Trim(varVhpPlan.PlanText)), {SUBTITLE}, varVhpPlan.PlanText)'
+    title_bar = top_bar("Vhp", '"Maintenance Plan"', plan_sub, [], icon="vhplan", mode_var="varVhpViewOnly",
                      num_var="varVhpPlanKey", crumb=breadcrumb("Vhp", "vhplan", "varVhpPlanKey"))
     # Nye navne: Studio beholdt bjaelkens gamle tilstand paa conVhpBar fra foer redesignet.
     title_bar.name = "conVhpTitleRow"

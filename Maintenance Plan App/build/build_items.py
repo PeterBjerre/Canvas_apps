@@ -217,6 +217,30 @@ def _copy_record(collection, alias, indent):
 CARD_NO = "CountRows(Filter(colVhpItems, ItemId <= ThisItem.ItemId))"
 
 
+
+def _delete_item_fx(item_id):
+    """Sletningen af et item - kortets Delete og editorens "Delete item"
+    (UX-review M5). Id'et laeses FOER noget fjernes."""
+    return (
+            "With(\n"
+            "    { id: " + item_id + ", no: CountRows(Filter(colVhpItems, ItemId <= " + item_id + ")) },\n"
+            "    RemoveIf(colVhpOperations, ItemId = id);\n"
+            "    RemoveIf(colVhpItemObjects, ItemId = id);\n"
+            # Materialer og dokumentraekker foelger med. Stod de tilbage,
+            # blev de gemt med tom ItemKey og laa usynlige i planen.
+            "    RemoveIf(colVhpMaterials, ItemId = id);\n"
+            "    RemoveIf(colVhpAttachments, ItemId = id);\n"
+            "    RemoveIf(colVhpItems, ItemId = id);\n"
+            "    If(\n"
+            "        varVhpActiveItemId = id,\n"
+            "        Set(varVhpActiveItemId, If(CountRows(colVhpItems) > 0, First(colVhpItems).ItemId, Blank()));\n"
+            f"        {RESET_EDITOR_CONTROLS}\n"
+            "    );\n"
+            "    Notify(\"Item \" & Text(no) & \" deleted.\", NotificationType.Success)\n"
+            ")"
+    )
+
+
 def build_items_rail():
     # Vaerket fra Plan Header staar ved titlen: det er den kontekst, alle
     # items arbejder i - arbejdscentre, tasklister og FL-soegningen er
@@ -359,24 +383,7 @@ def build_items_rail():
     DEL_W = fit_button_width("\"Delete\"", size=13, min_w=64)
     btnDelete = button(
         "btnVhpRemoveItem", "\"Delete\"",
-        (
-            "With(\n"
-            "    { id: ThisItem.ItemId, no: CountRows(Filter(colVhpItems, ItemId <= ThisItem.ItemId)) },\n"
-            "    RemoveIf(colVhpOperations, ItemId = id);\n"
-            "    RemoveIf(colVhpItemObjects, ItemId = id);\n"
-            # Materialer og dokumentraekker foelger med. Stod de tilbage,
-            # blev de gemt med tom ItemKey og laa usynlige i planen.
-            "    RemoveIf(colVhpMaterials, ItemId = id);\n"
-            "    RemoveIf(colVhpAttachments, ItemId = id);\n"
-            "    RemoveIf(colVhpItems, ItemId = id);\n"
-            "    If(\n"
-            "        varVhpActiveItemId = id,\n"
-            "        Set(varVhpActiveItemId, If(CountRows(colVhpItems) > 0, First(colVhpItems).ItemId, Blank()));\n"
-            f"        {RESET_EDITOR_CONTROLS}\n"
-            "    );\n"
-            "    Notify(\"Item \" & Text(no) & \" deleted.\", NotificationType.Success)\n"
-            ")"
-        ), danger=True, width=DEL_W, height=30, display_mode=VIEW_LOCK,
+        _delete_item_fx("ThisItem.ItemId"), danger=True, width=DEL_W, height=30, display_mode=VIEW_LOCK,
         accessible=f"\"Delete item \" & Text({CARD_NO})")
     btnDelete.props["Size"] = "13"
     btnDelete.props["_OnTop"] = "true"
@@ -533,7 +540,24 @@ def build_item_editor():
     # staar stadig paa itemets kort i listen. "Invalid" bliver staaende som
     # badgets advarsel, naar det valgte item er gemt som ugyldigt.
     ST = "LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status"
-    header = section_header("conVhpEditorHead", "Item", "Step 2",
+    # HVILKET ITEM (UX-review M5, VH-plan-mockuppen): "Item 1 - Bearing
+    # lubrication" ved titlen og "Delete item" i hovedet - den samme
+    # sletning som kortets Delete, paa det aktive item.
+    active = "LookUp(colVhpItems, ItemId = varVhpActiveItemId)"
+    no = "CountRows(Filter(colVhpItems, ItemId <= varVhpActiveItemId))"
+    which = text_ctrl("txtVhpEditorWhich",
+                      f'If(IsBlank(varVhpActiveItemId), "", Text({no}) & '
+                      f'If(IsBlank({active}.ShortText), "", "  \u00b7  " & {active}.ShortText))',
+                      size=lay.SIZE_BODY, color=C_MUTED, height=20, width="260", wrap="false")
+    del_txt = '"Delete item"'
+    btnDelItem = button("btnVhpEditorDelete", del_txt, _delete_item_fx("varVhpActiveItemId"),
+                        danger=True, width=fit_button_width(del_txt, size=13), height=30,
+                        display_mode=VIEW_LOCK, visible="!IsBlank(varVhpActiveItemId)",
+                        accessible=f'"Delete item " & Text({no})')
+    btnDelItem.props["Size"] = "13"
+    btnDelItem.props["LayoutMinWidth"] = btnDelItem.props["Width"]
+    header = section_header("conVhpEditorHead", "Item", "Step 2", extra_left=[which],
+                            extra_right=[btnDelItem],
                             valid_fx=items_valid_fx(), attention_fx=f'{ST} = "invalid"')
     helpPanel = help_panel("conVhpItemHelp", "item")
 
