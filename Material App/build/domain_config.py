@@ -33,6 +33,8 @@ APP_KEY = "material"
 SCREEN = "ScreenMaterial"
 TITLE = "Materials"
 SUBTITLE = "Report spare parts - supplier, price and stock."
+ROW_PANEL_ENABLED = True
+ROW_EDITOR_TAB_VAR = "varDomEditorTab"
 
 # Praefikset i noeglerne: MAT-000441.
 PREFIX = "MAT"

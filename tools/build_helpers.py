@@ -1689,6 +1689,95 @@ def app_frame(prefix, header, body, body_gap=16, body_pad_b=None, footer=None):
     return root
 
 
+def row_list(prefix, items, row_controls, height, template_size, onselect="false",
+             width="Parent.Width", visible=None, accessible="Request rows"):
+    """Et vaelgbart galleri med en fast raekkeskaabelon.
+
+    row_controls skal vaere galleriets direkte boern; containere i et
+    galleri flades ikke ud her og afvises af layout-tjekket.
+    """
+    props = {
+        "AccessibleLabel": f'"{accessible}"',
+        "BorderStyle": "BorderStyle.None",
+        "Fill": C_TRANSPARENT,
+        "FillPortions": "0",
+        "Height": str(height),
+        "Items": items,
+        "LayoutMinWidth": "0",
+        "LoadingSpinner": "LoadingSpinner.None",
+        "OnSelect": onselect,
+        "Selectable": "true",
+        "ShowScrollbar": "true",
+        "TabIndex": "0",
+        "TemplatePadding": "2",
+        "TemplateSize": str(template_size),
+        "Width": str(width),
+        "WrapCount": "1",
+    }
+    if visible is not None:
+        props["Visible"] = visible
+    return Ctrl(f"gal{prefix}Rows", "Gallery", variant="Vertical", props=props,
+                children=row_controls, h=height, vis=visible)
+
+
+def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
+                     close_fx, visible, width=480, previous_mode=None,
+                     next_mode=None):
+    """Et responsivt raekke-editorpanel; footer holdes uden for scrollomraadet."""
+    vis = f"IfError({visible}, false)"
+    backdrop = Ctrl(f"img{prefix}EditorBackdrop", "Image", props={
+        "AccessibleLabel": '"Close row editor"',
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        **stable_scrim(),
+        "Height": "App.Height",
+        "Image": '""',
+        "OnSelect": close_fx,
+        "TabIndex": "0",
+        "Visible": vis,
+        "Width": "App.Width",
+        "X": "0",
+        "Y": "0",
+    }, h="App.Height", vis=vis)
+    prev = button(f"btn{prefix}EditorPrevious", '"Previous row"', previous_fx,
+                  width=fit_button_width('"Previous row"'), height=lay.HIT_TOUCH,
+                  display_mode=previous_mode)
+    next_ = button(f"btn{prefix}EditorNext", '"Next row"', next_fx,
+                   width=fit_button_width('"Next row"'), height=lay.HIT_TOUCH,
+                   display_mode=next_mode)
+    close = button(f"btn{prefix}EditorClose", '"Close"', close_fx,
+                   width=fit_button_width('"Close"'), height=lay.HIT_TOUCH)
+    title = text_ctrl(f"txt{prefix}EditorPosition", position, size=lay.SIZE_CARD_TITLE,
+                      weight="Semibold", height=28, wrap="false")
+    grow(title)
+    navigation_width = sum(int(item.props["Width"]) for item in (prev, next_, close)) + 16
+    navigation = group(f"con{prefix}EditorNavigation", [prev, next_, close],
+                       direction="Horizontal", gap=8, height=lay.HIT_TOUCH,
+                       width=navigation_width, align_items="Center", justify="End")
+    heading = group(f"con{prefix}EditorHeading", [title, navigation],
+                    direction="Horizontal", gap=12, height=lay.HIT_TOUCH,
+                    align_items="Center")
+    scroll = group(f"con{prefix}EditorSections", sections, direction="Vertical", gap=16,
+                   height="App.Height - 160", overflow_y="Scroll",
+                   pad=(16, 20, 16, 20))
+    panel = group(f"con{prefix}EditorPanel", [heading, scroll, footer],
+                  direction="Vertical", gap=12, height="App.Height",
+                  width=f"If({at_least('Desktop')}, {width}, App.Width)",
+                  fill=C_MODAL_BG, border_color=C_CARD_BORDER, pad=(16, 20, 16, 20),
+                  visible=vis, drop_shadow="Bold")
+    panel.props["X"] = f"If({at_least('Desktop')}, App.Width - Self.Width, 0)"
+    panel.props["Y"] = "0"
+    return [backdrop, panel]
+
+
+def request_shell(prefix, header, breadcrumb, actions, rows, editor=None, footer=None,
+                  body_gap=16):
+    """Komponer header, anmodningsnavigation, raekkeliste og editor-overlay."""
+    body = [item for item in (breadcrumb, actions, rows) if item is not None]
+    root = app_frame(prefix, header, body, body_gap=body_gap, footer=footer)
+    return [root, *(editor or [])]
+
+
 def button_row(name, buttons, container_w, gap=8, height=36, align_items="Center"):
     """Knapraekke der ALDRIG ombryder.
 

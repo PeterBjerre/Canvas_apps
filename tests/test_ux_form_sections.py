@@ -2,12 +2,29 @@
 """Formularer i sektioner (UX-review 2026-10, M2)."""
 import os
 
+import yaml
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 APP = os.path.join(ROOT, "BIO SAP App")
 
 
 def _yaml(screen):
     return open(os.path.join(APP, screen), encoding="utf-8").read()
+
+
+def _properties(screen):
+    doc = yaml.safe_load(open(os.path.join(APP, screen), encoding="utf-8"))
+    result = {}
+
+    def walk(nodes):
+        for item in nodes or []:
+            for name, body in item.items():
+                result[name] = body.get("Properties") or {}
+                walk(body.get("Children"))
+
+    for screen_doc in doc["Screens"].values():
+        walk(screen_doc.get("Children"))
+    return result
 
 
 def _order(y, names):
@@ -42,3 +59,49 @@ def test_materials_and_measuring_points_have_titled_sections():
     i = p.index("- conMpSecType:")
     j = p.index("Children:", i)
     assert "Visible:" in p[i:j]
+
+
+def test_equipment_and_measuring_point_use_the_responsive_row_panel():
+    for screen, prefix in (("ScreenEquipment.pa.yaml", "Eq"),
+                          ("ScreenMeasuringPoint.pa.yaml", "Mp")):
+        props = _properties(screen)
+        assert props[f"con{prefix}EditorPanel"]["Width"] == "=If(LayoutRank >= 3, 480, App.Width)"
+        assert props[f"con{prefix}EditorSections"]["LayoutOverflowY"] == "=LayoutOverflow.Scroll"
+        assert props[f"btn{prefix}EditorClose"]["OnSelect"].startswith(f"=Set(var{prefix}ActiveRowId")
+
+
+def test_material_editor_exposes_the_three_requested_tabs():
+    props = _properties("ScreenMaterial.pa.yaml")
+    for name in ("conMatEditorTabsDetails", "conMatEditorTabsObjects",
+                 "conMatEditorTabsDocuments"):
+        assert name in props
+    assert props["conMatEditorObjects"]["Visible"] == '=varMatEditorTab = "Objects"'
+    assert props["conMatEditorDocuments"]["Visible"] == '=varMatEditorTab = "Documents"'
+    assert "conMatObjPopBody" in props and "conMatAttBody" in props
+    assert "conMatObjPopModal" not in props and "conMatAttModal" not in props
+
+
+def test_functional_location_has_status_column_and_row_panel():
+    props = _properties("ScreenFunctionalLocation.pa.yaml")
+    assert "btnFlRowStatus" in props
+    assert "conFlEditorPanel" in props
+    assert props["conFlEditorPanel"]["Width"] == "=If(LayoutRank >= 3, 480, App.Width)"
+    assert all(f"conFlPanel{section}" in props
+               for section in ("Master", "Status", "Class", "TRM", "Ext"))
+
+
+def test_issue_board_details_use_a_side_panel_without_losing_tabs():
+    props = _properties("ScreenIssueBoard.pa.yaml")
+    assert props["conIbDetModal"]["Width"] == "=If(LayoutRank >= 3, 480, App.Width)"
+    assert all(name in props for name in ("btnIbTabDetails", "btnIbTabActivity", "btnIbTabFiles"))
+
+
+def test_equipment_and_measuring_point_have_documents_and_more_actions():
+    for screen, prefix in (("ScreenEquipment.pa.yaml", "Eq"),
+                          ("ScreenMeasuringPoint.pa.yaml", "Mp")):
+        props = _properties(screen)
+        assert f"btn{prefix}RowDocs" in props
+        assert "FileCount" in props[f"btn{prefix}RowDocs"]["Text"]
+        assert f"btn{prefix}RowMore" in props
+        assert f"con{prefix}RowMoreMenu" in props
+        assert f"btn{prefix}MoreCopy" in props and f"btn{prefix}MoreDelete" in props

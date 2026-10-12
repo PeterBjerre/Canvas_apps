@@ -75,6 +75,7 @@ from gen_screen import (Ctrl, stack_height, C_APP_BG, C_CARD_BG, C_CARD_BORDER, 
 from build_helpers import (empty_state, skeleton_rows, ensure_hit, hit_size, button, card, checkbox_theme, concurrent, confirm_modal,
                            fit_button_width, group,
                            flow_row, grow, icon_on_mobile, label_row, loading_overlay, row_hit, row_rule,
+                           tap_backdrop,
                            text_ctrl, text_input, themed_dropdown, top_bar, ICON_W)
 from permissions import IS_ADMIN, ADMIN_LIST, ADMIN_GROUP
 from design_tokens import ref as _t
@@ -1068,7 +1069,8 @@ POP_GAP = 12
 POP_MARGIN = 16
 
 
-def _popup(prefix, kids, vis, width=POP_W, foot=None, own_scroll=False):
+def _popup(prefix, kids, vis, width=POP_W, foot=None, own_scroll=False,
+           side_panel=False):
     """Popuppen holder sig inden for skaermen (issue #177): hovedet (titel
     og Close) og en eventuel fod staar fast; kun indholdet imellem scroller,
     og kun naar det ikke kan staa. Close kan altid naas.
@@ -1090,6 +1092,18 @@ def _popup(prefix, kids, vis, width=POP_W, foot=None, own_scroll=False):
                   border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(POP_PAD, POP_PAD, POP_PAD, POP_PAD), width=width,
                   drop_shadow="ExtraBold", align_in_container="Center")
+    if side_panel:
+        backdrop = tap_backdrop(f"img{prefix}Backdrop", vis,
+                                "Set(varIbDetailOn, false)")
+        modal.props["Height"] = "App.Height"
+        modal.h = "App.Height"
+        modal.props["Width"] = f"If({at_least('Desktop')}, 480, App.Width)"
+        modal.props["X"] = f"If({at_least('Desktop')}, App.Width - Self.Width, 0)"
+        modal.props["Y"] = "0"
+        modal.props["RadiusTopRight"] = "0"
+        modal.props["RadiusBottomRight"] = "0"
+        modal.props["AlignInContainer"] = "AlignInContainer.Start"
+        return [backdrop, modal]
     backdrop = group(f"con{prefix}Backdrop", [modal], direction="Vertical", gap=0,
                      height="App.Height", width="App.Width", fill=C_OVERLAY, visible=vis,
                      justify="Center", align_items="Center",
@@ -1638,7 +1652,9 @@ def build_form():
 # ---------------------------------------------------------------------------
 DETAIL_ON = "IfError(varIbDetailOn, false)"
 SEL = "varIbSel"
-DET_IN = f"({POP_IN} - {lay.SCROLLBAR_W})"
+DETAIL_PANEL_W = f"If({at_least('Desktop')}, 480, App.Width)"
+DETAIL_PANEL_IN = f"({DETAIL_PANEL_W} - {2 * POP_PAD})"
+DET_IN = f"({DETAIL_PANEL_IN} - {lay.SCROLLBAR_W})"
 ACT_ROW_PAD = 12
 ACT_W = f"({DET_IN} - {lay.SCROLLBAR_W} - {lay.GALLERY_RESERVE})"
 ACT_BODY_W = f"({ACT_W} - {2 * ACT_ROW_PAD})"
@@ -1962,7 +1978,7 @@ def build_detail():
     no = _no_badge("txtIbDetNo", f"{SEL}.TicketNo")
     no.props["LayoutMinWidth"] = str(NO_W)
     head = _head("IbDet", f"{SEL}.Title", "Set(varIbDetailOn, false)",
-                 lead=[no], title_w=f"({POP_IN}) - {NO_W} - {ICON_BTN} - 20", close_icon=True)
+                 lead=[no], title_w=f"({DETAIL_PANEL_IN}) - {NO_W} - {ICON_BTN} - 20", close_icon=True)
 
     # 2. Status, prioritet, Application og Section - maerker og to korte
     #    vaerdier, ikke en lang streng. Paa en smal popup paa to linjer.
@@ -2174,7 +2190,8 @@ def build_detail():
         p.props["LayoutOverflowY"] = "LayoutOverflow.Scroll"
         p.h = "Parent.Height"
     content = group("conIbDetContent", panels, direction="Vertical", gap=0, height=content_h)
-    return [_popup("IbDet", [head, top, content], DETAIL_ON, own_scroll=True)]
+    return _popup("IbDet", [head, top, content], DETAIL_ON, own_scroll=True,
+                  side_panel=True)
 
 
 def build_delete():

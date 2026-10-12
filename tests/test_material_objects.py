@@ -109,10 +109,12 @@ def test_the_popup_saves_the_object_list_on_its_own_row():
     assert "LookUp(MaterialItems, ID = varMatObjRowId)" in rem
 
 
-def test_the_popup_opens_on_the_saved_row_and_is_read_only_when_locked():
+def test_the_objects_tab_opens_on_the_saved_row_and_is_read_only_when_locked():
     open_fx = _prop("btnMatRowObjects", "OnSelect")
-    assert open_fx.startswith("Set(varMatObjRowId, ThisItem.RowId);")
-    assert "ParseJSON(ThisItem.ObjectListJson)" in open_fx
+    assert open_fx.startswith("Set(varMatActiveRowId, ThisItem.RowId);")
+    assert 'Set(varMatEditorTab, "Objects")' in open_fx
+    assert "Set(varMatObjRowId, varMatActiveRowId)" in open_fx
+    assert "ParseJSON(LookUp(colMatRows, RowId = varMatActiveRowId).ObjectListJson)" in open_fx
     # Soegning, Add og Remove kun, naar raekken og anmodningen kan rettes.
     edit = ('(!IsBlank(varMatObjRowId) && !IfError(varMatViewOnly, false) && '
             'LookUp(colMatRows, RowId = varMatObjRowId).Status <> "submitted")')
@@ -295,14 +297,18 @@ def test_row_actions_are_details_edit_docs_objects_copy_and_delete_last():
     # Delete er destruktiv, kun et ikon og bag bekraeftelsen.
     assert _prop("btnMatRowDelete", "Layout") == "ButtonLayout.IconOnly"
     assert "Set(varMatConfirmDelete, true)" in _prop("btnMatRowDelete", "OnSelect")
-    # Docs aabner den eksisterende dokumentpopup og viser antallet.
-    assert _prop("btnMatRowDocs", "OnSelect").startswith("Set(varMatDocsId, ThisItem.RowId);")
+    # Docs vaelger raekken og aabner Documents-fanen med antallet.
+    docs = _prop("btnMatRowDocs", "OnSelect")
+    assert docs.startswith("Set(varMatActiveRowId, ThisItem.RowId);")
+    assert 'Set(varMatEditorTab, "Documents")' in docs
+    assert "Set(varMatDocsId, varMatActiveRowId)" in docs
     assert "ThisItem.FileCount" in _prop("btnMatRowDocs", "Text")
     assert "ThisItem.ObjectList" in _prop("btnMatRowObjects", "Text")
 
 
 def test_equipment_keeps_its_own_row_actions():
-    # Krogen er opt-in: Equipment har stadig MORE (Docs, Copy) og ACTIONS.
+    # Equipment uses the panel's Documents action and explicit More menu.
     eq = open(EQ, encoding="utf-8").read()
-    assert '"MORE"' in eq
+    assert "btnEqRowMore" in eq and "btnEqMoreCopy" in eq and "btnEqMoreDelete" in eq
+    assert "btnEqRowDocs" in eq and "Documents (" in eq
     assert "btnEqRowObjects" not in eq
