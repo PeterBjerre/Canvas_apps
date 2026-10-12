@@ -62,7 +62,9 @@ def collections(cfg):
 
 def formulas(cfg):
     return (
-        tok.formula() + "\n\n" + lay.formula() + "\n\n" + perm.formula() + "\n\n" +
+        tok.formula() + "\n\n"
+        + lay.formula("varDomEditorOpen" if getattr(cfg, "ROW_PANEL_ENABLED", False) else None)
+        + "\n\n" + perm.formula() + "\n\n" +
         dt.formula() + "\n\n"
         "// Vaerkerne. Eneste opslagsliste appen laeser, og den laeses foerst,\n"
         "// naar dropdownen aabnes.\n"
@@ -199,7 +201,7 @@ def _row_editor(form, panel_content=None):
         "Dom", f'If(IsBlank(varDomActiveRowId), "New row", "Row " & Text({position}) & '
         f'" of " & Text(CountRows({order})))', content, footer,
         previous, next_, dp.clear_form_fx(), "varDomEditorOpen",
-        previous_mode=previous_mode, next_mode=next_mode)
+        previous_mode=previous_mode, next_mode=next_mode, side_by_side=True)
 
 
 def build_screen(cfg, parts, render):
@@ -231,7 +233,8 @@ def build_screen(cfg, parts, render):
     # Sloeret FOER popupperne: kontrollerne tegnes i den raekkefoelge, de
     # staar, saa det, der skal ligge bagved, skal staa foerst.
     return render(cfg.SCREEN,
-                  {"Fill": C_APP_BG, "OnVisible": on_visible()},
+                  {"Fill": C_APP_BG, "OnVisible": on_visible(),
+                   **({"OnHidden": "Set(varDomEditorOpen, false)"} if panel_enabled else {})},
                                     [root, *nav, dp.build_backdrop(), dp.build_details(extra=extra),
                                      *([] if panel_enabled and hasattr(parts, "editor_panel_content")
                                          else [dp.build_attachments()]), *own, *overlay, *editor,

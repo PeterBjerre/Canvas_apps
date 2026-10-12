@@ -3,6 +3,8 @@ Screens:
     Properties:
       Fill: |-
           =C.'bg-app'
+      OnHidden: |-
+          =Set(varEqEditorOpen, false)
       OnVisible: |-
           =// Klargoeringen staar paa en skjult knap, saa Retry kan koere den igen
           // (BIO SAP App/build/build_screens.py, attach_open). Sloeret taendes
@@ -39,7 +41,7 @@ Screens:
             LayoutOverflowY: |-
                 =LayoutOverflow.Hide
             Width: |-
-                =Parent.Width - If(LayoutRank >= 2, 56, 0)
+                =Parent.Width - If(LayoutRank >= 2, 56, 0) - PanelInset
             X: |-
                 =If(LayoutRank >= 2, 56, 0)
             Y: |-
@@ -161,7 +163,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - ((If(LayoutRank < 2, 103, 124)) + 10) - (If(LayoutRank >= 2, (1) + 10, 0)) - (If(IfError(varEqViewOnly && varEqCanEdit, false), (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 135)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 186)) + 10, 0)) - (If(!IfError(varEqViewOnly, true) && !IsBlank(varEqRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - 2)
+                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - ((If(LayoutRank < 2, 103, 124)) + 10) - (If(LayoutRank >= 2, (1) + 10, 0)) - (If(IfError(varEqViewOnly && varEqCanEdit, false), (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 135)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 186)) + 10, 0)) - (If(!IfError(varEqViewOnly, true) && !IsBlank(varEqRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - 2)
                             Children:
                               - conEqCrumb:
                                   Control: GroupContainer
@@ -263,7 +265,7 @@ Screens:
                                           Text: |-
                                               ="  /  Equipments" & If(IsBlank(varEqRequestNo), "", "  /  " & varEqRequestNo)
                                           Width: |-
-                                              =Max(0, (((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - ((If(LayoutRank < 2, 103, 124)) + 10) - (If(LayoutRank >= 2, (1) + 10, 0)) - (If(IfError(varEqViewOnly && varEqCanEdit, false), (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 135)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 186)) + 10, 0)) - (If(!IfError(varEqViewOnly, true) && !IsBlank(varEqRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - 2)))) - ((99) + 0) - 2)
+                                              =Max(0, (((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - ((If(LayoutRank < 2, 103, 124)) + 10) - (If(LayoutRank >= 2, (1) + 10, 0)) - (If(IfError(varEqViewOnly && varEqCanEdit, false), (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 135)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 186)) + 10, 0)) - (If(!IfError(varEqViewOnly, true) && !IsBlank(varEqRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - 2)))) - ((99) + 0) - 2)
                                           Wrap: |-
                                               =false
                               - conEqTitleLine:
@@ -295,7 +297,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 2
                                     Width: |-
-                                        =Max(0, Min(211, ((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - ((If(LayoutRank < 2, 103, 124)) + 10) - (If(LayoutRank >= 2, (1) + 10, 0)) - (If(IfError(varEqViewOnly && varEqCanEdit, false), (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 135)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 186)) + 10, 0)) - (If(!IfError(varEqViewOnly, true) && !IsBlank(varEqRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - 2)))))
+                                        =Max(0, Min(211, ((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - ((If(LayoutRank < 2, 103, 124)) + 10) - (If(LayoutRank >= 2, (1) + 10, 0)) - (If(IfError(varEqViewOnly && varEqCanEdit, false), (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 135)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 186)) + 10, 0)) - (If(!IfError(varEqViewOnly, true) && !IsBlank(varEqRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - 2)))))
                                   Children:
                                     - txtEqTitle:
                                         Control: ModernText
@@ -333,7 +335,7 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 2
                                           Width: |-
-                                              =Max(0, Min(117, ((Max(0, Min(211, ((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - ((If(LayoutRank < 2, 103, 124)) + 10) - (If(LayoutRank >= 2, (1) + 10, 0)) - (If(IfError(varEqViewOnly && varEqCanEdit, false), (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 135)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 186)) + 10, 0)) - (If(!IfError(varEqViewOnly, true) && !IsBlank(varEqRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - 2))))))) - (If(IsBlank(varEqRequestNo), 0, 6 + 88))))
+                                              =Max(0, Min(117, ((Max(0, Min(211, ((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - ((If(LayoutRank < 2, 103, 124)) + 10) - (If(LayoutRank >= 2, (1) + 10, 0)) - (If(IfError(varEqViewOnly && varEqCanEdit, false), (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 135)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 186)) + 10, 0)) - (If(!IfError(varEqViewOnly, true) && !IsBlank(varEqRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - 2))))))) - (If(IsBlank(varEqRequestNo), 0, 6 + 88))))
                                           Wrap: |-
                                               =false
                                     - imgEqNumber:
@@ -783,8 +785,7 @@ Screens:
                               LayoutMinWidth: |-
                                   =If(LayoutRank < 2, 40, 186)
                               OnSelect: |-
-                                  =Set(varEqFixOn, CountRows(Filter(colEqRows, Status = "draft")) > 0);
-                                  Set(varEqConfirmSubmit, true)
+                                  =Set(varEqConfirmSubmit, true)
                               RadiusBottomLeft: |-
                                   =R.input
                               RadiusBottomRight: |-
@@ -936,7 +937,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =36 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (91) + (240) + (170) + (170) + (47) + 32, 36, (26) + If(!varEqViewOnly, 8 + (36), 0) + 8 + (36) + 8 + (36) + 8 + (36))) + If(IfError(varEqFixOn, false) && CountRows(Filter(colEqRows, Status = "draft")) > 0 && !varEqViewOnly, 14 + (16 + (H.hit) + 4 + (Min(CountRows(Sort(Filter(colEqRows, Status = "draft"), RowId, SortOrder.Descending)), 5) * 40)), 0) + If(!IsEmpty(Filter(
+                            =36 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (124) + (91) + (170) + (170) + (83) + 40, 36, (26) + 8 + (36) + If(!varEqViewOnly, 8 + (36), 0) + If(!varEqViewOnly, 8 + (36), 0) + 8 + (36) + 8 + (36))) + If(!IsEmpty(Filter(
                                 colEqRows,
                                 (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
                                 (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
@@ -950,14 +951,14 @@ Screens:
                                  Status = Lower(drpEqStatusFilter.Selected.Value)),
                                 (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
                                  Plant = drpEqPlantFilter.Selected.Value)
-                            )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 158, 46)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1093, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)), 18, 0)), 0) + If(IsEmpty(Filter(
+                            )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 158, 46)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(961, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)), 18, 0)), 0) + If(IsEmpty(Filter(
                                 colEqRows,
                                 (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
                                 (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
                                  Status = Lower(drpEqStatusFilter.Selected.Value)),
                                 (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
                                  Plant = drpEqPlantFilter.Selected.Value)
-                            )), 14 + (112 + If(IsEmpty(colEqRows) && !varEqViewOnly, 8 + (36), 0)), 0) + If(!IsBlank(varEqRequestNo), 14 + (20), 0)
+                            )), 14 + (112 + If(IsEmpty(colEqRows) && !varEqViewOnly, 8 + (36), 0)), 0) + If(CountRows(Filter(colEqRows, Status = "draft")) > 0 && !varEqViewOnly, 14 + (40 + 4 + (Min(CountRows(Sort(Filter(colEqRows, Status = "draft"), RowId, SortOrder.Descending)), 5) * 40)), 0) + If(!IsBlank(varEqRequestNo), 14 + (20), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -1000,11 +1001,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (91) + (240) + (170) + (170) + (47) + 32, 36, (26) + If(!varEqViewOnly, 8 + (36), 0) + 8 + (36) + 8 + (36) + 8 + (36))
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (124) + (91) + (170) + (170) + (83) + 40, 36, (26) + 8 + (36) + If(!varEqViewOnly, 8 + (36), 0) + If(!varEqViewOnly, 8 + (36), 0) + 8 + (36) + 8 + (36))
                               LayoutAlignItems: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (91) + (240) + (170) + (170) + (47) + 32, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (124) + (91) + (170) + (170) + (83) + 40, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (91) + (240) + (170) + (170) + (47) + 32, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (124) + (91) + (170) + (170) + (83) + 40, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =8
                               LayoutMinWidth: |-
@@ -1016,45 +1017,218 @@ Screens:
                               Width: |-
                                   =Parent.Width
                             Children:
-                              - txtEqRowsH:
-                                  Control: ModernText
+                              - conEqRowsTitle:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        ="Rows"
                                     BorderStyle: |-
                                         =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
+                                    DropShadow: |-
+                                        =DropShadow.None
                                     FillPortions: |-
                                         =0
+                                    Height: |-
+                                        =26
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Center
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Horizontal
+                                    LayoutGap: |-
+                                        =8
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    Width: |-
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18)) - ((240) + 8) - (If(!varEqViewOnly, (124) + 8, 0)) - (If(!varEqViewOnly, (91) + 8, 0)) - ((170) + 8) - ((170) + 8) - 2)
+                                  Children:
+                                    - txtEqRowsH:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Rows"
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =26
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.cardTitle
+                                          Text: |-
+                                              ="Rows"
+                                          Wrap: |-
+                                              =false
+                                    - txtEqRowsCount:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =Self.Text
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-muted'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =20
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.body
+                                          Text: |-
+                                              =Text(CountRows(colEqRows))
+                                          Width: |-
+                                              =28
+                                          Wrap: |-
+                                              =false
+                              - inpEqSearch:
+                                  Control: ModernTextInput
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Search the rows"
+                                    Appearance: |-
+                                        =Appearance.FilledDarker
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
+                                    BorderColor: |-
+                                        =C.'border-input'
+                                    BorderStyle: |-
+                                        =BorderStyle.Solid
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'input-fg'
+                                    Default: |-
+                                        =Coalesce(First(colAppPrefs).prefEqSearch, "")
+                                    Fill: |-
+                                        =C.'input-bg'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =36
+                                    LayoutMinWidth: |-
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (124) + (91) + (170) + (170) + (83) + 40, 240, 0)
+                                    OnChange: |-
+                                        =If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
+                                        Patch(colAppPrefs, First(colAppPrefs), { prefEqSearch: Self.Text });
+                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                    Placeholder: |-
+                                        ="Search FL, equipment no., serial no., description"
+                                    RadiusBottomLeft: |-
+                                        =R.input
+                                    RadiusBottomRight: |-
+                                        =R.input
+                                    RadiusTopLeft: |-
+                                        =R.input
+                                    RadiusTopRight: |-
+                                        =R.input
+                                    Size: |-
+                                        =If(LayoutRank < 2, 16, 14)
+                                    ValidationState: |-
+                                        =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                    Width: |-
+                                        =240
+                              - btnEqToolbarCopy:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Copy row"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    DisplayMode: |-
+                                        =If(varEqViewOnly || IsBlank(varEqActiveRowId), DisplayMode.Disabled, DisplayMode.Edit)
                                     Font: |-
                                         =Font.'Segoe UI'
                                     FontWeight: |-
                                         =FontWeight.Semibold
                                     Height: |-
-                                        =26
+                                        =36
+                                    Icon: |-
+                                        ="Copy"
+                                    Layout: |-
+                                        =ButtonLayout.IconBefore
                                     LayoutMinWidth: |-
-                                        =0
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (124) + (91) + (170) + (170) + (83) + 40, 124, 0)
+                                    OnSelect: |-
+                                        =Set(varEqActiveRowId, Blank());
+                                        Set(varEqRowStatus, "draft");
+                                        Set(varEqValidated, false);
+                                        Set(varEqFText, LookUp(colEqRows, RowId = varEqActiveRowId).Description);
+                                        Set(varEqFPlant, LookUp(colEqRows, RowId = varEqActiveRowId).Plant);
+                                        Set(varEqEditorOpen, true);
+                                        Set(varEqFRequestType, LookUp(colEqRows, RowId = varEqActiveRowId).RequestType);
+                                        Set(varEqFEquipmentCategory, LookUp(colEqRows, RowId = varEqActiveRowId).EquipmentCategory);
+                                        Set(varEqFManufacturer, LookUp(colEqRows, RowId = varEqActiveRowId).Manufacturer);
+                                        Set(varEqFTypeDesignation, LookUp(colEqRows, RowId = varEqActiveRowId).TypeDesignation);
+                                        Set(varEqFSerialNumber, LookUp(colEqRows, RowId = varEqActiveRowId).SerialNumber);
+                                        Set(varEqFFunctionalLocation, LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation);
+                                        Set(varEqFClassData, LookUp(colEqRows, RowId = varEqActiveRowId).ClassData);
+                                        Set(varEqFRoomCoordinates, LookUp(colEqRows, RowId = varEqActiveRowId).RoomCoordinates);
+                                        Set(varEqFPlacement, LookUp(colEqRows, RowId = varEqActiveRowId).Placement);
+                                        Set(varEqFWarrantyStart, LookUp(colEqRows, RowId = varEqActiveRowId).WarrantyStart);
+                                        Set(varEqFWarrantyEnd, LookUp(colEqRows, RowId = varEqActiveRowId).WarrantyEnd);
+                                        If(
+                                            !IsBlank(LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation) && IsBlank(LookUp(colEqFl, Code = LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation)),
+                                            Collect(colEqFl, { Code: LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation, Description: "", Display: LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
+                                        );
+                                        Set(varEqInfo, "Copied to a new row - not saved yet. Documents were not copied.")
+                                    RadiusBottomLeft: |-
+                                        =R.input
+                                    RadiusBottomRight: |-
+                                        =R.input
+                                    RadiusTopLeft: |-
+                                        =R.input
+                                    RadiusTopRight: |-
+                                        =R.input
                                     Size: |-
-                                        =T.cardTitle
+                                        =T.input
                                     Text: |-
-                                        ="Rows"
+                                        ="Copy row"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Visible: |-
+                                        =!varEqViewOnly
                                     Width: |-
-                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18)) - (If(!varEqViewOnly, (91) + 8, 0)) - ((240) + 8) - ((170) + 8) - ((170) + 8) - 2)
-                                    Wrap: |-
-                                        =false
+                                        =124
                               - btnEqNewRow:
                                   Control: ModernButton
                                   Properties:
@@ -1077,7 +1251,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (91) + (240) + (170) + (170) + (47) + 32, 91, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (124) + (91) + (170) + (170) + (83) + 40, 91, 0)
                                     OnSelect: |-
                                         =Set(varEqActiveRowId, Blank());
                                         Set(varEqRowStatus, "valid");
@@ -1117,53 +1291,6 @@ Screens:
                                         =!varEqViewOnly
                                     Width: |-
                                         =91
-                              - inpEqSearch:
-                                  Control: ModernTextInput
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Search the rows"
-                                    Appearance: |-
-                                        =Appearance.FilledDarker
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =C.'border-input'
-                                    BorderStyle: |-
-                                        =BorderStyle.Solid
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =C.'input-fg'
-                                    Default: |-
-                                        =Coalesce(First(colAppPrefs).prefEqSearch, "")
-                                    Fill: |-
-                                        =C.'input-bg'
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =36
-                                    LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (91) + (240) + (170) + (170) + (47) + 32, 240, 0)
-                                    OnChange: |-
-                                        =If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
-                                        Patch(colAppPrefs, First(colAppPrefs), { prefEqSearch: Self.Text });
-                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
-                                    Placeholder: |-
-                                        ="Search FL, equipment no., serial no., description"
-                                    RadiusBottomLeft: |-
-                                        =R.input
-                                    RadiusBottomRight: |-
-                                        =R.input
-                                    RadiusTopLeft: |-
-                                        =R.input
-                                    RadiusTopRight: |-
-                                        =R.input
-                                    Size: |-
-                                        =If(LayoutRank < 2, 16, 14)
-                                    ValidationState: |-
-                                        =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
-                                    Width: |-
-                                        =240
                               - drpEqStatusFilter:
                                   Control: ModernDropdown
                                   Properties:
@@ -1194,7 +1321,7 @@ Screens:
                                     Items: |-
                                         =["All status", "Draft", "Valid", "Submitted"]
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (91) + (240) + (170) + (170) + (47) + 32, 170, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (124) + (91) + (170) + (170) + (83) + 40, 170, 0)
                                     OnChange: |-
                                         =If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
                                         Patch(colAppPrefs, First(colAppPrefs), { prefEqStatus: Self.Selected.Value });
@@ -1251,7 +1378,7 @@ Screens:
                                             Rows
                                         )
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) >= (91) + (240) + (170) + (170) + (47) + 32, 170, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (124) + (91) + (170) + (170) + (83) + 40, 170, 0)
                                     OnChange: |-
                                         =If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
                                         Patch(colAppPrefs, First(colAppPrefs), { prefEqPlant: Self.Selected.Value });
@@ -1270,307 +1397,6 @@ Screens:
                                         =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                     Width: |-
                                         =170
-                        - conEqFix:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              Fill: |-
-                                  =C.'state-warn-bg'
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =16 + (H.hit) + 4 + (Min(CountRows(Sort(Filter(colEqRows, Status = "draft"), RowId, SortOrder.Descending)), 5) * 40)
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
-                              LayoutDirection: |-
-                                  =LayoutDirection.Vertical
-                              LayoutGap: |-
-                                  =4
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              PaddingBottom: |-
-                                  =8
-                              PaddingLeft: |-
-                                  =12
-                              PaddingRight: |-
-                                  =12
-                              PaddingTop: |-
-                                  =8
-                              RadiusBottomLeft: |-
-                                  =R.input
-                              RadiusBottomRight: |-
-                                  =R.input
-                              RadiusTopLeft: |-
-                                  =R.input
-                              RadiusTopRight: |-
-                                  =R.input
-                              Visible: |-
-                                  =IfError(varEqFixOn, false) && CountRows(Filter(colEqRows, Status = "draft")) > 0 && !varEqViewOnly
-                              Width: |-
-                                  =Parent.Width
-                            Children:
-                              - conEqFixHead:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =H.hit
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Center
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =8
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    Width: |-
-                                        =Parent.Width
-                                  Children:
-                                    - txtEqFixTitle:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'state-warn-fg'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          FillPortions: |-
-                                              =0
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =20
-                                          LayoutMinWidth: |-
-                                              =0
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.body
-                                          Text: |-
-                                              =With({ _c: CountRows(Filter(colEqRows, Status = "draft")) }, Text(_c) & If(_c = 1, " draft row", " draft rows")) & If(CountRows(Filter(colEqRows, Status = "draft")) = 1, " - complete it to submit it too", " - complete them to submit them too")
-                                          Width: |-
-                                              =Max(0, (((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 12 - 12)) - ((Max(40, H.hit)) + 8) - 2)
-                                          Wrap: |-
-                                              =false
-                                    - btnEqFixClose:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Hide the list of things to fix"
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =H.hit
-                                          Icon: |-
-                                              ="Dismiss"
-                                          Layout: |-
-                                              =ButtonLayout.IconOnly
-                                          LayoutMinWidth: |-
-                                              =Max(40, H.hit)
-                                          OnSelect: |-
-                                              =Set(varEqFixOn, false)
-                                          RadiusBottomLeft: |-
-                                              =R.input
-                                          RadiusBottomRight: |-
-                                              =R.input
-                                          RadiusTopLeft: |-
-                                              =R.input
-                                          RadiusTopRight: |-
-                                              =R.input
-                                          Size: |-
-                                              =T.input
-                                          Text: |-
-                                              ="Dismiss"
-                                          Tooltip: |-
-                                              ="Hide"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =Max(40, H.hit)
-                              - galEqFix:
-                                  Control: Gallery
-                                  Variant: Vertical
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =With({ _c: CountRows(Filter(colEqRows, Status = "draft")) }, Text(_c) & If(_c = 1, " draft row", " draft rows")) & If(CountRows(Filter(colEqRows, Status = "draft")) = 1, " - complete it to submit it too", " - complete them to submit them too")
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =Min(CountRows(Sort(Filter(colEqRows, Status = "draft"), RowId, SortOrder.Descending)), 5) * 40
-                                    Items: |-
-                                        =Sort(Filter(colEqRows, Status = "draft"), RowId, SortOrder.Descending)
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LoadingSpinner: |-
-                                        =LoadingSpinner.None
-                                    Selectable: |-
-                                        =false
-                                    ShowScrollbar: |-
-                                        =CountRows(Sort(Filter(colEqRows, Status = "draft"), RowId, SortOrder.Descending)) > 5
-                                    TabIndex: |-
-                                        =0
-                                    TemplatePadding: |-
-                                        =0
-                                    TemplateSize: |-
-                                        =40
-                                    Width: |-
-                                        =Parent.Width
-                                    WrapCount: |-
-                                        =1
-                                  Children:
-                                    - txtEqFixItem:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.ItemKey & If(IsBlank(ThisItem.Description), "", "  ·  " & ThisItem.Description)
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.body
-                                          Text: |-
-                                              =ThisItem.ItemKey & If(IsBlank(ThisItem.Description), "", "  ·  " & ThisItem.Description)
-                                          Width: |-
-                                              =(((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 12 - 12) - 2 * 0 - 0 - 40) - 118
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =8
-                                          Y: |-
-                                              =10
-                                    - btnEqFixGo:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Open row: " & ThisItem.ItemKey & If(IsBlank(ThisItem.Description), "", "  ·  " & ThisItem.Description)
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =C.'border-default'
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =32
-                                          Layout: |-
-                                              =ButtonLayout.TextOnly
-                                          OnSelect: |-
-                                              =Set(varEqActiveRowId, ThisItem.RowId);
-                                              Set(varEqRowStatus, ThisItem.Status);
-                                              Set(varEqValidated, false);
-                                              Set(varEqFText, ThisItem.Description);
-                                              Set(varEqFPlant, ThisItem.Plant);
-                                              Set(varEqEditorOpen, true);
-                                              Set(varEqFRequestType, ThisItem.RequestType);
-                                              Set(varEqFEquipmentCategory, ThisItem.EquipmentCategory);
-                                              Set(varEqFManufacturer, ThisItem.Manufacturer);
-                                              Set(varEqFTypeDesignation, ThisItem.TypeDesignation);
-                                              Set(varEqFSerialNumber, ThisItem.SerialNumber);
-                                              Set(varEqFFunctionalLocation, ThisItem.FunctionalLocation);
-                                              Set(varEqFClassData, ThisItem.ClassData);
-                                              Set(varEqFRoomCoordinates, ThisItem.RoomCoordinates);
-                                              Set(varEqFPlacement, ThisItem.Placement);
-                                              Set(varEqFWarrantyStart, ThisItem.WarrantyStart);
-                                              Set(varEqFWarrantyEnd, ThisItem.WarrantyEnd);
-                                              If(
-                                                  !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colEqFl, Code = ThisItem.FunctionalLocation)),
-                                                  Collect(colEqFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
-                                              )
-                                          RadiusBottomLeft: |-
-                                              =R.input
-                                          RadiusBottomRight: |-
-                                              =R.input
-                                          RadiusTopLeft: |-
-                                              =R.input
-                                          RadiusTopRight: |-
-                                              =R.input
-                                          Size: |-
-                                              =T.small
-                                          Text: |-
-                                              ="Open row"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =90
-                                          X: |-
-                                              =(((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 12 - 12) - 2 * 0 - 0 - 40) - Self.Width - 8
-                                          Y: |-
-                                              =(40 - Self.Height) / 2
                         - conEqTableWrap:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -1589,7 +1415,7 @@ Screens:
                                        Status = Lower(drpEqStatusFilter.Selected.Value)),
                                       (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
                                        Plant = drpEqPlantFilter.Selected.Value)
-                                  )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 158, 46)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1093, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)), 18, 0)
+                                  )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 158, 46)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(961, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)), 18, 0)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Start
                               LayoutDirection: |-
@@ -1643,13 +1469,13 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 3
                                     Width: |-
-                                        =If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1093, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))
+                                        =If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(961, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))
                                   Children:
                                     - txtEqHeadStatus:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="STATUS"
+                                              ="VALIDATION"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -1675,7 +1501,7 @@ Screens:
                                           Size: |-
                                               =T.micro
                                           Text: |-
-                                              ="STATUS"
+                                              ="VALIDATION"
                                           Width: |-
                                               =99
                                           Wrap: |-
@@ -1684,7 +1510,7 @@ Screens:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="TYPE"
+                                              ="STATUS"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -1710,16 +1536,16 @@ Screens:
                                           Size: |-
                                               =T.micro
                                           Text: |-
-                                              ="TYPE"
+                                              ="STATUS"
                                           Width: |-
-                                              =70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6
+                                              =90 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5
                                           Wrap: |-
                                               =false
                                     - txtEqHead1:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="PLANT"
+                                              ="DESCRIPTION"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -1745,9 +1571,9 @@ Screens:
                                           Size: |-
                                               =T.micro
                                           Text: |-
-                                              ="PLANT"
+                                              ="DESCRIPTION"
                                           Width: |-
-                                              =70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6
+                                              =130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5
                                           Wrap: |-
                                               =false
                                     - txtEqHead2:
@@ -1782,14 +1608,14 @@ Screens:
                                           Text: |-
                                               ="FUNCTIONAL LOCATION"
                                           Width: |-
-                                              =154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6
+                                              =154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5
                                           Wrap: |-
                                               =false
                                     - txtEqHead3:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="EQUIPMENT NUMBER"
+                                              ="TYPE"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -1815,16 +1641,16 @@ Screens:
                                           Size: |-
                                               =T.micro
                                           Text: |-
-                                              ="EQUIPMENT NUMBER"
+                                              ="TYPE"
                                           Width: |-
-                                              =139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6
+                                              =110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5
                                           Wrap: |-
                                               =false
                                     - txtEqHead4:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="DESCRIPTION"
+                                              ="PLANT"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -1850,44 +1676,9 @@ Screens:
                                           Size: |-
                                               =T.micro
                                           Text: |-
-                                              ="DESCRIPTION"
+                                              ="PLANT"
                                           Width: |-
-                                              =130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6
-                                          Wrap: |-
-                                              =false
-                                    - txtEqHead5:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="EQUIPMENT TYPE"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =18
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.micro
-                                          Text: |-
-                                              ="EQUIPMENT TYPE"
-                                          Width: |-
-                                              =117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6
+                                              =70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5
                                           Wrap: |-
                                               =false
                                     - txtEqHeadActions:
@@ -1987,12 +1778,14 @@ Screens:
                                         =true
                                     TabIndex: |-
                                         =0
+                                    TemplateFill: |-
+                                        =If(ThisItem.RowId = varEqActiveRowId && IfError(varEqEditorOpen, false), C.'row-pressed', RGBA(0, 0, 0, 0))
                                     TemplatePadding: |-
                                         =2
                                     TemplateSize: |-
                                         =If(LayoutRank < 3, 156, 44)
                                     Width: |-
-                                        =(If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1093, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18
+                                        =(If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(961, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18
                                     WrapCount: |-
                                         =1
                                   Children:
@@ -2061,7 +1854,7 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6
+                                              =90 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -2096,15 +1889,15 @@ Screens:
                                           Size: |-
                                               =T.body
                                           Text: |-
-                                              =ThisItem.Plant
+                                              =If(IsBlank(Trim(ThisItem.Description)), "(no text)", ThisItem.Description)
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6
+                                              =130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (99) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6
+                                              =0 + 0 + 0 + (99) + 6 + (90 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 156, 44)) - 2) - 0 - 0) - (20)) / 2
                                     - txtEqCell2:
@@ -2139,92 +1932,14 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6
+                                              =154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (99) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6
+                                              =0 + 0 + 0 + (99) + 6 + (90 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 156, 44)) - 2) - 0 - 0) - (20)) / 2
                                     - txtEqCell3:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.body
-                                          Text: |-
-                                              =ThisItem.EquipmentNumber
-                                          Visible: |-
-                                              =LayoutRank >= 3
-                                          Width: |-
-                                              =139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =0 + 0 + 0 + (99) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6
-                                          Y: |-
-                                              =0 + 0 + ((((If(LayoutRank < 3, 156, 44)) - 2) - 0 - 0) - (20)) / 2
-                                    - txtEqCell4:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =10
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.body
-                                          Text: |-
-                                              =If(IsBlank(Trim(ThisItem.Description)), "(no text)", ThisItem.Description)
-                                          Visible: |-
-                                              =LayoutRank >= 3
-                                          Width: |-
-                                              =130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =0 + 0 + 0 + (99) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6
-                                          Y: |-
-                                              =0 + 0 + ((((If(LayoutRank < 3, 156, 44)) - 2) - 0 - 0) - (20)) / 2
-                                    - txtEqCell5:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
@@ -2256,11 +1971,50 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6
+                                              =110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (99) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6
+                                              =0 + 0 + 0 + (99) + 6 + (90 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6
+                                          Y: |-
+                                              =0 + 0 + ((((If(LayoutRank < 3, 156, 44)) - 2) - 0 - 0) - (20)) / 2
+                                    - txtEqCell4:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =Self.Text
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =20
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =10
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.body
+                                          Text: |-
+                                              =ThisItem.Plant
+                                          Visible: |-
+                                              =LayoutRank >= 3
+                                          Width: |-
+                                              =70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5
+                                          Wrap: |-
+                                              =false
+                                          X: |-
+                                              =0 + 0 + 0 + (99) + 6 + (90 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 156, 44)) - 2) - 0 - 0) - (20)) / 2
                                     - btnEqRowDocs:
@@ -2346,7 +2100,7 @@ Screens:
                                           Width: |-
                                               =126
                                           X: |-
-                                              =0 + 0 + 0 + (99) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + 10 + 0
+                                              =0 + 0 + 0 + (99) + 6 + (90 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + 10 + 0
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 156, 44)) - 2) - 0 - 0) - (H.hit)) / 2 + 0 + (((H.hit) - 0 - 0) - (30)) / 2
                                     - btnEqRowOpen:
@@ -2417,7 +2171,7 @@ Screens:
                                           Width: |-
                                               =64
                                           X: |-
-                                              =0 + 0 + 0 + (99) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + 10 + 0 + (126) + 4
+                                              =0 + 0 + 0 + (99) + 6 + (90 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + 10 + 0 + (126) + 4
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 156, 44)) - 2) - 0 - 0) - (H.hit)) / 2 + 0 + (((H.hit) - 0 - 0) - (30)) / 2
                                     - btnEqRowMore:
@@ -2466,7 +2220,7 @@ Screens:
                                           Width: |-
                                               =64
                                           X: |-
-                                              =0 + 0 + 0 + (99) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (139 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + (117 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)) - 1093) / 6) + 6 + 10 + 0 + (126) + 4 + (64) + 4
+                                              =0 + 0 + 0 + (99) + 6 + (90 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + 10 + 0 + (126) + 4 + (64) + 4
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 156, 44)) - 2) - 0 - 0) - (H.hit)) / 2 + 0 + (((H.hit) - 0 - 0) - (30)) / 2
                                     - txtEqRowKeyC:
@@ -2503,7 +2257,7 @@ Screens:
                                           Visible: |-
                                               =LayoutRank < 3
                                           Width: |-
-                                              =Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1093, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 18) - 10 - 10)) - ((89) + 8) - 2)
+                                              =Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(961, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 18) - 10 - 10)) - ((89) + 8) - 2)
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -2540,7 +2294,7 @@ Screens:
                                           Width: |-
                                               =89
                                           X: |-
-                                              =0 + 10 + 0 + 0 + (Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1093, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 18) - 10 - 10)) - ((89) + 8) - 2)) + 8
+                                              =0 + 10 + 0 + 0 + (Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(961, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 18) - 10 - 10)) - ((89) + 8) - 2)) + 8
                                           Y: |-
                                               =0 + 8 + 0 + 0 + (((22) - 0 - 0) - (22)) / 2
                                     - txtEqRowMetaC:
@@ -2571,11 +2325,11 @@ Screens:
                                           Size: |-
                                               =T.small
                                           Text: |-
-                                              =Text(ThisItem.Plant) & "  ·  " & Text(ThisItem.FunctionalLocation) & "  ·  " & Text(ThisItem.EquipmentNumber)
+                                              =Text(If(IsBlank(Trim(ThisItem.Description)), "(no text)", ThisItem.Description)) & "  ·  " & Text(ThisItem.FunctionalLocation) & "  ·  " & Text(ThisItem.EquipmentCategory)
                                           Visible: |-
                                               =LayoutRank < 3
                                           Width: |-
-                                              =(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18), Max(1093, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 18) - 10 - 10
+                                              =(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(961, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 18) - 10 - 10
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -2952,6 +2706,258 @@ Screens:
                                         =IsEmpty(colEqRows) && !varEqViewOnly
                                     Width: |-
                                         =115
+                        - conEqFix:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              Fill: |-
+                                  =C.'state-warn-bg'
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =40 + 4 + (Min(CountRows(Sort(Filter(colEqRows, Status = "draft"), RowId, SortOrder.Descending)), 5) * 40)
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Stretch
+                              LayoutDirection: |-
+                                  =LayoutDirection.Vertical
+                              LayoutGap: |-
+                                  =4
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              PaddingBottom: |-
+                                  =8
+                              PaddingLeft: |-
+                                  =12
+                              PaddingRight: |-
+                                  =12
+                              PaddingTop: |-
+                                  =8
+                              RadiusBottomLeft: |-
+                                  =R.input
+                              RadiusBottomRight: |-
+                                  =R.input
+                              RadiusTopLeft: |-
+                                  =R.input
+                              RadiusTopRight: |-
+                                  =R.input
+                              Visible: |-
+                                  =CountRows(Filter(colEqRows, Status = "draft")) > 0 && !varEqViewOnly
+                              Width: |-
+                                  =Parent.Width
+                            Children:
+                              - conEqFixHead:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =24
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Center
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Horizontal
+                                    LayoutGap: |-
+                                        =8
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - txtEqFixTitle:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Before you can submit"
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'state-warn-fg'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          FillPortions: |-
+                                              =0
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =20
+                                          LayoutMinWidth: |-
+                                              =0
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.body
+                                          Text: |-
+                                              ="Before you can submit"
+                                          Width: |-
+                                              =Max(0, (((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18) - 12 - 12)) - 2)
+                                          Wrap: |-
+                                              =false
+                              - galEqFix:
+                                  Control: Gallery
+                                  Variant: Vertical
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Before you can submit"
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =Min(CountRows(Sort(Filter(colEqRows, Status = "draft"), RowId, SortOrder.Descending)), 5) * 40
+                                    Items: |-
+                                        =Sort(Filter(colEqRows, Status = "draft"), RowId, SortOrder.Descending)
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LoadingSpinner: |-
+                                        =LoadingSpinner.None
+                                    Selectable: |-
+                                        =false
+                                    ShowScrollbar: |-
+                                        =CountRows(Sort(Filter(colEqRows, Status = "draft"), RowId, SortOrder.Descending)) > 5
+                                    TabIndex: |-
+                                        =0
+                                    TemplatePadding: |-
+                                        =0
+                                    TemplateSize: |-
+                                        =40
+                                    Width: |-
+                                        =Parent.Width
+                                    WrapCount: |-
+                                        =1
+                                  Children:
+                                    - txtEqFixItem:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              =ThisItem.ItemKey & If(IsBlank(ThisItem.Description), "", "  ·  " & ThisItem.Description)
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =20
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.body
+                                          Text: |-
+                                              =ThisItem.ItemKey & If(IsBlank(ThisItem.Description), "", "  ·  " & ThisItem.Description)
+                                          Width: |-
+                                              =(((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18) - 12 - 12) - 2 * 0 - 0 - 40) - 129
+                                          Wrap: |-
+                                              =false
+                                          X: |-
+                                              =8
+                                          Y: |-
+                                              =10
+                                    - btnEqFixGo:
+                                        Control: ModernButton
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Go to field: " & ThisItem.ItemKey & If(IsBlank(ThisItem.Description), "", "  ·  " & ThisItem.Description)
+                                          Align: |-
+                                              =Align.Center
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          Appearance: |-
+                                              =ButtonAppearance.Outline
+                                          BorderColor: |-
+                                              =C.'border-default'
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =32
+                                          Layout: |-
+                                              =ButtonLayout.TextOnly
+                                          OnSelect: |-
+                                              =Set(varEqActiveRowId, ThisItem.RowId);
+                                              Set(varEqRowStatus, ThisItem.Status);
+                                              Set(varEqValidated, false);
+                                              Set(varEqFText, ThisItem.Description);
+                                              Set(varEqFPlant, ThisItem.Plant);
+                                              Set(varEqEditorOpen, true);
+                                              Set(varEqFRequestType, ThisItem.RequestType);
+                                              Set(varEqFEquipmentCategory, ThisItem.EquipmentCategory);
+                                              Set(varEqFManufacturer, ThisItem.Manufacturer);
+                                              Set(varEqFTypeDesignation, ThisItem.TypeDesignation);
+                                              Set(varEqFSerialNumber, ThisItem.SerialNumber);
+                                              Set(varEqFFunctionalLocation, ThisItem.FunctionalLocation);
+                                              Set(varEqFClassData, ThisItem.ClassData);
+                                              Set(varEqFRoomCoordinates, ThisItem.RoomCoordinates);
+                                              Set(varEqFPlacement, ThisItem.Placement);
+                                              Set(varEqFWarrantyStart, ThisItem.WarrantyStart);
+                                              Set(varEqFWarrantyEnd, ThisItem.WarrantyEnd);
+                                              If(
+                                                  !IsBlank(ThisItem.FunctionalLocation) && IsBlank(LookUp(colEqFl, Code = ThisItem.FunctionalLocation)),
+                                                  Collect(colEqFl, { Code: ThisItem.FunctionalLocation, Description: "", Display: ThisItem.FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
+                                              )
+                                          RadiusBottomLeft: |-
+                                              =R.input
+                                          RadiusBottomRight: |-
+                                              =R.input
+                                          RadiusTopLeft: |-
+                                              =R.input
+                                          RadiusTopRight: |-
+                                              =R.input
+                                          Size: |-
+                                              =T.small
+                                          Text: |-
+                                              ="Go to field"
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Width: |-
+                                              =101
+                                          X: |-
+                                              =(((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18) - 12 - 12) - 2 * 0 - 0 - 40) - Self.Width - 8
+                                          Y: |-
+                                              =(40 - Self.Height) / 2
                         - txtEqSubmitState:
                             Control: ModernText
                             Properties:
@@ -3232,7 +3238,7 @@ Screens:
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
-                                  =(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 8) / 2
+                                  =(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 8) / 2
                         - btnEqFootSubmit:
                             Control: ModernButton
                             Properties:
@@ -3259,8 +3265,7 @@ Screens:
                               LayoutMinWidth: |-
                                   =0
                               OnSelect: |-
-                                  =Set(varEqFixOn, CountRows(Filter(colEqRows, Status = "draft")) > 0);
-                                  Set(varEqConfirmSubmit, true)
+                                  =Set(varEqConfirmSubmit, true)
                               RadiusBottomLeft: |-
                                   =R.input
                               RadiusBottomRight: |-
@@ -3278,7 +3283,7 @@ Screens:
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
-                                  =(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 8) / 2
+                                  =(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 8) / 2
       - conEqNav:
           Control: GroupContainer
           Variant: AutoLayout
@@ -9121,7 +9126,7 @@ Screens:
             TabIndex: |-
                 =0
             Visible: |-
-                =IfError(varEqEditorOpen, false)
+                =IfError(varEqEditorOpen, false) && PanelInset = 0
             Width: |-
                 =App.Width
             X: |-
@@ -9139,7 +9144,7 @@ Screens:
             DropShadow: |-
                 =DropShadow.Bold
             Fill: |-
-                =C.'bg-modal'
+                =C.'bg-card'
             FillPortions: |-
                 =0
             Height: |-
@@ -9250,7 +9255,7 @@ Screens:
                                  Plant = drpEqPlantFilter.Selected.Value)
                             ), RowId, SortOrder.Descending))))
                         Width: |-
-                            =Max(0, (((If(LayoutRank >= 3, 480, App.Width)) - 20 - 20)) - ((318) + 12) - 2)
+                            =Max(0, (((If(LayoutRank >= 3, 480, App.Width)) - 20 - 20)) - ((148) + 12) - 2)
                         Wrap: |-
                             =false
                   - conEqEditorNavigation:
@@ -9280,7 +9285,7 @@ Screens:
                         LayoutOverflowY: |-
                             =LayoutOverflow.Hide
                         Width: |-
-                            =318
+                            =148
                       Children:
                         - btnEqEditorPrevious:
                             Control: ModernButton
@@ -9294,7 +9299,7 @@ Screens:
                               Appearance: |-
                                   =ButtonAppearance.Outline
                               BorderColor: |-
-                                  =C.'border-default'
+                                  =RGBA(0, 0, 0, 0)
                               BorderThickness: |-
                                   =1
                               Color: |-
@@ -9314,8 +9319,12 @@ Screens:
                                   =FontWeight.Semibold
                               Height: |-
                                   =44
+                              Icon: |-
+                                  ="ChevronLeft"
                               Layout: |-
-                                  =ButtonLayout.TextOnly
+                                  =ButtonLayout.IconOnly
+                              LayoutMinWidth: |-
+                                  =44
                               OnSelect: |-
                                   =Set(varEqActiveRowId, Index(Sort(Filter(
                                       colEqRows,
@@ -9364,11 +9373,13 @@ Screens:
                               Size: |-
                                   =T.input
                               Text: |-
+                                  =""
+                              Tooltip: |-
                                   ="Previous row"
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
-                                  =129
+                                  =44
                         - btnEqEditorNext:
                             Control: ModernButton
                             Properties:
@@ -9381,7 +9392,7 @@ Screens:
                               Appearance: |-
                                   =ButtonAppearance.Outline
                               BorderColor: |-
-                                  =C.'border-default'
+                                  =RGBA(0, 0, 0, 0)
                               BorderThickness: |-
                                   =1
                               Color: |-
@@ -9408,8 +9419,12 @@ Screens:
                                   =FontWeight.Semibold
                               Height: |-
                                   =44
+                              Icon: |-
+                                  ="ChevronRight"
                               Layout: |-
-                                  =ButtonLayout.TextOnly
+                                  =ButtonLayout.IconOnly
+                              LayoutMinWidth: |-
+                                  =44
                               OnSelect: |-
                                   =Set(varEqActiveRowId, Index(Sort(Filter(
                                       colEqRows,
@@ -9465,11 +9480,13 @@ Screens:
                               Size: |-
                                   =T.input
                               Text: |-
+                                  =""
+                              Tooltip: |-
                                   ="Next row"
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
-                                  =96
+                                  =44
                         - btnEqEditorClose:
                             Control: ModernButton
                             Properties:
@@ -9482,7 +9499,7 @@ Screens:
                               Appearance: |-
                                   =ButtonAppearance.Outline
                               BorderColor: |-
-                                  =C.'border-default'
+                                  =RGBA(0, 0, 0, 0)
                               BorderThickness: |-
                                   =1
                               Color: |-
@@ -9493,8 +9510,12 @@ Screens:
                                   =FontWeight.Semibold
                               Height: |-
                                   =44
+                              Icon: |-
+                                  ="Dismiss"
                               Layout: |-
-                                  =ButtonLayout.TextOnly
+                                  =ButtonLayout.IconOnly
+                              LayoutMinWidth: |-
+                                  =44
                               OnSelect: |-
                                   =Set(varEqActiveRowId, Blank());
                                   Set(varEqRowStatus, "valid");
@@ -9526,11 +9547,13 @@ Screens:
                               Size: |-
                                   =T.input
                               Text: |-
+                                  =""
+                              Tooltip: |-
                                   ="Close"
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
-                                  =77
+                                  =44
             - conEqEditorSections:
                 Control: GroupContainer
                 Variant: AutoLayout
@@ -9593,41 +9616,6 @@ Screens:
                         Width: |-
                             =Parent.Width
                       Children:
-                        - txtEqFormH:
-                            Control: ModernText
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Row details"
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'text-primary'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
-                              Height: |-
-                                  =26
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =T.cardTitle
-                              Text: |-
-                                  ="Row details"
-                              Width: |-
-                                  =107
-                              Wrap: |-
-                                  =false
                         - txtEqFormReqStar:
                             Control: ModernText
                             Properties:
@@ -9713,7 +9701,7 @@ Screens:
                         LayoutDirection: |-
                             =LayoutDirection.Vertical
                         LayoutGap: |-
-                            =10
+                            =0
                         LayoutMinWidth: |-
                             =0
                         LayoutOverflowX: |-
@@ -9735,13 +9723,13 @@ Screens:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Identification"
+                                  =Self.Text
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
                                   =0
                               Color: |-
-                                  =C.'text-primary'
+                                  =C.'text-muted'
                               Fill: |-
                                   =RGBA(0, 0, 0, 0)
                               Font: |-
@@ -9759,9 +9747,9 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =T.body
+                                  =T.micro
                               Text: |-
-                                  ="Identification"
+                                  =Upper("Identification")
                               Wrap: |-
                                   =false
                   - conEqGridIdent0:
@@ -9822,6 +9810,119 @@ Screens:
                               Width: |-
                                   =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
                             Children:
+                              - conEqRequestType:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Start
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =62
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =6
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    Width: |-
+                                        =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                  Children:
+                                    - txtEqRequestTypeLbl:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Status"
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =20
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.body
+                                          Text: |-
+                                              ="Status"
+                                          Width: |-
+                                              =Parent.Width
+                                          Wrap: |-
+                                              =false
+                                    - inpEqRequestType:
+                                        Control: ModernTextInput
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Status"
+                                          Appearance: |-
+                                              =If((If(varEqViewOnly || varEqRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
+                                          BorderColor: |-
+                                              =If((If(varEqViewOnly || varEqRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'border-input', C.'border-default')
+                                          BorderStyle: |-
+                                              =BorderStyle.Solid
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =If((If(varEqViewOnly || varEqRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                          Default: |-
+                                              =varEqFRequestType
+                                          DisplayMode: |-
+                                              =If((If(varEqViewOnly || varEqRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                          Fill: |-
+                                              =If(If(varEqViewOnly || varEqRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =36
+                                          LayoutMinWidth: |-
+                                              =0
+                                          MaxLength: |-
+                                              =255
+                                          OnChange: |-
+                                              =Set(varEqFRequestType, Self.Text)
+                                          Placeholder: |-
+                                              =""
+                                          RadiusBottomLeft: |-
+                                              =R.input
+                                          RadiusBottomRight: |-
+                                              =R.input
+                                          RadiusTopLeft: |-
+                                              =R.input
+                                          RadiusTopRight: |-
+                                              =R.input
+                                          Size: |-
+                                              =If(LayoutRank < 2, 16, 14)
+                                          ValidationState: |-
+                                              =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                          Width: |-
+                                              =Parent.Width
                               - conEqPlant:
                                   Control: GroupContainer
                                   Variant: AutoLayout
@@ -9999,119 +10100,6 @@ Screens:
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
                                               =If(varEqValidated && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
-                                          Width: |-
-                                              =Parent.Width
-                              - conEqRequestType:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Start
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =62
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Stretch
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Vertical
-                                    LayoutGap: |-
-                                        =6
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    Width: |-
-                                        =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
-                                  Children:
-                                    - txtEqRequestTypeLbl:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Status"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.body
-                                          Text: |-
-                                              ="Status"
-                                          Width: |-
-                                              =Parent.Width
-                                          Wrap: |-
-                                              =false
-                                    - inpEqRequestType:
-                                        Control: ModernTextInput
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Status"
-                                          Appearance: |-
-                                              =If((If(varEqViewOnly || varEqRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                          BasePaletteColor: |-
-                                              =C.'color-brand-primary'
-                                          BorderColor: |-
-                                              =If((If(varEqViewOnly || varEqRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'border-input', C.'border-default')
-                                          BorderStyle: |-
-                                              =BorderStyle.Solid
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =If((If(varEqViewOnly || varEqRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                          Default: |-
-                                              =varEqFRequestType
-                                          DisplayMode: |-
-                                              =If((If(varEqViewOnly || varEqRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                                          Fill: |-
-                                              =If(If(varEqViewOnly || varEqRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =36
-                                          LayoutMinWidth: |-
-                                              =0
-                                          MaxLength: |-
-                                              =255
-                                          OnChange: |-
-                                              =Set(varEqFRequestType, Self.Text)
-                                          Placeholder: |-
-                                              =""
-                                          RadiusBottomLeft: |-
-                                              =R.input
-                                          RadiusBottomRight: |-
-                                              =R.input
-                                          RadiusTopLeft: |-
-                                              =R.input
-                                          RadiusTopRight: |-
-                                              =R.input
-                                          Size: |-
-                                              =If(LayoutRank < 2, 16, 14)
-                                          ValidationState: |-
-                                              =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                           Width: |-
                                               =Parent.Width
                         - conEqGridIdent0Pair1:
@@ -10362,7 +10350,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + 0, (62) + 0))
+                            =0 + (62)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -10391,7 +10379,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + 0, (62) + 0)
+                                  =62
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -10436,7 +10424,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                        =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
                                   Children:
                                     - conEqTextRow:
                                         Control: GroupContainer
@@ -10497,7 +10485,7 @@ Screens:
                                                 Text: |-
                                                     ="Description"
                                                 Width: |-
-                                                    =Min(72, (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)) - 13)
+                                                    =Min(72, (If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 13)
                                                 Wrap: |-
                                                     =false
                                           - txtEqTextStar:
@@ -10599,13 +10587,13 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =37
+                            =28
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
                             =LayoutDirection.Vertical
                         LayoutGap: |-
-                            =10
+                            =0
                         LayoutMinWidth: |-
                             =0
                         LayoutOverflowX: |-
@@ -10619,49 +10607,21 @@ Screens:
                         PaddingRight: |-
                             =0
                         PaddingTop: |-
-                            =6
+                            =8
                         Width: |-
                             =Parent.Width
                       Children:
-                        - conEqSecLocRule:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              Fill: |-
-                                  =C.'border-subtle'
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =1
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
-                              LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
-                              LayoutGap: |-
-                                  =8
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              Width: |-
-                                  =Parent.Width
                         - txtEqSecLoc:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Location"
+                                  =Self.Text
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
                                   =0
                               Color: |-
-                                  =C.'text-primary'
+                                  =C.'text-muted'
                               Fill: |-
                                   =RGBA(0, 0, 0, 0)
                               Font: |-
@@ -10679,9 +10639,9 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =T.body
+                                  =T.micro
                               Text: |-
-                                  ="Location"
+                                  =Upper("Location")
                               Wrap: |-
                                   =false
                   - conEqGridLoc0:
@@ -10695,7 +10655,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (20 + 6 + (0 + (If(LayoutRank < 2, 84, 40)) + If(false, 0 + (1), 0))) + (62) + 20, (Max((20 + 6 + (0 + (If(LayoutRank < 2, 84, 40)) + If(false, 0 + (1), 0))), (62))) + 0)) + 20 + (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + 0, (62) + 0))
+                            =0 + (20 + 6 + (0 + (If(LayoutRank < 2, 84, 40)) + If(false, 0 + (1), 0))) + 20 + (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + 20, (Max((62), (62))) + 0))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -10724,7 +10684,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (20 + 6 + (0 + (If(LayoutRank < 2, 84, 40)) + If(false, 0 + (1), 0))) + (62) + 20, (Max((20 + 6 + (0 + (If(LayoutRank < 2, 84, 40)) + If(false, 0 + (1), 0))), (62))) + 0)
+                                  =20 + 6 + (0 + (If(LayoutRank < 2, 84, 40)) + If(false, 0 + (1), 0))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -10769,7 +10729,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                        =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
                                   Children:
                                     - txtEqFlLbl:
                                         Control: ModernText
@@ -10831,7 +10791,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                              =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
                                         Children:
                                           - conEqFlInput:
                                               Control: GroupContainer
@@ -10866,7 +10826,7 @@ Screens:
                                                 PaddingTop: |-
                                                     =2
                                                 Width: |-
-                                                    =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                                    =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
                                               Children:
                                                 - cmbEqFl:
                                                     Control: ModernCombobox
@@ -11017,7 +10977,7 @@ Screens:
                                                       ValidationState: |-
                                                           =If(false && IsBlank(Self.Selected.Code), ValidationState.Error, ValidationState.None)
                                                       Width: |-
-                                                          =Max(0, ((((If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2))))) - (If(!varEqFlBusy, (154) + 8, 0)) - (If(varEqFlBusy, (154) + 8, 0)) - 2)
+                                                          =Max(0, ((((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18)))) - (If(!varEqFlBusy, (154) + 8, 0)) - (If(varEqFlBusy, (154) + 8, 0)) - 2)
                                                 - btnEqFlSearch:
                                                     Control: ModernButton
                                                     Properties:
@@ -11172,6 +11132,35 @@ Screens:
                                                     =false
                                                 Width: |-
                                                     =1
+                        - conEqGridLoc0Pair1:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + 20, (Max((62), (62))) + 0)
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Stretch
+                              LayoutDirection: |-
+                                  =LayoutDirection.Horizontal
+                              LayoutGap: |-
+                                  =20
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              LayoutWrap: |-
+                                  =true
+                              Width: |-
+                                  =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
+                            Children:
                               - conEqRoomCoordinates:
                                   Control: GroupContainer
                                   Variant: AutoLayout
@@ -11285,35 +11274,6 @@ Screens:
                                               =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                           Width: |-
                                               =Parent.Width
-                        - conEqGridLoc0Pair1:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + 0, (62) + 0)
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
-                              LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
-                              LayoutGap: |-
-                                  =20
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              LayoutWrap: |-
-                                  =true
-                              Width: |-
-                                  =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
-                            Children:
                               - conEqPlacement:
                                   Control: GroupContainer
                                   Variant: AutoLayout
@@ -11471,13 +11431,13 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =37
+                            =28
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
                             =LayoutDirection.Vertical
                         LayoutGap: |-
-                            =10
+                            =0
                         LayoutMinWidth: |-
                             =0
                         LayoutOverflowX: |-
@@ -11491,49 +11451,21 @@ Screens:
                         PaddingRight: |-
                             =0
                         PaddingTop: |-
-                            =6
+                            =8
                         Width: |-
                             =Parent.Width
                       Children:
-                        - conEqSecMfrRule:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              Fill: |-
-                                  =C.'border-subtle'
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =1
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
-                              LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
-                              LayoutGap: |-
-                                  =8
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              Width: |-
-                                  =Parent.Width
                         - txtEqSecMfr:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Manufacturer"
+                                  =Self.Text
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
                                   =0
                               Color: |-
-                                  =C.'text-primary'
+                                  =C.'text-muted'
                               Fill: |-
                                   =RGBA(0, 0, 0, 0)
                               Font: |-
@@ -11551,9 +11483,9 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =T.body
+                                  =T.micro
                               Text: |-
-                                  ="Manufacturer"
+                                  =Upper("Manufacturer")
                               Wrap: |-
                                   =false
                   - conEqGridMfr0:
@@ -12106,13 +12038,13 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =37
+                            =28
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
                             =LayoutDirection.Vertical
                         LayoutGap: |-
-                            =10
+                            =0
                         LayoutMinWidth: |-
                             =0
                         LayoutOverflowX: |-
@@ -12126,49 +12058,21 @@ Screens:
                         PaddingRight: |-
                             =0
                         PaddingTop: |-
-                            =6
+                            =8
                         Width: |-
                             =Parent.Width
                       Children:
-                        - conEqSecWarrantyRule:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              Fill: |-
-                                  =C.'border-subtle'
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =1
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
-                              LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
-                              LayoutGap: |-
-                                  =8
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              Width: |-
-                                  =Parent.Width
                         - txtEqSecWarranty:
                             Control: ModernText
                             Properties:
                               AccessibleLabel: |-
-                                  ="Warranty and documents"
+                                  =Self.Text
                               BorderStyle: |-
                                   =BorderStyle.None
                               BorderThickness: |-
                                   =0
                               Color: |-
-                                  =C.'text-primary'
+                                  =C.'text-muted'
                               Fill: |-
                                   =RGBA(0, 0, 0, 0)
                               Font: |-
@@ -12186,9 +12090,9 @@ Screens:
                               PaddingTop: |-
                                   =0
                               Size: |-
-                                  =T.body
+                                  =T.micro
                               Text: |-
-                                  ="Warranty and documents"
+                                  =Upper("Warranty and documents")
                               Wrap: |-
                                   =false
                   - conEqGridWarranty0:
@@ -12202,7 +12106,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + 20, (Max((62), (62))) + 0)) + 20 + (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + 0, (62) + 0))
+                            =0 + (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + 20, (Max((62), (62))) + 0)) + 20 + (62)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -12482,7 +12386,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + 0, (62) + 0)
+                                  =62
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -12527,7 +12431,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                        =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
                                   Children:
                                     - txtEqDocsLbl:
                                         Control: ModernText
@@ -12589,7 +12493,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                              =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
                                         Children:
                                           - inpEqDocsInfo:
                                               Control: ModernTextInput
@@ -12637,7 +12541,7 @@ Screens:
                                                 ValidationState: |-
                                                     =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                 Width: |-
-                                                    =Max(0, (((If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)))) - ((113) + 8) - 2)
+                                                    =Max(0, (((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18))) - ((113) + 8) - 2)
                                           - btnEqDocs:
                                               Control: ModernButton
                                               Properties:

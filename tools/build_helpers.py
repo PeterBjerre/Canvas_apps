@@ -1222,7 +1222,7 @@ FIX_ROWS_MAX = 5
 
 
 def validation_summary(prefix, items, label_expr, go_text, go_fx, title_fx, visible,
-                       close_fx):
+                       close_fx, closable=True):
     """Kortet med det, der mangler.
 
     items: Power Fx-tabel (een raekke pr. ting). label_expr: raekkens tekst
@@ -1240,8 +1240,9 @@ def validation_summary(prefix, items, label_expr, go_text, go_fx, title_fx, visi
     close.props["BorderColor"] = C_TRANSPARENT
     close.props["LayoutMinWidth"] = "40"
     ensure_hit(close)
-    head = group(f"con{prefix}FixHead", [title, close], direction="Horizontal", gap=8,
-                 height=hit_size(32), align_items="Center")
+    head = group(f"con{prefix}FixHead", [title, close] if closable else [title],
+                 direction="Horizontal", gap=8,
+                 height=hit_size(32) if closable else 24, align_items="Center")
     go_w = fit_button_width(f'"{go_text}"', size=lay.SIZE_SMALL)
     go = button(f"btn{prefix}FixGo", f'"{go_text}"', go_fx, width=go_w, height=32,
                 accessible=f'"{go_text}: " & {label_expr}')
@@ -1722,9 +1723,13 @@ def row_list(prefix, items, row_controls, height, template_size, onselect="false
 
 def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
                      close_fx, visible, width=480, previous_mode=None,
-                     next_mode=None):
-    """Et responsivt raekke-editorpanel; footer holdes uden for scrollomraadet."""
+                     next_mode=None, side_by_side=False):
+    """Et responsivt raekke-editorpanel; footer holdes uden for scrollomraadet.
+
+    side_by_side: fra PANEL_SIDE_MIN staar panelet ved siden af listen
+    (PanelInset), og saa maa baggrunden ikke daekke listen."""
     vis = f"IfError({visible}, false)"
+    scrim_vis = f"{vis} && {lay.INSET} = 0" if side_by_side else vis
     backdrop = Ctrl(f"img{prefix}EditorBackdrop", "Image", props={
         "AccessibleLabel": '"Close row editor"',
         "BorderStyle": "BorderStyle.None",
@@ -1734,19 +1739,23 @@ def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
         "Image": '""',
         "OnSelect": close_fx,
         "TabIndex": "0",
-        "Visible": vis,
+        "Visible": scrim_vis,
         "Width": "App.Width",
         "X": "0",
         "Y": "0",
-    }, h="App.Height", vis=vis)
-    prev = button(f"btn{prefix}EditorPrevious", '"Previous row"', previous_fx,
-                  width=fit_button_width('"Previous row"'), height=lay.HIT_TOUCH,
-                  display_mode=previous_mode)
-    next_ = button(f"btn{prefix}EditorNext", '"Next row"', next_fx,
-                   width=fit_button_width('"Next row"'), height=lay.HIT_TOUCH,
-                   display_mode=next_mode)
-    close = button(f"btn{prefix}EditorClose", '"Close"', close_fx,
-                   width=fit_button_width('"Close"'), height=lay.HIT_TOUCH)
+    }, h="App.Height", vis=scrim_vis)
+    def nav_icon(name, label, fx, icon, mode=None):
+        b = button(name, '""', fx, icon=icon, width=lay.HIT_TOUCH, height=lay.HIT_TOUCH,
+                   display_mode=mode, accessible=f'"{label}"', tooltip=f'"{label}"')
+        b.props["Layout"] = "ButtonLayout.IconOnly"
+        b.props["BorderColor"] = C_TRANSPARENT
+        b.props["LayoutMinWidth"] = str(lay.HIT_TOUCH)
+        return b
+
+    prev = nav_icon(f"btn{prefix}EditorPrevious", "Previous row", previous_fx,
+                    "ChevronLeft", previous_mode)
+    next_ = nav_icon(f"btn{prefix}EditorNext", "Next row", next_fx, "ChevronRight", next_mode)
+    close = nav_icon(f"btn{prefix}EditorClose", "Close", close_fx, "Dismiss")
     title = text_ctrl(f"txt{prefix}EditorPosition", position, size=lay.SIZE_CARD_TITLE,
                       weight="Semibold", height=28, wrap="false")
     grow(title)
@@ -1763,7 +1772,7 @@ def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
     panel = group(f"con{prefix}EditorPanel", [heading, scroll, footer],
                   direction="Vertical", gap=12, height="App.Height",
                   width=f"If({at_least('Desktop')}, {width}, App.Width)",
-                  fill=C_MODAL_BG, border_color=C_CARD_BORDER, pad=(16, 20, 16, 20),
+                  fill=C_CARD_BG, border_color=C_CARD_BORDER, pad=(16, 20, 16, 20),
                   visible=vis, drop_shadow="Bold")
     panel.props["X"] = f"If({at_least('Desktop')}, App.Width - Self.Width, 0)"
     panel.props["Y"] = "0"
