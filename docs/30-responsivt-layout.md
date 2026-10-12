@@ -204,6 +204,16 @@ cellelinje, dokumentlisternes `doc_upload.ROW_H` og domænekortets
 knaplinjer). En position regnes af `Self.Width`/`Self.Height`, ikke af et
 fast tal.
 
+### Regel E4 — Under Desktop står de primære handlinger nederst
+
+`build_helpers.sticky_actions(prefix, [save, submit])` kopierer headerens
+Save draft og Submit til en fast bjælke nederst (`con<X>Foot`,
+`FOOT_H` = 60 px), som `app_frame(footer=...)` lægger under kroppen. Den
+er kun synlig under Desktop, og headerens to knapper er skjult dér.
+Kopierne har samme `OnSelect`, `DisplayMode`, tekst og tooltip — reglen
+for, hvornår de kan bruges, står ét sted. Kroppens højde trækker bjælken
+fra, så intet skjules bag den.
+
 ### Regel F — Overløb skjules, med mindre det skal scrolle
 
 Hver container skriver `LayoutOverflowX/Y = Hide`, med mindre den er

@@ -161,7 +161,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - ((If(LayoutRank < 2, 103, 124)) + 10) - (If(LayoutRank >= 2, (1) + 10, 0)) - (If(varFlViewOnly && varFlCanEdit, (If(LayoutRank < 2, 40, 96)) + 10, 0)) - ((If(LayoutRank < 2, 40, 135)) + 10) - ((If(LayoutRank < 2, 40, 186)) + 10) - (If(!IfError(varFlViewOnly, true) && !IsBlank(varFlRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - 2)
+                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - ((If(LayoutRank < 2, 103, 124)) + 10) - (If(LayoutRank >= 2, (1) + 10, 0)) - (If(varFlViewOnly && varFlCanEdit, (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 135)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 186)) + 10, 0)) - (If(!IfError(varFlViewOnly, true) && !IsBlank(varFlRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - 2)
                             Children:
                               - conFlCrumb:
                                   Control: GroupContainer
@@ -263,7 +263,7 @@ Screens:
                                           Text: |-
                                               ="  /  Functional Location" & If(IsBlank(varFlRequestNo), "", "  /  " & varFlRequestNo)
                                           Width: |-
-                                              =Max(0, (((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - ((If(LayoutRank < 2, 103, 124)) + 10) - (If(LayoutRank >= 2, (1) + 10, 0)) - (If(varFlViewOnly && varFlCanEdit, (If(LayoutRank < 2, 40, 96)) + 10, 0)) - ((If(LayoutRank < 2, 40, 135)) + 10) - ((If(LayoutRank < 2, 40, 186)) + 10) - (If(!IfError(varFlViewOnly, true) && !IsBlank(varFlRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - 2)))) - ((99) + 0) - 2)
+                                              =Max(0, (((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - ((If(LayoutRank < 2, 103, 124)) + 10) - (If(LayoutRank >= 2, (1) + 10, 0)) - (If(varFlViewOnly && varFlCanEdit, (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 135)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 186)) + 10, 0)) - (If(!IfError(varFlViewOnly, true) && !IsBlank(varFlRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - 2)))) - ((99) + 0) - 2)
                                           Wrap: |-
                                               =false
                               - txtFlTitle:
@@ -815,6 +815,8 @@ Screens:
                                   ="Puts the request on the landing page as Draft - it can still be edited."
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
+                              Visible: |-
+                                  =LayoutRank >= 3
                               Width: |-
                                   =If(LayoutRank < 2, 40, 135)
                         - btnFlSubmit:
@@ -866,6 +868,8 @@ Screens:
                                      "Ready to submit " & With({ _c: CountRows(Filter(colFlRows, Status = "valid" || Status = "warning")) }, Text(_c) & If(_c = 1, " row", " rows")) & ".")
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
+                              Visible: |-
+                                  =LayoutRank >= 3
                               Width: |-
                                   =If(LayoutRank < 2, 40, 186)
                         - btnFlDeleteRequest:
@@ -960,7 +964,7 @@ Screens:
                   FillPortions: |-
                       =1
                   Height: |-
-                      =Parent.Height - (25 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (18), 0) + If(LayoutRank >= 2, 2 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0) + If(LayoutRank >= 2, 2 + (26), 0)), (36), (24), (36), (36), (36), (36))) * 1 + 0))
+                      =Parent.Height - (25 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (18), 0) + If(LayoutRank >= 2, 2 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0) + If(LayoutRank >= 2, 2 + (26), 0)), (36), (24), (36), (36), (36), (36))) * 1 + 0)) - If(LayoutRank < 3, 60, 0)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -4178,6 +4182,425 @@ Screens:
                                   =!(IfError(CountRows(Filter(colFlRows, Status <> "draft" && !IsBlank(FL))) > 0, false))
                               Wrap: |-
                                   =false
+            - conFlFoot:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  Fill: |-
+                      =C.'bg-card'
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =60
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Stretch
+                  LayoutDirection: |-
+                      =LayoutDirection.Vertical
+                  LayoutGap: |-
+                      =0
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  PaddingBottom: |-
+                      =8
+                  PaddingLeft: |-
+                      =24
+                  PaddingRight: |-
+                      =16
+                  PaddingTop: |-
+                      =8
+                  Visible: |-
+                      =LayoutRank < 3
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - conFlFootRow:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =44
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Center
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =8
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Width: |-
+                            =Parent.Width
+                      Children:
+                        - btnFlFootSaveDraft:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Save draft"
+                              Align: |-
+                                  =Align.Center
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-default'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'text-primary'
+                              DisplayMode: |-
+                                  =If(varFlViewOnly || varFlStatus = "Indsendt" || CountRows(Filter(colFlRows, Status <> "draft")) = 0, DisplayMode.Disabled, DisplayMode.Edit)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =44
+                              Icon: |-
+                                  ="Save"
+                              Layout: |-
+                                  =ButtonLayout.IconBefore
+                              LayoutMinWidth: |-
+                                  =0
+                              OnSelect: |-
+                                  =Set(varFlSaving, true);
+                                  Clear(colFlSaveErrors);
+                                  // 0. Hovedet, som det staar i SharePoint nu: grundraekken i trin 1 og
+                                  //    rettigheden i selve handlingen (tools/permissions.py).
+                                  Set(varFlReqNow, If(!IsBlank(varFlRequestGuid), LookUp(FunctionalLocationRequests, RequestGuid = varFlRequestGuid)));
+                                  If(
+                                      !IsBlank(varFlReqNow) &&
+                                      !((Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe && (varFlReqNow.Status.Value = "Kladde")) || (IsAdmin && (varFlReqNow.Status.Value = "Kladde" || varFlReqNow.Status.Value = "AfventerInfo"))),
+                                      Collect(colFlSaveErrors, { Where: "Request", Msg: "This request can no longer be changed." })
+                                  );
+                                  If(IsBlank(varFlRequestGuid), Set(varFlRequestGuid, Text(GUID())));
+                                  
+                                  // 1. Hovedet. RequestNo er obligatorisk (Title) - GUID'en staar der, til
+                                  //    nummeret kan dannes af listens eget ID. Ejeren bevares.
+                                  If(
+                                      CountRows(colFlSaveErrors) = 0,
+                                      IfError(
+                                          Set(
+                                              varFlReq,
+                                              Patch(
+                                                  FunctionalLocationRequests,
+                                                  Coalesce(varFlReqNow, Defaults(FunctionalLocationRequests)),
+                                                  {
+                                                      RequestNo: Coalesce(varFlRequestNo, varFlRequestGuid),
+                                                      RequestGuid: varFlRequestGuid,
+                                                      RequesterEmail: Coalesce(varFlReqNow.RequesterEmail, varFlMe),
+                                                      RequesterName: Coalesce(varFlReqNow.RequesterName, User().FullName)
+                                                  }
+                                              )
+                                          );
+                                          true,
+                                          Collect(colFlSaveErrors, { Where: "Header", Msg: FirstError.Message });
+                                          false
+                                      )
+                                  );
+                                  If(
+                                      CountRows(colFlSaveErrors) = 0 && IsBlank(varFlRequestNo) && !IsBlank(varFlReq.ID),
+                                      Set(varFlRequestNo, "FL-" & Text(varFlReq.ID, "000000"));
+                                      IfError(
+                                          Patch(FunctionalLocationRequests, varFlReq, { RequestNo: varFlRequestNo });
+                                          true,
+                                          Collect(colFlSaveErrors, { Where: "Request number", Msg: FirstError.Message });
+                                          false
+                                      )
+                                  );
+                                  
+                                  If(
+                                      CountRows(colFlSaveErrors) = 0,
+                                  
+                                      // 2. Hvilke raekker findes allerede? Paa RowGuid - klientnoeglen.
+                                      //    En admin i en andens anmodning henter dem ogsaa med felter, til loggen.
+                                      If(
+                                          (!IsBlank(varFlReqNow) && !(Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe)),
+                                          ClearCollect(
+                                              colFlAdmOld,
+                                              ForAll(Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I,
+                                                  { RowGuid: I.RowGuid, RowNo: I.RowNo, FL: I.FunctionalLocation, Description: I.Description,
+                                                     KksType: I.KksType, AssignedClass: I.AssignedClass })
+                                          ),
+                                          Clear(colFlAdmOld)
+                                      );
+                                      ClearCollect(
+                                          colFlSp,
+                                          ForAll(Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I, { RowGuid: I.RowGuid, ID: I.ID })
+                                      );
+                                      // IfError kraever, at vaerdien og fallbacken har SAMME type. Patch af
+                                      // een raekke giver en record, Collect en tabel - og compile svarer
+                                      // "Invalid argument type (Table). Expecting a Record value instead"
+                                      // (issue #32, tre runder). Derfor slutter BEGGE grene af hver IfError
+                                      // i gemmet i en skalar: '; true' og '; false'.
+                                      IfError(
+                                          Collect(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && !(RowGuid in colFlSp.RowGuid)) As R, {
+                                                  RowGuid: R.RowGuid,
+                                                  RequestGuid: varFlRequestGuid,
+                                                  RequestId: varFlReq.ID,
+                                                  RowNo: R.RowNo,
+                                                  FunctionalLocation: R.FL,
+                                                  Description: R.Description,
+                                                  KksType: R.KksType,
+                                                  AssignedClass: R.AssignedClass,
+                                                  RowStatus: { Value: R.Status },
+                                                  FirstIssue: Left(Coalesce(R.FirstIssue, R.FirstWarning, ""), 255),
+                                                  IssueCount: R.IssueCount,
+                                                  TrmAssignment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "TRM ASSIGNMENT").Value, ""),
+                                                  AbcIndic: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "ABC INDIC.").Value, ""),
+                                                  SafetyCriticalEquipment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "SAFETY CRITICAL EQUIPMENT").Value, ""),
+                                                  RequesterEmail: Coalesce(varFlReq.RequesterEmail, varFlMe),
+                                                  SpoolValuesJson: JSON(
+                                                      ForAll(Sort(Filter(colFlVals, RowGuid = R.RowGuid), Field) As V,
+                                                             { field: V.Field, value: V.Value }),
+                                                      JSONFormat.Compact
+                                                  )
+                                              }));
+                                          true,
+                                          Collect(colFlSaveErrors, { Where: "New rows", Msg: FirstError.Message });
+                                          false
+                                      );
+                                      IfError(
+                                          With(
+                                              { ex: Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) },
+                                              Patch(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, LookUp(ex, RowGuid = R.RowGuid)),
+                                                    ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, {
+                                                  RowGuid: R.RowGuid,
+                                                  RequestGuid: varFlRequestGuid,
+                                                  RequestId: varFlReq.ID,
+                                                  RowNo: R.RowNo,
+                                                  FunctionalLocation: R.FL,
+                                                  Description: R.Description,
+                                                  KksType: R.KksType,
+                                                  AssignedClass: R.AssignedClass,
+                                                  RowStatus: { Value: R.Status },
+                                                  FirstIssue: Left(Coalesce(R.FirstIssue, R.FirstWarning, ""), 255),
+                                                  IssueCount: R.IssueCount,
+                                                  TrmAssignment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "TRM ASSIGNMENT").Value, ""),
+                                                  AbcIndic: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "ABC INDIC.").Value, ""),
+                                                  SafetyCriticalEquipment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "SAFETY CRITICAL EQUIPMENT").Value, ""),
+                                                  RequesterEmail: Coalesce(varFlReq.RequesterEmail, varFlMe),
+                                                  SpoolValuesJson: JSON(
+                                                      ForAll(Sort(Filter(colFlVals, RowGuid = R.RowGuid), Field) As V,
+                                                             { field: V.Field, value: V.Value }),
+                                                      JSONFormat.Compact
+                                                  )
+                                              }))
+                                          );
+                                          true,
+                                          Collect(colFlSaveErrors, { Where: "Rows", Msg: FirstError.Message });
+                                          false
+                                      );
+                                  
+                                      // 3. Raekker, brugeren har slettet eller toemt (REVIEW.md D24). Her
+                                      //    stod: alle raekker, appen ikke kender. Saa slettede den, der
+                                      //    gemte sidst, de raekker en anden havde tilfoejet imens.
+                                      IfError(
+                                          With(
+                                              { ex: Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) },
+                                              Remove(FunctionalLocationItems, Filter(ex, RowGuid in colFlDeleted.RowGuid ||
+                                                                     RowGuid in Filter(colFlRows, Status = "draft").RowGuid))
+                                          );
+                                          true,
+                                          Collect(colFlSaveErrors, { Where: "Deleted rows", Msg: FirstError.Message });
+                                          false
+                                      );
+                                  
+                                      // 4. Landingssiden.
+                                      IfError(
+                                      Set(varFlIdxNow, LookUp(MD_RequestIndex, RequestGuid = varFlRequestGuid));
+                                      Set(
+                                          varFlIdx,
+                                          Patch(
+                                              MD_RequestIndex,
+                                              Coalesce(varFlIdxNow, Defaults(MD_RequestIndex)),
+                                              {
+                                                  RequestNo: varFlRequestNo,
+                                                  Domain: { Value: "FunctionalLocation" },
+                                                  Status: { Value: Coalesce(varFlIdxNow.Status.Value, "Kladde") },
+                                                  StatusStep: Coalesce(varFlIdxNow.StatusStep, 1),
+                                                  IsOpen: true,
+                                                  RequestGuid: varFlRequestGuid,
+                                                  RequesterEmail: Coalesce(varFlReq.RequesterEmail, varFlMe),
+                                                  RequesterName: Coalesce(varFlReq.RequesterName, User().FullName),
+                                                  ShortText: "Functional Location - Spool: " & With({ _c: CountRows(Filter(colFlRows, Status <> "draft")) }, Text(_c) & If(_c = 1, " row", " rows")),
+                                                  Plant: Coalesce(Left(First(Sort(Filter(colFlRows, Status <> "draft"), RowNo)).FL, 3), ""),
+                                                  ItemCount: CountRows(Filter(colFlRows, Status <> "draft")),
+                                                  SourceItemId: varFlReq.ID,
+                                                  AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=functionallocation&reqid=" & varFlRequestGuid,
+                                                  LastActionOn: Now(),
+                                                  LastActionBy: varFlMe
+                                              }
+                                          )
+                                      );
+                                          true,
+                                          Collect(colFlSaveErrors, { Where: "Landing page", Msg: FirstError.Message });
+                                          false
+                                      );
+                                  
+                                      // 5. Status SIDST - og kun naar alt andet lykkedes.
+                                      If(
+                                          CountRows(colFlSaveErrors) = 0,
+                                          IfError(
+                                              Patch(
+                                                  FunctionalLocationRequests, varFlReq,
+                                                  {
+                                                      Status: { Value: Coalesce(varFlReqNow.Status.Value, "Kladde") },
+                                                      RowCount: CountRows(Filter(colFlRows, Status <> "draft")),
+                                                      ReadyCount: CountRows(Filter(colFlRows, Status = "valid" || Status = "warning")),
+                                                      IssueCount: CountRows(Filter(colFlRows, Status = "invalid")),
+                                                      WarningCount: CountRows(Filter(colFlRows, Status = "warning")),
+                                                      IndexItemId: varFlIdx.ID
+                                                  }
+                                              );
+                                              true,
+                                              Collect(colFlSaveErrors, { Where: "Status", Msg: FirstError.Message });
+                                              false
+                                          )
+                                      )
+                                  );
+                                  
+                                  // Een samlet tilbagemelding - aldrig een Notify pr. raekke.
+                                  If(
+                                      CountRows(colFlSaveErrors) = 0,
+                                      Set(varFlStatus, Coalesce(varFlReqNow.Status.Value, "Kladde"));
+                                      If(
+                                          (!IsBlank(varFlReqNow) && !(Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe)),
+                                          With(
+                                              { c: Concat(Filter(Table({ t: Concat(
+                                          Filter(
+                                              ForAll(colFlAdmOld As O,
+                                                  With({ n: LookUp(Filter(colFlRows, Status <> "draft"), RowGuid = O.RowGuid) },
+                                                      If(IsBlank(n), "Row " & O.RowNo & ": removed",
+                                                      Concat(
+                                                          Filter(
+                                                              Table(
+                                                              { f: "Functional location", a: Text(O.FL), b: Text(n.FL) },
+                                                              { f: "Description", a: Text(O.Description), b: Text(n.Description) },
+                                                              { f: "KKS type", a: Text(O.KksType), b: Text(n.KksType) },
+                                                              { f: "Class", a: Text(O.AssignedClass), b: Text(n.AssignedClass) }
+                                                              ),
+                                                              Coalesce(a, "") <> Coalesce(b, "")
+                                                          ),
+                                                          "Row " & O.RowNo & " " & f & ": " & Coalesce(a, "(blank)") & " → " & Coalesce(b, "(blank)"),
+                                                          "; "
+                                                      ))
+                                                  )
+                                              ),
+                                              !IsBlank(Value)
+                                          ),
+                                          Value,
+                                          "; "
+                                      ) }, { t: With({ k: CountRows(Filter(Filter(colFlRows, Status <> "draft"), !(RowGuid in colFlAdmOld.RowGuid))) }, If(k > 0, With({ _c: k }, Text(_c) & If(_c = 1, " row", " rows")) & " added", "")) }), !IsBlank(t)), t, "; ") },
+                                              If(
+                                                  !IsBlank(c),
+                                                  IfError(
+                                                      Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                          Title: varFlRequestNo,
+                                                          RequestGuid: varFlRequestGuid,
+                                                          Stage: "Admin",
+                                                          Decision: "AdminEdit",
+                                                          Detail: Left(c, 255),
+                                                          Comment: c,
+                                                          DecidedByEmail: Lower(User().Email),
+                                                          DecidedOn: Now()
+                                                      });
+                                                      true,
+                                                      Set(gblToast, { Text: "The change was saved, but the admin log entry failed: " & FirstError.Message, Kind: "Warning", At: Now() });
+                                                      false
+                                                  )
+                                              )
+                                          )
+                                      );
+                                      Clear(colFlDeleted);
+                                      Set(varFlInfo, "");
+                                      Set(gblToast, { Text: "Saved as " & varFlRequestNo & " - see it on the landing page.", Kind: "Success", At: Now() }); true,
+                                      Set(varFlInfo, "Saving failed (" & First(colFlSaveErrors).Where & "): " & First(colFlSaveErrors).Msg);
+                                      Set(gblToast, { Text: With({ _c: CountRows(colFlSaveErrors) }, Text(_c) & If(_c = 1, " step", " steps")) & " failed. What was saved is kept - try again.", Kind: "Error", At: Now() }); true
+                                  );
+                                  Set(varFlSaving, false)
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  ="Save draft"
+                              Tooltip: |-
+                                  ="Puts the request on the landing page as Draft - it can still be edited."
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Width: |-
+                                  =(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 8) / 2
+                        - btnFlFootSubmit:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  =Self.Text
+                              Align: |-
+                                  =Align.Center
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              Color: |-
+                                  =C.'text-on-primary'
+                              DisplayMode: |-
+                                  =If(!varFlStale && CountRows(Filter(colFlRows, Status = "invalid")) = 0 && CountRows(Filter(colFlRows, Status = "valid" || Status = "warning")) > 0 && varFlStatus <> "Indsendt" && !varFlViewOnly, DisplayMode.Edit, DisplayMode.Disabled)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =44
+                              Icon: |-
+                                  ="Send"
+                              Layout: |-
+                                  =ButtonLayout.IconBefore
+                              LayoutMinWidth: |-
+                                  =0
+                              OnSelect: |-
+                                  =Set(varFlConfirmSubmit, true)
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  =With({ _f: CountRows(Filter(colFlRows, Status = "invalid")) }, "Submit" & If(_f > 0, " (" & Text(_f) & " to fix)", ""))
+                              Tooltip: |-
+                                  =If(varFlStatus = "Indsendt", "Request " & varFlRequestNo & " is submitted and locked.",
+                                     varFlStale, "The rows are being checked - try again in a moment.",
+                                     CountRows(Filter(colFlRows, Status = "invalid")) > 0, "Submit is blocked: " & With({ _c: CountRows(Filter(colFlRows, Status = "invalid")) }, Text(_c) & If(_c = 1, " row has", " rows have")) & " errors.",
+                                     CountRows(Filter(colFlRows, Status = "valid" || Status = "warning")) = 0, "There are no rows ready for SAP.",
+                                     "Ready to submit " & With({ _c: CountRows(Filter(colFlRows, Status = "valid" || Status = "warning")) }, Text(_c) & If(_c = 1, " row", " rows")) & ".")
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Width: |-
+                                  =(((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 8) / 2
       - conFlNav:
           Control: GroupContainer
           Variant: AutoLayout
