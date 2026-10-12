@@ -3,7 +3,7 @@
 Prompten nedenfor holdes opdateret efter hver PR i UX-reviewet. Kopiér
 alt i kodeblokken ind i GitHub Copilot (agent mode / coding agent).
 
-Senest opdateret: efter #253 (åben). #251 og #253 er åbne.
+Senest opdateret: efter #254 (åben). #251, #253 og #254 er åbne.
 
 ````markdown
 # Opgave: Færdiggør UX-review 2026-10 for BIO SAP (etape 2 og 3)
@@ -18,6 +18,7 @@ Repo: PeterBjerre/Canvas_apps. Svar og PR-beskrivelser på dansk. Appens tekster
 - Åbne PR'er, som du ikke må ændre i:
   - #251 (2c, M3: hubbens fliser, Continue og sortering)
   - #253 (2d, T10: talfelter som tekst uden spin-pile — `number_field()`/`num_value()`, check_layout regel 41)
+  - #254 (2e, M6: navngivne formler `T` (typeskala) og `R` (radier); `gen_screen` skriver navnet; check_layout regel 42: Size på typeskalaen)
 
   Er de merget, når du starter, så byg ovenpå. Er de ikke, så start fra origin/main og forvent en lille konflikt i REVIEW.md-tabellen.
 - Status står i REVIEW.md, afsnittet "UX-review 2026-10 — status", tabellen "Etape 2 — middel". Tilføj en linje i hver PR.
@@ -85,16 +86,15 @@ Andre steder:
 - `tools/status_chip.py` (én statuschip)
 - `tools/display_text.py` (`plural`, `short_text`)
 - `tools/design_tokens.py` (`prefs_save`/`pref_get` til SaveData-præferencer, tokens inkl. `border-input`)
-- `tools/layout_tokens.py` (navngivne formler `H.hit`/`H.control`/`H.buttonMin`/`H.badge`, `DATE_FMT`, `num_text`)
+- `tools/layout_tokens.py` (navngivne formler `H.hit`/`H.control`/`H.buttonMin`/`H.badge` og, efter #254, `T.*`/`R.*`; `DATE_FMT`, `num_text`). Brug `lay.SIZE_*`/`lay.RADIUS_*` i byggerne — aldrig et tal uden for typeskalaen (regel 42).
 - `tools/domain_parts.py` (Equipments/Materials/Measuring points), `Functional Location App/build/fl_parts.py`, `Maintenance Plan App/build/*.py`, `Issue Board/build/ib_parts.py`, `Masterdata Hub/build/build_hub.py`, `KKS App/build/kks_parts.py`
 - Designmockups: designlærredet "BIO SAP — UX review" (Equipments-mockup og VH-plan-mockup). Følg dem så tæt, som Power Apps tillader, og skriv afvigelser i PR'en.
 
 ## Rest af etape 2 — én PR pr. linje, i denne rækkefølge
-1. **2e – M6 navngivne størrelser:** udvid `layout_tokens.NAMED` med T (typografi: `T.body`, `T.small`, `T.title` …), S (spacing) og R (radier) som navngivne formler i `App.Formulas`, ligesom `H`. Brug dem i byggerne, hvor tallet står som et magisk tal. Tilføj en check_layout-regel mod rå størrelser i Size/Radius, hvor der findes et navn, og opdater docs/27 og SKILL-tabellen.
-2. **2f – M2 sektionerede formularer i to kolonner:** formularerne i Equipments/Materials/MP/FL/Issue Board deles i navngivne sektioner (fx "Identification", "Technical data", "Supplier", "Notes") i to kolonner fra Desktop og én under. Følg mockuppens grupperinger.
-3. **2g – M5 VH-plan efter mockup:** layout og hierarki efter VH-plan-mockuppen. Rør IKKE logikken i `build_save.py`.
-4. **2h – M8 under Desktop:** rækkerne som kort (findes delvis: `domain_parts._compact_row`) og en fast bundbjælke med de primære handlinger på tablet/telefon.
-5. **2i–2l – M1 + T3 + T5 rækkeliste med sidepanel**, delt i flere PR'er:
+1. **2f – M2 sektionerede formularer i to kolonner:** formularerne i Equipments/Materials/MP/FL/Issue Board deles i navngivne sektioner (fx "Identification", "Technical data", "Supplier", "Notes") i to kolonner fra Desktop og én under. Følg mockuppens grupperinger.
+2. **2g – M5 VH-plan efter mockup:** layout og hierarki efter VH-plan-mockuppen. Rør IKKE logikken i `build_save.py`.
+3. **2h – M8 under Desktop:** rækkerne som kort (findes delvis: `domain_parts._compact_row`) og en fast bundbjælke med de primære handlinger på tablet/telefon.
+4. **2i–2l – M1 + T3 + T5 rækkeliste med sidepanel**, delt i flere PR'er:
    - **2i:** fælles hjælpere `request_shell()`, `row_list()` og `row_editor_panel()`. Panelet er 480 px fra Desktop og har "Row 2 of 3", forrige/næste/luk, sektioner og en bundbjælke [Delete row] … [Cancel] [Update row]. Under Desktop er det fuld skærm.
    - **2j:** Equipments (og Measuring points) på de nye hjælpere. Rækkehandlinger: Documents-ikon med antal plus en More-menu (Objects, Copy row, Delete row).
    - **2k:** Materials med fanerne Details/Objects/Documents i panelet.
