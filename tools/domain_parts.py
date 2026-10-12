@@ -54,7 +54,7 @@ import layout_tokens as lay
 from layout_tokens import fits, if_below, below, at_least
 from build_helpers import (ensure_hit, validation_summary, tap_backdrop, text_ctrl, text_min_height, group, button, text_input,
                            checkbox_theme, date_picker, fit_button_row,
-                           fit_button_width, number_input, themed_dropdown,
+                           fit_button_width, number_field, num_value, themed_dropdown,
                            card, field_cell, pin_widths, badge, top_bar, grow,
                            flow_row, label_px, text_px, loading_overlay,
                            with_busy, confirm_modal, edit_button, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
@@ -418,13 +418,12 @@ def _var(col):
 def _input_for(col, kind, choices, required_formula="false"):
     # Praefikset foelger kontroltypen (REVIEW.md A4): inp = tekst,
     # num = tal, dte = dato.
-    name = {"num": "numDom", "date": "dteDom", "bool": "chkDom"}.get(kind, "inpDom") + col
+    # Tal er tekstfelter uden spin-pile (UX-review T10) - derfor ogsaa inp.
+    name = {"date": "dteDom", "bool": "chkDom"}.get(kind, "inpDom") + col
     v = _var(col)
     if kind == "num":
-        c = number_input(name, v, display_mode=DM_ROW,
-                         required_formula=required_formula)
-        c.props["OnChange"] = f"Set({v}, Self.Value)"
-        return c
+        return number_field(name, v, display_mode=DM_ROW, required_formula=required_formula,
+                            onchange=f"Set({v}, {num_value()})")
     if kind == "date":
         # Rigtig datovaelger. Den haandbyggede app gemte
         # Text(..., "dd/mm/yyyy") - en streng, der ikke kan sorteres, ikke
