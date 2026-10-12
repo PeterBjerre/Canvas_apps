@@ -3,7 +3,7 @@
 Prompten nedenfor holdes opdateret efter hver PR i UX-reviewet. Kopiér
 alt i kodeblokken ind i GitHub Copilot (agent mode / coding agent).
 
-Senest opdateret: efter #257. #251, #253, #254, #255, #256 og #257 er åbne.
+Senest opdateret: efter #258. #251 og #253–#258 er åbne.
 
 ````markdown
 # Opgave: Færdiggør UX-review 2026-10 for BIO SAP (etape 2 og 3)
@@ -19,6 +19,7 @@ Repo: PeterBjerre/Canvas_apps. Svar og PR-beskrivelser på dansk. Appens tekster
   - #251 (2c, M3: hubbens fliser, Continue og sortering)
   - #253 (2d, T10: talfelter som tekst uden spin-pile — `number_field()`/`num_value()`, check_layout regel 41)
   - #254 (2e, M6: navngivne formler `T` (typeskala) og `R` (radier); `gen_screen` skriver navnet; check_layout regel 42: Size på typeskalaen)
+  - #258 (2h, M8: fast bundbjælke under Desktop — `build_helpers.sticky_actions()` + `app_frame(footer=)`; Save draft/Submit som kopier, headerens skjult under Desktop)
   - #257 (2g2, M5 del 2: item-editoren viser hvilket item og har "Delete item" (`_delete_item_fx`); undertitlen er planens navn. "Documents (n)" pr. item og plan-niveau-arbejdscenter er udeladt — passer ikke til datamodellen.)
   - #256 (2g, M5 del 1: VH-planhovedet foldes til én opsummeringslinje med Show/Hide, når det er gemt — ændrer issue #192)
   - #255 (2f, M2: formularer i sektioner — `domain_parts.form_section()`/`sectioned()`; Equipments efter mockuppen, Materials og MP. FL og Issue Board får sektioner i M1-panelet.)
@@ -82,7 +83,7 @@ Repo: PeterBjerre/Canvas_apps. Svar og PR-beskrivelser på dansk. Appens tekster
 ## Fælles hjælpere, der findes
 I `tools/build_helpers.py`:
 - `empty_state`, `breadcrumb`, `request_actions` (header: [New request ghost] | [Save draft] [Submit "N to fix"]), `with_fix_count`
-- `ensure_hit`/`hit_size`, `skeleton_rows`, `validation_summary`, `number_field`/`num_value` (når #253 er merget; brug aldrig ModernNumberInput, regel 41)
+- `ensure_hit`/`hit_size`, `skeleton_rows`, `validation_summary`, `sticky_actions` + `app_frame(footer=)` (efter #258), `number_field`/`num_value` (når #253 er merget; brug aldrig ModernNumberInput, regel 41)
 - `group`, `card`, `button`, `text_ctrl`, `text_input`, `themed_dropdown`, `date_picker`, `segmented`, `confirm_modal`, `popup_head`
 
 Andre steder:
@@ -94,8 +95,7 @@ Andre steder:
 - Designmockups: designlærredet "BIO SAP — UX review" (Equipments-mockup og VH-plan-mockup). Følg dem så tæt, som Power Apps tillader, og skriv afvigelser i PR'en.
 
 ## Rest af etape 2 — én PR pr. linje, i denne rækkefølge
-1. **2h – M8 under Desktop:** rækkerne som kort (findes delvis: `domain_parts._compact_row`) og en fast bundbjælke med de primære handlinger på tablet/telefon.
-2. **2i–2l – M1 + T3 + T5 rækkeliste med sidepanel**, delt i flere PR'er:
+1. **2i–2l – M1 + T3 + T5 rækkeliste med sidepanel**, delt i flere PR'er:
    - **2i:** fælles hjælpere `request_shell()`, `row_list()` og `row_editor_panel()`. Panelet er 480 px fra Desktop og har "Row 2 of 3", forrige/næste/luk, sektioner og en bundbjælke [Delete row] … [Cancel] [Update row]. Under Desktop er det fuld skærm.
    - **2j:** Equipments (og Measuring points) på de nye hjælpere. Rækkehandlinger: Documents-ikon med antal plus en More-menu (Objects, Copy row, Delete row).
    - **2k:** Materials med fanerne Details/Objects/Documents i panelet.
