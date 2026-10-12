@@ -204,7 +204,7 @@ STRIP_W, STRIP_H = 270, 30
 
 NOT_STARTED = (
     '"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'%d\' height=\'%d\' viewBox=\'0 0 %d %d\'>'
-    '<text x=\'4\' y=\'19\' %s font-size=\'12\' fill=\'" & %s & "\'>Not required</text></svg>"'
+    '<text x=\'4\' y=\'19\' %s font-size=\'12\' fill=\'" & %s & "\'>-</text></svg>"'
     % (STRIP_W, STRIP_H, STRIP_W, STRIP_H, SVG_FONT, ref_hex("text-muted")))
 
 
@@ -254,7 +254,10 @@ def _strip_body(xs, names, var):
     Materials to tegnes af den samme kode (issue #204)."""
     parts = ['"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'%d\' height=\'%d\' '
              'viewBox=\'0 0 %d %d\'>"' % (STRIP_W, STRIP_H, STRIP_W, STRIP_H)]
-    y = 23
+    # Knuderne midt i striben UDEN de smaa etiketter over (UX-review, hub):
+    # fire mikrolabels pr. raekke var stoej. Trinnenes navne staar i
+    # billedets tooltip (build_hub, imgMdRowApproval) og i popuppen.
+    y = STRIP_H // 2
     for i in range(len(names) - 1):
         parts.append(
             f'"<line x1=\'{xs[i]}\' y1=\'{y}\' x2=\'{xs[i + 1]}\' y2=\'{y}\' stroke-width=\'2\' '
@@ -273,9 +276,6 @@ def _strip_body(xs, names, var):
             f'scale({NODE_R / 12:g})\' fill=\'none\' stroke=\'" & {ref_hex("text-on-primary")} & '
             f'"\' stroke-width=\'{NODE_STROKE:g}\' stroke-linecap=\'round\' stroke-linejoin=\'round\'>'
             f'<path d=\'" & {_strip_glyph(var[i])} & "\'/></g>")')
-        parts.append(
-            f'"<text x=\'{xs[i]}\' y=\'12\' text-anchor=\'middle\' {SVG_FONT} font-size=\'11\' '
-            f'font-weight=\'600\' fill=\'" & {col} & "\'>{nm}</text>"')
     parts.append('"</svg>"')
     return " &\n".join(parts)
 
@@ -374,7 +374,8 @@ _RULES = {
     "Quality": '"One approver for the whole plan - the plant"',
 }
 
-STAMP = '"dd-mm-yyyy hh:mm"'
+# Tidsstempler som i resten af appen (layout_tokens.DATETIME_FMT, UX-review T8).
+STAMP = '"%s"' % lay.DATETIME_FMT
 
 
 def _who(email):

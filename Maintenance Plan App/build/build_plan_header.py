@@ -7,7 +7,7 @@ import build_help as bh
 import layout_tokens as lay
 from build_helpers import (child_name, text_min_height, text_ctrl, group, button, text_input, number_input,
                            themed_dropdown, field_cell, col_width, badge, card, grow,
-                           row_n, text_px, fit_button_width, ICON_W)
+                           row_n, text_px, fit_button_width, ICON_W, date_picker)
 # Sektionsoverskriften og dens trin-badge staar i build_helpers (issue #228),
 # saa Materials kan bruge samme overskrift som Item Editor.
 from build_helpers import section_header, step_badge  # noqa: F401
@@ -78,7 +78,7 @@ def help_var(section):
 
 def required_legend():
     """ "* Required" - forklaringen paa stjernerne. Stod i hero-kortet; nu i
-    Plan Header, hvor de foerste stjerner staar."""
+    Plan header, hvor de foerste stjerner staar."""
     star = text_ctrl("txtVhpLegendStar", "\"*\"", size=13, color=C_REQUIRED, weight="Semibold",
                      height=20, width=10, wrap="false")
     txt = text_ctrl("txtVhpLegendText", "\"Required\"", size=13, color=C_MUTED, height=20,
@@ -152,13 +152,13 @@ def help_panel(name, section):
 # tilbage, eller appens startvaerdier, hvis planen aldrig er gemt.
 PLAN_CONTROLS = ("drpVhpPlanType", "drpVhpStrategy", "drpVhpPlant", "drpVhpStatus",
                  "inpVhpPlanText", "drpVhpSortField", "numVhpCycle", "drpVhpUnit",
-                 "numVhpFirstCallDay", "numVhpFirstCallMonth", "numVhpFirstCallYear")
+                 "dteVhpFirstCall")
 
 
 def build_plan_header():
     # "* Required" staar lige efter titlen i venstre side. I hoejre side,
     # mellem titlen og trin-badget, blev den klippet (issue #54).
-    header = section_header("conVhpPlanHead", "Plan Header", "Step 1", valid_fx="VhpPlanValid",
+    header = section_header("conVhpPlanHead", "Plan header", "Step 1", valid_fx="VhpPlanValid",
                             extra_left=[required_legend()])
     helpPanel = help_panel("conVhpPlanHelp", "plan")
 
@@ -218,12 +218,17 @@ def build_plan_header():
                             display_mode=DM_CYCLE)
     drpUnit = themed_dropdown("drpVhpUnit", "colVhpUnitOptions", "LookUp(colVhpUnitOptions, Value = varVhpPlan.Unit).Value",
                        required_formula=REQ_CYCLE, display_mode=DM_CYCLE)
-    numFirstCallDay = number_input("numVhpFirstCallDay", "varVhpPlan.FirstCallDay", min_v=1, max_v=31,
-                                   required_formula=REQ_PLAN, display_mode=DM_PLAN, label="\"First call, day\"")
-    numFirstCallMonth = number_input("numVhpFirstCallMonth", "varVhpPlan.FirstCallMonth", min_v=1, max_v=12,
-                                     required_formula=REQ_PLAN, display_mode=DM_PLAN, label="\"First call, month\"")
-    numFirstCallYear = number_input("numVhpFirstCallYear", "varVhpPlan.FirstCallYear", min_v=2020, max_v=2100,
-                                    required_formula=REQ_PLAN, display_mode=DM_PLAN, label="\"First call, year\"")
+    # FIRST CALL ER EEN DATO (UX-review F3). Her stod tre talfelter (dag,
+    # maaned, aar) med "dd / mm / yyyy". Nu er det appens datovaelger i
+    # appens format. Planen og SharePoint er uaendrede: varVhpPlan beholder
+    # FirstCallDay/-Month/-Year, og gemningen skriver stadig PlannedDate
+    # af de tre (build_save.py) - kalenderen kan bare ikke give en dato,
+    # der ikke findes (31. februar).
+    FIRST_CALL_DEFAULT = ("If(IsBlank(varVhpPlan.FirstCallYear), Blank(), "
+                          "Date(varVhpPlan.FirstCallYear, varVhpPlan.FirstCallMonth, varVhpPlan.FirstCallDay))")
+    dteFirstCall = date_picker("dteVhpFirstCall", FIRST_CALL_DEFAULT,
+                               required_formula=REQ_PLAN, display_mode=DM_PLAN,
+                               label='"First call"')
 
     # RAEKKE-ORDEN (issue #142). Planhovedet er fire kolonner og to raekker:
     #   Raekke 1: Plan Type | Status | Plant | Plan Text
@@ -241,32 +246,22 @@ def build_plan_header():
                           container_w=CW, fill_portions_formula="0",
                           hint_text=bh.hint(hint))
 
-    # Dag, maaned og aar er EEN dato, ikke tre felter. De staar derfor i
-    # samme celle, paa samme raekke.
-    FC_GAP = 8
-    FC_W = f"(({FC_CELL} - {2 * FC_GAP}) / 3)"
-    for ctrl in (numFirstCallDay, numFirstCallMonth, numFirstCallYear):
-        ctrl.props["Width"] = FC_W
-    firstCallRow = group("conVhpFirstCallRow",
-                         [numFirstCallDay, numFirstCallMonth, numFirstCallYear],
-                         direction="Horizontal", gap=FC_GAP, height=36,
-                         align_items="Center", width="Parent.Width")
 
-    cellStrategy = cell("conVhpCellStrategy", "Maintenance Strategy", drpStrategy, "Strategy")
+    cellStrategy = cell("conVhpCellStrategy", "Maintenance strategy", drpStrategy, "Strategy")
     cellStrategy.props["Visible"] = LIVE_IS_STRATEGY
     cellStrategy.vis = LIVE_IS_STRATEGY
 
     row1 = row_n("conVhpPlanRow1", [
-        cell("conVhpCellPlanType", "Plan Type", drpPlanType, "PlanType", True),
+        cell("conVhpCellPlanType", "Plan type", drpPlanType, "PlanType", True),
         cell("conVhpCellStatus", "Status", drpStatus, "Status", True),
         cell("conVhpCellPlant", "Plant", drpPlant, "Plant", True),
-        cell("conVhpCellPlanText", "Plan Text", txtPlanText, "PlanText", True),
+        cell("conVhpCellPlanText", "Plan text", txtPlanText, "PlanText", True),
     ], container_w=CW)
     row2 = row_n("conVhpPlanRow2", [
-        cell("conVhpCellSortField", "Sort Field", drpSortField, "SortField"),
+        cell("conVhpCellSortField", "Sort field", drpSortField, "SortField"),
         cell("conVhpCellCycle", "Cycle", numCycle, "Cycle", True),
         cell("conVhpCellUnit", "Unit", drpUnit, "Unit", True),
-        cell("conVhpCellFirstCall", "First Call (dd / mm / yyyy)", firstCallRow,
+        cell("conVhpCellFirstCall", "First call", dteFirstCall,
              "FirstCall", True),
     ], container_w=CW)
     # Maintenance Strategy vises kun for plantypen Strategy. Den staar da i
@@ -302,13 +297,10 @@ def build_plan_header():
             "            IsBlank(Trim(inpVhpPlanText.Text)) || Len(Trim(inpVhpPlanText.Text)) > 40 ||\n"
             "            (!isStrat && (IsBlank(numVhpCycle.Value) || numVhpCycle.Value <= 0)) ||\n"
             "            (!isStrat && IsBlank(drpVhpUnit.Selected.Value)) ||\n"
-            "            IsBlank(numVhpFirstCallDay.Value) || numVhpFirstCallDay.Value < 1 || numVhpFirstCallDay.Value > 31 ||\n"
-            "            IsBlank(numVhpFirstCallMonth.Value) || numVhpFirstCallMonth.Value < 1 || numVhpFirstCallMonth.Value > 12 ||\n"
-            "            IsBlank(numVhpFirstCallYear.Value) || numVhpFirstCallYear.Value < 2020 || numVhpFirstCallYear.Value > 2100 ||\n"
-            # Dagen skal findes i maaneden (den gamle app: dage pr. maaned
-            # og skudaar). Date(2027; 2; 31) giver 3. marts, og saa var
-            # foerste kald stille og roligt flyttet.
-            "            Month(Date(numVhpFirstCallYear.Value, numVhpFirstCallMonth.Value, numVhpFirstCallDay.Value)) <> numVhpFirstCallMonth.Value,\n"
+            # Datovaelgeren giver kun datoer, der findes (F3) - kun aaret
+            # skal ligge i det interval, SAP-opretteren godtager.
+            "            IsBlank(dteVhpFirstCall.SelectedDate) ||\n"
+            "            Year(dteVhpFirstCall.SelectedDate) < 2020 || Year(dteVhpFirstCall.SelectedDate) > 2100,\n"
             "            Notify(\"Plan contains issues. Fix plan fields before creating items.\", NotificationType.Warning),\n"
             "\n"
             # Vaerket FOER gemningen - se plantskiftet nedenfor.
@@ -326,9 +318,9 @@ def build_plan_header():
             "                    SortField: drpVhpSortField.Selected.Value,\n"
             "                    Cycle: If(isStrat, 0, numVhpCycle.Value),\n"
             "                    Unit: If(isStrat, \"\", drpVhpUnit.Selected.Value),\n"
-            "                    FirstCallDay: numVhpFirstCallDay.Value,\n"
-            "                    FirstCallMonth: numVhpFirstCallMonth.Value,\n"
-            "                    FirstCallYear: numVhpFirstCallYear.Value\n"
+            "                    FirstCallDay: Day(dteVhpFirstCall.SelectedDate),\n"
+            "                    FirstCallMonth: Month(dteVhpFirstCall.SelectedDate),\n"
+            "                    FirstCallYear: Year(dteVhpFirstCall.SelectedDate)\n"
             "                }\n"
             "            );\n"
             "            Set(varVhpPlanCommitted, true);\n"

@@ -77,6 +77,7 @@ Nogle kolonner i de eksisterende lister kan ikke udfyldes forsvarligt herfra:
 De staar tomme med vilje. Bliver de noedvendige for SAP-oprettelsen, skal
 kilden afklares foerst - ikke gaettes her.
 """
+import display_text as dt
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from build_helpers import button, ICON_SAVE, ICON_SUBMIT
@@ -792,7 +793,7 @@ def _admin_log():
         + "\n".join(" " * 16 + l for l in item.split("\n")) + ")\n"
         "            )\n        ),\n        !IsBlank(Value)\n    ),\n    Value,\n    \"; \"\n)")
     added = (f'With({{ k: CountRows(Filter({SAVEABLE_ITEMS}, !(SpId in colVhpAdmOld.ID))) }}, '
-             'If(k > 0, k & " item(s) added", ""))')
+             'If(k > 0, ' + dt.plural("k", "item") + ' & " added", ""))')
     status = f'If(varVhpSubmitting, {alog.submitted(IDX_NOW + ".Status.Value")}, "")'
     comment = alog.join(header, items, added, status)
     return (f"If(\n    {AS_ADMIN},\n    With(\n        {{ c: {comment} }},\n"

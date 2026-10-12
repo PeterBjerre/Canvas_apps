@@ -22,6 +22,7 @@ App:
               'text-on-domain': RGBA(255, 255, 255, 1),
               'border-default': RGBA(215, 222, 232, 1),
               'border-subtle': RGBA(228, 233, 241, 1),
+              'border-input': RGBA(132, 145, 163, 1),
               'input-bg': RGBA(255, 255, 255, 1),
               'input-bg-disabled': RGBA(240, 243, 248, 1),
               'input-fg': RGBA(26, 34, 49, 1),
@@ -81,7 +82,13 @@ App:
               'hex-state-lime-fg': "#485E28",
               'hex-state-rose-fg': "#A03462",
               'hex-border-subtle': "#E4E9F1",
-              'hex-bg-muted': "#F0F3F8"
+              'hex-bg-muted': "#F0F3F8",
+              'hex-state-ok-bg': "#E7F2EC",
+              'hex-state-warn-bg': "#F9F1E4",
+              'hex-state-error-bg': "#FAECEC",
+              'hex-state-violet-bg': "#EFEBF6",
+              'hex-state-lime-bg': "#ECF1E2",
+              'hex-state-rose-bg': "#F7EAF0"
           },
           // MOERK TILSTAND
           {
@@ -98,6 +105,7 @@ App:
               'text-on-domain': RGBA(2, 6, 23, 1),
               'border-default': RGBA(100, 116, 139, 1),
               'border-subtle': RGBA(51, 65, 85, 1),
+              'border-input': RGBA(100, 116, 139, 1),
               'input-bg': RGBA(0, 0, 0, 1),
               'input-bg-disabled': RGBA(30, 41, 59, 1),
               'input-fg': RGBA(113, 118, 127, 1),
@@ -157,7 +165,13 @@ App:
               'hex-state-lime-fg': "#B2CE80",
               'hex-state-rose-fg': "#E4A6C4",
               'hex-border-subtle': "#334155",
-              'hex-bg-muted': "#1E293B"
+              'hex-bg-muted': "#1E293B",
+              'hex-state-ok-bg': "#142E26",
+              'hex-state-warn-bg': "#362A16",
+              'hex-state-error-bg': "#401C20",
+              'hex-state-violet-bg': "#2C2446",
+              'hex-state-lime-bg': "#26301A",
+              'hex-state-rose-bg': "#401E30"
           }
       );
 
@@ -179,6 +193,9 @@ App:
           App.Width >= 720, 2,
           1
       );
+
+      // Maal (UX-review F6/M6): H.hit er klikfladen, 44 px under Desktop.
+      H = { control: If(LayoutRank < 3, 44, 36), buttonMin: 30, hit: If(LayoutRank < 3, 44, 32), badge: 22 };
 
       // ADMIN. Genereret af tools/permissions.py - ret ikke her.
       // Een delegerbar LookUp i admin-listen, laest dovent og kun een gang.
@@ -1808,7 +1825,7 @@ App:
 
       If(false, ClearCollect(colFlLoad, { RowGuid: "", RowNo: 0, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0, Json: "" }));
 
-      ClearCollect(colAppPrefs, { Dark: false });
+      ClearCollect(colAppPrefs, { Dark: false, prefMdView: "", prefMdStatus: "", prefMdFlag: "", prefMdDomain: "", prefMdSearch: "", prefDomSearch: "", prefDomStatus: "", prefDomPlant: "", prefEqSearch: "", prefEqStatus: "", prefEqPlant: "", prefMatSearch: "", prefMatStatus: "", prefMatPlant: "", prefMpSearch: "", prefMpStatus: "", prefMpPlant: "" });
       Clear(colAppPrefs);
 
       // TEMAVALGET. Skal staa foerst: alt hvad skaermen tegner, laeser C,

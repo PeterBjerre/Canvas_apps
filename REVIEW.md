@@ -13,6 +13,38 @@ Dato: 2026-09-30 · Grundlag: branch `claude/power-app-mcp-script-0mr7uy` @ `764
 Repoet har **seks** app-mapper: de fire nævnte (Masterdata Hub, Maintenance Plan App/VH-plan, Equipment App, Material App) plus **Functional Location App** og **BIO SAP App**. BIO SAP App er de fem apps samlet som skærme i én test-app. Begge er medtaget.
 
 
+## UX-review 2026-10 — status
+
+Grundlag: designreviewet af BIO SAP (designlærredet "BIO SAP — UX review"), tre etaper. Alt er rettet i byggerne (`tools/`, `*/build/`), aldrig i YAML'en. F5 (anden mindstelængde i FL-søgningen) er bevidst og ikke rørt.
+
+**Etape 1 — hurtige gevinster** (branch `claude/ux-etape-1-hurtige-gevinster`)
+
+| ID | Status | Hvor |
+|---|---|---|
+| B1 | Gjort: én besked nederst til højre (`tools/toast.py`), forsvinder efter 4 s, fejl bliver stående med luk-kryds. `Notify` forbudt (check_layout regel 39). | `toast.py`, `gen_screen.render_screen`, `app_yaml.ON_ERROR` |
+| B2 | Gjort: VH-totaler med `layout_tokens.num_text` (`"#,##0.##"`, `"en-US"`), Cost med. | `build_tasklist.py` |
+| B3 | Tomrummet i Issue Board kommer fra værktøjslinjen før #244; skal efterses i Studio. | — |
+| B4 | Gjort: "1 row"/"2 rows" (`display_text.plural`), gamle "raekke(r)"/"row(s)" vises pænt (`short_text`); hubbens undertitel. | `display_text.py`, `build_hub.py` |
+| B5 / T8 | Gjort: **dd-mm-yyyy** overalt (`layout_tokens.DATE_FMT`/`DATETIME_FMT`, datovælgere ens); hubbens relative tid i tooltip. | `layout_tokens.py` |
+| F1 / T7 | Gjort: sentence case; Title Case-regel i `check_language` med egennavneliste. | `check_language.py` |
+| F2 / T2 | Gjort: "Add row"/"Update row" gemmer som gyldig eller kladde; "Save row draft" væk; VH "Save draft". | `domain_parts.py`, `build_hero.py` |
+| T1 | Gjort: [New request (ghost)] \| [Save draft] [Submit "N to fix"]; Issue Board: Refresh-ikon, New issue primær. | `build_helpers.request_actions` |
+| F3 | Gjort: First call er én datovælger; Day/Month/Year gemmes som før. | `build_plan_header.py` |
+| F4 / T9 | Gjort: `empty_state()` på hub, rækker, VH og Issue Board. | `build_helpers.py` |
+| F6 / T10 | Gjort: `H.hit` (32/44) som navngiven formel, `ensure_hit()` og check_layout regel 40. **Udskudt:** talfelter uden spin-pile og med enhed — ModernNumberInput kan ikke skjule pilene; et tekstfelt i stedet ændrer type og validering og tages med M2 (etape 2). | `layout_tokens.py`, `check_layout.py` |
+| F7 | Gjort: token `border-input` (lys 132,145,163 / mørk 100,116,139) kun via `border_rule`; kontrastvagt. | `design_tokens.py`, docs/26 |
+| F8 | Gjort: hubbens filtre og rækkelisternes søgning/filtre i `SaveData` (`colAppPrefs`). | `design_tokens.prefs_save` |
+| F9 | Gjort: `breadcrumb()` (Masterdata Hub / side / nummer). | `build_helpers.py` |
+| T4 | Gjort: én statuschip (`tools/status_chip.py`); prioritet som tekst, kun Urgent/High med farve. | `status_chip.py` |
+| T6 | Gjort: ja/nej som segmenter (Strategic part, Wear part, Exists in SAP, In PRODOS). | `domain_parts.yes_no` |
+| Hub | Gjort: domæne+ID i én kolonne, Requester skjult i My requests, stepper uden mikroetiketter og "-", Delete kun på kladder, grupperet filterlinje med 360 px søgning, Stuck kun for Indsendt/UnderBehandling/AfventerInfo (`STUCK_DAYS`). | `build_hub.py`, `request_index.py` |
+| Øvrige | Gjort: tooltips på deaktiverede knapper, MP's beskrivelser som tekst, FL Spool (fyldt tilstand, "2 of 5 valid"), KKS (søg mens der skrives, kopier-ikon), VH (ingen "Step 3"-chip, ingen ekstra Reset, låst hoved som View). | — |
+
+**Etape 2 og 3**: se de enkelte PR'er; afsnittet opdateres pr. etape.
+
+**Ikke efterprøvet i Studio** — kør `python tools\canvas_mcp.py deploy --app biosap` og se især: beskeden nederst til højre (auto-skjul, luk-kryds), datovælgerne i dd-mm-yyyy, statuschips i lys og mørk tilstand, `H.hit` på touch, de gemte filtre efter genstart, KKS-søgningen mens der skrives, Fluent-ikonerne `ArrowClockwise`/`Copy`/`Checkmark`.
+
+
 ## Status efter fase 0, 1, 2 og 3 (2026-09-30)
 
 Linjenumrene i fundene nedenfor henviser til udgangspunktet (`764fbcb`).
@@ -52,7 +84,7 @@ Linjenumrene i fundene nedenfor henviser til udgangspunktet (`764fbcb`).
   - hubbens flade filter (delegeringsadvarsler);
   - slet-bekræftelsen i Equipment/Material;
   - ModernDropdown i alle apps (`Default` slås op fra teksten) og felttekst i `input-fg` i mørk tilstand, også i dropdownens og comboboksens lyse liste; JA/NEJ-feltet ved gem;
-  - DatePicker med `Format = "yyyy-mm-dd"`;
+  - DatePicker med `Format = "dd-mm-yyyy"` (UX-review 2026-10: eet datoformat overalt);
   - tasklist-vælgeren på en smal skærm (vandret scroll);
   - VH-gem: gensave af en indlæst plan (items beholder ID og `ItemKey`), sletning af et item, Submit via bekræftelsen, og konflikttjekket med to brugere;
   - FL: galleriets nummer og røde kanter, detaljeruden efter en rettelse, og at en række, en anden har tilføjet, overlever et gem.
@@ -274,7 +306,7 @@ Standarden bygger på den **dominerende** eksisterende konvention, så den kræv
 | Notify-tekster | `tools/messages.py`: "Saved as X - see it on the landing page." / "Submitted as X - see it on the landing page." / "Save failed: …" | – | A6 |
 | Busy | `with_busy(var<X>Saving)` + `loading_overlay(img<X>Saving)` om alle skrivninger og uploads | – | VH manuel, upload uden |
 | Fejl | `IfError` pr. trin med samlet fejlliste (FL-modellen) + `App.OnError` | – | D8, D26 |
-| Dato/tal | `DATE_FMT = "yyyy-mm-dd"`, `num_text` med kultur-lås | – | A9 |
+| Dato/tal | `DATE_FMT = "dd-mm-yyyy"` (organisationens format, UX-review 2026-10), `num_text` med kultur-lås | – | A9 |
 | Typografi/mål | `type_scale` 11/12/13/14/17/22, `RADIUS_INPUT 10`, `RADIUS_CARD 14`, `RADIUS_MODAL 16`, `CONTROL_H 36`, `BUTTON_MIN_H 30`, `CARD_PAD 18` i `layout_tokens` | – | C8, A11 |
 | Sprog | UI engelsk; SharePoint-valgværdier (Kladde/Indsendt/Ja/Nej) uændrede; AccessibleLabel engelsk | – | A7, A14 |
 | SharePoint (nye lister) | `MD_<Domæne><Ting>`, fast Title-rolle, indeksér alt der filtreres på | `MD_RequestIndex` | E15 |

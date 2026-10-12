@@ -285,7 +285,7 @@ def named_formulas():
         "        )\n"
         "    )\n"
         ")",
-        "Non Flow User Status: valgene fra SharePoint, vist som kode - beskrivelse.")
+        "Non-flow user status: valgene fra SharePoint, vist som kode - beskrivelse.")
 
     # --- arbejdscentre: baeres med vaerk, saa listen kan afgraenses ---
     # 53 arbejdscentre for hele afdelingen, ~7 der er relevante for det

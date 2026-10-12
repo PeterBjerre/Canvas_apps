@@ -13,7 +13,7 @@ from design_tokens import DARK_VAR, toggle_action, ref_hex as ref_hex_expr, TRAN
 import layout_tokens as lay
 from layout_tokens import at_least, fits, if_below, TWO_COL_MIN
 from gen_screen import (Ctrl, child_name, stack_height, row_height, C_APP_BG, C_CARD_BG,
-                        C_CARD_BORDER, C_TITLE, C_MUTED, C_REQUIRED, C_PRIMARY,
+                        C_CARD_BORDER, C_INPUT_BORDER, C_TITLE, C_MUTED, C_REQUIRED, C_PRIMARY,
                         C_PRIMARY2, C_WHITE, C_TRANSPARENT, C_INPUT_BG, C_INPUT_FG,
                         C_DISABLED_BG, C_DIVIDER, C_VALID_FG, C_INVALID_FG,
                         C_VALID_BG, C_INVALID_BG,
@@ -282,18 +282,18 @@ def icon_on_mobile(btn, w=40):
 # staar midt i knappen. Paa en telefon er der ikke plads til 14 pt - der er
 # teksten den samme i 12 pt med 12 px luft i hver side (text_px + 24, samme
 # luft som hubbens smalle filterknapper). Submit er kun sit ikon dér.
-NEW_REQUEST = '"New Request"'
+NEW_REQUEST = '"New request"'
 NEW_REQUEST_PHONE_SIZE = 12
 
 
 def new_request_widths():
-    """(bredde fra Tablet og op, bredde paa en telefon) for "New Request"."""
+    """(bredde fra Tablet og op, bredde paa en telefon) for "New request"."""
     return (fit_button_width(NEW_REQUEST),
             text_px(NEW_REQUEST[1:-1], NEW_REQUEST_PHONE_SIZE) + 24)
 
 
 def new_request_label(btn):
-    """Goer btn til den faelles "New Request"-knap (issue #243): praecis den
+    """Goer btn til den faelles "New request"-knap (issue #243): praecis den
     tekst, intet ikon, centreret tekst og en bredde regnet af teksten.
     OnSelect, tooltip, synlighed og DisplayMode roeres ikke."""
     narrow = lay.below("Tablet")
@@ -312,10 +312,107 @@ def new_request_label(btn):
     return btn
 
 
+# ---------------------------------------------------------------------------
+# HEADERENS HANDLINGER - SAMME RAEKKEFOELGE OG VAEGT OVERALT (UX-review T1)
+#
+#     [New request]  |  [Save draft] [Submit (2 to fix)]
+#      diskret          outline       primaer (blaa)
+#
+# Foer stod Save draft, Submit og New request i een raekkefoelge i
+# domaenerne og en anden i VH-planen ("New request, Create draft, Submit"),
+# og Submit var aldrig den blaa knap - "Save row" nede i kortet var. Nu er
+# Submit altid primaer, og taelleren siger, hvorfor den ikke kan sendes.
+# ---------------------------------------------------------------------------
+SUBMIT_FIX_LONGEST = '"Submit (99 to fix)"'
+
+
+# ---------------------------------------------------------------------------
+# KLIKFLADEN (UX-review F6/T10): en ikonknap og et klikbart ikon er mindst
+# H.hit - 32 px fra Desktop og 44 px under (touch). Ikonet beholder sin
+# stoerrelse; kun fladen vokser. check_layout regel 40 haandhaever det.
+# ---------------------------------------------------------------------------
+def hit_size(n):
+    """Mindst n og mindst H.hit - som Power Fx."""
+    return lay.HIT if n <= lay.HIT_DESKTOP else f"Max({n}, {lay.HIT})"
+
+
+def ensure_hit(ctrl, square=True):
+    """Goer ctrl's klikflade mindst H.hit. Et billede tegnes i sin egen
+    stoerrelse midt i fladen (ImagePosition.Center), saa ikonet ikke
+    skaleres. square=False roerer kun hoejden (en knap med tekst)."""
+    def _num(v):
+        try:
+            return int(float(str(v)))
+        except ValueError:
+            return None
+    h = _num(ctrl.props.get("Height"))
+    if h is not None and h < lay.HIT_TOUCH:
+        ctrl.props["Height"] = hit_size(h)
+        ctrl.h = ctrl.props["Height"]
+    if square:
+        w = _num(ctrl.props.get("Width"))
+        if w is not None and w < lay.HIT_TOUCH:
+            ctrl.props["Width"] = hit_size(w)
+            if "LayoutMinWidth" in ctrl.props:
+                ctrl.props["LayoutMinWidth"] = ctrl.props["Width"]
+    if ctrl.control == "Image":
+        ctrl.props["ImagePosition"] = "ImagePosition.Center"
+    return ctrl
+
+
+def ghost(btn):
+    """En diskret knap: ingen synlig kant, daempet tekst (New request)."""
+    btn.props["Appearance"] = "ButtonAppearance.Outline"
+    btn.props["BorderColor"] = C_TRANSPARENT
+    btn.props["BorderThickness"] = "1"
+    btn.props["Color"] = C_MUTED
+    return btn
+
+
+def submit_fix_text(fix_expr):
+    """Submit-knappens tekst med taelleren: "Submit" / "Submit (2 to fix)"."""
+    return (f'With({{ _f: {fix_expr} }}, "Submit" & '
+            f'If(_f > 0, " (" & Text(_f) & " to fix)", ""))')
+
+
+def with_fix_count(submit, fix_expr):
+    """Goer submit til den faelles Submit med "N to fix" (T1/M4). Bredden
+    er den laengste tekst, saa knappen ikke skifter stoerrelse."""
+    submit.props["Text"] = submit_fix_text(fix_expr)
+    submit.props["AccessibleLabel"] = "Self.Text"
+    w = fit_button_width(SUBMIT_FIX_LONGEST) + (ICON_W if submit.props.get("Icon") else 0)
+    submit.props["Width"] = str(w)
+    submit.props["LayoutMinWidth"] = str(w)
+    return submit
+
+
+def action_sep(name, visible=None):
+    """Den lodrette streg mellem New request og anmodningens handlinger."""
+    sep = group(name, [], direction="Horizontal", height=24, width="1",
+                fill=C_DIVIDER, layout_min_width=1, visible=visible)
+    sep.props["AlignInContainer"] = "AlignInContainer.Center"
+    return sep
+
+
+def request_actions(prefix, new, save, submit, fix_expr=None, extra=()):
+    """Headerens knapper i den faelles raekkefoelge:
+    [new] | [extra...] [save] [submit]. new bliver diskret, submit primaer
+    med taelleren. Returnerer listen til top_bar()."""
+    ghost(new)
+    submit.props.pop("Appearance", None)
+    submit.props["BasePaletteColor"] = C_PRIMARY
+    submit.props["Color"] = C_WHITE
+    submit.props.pop("BorderColor", None)
+    if fix_expr:
+        with_fix_count(submit, fix_expr)
+    sep = action_sep(f"con{prefix}HeadSep", visible=at_least("Tablet"))
+    return [new, sep, *extra, save, submit]
+
+
 def mark_done(btn, done_expr):
     """Den FAELLES "udfyldt"-tilstand for en outline-knap (issue #73).
 
-    Item Long Text og Object List bruger den begge: naar der er noget,
+    Item long text og Object list bruger den begge: naar der er noget,
     faar knappen en groen kant og groen tekst. Kanten bliver 1 px bred i
     alle tilstande, saa knappen aldrig skifter stoerrelse - kun farven
     siger det. ModernButton har intet Fill, saa en tonet baggrund kan den
@@ -847,7 +944,10 @@ def theme_button(name="imgThemeToggle", compact=False):
         "TabIndex": "0",
         "Width": width,
     }
-    return Ctrl(name, "Image", props=props, h=THEME_TOGGLE_H)
+    img = Ctrl(name, "Image", props=props, h=THEME_TOGGLE_H)
+    # Klikfladen (F6): knoppen i den lukkede skinne er 36 px - fladen 44
+    # under Desktop. Pillen i panelet er bred nok i forvejen.
+    return ensure_hit(img) if compact else img
 
 
 def _help_svg(on, compact=False):
@@ -919,7 +1019,8 @@ def help_toggle(name, on, action, compact=False):
         "TabIndex": "0",
         "Width": width,
     }
-    return Ctrl(name, "Image", props=props, h=THEME_TOGGLE_H)
+    img = Ctrl(name, "Image", props=props, h=THEME_TOGGLE_H)
+    return ensure_hit(img) if compact else img
 
 
 def _fits_expr(container_w, needs):
@@ -1094,6 +1195,68 @@ def page_icon(name, key, size=PAGE_ICON):
     }, h=size)
 
 
+# ---------------------------------------------------------------------------
+# TOM TILSTAND - IKON, EEN SAETNING, EEN KNAP (UX-review F4/T9)
+#
+# "No requests match the filters." og en tom tabel med kun overskrifter
+# fortalte, hvad der manglede, men ikke hvad man goer. Nu er det et fast
+# moenster: et tonet ikon, een saetning og (hoejst) een knap.
+# ---------------------------------------------------------------------------
+EMPTY_ICON = 40
+EMPTY_TEXT_H = 40
+
+
+def empty_state(name, text, action_text=None, action_fx=None, icon_key=None,
+                icon_path=None, visible=None, width=None, primary=True,
+                button_name=None, action_icon=None, action_visible=None):
+    """[ikon, tekst, knap] centreret i en lodret gruppe.
+
+    name: gruppens navn (con...). icon_key: en noegle i tools/icons.DOMAIN
+    (domaenets ikon i domaenets farve) - ellers icon_path i text-muted.
+    text: Power Fx-tekst. action_text/action_fx: knappen (udelades uden)."""
+    import icons
+    if icon_key:
+        tok = icons.token(icon_key)
+        inner = icons.stroke_svg(icon_key, '" & %s & "' % ref_hex_expr(tok), size=20,
+                                 hx=lambda t: '" & %s & "' % ref_hex_expr(t))
+        color = '" & %s & "' % ref_hex_expr(tok)
+    else:
+        color = '" & %s & "' % ref_hex_expr("text-muted")
+        inner = icons.glyph(icon_path or icons.LIST, color, size=20)
+    pad = (EMPTY_ICON - 20) / 2
+    svg = ("<svg xmlns='http://www.w3.org/2000/svg' width='%d' height='%d' "
+           "viewBox='0 0 %d %d'><rect width='%d' height='%d' rx='10' fill='%s' "
+           "fill-opacity='0.12'/><g transform='translate(%g %g)'>%s</g></svg>"
+           % (EMPTY_ICON, EMPTY_ICON, EMPTY_ICON, EMPTY_ICON, EMPTY_ICON, EMPTY_ICON,
+              color, pad, pad, inner))
+    base = name[3:] if name.startswith("con") else name
+    img = Ctrl(f"img{base}Icon", "Image", props={
+        "AccessibleLabel": '"Empty list"',
+        "AlignInContainer": "AlignInContainer.Center",
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "Height": str(EMPTY_ICON),
+        "Image": f'"data:image/svg+xml;utf8," & EncodeUrl("{svg}")',
+        "ImagePosition": "ImagePosition.Fit",
+        "OnSelect": "false",
+        "TabIndex": "0",
+        "Width": str(EMPTY_ICON),
+    }, h=EMPTY_ICON)
+    msg = text_ctrl(f"txt{base}Text", text, size=lay.SIZE_BODY, color=C_MUTED,
+                    align="Center", height=EMPTY_TEXT_H, wrap="true",
+                    extra={"VerticalAlign": "VerticalAlign.Middle"})
+    kids = [img, msg]
+    if action_text:
+        w = fit_button_width(f'"{action_text}"') + (ICON_W if action_icon else 0)
+        b = button(button_name or f"btn{base}Action", f'"{action_text}"', action_fx,
+                   primary=primary, width=w, height=36, icon=action_icon,
+                   visible=action_visible)
+        b.props["LayoutMinWidth"] = str(w)
+        kids.append(b)
+    return group(name, kids, direction="Vertical", gap=8, align_items="Center",
+                 pad=(12, 0, 12, 0), width=width, visible=visible)
+
+
 DELETE_W = 40
 
 
@@ -1192,8 +1355,65 @@ def number_badge(prefix, var, key):
     }, h=26)
 
 
+# ---------------------------------------------------------------------------
+# BROEDKRUMMEN (UX-review F9)
+#
+#     Masterdata Hub / Equipments / EQ-000032
+#
+# Over titlen paa alle domaeneskaerme. Foerste led gaar tilbage til hubben
+# - og hubbens filtre staar, som man forlod dem (de er variabler i samme
+# session og gemt i SaveData, F8). Leddet er et Image med teksten tegnet i
+# brandfarven: det har OnSelect, hover, fokus og TabIndex og er bevist i
+# dette miljoe; en knap skal vaere mindst 30 px hoej (regel 25).
+# ---------------------------------------------------------------------------
+CRUMB_H = 18
+CRUMB_SIZE = 12
+HUB_LABEL = "Masterdata Hub"
+
+
+def breadcrumb(prefix, app_key, id_expr=None):
+    """[Masterdata Hub] / <skaermens navn> [/ <id>]. id_expr er et Power
+    Fx-udtryk (anmodningens nummer) - et tomt nummer viser intet led."""
+    import side_nav
+    import env_config as env
+    page = (env.APPS.get(app_key) or {}).get("nav_label") or app_key
+    w = label_px(HUB_LABEL, CRUMB_SIZE) + 4
+    col = '" & %s & "' % ref_hex_expr("color-brand-primary")
+    svg = ("<svg xmlns='http://www.w3.org/2000/svg' width='%d' height='%d' viewBox='0 0 %d %d'>"
+           "<text x='0' y='13' font-family='Segoe UI, sans-serif' font-size='%d' "
+           "font-weight='600' fill='%s'>%s</text></svg>"
+           % (w, CRUMB_H, w, CRUMB_H, CRUMB_SIZE, col, HUB_LABEL))
+    hub = Ctrl(f"img{prefix}CrumbHub", "Image", props={
+        "AccessibleLabel": f'"Back to {HUB_LABEL}"',
+        "AlignInContainer": "AlignInContainer.Center",
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "Fill": C_TRANSPARENT,
+        "FocusedBorderColor": C_PRIMARY,
+        "FocusedBorderThickness": "2",
+        "Height": str(CRUMB_H),
+        "HoverFill": C_ROW_HOVER,
+        "Image": f'"data:image/svg+xml;utf8," & EncodeUrl("{svg}")',
+        "ImagePosition": "ImagePosition.Fit",
+        "LayoutMinWidth": str(w),
+        "OnSelect": side_nav._launch("hub"),
+        "PressedFill": C_ROW_PRESSED,
+        "TabIndex": "0",
+        "Tooltip": f'"Back to {HUB_LABEL} - your filters are kept"',
+        "Width": str(w),
+    }, h=CRUMB_H)
+    rest = f'"  /  {page}"'
+    if id_expr:
+        rest += f' & If(IsBlank({id_expr}), "", "  /  " & {id_expr})'
+    tail = grow(text_ctrl(f"txt{prefix}Crumb", rest, size=CRUMB_SIZE, color=C_MUTED,
+                          height=CRUMB_H, wrap="false"))
+    return group(f"con{prefix}Crumb", [hub, tail], direction="Horizontal", gap=0,
+                 height=CRUMB_H, align_items="Center")
+
+
 def top_bar(prefix, title, subtitle, actions, container_w=None, gap=10,
-            narrow_hide=(), sub=None, icon=None, mode_var=None, num_var=None):
+            narrow_hide=(), sub=None, icon=None, mode_var=None, num_var=None,
+            crumb=None):
     """Bjaelken oeverst - den SAMME konstruktion i alle apps.
 
     EEN vandret raekke uden formler i retning eller justering: titlen og
@@ -1213,6 +1433,12 @@ def top_bar(prefix, title, subtitle, actions, container_w=None, gap=10,
     t = text_ctrl("txt%sTitle" % prefix, title, size=lay.SIZE_PAGE_TITLE, weight="Semibold",
                   height=30, wrap="false")
     t.vis = at_least("Tablet")
+    crumbs = []
+    if crumb is not None:
+        # Broedkrummen (F9) over titlen - kun fra Tablet, som titlen.
+        crumb.vis = at_least("Tablet")
+        crumb.props["Visible"] = crumb.vis
+        crumbs = [crumb]
     if sub is None:
         sub = [text_ctrl("txt%sSub" % prefix, subtitle, size=13, color=C_MUTED,
                          height=20, wrap="false", visible=at_least("Tablet"))]
@@ -1245,7 +1471,8 @@ def top_bar(prefix, title, subtitle, actions, container_w=None, gap=10,
         mb.props["AlignInContainer"] = "AlignInContainer.Start"
         mb.vis = at_least("Tablet")
         extra = [mb]
-    left = grow(group("con%sBarLeft" % prefix, [first] + list(sub) + extra, direction="Vertical", gap=2))
+    left = grow(group("con%sBarLeft" % prefix, crumbs + [first] + list(sub) + extra,
+                      direction="Vertical", gap=2))
     lead = []
     if icon:
         # icon: noeglen i tools/icons.DOMAIN - appens eget domaeneikon.
@@ -1370,16 +1597,21 @@ def border_rule(empty_test, required_formula="false"):
     EKSPLICIT: gjorde den ikke det, arvede feltet platformens standard,
     som ingen i projektet har valgt.
 
-        ikke kraevet        ->  border-default
+        ikke kraevet        ->  border-input
         kraevet + tom       ->  state-error-fg
         kraevet + udfyldt   ->  state-ok-fg
+
+    border-input (UX-review F7), ikke border-default: et felt skal kunne
+    ses som et felt (3,2:1). Et LAAST felt faar border-default - det
+    saetter input_theme, saa en laast, udfyldt kraevet kant heller ikke er
+    groen (VH-planens planhoved).
     """
     if required_formula == "false":
-        return C_CARD_BORDER
+        return C_INPUT_BORDER
     return (f"If(\n"
             f"    {required_formula} && {empty_test},\n"
             f"    {C_BORDER_ERROR},\n"
-            f"    If({empty_test}, {C_CARD_BORDER}, {C_BORDER_OK})\n"
+            f"    If({empty_test}, {C_INPUT_BORDER}, {C_BORDER_OK})\n"
             f")")
 
 
@@ -1389,8 +1621,8 @@ def readonly_mode(display_mode):
     De moderne inputfelter tegner DisplayMode.Disabled med Fluent-temaets
     egne "disabled"-farver og ignorerer baade Color og Fill. Appen saetter
     ikke Fluent-temaet (farverne er C), saa i moerk tilstand blev et laast
-    felt graa tekst paa sort: Main Work Center, Control Key, Vendor, Cost,
-    Material Group, Plan Text, Scheduling Indicator, Statutory Sort Field
+    felt graa tekst paa sort: Main work center, Control Key, Vendor, Cost,
+    Material Group, Plan text, Scheduling Indicator, Statutory Sort field
     og FL-comboboksen - netop de felter, der kan vaere laaste.
 
     View er dokumenteret som skrivebeskyttet ("renders as read-only rather
@@ -1433,6 +1665,11 @@ def input_theme(props, display_mode):
     # og i begge temaer. Det redigerbare felt er udfyldt; det laaste er det
     # ikke. Forskellen er synlig uden at vaere en farve, Fluent kan tage.
     editable = f"({display_mode}) = DisplayMode.Edit"
+    # LAAST = VIEW-KANTEN (UX-review, VH-planens planhoved): border-default
+    # og daempet tekst - aldrig groen eller roed om et felt, man ikke kan
+    # aendre.
+    if props.get("BorderColor"):
+        props["BorderColor"] = f"If({editable}, {props['BorderColor']}, {C_CARD_BORDER})"
     props["Appearance"] = f"If({editable}, Appearance.FilledDarker, Appearance.Outline)"
     props["Color"] = f"If({editable}, {C_INPUT_FG}, {C_MUTED})"
     props["DisplayMode"] = readonly_mode(display_mode)
@@ -1465,7 +1702,9 @@ def row_rule(name, template_size):
         "AccessibleLabel": '"Row divider"', "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0", "Fill": C_DIVIDER, "Height": "1",
         "OnSelect": "false", "TabIndex": "0",
-        "Width": "Parent.TemplateWidth", "X": "0", "Y": str(template_size - 1),
+        "Width": "Parent.TemplateWidth", "X": "0",
+        "Y": (str(template_size - 1) if isinstance(template_size, int)
+              else f"{template_size} - 1"),
     }, h=1)
 
 
@@ -1538,7 +1777,9 @@ def table_surface(gal, rule_name, surface=C_CARD_BG):
     Raekken (galleriets foerste barn) skal have hoejden
     Parent.TemplateHeight - 2 eller - 1; den bliver - 1."""
     pad = int(gal.props.get("TemplatePadding", "0"))
-    size = int(gal.props["TemplateSize"]) + pad
+    ts = str(gal.props["TemplateSize"])
+    # TemplateSize kan vaere en formel (fx H.hit + 6 - doc_upload.TEMPLATE_H).
+    size = int(ts) + pad if ts.isdigit() else (f"{ts} + {pad}" if pad else ts)
     gal.props["Fill"] = surface
     gal.props["TemplatePadding"] = "0"
     gal.props["TemplateSize"] = str(size)
@@ -2029,9 +2270,13 @@ def step_badge(name, step_label, valid_fx, attention_fx=None):
     VhpItemsValid, VhpOpsValid), aldrig blot "gemt".
     attention_fx: hvornaar der i stedet skal staa "Invalid" (fx et item,
     der er gemt som ugyldigt)."""
+    # UX-review (VH-plan): badget viser kun en TILSTAND - "Valid" eller
+    # "Invalid". "Step 1/2/3" gentog headerens trin og forsvinder; uden en
+    # tilstand er badget skjult.
     text = (f'If({valid_fx}, "Valid", ' + (f'{attention_fx}, "Invalid", ' if attention_fx else "")
-            + f'"{step_label}")')
+            + '"")')
     b = badge(name, text, width=72)
+    b.vis = f"({valid_fx})" + (f" || ({attention_fx})" if attention_fx else "")
     # Self.Text: formlen bag teksten regnes een gang, ikke tre.
     b.props["Color"] = f'Switch(Self.Text, "Valid", {C_VALID_FG}, "Invalid", {C_INVALID_FG}, {C_MUTED})'
     b.props["Fill"] = f'Switch(Self.Text, "Valid", {C_VALID_BG}, "Invalid", {C_INVALID_BG}, {C_NEUTRAL_BG})'

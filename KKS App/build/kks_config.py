@@ -27,7 +27,7 @@ sys.path.insert(0, os.path.join(ROOT, "tools"))
 # --- appen ------------------------------------------------------------
 APP_KEY = "kks"
 SCREEN = "ScreenKks"
-TITLE = "KKS Lookup"
+TITLE = "KKS lookup"
 SUBTITLE = "Find KKS codes by function, aggregate or component."
 
 # --- listerne, som de hedder naar de er tilfoejet som datakilder -------

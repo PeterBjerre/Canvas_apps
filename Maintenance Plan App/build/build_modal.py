@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import display_text as dt
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_MUTED, C_TRANSPARENT, C_DIVIDER, C_MODAL_BG,
@@ -115,7 +116,7 @@ PICKER_EDGE = 32
 
 
 def build_tasklist_picker_modal():
-    title = text_ctrl("txtVhpPickerTitle", "\"Select tasklist lines\"", size=lay.SIZE_CARD_TITLE, weight="Semibold", height=24,
+    title = text_ctrl("txtVhpPickerTitle", "\"Select task list lines\"", size=lay.SIZE_CARD_TITLE, weight="Semibold", height=24,
                       wrap="false")
     btnClose = button(
         "btnVhpPickerClose", "\"Close\"",
@@ -216,7 +217,7 @@ def build_tasklist_picker_modal():
     gallery = Ctrl(
         "galVhpPicker", "Gallery", variant="Vertical",
         props={
-            "AccessibleLabel": "\"Tasklist line picker\"",
+            "AccessibleLabel": "\"Task list line picker\"",
             "BorderStyle": "BorderStyle.None",
             "Fill": C_MODAL_BG,
             "FillPortions": "0",
@@ -293,7 +294,7 @@ def build_tasklist_picker_modal():
             "            )\n"
             "        )\n"
             "    );\n"
-            "    Notify(\"Added \" & Text(CountRows(colVhpPickerSelected)) & \" operation line(s) from tasklist.\", NotificationType.Success);\n"
+            "    Notify(\"Added \" & " + dt.plural("CountRows(colVhpPickerSelected)", "operation") + " & \" from the task list.\", NotificationType.Success);\n"
             "    Clear(colVhpPickerSelected);\n"
             "    Set(varVhpTasklistPickerOpen, false)\n"
             ")"

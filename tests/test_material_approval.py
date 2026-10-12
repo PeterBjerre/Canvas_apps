@@ -355,9 +355,17 @@ def test_the_hub_shows_a_flow_for_plans_and_materials():
         assert '%s"' % dom in apf.applies("ThisItem")
 
 
+def _nodes(svg):
+    """Knuderne i striben. Etiketterne over knuderne er vaek (UX-review,
+    hub) - navnene staar i billedets tooltip (build_hub.APPROVAL_TIP)."""
+    return svg.count("<circle")
+
+
 def test_materials_strip_has_the_system_step_and_the_handover():
     svg = apf._mat_strip("ThisItem")
-    assert ">System<" in svg and ">Handover<" in svg
+    # System og overdragelsen: to knuder, ingen etiketter.
+    assert _nodes(svg) == 2 and 'Stage = "System"' in svg
+    assert ">System<" not in svg
     # Og ikke VH-planens trin.
     assert "Cost" not in svg and "Quality" not in svg
 
@@ -379,15 +387,17 @@ def test_a_requested_row_is_not_a_decision():
 def test_the_plan_strip_is_unchanged():
     # Materials gren er lagt VED SIDEN AF VH-planens, ikke ind i den.
     vh = apf._vh_strip("ThisItem")
-    for name in (">System<", ">Cost<", ">Quality<", ">SAP<"):
-        assert name in vh, name
+    # System, Cost, Quality og SAP: fire knuder.
+    assert _nodes(vh) == 4
+    for stage in ("System", "Cost", "Quality"):
+        assert 'Stage = "%s"' % stage in vh, stage
     assert "Max(1, ThisItem.ItemCount)" in vh
     assert "Requested" not in vh
     assert "Handover" not in vh
     # Begge grene staar i den byggede skaerm - den ene erstattede ikke
     # den anden.
     hub = _hub()
-    for name in (">Cost<", ">Quality<", ">Handover<"):
+    for name in ("Cost approval", "Quality review", "Handover to Master Data"):
         assert name in hub, name
 
 

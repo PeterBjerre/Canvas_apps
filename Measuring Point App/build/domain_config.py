@@ -96,7 +96,7 @@ SECTIONS = [
         ("FunctionalLocation", "Functional location", "text", None),
     ]),
     ("Existing or new", [
-        ("ExistsInSap", "Does it exist in SAP?", "choice", YESNO),
+        ("ExistsInSap", "Exists in SAP", "choice", YESNO),
         ("MeasuringPoint", "Measuring point no.", "text", None),
     ]),
     ("Type and characteristic", [
@@ -116,9 +116,9 @@ SECTIONS = [
         ("ExpectedAnnualUsage", "Expected annual usage", "dec", None),
     ]),
     ("Reading source", [
-        ("InProdos", "Is it located in PRODOS?", "choice", YESNO),
+        ("InProdos", "In PRODOS", "choice", YESNO),
         ("ProdosTag", "PRODOS tag", "text", None),
-        ("ProdosCounterExists", "Does the counter exist in PRODOS?", "choice", YESNO),
+        ("ProdosCounterExists", "Counter exists in PRODOS", "choice", YESNO),
         ("CounterCreateIn", "Counter to be created in", "choice", ["PRODOS", "SRO"]),
     ]),
     ("Additional information", [

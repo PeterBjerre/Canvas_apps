@@ -108,7 +108,9 @@ ALLOW = {
 # visningstekst. Kun paa skaermene: et FLOW maa ikke skrive dem igen.
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import display_text as _dt  # noqa: E402
-ALLOW_SCREENS = ALLOW | {da.strip() for da, _en in _dt.EXACT + _dt.PREFIX + _dt.FRAGMENT}
+ALLOW_SCREENS = (ALLOW | {da.strip() for da, _en in _dt.EXACT + _dt.PREFIX + _dt.FRAGMENT}
+                 # Gamle opsummeringer i MD_RequestIndex (UX-review B4).
+                 | {da.strip() for da, _en in _dt.LEGACY_SHORT})
 
 # Ting, der ikke er saetninger: farver, tal, egenskabsnavne, URL'er.
 SKIP = re.compile(r"^(#|RGBA|Font\.|https?:|[A-Za-z]+\.[A-Za-z]|@odata|[\d\s,.:;/|<>_-]+$)")
@@ -208,6 +210,106 @@ def check_flows():
     return bad, n
 
 
+# ---------------------------------------------------------------------------
+# SENTENCE CASE (UX-review 2026-10, F1/T7)
+#
+# Kortene hed "Equipment Form", "Saved Rows", "Plan Header", "Item Editor"
+# og "Tasklist For Active Item" - ved siden af "Add item" og "Save draft".
+# Appen skriver sentence case: kun foerste ord med stort, plus egennavne og
+# forkortelser. Reglen laeser hver tekstlitteral i Text og Label og afviser
+# et ord med stort forbogstav midt i en saetning, med mindre det hoerer til
+# et egennavn i PROPER.
+# ---------------------------------------------------------------------------
+PROPER = (
+    # Domaenerne og skaermene - de er navne, ogsaa midt i en saetning.
+    "Masterdata Hub", "Functional Locations", "Functional Location",
+    "Maintenance Plans", "Maintenance Plan", "Measuring Points", "Measuring Point",
+    "Issue Board", "Equipments", "Equipment", "Materials", "Material",
+    "KKS lookup", "BIO SAP",
+    # Roller og systemer, appen henviser til.
+    "Master Data", "System Manager", "SharePoint", "Power Apps", "Outlook",
+    "Excel", "Teams", "Office", "Microsoft", "Windows", "Edge", "Chrome",
+    # Knap- og feltnavne, en hjaelpetekst citerer ("choose Add row").
+    "Add row", "Update row", "Save draft", "Submit", "New request", "Edit",
+    "Documents", "Details", "Objects", "Copy row", "Delete row", "Search",
+    "Clear filters", "Valid FL", "Paste rows", "Add item", "Add material", "Add",
+    "Upload", "Reopen", "New issue", "Manual operation", "Add lines from task list", "Save changes", "None", "ZBOW", "Office 365",
+    # Kortene, en hjaelpetekst henviser til ved navn.
+    "Task list and operations", "Strategy packages", "Plan header", "Row details",
+    # SharePoint-kolonner, en hjaelpetekst naevner ved navn.
+    "Hierarchical",
+    # Issue Boards statusser (Issue Board/build/ib_config.STATUS).
+    "Ready for retest", "Closed",
+    # Ugedage og maaneder.
+    "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
+    "January", "February", "March", "April", "May", "June", "July", "August",
+    "September", "October", "November", "December",
+)
+# Egenskaberne, brugeren laeser som overskrift eller etiket.
+CASE_PROPS = ("Text", "Label")
+_WORD = re.compile(r"[A-Za-z0-9_][A-Za-z0-9_'’]*")
+# En ny saetning: starten, efter . : ! ? ( · | / , efter " - " og efter
+# to eller flere mellemrum (to tekster sat sammen med &).
+_SENTENCE = re.compile(r"(?:^|[.:!?(·•|/]|\s-\s|\s–\s|\s{2,})\s*$")
+
+
+def _proper():
+    """PROPER + appens statusetiketter (Submitted, Ready for SAP ...)."""
+    import request_index as ri
+    return PROPER + tuple(lab for _k, lab, _s in ri.STATUS)
+
+
+def title_case_words(v):
+    """Ordene i v, der staar med stort forbogstav midt i en saetning."""
+    t = v
+    for p in sorted(_proper(), key=len, reverse=True):
+        t = re.sub(r"\b%s\b" % re.escape(p), lambda m: "_" * len(m.group(0)), t)
+    out = []
+    for m in _WORD.finditer(t):
+        w = m.group(0)
+        if not re.match(r"^[A-Z][a-z]+$", w):
+            continue                      # smaa ord, FORKORTELSER, MD_Navne, CamelCase
+        if _SENTENCE.search(t[:m.start()]):
+            continue                      # foerste ord i en saetning
+        out.append(w)
+    return out
+
+
+def _yaml_props(path):
+    import yaml
+    doc = yaml.safe_load(io.open(path, encoding="utf-8"))
+    def walk(nodes):
+        for item in nodes or []:
+            for name, body in item.items():
+                yield name, body.get("Properties") or {}
+                yield from walk(body.get("Children"))
+    for scr in (doc.get("Screens") or {}).values():
+        yield from walk(scr.get("Children"))
+
+
+def check_case(paths=None):
+    """Title Case i Text/Label -> fund (liste af tekstlinjer)."""
+    bad = []
+    for path in paths or screens():
+        if not os.path.basename(path).startswith("Screen"):
+            continue
+        for name, props in _yaml_props(path):
+            for key in CASE_PROPS:
+                val = props.get(key)
+                if not isinstance(val, str):
+                    continue
+                for m in re.finditer(r'"((?:[^"]|"")*)"', val):
+                    lit = m.group(1).replace('""', '"').strip()
+                    if " " not in lit:
+                        continue
+                    words = title_case_words(lit)
+                    if words:
+                        bad.append("  %-24s %s.%s: %s  (%s)" % (
+                            os.path.basename(os.path.dirname(path)), name, key,
+                            lit[:70], ", ".join(words)))
+    return bad
+
+
 def check():
     bad = []
     n_files = 0
@@ -230,6 +332,14 @@ def check():
             bad.append("  %-24s %s" % (os.path.basename(os.path.dirname(path)), v[:90]))
     flow_bad, n_flows = check_flows()
     bad += flow_bad
+    case_bad = check_case()
+    if case_bad:
+        raise SystemExit(
+            "Sprogtjek: %d tekst(er) i Title Case.\n" % len(case_bad)
+            + "\n".join(sorted(set(case_bad))) +
+            "\n\nAppen skriver sentence case (UX-review F1): kun foerste ord med\n"
+            "stort, plus egennavne. Er ordet et egennavn, saa skriv det i PROPER\n"
+            "i tools/check_language.py.")
     if bad:
         raise SystemExit(
             "Sprogtjek: %d dansk(e) streng(e) paa skaermene.\n" % len(bad)

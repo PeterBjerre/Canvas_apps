@@ -52,13 +52,14 @@ from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_WARN_BG, C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY)
 import layout_tokens as lay
 from layout_tokens import fits, if_below, below, at_least
-from build_helpers import (tap_backdrop, text_ctrl, text_min_height, group, button, text_input,
+from build_helpers import (ensure_hit, tap_backdrop, text_ctrl, text_min_height, group, button, text_input,
                            checkbox_theme, date_picker, fit_button_row,
                            fit_button_width, number_input, themed_dropdown,
                            card, field_cell, pin_widths, badge, top_bar, grow,
                            flow_row, label_px, text_px, loading_overlay,
                            with_busy, confirm_modal, edit_button, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
-                           ICON_W, icon_on_mobile, new_request_label)
+                           ICON_W, icon_on_mobile, new_request_label, segmented, empty_state, breadcrumb,
+                           request_actions)
 
 # Mens en gemning koerer, staar ventespinneren oven paa skaermen (issue #54).
 SAVING_VAR = "varDomSaving"
@@ -80,6 +81,9 @@ import messages as msg
 import admin_log as alog
 import permissions as perm
 import request_index as ri
+import display_text as dt
+import status_chip as sc
+import design_tokens as tok
 
 # Flowkontrakten staar i tools/attflows.py; ruden her er dens
 # domaeneudgave - samme tre flows, egne samlingsnavne.
@@ -343,21 +347,30 @@ def build_bar():
         btn.props["LayoutMinWidth"] = str(w)
         return btn
 
+    no_rows = f"CountRows({SENDABLE}) = 0"
     save = sized(button(
         "btnDomSendDraft", '"Save draft"', with_busy(SAVING_VAR, send_fx(False)),
         icon=ICON_SAVE,
-        display_mode=f'If(varDomViewOnly || CountRows({SENDABLE}) = 0, DisplayMode.Disabled, DisplayMode.Edit)',
-        tooltip='"Put the request on the landing page as Draft - rows stay editable"'),
+        display_mode=f'If(varDomViewOnly || {no_rows}, DisplayMode.Disabled, DisplayMode.Edit)',
+        # Hvorfor er den graa? (UX-review, Materials): "Add a row first".
+        tooltip=(f'If(varDomViewOnly, "View mode - choose Edit to change the request", '
+                 f'{no_rows}, "Add a row first", '
+                 '"Put the request on the landing page as Draft - rows stay editable")')),
         True)
     submit = sized(button(
         "btnDomSubmit", '"Submit"', submit_press_fx(), primary=True,
         icon=ICON_SUBMIT,
         display_mode=f'If(varDomViewOnly || CountRows({VALID}) = 0, DisplayMode.Disabled, DisplayMode.Edit)',
-        tooltip='"Submit the valid rows - they are locked afterwards (asks first)"'),
+        tooltip=(f'If(varDomViewOnly, "View mode - choose Edit to change the request", '
+                 f'{no_rows}, "Add a row first", '
+                 f'CountRows({VALID}) = 0, "Complete the required fields on a row first", '
+                 f'CountRows({DRAFTS}) > 0, Text(CountRows({DRAFTS})) & " draft rows stay as drafts - '
+                 'only the valid rows are submitted (asks first)", '
+                 '"Submit the valid rows - they are locked afterwards (asks first)")')),
         bool(ICON_SUBMIT))
-    # "New Request" uden plus-ikon (issue #243) - build_helpers.new_request_label.
+    # "New request" - den faelles tekst (build_helpers.new_request_label).
     new = new_request_label(button(
-        "btnDomNewRequest", '"New Request"',
+        "btnDomNewRequest", '"New request"',
         'Set(varDomRequestGuid, "");\nSet(varDomRequestNo, "");\nSet(varDomViewOnly, false);\nSet(varDomCanEdit, false);\n' + clear_form_fx(),
         tooltip='"Start a new request - your saved rows stay in SharePoint"'))
     # Edit og Delete er VH-planens (issue #94): de faelles knapper i
@@ -366,17 +379,23 @@ def build_bar():
     edit = edit_button("btnDomEditRequest", "varDomViewOnly", "varDomCanEdit",
                        "Set(varDomViewOnly, false)", what=WHAT,
                        tooltip=f'"Edit this {WHAT}"')
+    # SAMME RAEKKEFOELGE SOM ALLE ANDRE DOMAENER (UX-review T1):
+    # [New request] | [Edit] [Save draft] [Submit (N to fix)] [Delete].
+    # Taelleren er raekkerne, der stadig er kladder - de sendes ikke med.
+    actions = request_actions("Dom", new, save, submit, fix_expr=f"CountRows({DRAFTS})",
+                              extra=[edit])
     narrow = below("Tablet")
     save.props["Width"] = f"If({narrow}, 40, {save.props['Width']})"
     save.props["Layout"] = f"If({narrow}, ButtonLayout.IconOnly, ButtonLayout.IconBefore)"
-    # Submit ogsaa kun sit ikon paa en telefon, saa "New Request" kan staa
+    # Submit ogsaa kun sit ikon paa en telefon, saa "New request" kan staa
     # med hele sin tekst (issue #243). Tooltip og navn er uaendrede.
     if ICON_SUBMIT:
         submit.props["Width"] = f"If({narrow}, 40, {submit.props['Width']})"
         submit.props["Layout"] = f"If({narrow}, ButtonLayout.IconOnly, ButtonLayout.IconBefore)"
     return top_bar("Dom", f'"{cfg.TITLE}"', f'"{cfg.SUBTITLE}"',
-                   [edit, delete_button("Dom", "varDomViewOnly", "varDomRequestGuid", WHAT), save, submit, new],
-                   icon=cfg.APP_KEY, mode_var="varDomViewOnly", num_var="varDomRequestNo")
+                   actions + [delete_button("Dom", "varDomViewOnly", "varDomRequestGuid", WHAT)],
+                   icon=cfg.APP_KEY, mode_var="varDomViewOnly", num_var="varDomRequestNo",
+                   crumb=breadcrumb("Dom", cfg.APP_KEY, "varDomRequestNo"))
 
 
 # ---------------------------------------------------------------------------
@@ -433,6 +452,8 @@ def _input_for(col, kind, choices, required_formula="false"):
         return text_input(name, v, height=140, display_mode=DM_ROW,
                           ttype="Multiline",
                           onchange=f"Set({v}, Self.Text)")
+    if kind == "choice" and set(choices or ()) == set(YES_NO):
+        return yes_no(col)
     if kind == "choice":
         # themed_dropdown tager TEKSTEN og slaar selv recorden op til
         # ModernDropdown.Default.
@@ -458,6 +479,25 @@ def _input_for(col, kind, choices, required_formula="false"):
                    required_formula=required_formula,
                    onchange=f"Set({v}, Self.Text)")
     return c
+
+
+# JA/NEJ ER ET SEGMENT OVERALT (UX-review T6). Materials havde Stock item
+# som segment, Strategic part som dropdown og Wear part som tekstfelt;
+# Measuring Points' "Does it exist in SAP?" var en dropdown. Et valgfelt
+# med netop Yes og No bliver nu altid segmentet [ No | Yes ]. Den LAGREDE
+# vaerdi er uaendret: teksten "Yes" eller "No".
+YES_NO = ("No", "Yes")
+
+
+def yes_no(col, tip=None, extra_fx=None):
+    """[ No | Yes ] for et tekst-/valgfelt, der gemmer "No"/"Yes"."""
+    v = _var(col)
+    label = next(l for c, l, _k, _ch in FIELDS if c == col)
+    opts = []
+    for val in YES_NO:
+        fx = f'Set({v}, "{val}")' + (f";\n{extra_fx(val)}" if extra_fx else "")
+        opts.append((val, val, f'Coalesce({v}, "") = "{val}"', fx, tip))
+    return segmented(f"conDom{col}Seg", opts, display_mode=DM_ROW, label=label)
 
 
 def _plant_dropdown():
@@ -805,7 +845,16 @@ def save_row_fx(status="valid", required=(), always=()):
     always: krav, der gaelder BAADE kladde og faerdig raekke (opt-in,
     issue #228) - en vaerdi, der er forkert, ikke bare mangler (Materials:
     min stock > max stock). Samme form som required.
+
+    status="auto" (UX-review 2026-10, F2/T2): EEN knap, "Add row" /
+    "Update row". Raekken gemmes som FAERDIG, naar alle krav er opfyldt, og
+    ellers som KLADDE - kun beskrivelsen er et krav for at gemme. Foer var
+    der to knapper (Save row draft og Save row), og brugeren skulle selv
+    vide, hvilken status raekken skulle have. Beskeden siger, hvad der blev
+    gemt, og hvad der mangler for at raekken kan indsendes.
     """
+    if status == "auto":
+        return _save_row_auto(required, always)
     patch = [
         f"            {cfg.C_TEXT}: Trim(varDomFText),",
         "            Plant: varDomFPlant,",
@@ -937,6 +986,40 @@ def save_row_fx(status="valid", required=(), always=()):
     )
 
 
+def row_complete_fx(required=()):
+    """Sand, naar raekken opfylder kravene til en FAERDIG raekke: tekst,
+    vaerk og appens egne krav (de samme som save_row_fx("valid"))."""
+    conds = ['!IsBlank(Trim(Coalesce(varDomFText, "")))', "!IsBlank(varDomFPlant)"]
+    conds += [f"!({c})" for c, _t in required]
+    return "(" + " && ".join(conds) + ")"
+
+
+def _save_row_auto(required, always):
+    """Gem raekken som faerdig eller som kladde - afgjort af kravene."""
+    complete = row_complete_fx(required)
+    valid = save_row_fx("valid", required=(), always=always)
+    draft = save_row_fx("draft", required=(), always=always)
+    # Beskeden: gemt som kladde, og hvad der mangler for at blive faerdig.
+    missing = ['If(IsBlank(varDomFPlant), "' + PLANT_LABEL_MISSING + '", "")']
+    for c, text in required:
+        missing.append(f'If({c}, "{text} ", "")')
+    hint = " & ".join(missing)
+    msg = '"Saved as draft row " & ' + ACTIVE + '.ItemKey & " - " & Trim(' + hint + ')'
+    for a, b in (('Set(varDomInfo, "Draft saved as " & ' + ACTIVE + '.ItemKey);',
+                  f'Set(varDomInfo, {msg});'),
+                 ('Notify("Draft saved as " & ' + ACTIVE + '.ItemKey, NotificationType.Success)',
+                  f'Notify({msg}, NotificationType.Warning)')):
+        if a not in draft:
+            raise SystemExit("domain_parts._save_row_auto: kladdens besked er aendret")
+        draft = draft.replace(a, b)
+    return ("// Add row / Update row (UX-review F2): faerdig, naar kravene er opfyldt,\n"
+            "// ellers kladde. Kun beskrivelsen kraeves for at gemme.\n"
+            f"If(\n    {complete},\n" + _indent(valid, 4) + ",\n" + _indent(draft, 4) + "\n)")
+
+
+PLANT_LABEL_MISSING = "%s is required to submit the row." % cfg.PLANT_LABEL
+
+
 def delete_confirmed_fx():
     """Sletningen selv - koeres af bekraeftelsens "Delete".
 
@@ -1055,7 +1138,7 @@ def build_attachments():
         "ShowScrollbar": "false",
         "TabIndex": "0",
         "TemplatePadding": "2",
-        "TemplateSize": str(du.ROW_H - 2),
+        "TemplateSize": du.TEMPLATE_H,
         "Width": "Parent.Width",
         "WrapCount": "1",
     }, children=[row], h=gal_h)
@@ -1101,9 +1184,12 @@ ROW_BTN = {"btnDomRowOpen": 60, "btnDomRowDetails": 72, "btnDomRowDocs": 64,
 # btnVhpOpDelete. Teksten bliver staaende som tilgaengelig etiket.
 ROW_ICON = {"btnDomRowDelete": "Delete"}
 ROW_BTN.update({n + "C": w for n, w in list(ROW_BTN.items())})
-ROW_H_C = 128
+# 128 + 2 x 14: kortets to knaplinjer er H.hit hoeje (44 under Desktop),
+# saa Delete-ikonet har sin klikflade (UX-review F6, regel 40).
+ROW_H_C = 156
 GAL_ROWS_C = 5
 ROW_BTN_H = 30
+ROW_LINE_H = lay.HIT     # linjen, knapperne staar i - ikonknappen er H.hit
 ROW_BTN_GAP = 4
 
 
@@ -1175,8 +1261,10 @@ def _detail_value(col, row):
             return label, f'If({row}.{col}, "Yes", "No")'
         if kind == "dec":
             return label, f'If(IsBlank({row}.{col}), "-", {row}.{col})'
-        if kind in ("num", "date"):
-            return label, f'If(IsBlank({row}.{col}), "-", Text({row}.{col}))'
+        if kind == "date":
+            return label, f'If(IsBlank({row}.{col}), "-", Text({row}.{col}, "{lay.DATE_FMT}"))'
+        if kind == "num":
+            return label, f'If(IsBlank({row}.{col}), "-", {lay.num_text(row + "." + col)})'
         return label, f'Coalesce({row}.{col}, "-")'
     raise SystemExit(f"domain_parts: {col} kan ikke vises i detaljeruden")
 
@@ -1324,8 +1412,10 @@ def build_details(scope=None, extra=()):
             v = f'If({row}.{col}, "Yes", "No")'
         elif kind == "dec":
             v = f'If(IsBlank({row}.{col}), "-", {row}.{col})'
-        elif kind in ("num", "date"):
-            v = f'If(IsBlank({row}.{col}), "-", Text({row}.{col}))'
+        elif kind == "date":
+            v = f'If(IsBlank({row}.{col}), "-", Text({row}.{col}, "{lay.DATE_FMT}"))'
+        elif kind == "num":
+            v = f'If(IsBlank({row}.{col}), "-", {lay.num_text(row + "." + col)})'
         else:
             v = f'Coalesce({row}.{col}, "-")'
         rows.append(_detail_row(n, label, v))
@@ -1363,6 +1453,8 @@ def build_details(scope=None, extra=()):
 # tager kun dem, der er meldt faerdige.
 SENDABLE = 'Filter(colDomRows, Status <> "submitted")'
 VALID = 'Filter(colDomRows, Status = "valid")'
+# Raekker, der er gemt som kladde: de mangler noget for at kunne indsendes.
+DRAFTS = 'Filter(colDomRows, Status = "draft")'
 
 
 def send_fx(submit):
@@ -1408,7 +1500,7 @@ def send_fx(submit):
         owner='Coalesce(varDomIdx.RequesterEmail, varDomMe)',
         owner_name="Coalesce(varDomIdx.RequesterName, User().FullName)",
         current="varDomIdx",
-        short_text=f'"{cfg.TITLE}: " & CountRows({rows}) & " row(s)"',
+        short_text=ri.rows_text(cfg.TITLE, f"CountRows({rows})"),
         plant=f"First({rows}).Plant", item_count=f"CountRows({rows})")
     # En admin, der indsender en andens anmodning, logges (tools/admin_log.py).
     admin_submit_log = ""
@@ -1726,8 +1818,8 @@ def docs_cell():
     hedder raekkens noegle, saa knappen virker foerst efter Save."""
     info = grow(text_input(
         "inpDomDocsInfo",
-        ('If(IsBlank(varDomActiveRowId), "Save the row first", '
-         f'Text(Coalesce({ACTIVE}.FileCount, 0)) & " document(s)")'),
+        ('If(IsBlank(varDomActiveRowId), "Add the row first", '
+         + dt.plural(f"Coalesce({ACTIVE}.FileCount, 0)", "document") + ")"),
         display_mode="DisplayMode.View", label='"Documents on this row"'))
     text = '"Documents"'
     btn = button("btnDomDocs", text, open_active_docs_fx(),
@@ -1793,13 +1885,18 @@ def form_footer(buttons):
     return [actions, info]
 
 
+# Add row-formlen - saettes af form_buttons, saa listens tomme tilstand kan
+# bruge den samme (build_list kaldes efter build_form).
+ADD_ROW_FX = [None]
+
+
 def form_buttons(save_fx, save_text, new_text, new_fx=None, new_tooltip=None,
                  new_icon="Add"):
     """Save draft, Save og New row/Reset form - i den orden, med den
     primaere knap naestsidst som i HTML-projektet.
 
     "Delete row" stod foerst. Den er fjernet (issue #94): en gemt raekke
-    slettes med ikonet paa sin egen raekke i Saved Rows, som i VH-planens
+    slettes med ikonet paa sin egen raekke i Rows, som i VH-planens
     operationstabel. form_footer regner bredden af de knapper, der er, saa
     pladsen forsvinder med knappen.
 
@@ -1807,15 +1904,22 @@ def form_buttons(save_fx, save_text, new_text, new_fx=None, new_tooltip=None,
     new_fx / new_tooltip / new_icon: appens egen tredje knap (opt-in,
     issue #228 - Materials' Reset spoerger foerst, naar der er noget at
     miste). Standard er den faelles "ryd formularen"."""
+    # EEN gem-knap (UX-review F2/T2): "Add row" for en ny raekke, "Update
+    # row" for en hentet. Den gemmer som faerdig eller som kladde efter
+    # kravene (save_row_fx("auto")). "Save row draft" er vaek. save_text
+    # bruges ikke laengere - teksten er den samme i alle domaener.
+    ADD_ROW_FX[0] = with_busy(SAVING_VAR, save_fx("auto"))
+    add = icon_on_mobile(fit(button(
+        "btnDomSave", '"Update row"', ADD_ROW_FX[0],
+        primary=True, display_mode=DM_ROW, icon=ICON_SAVE,
+        tooltip=('If(IsBlank(varDomActiveRowId), "Add the row to the request - it is '
+                 'saved as a draft until the required fields are filled in", '
+                 '"Save the changes to this row")')), icon=True))
+    add.props["Text"] = 'If(IsBlank(varDomActiveRowId), "Add row", "Update row")'
+    add.props["Icon"] = 'If(IsBlank(varDomActiveRowId), "Add", "Save")'
+    add.props["AccessibleLabel"] = "Self.Text"
     return [
-        icon_on_mobile(fit(button("btnDomSaveDraft", '"Save row draft"',
-                   with_busy(SAVING_VAR, save_fx("draft")),
-                   display_mode=DM_ROW, icon=ICON_SAVE,
-        tooltip='"Save the row as a draft - only the description is required"'), icon=True)),
-        icon_on_mobile(fit(button("btnDomSave", f'"{save_text}"',
-                   with_busy(SAVING_VAR, save_fx("valid")),
-                   primary=True, display_mode=DM_ROW, icon=ICON_SAVE,
-        tooltip='"Save the row as complete, ready to submit"'), icon=True)),
+        add,
         icon_on_mobile(fit(button("btnDomNew", f'"{new_text}"', new_fx or clear_form_fx(),
                                   icon=new_icon,
         tooltip=new_tooltip or '"Clear the form and start a new row"'), icon=True)),
@@ -1852,9 +1956,11 @@ LIST_SCOPE = (
     "Filter(\n"
     "    colDomRows,\n"
     f"    (IsBlank(Trim(inpDomSearch.Text)) || {SEARCH}),\n"
-    f'    (drpDomStatusFilter.Selected.Value = "{ALL_STATUS}" ||\n'
+    # Et gemt filter, der ikke laengere findes (et vaerk uden raekker),
+    # giver et tomt valg - og et tomt valg filtrerer ikke (F8).
+    f'    (IsBlank(drpDomStatusFilter.Selected.Value) || drpDomStatusFilter.Selected.Value = "{ALL_STATUS}" ||\n'
     "     Status = Lower(drpDomStatusFilter.Selected.Value)),\n"
-    f'    (drpDomPlantFilter.Selected.Value = "{ALL_PLANTS}" ||\n'
+    f'    (IsBlank(drpDomPlantFilter.Selected.Value) || drpDomPlantFilter.Selected.Value = "{ALL_PLANTS}" ||\n'
     "     Plant = drpDomPlantFilter.Selected.Value)\n"
     ")"
 )
@@ -1869,7 +1975,8 @@ PLANT_ITEMS = (
 T_GAP = 6
 HEAD_SIZE = 11
 CELL_PAD = 10
-BADGE_W = 90
+# Statuschippen (tools/status_chip.py) + cellens venstre luft.
+BADGE_W = sc.table_width(sc.ROW) + CELL_PAD
 
 # Knapperne. Raekkens handlinger er Details -> Edit -> Delete, i den
 # raekkefoelge og yderst til hoejre (issue #101). Docs og Copy staar i
@@ -1947,6 +2054,8 @@ def _action_button(a, suffix=""):
         b.props["Icon"] = f'"{a.icon}"'
         b.props["Layout"] = ("ButtonLayout.IconOnly" if a.icon_only
                              else "ButtonLayout.IconBefore")
+        if a.icon_only:
+            ensure_hit(b)
     return b
 # Galleriets egne 2 x 2 px skabelonpolstring og dets lodrette scrollbar.
 TABLE_AVAIL = f"(({FORM_W}) - 4 - {SCROLLBAR_W})"
@@ -1964,7 +2073,7 @@ def col_w(spec):
 
 
 def num_text(col):
-    return f'If(IsBlank(ThisItem.{col}), "", Text(ThisItem.{col}))'
+    return lay.num_text(f"ThisItem.{col}")
 
 
 def date_text(col):
@@ -2012,22 +2121,12 @@ def _head_text(name, text, width, visible=None, accessible=None):
 
 
 def _status_badge():
-    """Raekkens status som et maerke - VALID, DRAFT, SUBMITTED - i sin
-    egen farve, saa listen kan skimmes."""
-    s = "ThisItem.Status"
-    fg = (f'Switch({s}, "valid", {C_VALID_FG}, "submitted", {C_INFO_FG}, '
-          f'"draft", {C_WARN_FG}, {C_NEUTRAL_FG})')
-    bg = (f'Switch({s}, "valid", {C_VALID_BG}, "submitted", {C_INFO_BG}, '
-          f'"draft", {C_WARN_BG}, {C_NEUTRAL_BG})')
-    b = text_ctrl("txtDomRowStatus", f"Upper({s})", size=11, color=fg,
-                  weight="Semibold", height=22, width=BADGE_W - 2 * CELL_PAD,
-                  wrap="false", accessible=f'"Status: " & {s}',
-                  extra={"Fill": bg, "Align": "Align.Center",
-                         "AlignInContainer": "AlignInContainer.Center",
-                         "RadiusBottomLeft": "6", "RadiusBottomRight": "6",
-                         "RadiusTopLeft": "6", "RadiusTopRight": "6"})
-    return group("conDomRowStatus", [b], direction="Horizontal", gap=0,
-                 height=22, width=BADGE_W, align_items="Center",
+    """Raekkens status som den faelles statuschip (tools/status_chip.py,
+    UX-review T4): ikon + "Draft"/"Valid"/"Submitted" i sentence case. Her
+    stod VERSALER i et tekstmaerke, der ikke lignede hubbens status."""
+    chip = sc.status_chip("imgDomRowStatus", "ThisItem.Status", sc.ROW)
+    return group("conDomRowStatus", [chip], direction="Horizontal", gap=0,
+                 height=sc.H, width=BADGE_W, align_items="Center",
                  pad=(0, 0, 0, CELL_PAD))
 
 
@@ -2036,6 +2135,7 @@ def _icon_only(b, bn):
     if bn in ROW_ICON:
         b.props["Icon"] = f'"{ROW_ICON[bn]}"'
         b.props["Layout"] = "ButtonLayout.IconOnly"
+        ensure_hit(b)
     return b
 
 
@@ -2050,7 +2150,7 @@ def _row_buttons(name, btns, fxs, width, danger=(), modes=None):
                    accessible=who, tooltip=who)
         b.props["Size"] = "13"
         out.append(_icon_only(b, bn))
-    return group(name, out, direction="Horizontal", gap=ROW_BTN_GAP, height=ROW_BTN_H,
+    return group(name, out, direction="Horizontal", gap=ROW_BTN_GAP, height=ROW_LINE_H,
                  width=width, align_items="Center", pad=(0, 0, 0, CELL_PAD))
 
 
@@ -2058,19 +2158,9 @@ def _compact_row(lay_, load_fx, copy_fx, delete_fx):
     """Card row below Desktop: key + status on top, the next values under it, the actions
     on two short lines. Replaces the wide table, which would scroll sideways on a phone."""
     cs = list(lay_.slots)
-    s = "ThisItem.Status"
-    fg = (f'Switch({s}, "valid", {C_VALID_FG}, "submitted", {C_INFO_FG}, '
-          f'"draft", {C_WARN_FG}, {C_NEUTRAL_FG})')
-    bg = (f'Switch({s}, "valid", {C_VALID_BG}, "submitted", {C_INFO_BG}, '
-          f'"draft", {C_WARN_BG}, {C_NEUTRAL_BG})')
     key = text_ctrl("txtDomRowKeyC", cs[0][1], size=14, weight="Semibold", height=22, wrap="false")
     key = grow(key)
-    badge = text_ctrl("txtDomRowStatusC", f"Upper({s})", size=11, color=fg, weight="Semibold",
-                      height=22, width=BADGE_W - 2 * CELL_PAD, wrap="false",
-                      accessible=f'"Status: " & {s}',
-                      extra={"Fill": bg, "Align": "Align.Center",
-                             "RadiusBottomLeft": "6", "RadiusBottomRight": "6",
-                             "RadiusTopLeft": "6", "RadiusTopRight": "6"})
+    badge = sc.status_chip("imgDomRowStatusC", "ThisItem.Status", sc.ROW)
     line1 = group("conDomRowLineC1", [key, badge], direction="Horizontal", gap=8, height=22,
                   align_items="Center")
     rest = " & \"  \u00b7  \" & ".join(f"Text({c[1]})" for c in cs[1:4])
@@ -2086,14 +2176,14 @@ def _compact_row(lay_, load_fx, copy_fx, delete_fx):
                        display_mode=(kw.get("modes") or {}).get(bn), accessible=who, tooltip=who)
             b.props["Size"] = "13"
             out.append(_icon_only(b, bn))
-        return group(name, out, direction="Horizontal", gap=ROW_BTN_GAP, height=ROW_BTN_H,
+        return group(name, out, direction="Horizontal", gap=ROW_BTN_GAP, height=ROW_LINE_H,
                      align_items="Center")
 
     acts = HOOKS["row_actions"]
     if acts:
         def act_line(name, n):
             return group(name, [_action_button(a, "C") for a in acts if a.line == n],
-                         direction="Horizontal", gap=ROW_BTN_GAP, height=ROW_BTN_H,
+                         direction="Horizontal", gap=ROW_BTN_GAP, height=ROW_LINE_H,
                          align_items="Center")
         line3 = act_line("conDomRowLineC3", 1)
         line4 = act_line("conDomRowLineC4", 2)
@@ -2116,18 +2206,25 @@ def build_list(slots, badge_head, search_placeholder):
     lay_ = ListLayout(slots)
 
     # --- hovedet: titel, soegning og de to filtre ---------------------
-    title = text_ctrl("txtDomRowsH", '"Saved Rows"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
+    title = text_ctrl("txtDomRowsH", '"Rows"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
                       height=text_min_height(lay.SIZE_CARD_TITLE), wrap="false")
-    search = text_input("inpDomSearch", '""', width="240",
+    # Soegning og filtre huskes i SaveData-lageret (UX-review F8). Feltet
+    # hedder prefDom* her og prefEq*/prefMat*/prefMp* i BIO SAP.
+    search = text_input("inpDomSearch", tok.pref_get("prefDomSearch"), width="240",
                         placeholder=f'"{search_placeholder}"',
-                        label='"Search the rows"')
+                        label='"Search the rows"',
+                        onchange=tok.prefs_save({"prefDomSearch": "Self.Text"}))
     status = themed_dropdown(
         "drpDomStatusFilter", f'["{ALL_STATUS}", "Draft", "Valid", "Submitted"]',
-        f'"{ALL_STATUS}"', width="170", label='"Filter by status"')
-    plant = themed_dropdown("drpDomPlantFilter", PLANT_ITEMS, f'"{ALL_PLANTS}"',
-                            width="170", label='"Filter by plant"')
+        tok.pref_get("prefDomStatus", f'"{ALL_STATUS}"'), width="170",
+        label='"Filter by status"',
+        onchange=tok.prefs_save({"prefDomStatus": "Self.Selected.Value"}))
+    plant = themed_dropdown("drpDomPlantFilter", PLANT_ITEMS,
+                            tok.pref_get("prefDomPlant", f'"{ALL_PLANTS}"'),
+                            width="170", label='"Filter by plant"',
+                            onchange=tok.prefs_save({"prefDomPlant": "Self.Selected.Value"}))
     head = flow_row("conDomRowsTop", [title, search, status, plant], FORM_W, gap=8,
-                    flex=title, flex_min=text_px("Saved Rows", 17))
+                    flex=title, flex_min=text_px("Rows", 17))
 
     # --- tabellen -----------------------------------------------------------
     heads = [_head_text("txtDomHeadStatus", f'"{badge_head}"', BADGE_W)]
@@ -2144,7 +2241,7 @@ def build_list(slots, badge_head, search_placeholder):
         heads.append(_head_text("txtDomHeadActions", '"ACTIONS"', aw,
                                 accessible='"Actions"'))
         cells.append(group("conDomRowActions", [_action_button(a) for a in acts],
-                           direction="Horizontal", gap=ROW_BTN_GAP, height=ROW_BTN_H,
+                           direction="Horizontal", gap=ROW_BTN_GAP, height=ROW_LINE_H,
                            width=aw, align_items="Center", pad=(0, 0, 0, CELL_PAD)))
     else:
         heads.append(_head_text("txtDomHeadMore", '"MORE"', LIST_MORE_W))
@@ -2199,9 +2296,20 @@ def build_list(slots, badge_head, search_placeholder):
     table.props["Height"] = f"{table.props['Height']} + If({wide}, {SCROLLBAR_W}, 0)"
     table.h = table.props["Height"]
 
-    empty = None
+    # TOM LISTE (UX-review F4/T9): "No rows yet" med Add row - samme gem som
+    # formularens knap. Measuring Points viste kun overskrifterne.
+    empty = empty_state(
+        "conDomRowsEmpty",
+        f'If(IsEmpty(colDomRows), "No rows yet - fill in the details and choose Add row.", '
+        f'"No rows match the search and filters.")',
+        "Add row", ADD_ROW_FX[0] or "false", icon_key=cfg.APP_KEY,
+        button_name="btnDomRowsEmptyAdd", action_icon="Add",
+        action_visible="IsEmpty(colDomRows) && !varDomViewOnly",
+        visible=f"IsEmpty({LIST_SCOPE})")
+    table.vis = f"!IsEmpty({LIST_SCOPE})"
+    table.props["Visible"] = table.vis
 
-    return card("conDomRowsCard", [head, table] + _submit_parts())
+    return card("conDomRowsCard", [head, table, empty] + _submit_parts())
 
 
 # ---------------------------------------------------------------------------

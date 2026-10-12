@@ -72,12 +72,15 @@ from gen_screen import (Ctrl, stack_height, C_APP_BG, C_CARD_BG, C_CARD_BORDER, 
                         C_INFO_FG, C_INVALID_FG, C_MUTED, C_MUTED_BG, C_MODAL_BG, C_OVERLAY,
                         C_PRIMARY, C_PRIMARY_SOFT, C_TITLE, C_TRANSPARENT, C_WARN_BG,
                         C_WARN_FG)
-from build_helpers import (button, card, checkbox_theme, concurrent, confirm_modal,
+from build_helpers import (empty_state, ensure_hit, hit_size, button, card, checkbox_theme, concurrent, confirm_modal,
                            fit_button_width, group,
                            flow_row, grow, icon_on_mobile, label_row, loading_overlay, row_hit, row_rule,
                            text_ctrl, text_input, themed_dropdown, top_bar, ICON_W)
 from permissions import IS_ADMIN, ADMIN_LIST, ADMIN_GROUP
 from design_tokens import ref as _t
+import icons
+import status_chip as sc
+import display_text as dt
 import layout_tokens as lay
 from layout_tokens import SHELL_W, below, at_least, if_below
 
@@ -452,35 +455,21 @@ IbCanAttach = !varIbSelPeek && IbSeeActivity && !varIbSel.Archived;
 IbFileCount = If(IbSeeActivity, CountRows(Filter(colIbActivity, Kind = "Attachment")), varIbFilesFor = varIbSelId, CountRows(varIbFiles), Blank());'''
 
 
-# ---------------------------------------------------------------------------
-# Status som maerke - tekst OG farve, aldrig kun farve
-# ---------------------------------------------------------------------------
-def _status_tokens(status_expr, archived_expr):
-    def sw(part):
-        body = ", ".join(f'"{s}", {_t("state-" + c + "-" + part)}' for s, c, _r in cfg.STATUS)
-        return (f"If({archived_expr}, {_t('state-neutral-' + part)}, "
-                f"Switch({status_expr}, {body}, {_t('state-neutral-' + part)}))")
-    return sw("fg"), sw("bg")
-
-
-def _status_label(status_expr, archived_expr):
-    return f'If({archived_expr}, "Archived", {status_expr})'
-
-
-CHIP_W = 124
-CHIP_H = 24
+# Statussen er den faelles statuschip (tools/status_chip.py, UX-review T4):
+# ikon + tekst + statussens farver - som i hubben og domaenerne.
+ISSUE_STATUS = sc.issue_table(cfg.STATUS) + [sc.ARCHIVED]
+CHIP_W = sc.table_width(ISSUE_STATUS)
+CHIP_H = sc.H
 
 
 def _chip(name, status_expr, archived_expr, x=None, y=None, width=CHIP_W):
-    fg, bg = _status_tokens(status_expr, archived_expr)
-    extra = {"VerticalAlign": "VerticalAlign.Middle", "PaddingLeft": "8", "PaddingRight": "8",
-             **lay.radius(12)}
+    key = f'If({archived_expr}, "Archived", {status_expr})'
+    chip = sc.status_chip(name.replace("txtIb", "imgIb", 1), key, ISSUE_STATUS,
+                          default=("", "Unknown", sc.ISSUE_ICONS["New"], "neutral"), width=width)
     if x is not None:
-        extra["X"] = x
-        extra["Y"] = y
-    return text_ctrl(name, _status_label(status_expr, archived_expr), size=lay.SIZE_MICRO,
-                     weight="Semibold", height=CHIP_H, align="Center", color=fg, fill=bg,
-                     width=width, accessible='"Status: " & Self.Text', extra=extra)
+        chip.props["X"] = x
+        chip.props["Y"] = y
+    return chip
 
 
 # ---------------------------------------------------------------------------
@@ -537,10 +526,15 @@ def build_bar():
     # Refresh er ikke laengere en del af det normale arbejde - hver aendring
     # opdaterer selv det, den roerer (issue #212). Den henter andres
     # aendringer stille, uden at filtrene eller en aaben sag roeres.
-    refresh = button("btnIbRefresh", '"Refresh"', REFRESH,
-                     width=fit_button_width('"Refresh"'), height=36,
+    # Refresh er en lille ikonknap (UX-review T1) - listen opdateres selv
+    # ved hvert besoeg og efter hvert gem. New issue er den primaere.
+    refresh = button("btnIbRefresh", '""', REFRESH, width=40, height=36,
+                     icon=icons.FLUENT["refresh"],
                      accessible='"Load the latest changes from everyone"',
+                     tooltip='"Refresh - load the latest changes from everyone"',
                      display_mode="If(varIbLoading || varIbSyncing, DisplayMode.Disabled, DisplayMode.Edit)")
+    refresh.props["Layout"] = "ButtonLayout.IconOnly"
+    ensure_hit(refresh)
     return top_bar(P, f'"{cfg.TITLE}"',
                    '"Report what you find while testing, and follow it until it is fixed."',
                    [refresh, new], narrow_hide=("btnIbRefresh",), icon=cfg.APP_KEY)
@@ -821,39 +815,27 @@ LIST_ITEMS = (
     ")"
 )
 
-DATE_FMT = '"dd mmm yyyy"'
-DATETIME_FMT = '"dd mmm yyyy hh:mm"'
+# Datoer som i resten af appen (layout_tokens.DATE_FMT, UX-review B5): her
+# stod "dd mmm yyyy", og maaneden kom paa brugerens sprog ("08 okt 2026").
+DATE_FMT = '"%s"' % lay.DATE_FMT
+DATETIME_FMT = '"%s"' % lay.DATETIME_FMT
 # "Updated" kun efter en reel aendring - samme regel som popuppen uden
 # Activity (UPDATED_AFTER_MIN).
 ROW_UPDATED = f"DateDiff(ThisItem.CreatedOn, ThisItem.UpdatedOn, TimeUnit.Minutes) >= {UPDATED_AFTER_MIN}"
-PRIORITY_TONE = {"Urgent": "error", "High": "warn", "Normal": "neutral", "Low": "neutral"}
-PRI_W = 72
-
-
-def _priority_tokens(expr):
-    def sw(part):
-        body = ", ".join(f'"{p}", {_t("state-" + PRIORITY_TONE[p] + "-" + part)}'
-                         for p, _r in cfg.PRIORITY)
-        return f"Switch({expr}, {body}, {_t('state-neutral-' + part)})"
-    return sw("fg"), sw("bg")
+# PRIORITETEN MAA IKKE LIGNE STATUS (UX-review T4): Normal og Low er
+# almindelig tekst, kun Urgent og High faar ikon og farve
+# (tools/status_chip.PRIORITY). Foer var begge farvede piller.
+PRI_W = sc.table_width(sc.PRIORITY)
+_NO_PRIORITY = ("", "-", None, "plain")
 
 
 def _pri_badge(name, expr, width=PRI_W, visible=None):
-    """Prioriteten som maerke - tekst OG farve. I tabellen er cellen altid
-    synlig (en skjult celle ville flytte de naeste kolonner); uden
-    prioritet staar en streg uden flade."""
-    pfg, pbg = _priority_tokens(expr)
-    extra = {"VerticalAlign": "VerticalAlign.Middle", **lay.radius(12)}
-    if visible is None:
-        return text_ctrl(name, f'If(IsBlank({expr}), "-", {expr})', size=lay.SIZE_MICRO,
-                         weight="Semibold", height=CHIP_H, width=width, align="Center",
-                         color=f"If(IsBlank({expr}), {C_MUTED}, {pfg})",
-                         fill=f"If(IsBlank({expr}), {C_TRANSPARENT}, {pbg})",
-                         accessible='"Priority: " & Self.Text', extra=extra)
-    return text_ctrl(name, expr, size=lay.SIZE_MICRO, weight="Semibold", height=CHIP_H,
-                     width=width, align="Center", color=pfg, fill=pbg,
-                     accessible='"Priority: " & Self.Text',
-                     visible=f"({visible}) && !IsBlank({expr})", extra=extra)
+    """Prioriteten. Uden prioritet staar en streg."""
+    vis = None if visible is None else f"({visible}) && !IsBlank({expr})"
+    chip = sc.status_chip(name.replace("txtIb", "imgIb", 1), expr, sc.PRIORITY,
+                          default=_NO_PRIORITY, width=width, visible=vis)
+    chip.props["AccessibleLabel"] = chip.props["AccessibleLabel"].replace('"Status: "', '"Priority: "', 1)
+    return chip
 
 
 def _no_badge(name, expr, width=NO_W):
@@ -882,6 +864,7 @@ def _attach_btn(name, visible, width=ACT_BTN):
     b.props["BorderColor"] = C_TRANSPARENT
     # Oven paa raekkens klikflade - klikket er knappens eget (gen_screen).
     b.props["_OnTop"] = "true"
+    ensure_hit(b)                      # H.hit (UX-review F6, regel 40)
     return b
 
 
@@ -987,8 +970,8 @@ def build_list():
                   'If(ThisItem.Archived, "Archived", ThisItem.Status)',
                   "Parent.TemplateWidth", "Parent.TemplateHeight - 1")
     att_c = _attach_btn("btnIbRowAttachC", f"{below('Desktop')} && {ROW_CAN_ATTACH}")
-    att_c.props["X"] = f"Parent.TemplateWidth - 12 - {ACT_BTN}"
-    att_c.props["Y"] = str(CMP_ROW_H - 1 - 10 - 32 + 7)
+    att_c.props["X"] = "Parent.TemplateWidth - 12 - Self.Width"
+    att_c.props["Y"] = f"{CMP_ROW_H - 1 - 10 + 7} - Self.Height"
     att_c.props.pop("_OnTop")
 
     row_h = if_below("Desktop", str(CMP_ROW_H), str(TBL_ROW_H))
@@ -1029,9 +1012,14 @@ def build_list():
         f'{FILTERED}, "No issues match the filters. Clear the filters to see more.", '
         'Switch(varIbState, "closed", "There are no closed issues here.", "archived", '
         '"There are no archived issues here.", "There are no open issues here."))')
-    empty = text_ctrl("txtIbEmpty", empty_fx, size=lay.SIZE_BODY, height=40, wrap="true",
-                      color=f"If(IbFailed, {C_INVALID_FG}, {C_MUTED})",
-                      visible="galIbList.AllItemsCount = 0")
+    # Tom tilstand (UX-review F4/T9): ikon, beskeden og een handling -
+    # Clear filters, naar et filter er skyld i den tomme liste, og ellers
+    # New issue i "My issues". Retry staar under ved en fejl.
+    empty = empty_state("conIbEmpty", empty_fx, "Clear filters", CLEAR_FILTERS,
+                        icon_key=cfg.APP_KEY, primary=False, button_name="btnIbEmptyAction",
+                        action_visible=f"({FILTERED}) && !IbFailed && !varIbLoading",
+                        visible="galIbList.AllItemsCount = 0")
+    empty.children[1].props["Color"] = f"If(IbFailed, {C_INVALID_FG}, {C_MUTED})"
     retry = button("btnIbRetry", '"Retry"', RETRY, width=fit_button_width('"Retry"'), height=36,
                    visible="IbFailed && !varIbLoading", accessible='"Load the issues again"')
     retry.props["AlignInContainer"] = "AlignInContainer.Start"
@@ -1129,8 +1117,9 @@ def _head(prefix, title_fx, close_fx, lead=(), title_w=None, close_icon=False):
         close.props["Tooltip"] = '"Close"'
         close.props["BorderColor"] = C_TRANSPARENT
         close.props["AlignInContainer"] = "AlignInContainer.Start"
+        ensure_hit(close)
     close.props["LayoutMinWidth"] = close.props["Width"]
-    hmin = 34 if close_icon else 32
+    hmin = hit_size(34) if close_icon else 32
     return group(f"con{prefix}Head", [*lead, title, close], direction="Horizontal", gap=10,
                  height=hmin if title_w is None else f"Max({hmin}, {h})", align_items="Center")
 
@@ -1746,7 +1735,7 @@ UPLOAD_FILES = (
     "    If(\n"
     f"        CountRows({UP_FAILED}) > 0,\n"
     f'        Notify("Not attached: " & {UP_FAILED_TEXT}, NotificationType.Error),\n'
-    '        Notify("The file(s) have been attached.", NotificationType.Success)\n'
+    '        Notify("The files have been attached.", NotificationType.Success)\n'
     "    )\n"
     ")"
 )
@@ -1789,6 +1778,7 @@ def _icon_action(name, icon, onselect, visible, label, tooltip, display_mode, da
     b.props["Layout"] = "ButtonLayout.IconOnly"
     b.props["BorderColor"] = C_TRANSPARENT
     b.props["LayoutMinWidth"] = str(ICON_BTN)
+    ensure_hit(b)
     return b
 
 
@@ -1828,7 +1818,8 @@ def _actions():
                           "If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)", danger=True)
     delete.props["BorderColor"] = C_TRANSPARENT
     row = group("conIbDetActions", [reopen, edit, archive, delete], direction="Horizontal",
-                gap=4, height=ICON_BTN, align_items="Center", justify="End", visible=CAN_ACT)
+                gap=4, height=hit_size(ICON_BTN), align_items="Center", justify="End",
+                visible=CAN_ACT)
     row.props["LayoutJustifyContent"] = (f"If({NARROW}, LayoutJustifyContent.Start, "
                                          "LayoutJustifyContent.End)")
     return row
@@ -1861,7 +1852,7 @@ def _files_panel():
         "txtIbFileMeta",
         'With({ e: LookUp(colIbActivity, Kind = "Attachment" && File = ThisItem.DisplayName) }, '
         f'Upper({ext}) & If(IsBlank(e), "", "  ·  " & e.SizeKb & " KB  ·  " & e.Actor & "  ·  " & '
-        'Text(e.At, "dd mmm yyyy hh:mm") & If(e.Initial, "  ·  with the report", "  ·  added later")))',
+        'Text(e.At, ' + DATETIME_FMT + ') & If(e.Initial, "  ·  with the report", "  ·  added later")))',
         size=lay.SIZE_SMALL, color=C_MUTED, height=18, width=f"{tw} - 56 - {open_w} - 12",
         extra={"X": "56", "Y": "31"})
     # NY fane: en fil er ikke en app, og Replace ville smide appen vaek.

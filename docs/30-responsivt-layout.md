@@ -194,6 +194,16 @@ Rækkeknapperne i Equipment og Material var 26 px med 14 pt tekst og stod
 som tomme kanter i bunden af rækken. Den håndbyggede app brugte 30 px og
 13 pt, og de knapper virkede. Alle knapper er nu mindst 30 px.
 
+### Regel E2 — Ikonknapper har klikfladen `H.hit` (regel 40)
+
+En knap, der kun er sit ikon, og et klikbart ikonbillede er mindst `H.hit`
+høje og brede: 32 px fra Desktop, 44 px under (touch, WCAG 2.5.5). Brug
+`build_helpers.ensure_hit()`. Står knappen i en række med fast højde, skal
+rækken følge med: `hit_size(n)` eller `Max(n, H.hit)` (fx FL-rækkernes
+cellelinje, dokumentlisternes `doc_upload.ROW_H` og domænekortets
+knaplinjer). En position regnes af `Self.Width`/`Self.Height`, ikke af et
+fast tal.
+
 ### Regel F — Overløb skjules, med mindre det skal scrolle
 
 Hver container skriver `LayoutOverflowX/Y = Hide`, med mindre den er

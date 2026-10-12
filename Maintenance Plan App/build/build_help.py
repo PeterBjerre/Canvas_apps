@@ -35,6 +35,8 @@ Kilder til indholdet: "Den gode VH-plan" (maj 2025) og "Planlaegning af en
 VH ordre" (2026), sammenholdt med reglerne i BIO_SAP_Fields.xlsx. Se
 docs/14-feltforklaringer.md.
 """
+import display_text as dt
+
 
 # Items med lovpligtigt eftersyn. Bruges af flere hints og af valideringen.
 STATUTORY_ITEMS = ("Filter(colVhpItems, "
@@ -53,7 +55,7 @@ def _q(s):
 # ---------------------------------------------------------------------------
 HINTS = {
     "Strategy": ("If(varVhpPlan.PlanType = \"Strategy\", "
-                 + _q("The packages are shown in Strategy Packages below.") + ", "
+                 + _q("The packages are shown in Strategy packages below.") + ", "
                  + _q("Only relevant for strategy plans.") + ")"),
 
     # Overskriften skal starte med vaerkets bogstavkode, saa planen kan findes
@@ -70,8 +72,8 @@ HINTS = {
                   "    { n: CountRows(" + STATUTORY_ITEMS + ") },\n"
                   "    If(\n"
                   "        n > 0,\n"
-                  "        " + _q("Required: ") + " & Text(n) & "
-                  + _q(" item(s) have activity type 110 or 115. All items in the plan must be the same statutory inspection.") + ",\n"
+                  "        " + _q("Required: ") + " & " + dt.plural("n", "item has", "items have") + " & "
+                  + _q(" activity type 110 or 115. All items in the plan must be the same statutory inspection.") + ",\n"
                   "        " + _q("Only used for statutory inspections (activity type 110 and 115).") + "\n"
                   "    )\n"
                   ")"),
@@ -80,8 +82,8 @@ HINTS = {
     # ikke revisionen.
     "FirstCall": ("If(\n"
                   "    CountRows(" + REVISION_ITEMS + ") > 0,\n"
-                  "    " + _q("Fixed to 01/01: an item is marked as outage work. Only the year can be chosen.") + ",\n"
-                  "    " + _q("First call. Choose day, month and year.") + "\n"
+                  "    " + _q("Set to January 1 (yyyy-01-01): an item is marked as outage work. Only the year can be chosen.") + ",\n"
+                  "    " + _q("First call - the date of the first maintenance call.") + "\n"
                   ")"),
 
     "ActivityType": ("With(\n"
@@ -110,7 +112,7 @@ HINTS = {
                    "        IsBlank(first.MainWorkCenter),\n"
                    "        \"Operation \" & first.OperationNo & \" must carry the main responsible work centre.\",\n"
                    "        CountRows(Filter(ops, IsBlank(OperationShortText))) > 0,\n"
-                   "        Text(CountRows(Filter(ops, IsBlank(OperationShortText)))) & \" operation(s) are missing a short text.\",\n"
+                   "        " + dt.plural("CountRows(Filter(ops, IsBlank(OperationShortText)))", "operation is", "operations are") + " & \" missing a short text.\",\n"
                    "        CountRows(Filter(ops, WorkHours <= 0)) > 0,\n"
                    "        \"Every operation needs a time and manning estimate - Work must be above 0.\"\n"
                    "    )\n"
