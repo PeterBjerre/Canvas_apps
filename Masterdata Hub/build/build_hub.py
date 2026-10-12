@@ -21,7 +21,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
 import layout_tokens as lay
 from build_helpers import (_sum_expr, row_rule, row_hit, text_input, text_ctrl, group, button, card, flow_row, top_bar,
                            fit_button_width, text_px, ICON_W, grow, themed_dropdown, icon_on_mobile,
-                           confirm_modal, new_request_label, empty_state, ensure_hit)
+                           confirm_modal, new_request_label, empty_state, skeleton_rows, ensure_hit)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET
 from design_tokens import theme_query, ref_hex, ref as _t
 import design_tokens as tok
@@ -277,9 +277,12 @@ HUB_ON_VISIBLE = (
     "If(IsBlank(varMdView), Set(varMdView, \"mine\"));\n"
     "If(IsBlank(varMdStatusMode), Set(varMdStatusMode, \"open\"));\n"
     "If(IsBlank(varMdFlag), Set(varMdFlag, \"\"));\n"
+    # varMdLoading: pladsholder-raekkerne under hentningen (UX-review M7).
+    "Set(varMdLoading, true);\n"
     "Concurrent(\n    " + SCOPE_REFRESH + ",\n    " + approval_flow.LOG_REFRESH + ",\n    " +
     # Note to self-raekkerne, brugeren maa se - kun RequestGuid (issue #115).
-    sn.hub_self_refresh("varMdMe") + "\n)"
+    sn.hub_self_refresh("varMdMe") + "\n);\n"
+    "Set(varMdLoading, false)"
 )
 
 
@@ -1199,13 +1202,17 @@ def build_list():
     empty = empty_state("conMdEmpty", '"No requests match the filters."', "Clear filters",
                         CLEAR_FILTERS, icon_key="hub", primary=False,
                         button_name="btnMdClearFilters",
-                        visible="galMdRequests.AllItemsCount = 0")
+                        visible="galMdRequests.AllItemsCount = 0 && !varMdLoading")
+    # Pladsholder-raekker, mens anmodningerne hentes (UX-review M7). Her
+    # stod "No requests match the filters" et ojeblik ved hvert besoeg.
+    loading = skeleton_rows("conMdSkeleton", "varMdLoading && galMdRequests.AllItemsCount = 0",
+                            label="Loading requests...")
 
     # Streg mellem overskriften og den foerste raekke.
     head_rule = group("conMdListRule", [], direction="Horizontal", height=1,
                       fill=C_DIVIDER, visible=at_least("Wide"))
 
-    parts = [_active_filter(), head, head_rule, gal, empty]
+    parts = [_active_filter(), head, head_rule, loading, gal, empty]
     gal.h = GAL_ROWS_C * ROW_H_C
     h_compact = card("conMdListCard", parts, gap=8).props["Height"]
     gal.h = GAL_ROWS_M * ROW_H_M

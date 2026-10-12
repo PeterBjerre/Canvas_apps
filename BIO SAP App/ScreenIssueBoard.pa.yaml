@@ -504,7 +504,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =74 + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) >= 856, 36, (34) + 12 + (34) + 12 + (36))) + 8 + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) >= 710, 36, (36) + 12 + (36) + 12 + (36))) + If(IsAdmin && varIbScope in ["all", "assigned"], 8 + (34), 0) + If(LayoutRank >= 3, 8 + (20), 0) + If(LayoutRank >= 3, 8 + (1), 0) + If(galIbList.AllItemsCount > 0, 8 + (Min(galIbList.AllItemsCount * (If(LayoutRank < 3, 92, 48)), Max(3 * (If(LayoutRank < 3, 92, 48)), App.Height - If(LayoutRank >= 2, 0, 52) - (14 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)), (Max(36, H.hit)), (36))) * 1 + 0) + 10 + 1) - 16 - 40 - 36 - 2 - (38 + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) >= 856, 36, (34) + 12 + (34) + 12 + (36))) + 8 + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) >= 710, 36, (36) + 12 + (36) + 12 + (36))) + If(IsAdmin && varIbScope in ["all", "assigned"], 8 + (34), 0) + If(LayoutRank >= 3, 8 + (20), 0) + If(LayoutRank >= 3, 8 + (1), 0)) - 8))), 0) + If(galIbList.AllItemsCount = 0, 8 + (112 + If((!IsBlank(varIbApp) || !IsBlank(varIbSection) || !IsBlank(varIbStatusF) || !IsBlank(varIbPriF) || !IsBlank(Trim(inpIbSearch.Text))) && !IbFailed && !varIbLoading, 8 + (36), 0)), 0) + If(IbFailed && !varIbLoading, 8 + (36), 0)
+                            =74 + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) >= 856, 36, (34) + 12 + (34) + 12 + (36))) + 8 + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) >= 710, 36, (36) + 12 + (36) + 12 + (36))) + If(IsAdmin && varIbScope in ["all", "assigned"], 8 + (34), 0) + If(LayoutRank >= 3, 8 + (20), 0) + If(LayoutRank >= 3, 8 + (1), 0) + If(varIbLoading, 8 + (26 + (44) + (44) + (44) + (44) + (44)), 0) + If(galIbList.AllItemsCount > 0, 8 + (Min(galIbList.AllItemsCount * (If(LayoutRank < 3, 92, 48)), Max(3 * (If(LayoutRank < 3, 92, 48)), App.Height - If(LayoutRank >= 2, 0, 52) - (14 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)), (Max(36, H.hit)), (36))) * 1 + 0) + 10 + 1) - 16 - 40 - 36 - 2 - (38 + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) >= 856, 36, (34) + 12 + (34) + 12 + (36))) + 8 + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) >= 710, 36, (36) + 12 + (36) + 12 + (36))) + If(IsAdmin && varIbScope in ["all", "assigned"], 8 + (34), 0) + If(LayoutRank >= 3, 8 + (20), 0) + If(LayoutRank >= 3, 8 + (1), 0)) - 8))), 0) + If(galIbList.AllItemsCount = 0 && !varIbLoading, 8 + (112 + If((!IsBlank(varIbApp) || !IsBlank(varIbSection) || !IsBlank(varIbStatusF) || !IsBlank(varIbPriF) || !IsBlank(Trim(inpIbSearch.Text))) && !IbFailed && !varIbLoading, 8 + (36), 0)), 0) + If(IbFailed && !varIbLoading, 8 + (36), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -1882,6 +1882,619 @@ Screens:
                                   =LayoutRank >= 3
                               Width: |-
                                   =Parent.Width
+                        - conIbSkeleton:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =26 + (44) + (44) + (44) + (44) + (44)
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Stretch
+                              LayoutDirection: |-
+                                  =LayoutDirection.Vertical
+                              LayoutGap: |-
+                                  =0
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              PaddingBottom: |-
+                                  =4
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =4
+                              Visible: |-
+                                  =varIbLoading
+                              Width: |-
+                                  =Parent.Width
+                            Children:
+                              - txtIbSkeletonSay:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Loading issues..."
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =18
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =12
+                                    Text: |-
+                                        ="Loading issues..."
+                                    Wrap: |-
+                                        =false
+                              - conIbSkeletonRow0:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =44
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =16
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    PaddingBottom: |-
+                                        =4
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =4
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - conIbSkeletonBar0A:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          Fill: |-
+                                              =C.'bg-muted'
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =10
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          RadiusBottomLeft: |-
+                                              =5
+                                          RadiusBottomRight: |-
+                                              =5
+                                          RadiusTopLeft: |-
+                                              =5
+                                          RadiusTopRight: |-
+                                              =5
+                                          Width: |-
+                                              =Parent.Width
+                                    - conIbSkeletonBar0B:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Start
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          Fill: |-
+                                              =C.'bg-muted'
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =10
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          RadiusBottomLeft: |-
+                                              =5
+                                          RadiusBottomRight: |-
+                                              =5
+                                          RadiusTopLeft: |-
+                                              =5
+                                          RadiusTopRight: |-
+                                              =5
+                                          Width: |-
+                                              =160
+                              - conIbSkeletonRow1:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =44
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =16
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    PaddingBottom: |-
+                                        =4
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =4
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - conIbSkeletonBar1A:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          Fill: |-
+                                              =C.'bg-muted'
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =10
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          RadiusBottomLeft: |-
+                                              =5
+                                          RadiusBottomRight: |-
+                                              =5
+                                          RadiusTopLeft: |-
+                                              =5
+                                          RadiusTopRight: |-
+                                              =5
+                                          Width: |-
+                                              =Parent.Width
+                                    - conIbSkeletonBar1B:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Start
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          Fill: |-
+                                              =C.'bg-muted'
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =10
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          RadiusBottomLeft: |-
+                                              =5
+                                          RadiusBottomRight: |-
+                                              =5
+                                          RadiusTopLeft: |-
+                                              =5
+                                          RadiusTopRight: |-
+                                              =5
+                                          Width: |-
+                                              =160
+                              - conIbSkeletonRow2:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =44
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =16
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    PaddingBottom: |-
+                                        =4
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =4
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - conIbSkeletonBar2A:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          Fill: |-
+                                              =C.'bg-muted'
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =10
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          RadiusBottomLeft: |-
+                                              =5
+                                          RadiusBottomRight: |-
+                                              =5
+                                          RadiusTopLeft: |-
+                                              =5
+                                          RadiusTopRight: |-
+                                              =5
+                                          Width: |-
+                                              =Parent.Width
+                                    - conIbSkeletonBar2B:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Start
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          Fill: |-
+                                              =C.'bg-muted'
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =10
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          RadiusBottomLeft: |-
+                                              =5
+                                          RadiusBottomRight: |-
+                                              =5
+                                          RadiusTopLeft: |-
+                                              =5
+                                          RadiusTopRight: |-
+                                              =5
+                                          Width: |-
+                                              =160
+                              - conIbSkeletonRow3:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =44
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =16
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    PaddingBottom: |-
+                                        =4
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =4
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - conIbSkeletonBar3A:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          Fill: |-
+                                              =C.'bg-muted'
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =10
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          RadiusBottomLeft: |-
+                                              =5
+                                          RadiusBottomRight: |-
+                                              =5
+                                          RadiusTopLeft: |-
+                                              =5
+                                          RadiusTopRight: |-
+                                              =5
+                                          Width: |-
+                                              =Parent.Width
+                                    - conIbSkeletonBar3B:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Start
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          Fill: |-
+                                              =C.'bg-muted'
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =10
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          RadiusBottomLeft: |-
+                                              =5
+                                          RadiusBottomRight: |-
+                                              =5
+                                          RadiusTopLeft: |-
+                                              =5
+                                          RadiusTopRight: |-
+                                              =5
+                                          Width: |-
+                                              =160
+                              - conIbSkeletonRow4:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =44
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =16
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    PaddingBottom: |-
+                                        =4
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =4
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - conIbSkeletonBar4A:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          Fill: |-
+                                              =C.'bg-muted'
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =10
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          RadiusBottomLeft: |-
+                                              =5
+                                          RadiusBottomRight: |-
+                                              =5
+                                          RadiusTopLeft: |-
+                                              =5
+                                          RadiusTopRight: |-
+                                              =5
+                                          Width: |-
+                                              =Parent.Width
+                                    - conIbSkeletonBar4B:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
+                                        Properties:
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Start
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          Fill: |-
+                                              =C.'bg-muted'
+                                          FillPortions: |-
+                                              =0
+                                          Height: |-
+                                              =10
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Stretch
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =8
+                                          LayoutMinWidth: |-
+                                              =0
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
+                                          RadiusBottomLeft: |-
+                                              =5
+                                          RadiusBottomRight: |-
+                                              =5
+                                          RadiusTopLeft: |-
+                                              =5
+                                          RadiusTopRight: |-
+                                              =5
+                                          Width: |-
+                                              =160
                         - galIbList:
                             Control: Gallery
                             Variant: Vertical
@@ -2889,7 +3502,7 @@ Screens:
                               PaddingTop: |-
                                   =12
                               Visible: |-
-                                  =galIbList.AllItemsCount = 0
+                                  =galIbList.AllItemsCount = 0 && !varIbLoading
                             Children:
                               - imgIbEmptyIcon:
                                   Control: Image
@@ -12995,39 +13608,6 @@ Screens:
                                   =VerticalAlign.Middle
                               Width: |-
                                   =201
-      - imgIbLoading:
-          Control: Image
-          Properties:
-            AccessibleLabel: |-
-                ="Loading issues, please wait"
-            BorderStyle: |-
-                =BorderStyle.None
-            BorderThickness: |-
-                =0
-            Fill: |-
-                =C.'overlay'
-            FocusedBorderThickness: |-
-                =0
-            Height: |-
-                =App.Height
-            HoverFill: |-
-                =C.'overlay'
-            Image: |-
-                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><style>.f{opacity:0;animation:f .2s ease-out 0.15s forwards}.s{transform-origin:32px 32px;animation:s .9s linear infinite}@keyframes f{to{opacity:1}}@keyframes s{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.s{animation:none}}</style><g class='f' transform='translate(0 0)'><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path class='s' d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'/></g></svg>")
-            ImagePosition: |-
-                =ImagePosition.Center
-            PressedFill: |-
-                =C.'overlay'
-            TabIndex: |-
-                =0
-            Visible: |-
-                =IfError(varIbLoading, false)
-            Width: |-
-                =App.Width
-            X: |-
-                =0
-            Y: |-
-                =0
       - imgIbBusy:
           Control: Image
           Properties:
