@@ -33,6 +33,7 @@ Screens:
                   )
               ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe })),
               Set(varMdAprAll, SortByColumns(Filter(MD_ApprovalLog, Stage = "System" || Stage = "Cost" || Stage = "Quality"), "ID", SortOrder.Descending)),
+              Set(varMdResume, First(Sort(Filter('MD_RequestIndex', RequesterEmail = varMdMe && Status.Value = "Kladde"), LastActionOn, SortOrder.Descending))),
               Set(varMdSelfNotes, If(IsAdmin, ShowColumns(VHP_NoteToSelf, RequestGuid), ShowColumns(Filter(VHP_NoteToSelf, OwnerEmail = varMdMe), RequestGuid)))
           );
           Set(varMdLoading, false)
@@ -503,7 +504,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =4 + If(LayoutRank < 3, 2, 1) * (0 + (If(LayoutRank < 2, 100, 148))) + (If(LayoutRank < 3, 2, 1) - 1) * (12) + 8
+                            =4 + If(LayoutRank < 3, 2, 1) * (If(LayoutRank < 2, 100, 72)) + (If(LayoutRank < 3, 2, 1) - 1) * (12) + 8
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -546,13 +547,13 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =0 + (If(LayoutRank < 2, 100, 148))
+                                  =If(LayoutRank < 2, 100, 72)
                               LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
+                                  =LayoutAlignItems.Center
                               LayoutDirection: |-
-                                  =LayoutDirection.Vertical
+                                  =LayoutDirection.Horizontal
                               LayoutGap: |-
-                                  =0
+                                  =8
                               LayoutMinWidth: |-
                                   =0
                               LayoutOverflowX: |-
@@ -586,11 +587,11 @@ Screens:
                                     FocusedBorderThickness: |-
                                         =2
                                     Height: |-
-                                        =If(LayoutRank < 2, 100, 148)
+                                        =If(LayoutRank < 2, 100, 72)
                                     HoverFill: |-
                                         =C.'domain-fl-soft'
                                     Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='100' viewBox='0 0 " & Self.Width & " 100'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-fl' & "'/><circle cx='24' cy='28' r='14' fill='" & C.'hex-domain-fl' & "' fill-opacity='0.12'/><g transform='translate(15 19) scale(0.75)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g><text x='" & Self.Width & "' dx='-8' y='38' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "FunctionalLocation"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='60' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Functional</text><text x='8' y='74' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>location</text><text x='8' y='92' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='148' viewBox='0 0 " & Self.Width & " 148'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-fl' & "'/><circle cx='38' cy='46' r='20' fill='" & C.'hex-domain-fl' & "' fill-opacity='0.12'/><g transform='translate(28 36) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g><text x='70' y='51' font-family='Segoe UI, sans-serif' font-size='15' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Functional location" & "</text><text x='18' y='108' font-family='Segoe UI, sans-serif' font-size='34' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "FunctionalLocation"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='18' y='130' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>" & Switch(varMdStatusMode, "open", "Filter", "done", "Closed", "All") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
+                                        ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='100' viewBox='0 0 " & Self.Width & " 100'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-fl' & "'/><circle cx='24' cy='28' r='14' fill='" & C.'hex-domain-fl' & "' fill-opacity='0.12'/><g transform='translate(15 19) scale(0.75)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g><text x='" & Self.Width & "' dx='-8' y='38' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "FunctionalLocation"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='60' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Functional</text><text x='8' y='74' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>location</text><text x='8' y='92' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='72' viewBox='0 0 " & Self.Width & " 72'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-fl' & "'/><circle cx='30' cy='40' r='18' fill='" & C.'hex-domain-fl' & "' fill-opacity='0.12'/><g transform='translate(21 31) scale(0.75)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g><text x='58' y='36' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Functional location" & "</text><text x='58' y='56' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'><tspan font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "FunctionalLocation"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</tspan> " & Switch(varMdStatusMode, "open", "Filter", "done", "Closed", "All") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
                                     ImagePosition: |-
                                         =ImagePosition.Fit
                                     OnSelect: |-
@@ -603,7 +604,64 @@ Screens:
                                     TabIndex: |-
                                         =0
                                     Width: |-
-                                        =Parent.Width
+                                        =If(LayoutRank < 2, (If(LayoutRank < 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 24) / 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 48) / 5)), (If(LayoutRank < 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 24) / 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 48) / 5)) - 62)
+                              - btnMdTileNewFL:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="New functional location request"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =H.hit
+                                    Icon: |-
+                                        ="Add"
+                                    Layout: |-
+                                        =ButtonLayout.IconOnly
+                                    LayoutMinWidth: |-
+                                        =44
+                                    OnSelect: |-
+                                        =If(
+                                            !IfError(gblNavigating, false),
+                                            Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
+                                            Set(gblNavigating, true);
+                                            Set(gblFlWant, "new:" & gblNewSeq);
+                                            Navigate(ScreenFunctionalLocation, ScreenTransition.None)
+                                        )
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="New request"
+                                    Tooltip: |-
+                                        ="New functional location request"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Visible: |-
+                                        =LayoutRank >= 2
+                                    Width: |-
+                                        =44
                         - conMdTileVHP:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -619,13 +677,13 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =0 + (If(LayoutRank < 2, 100, 148))
+                                  =If(LayoutRank < 2, 100, 72)
                               LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
+                                  =LayoutAlignItems.Center
                               LayoutDirection: |-
-                                  =LayoutDirection.Vertical
+                                  =LayoutDirection.Horizontal
                               LayoutGap: |-
-                                  =0
+                                  =8
                               LayoutMinWidth: |-
                                   =0
                               LayoutOverflowX: |-
@@ -659,11 +717,11 @@ Screens:
                                     FocusedBorderThickness: |-
                                         =2
                                     Height: |-
-                                        =If(LayoutRank < 2, 100, 148)
+                                        =If(LayoutRank < 2, 100, 72)
                                     HoverFill: |-
                                         =C.'domain-vhp-soft'
                                     Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='100' viewBox='0 0 " & Self.Width & " 100'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-vhp' & "'/><circle cx='24' cy='28' r='14' fill='" & C.'hex-domain-vhp' & "' fill-opacity='0.12'/><g transform='translate(15 19) scale(0.75)' fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g><text x='" & Self.Width & "' dx='-8' y='38' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "MaintenancePlan"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='60' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Maintenance</text><text x='8' y='74' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>plan</text><text x='8' y='92' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='148' viewBox='0 0 " & Self.Width & " 148'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-vhp' & "'/><circle cx='38' cy='46' r='20' fill='" & C.'hex-domain-vhp' & "' fill-opacity='0.12'/><g transform='translate(28 36) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g><text x='70' y='51' font-family='Segoe UI, sans-serif' font-size='15' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Maintenance plan" & "</text><text x='18' y='108' font-family='Segoe UI, sans-serif' font-size='34' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "MaintenancePlan"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='18' y='130' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>" & Switch(varMdStatusMode, "open", "Filter", "done", "Closed", "All") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
+                                        ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='100' viewBox='0 0 " & Self.Width & " 100'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-vhp' & "'/><circle cx='24' cy='28' r='14' fill='" & C.'hex-domain-vhp' & "' fill-opacity='0.12'/><g transform='translate(15 19) scale(0.75)' fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g><text x='" & Self.Width & "' dx='-8' y='38' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "MaintenancePlan"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='60' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Maintenance</text><text x='8' y='74' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>plan</text><text x='8' y='92' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='72' viewBox='0 0 " & Self.Width & " 72'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-vhp' & "'/><circle cx='30' cy='40' r='18' fill='" & C.'hex-domain-vhp' & "' fill-opacity='0.12'/><g transform='translate(21 31) scale(0.75)' fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g><text x='58' y='36' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Maintenance plan" & "</text><text x='58' y='56' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'><tspan font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "MaintenancePlan"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</tspan> " & Switch(varMdStatusMode, "open", "Filter", "done", "Closed", "All") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
                                     ImagePosition: |-
                                         =ImagePosition.Fit
                                     OnSelect: |-
@@ -676,7 +734,64 @@ Screens:
                                     TabIndex: |-
                                         =0
                                     Width: |-
-                                        =Parent.Width
+                                        =If(LayoutRank < 2, (If(LayoutRank < 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 24) / 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 48) / 5)), (If(LayoutRank < 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 24) / 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 48) / 5)) - 62)
+                              - btnMdTileNewVHP:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="New maintenance plan request"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =H.hit
+                                    Icon: |-
+                                        ="Add"
+                                    Layout: |-
+                                        =ButtonLayout.IconOnly
+                                    LayoutMinWidth: |-
+                                        =44
+                                    OnSelect: |-
+                                        =If(
+                                            !IfError(gblNavigating, false),
+                                            Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
+                                            Set(gblNavigating, true);
+                                            Set(gblVhpWant, "new:" & gblNewSeq);
+                                            Navigate(ScreenVhPlan, ScreenTransition.None)
+                                        )
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="New request"
+                                    Tooltip: |-
+                                        ="New maintenance plan request"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Visible: |-
+                                        =LayoutRank >= 2
+                                    Width: |-
+                                        =44
                         - conMdTileMAT:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -692,13 +807,13 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =0 + (If(LayoutRank < 2, 100, 148))
+                                  =If(LayoutRank < 2, 100, 72)
                               LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
+                                  =LayoutAlignItems.Center
                               LayoutDirection: |-
-                                  =LayoutDirection.Vertical
+                                  =LayoutDirection.Horizontal
                               LayoutGap: |-
-                                  =0
+                                  =8
                               LayoutMinWidth: |-
                                   =0
                               LayoutOverflowX: |-
@@ -732,11 +847,11 @@ Screens:
                                     FocusedBorderThickness: |-
                                         =2
                                     Height: |-
-                                        =If(LayoutRank < 2, 100, 148)
+                                        =If(LayoutRank < 2, 100, 72)
                                     HoverFill: |-
                                         =C.'domain-mat-soft'
                                     Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='100' viewBox='0 0 " & Self.Width & " 100'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-mat' & "'/><circle cx='24' cy='28' r='14' fill='" & C.'hex-domain-mat' & "' fill-opacity='0.12'/><g transform='translate(15 19) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g><text x='" & Self.Width & "' dx='-8' y='38' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "Material"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='60' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Material</text><text x='8' y='78' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='148' viewBox='0 0 " & Self.Width & " 148'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-mat' & "'/><circle cx='38' cy='46' r='20' fill='" & C.'hex-domain-mat' & "' fill-opacity='0.12'/><g transform='translate(28 36) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g><text x='70' y='51' font-family='Segoe UI, sans-serif' font-size='15' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Material" & "</text><text x='18' y='108' font-family='Segoe UI, sans-serif' font-size='34' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "Material"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='18' y='130' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>" & Switch(varMdStatusMode, "open", "Filter", "done", "Closed", "All") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
+                                        ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='100' viewBox='0 0 " & Self.Width & " 100'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-mat' & "'/><circle cx='24' cy='28' r='14' fill='" & C.'hex-domain-mat' & "' fill-opacity='0.12'/><g transform='translate(15 19) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g><text x='" & Self.Width & "' dx='-8' y='38' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "Material"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='60' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Material</text><text x='8' y='78' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='72' viewBox='0 0 " & Self.Width & " 72'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-mat' & "'/><circle cx='30' cy='40' r='18' fill='" & C.'hex-domain-mat' & "' fill-opacity='0.12'/><g transform='translate(21 31) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g><text x='58' y='36' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Material" & "</text><text x='58' y='56' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'><tspan font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "Material"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</tspan> " & Switch(varMdStatusMode, "open", "Filter", "done", "Closed", "All") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
                                     ImagePosition: |-
                                         =ImagePosition.Fit
                                     OnSelect: |-
@@ -749,7 +864,64 @@ Screens:
                                     TabIndex: |-
                                         =0
                                     Width: |-
-                                        =Parent.Width
+                                        =If(LayoutRank < 2, (If(LayoutRank < 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 24) / 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 48) / 5)), (If(LayoutRank < 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 24) / 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 48) / 5)) - 62)
+                              - btnMdTileNewMAT:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="New material request"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =H.hit
+                                    Icon: |-
+                                        ="Add"
+                                    Layout: |-
+                                        =ButtonLayout.IconOnly
+                                    LayoutMinWidth: |-
+                                        =44
+                                    OnSelect: |-
+                                        =If(
+                                            !IfError(gblNavigating, false),
+                                            Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
+                                            Set(gblNavigating, true);
+                                            Set(gblMatWant, "new:" & gblNewSeq);
+                                            Navigate(ScreenMaterial, ScreenTransition.None)
+                                        )
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="New request"
+                                    Tooltip: |-
+                                        ="New material request"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Visible: |-
+                                        =LayoutRank >= 2
+                                    Width: |-
+                                        =44
                         - conMdTileEQ:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -765,13 +937,13 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =0 + (If(LayoutRank < 2, 100, 148))
+                                  =If(LayoutRank < 2, 100, 72)
                               LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
+                                  =LayoutAlignItems.Center
                               LayoutDirection: |-
-                                  =LayoutDirection.Vertical
+                                  =LayoutDirection.Horizontal
                               LayoutGap: |-
-                                  =0
+                                  =8
                               LayoutMinWidth: |-
                                   =0
                               LayoutOverflowX: |-
@@ -805,11 +977,11 @@ Screens:
                                     FocusedBorderThickness: |-
                                         =2
                                     Height: |-
-                                        =If(LayoutRank < 2, 100, 148)
+                                        =If(LayoutRank < 2, 100, 72)
                                     HoverFill: |-
                                         =C.'domain-eq-soft'
                                     Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='100' viewBox='0 0 " & Self.Width & " 100'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-eq' & "'/><circle cx='24' cy='28' r='14' fill='" & C.'hex-domain-eq' & "' fill-opacity='0.12'/><g transform='translate(15 19) scale(0.75)' fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g><text x='" & Self.Width & "' dx='-8' y='38' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "Equipment"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='60' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Equipment</text><text x='8' y='78' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='148' viewBox='0 0 " & Self.Width & " 148'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-eq' & "'/><circle cx='38' cy='46' r='20' fill='" & C.'hex-domain-eq' & "' fill-opacity='0.12'/><g transform='translate(28 36) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g><text x='70' y='51' font-family='Segoe UI, sans-serif' font-size='15' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Equipment" & "</text><text x='18' y='108' font-family='Segoe UI, sans-serif' font-size='34' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "Equipment"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='18' y='130' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>" & Switch(varMdStatusMode, "open", "Filter", "done", "Closed", "All") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
+                                        ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='100' viewBox='0 0 " & Self.Width & " 100'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-eq' & "'/><circle cx='24' cy='28' r='14' fill='" & C.'hex-domain-eq' & "' fill-opacity='0.12'/><g transform='translate(15 19) scale(0.75)' fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g><text x='" & Self.Width & "' dx='-8' y='38' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "Equipment"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='60' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Equipment</text><text x='8' y='78' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='72' viewBox='0 0 " & Self.Width & " 72'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-eq' & "'/><circle cx='30' cy='40' r='18' fill='" & C.'hex-domain-eq' & "' fill-opacity='0.12'/><g transform='translate(21 31) scale(0.75)' fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g><text x='58' y='36' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Equipment" & "</text><text x='58' y='56' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'><tspan font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "Equipment"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</tspan> " & Switch(varMdStatusMode, "open", "Filter", "done", "Closed", "All") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
                                     ImagePosition: |-
                                         =ImagePosition.Fit
                                     OnSelect: |-
@@ -822,7 +994,64 @@ Screens:
                                     TabIndex: |-
                                         =0
                                     Width: |-
-                                        =Parent.Width
+                                        =If(LayoutRank < 2, (If(LayoutRank < 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 24) / 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 48) / 5)), (If(LayoutRank < 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 24) / 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 48) / 5)) - 62)
+                              - btnMdTileNewEQ:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="New equipment request"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =H.hit
+                                    Icon: |-
+                                        ="Add"
+                                    Layout: |-
+                                        =ButtonLayout.IconOnly
+                                    LayoutMinWidth: |-
+                                        =44
+                                    OnSelect: |-
+                                        =If(
+                                            !IfError(gblNavigating, false),
+                                            Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
+                                            Set(gblNavigating, true);
+                                            Set(gblEqWant, "new:" & gblNewSeq);
+                                            Navigate(ScreenEquipment, ScreenTransition.None)
+                                        )
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="New request"
+                                    Tooltip: |-
+                                        ="New equipment request"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Visible: |-
+                                        =LayoutRank >= 2
+                                    Width: |-
+                                        =44
                         - conMdTileMP:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -838,13 +1067,13 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =0 + (If(LayoutRank < 2, 100, 148))
+                                  =If(LayoutRank < 2, 100, 72)
                               LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
+                                  =LayoutAlignItems.Center
                               LayoutDirection: |-
-                                  =LayoutDirection.Vertical
+                                  =LayoutDirection.Horizontal
                               LayoutGap: |-
-                                  =0
+                                  =8
                               LayoutMinWidth: |-
                                   =0
                               LayoutOverflowX: |-
@@ -878,11 +1107,11 @@ Screens:
                                     FocusedBorderThickness: |-
                                         =2
                                     Height: |-
-                                        =If(LayoutRank < 2, 100, 148)
+                                        =If(LayoutRank < 2, 100, 72)
                                     HoverFill: |-
                                         =C.'domain-mp-soft'
                                     Image: |-
-                                        ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='100' viewBox='0 0 " & Self.Width & " 100'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-mp' & "'/><circle cx='24' cy='28' r='14' fill='" & C.'hex-domain-mp' & "' fill-opacity='0.12'/><g transform='translate(15 19) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g><text x='" & Self.Width & "' dx='-8' y='38' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "MeasuringPoint"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='60' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Measuring</text><text x='8' y='74' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>point</text><text x='8' y='92' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='148' viewBox='0 0 " & Self.Width & " 148'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-mp' & "'/><circle cx='38' cy='46' r='20' fill='" & C.'hex-domain-mp' & "' fill-opacity='0.12'/><g transform='translate(28 36) scale(0.833333)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g><text x='70' y='51' font-family='Segoe UI, sans-serif' font-size='15' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Measuring point" & "</text><text x='18' y='108' font-family='Segoe UI, sans-serif' font-size='34' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "MeasuringPoint"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='18' y='130' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>" & Switch(varMdStatusMode, "open", "Filter", "done", "Closed", "All") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
+                                        ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='100' viewBox='0 0 " & Self.Width & " 100'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-mp' & "'/><circle cx='24' cy='28' r='14' fill='" & C.'hex-domain-mp' & "' fill-opacity='0.12'/><g transform='translate(15 19) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g><text x='" & Self.Width & "' dx='-8' y='38' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "MeasuringPoint"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='60' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Measuring</text><text x='8' y='74' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>point</text><text x='8' y='92' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='72' viewBox='0 0 " & Self.Width & " 72'><rect width='" & Self.Width & "' height='4' fill='" & C.'hex-domain-mp' & "'/><circle cx='30' cy='40' r='18' fill='" & C.'hex-domain-mp' & "' fill-opacity='0.12'/><g transform='translate(21 31) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g><text x='58' y='36' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Measuring point" & "</text><text x='58' y='56' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'><tspan font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "MeasuringPoint"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</tspan> " & Switch(varMdStatusMode, "open", "Filter", "done", "Closed", "All") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
                                     ImagePosition: |-
                                         =ImagePosition.Fit
                                     OnSelect: |-
@@ -895,7 +1124,318 @@ Screens:
                                     TabIndex: |-
                                         =0
                                     Width: |-
-                                        =Parent.Width
+                                        =If(LayoutRank < 2, (If(LayoutRank < 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 24) / 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 48) / 5)), (If(LayoutRank < 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 24) / 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64)) - 48) / 5)) - 62)
+                              - btnMdTileNewMP:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="New measuring point request"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =H.hit
+                                    Icon: |-
+                                        ="Add"
+                                    Layout: |-
+                                        =ButtonLayout.IconOnly
+                                    LayoutMinWidth: |-
+                                        =44
+                                    OnSelect: |-
+                                        =If(
+                                            !IfError(gblNavigating, false),
+                                            Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
+                                            Set(gblNavigating, true);
+                                            Set(gblMpWant, "new:" & gblNewSeq);
+                                            Navigate(ScreenMeasuringPoint, ScreenTransition.None)
+                                        )
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="New request"
+                                    Tooltip: |-
+                                        ="New measuring point request"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Visible: |-
+                                        =LayoutRank >= 2
+                                    Width: |-
+                                        =44
+                  - conMdResume:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderColor: |-
+                            =C.'border-default'
+                        BorderThickness: |-
+                            =1
+                        DropShadow: |-
+                            =DropShadow.None
+                        Fill: |-
+                            =C.'bg-card'
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =56
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Center
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =12
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        PaddingBottom: |-
+                            =8
+                        PaddingLeft: |-
+                            =12
+                        PaddingRight: |-
+                            =12
+                        PaddingTop: |-
+                            =8
+                        RadiusBottomLeft: |-
+                            =10
+                        RadiusBottomRight: |-
+                            =10
+                        RadiusTopLeft: |-
+                            =10
+                        RadiusTopRight: |-
+                            =10
+                        Visible: |-
+                            =!IsBlank(varMdResume) && !IfError(varMdLoading, false)
+                        Width: |-
+                            =Parent.Width
+                      Children:
+                        - imgMdResumeIcon:
+                            Control: Image
+                            Properties:
+                              AccessibleLabel: |-
+                                  =Switch(
+                                      varMdResume.Domain.Value,
+                                      "FunctionalLocation", "Functional location",
+                                      "MaintenancePlan", "Maintenance plan",
+                                      "Material", "Material",
+                                      "Equipment", "Equipment",
+                                      "MeasuringPoint", "Measuring point",
+                                      "Request"
+                                  )
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Height: |-
+                                  =32
+                              Image: |-
+                                  ="data:image/svg+xml;utf8," & EncodeUrl(Switch(
+                                      varMdResume.Domain.Value,
+                                      "FunctionalLocation", "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='" & C.'hex-domain-fl' & "' fill-opacity='0.12'/><g transform='translate(7 7) scale(0.75)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g></svg>",
+                                      "MaintenancePlan", "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='" & C.'hex-domain-vhp' & "' fill-opacity='0.12'/><g transform='translate(7 7) scale(0.75)' fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g></svg>",
+                                      "Material", "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='" & C.'hex-domain-mat' & "' fill-opacity='0.12'/><g transform='translate(7 7) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g></svg>",
+                                      "Equipment", "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='" & C.'hex-domain-eq' & "' fill-opacity='0.12'/><g transform='translate(7 7) scale(0.75)' fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g></svg>",
+                                      "MeasuringPoint", "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='" & C.'hex-domain-mp' & "' fill-opacity='0.12'/><g transform='translate(7 7) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g></svg>",
+                                      ""
+                                  ))
+                              ImagePosition: |-
+                                  =ImagePosition.Fit
+                              OnSelect: |-
+                                  =false
+                              TabIndex: |-
+                                  =0
+                              Width: |-
+                                  =32
+                        - conMdResumeWords:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =38
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Stretch
+                              LayoutDirection: |-
+                                  =LayoutDirection.Vertical
+                              LayoutGap: |-
+                                  =0
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              Width: |-
+                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 12 - 12) - ((32) + 12) - ((100) + 12) - 2)
+                            Children:
+                              - txtMdResumeTitle:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Continue where you left off"
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =20
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        ="Continue where you left off"
+                                    Wrap: |-
+                                        =false
+                              - txtMdResumeLine:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =Self.Text
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =18
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =12
+                                    Text: |-
+                                        =varMdResume.RequestNo & "  ·  " & Substitute(Substitute(Substitute(Substitute(varMdResume.ShortText, " 1 raekke(r)", " 1 row"), " raekke(r)", " rows"), " 1 row(s)", " 1 row"), " row(s)", " rows") & "  ·  draft, updated " & Text(varMdResume.LastActionOn, "dd-mm-yyyy")
+                                    Wrap: |-
+                                        =false
+                        - btnMdResumeGo:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Continue " & varMdResume.RequestNo
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              Color: |-
+                                  =C.'text-on-primary'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =32
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
+                              LayoutMinWidth: |-
+                                  =100
+                              OnSelect: |-
+                                  =If(
+                                      IfError(gblNavigating, false),
+                                      false,
+                                      IsBlank(varMdResume.RequestGuid),
+                                      Set(gblToast, { Text: "This request has no ID.", Kind: "Error", At: Now() }); true,
+                                      Switch(
+                                          varMdResume.Domain.Value,
+                                          "FunctionalLocation",
+                                              Set(gblNavigating, true);
+                                              Set(varFlOpened, "");
+                                              Set(gblFlWant, "edit:" & varMdResume.RequestGuid);
+                                              Navigate(ScreenFunctionalLocation, ScreenTransition.None),
+                                          "MaintenancePlan",
+                                              Set(gblNavigating, true);
+                                              Set(varVhpOpened, "");
+                                              Set(gblVhpWant, "edit:" & varMdResume.RequestGuid);
+                                              Navigate(ScreenVhPlan, ScreenTransition.None),
+                                          "Material",
+                                              Set(gblNavigating, true);
+                                              Set(varMatOpened, "");
+                                              Set(gblMatWant, "edit:" & varMdResume.RequestGuid);
+                                              Navigate(ScreenMaterial, ScreenTransition.None),
+                                          "Equipment",
+                                              Set(gblNavigating, true);
+                                              Set(varEqOpened, "");
+                                              Set(gblEqWant, "edit:" & varMdResume.RequestGuid);
+                                              Navigate(ScreenEquipment, ScreenTransition.None),
+                                          "MeasuringPoint",
+                                              Set(gblNavigating, true);
+                                              Set(varMpOpened, "");
+                                              Set(gblMpWant, "edit:" & varMdResume.RequestGuid);
+                                              Navigate(ScreenMeasuringPoint, ScreenTransition.None),
+                                          Set(gblToast, { Text: "This kind of request has no screen in the app yet.", Kind: "Warning", At: Now() }); true
+                                      )
+                                  )
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =14
+                              Text: |-
+                                  ="Continue"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Width: |-
+                                  =100
                   - conMdRetBanner:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -1913,7 +2453,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =If(LayoutRank < 2, 540 + If(varMdDomain <> "", 0 + (30), 0) + If(LayoutRank >= 4, 8 + (20), 0) + If(LayoutRank >= 4, 8 + (1), 0) + If(varMdLoading && galMdRequests.AllItemsCount = 0, 8 + (26 + (44) + (44) + (44) + (44) + (44)), 0) + If(galMdRequests.AllItemsCount = 0 && !varMdLoading, 8 + (156), 0), If(LayoutRank < 4, 828 + If(varMdDomain <> "", 0 + (30), 0) + If(LayoutRank >= 4, 8 + (20), 0) + If(LayoutRank >= 4, 8 + (1), 0) + If(varMdLoading && galMdRequests.AllItemsCount = 0, 8 + (26 + (44) + (44) + (44) + (44) + (44)), 0) + If(galMdRequests.AllItemsCount = 0 && !varMdLoading, 8 + (156), 0), 772 + If(varMdDomain <> "", 0 + (30), 0) + If(LayoutRank >= 4, 8 + (20), 0) + If(LayoutRank >= 4, 8 + (1), 0) + If(varMdLoading && galMdRequests.AllItemsCount = 0, 8 + (26 + (44) + (44) + (44) + (44) + (44)), 0) + If(galMdRequests.AllItemsCount = 0 && !varMdLoading, 8 + (156), 0)))
+                            =If(LayoutRank < 2, 540 + If(varMdDomain <> "", 0 + (30), 0) + If(LayoutRank >= 4, 8 + (30), 0) + If(LayoutRank >= 4, 8 + (1), 0) + If(varMdLoading && galMdRequests.AllItemsCount = 0, 8 + (26 + (44) + (44) + (44) + (44) + (44)), 0) + If(galMdRequests.AllItemsCount = 0 && !varMdLoading, 8 + (156), 0), If(LayoutRank < 4, 828 + If(varMdDomain <> "", 0 + (30), 0) + If(LayoutRank >= 4, 8 + (30), 0) + If(LayoutRank >= 4, 8 + (1), 0) + If(varMdLoading && galMdRequests.AllItemsCount = 0, 8 + (26 + (44) + (44) + (44) + (44) + (44)), 0) + If(galMdRequests.AllItemsCount = 0 && !varMdLoading, 8 + (156), 0), 772 + If(varMdDomain <> "", 0 + (30), 0) + If(LayoutRank >= 4, 8 + (30), 0) + If(LayoutRank >= 4, 8 + (1), 0) + If(varMdLoading && galMdRequests.AllItemsCount = 0, 8 + (26 + (44) + (44) + (44) + (44) + (44)), 0) + If(galMdRequests.AllItemsCount = 0 && !varMdLoading, 8 + (156), 0)))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -2062,7 +2602,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =20
+                                  =30
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Center
                               LayoutDirection: |-
@@ -2088,41 +2628,53 @@ Screens:
                               Width: |-
                                   =Parent.Width
                             Children:
-                              - txtMdH0:
-                                  Control: ModernText
+                              - btnMdH0:
+                                  Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="REQUEST"
-                                    BorderStyle: |-
-                                        =BorderStyle.None
+                                        ="Sort by request" & If(Coalesce(varMdSort, "UPDATED") = "REQUEST", If(IfError(varMdSortAsc, false), ", ascending", ", descending"), "")
+                                    Align: |-
+                                        =Align.Left
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
                                     BorderThickness: |-
-                                        =0
+                                        =1
                                     Color: |-
                                         =C.'text-muted'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
                                     Font: |-
                                         =Font.'Segoe UI'
                                     FontWeight: |-
                                         =FontWeight.Semibold
                                     Height: |-
-                                        =20
-                                    PaddingBottom: |-
+                                        =30
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
                                         =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
+                                    OnSelect: |-
+                                        =If(Coalesce(varMdSort, "UPDATED") = "REQUEST", Set(varMdSortAsc, !IfError(varMdSortAsc, false)), Set(varMdSort, "REQUEST"); Set(varMdSortAsc, true))
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
                                     Size: |-
                                         =11
                                     Text: |-
-                                        ="REQUEST"
+                                        ="REQUEST" & If(Coalesce(varMdSort, "UPDATED") = "REQUEST", If(IfError(varMdSortAsc, false), " ↑", " ↓"), "")
+                                    Tooltip: |-
+                                        ="Sort by request"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
                                     Width: |-
                                         =(176 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1256) / 14))
-                                    Wrap: |-
-                                        =false
                               - txtMdH1:
                                   Control: ModernText
                                   Properties:
@@ -2158,41 +2710,53 @@ Screens:
                                         =((150 + 5 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1256) / 14)) + If(varMdView = "mine", (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1256) / 14)), 0))
                                     Wrap: |-
                                         =false
-                              - txtMdH2:
-                                  Control: ModernText
+                              - btnMdH2:
+                                  Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="PLANT"
-                                    BorderStyle: |-
-                                        =BorderStyle.None
+                                        ="Sort by plant" & If(Coalesce(varMdSort, "UPDATED") = "PLANT", If(IfError(varMdSortAsc, false), ", ascending", ", descending"), "")
+                                    Align: |-
+                                        =Align.Left
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
                                     BorderThickness: |-
-                                        =0
+                                        =1
                                     Color: |-
                                         =C.'text-muted'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
                                     Font: |-
                                         =Font.'Segoe UI'
                                     FontWeight: |-
                                         =FontWeight.Semibold
                                     Height: |-
-                                        =20
-                                    PaddingBottom: |-
+                                        =30
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
                                         =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
+                                    OnSelect: |-
+                                        =If(Coalesce(varMdSort, "UPDATED") = "PLANT", Set(varMdSortAsc, !IfError(varMdSortAsc, false)), Set(varMdSort, "PLANT"); Set(varMdSortAsc, true))
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
                                     Size: |-
                                         =11
                                     Text: |-
-                                        ="PLANT"
+                                        ="PLANT" & If(Coalesce(varMdSort, "UPDATED") = "PLANT", If(IfError(varMdSortAsc, false), " ↑", " ↓"), "")
+                                    Tooltip: |-
+                                        ="Sort by plant"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
                                     Width: |-
                                         =(72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1256) / 14))
-                                    Wrap: |-
-                                        =false
                               - txtMdH3:
                                   Control: ModernText
                                   Properties:
@@ -2265,76 +2829,100 @@ Screens:
                                         =(270 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1256) / 14))
                                     Wrap: |-
                                         =false
-                              - txtMdH5:
-                                  Control: ModernText
+                              - btnMdH5:
+                                  Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="STATUS"
-                                    BorderStyle: |-
-                                        =BorderStyle.None
+                                        ="Sort by status" & If(Coalesce(varMdSort, "UPDATED") = "STATUS", If(IfError(varMdSortAsc, false), ", ascending", ", descending"), "")
+                                    Align: |-
+                                        =Align.Left
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
                                     BorderThickness: |-
-                                        =0
+                                        =1
                                     Color: |-
                                         =C.'text-muted'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
                                     Font: |-
                                         =Font.'Segoe UI'
                                     FontWeight: |-
                                         =FontWeight.Semibold
                                     Height: |-
-                                        =20
-                                    PaddingBottom: |-
+                                        =30
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
                                         =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
+                                    OnSelect: |-
+                                        =If(Coalesce(varMdSort, "UPDATED") = "STATUS", Set(varMdSortAsc, !IfError(varMdSortAsc, false)), Set(varMdSort, "STATUS"); Set(varMdSortAsc, false))
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
                                     Size: |-
                                         =11
                                     Text: |-
-                                        ="STATUS"
+                                        ="STATUS" & If(Coalesce(varMdSort, "UPDATED") = "STATUS", If(IfError(varMdSortAsc, false), " ↑", " ↓"), "")
+                                    Tooltip: |-
+                                        ="Sort by status"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
                                     Width: |-
                                         =(140 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1256) / 14))
-                                    Wrap: |-
-                                        =false
-                              - txtMdH6:
-                                  Control: ModernText
+                              - btnMdH6:
+                                  Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="UPDATED"
-                                    BorderStyle: |-
-                                        =BorderStyle.None
+                                        ="Sort by updated" & If(Coalesce(varMdSort, "UPDATED") = "UPDATED", If(IfError(varMdSortAsc, false), ", ascending", ", descending"), "")
+                                    Align: |-
+                                        =Align.Left
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =RGBA(0, 0, 0, 0)
                                     BorderThickness: |-
-                                        =0
+                                        =1
                                     Color: |-
                                         =C.'text-muted'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
                                     Font: |-
                                         =Font.'Segoe UI'
                                     FontWeight: |-
                                         =FontWeight.Semibold
                                     Height: |-
-                                        =20
-                                    PaddingBottom: |-
+                                        =30
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
                                         =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
+                                    OnSelect: |-
+                                        =If(Coalesce(varMdSort, "UPDATED") = "UPDATED", Set(varMdSortAsc, !IfError(varMdSortAsc, false)), Set(varMdSort, "UPDATED"); Set(varMdSortAsc, false))
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
                                     Size: |-
                                         =11
                                     Text: |-
-                                        ="UPDATED"
+                                        ="UPDATED" & If(Coalesce(varMdSort, "UPDATED") = "UPDATED", If(IfError(varMdSortAsc, false), " ↑", " ↓"), "")
+                                    Tooltip: |-
+                                        ="Sort by updated"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
                                     Width: |-
                                         =(84 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - 1256) / 14))
-                                    Wrap: |-
-                                        =false
                               - txtMdH7:
                                   Control: ModernText
                                   Properties:
@@ -3028,7 +3616,10 @@ Screens:
                               Height: |-
                                   =If(LayoutRank < 2, 496, If(LayoutRank < 4, 784, 728))
                               Items: |-
-                                  =SortByColumns(
+                                  =Switch(
+                                      Coalesce(varMdSort, "UPDATED"),
+                                      "REQUEST",
+                                      SortByColumns(
                                       Filter(
                                           If(
                                           varMdView = "mine",
@@ -3052,7 +3643,88 @@ Screens:
                                               StartsWith(ShortText, Trim(inpMdFind.Text)) ||
                                               StartsWith(Plant, Trim(inpMdFind.Text))
                                       ),
-                                      "LastActionOn", SortOrder.Descending
+                                          "RequestNo", If(IfError(varMdSortAsc, false), SortOrder.Ascending, SortOrder.Descending)
+                                      ),
+                                      "PLANT",
+                                      SortByColumns(
+                                      Filter(
+                                          If(
+                                          varMdView = "mine",
+                                          If(
+                                              varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
+                                              varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
+                                              Filter('MD_RequestIndex', RequesterEmail = varMdMe)
+                                          ),
+                                          If(
+                                              varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
+                                              varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
+                                              'MD_RequestIndex'
+                                          )
+                                      ),
+                                          varMdDomain = "" || Domain.Value = varMdDomain,
+                                          varMdFlag <> "me" || AssignedToEmail = varMdMe,
+                                          varMdFlag <> "stuck" || (IsOpen = true && StatusStep >= 2 && StatusStep <= 3 && LastActionOn < DateAdd(Now(), -5, TimeUnit.Days)),
+                                          varMdFlag <> "ret" || (Status.Value = "AfventerInfo" && RequesterEmail = varMdMe),
+                                          IsBlank(Trim(inpMdFind.Text)) ||
+                                              StartsWith(RequestNo, Trim(inpMdFind.Text)) ||
+                                              StartsWith(ShortText, Trim(inpMdFind.Text)) ||
+                                              StartsWith(Plant, Trim(inpMdFind.Text))
+                                      ),
+                                          "Plant", If(IfError(varMdSortAsc, false), SortOrder.Ascending, SortOrder.Descending)
+                                      ),
+                                      "STATUS",
+                                      SortByColumns(
+                                      Filter(
+                                          If(
+                                          varMdView = "mine",
+                                          If(
+                                              varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
+                                              varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
+                                              Filter('MD_RequestIndex', RequesterEmail = varMdMe)
+                                          ),
+                                          If(
+                                              varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
+                                              varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
+                                              'MD_RequestIndex'
+                                          )
+                                      ),
+                                          varMdDomain = "" || Domain.Value = varMdDomain,
+                                          varMdFlag <> "me" || AssignedToEmail = varMdMe,
+                                          varMdFlag <> "stuck" || (IsOpen = true && StatusStep >= 2 && StatusStep <= 3 && LastActionOn < DateAdd(Now(), -5, TimeUnit.Days)),
+                                          varMdFlag <> "ret" || (Status.Value = "AfventerInfo" && RequesterEmail = varMdMe),
+                                          IsBlank(Trim(inpMdFind.Text)) ||
+                                              StartsWith(RequestNo, Trim(inpMdFind.Text)) ||
+                                              StartsWith(ShortText, Trim(inpMdFind.Text)) ||
+                                              StartsWith(Plant, Trim(inpMdFind.Text))
+                                      ),
+                                          "StatusStep", If(IfError(varMdSortAsc, false), SortOrder.Ascending, SortOrder.Descending)
+                                      ),
+                                      SortByColumns(
+                                      Filter(
+                                          If(
+                                          varMdView = "mine",
+                                          If(
+                                              varMdStatusMode = "open", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = true),
+                                              varMdStatusMode = "done", Filter('MD_RequestIndex', RequesterEmail = varMdMe, IsOpen = false),
+                                              Filter('MD_RequestIndex', RequesterEmail = varMdMe)
+                                          ),
+                                          If(
+                                              varMdStatusMode = "open", Filter('MD_RequestIndex', IsOpen = true),
+                                              varMdStatusMode = "done", Filter('MD_RequestIndex', IsOpen = false),
+                                              'MD_RequestIndex'
+                                          )
+                                      ),
+                                          varMdDomain = "" || Domain.Value = varMdDomain,
+                                          varMdFlag <> "me" || AssignedToEmail = varMdMe,
+                                          varMdFlag <> "stuck" || (IsOpen = true && StatusStep >= 2 && StatusStep <= 3 && LastActionOn < DateAdd(Now(), -5, TimeUnit.Days)),
+                                          varMdFlag <> "ret" || (Status.Value = "AfventerInfo" && RequesterEmail = varMdMe),
+                                          IsBlank(Trim(inpMdFind.Text)) ||
+                                              StartsWith(RequestNo, Trim(inpMdFind.Text)) ||
+                                              StartsWith(ShortText, Trim(inpMdFind.Text)) ||
+                                              StartsWith(Plant, Trim(inpMdFind.Text))
+                                      ),
+                                          "LastActionOn", If(IfError(varMdSortAsc, false), SortOrder.Ascending, SortOrder.Descending)
+                                      )
                                   )
                               LayoutMinWidth: |-
                                   =0
