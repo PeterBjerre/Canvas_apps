@@ -204,15 +204,14 @@ cellelinje, dokumentlisternes `doc_upload.ROW_H` og domænekortets
 knaplinjer). En position regnes af `Self.Width`/`Self.Height`, ikke af et
 fast tal.
 
-### Regel E4 — Under Desktop står de primære handlinger nederst
+### Regel E3 — Tal er tekstfelter (regel 41)
 
-`build_helpers.sticky_actions(prefix, [save, submit])` kopierer headerens
-Save draft og Submit til en fast bjælke nederst (`con<X>Foot`,
-`FOOT_H` = 60 px), som `app_frame(footer=...)` lægger under kroppen. Den
-er kun synlig under Desktop, og headerens to knapper er skjult dér.
-Kopierne har samme `OnSelect`, `DisplayMode`, tekst og tooltip — reglen
-for, hvornår de kan bruges, står ét sted. Kroppens højde trækker bjælken
-fra, så intet skjules bag den.
+ModernNumberInput har spin-pile, der ikke kan skjules, og som ændrer tallet
+ved et uheld på en touch-skærm. Et tal er `build_helpers.number_field()`:
+et tekstfelt med tallet som tekst, læst med `num_value()` (heltal, tom ved
+et tomt felt eller ved tekst, der ikke er et tal). `unit="h"` sætter
+enheden efter feltet; i et galleri siger kolonneoverskriften den
+(containere i gallerier er forbudt, regel 26c).
 
 ### Regel F — Overløb skjules, med mindre det skal scrolle
 

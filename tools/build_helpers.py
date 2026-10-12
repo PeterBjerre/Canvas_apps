@@ -1977,27 +1977,46 @@ def text_input(name, default, placeholder="\"\"", max_length=None, required_form
     return Ctrl(name, "ModernTextInput", props=props, h=height)
 
 
-def number_input(name, default, min_v=None, max_v=None, required_formula="false",
-                 width="Parent.Width", height=36, display_mode=None, label=None):
-    props = {
-        "AccessibleLabel": label if label else f"\"{name}\"",
-        "BorderColor": border_rule("IsBlank(Self.Value)", required_formula),
-        "BorderStyle": "BorderStyle.Solid",
-        "BorderThickness": "1",
-        "Default": default,
-        "Height": str(height),
-        "LayoutMinWidth": "0",
-        "Precision": "DecimalPrecision.'0'",
-        **lay.radius(lay.RADIUS_INPUT),
-        "ValidationState": f"If({required_formula} && IsBlank(Self.Value), ValidationState.Error, ValidationState.None)",
-        "Width": width,
-    }
-    input_theme(props, display_mode)
-    if min_v is not None:
-        props["Min"] = str(min_v)
-    if max_v is not None:
-        props["Max"] = str(max_v)
-    return Ctrl(name, "ModernNumberInput", props=props, h=height)
+# TAL SOM TEKST, UDEN SPIN-PILE (UX-review 2026-10, T10)
+#
+# ModernNumberInput har spin-pile, som ikke kan skjules (der er ingen
+# egenskab til det), og som paa en touch-skaerm aendrer tallet ved et uheld.
+# Et tal er derfor et tekstfelt: Default er tallet som tekst, og vaerdien
+# laeses med num_value() - heltal (som DecimalPrecision '0' foer), tom ved
+# et tomt felt og ved tekst, der ikke er et tal. Enheden ("h", "days")
+# staar efter feltet, naar feltet ikke staar i et galleri (regel 26c) -
+# dér siger kolonneoverskriften enheden.
+NUM_UNIT_GAP = 6
+
+
+def num_value(ref="Self"):
+    """Feltets vaerdi som heltal - Blank() ved tomt felt eller ikke-tal."""
+    return (f"IfError(If(IsBlank(Trim({ref}.Text)), Blank(), "
+            f"Round(Value(Trim({ref}.Text)), 0)), Blank())")
+
+
+def number_field(name, default, required_formula="false", width="Parent.Width", height=36,
+                 display_mode=None, label=None, onchange=None, unit=None, placeholder='""'):
+    """Talfeltet: ModernTextInput (praefiks inp) med tallet som tekst.
+
+    default: Power Fx-tallet (variablen/kolonnen). onchange: formlen, der
+    laeser num_value(). unit: tekst efter feltet - saa returneres
+    [felt, enhed] som en vandret gruppe con<Navn>Unit."""
+    if not name.startswith("inp"):
+        raise SystemExit(f"number_field: {name} skal hedde inp... (regel 33)")
+    unit_w = text_px(unit, lay.SIZE_BODY, semibold=False) + 4 if unit else 0
+    in_w = width if not unit else f"({width}) - {unit_w + NUM_UNIT_GAP}"
+    c = text_input(name, f"If(IsBlank({default}), \"\", Text({default}))",
+                   placeholder=placeholder, required_formula=required_formula,
+                   width=in_w, height=height, display_mode=display_mode, onchange=onchange,
+                   label=label)
+    if not unit:
+        return c
+    u = text_ctrl(f"txt{name[3:]}Unit", f'"{unit}"', size=lay.SIZE_BODY, color=C_MUTED,
+                  height=20, width=str(unit_w), wrap="false",
+                  accessible=f'"Unit: {unit}"')
+    return group(f"con{name[3:]}Unit", [c, u], direction="Horizontal", gap=NUM_UNIT_GAP,
+                 height=height, width=width, align_items="Center")
 
 
 def date_picker(name, default_date, required_formula="false",
