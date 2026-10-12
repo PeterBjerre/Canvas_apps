@@ -68,6 +68,16 @@ Efter `image.png`, med to afvigelser:
 - Filtrene og søgningen huskes mellem besøg (`SaveData`, docs/26).
 - En tom liste siger det og har *Clear filters*.
 
+**UX-review 2026-10 (etape 2, M3):**
+
+- Fliserne er 72 px høje: ikon, navn og "12 open requests" på to linjer.
+  Til højre en (+)-knap, der starter en ny anmodning i domænet (samme
+  handling som menuen). Flisen selv filtrerer stadig listen.
+- "Continue where you left off" viser din senest ændrede kladde med
+  *Continue* (åbner i Edit).
+- REQUEST, PLANT, STATUS og UPDATED sorterer ved klik; et klik mere vender
+  rækkefølgen. Standard er UPDATED, nyeste først.
+
 "New request" i bjælken åbner en menu med de fem domæner.
 
 ## Filer
