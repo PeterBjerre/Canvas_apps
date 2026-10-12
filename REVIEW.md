@@ -31,7 +31,7 @@ Grundlag: designreviewet af BIO SAP (designlærredet "BIO SAP — UX review"), t
 | T1 | Gjort: [New request (ghost)] \| [Save draft] [Submit "N to fix"]; Issue Board: Refresh-ikon, New issue primær. | `build_helpers.request_actions` |
 | F3 | Gjort: First call er én datovælger; Day/Month/Year gemmes som før. | `build_plan_header.py` |
 | F4 / T9 | Gjort: `empty_state()` på hub, rækker, VH og Issue Board. | `build_helpers.py` |
-| F6 / T10 | Gjort: `H.hit` (32/44) som navngiven formel, `ensure_hit()` og check_layout regel 40. **Udskudt:** talfelter uden spin-pile og med enhed — ModernNumberInput kan ikke skjule pilene; et tekstfelt i stedet ændrer type og validering og tages med M2 (etape 2). | `layout_tokens.py`, `check_layout.py` |
+| F6 / T10 | Gjort: `H.hit` (32/44) som navngiven formel, `ensure_hit()` og check_layout regel 40. Talfelter uden spin-pile og med enhed: gjort i etape 2d (se nedenfor). | `layout_tokens.py`, `check_layout.py` |
 | F7 | Gjort: token `border-input` (lys 132,145,163 / mørk 100,116,139) kun via `border_rule`; kontrastvagt. | `design_tokens.py`, docs/26 |
 | F8 | Gjort: hubbens filtre og rækkelisternes søgning/filtre i `SaveData` (`colAppPrefs`). | `design_tokens.prefs_save` |
 | F9 | Gjort: `breadcrumb()` (Masterdata Hub / side / nummer). | `build_helpers.py` |
@@ -48,6 +48,7 @@ Grundlag: designreviewet af BIO SAP (designlærredet "BIO SAP — UX review"), t
 | M4 | 2b: `validation_summary()` — efter Submit står kladde-rækkerne over rækkelisten med "Open row" (Equipments/Materials/Measuring points). VH's "Before you can submit" har "Go to …" pr. sektion, som lukker listen og fremhæver sektionen. SetFocus kan ikke nå ind i containere (regel 10b), så "Go to" åbner rækken/fremhæver afsnittet. | `build_helpers.validation_summary`, `domain_parts`, `build_hero` |
 | M5 | 2g (del 1): VH-planens hoved foldes sammen til én linje, når planen er gemt ("Plant ASV · Strategy plan · Z-MONTH · First call dd-mm-yyyy") med Show/Hide; Edit folder ud. Ændrer issue #192 ("altid foldet ud"). Resten af mockuppen (titel med plannavn og nummer, item-editorens "Documents (n)"/"Delete item", "From the plan header") tages i næste M5-PR. `build_save.py` er ikke rørt. | `build_plan_header.py` |
 | M3 | 2c: fliserne er 72 px (før 148) med en (+)-knap for ny anmodning (teksten "New" alene er forbudt, issue #243); "Continue where you left off" viser brugerens senest ændrede kladde med Continue; REQUEST, PLANT, STATUS og UPDATED sorterer ved klik (konstant kolonnenavn pr. gren, så SharePoint stadig sorterer). | `build_hub.py` |
+| T10 | 2d: talfelterne er tekstfelter uden spin-pile (`number_field()`, værdi via `num_value()` — heltal som før, tom ved ikke-tal); enhed efter feltet uden for gallerier (VH-modalens Work "h" og Persons "people"). Alle `num*` er nu `inp*` (regel 33). Ny check_layout **regel 41**: ingen ModernNumberInput. | `build_helpers.number_field`, `domain_parts`, `build_tasklist`, `build_plan_header` |
 
 **Etape 3**: se de enkelte PR'er; afsnittet opdateres pr. etape.
 

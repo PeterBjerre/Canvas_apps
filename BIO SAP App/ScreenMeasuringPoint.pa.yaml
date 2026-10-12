@@ -3414,8 +3414,8 @@ Screens:
                                                     =10
                                                 Wrap: |-
                                                     =false
-                                    - numMpDecimalPlaces:
-                                        Control: ModernNumberInput
+                                    - inpMpDecimalPlaces:
+                                        Control: ModernTextInput
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Decimal places, required"
@@ -3425,9 +3425,9 @@ Screens:
                                               =C.'color-brand-primary'
                                           BorderColor: |-
                                               =If((If(varMpViewOnly || varMpRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, If(
-                                                  varMpValidated && IsBlank(Self.Value),
+                                                  varMpValidated && IsBlank(Trim(Self.Text)),
                                                   C.'border-error',
-                                                  If(IsBlank(Self.Value), C.'border-input', C.'border-ok')
+                                                  If(IsBlank(Trim(Self.Text)), C.'border-input', C.'border-ok')
                                               ), C.'border-default')
                                           BorderStyle: |-
                                               =BorderStyle.Solid
@@ -3436,7 +3436,7 @@ Screens:
                                           Color: |-
                                               =If((If(varMpViewOnly || varMpRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                           Default: |-
-                                              =varMpFDecimalPlaces
+                                              =If(IsBlank(varMpFDecimalPlaces), "", Text(varMpFDecimalPlaces))
                                           DisplayMode: |-
                                               =If((If(varMpViewOnly || varMpRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
@@ -3448,9 +3448,9 @@ Screens:
                                           LayoutMinWidth: |-
                                               =0
                                           OnChange: |-
-                                              =Set(varMpFDecimalPlaces, Self.Value)
-                                          Precision: |-
-                                              =DecimalPrecision.'0'
+                                              =Set(varMpFDecimalPlaces, IfError(If(IsBlank(Trim(Self.Text)), Blank(), Round(Value(Trim(Self.Text)), 0)), Blank()))
+                                          Placeholder: |-
+                                              =""
                                           RadiusBottomLeft: |-
                                               =10
                                           RadiusBottomRight: |-
@@ -3462,7 +3462,7 @@ Screens:
                                           Size: |-
                                               =If(LayoutRank < 2, 16, 14)
                                           ValidationState: |-
-                                              =If(varMpValidated && IsBlank(Self.Value), ValidationState.Error, ValidationState.None)
+                                              =If(varMpValidated && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                           Width: |-
                                               =Parent.Width
                         - conMpGridValue:

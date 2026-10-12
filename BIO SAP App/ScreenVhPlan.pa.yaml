@@ -1648,7 +1648,7 @@ Screens:
                                                   )
                                               );
                                               Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist);
-                                              Reset(drpVhpPlanType); Reset(drpVhpStrategy); Reset(drpVhpPlant); Reset(drpVhpStatus); Reset(inpVhpPlanText); Reset(drpVhpSortField); Reset(numVhpCycle); Reset(drpVhpUnit); Reset(dteVhpFirstCall);
+                                              Reset(drpVhpPlanType); Reset(drpVhpStrategy); Reset(drpVhpPlant); Reset(drpVhpStatus); Reset(inpVhpPlanText); Reset(drpVhpSortField); Reset(inpVhpCycle); Reset(drpVhpUnit); Reset(dteVhpFirstCall);
                                               Set(gblToast, { Text: "New request started.", Kind: "Success", At: Now() }); true)
                                           RadiusBottomLeft: |-
                                               =10
@@ -4750,20 +4750,20 @@ Screens:
                                                           =10
                                                       Wrap: |-
                                                           =false
-                                          - numVhpCycle:
-                                              Control: ModernNumberInput
+                                          - inpVhpCycle:
+                                              Control: ModernTextInput
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Cycle, required"
+                                                    ="Cycle"
                                                 Appearance: |-
                                                     =If((If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key = "Strategy"), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                                 BasePaletteColor: |-
                                                     =C.'color-brand-primary'
                                                 BorderColor: |-
                                                     =If(varVhpViewOnly, C.'border-default', If((If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key = "Strategy"), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, If(
-                                                        (varVhpPlanValidated && (drpVhpPlanType.Selected.Key <> "Strategy")) && IsBlank(Self.Value),
+                                                        (varVhpPlanValidated && (drpVhpPlanType.Selected.Key <> "Strategy")) && IsBlank(Trim(Self.Text)),
                                                         C.'border-error',
-                                                        If(IsBlank(Self.Value), C.'border-input', C.'border-ok')
+                                                        If(IsBlank(Trim(Self.Text)), C.'border-input', C.'border-ok')
                                                     ), C.'border-default'))
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
@@ -4772,7 +4772,7 @@ Screens:
                                                 Color: |-
                                                     =If((If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key = "Strategy"), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                                 Default: |-
-                                                    =varVhpPlan.Cycle
+                                                    =If(IsBlank(varVhpPlan.Cycle), "", Text(varVhpPlan.Cycle))
                                                 DisplayMode: |-
                                                     =If((If(varVhpViewOnly, DisplayMode.View, If((If(varVhpPlanLocked || (drpVhpPlanType.Selected.Key = "Strategy"), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
@@ -4783,10 +4783,8 @@ Screens:
                                                     =36
                                                 LayoutMinWidth: |-
                                                     =0
-                                                Min: |-
-                                                    =1
-                                                Precision: |-
-                                                    =DecimalPrecision.'0'
+                                                Placeholder: |-
+                                                    =""
                                                 RadiusBottomLeft: |-
                                                     =10
                                                 RadiusBottomRight: |-
@@ -4798,7 +4796,7 @@ Screens:
                                                 Size: |-
                                                     =If(LayoutRank < 2, 16, 14)
                                                 ValidationState: |-
-                                                    =If((varVhpPlanValidated && (drpVhpPlanType.Selected.Key <> "Strategy")) && IsBlank(Self.Value), ValidationState.Error, ValidationState.None)
+                                                    =If((varVhpPlanValidated && (drpVhpPlanType.Selected.Key <> "Strategy")) && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =Parent.Width
                                           - txtVhpCellCycleHint:
@@ -5558,7 +5556,7 @@ Screens:
                                           Layout: |-
                                               =ButtonLayout.TextOnly
                                           OnSelect: |-
-                                              =Reset(drpVhpPlanType); Reset(drpVhpStrategy); Reset(drpVhpPlant); Reset(drpVhpStatus); Reset(inpVhpPlanText); Reset(drpVhpSortField); Reset(numVhpCycle); Reset(drpVhpUnit); Reset(dteVhpFirstCall);
+                                              =Reset(drpVhpPlanType); Reset(drpVhpStrategy); Reset(drpVhpPlant); Reset(drpVhpStatus); Reset(inpVhpPlanText); Reset(drpVhpSortField); Reset(inpVhpCycle); Reset(drpVhpUnit); Reset(dteVhpFirstCall);
                                               Set(varVhpPlanValidated, false);
                                               If(varVhpPlanCommitted, Set(varVhpPlanLocked, true))
                                           RadiusBottomLeft: |-
@@ -5615,7 +5613,7 @@ Screens:
                                                           IsBlank(drpVhpPlanType.Selected.Key) ||
                                                           (isStrat && IsBlank(drpVhpStrategy.Selected.Key)) ||
                                                           IsBlank(Trim(inpVhpPlanText.Text)) || Len(Trim(inpVhpPlanText.Text)) > 40 ||
-                                                          (!isStrat && (IsBlank(numVhpCycle.Value) || numVhpCycle.Value <= 0)) ||
+                                                          (!isStrat && (IsBlank(IfError(If(IsBlank(Trim(inpVhpCycle.Text)), Blank(), Round(Value(Trim(inpVhpCycle.Text)), 0)), Blank())) || IfError(If(IsBlank(Trim(inpVhpCycle.Text)), Blank(), Round(Value(Trim(inpVhpCycle.Text)), 0)), Blank()) <= 0)) ||
                                                           (!isStrat && IsBlank(drpVhpUnit.Selected.Value)) ||
                                                           IsBlank(dteVhpFirstCall.SelectedDate) ||
                                                           Year(dteVhpFirstCall.SelectedDate) < 2020 || Year(dteVhpFirstCall.SelectedDate) > 2100,
@@ -5631,7 +5629,7 @@ Screens:
                                                                   Strategy: If(isStrat, drpVhpStrategy.Selected.Key, ""),
                                                                   PlanText: Trim(inpVhpPlanText.Text),
                                                                   SortField: drpVhpSortField.Selected.Value,
-                                                                  Cycle: If(isStrat, 0, numVhpCycle.Value),
+                                                                  Cycle: If(isStrat, 0, IfError(If(IsBlank(Trim(inpVhpCycle.Text)), Blank(), Round(Value(Trim(inpVhpCycle.Text)), 0)), Blank())),
                                                                   Unit: If(isStrat, "", drpVhpUnit.Selected.Value),
                                                                   FirstCallDay: Day(dteVhpFirstCall.SelectedDate),
                                                                   FirstCallMonth: Month(dteVhpFirstCall.SelectedDate),
@@ -11223,8 +11221,8 @@ Screens:
                                                     =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 8 - 1462) / 14))
                                                 Y: |-
                                                     =0 + 0 + ((((44) - 2) - 0 - 0) - (32)) / 2
-                                          - numVhpOpWork:
-                                              Control: ModernNumberInput
+                                          - inpVhpOpWork:
+                                              Control: ModernTextInput
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Work hours"
@@ -11241,7 +11239,7 @@ Screens:
                                                 Color: |-
                                                     =C.'input-fg'
                                                 Default: |-
-                                                    =ThisItem.WorkHours
+                                                    =If(IsBlank(ThisItem.WorkHours), "", Text(ThisItem.WorkHours))
                                                 DisplayMode: |-
                                                     =If((If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
@@ -11254,17 +11252,17 @@ Screens:
                                                     =Patch(
                                                         colVhpOperations, ThisItem,
                                                         {
-                                                            WorkHours: Self.Value,
-                                                            DurationHours: Round(Self.Value / Max(Coalesce(ThisItem.Persons, 1), 1), 2),
+                                                            WorkHours: IfError(If(IsBlank(Trim(Self.Text)), Blank(), Round(Value(Trim(Self.Text)), 0)), Blank()),
+                                                            DurationHours: Round(IfError(If(IsBlank(Trim(Self.Text)), Blank(), Round(Value(Trim(Self.Text)), 0)), Blank()) / Max(Coalesce(ThisItem.Persons, 1), 1), 2),
                                                             Cost: If(
                                                                 Upper(Coalesce(ThisItem.ControlKey, "")) = "PM03",
-                                                                Self.Value * Coalesce(ThisItem.UnitCost, 0),
+                                                                IfError(If(IsBlank(Trim(Self.Text)), Blank(), Round(Value(Trim(Self.Text)), 0)), Blank()) * Coalesce(ThisItem.UnitCost, 0),
                                                                 ThisItem.Cost
                                                             )
                                                         }
                                                     )
-                                                Precision: |-
-                                                    =DecimalPrecision.'0'
+                                                Placeholder: |-
+                                                    =""
                                                 RadiusBottomLeft: |-
                                                     =10
                                                 RadiusBottomRight: |-
@@ -11276,15 +11274,15 @@ Screens:
                                                 Size: |-
                                                     =If(LayoutRank < 2, 16, 14)
                                                 ValidationState: |-
-                                                    =If(false && IsBlank(Self.Value), ValidationState.Error, ValidationState.None)
+                                                    =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =64
                                                 X: |-
                                                     =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 8 - 1462) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 8 - 1462) / 14))
                                                 Y: |-
                                                     =0 + 0 + ((((44) - 2) - 0 - 0) - (32)) / 2
-                                          - numVhpOpPersons:
-                                              Control: ModernNumberInput
+                                          - inpVhpOpPersons:
+                                              Control: ModernTextInput
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Number of people"
@@ -11301,7 +11299,7 @@ Screens:
                                                 Color: |-
                                                     =C.'input-fg'
                                                 Default: |-
-                                                    =ThisItem.Persons
+                                                    =If(IsBlank(ThisItem.Persons), "", Text(ThisItem.Persons))
                                                 DisplayMode: |-
                                                     =If((If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
@@ -11314,12 +11312,12 @@ Screens:
                                                     =Patch(
                                                         colVhpOperations, ThisItem,
                                                         {
-                                                            Persons: Self.Value,
-                                                            DurationHours: Round(ThisItem.WorkHours / Max(Coalesce(Self.Value, 1), 1), 2)
+                                                            Persons: IfError(If(IsBlank(Trim(Self.Text)), Blank(), Round(Value(Trim(Self.Text)), 0)), Blank()),
+                                                            DurationHours: Round(ThisItem.WorkHours / Max(Coalesce(IfError(If(IsBlank(Trim(Self.Text)), Blank(), Round(Value(Trim(Self.Text)), 0)), Blank()), 1), 1), 2)
                                                         }
                                                     )
-                                                Precision: |-
-                                                    =DecimalPrecision.'0'
+                                                Placeholder: |-
+                                                    =""
                                                 RadiusBottomLeft: |-
                                                     =10
                                                 RadiusBottomRight: |-
@@ -11331,15 +11329,15 @@ Screens:
                                                 Size: |-
                                                     =If(LayoutRank < 2, 16, 14)
                                                 ValidationState: |-
-                                                    =If(false && IsBlank(Self.Value), ValidationState.Error, ValidationState.None)
+                                                    =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =50
                                                 X: |-
                                                     =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 8 - 1462) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 8 - 1462) / 14))
                                                 Y: |-
                                                     =0 + 0 + ((((44) - 2) - 0 - 0) - (32)) / 2
-                                          - numVhpOpDur:
-                                              Control: ModernNumberInput
+                                          - inpVhpOpDur:
+                                              Control: ModernTextInput
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Duration hours"
@@ -11356,7 +11354,7 @@ Screens:
                                                 Color: |-
                                                     =If((DisplayMode.View) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                                 Default: |-
-                                                    =ThisItem.DurationHours
+                                                    =If(IsBlank(ThisItem.DurationHours), "", Text(ThisItem.DurationHours))
                                                 DisplayMode: |-
                                                     =If((If(varVhpViewOnly, DisplayMode.View, If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
@@ -11365,8 +11363,8 @@ Screens:
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =32
-                                                Precision: |-
-                                                    =DecimalPrecision.'0'
+                                                Placeholder: |-
+                                                    =""
                                                 RadiusBottomLeft: |-
                                                     =10
                                                 RadiusBottomRight: |-
@@ -11378,7 +11376,7 @@ Screens:
                                                 Size: |-
                                                     =If(LayoutRank < 2, 16, 14)
                                                 ValidationState: |-
-                                                    =If(false && IsBlank(Self.Value), ValidationState.Error, ValidationState.None)
+                                                    =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =64
                                                 X: |-
@@ -11562,8 +11560,8 @@ Screens:
                                                     =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 8 - 1462) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 8 - 1462) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 8 - 1462) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36) - 8 - 1462) / 14))
                                                 Y: |-
                                                     =0 + 0 + ((((44) - 2) - 0 - 0) - (32)) / 2
-                                          - numVhpOpCost:
-                                              Control: ModernNumberInput
+                                          - inpVhpOpCost:
+                                              Control: ModernTextInput
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Price"
@@ -11580,7 +11578,7 @@ Screens:
                                                 Color: |-
                                                     =If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                                 Default: |-
-                                                    =ThisItem.Cost
+                                                    =If(IsBlank(ThisItem.Cost), "", Text(ThisItem.Cost))
                                                 DisplayMode: |-
                                                     =If((If(varVhpViewOnly, DisplayMode.View, If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
@@ -11590,9 +11588,9 @@ Screens:
                                                 Height: |-
                                                     =32
                                                 OnChange: |-
-                                                    =Patch(colVhpOperations, ThisItem, { Cost: Self.Value })
-                                                Precision: |-
-                                                    =DecimalPrecision.'0'
+                                                    =Patch(colVhpOperations, ThisItem, { Cost: IfError(If(IsBlank(Trim(Self.Text)), Blank(), Round(Value(Trim(Self.Text)), 0)), Blank()) })
+                                                Placeholder: |-
+                                                    =""
                                                 RadiusBottomLeft: |-
                                                     =10
                                                 RadiusBottomRight: |-
@@ -11604,7 +11602,7 @@ Screens:
                                                 Size: |-
                                                     =If(LayoutRank < 2, 16, 14)
                                                 ValidationState: |-
-                                                    =If(false && IsBlank(Self.Value), ValidationState.Error, ValidationState.None)
+                                                    =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =80
                                                 X: |-
@@ -14623,67 +14621,127 @@ Screens:
                             ="Work (h)"
                         Wrap: |-
                             =false
-                  - numVhpOpMWork:
-                      Control: ModernNumberInput
+                  - conVhpOpMWorkUnit:
+                      Control: GroupContainer
+                      Variant: AutoLayout
                       Properties:
-                        AccessibleLabel: |-
-                            ="Work hours"
-                        Appearance: |-
-                            =Appearance.FilledDarker
-                        BasePaletteColor: |-
-                            =C.'color-brand-primary'
-                        BorderColor: |-
-                            =If(varVhpViewOnly, C.'border-default', C.'border-input')
                         BorderStyle: |-
-                            =BorderStyle.Solid
-                        BorderThickness: |-
-                            =1
-                        Color: |-
-                            =C.'input-fg'
-                        Default: |-
-                            =LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).WorkHours
-                        DisplayMode: |-
-                            =If((If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                        Fill: |-
-                            =C.'input-bg'
-                        Font: |-
-                            =Font.'Segoe UI'
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
                         Height: |-
                             =32
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Center
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =6
                         LayoutMinWidth: |-
                             =0
-                        OnChange: |-
-                            =With(
-                                { r: LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo) },
-                                Patch(
-                                    colVhpOperations, r,
-                                    {
-                                        WorkHours: Self.Value,
-                                        DurationHours: Round(Self.Value / Max(Coalesce(r.Persons, 1), 1), 2),
-                                        Cost: If(
-                                        Upper(Coalesce(r.ControlKey, "")) = "PM03",
-                                        Self.Value * Coalesce(r.UnitCost, 0),
-                                        r.Cost
-                                    )
-                                    }
-                                )
-                            )
-                        Precision: |-
-                            =DecimalPrecision.'0'
-                        RadiusBottomLeft: |-
-                            =10
-                        RadiusBottomRight: |-
-                            =10
-                        RadiusTopLeft: |-
-                            =10
-                        RadiusTopRight: |-
-                            =10
-                        Size: |-
-                            =If(LayoutRank < 2, 16, 14)
-                        ValidationState: |-
-                            =If(false && IsBlank(Self.Value), ValidationState.Error, ValidationState.None)
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         Width: |-
                             =(Min(620, App.Width - 40) - 36)
+                      Children:
+                        - inpVhpOpMWork:
+                            Control: ModernTextInput
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Work hours"
+                              Appearance: |-
+                                  =Appearance.FilledDarker
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              BorderColor: |-
+                                  =If(varVhpViewOnly, C.'border-default', C.'border-input')
+                              BorderStyle: |-
+                                  =BorderStyle.Solid
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'input-fg'
+                              Default: |-
+                                  =If(IsBlank(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).WorkHours), "", Text(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).WorkHours))
+                              DisplayMode: |-
+                                  =If((If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                              Fill: |-
+                                  =C.'input-bg'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =32
+                              LayoutMinWidth: |-
+                                  =0
+                              OnChange: |-
+                                  =With(
+                                      { r: LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo) },
+                                      Patch(
+                                          colVhpOperations, r,
+                                          {
+                                              WorkHours: IfError(If(IsBlank(Trim(Self.Text)), Blank(), Round(Value(Trim(Self.Text)), 0)), Blank()),
+                                              DurationHours: Round(IfError(If(IsBlank(Trim(Self.Text)), Blank(), Round(Value(Trim(Self.Text)), 0)), Blank()) / Max(Coalesce(r.Persons, 1), 1), 2),
+                                              Cost: If(
+                                              Upper(Coalesce(r.ControlKey, "")) = "PM03",
+                                              IfError(If(IsBlank(Trim(Self.Text)), Blank(), Round(Value(Trim(Self.Text)), 0)), Blank()) * Coalesce(r.UnitCost, 0),
+                                              r.Cost
+                                          )
+                                          }
+                                      )
+                                  )
+                              Placeholder: |-
+                                  =""
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =If(LayoutRank < 2, 16, 14)
+                              ValidationState: |-
+                                  =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                              Width: |-
+                                  =((Min(620, App.Width - 40) - 36)) - 19
+                        - txtVhpOpMWorkUnit:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Unit: h"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-muted'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =20
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  ="h"
+                              Width: |-
+                                  =13
+                              Wrap: |-
+                                  =false
                   - txtVhpOpML3:
                       Control: ModernText
                       Properties:
@@ -14715,62 +14773,122 @@ Screens:
                             ="Number of people"
                         Wrap: |-
                             =false
-                  - numVhpOpMPersons:
-                      Control: ModernNumberInput
+                  - conVhpOpMPersonsUnit:
+                      Control: GroupContainer
+                      Variant: AutoLayout
                       Properties:
-                        AccessibleLabel: |-
-                            ="Number of people"
-                        Appearance: |-
-                            =Appearance.FilledDarker
-                        BasePaletteColor: |-
-                            =C.'color-brand-primary'
-                        BorderColor: |-
-                            =If(varVhpViewOnly, C.'border-default', C.'border-input')
                         BorderStyle: |-
-                            =BorderStyle.Solid
-                        BorderThickness: |-
-                            =1
-                        Color: |-
-                            =C.'input-fg'
-                        Default: |-
-                            =LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Persons
-                        DisplayMode: |-
-                            =If((If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                        Fill: |-
-                            =C.'input-bg'
-                        Font: |-
-                            =Font.'Segoe UI'
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
                         Height: |-
                             =32
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Center
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =6
                         LayoutMinWidth: |-
                             =0
-                        OnChange: |-
-                            =With(
-                                { r: LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo) },
-                                Patch(
-                                    colVhpOperations, r,
-                                    {
-                                        Persons: Self.Value,
-                                        DurationHours: Round(r.WorkHours / Max(Coalesce(Self.Value, 1), 1), 2)
-                                    }
-                                )
-                            )
-                        Precision: |-
-                            =DecimalPrecision.'0'
-                        RadiusBottomLeft: |-
-                            =10
-                        RadiusBottomRight: |-
-                            =10
-                        RadiusTopLeft: |-
-                            =10
-                        RadiusTopRight: |-
-                            =10
-                        Size: |-
-                            =If(LayoutRank < 2, 16, 14)
-                        ValidationState: |-
-                            =If(false && IsBlank(Self.Value), ValidationState.Error, ValidationState.None)
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
                         Width: |-
                             =(Min(620, App.Width - 40) - 36)
+                      Children:
+                        - inpVhpOpMPersons:
+                            Control: ModernTextInput
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Number of people"
+                              Appearance: |-
+                                  =Appearance.FilledDarker
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              BorderColor: |-
+                                  =If(varVhpViewOnly, C.'border-default', C.'border-input')
+                              BorderStyle: |-
+                                  =BorderStyle.Solid
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'input-fg'
+                              Default: |-
+                                  =If(IsBlank(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Persons), "", Text(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Persons))
+                              DisplayMode: |-
+                                  =If((If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                              Fill: |-
+                                  =C.'input-bg'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =32
+                              LayoutMinWidth: |-
+                                  =0
+                              OnChange: |-
+                                  =With(
+                                      { r: LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo) },
+                                      Patch(
+                                          colVhpOperations, r,
+                                          {
+                                              Persons: IfError(If(IsBlank(Trim(Self.Text)), Blank(), Round(Value(Trim(Self.Text)), 0)), Blank()),
+                                              DurationHours: Round(r.WorkHours / Max(Coalesce(IfError(If(IsBlank(Trim(Self.Text)), Blank(), Round(Value(Trim(Self.Text)), 0)), Blank()), 1), 1), 2)
+                                          }
+                                      )
+                                  )
+                              Placeholder: |-
+                                  =""
+                              RadiusBottomLeft: |-
+                                  =10
+                              RadiusBottomRight: |-
+                                  =10
+                              RadiusTopLeft: |-
+                                  =10
+                              RadiusTopRight: |-
+                                  =10
+                              Size: |-
+                                  =If(LayoutRank < 2, 16, 14)
+                              ValidationState: |-
+                                  =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                              Width: |-
+                                  =((Min(620, App.Width - 40) - 36)) - 55
+                        - txtVhpOpMPersonsUnit:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Unit: people"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-muted'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =20
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =13
+                              Text: |-
+                                  ="people"
+                              Width: |-
+                                  =49
+                              Wrap: |-
+                                  =false
                   - txtVhpOpMDur:
                       Control: ModernText
                       Properties:
@@ -14991,8 +15109,8 @@ Screens:
                             ="Price"
                         Wrap: |-
                             =false
-                  - numVhpOpMCost:
-                      Control: ModernNumberInput
+                  - inpVhpOpMCost:
+                      Control: ModernTextInput
                       Properties:
                         AccessibleLabel: |-
                             ="Price"
@@ -15009,7 +15127,7 @@ Screens:
                         Color: |-
                             =If((If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                         Default: |-
-                            =LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Cost
+                            =If(IsBlank(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Cost), "", Text(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Cost))
                         DisplayMode: |-
                             =If((If(varVhpViewOnly, DisplayMode.View, If((If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                         Fill: |-
@@ -15021,9 +15139,9 @@ Screens:
                         LayoutMinWidth: |-
                             =0
                         OnChange: |-
-                            =Patch(colVhpOperations, LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo), { Cost: Self.Value })
-                        Precision: |-
-                            =DecimalPrecision.'0'
+                            =Patch(colVhpOperations, LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo), { Cost: IfError(If(IsBlank(Trim(Self.Text)), Blank(), Round(Value(Trim(Self.Text)), 0)), Blank()) })
+                        Placeholder: |-
+                            =""
                         RadiusBottomLeft: |-
                             =10
                         RadiusBottomRight: |-
@@ -15035,7 +15153,7 @@ Screens:
                         Size: |-
                             =If(LayoutRank < 2, 16, 14)
                         ValidationState: |-
-                            =If(false && IsBlank(Self.Value), ValidationState.Error, ValidationState.None)
+                            =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                         Width: |-
                             =(Min(620, App.Width - 40) - 36)
                   - txtVhpOpML7:
@@ -15964,8 +16082,8 @@ Screens:
                                   =0 + 0 + 0 + (30) + 10 + (110) + 10
                               Y: |-
                                   =0 + 0 + ((((36) - 1) - 0 - 0) - (30)) / 2
-                        - numVhpMatQty:
-                            Control: ModernNumberInput
+                        - inpVhpMatQty:
+                            Control: ModernTextInput
                             Properties:
                               AccessibleLabel: |-
                                   ="Quantity"
@@ -15982,7 +16100,7 @@ Screens:
                               Color: |-
                                   =C.'input-fg'
                               Default: |-
-                                  =ThisItem.Quantity
+                                  =If(IsBlank(ThisItem.Quantity), "", Text(ThisItem.Quantity))
                               DisplayMode: |-
                                   =If((If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                               Fill: |-
@@ -15992,9 +16110,9 @@ Screens:
                               Height: |-
                                   =30
                               OnChange: |-
-                                  =Patch(colVhpMaterials, ThisItem, { Quantity: Self.Value })
-                              Precision: |-
-                                  =DecimalPrecision.'0'
+                                  =Patch(colVhpMaterials, ThisItem, { Quantity: IfError(If(IsBlank(Trim(Self.Text)), Blank(), Round(Value(Trim(Self.Text)), 0)), Blank()) })
+                              Placeholder: |-
+                                  =""
                               RadiusBottomLeft: |-
                                   =10
                               RadiusBottomRight: |-
@@ -16006,7 +16124,7 @@ Screens:
                               Size: |-
                                   =If(LayoutRank < 2, 16, 14)
                               ValidationState: |-
-                                  =If(false && IsBlank(Self.Value), ValidationState.Error, ValidationState.None)
+                                  =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                               Width: |-
                                   =70
                               X: |-
@@ -20218,7 +20336,7 @@ Screens:
                                 )
                             );
                             Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist);
-                            Reset(drpVhpPlanType); Reset(drpVhpStrategy); Reset(drpVhpPlant); Reset(drpVhpStatus); Reset(inpVhpPlanText); Reset(drpVhpSortField); Reset(numVhpCycle); Reset(drpVhpUnit); Reset(dteVhpFirstCall);
+                            Reset(drpVhpPlanType); Reset(drpVhpStrategy); Reset(drpVhpPlant); Reset(drpVhpStatus); Reset(inpVhpPlanText); Reset(drpVhpSortField); Reset(inpVhpCycle); Reset(drpVhpUnit); Reset(dteVhpFirstCall);
                             Set(gblToast, { Text: "New request started.", Kind: "Success", At: Now() }); true
                         RadiusBottomLeft: |-
                             =10
