@@ -3,7 +3,7 @@
 Prompten nedenfor holdes opdateret efter hver PR i UX-reviewet. Kopiér
 alt i kodeblokken ind i GitHub Copilot (agent mode / coding agent).
 
-Senest opdateret: efter #256. #251, #253, #254, #255 og #256 er åbne.
+Senest opdateret: efter #257. #251, #253, #254, #255, #256 og #257 er åbne.
 
 ````markdown
 # Opgave: Færdiggør UX-review 2026-10 for BIO SAP (etape 2 og 3)
@@ -19,6 +19,7 @@ Repo: PeterBjerre/Canvas_apps. Svar og PR-beskrivelser på dansk. Appens tekster
   - #251 (2c, M3: hubbens fliser, Continue og sortering)
   - #253 (2d, T10: talfelter som tekst uden spin-pile — `number_field()`/`num_value()`, check_layout regel 41)
   - #254 (2e, M6: navngivne formler `T` (typeskala) og `R` (radier); `gen_screen` skriver navnet; check_layout regel 42: Size på typeskalaen)
+  - #257 (2g2, M5 del 2: item-editoren viser hvilket item og har "Delete item" (`_delete_item_fx`); undertitlen er planens navn. "Documents (n)" pr. item og plan-niveau-arbejdscenter er udeladt — passer ikke til datamodellen.)
   - #256 (2g, M5 del 1: VH-planhovedet foldes til én opsummeringslinje med Show/Hide, når det er gemt — ændrer issue #192)
   - #255 (2f, M2: formularer i sektioner — `domain_parts.form_section()`/`sectioned()`; Equipments efter mockuppen, Materials og MP. FL og Issue Board får sektioner i M1-panelet.)
 
@@ -93,9 +94,8 @@ Andre steder:
 - Designmockups: designlærredet "BIO SAP — UX review" (Equipments-mockup og VH-plan-mockup). Følg dem så tæt, som Power Apps tillader, og skriv afvigelser i PR'en.
 
 ## Rest af etape 2 — én PR pr. linje, i denne rækkefølge
-1. **2g2 – M5 del 2, VH-plan efter mockup:** titlen viser plannavn og nummer (fx "Pump P-101 lubrication · MP0143") med statuschip; item-editoren får "Documents (n)" og "Delete item" i sit hoved; Main work center vises som skrivebeskyttet med hjælpeteksten "From the plan header". Rør IKKE logikken i `build_save.py`. (Del 1, planhovedet foldet sammen, er #256.)
-2. **2h – M8 under Desktop:** rækkerne som kort (findes delvis: `domain_parts._compact_row`) og en fast bundbjælke med de primære handlinger på tablet/telefon.
-3. **2i–2l – M1 + T3 + T5 rækkeliste med sidepanel**, delt i flere PR'er:
+1. **2h – M8 under Desktop:** rækkerne som kort (findes delvis: `domain_parts._compact_row`) og en fast bundbjælke med de primære handlinger på tablet/telefon.
+2. **2i–2l – M1 + T3 + T5 rækkeliste med sidepanel**, delt i flere PR'er:
    - **2i:** fælles hjælpere `request_shell()`, `row_list()` og `row_editor_panel()`. Panelet er 480 px fra Desktop og har "Row 2 of 3", forrige/næste/luk, sektioner og en bundbjælke [Delete row] … [Cancel] [Update row]. Under Desktop er det fuld skærm.
    - **2j:** Equipments (og Measuring points) på de nye hjælpere. Rækkehandlinger: Documents-ikon med antal plus en More-menu (Objects, Copy row, Delete row).
    - **2k:** Materials med fanerne Details/Objects/Documents i panelet.
