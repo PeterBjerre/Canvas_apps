@@ -18,7 +18,7 @@ from gen_screen import (Ctrl, child_name, stack_height, row_height, C_APP_BG, C_
                         C_DISABLED_BG, C_DIVIDER, C_VALID_FG, C_INVALID_FG,
                         C_VALID_BG, C_INVALID_BG,
                         C_BORDER_OK, C_BORDER_ERROR, C_PRIMARY_SOFT, C_OVERLAY,
-                        C_MODAL_BG, C_ROW_HOVER, C_ROW_PRESSED, C_NEUTRAL_BG,
+                        C_MODAL_BG, C_ROW_HOVER, C_ROW_PRESSED, C_NEUTRAL_BG, C_MUTED_BG,
                         FONT, SHELL_W)
 
 def concurrent(*formulas, indent=0):
@@ -1275,6 +1275,44 @@ def validation_summary(prefix, items, label_expr, go_text, go_fx, title_fx, visi
     return group(f"con{prefix}Fix", [head, gal], direction="Vertical", gap=4,
                  fill=C_WARN_BG, radius=lay.RADIUS_INPUT, pad=(8, 12, 8, 12),
                  visible=visible)
+
+
+# ---------------------------------------------------------------------------
+# PLADSHOLDER-RAEKKER MENS LISTEN HENTES (UX-review 2026-10, M7)
+#
+# Et hjul midt paa skaermen (loading_overlay) siger "vent", men ikke HVAD der
+# kommer, og det daekker alt andet. En liste, der hentes, viser i stedet
+# graa raekker i listens egen form: skaermen staar stille, og indholdet
+# glider ind dér, hvor pladsholderne stod. Bjaelkerne er containere (ikke
+# figurer), saa de hverken er tab-stop eller kraever en etiket (regel 37/38);
+# skaermlaeseren faar een tekst: "Loading ...".
+# ---------------------------------------------------------------------------
+SKELETON_ROWS = 5
+SKELETON_ROW_H = 44
+SKELETON_SHORT_W = 160
+
+
+def skeleton_rows(name, visible, rows=SKELETON_ROWS, row_h=SKELETON_ROW_H,
+                  label="Loading, please wait", width="Parent.Width"):
+    """rows graa raekker a row_h px: een lang og een kort bjaelke pr. raekke.
+    name: con...; visible: Power Fx (fx varIbLoading)."""
+    base = name[3:] if name.startswith("con") else name
+    say = text_ctrl(f"txt{base}Say", f'"{label}"', size=lay.SIZE_SMALL, color=C_MUTED,
+                    height=18, wrap="false")
+    kids = [say]
+    bar_h = 10
+    gap = row_h - 2 * bar_h - 8
+    for i in range(rows):
+        long_ = group(f"con{base}Bar{i}A", [], direction="Horizontal", height=bar_h,
+                      fill=C_MUTED_BG, radius=bar_h // 2)
+        short = group(f"con{base}Bar{i}B", [], direction="Horizontal", height=bar_h,
+                      width=str(SKELETON_SHORT_W), fill=C_MUTED_BG, radius=bar_h // 2)
+        # Raekken straekker den lange bjaelke; den korte staar til venstre.
+        short.props["AlignInContainer"] = "AlignInContainer.Start"
+        kids.append(group(f"con{base}Row{i}", [long_, short], direction="Vertical",
+                          gap=gap, align_items="Stretch", pad=(4, 0, 4, 0)))
+    return group(name, kids, direction="Vertical", gap=0, width=width, visible=visible,
+                 pad=(4, 0, 4, 0))
 
 
 def empty_state(name, text, action_text=None, action_fx=None, icon_key=None,
