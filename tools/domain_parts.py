@@ -337,6 +337,9 @@ def submit_press_fx():
             ")")
 
 
+BAR_ACTIONS = []
+
+
 def build_bar():
     """Toplinjen. Den staar i rammens header (build_helpers.app_frame), saa
     den scroller aldrig vaek, og dens hoejde afhaenger kun af App.Width.
@@ -389,6 +392,8 @@ def build_bar():
     # Taelleren er raekkerne, der stadig er kladder - de sendes ikke med.
     actions = request_actions("Dom", new, save, submit, fix_expr=f"CountRows({DRAFTS})",
                               extra=[edit])
+    # Bundbjaelken under Desktop (UX-review M8) kopierer disse to.
+    BAR_ACTIONS[:] = [save, submit]
     narrow = below("Tablet")
     save.props["Width"] = f"If({narrow}, 40, {save.props['Width']})"
     save.props["Layout"] = f"If({narrow}, ButtonLayout.IconOnly, ButtonLayout.IconBefore)"

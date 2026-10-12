@@ -23,7 +23,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 from gen_screen import render_screen, C_APP_BG, OUT_DIR
-from build_helpers import app_frame
+from build_helpers import app_frame, sticky_actions
 from side_nav import side_nav
 import fl_config as cfg
 import fl_parts as P
@@ -73,8 +73,10 @@ def build_screen(render=render_screen):
     # strukturen. Class data, Manufacturer og Warranty er popupper
     # (build_class_modal, build_field_modal). Save
     # draft, Submit og New request staar i bjaelken (issue #77).
-    root = app_frame("Fl", P.build_bar(),
-                     [P.build_rows(), P.build_classes(), P.build_structure()])
+    bar = P.build_bar()
+    # Save draft og Submit i en fast bjaelke nederst under Desktop (UX-review M8).
+    root = app_frame("Fl", bar, [P.build_rows(), P.build_classes(), P.build_structure()],
+                     footer=sticky_actions("Fl", P.BAR_ACTIONS))
     # Sidebaren: skinnen efter rammen, det aabne panel efter popupperne
     # (tools/side_nav.py, SKILL.md: [root, rail, popups..., *overlay]) - som
     # paa de andre skaerme. Hver popup er sit eget sloer med popuppen

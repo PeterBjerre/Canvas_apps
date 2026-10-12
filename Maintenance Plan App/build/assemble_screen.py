@@ -18,7 +18,7 @@ _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.dirname(
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import render_screen, C_APP_BG, OUT_DIR
-from build_helpers import app_frame
+from build_helpers import app_frame, sticky_actions
 from build_hero import build_top_bar, HELP_ON, HELP_ACTION, focus_border, CONFIRM
 from build_helpers import loading_overlay
 from gen_screen import C_CARD_BORDER
@@ -50,7 +50,11 @@ def build_screen(render=render_screen):
 
     # RAMMEN: topbjaelken i en header, der ikke scroller, og sektionerne
     # direkte i en krop, der goer. Se build_helpers.app_frame.
-    root = app_frame("Vhp", build_top_bar(), sections, body_gap=20)
+    bar = build_top_bar()
+    # Save draft og Submit i en fast bjaelke nederst under Desktop (UX-review M8).
+    import build_hero
+    root = app_frame("Vhp", bar, sections, body_gap=20,
+                     footer=sticky_actions("Vhp", build_hero.BAR_ACTIONS))
 
     # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
     nav, overlay = side_nav("Vhp", "vhplan", HELP_ON, HELP_ACTION)

@@ -130,6 +130,9 @@ def _bar_btn(btn):
     return btn
 
 
+
+BAR_ACTIONS = []
+
 def build_bar():
     """Save draft, Submit og New request staar dér, hvor Verify og Export
     JSON stod (issue #77). Valideringen koerer af sig selv (REVERIFY), og
@@ -156,6 +159,8 @@ def build_bar():
     # [New request] | [Edit] [Save draft] [Submit (N to fix)] [Delete].
     # Taelleren er raekkerne med fejl (renderMetrics, S.ERRS).
     actions = request_actions("Fl", new, save, submit, fix_expr=S.ERRS, extra=[edit])
+    # Bundbjaelken under Desktop (UX-review M8) kopierer disse to.
+    BAR_ACTIONS[:] = [save, submit]
     _bar_btn(edit)
     _bar_btn(save)
     # Submit ogsaa kun sit ikon paa en telefon, saa "New request" kan staa
