@@ -11,7 +11,7 @@ import os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from design_tokens import DARK_VAR, toggle_action, ref_hex as ref_hex_expr, TRANSPARENT
 import layout_tokens as lay
-from layout_tokens import at_least, fits, if_below, TWO_COL_MIN
+from layout_tokens import at_least, below, fits, if_below, TWO_COL_MIN
 from gen_screen import (Ctrl, child_name, stack_height, row_height, C_APP_BG, C_CARD_BG,
                         C_CARD_BORDER, C_INPUT_BORDER, C_TITLE, C_MUTED, C_REQUIRED, C_PRIMARY,
                         C_PRIMARY2, C_WHITE, C_TRANSPARENT, C_INPUT_BG, C_INPUT_FG,
@@ -1599,7 +1599,47 @@ def top_bar(prefix, title, subtitle, actions, container_w=None, gap=10,
                  gap=gap, align_items="Center")
 
 
-def app_frame(prefix, header, body, body_gap=16, body_pad_b=None):
+# FAST BUNDBJAELKE UNDER DESKTOP (UX-review 2026-10, M8)
+#
+# Paa en tablet og en telefon er headerens knapper smaa (kun ikoner) og
+# langt fra tommelfingeren. Under Desktop staar anmodningens primaere
+# handlinger - Save draft og Submit - i en fast bjaelke nederst paa
+# skaermen, og de samme knapper i headeren skjules dér. Knapperne i
+# bjaelken er KOPIER (samme OnSelect, DisplayMode, tekst og tooltip), saa
+# reglen for, hvornaar de kan bruges, staar eet sted.
+FOOT_H = lay.HIT_TOUCH + 16
+
+
+def sticky_actions(prefix, buttons):
+    """Bundbjaelken con<X>Foot med kopier af buttons (header-knapperne).
+    Originalerne skjules under Desktop. Returnerer bjaelken til app_frame."""
+    on = below("Desktop")
+    copies = []
+    for b in buttons:
+        tail = b.name[3 + len(prefix):] if b.name.startswith("btn" + prefix) else b.name[3:]
+        c = Ctrl(f"btn{prefix}Foot{tail}", b.control, variant=b.variant, props=dict(b.props),
+                 h=lay.HIT_TOUCH)
+        for k in ("Layout", "LayoutMinWidth", "AlignInContainer", "X", "Y"):
+            c.props.pop(k, None)
+        if c.props.get("Icon"):
+            c.props["Layout"] = "ButtonLayout.IconBefore"
+        c.props["Height"] = str(lay.HIT_TOUCH)
+        c.props.pop("Visible", None)
+        if b.props.get("Visible"):
+            c.props["Visible"] = b.props["Visible"]
+            c.vis = c.props["Visible"]
+        copies.append(c)
+        v = b.props.get("Visible")
+        b.props["Visible"] = at_least("Desktop") if not v else f"{at_least('Desktop')} && ({v})"
+        b.vis = b.props["Visible"]
+    # SHELL_W: rammens indholdsbredde (aldrig Parent.Width, regel 24).
+    inner_w = f"({SHELL_W})"
+    row = button_row(f"con{prefix}FootRow", copies, inner_w, gap=8, height=lay.HIT_TOUCH)
+    return group(f"con{prefix}Foot", [row], direction="Vertical", gap=0, height=FOOT_H,
+                 fill=C_CARD_BG, pad=(8, lay.PAGE_PAD_R, 8, lay.PAGE_PAD_L), visible=on)
+
+
+def app_frame(prefix, header, body, body_gap=16, body_pad_b=None, footer=None):
     """Rammen om hele skaermen - den SAMME i alle apps.
 
         con<X>Root     lodret, hele skaermen, scroller IKKE
@@ -1632,15 +1672,17 @@ def app_frame(prefix, header, body, body_gap=16, body_pad_b=None):
                  pad=(lay.HEADER_PAD_T, lay.PAGE_PAD_R + lay.SCROLLBAR_W, 0, lay.PAGE_PAD_L),
                  fill=C_APP_BG)
     pb = lay.BODY_PAD_B if body_pad_b is None else body_pad_b
+    foot_h = "" if footer is None else f" - If({footer.props['Visible']}, {FOOT_H}, 0)"
     main = group("con%sBody" % prefix, body, direction="Vertical", gap=body_gap,
-                 height="Parent.Height - (%s)" % head.h, fill_portions=1,
+                 height="Parent.Height - (%s)%s" % (head.h, foot_h), fill_portions=1,
                  overflow_y="Scroll", fill=C_APP_BG,
                  pad=(lay.BODY_PAD_T, lay.PAGE_PAD_R, pb, lay.PAGE_PAD_L))
     # Sidebaren (tools/side_nav.py) staar til venstre. Rammen starter
     # efter dens LUKKEDE bredde; aabnet ligger den oven paa rammen. Paa
     # mobil er skinnen skjult, og rammen starter under topbjaelken i stedet
     # (issue #65) - udtrykkene staar i tools/layout_tokens.py.
-    root = group("con%sRoot" % prefix, [head, main], direction="Vertical", gap=0,
+    root = group("con%sRoot" % prefix, [head, main] + ([footer] if footer is not None else []),
+                 direction="Vertical", gap=0,
                  height=lay.ROOT_H, width=lay.ROOT_W, fill=C_APP_BG)
     root.props["X"] = lay.ROOT_X
     root.props["Y"] = lay.ROOT_Y
@@ -1935,27 +1977,46 @@ def text_input(name, default, placeholder="\"\"", max_length=None, required_form
     return Ctrl(name, "ModernTextInput", props=props, h=height)
 
 
-def number_input(name, default, min_v=None, max_v=None, required_formula="false",
-                 width="Parent.Width", height=36, display_mode=None, label=None):
-    props = {
-        "AccessibleLabel": label if label else f"\"{name}\"",
-        "BorderColor": border_rule("IsBlank(Self.Value)", required_formula),
-        "BorderStyle": "BorderStyle.Solid",
-        "BorderThickness": "1",
-        "Default": default,
-        "Height": str(height),
-        "LayoutMinWidth": "0",
-        "Precision": "DecimalPrecision.'0'",
-        **lay.radius(lay.RADIUS_INPUT),
-        "ValidationState": f"If({required_formula} && IsBlank(Self.Value), ValidationState.Error, ValidationState.None)",
-        "Width": width,
-    }
-    input_theme(props, display_mode)
-    if min_v is not None:
-        props["Min"] = str(min_v)
-    if max_v is not None:
-        props["Max"] = str(max_v)
-    return Ctrl(name, "ModernNumberInput", props=props, h=height)
+# TAL SOM TEKST, UDEN SPIN-PILE (UX-review 2026-10, T10)
+#
+# ModernNumberInput har spin-pile, som ikke kan skjules (der er ingen
+# egenskab til det), og som paa en touch-skaerm aendrer tallet ved et uheld.
+# Et tal er derfor et tekstfelt: Default er tallet som tekst, og vaerdien
+# laeses med num_value() - heltal (som DecimalPrecision '0' foer), tom ved
+# et tomt felt og ved tekst, der ikke er et tal. Enheden ("h", "days")
+# staar efter feltet, naar feltet ikke staar i et galleri (regel 26c) -
+# dér siger kolonneoverskriften enheden.
+NUM_UNIT_GAP = 6
+
+
+def num_value(ref="Self"):
+    """Feltets vaerdi som heltal - Blank() ved tomt felt eller ikke-tal."""
+    return (f"IfError(If(IsBlank(Trim({ref}.Text)), Blank(), "
+            f"Round(Value(Trim({ref}.Text)), 0)), Blank())")
+
+
+def number_field(name, default, required_formula="false", width="Parent.Width", height=36,
+                 display_mode=None, label=None, onchange=None, unit=None, placeholder='""'):
+    """Talfeltet: ModernTextInput (praefiks inp) med tallet som tekst.
+
+    default: Power Fx-tallet (variablen/kolonnen). onchange: formlen, der
+    laeser num_value(). unit: tekst efter feltet - saa returneres
+    [felt, enhed] som en vandret gruppe con<Navn>Unit."""
+    if not name.startswith("inp"):
+        raise SystemExit(f"number_field: {name} skal hedde inp... (regel 33)")
+    unit_w = text_px(unit, lay.SIZE_BODY, semibold=False) + 4 if unit else 0
+    in_w = width if not unit else f"({width}) - {unit_w + NUM_UNIT_GAP}"
+    c = text_input(name, f"If(IsBlank({default}), \"\", Text({default}))",
+                   placeholder=placeholder, required_formula=required_formula,
+                   width=in_w, height=height, display_mode=display_mode, onchange=onchange,
+                   label=label)
+    if not unit:
+        return c
+    u = text_ctrl(f"txt{name[3:]}Unit", f'"{unit}"', size=lay.SIZE_BODY, color=C_MUTED,
+                  height=20, width=str(unit_w), wrap="false",
+                  accessible=f'"Unit: {unit}"')
+    return group(f"con{name[3:]}Unit", [c, u], direction="Horizontal", gap=NUM_UNIT_GAP,
+                 height=height, width=width, align_items="Center")
 
 
 def date_picker(name, default_date, required_formula="false",

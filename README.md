@@ -106,6 +106,7 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 | [`docs/36-fl-sap-oprettelse.md`](docs/36-fl-sap-oprettelse.md) | FL-anmodninger i samme opretter: SPOOL-arkets GUI-script porteret, JSON-ordre pr. anmodning, de to FL-flows |
 | [`docs/38-modern-controls-audit.md`](docs/38-modern-controls-audit.md) | Audit af klassiske vs. moderne kontroller i BIO SAP App: hvad er migreret, hvad bliver og hvorfor, kandidater til Peter (#161) |
 | [`docs/39-uat-github-issues.md`](docs/39-uat-github-issues.md) | UAT: fra godkendt sag i Issue Board til GitHub-issue med `Send-IssueBoardToGitHub.ps1` |
+| [`docs/40-ux-review-copilot-prompt.md`](docs/40-ux-review-copilot-prompt.md) | UX-review 2026-10: prompten til at færdiggøre etape 2 og 3 (fx med GitHub Copilot) - opdateres efter hver PR |
 
 ## Kode og artefakter
 

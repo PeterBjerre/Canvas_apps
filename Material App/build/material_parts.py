@@ -217,6 +217,13 @@ FORM_ROWS = [
     ("conDomGridClass", ["StrategicPart", "WearPart", "MaintenanceOrderNo"], None),
 ]
 FORM_ORDER = [k for _n, keys, _v in FORM_ROWS for k in keys]
+# SEKTIONERNE (UX-review M2): overskriften staar foer den raekke, der
+# aabner sektionen. Lager og erstatning hoerer til identifikationen.
+SECTION_STARTS = {
+    "conDomGridMain": ("Ident", "Identification"),
+    "conDomGridMfr": ("Mfr", "Manufacturer and supplier"),
+    "conDomGridPrice": ("Price", "Price and classification"),
+}
 # Felter, der ikke er en almindelig celle: de to valg er SEG_*, og
 # Purchase order text (Remarks) er PO.
 NOT_IN_GRID = {"IsStockItem", "ReplacesExisting", "Remarks"}
@@ -361,6 +368,9 @@ def build_form():
     dp.check_form_order(FORM_ORDER, SPECIAL, NOT_IN_GRID)
     rows = []
     for name, keys, vis in FORM_ROWS:
+        if name in SECTION_STARTS:
+            key, title = SECTION_STARTS[name]
+            rows.append(dp.form_section(key, title, first=not rows))
         row = dp.grid_row(name, [_cell(k) for k in keys])
         if vis:
             row.vis = vis
