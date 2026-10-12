@@ -251,6 +251,13 @@ SCOPE_REFRESH = (
     'Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))')
 SCOPE_FULL = f"CountRows(colMdScope) >= {ROW_LIMIT}"
 
+# "CONTINUE WHERE YOU LEFT OFF" (UX-review M3): brugerens senest aendrede
+# kladde - een delegerbar forespoergsel (Filter paa konstanter + Sort paa
+# en dato) og First. Tom, naar brugeren ingen kladder har.
+RESUME_REFRESH = (
+    f"Set(varMdResume, First(Sort(Filter('{LIST}', RequesterEmail = varMdMe && "
+    f'Status.Value = "{ri.DRAFT}"), LastActionOn, SortOrder.Descending)))')
+
 # SKAERMENS OnVisible - IKKE AFHAENGIG AF App.OnStart
 #
 # App.OnStart koerer SAMTIDIG med foerste skaerms OnVisible (non-blocking
@@ -280,6 +287,7 @@ HUB_ON_VISIBLE = (
     # varMdLoading: pladsholder-raekkerne under hentningen (UX-review M7).
     "Set(varMdLoading, true);\n"
     "Concurrent(\n    " + SCOPE_REFRESH + ",\n    " + approval_flow.LOG_REFRESH + ",\n    " +
+    RESUME_REFRESH + ",\n    " +
     # Note to self-raekkerne, brugeren maa se - kun RequestGuid (issue #115).
     sn.hub_self_refresh("varMdMe") + "\n);\n"
     "Set(varMdLoading, false)"
@@ -550,9 +558,16 @@ TILES_CW = f"({SHELL_W})"
 TILE_W = if_below("Desktop", f"({TILES_CW} - {2 * TILE_GAP}) / 3",
                   f"({TILES_CW} - {4 * TILE_GAP}) / 5")
 TILE_LINES = if_below("Desktop", "2", "1")
-# Mere kvadratiske fliser: ikon og navn oeverst, tallet stort under.
-TILE_H = 148
+# KOMPAKTE FLISER (UX-review M3): 72 px i stedet for 148 - ikon, navn og
+# tal paa to linjer og "New" til hoejre, saa listen staar hoejere paa
+# skaermen. Telefonen beholder sine smaa fliser (tre pr. raekke, uden New).
+TILE_H = 72
 TILE_H_M = 100
+# New er en ikonknap (+): teksten "New" alene er forbudt (issue #243), og
+# "New request" er for bred til flisen. Klikfladen er H.hit (regel 40).
+TILE_NEW_W = lay.HIT_TOUCH
+TILE_NEW_GAP = 8
+TILE_NEW_PAD = 10
 STRIPE_H = 4
 
 
@@ -608,17 +623,17 @@ def _tile_face(d, count_expr):
                + name_lines +
                f"<text x='8' y='{sub_y}' {SVG_FONT} font-size='10' "
                f"fill='{_hx('text-muted')}'>\" & \"filter\" & \"</text></svg>" + '"')
+    # 72 px: stregen foroven, ikonet, navnet og "12 open requests" under.
     full = ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h}' "
             f"viewBox='0 0 {w} {h}'>"
             f"<rect width='{w}' height='{STRIPE_H}' fill='{c}'/>"
-            f"<circle cx='38' cy='46' r='20' fill='{c}' fill-opacity='0.12'/>"
-            + _dglyph(d, c, x=28, y=36, size=20) +
-            f"<text x='70' y='51' {SVG_FONT} font-size='15' font-weight='600' "
+            f"<circle cx='30' cy='40' r='18' fill='{c}' fill-opacity='0.12'/>"
+            + _dglyph(d, c, x=21, y=31, size=18) +
+            f"<text x='58' y='36' {SVG_FONT} font-size='14' font-weight='600' "
             f"fill='{_hx('text-primary')}'>\" & \"{d['name']}\" & \"</text>"
-            f"<text x='18' y='108' {SVG_FONT} font-size='34' font-weight='600' "
-            f"fill='{_hx('text-primary')}'>\" & {count_expr} & \"</text>"
-            f"<text x='18' y='130' {SVG_FONT} font-size='12' "
-            f"fill='{_hx('text-muted')}'>\" & {SCOPE_WORDS} & \"</text></svg>" + '"')
+            f"<text x='58' y='56' {SVG_FONT} font-size='12' "
+            f"fill='{_hx('text-muted')}'><tspan font-weight='600' fill='{_hx('text-primary')}'>"
+            f"\" & {count_expr} & \"</tspan> \" & {SCOPE_WORDS} & \"</text></svg>" + '"')
     return f"If({below('Tablet')}, {compact}, {full})"
 
 
@@ -635,17 +650,34 @@ def build_tiles():
         count = scope_count(f'Domain = "{d["key"]}"')
 
         st = _tile_state(d, sel)
-        face = _image(f"imgMdTile{n}", _svg_uri(_tile_face(d, count)), "Parent.Width",
+        # Fra Tablet: flisen er [forside | New]; forsiden er resten.
+        face_w = if_below("Tablet", f"({TILE_W})",
+                          f"({TILE_W}) - {TILE_NEW_W + TILE_NEW_GAP + TILE_NEW_PAD}")
+        face = _image(f"imgMdTile{n}", _svg_uri(_tile_face(d, count)), face_w,
                       if_below("Tablet", str(TILE_H_M), str(TILE_H)),
                       onselect=f'Set(varMdDomain, If({sel}, "", "{d["key"]}"));\n' + SAVE_HUB,
                       # Uden tallet: det ville vaere endnu en forespoergsel.
                       label=f'If({sel}, "Show all domains", "Show only {d["name"].lower()}")',
                       hover=st["hover"])
         face.props["FocusedBorderColor"] = d["color"]
+        # NEW PAA FLISEN (UX-review M3): den samme handling som menuen
+        # "New request" i bjaelken (_new_action) - een vej mindre at lede.
+        act, ready = _new_action(d)
+        new = button(f"btnMdTileNew{n}", '"New request"', act, width=TILE_NEW_W, height=32,
+                     icon="Add",
+                     accessible=f'"New {d["name"].lower()} request"',
+                     tooltip=(f'"New {d["name"].lower()} request"' if ready
+                              else '"Coming soon"'),
+                     display_mode=None if ready else "DisplayMode.Disabled",
+                     visible=at_least("Tablet"))
+        new.props["Layout"] = "ButtonLayout.IconOnly"
+        new.props["LayoutMinWidth"] = str(TILE_NEW_W)
+        ensure_hit(new)
 
         tile = group(
-            f"conMdTile{n}", [face], direction="Vertical", gap=0,
-            fill=st["fill"], radius=lay.RADIUS_CARD, width=TILE_W,
+            f"conMdTile{n}", [face, new], direction="Horizontal", gap=TILE_NEW_GAP,
+            fill=st["fill"], radius=lay.RADIUS_CARD, width=TILE_W, align_items="Center",
+            height=if_below("Tablet", str(TILE_H_M), str(TILE_H)),
             border_color=st["border"], border_thickness=st["thickness"])
         tile.props["DropShadow"] = st["shadow"]
         tiles.append(tile)
@@ -734,6 +766,34 @@ def _flag_pill(name, flag, label, field, icon):
              "compact": (_tight(f"{label} (99)"), "ButtonLayout.TextOnly", None),
              "short": (_tight("99", icon=True), "ButtonLayout.IconBefore", n)}
     return _selected_style(b, f'varMdFlag = "{flag}"', idle_color=C_MUTED)
+
+
+def build_resume():
+    """"Continue where you left off": den seneste kladde med Continue -
+    samme handling som raekkens Edit, paa varMdResume i stedet for
+    ThisItem."""
+    vis = "!IsBlank(varMdResume) && !IfError(varMdLoading, false)"
+    rec = "varMdResume"
+    icon = _image("imgMdResumeIcon",
+                  _svg_uri(_domain_switch(lambda d: '"' + _tile_icon_svg(d) + '"', '""')
+                           .replace("ThisItem", rec)), 32, 32,
+                  label=DOMAIN_LABEL.replace("ThisItem", rec))
+    title = text_ctrl("txtMdResumeTitle", '"Continue where you left off"', size=lay.SIZE_BODY,
+                      weight="Semibold", height=20, wrap="false")
+    when = f'Text({rec}.LastActionOn, "{lay.DATE_FMT}")'
+    line = text_ctrl("txtMdResumeLine",
+                     f'{rec}.{COL_NO} & "  \u00b7  " & {SHORT_TEXT.replace("ThisItem", rec)} & '
+                     f'"  \u00b7  draft, updated " & {when}',
+                     size=12, color=C_MUTED, height=18, wrap="false")
+    words = grow(group("conMdResumeWords", [title, line], direction="Vertical", gap=0))
+    go_txt = '"Continue"'
+    go = button("btnMdResumeGo", go_txt, _open_action("edit").replace("ThisItem", rec),
+                primary=True, width=fit_button_width(go_txt), height=32,
+                accessible=f'"Continue " & {rec}.{COL_NO}')
+    go.props["LayoutMinWidth"] = go.props["Width"]
+    return group("conMdResume", [icon, words, go], direction="Horizontal", gap=12, height=56,
+                 align_items="Center", fill=C_CARD_BG, border_color=C_CARD_BORDER,
+                 radius=lay.RADIUS_INPUT, pad=(8, 12, 8, 12), visible=vis)
 
 
 def build_banner():
@@ -968,8 +1028,7 @@ def build_closed_peek():
 # ---------------------------------------------------------------------------
 # Listen
 # ---------------------------------------------------------------------------
-ITEMS = (
-    "SortByColumns(\n"
+_FILTERED = (
     "    Filter(\n"
     f"        {SCOPE},\n"
     '        varMdDomain = "" || Domain.Value = varMdDomain,\n'
@@ -981,10 +1040,51 @@ ITEMS = (
     f"            StartsWith({COL_NO}, Trim(inpMdFind.Text)) ||\n"
     "            StartsWith(ShortText, Trim(inpMdFind.Text)) ||\n"
     "            StartsWith(Plant, Trim(inpMdFind.Text))\n"
-    "    ),\n"
-    '    "LastActionOn", SortOrder.Descending\n'
-    ")"
+    "    )"
 )
+# SORTERBARE KOLONNER (UX-review M3): et klik paa overskriften sorterer
+# efter den; et klik mere vender raekkefoelgen. Standard er Updated, nyeste
+# foerst. SortByColumns faar kolonnens navn som KONSTANT i hver gren (een
+# Switch), saa SharePoint stadig sorterer - et variabelt kolonnenavn kan
+# ikke delegeres.
+SORT_COLS = {"REQUEST": COL_NO, "PLANT": "Plant", "STATUS": "StatusStep",
+             "UPDATED": "LastActionOn"}
+SORT_DEFAULT = "UPDATED"
+SORT_ORDER = "If(IfError(varMdSortAsc, false), SortOrder.Ascending, SortOrder.Descending)"
+
+
+def _sorted(col):
+    return f"SortByColumns(\n    {_FILTERED.strip()},\n        \"{col}\", {SORT_ORDER}\n    )"
+
+
+ITEMS = (
+    "Switch(\n    Coalesce(varMdSort, \"%s\"),\n" % SORT_DEFAULT
+    + "".join(f'    "{k}",\n    {_sorted(c)},\n'
+              for k, c in SORT_COLS.items() if k != SORT_DEFAULT)
+    + f"    {_sorted(SORT_COLS[SORT_DEFAULT])}\n)"
+)
+
+
+def _sort_head(i, key, width):
+    """Overskriften som knap: "UPDATED" + pil - pilen kun paa den sorterede."""
+    on = f'Coalesce(varMdSort, "{SORT_DEFAULT}") = "{key}"'
+    asc = "IfError(varMdSortAsc, false)"
+    arrow = f'If({asc}, " \u2191", " \u2193")'
+    first = "true" if key in ("REQUEST", "PLANT") else "false"
+    b = button(f"btnMdH{i}", f'"{key}" & If({on}, {arrow}, "")',
+               f'If({on}, Set(varMdSortAsc, !{asc}), '
+               f'Set(varMdSort, "{key}"); Set(varMdSortAsc, {first}))',
+               width=width, height=30,
+               accessible=(f'"Sort by {key.lower()}" & If({on}, If({asc}, '
+                           '", ascending", ", descending"), "")'),
+               tooltip=f'"Sort by {key.lower()}"')
+    b.props["BorderColor"] = C_TRANSPARENT
+    b.props["Color"] = C_MUTED
+    b.props["Size"] = str(lay.SIZE_MICRO)
+    b.props["FontWeight"] = "FontWeight.Semibold"
+    b.props["Align"] = "Align.Left"
+    b.props["LayoutMinWidth"] = "0"
+    return b
 
 
 # "Clear filters" - i den tomme liste og i filterlinjen (UX-review F4/M3).
@@ -1047,11 +1147,12 @@ def _tile_icon_svg(d, size=32):
 
 def build_list():
     head = group("conMdListHead",
-                 [text_ctrl(f"txtMdH{i}", f'"{t}"', size=lay.SIZE_MICRO, weight="Semibold", color=C_MUTED,
-                            height=20, wrap="false",
-                            width=CWF[k], visible=(f"!({MINE})" if k == "REQUESTER" else None))
-                  for i, (t, _w) in enumerate(COLS) for k in [t]],
-                 direction="Horizontal", gap=GAP, height=20, align_items="Center",
+                 [(_sort_head(i, t, CWF[t]) if t in SORT_COLS else
+                   text_ctrl(f"txtMdH{i}", f'"{t}"', size=lay.SIZE_MICRO, weight="Semibold",
+                             color=C_MUTED, height=20, wrap="false",
+                             width=CWF[t], visible=(f"!({MINE})" if t == "REQUESTER" else None)))
+                  for i, (t, _w) in enumerate(COLS)],
+                 direction="Horizontal", gap=GAP, height=30, align_items="Center",
                  pad=(0, ROW_PAD, 0, ROW_PAD), visible=at_least("Wide"))
 
     # REQUEST (UX-review, hub): domaenets ikon i en tonet firkant, nummeret
