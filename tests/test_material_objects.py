@@ -167,8 +167,9 @@ def test_stock_item_requires_min_and_max_and_min_below_max():
     assert "Min stock must be less than or equal to max stock." in save
     assert "varMatFMinStock > varMatFMaxStock" in save
     # Min > max er forkert ogsaa paa en kladde - og siges, mens der skrives.
-    assert "Min stock must be less than or equal to max stock." in _prop(
-        "btnMatSaveDraft", "OnSelect")
+    # Der er een gem-knap (Add row/Update row, UX-review F2): den gemmer som
+    # gyldig eller som kladde, og tjekket staar i begge grene.
+    assert save.count("Min stock must be less than or equal to max stock.") >= 2
     assert "varMatFMinStock > varMatFMaxStock" in _prop("txtMatStockMsg", "Visible")
 
 
@@ -181,7 +182,7 @@ def test_the_first_row_is_plant_description_stock_item_and_replace():
     assert _children("conMatReplacesExistingSeg") == ["conMatReplacesExistingSegNo",
                                                       "conMatReplacesExistingSegYes"]
     # Overskriften er Item Editors (build_helpers.section_header).
-    assert _prop("txtMatEditorHeadTitle", "Text") == '"Material Editor"'
+    assert _prop("txtMatEditorHeadTitle", "Text") == '"Row details"'
 
 
 def test_stock_fields_show_only_for_a_stock_item_and_are_saved_blank_otherwise():

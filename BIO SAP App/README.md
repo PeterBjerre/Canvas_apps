@@ -167,6 +167,21 @@ fra en af de fem enkeltapps — skriver den `AppUrl` =
 9. **Materials → Import invoice:** testplanen i
    [`docs/34`](../docs/34-faktura-import.md#testplan).
 
+### UX-review 2026-10 (etape 1)
+
+1. En gemning i hvert domæne: beskeden står nederst til højre og
+   forsvinder efter ca. 4 s. En fejl (fx uden netværk) bliver stående med et
+   luk-kryds.
+2. Alle datoer — tekst og datovælgere — står som **dd-mm-yyyy**.
+3. Equipments/Materials/Measuring points: *Add row* gemmer som *Valid*,
+   når rækken er udfyldt, ellers som *Draft* med en besked om, hvad der
+   mangler. Submit viser "Submit (N to fix)", så længe der er kladder.
+4. Brødkrummen *Masterdata Hub* går tilbage til hubben, og hubbens filtre
+   står, som man forlod dem — også efter genstart af appen.
+5. På en tablet/telefon: ikonknapperne (Delete, Close, Copy …) har en
+   44 px klikflade.
+6. Mørk tilstand: statuschips og feltkanter (`border-input`) kan ses.
+
 ## Issue Board (issue #114)
 
 Et midlertidigt sags- og feedbacksystem til udviklings- og testfasen. Koden

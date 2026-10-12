@@ -32,10 +32,11 @@ from design_tokens import ref_hex
 import layout_tokens as lay
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least, below
 import icons
-from build_helpers import (checkbox_theme, new_request_label, text_ctrl, group, button, text_input, themed_dropdown, card,
+import display_text as dt
+from build_helpers import (ensure_hit, checkbox_theme, new_request_label, request_actions, breadcrumb, text_ctrl, group, button, text_input, themed_dropdown, card,
                            pin_widths, top_bar, grow, badge, fit_button_width, row_rule, mark_done,
                            loading_overlay, with_busy, confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
-                           ICON_W)
+                           ICON_W, text_px)
 
 NARROW = below("Tablet")
 
@@ -130,7 +131,7 @@ def _bar_btn(btn):
 
 
 def build_bar():
-    """Save draft, Submit og New Request staar dér, hvor Verify og Export
+    """Save draft, Submit og New request staar dér, hvor Verify og Export
     JSON stod (issue #77). Valideringen koerer af sig selv (REVERIFY), og
     eksporten er vaek - snapshottet fryses stadig ved Submit (payload_fx).
     Tallene er renderMetrics (FL66)."""
@@ -146,21 +147,26 @@ def build_bar():
                   icon=bool(ICON_SUBMIT))
     submit.props["Tooltip"] = S.SUBMIT_WHY
     # "New Request" uden plus-ikon (issue #243) - build_helpers.new_request_label.
-    new = new_request_label(button("btnFlNew", '"New Request"', NEW_FX))
+    new = new_request_label(button("btnFlNew", '"New request"', NEW_FX))
     edit = _fit(button("btnFlEdit", '"Edit"', "Set(varFlViewOnly, false)", icon="Edit",
                        visible="varFlViewOnly && varFlCanEdit",
                        display_mode="If(varFlCanEdit, DisplayMode.Edit, DisplayMode.Disabled)"),
                 icon=True)
+    # SAMME RAEKKEFOELGE SOM ALLE DOMAENER (UX-review T1):
+    # [New request] | [Edit] [Save draft] [Submit (N to fix)] [Delete].
+    # Taelleren er raekkerne med fejl (renderMetrics, S.ERRS).
+    actions = request_actions("Fl", new, save, submit, fix_expr=S.ERRS, extra=[edit])
     _bar_btn(edit)
     _bar_btn(save)
-    # Submit ogsaa kun sit ikon paa en telefon, saa "New Request" kan staa
+    # Submit ogsaa kun sit ikon paa en telefon, saa "New request" kan staa
     # med hele sin tekst (issue #243).
     if ICON_SUBMIT:
         _bar_btn(submit)
     # Temaskiftet og vejen til hubben staar i sidebaren (tools/side_nav.py).
     bar = top_bar("Fl", f'"{cfg.TITLE}"', SUBTITLE,
-                  [edit, delete_button("Fl", "varFlViewOnly", "varFlRequestGuid"), save, submit, new],
-                  icon=cfg.APP_KEY, mode_var="varFlViewOnly")
+                  actions + [delete_button("Fl", "varFlViewOnly", "varFlRequestGuid")],
+                  icon=cfg.APP_KEY, mode_var="varFlViewOnly",
+                  crumb=breadcrumb("Fl", cfg.APP_KEY, "varFlRequestNo"))
     return bar
 
 
@@ -314,17 +320,24 @@ def _btn_w(text):
     return fit_button_width(f'"{text}"', size=BTN_SIZE, min_w=0)
 
 
+def _pop_w(text):
+    """Popup-knappen med plads til fluebenet foran teksten (UX-review)."""
+    return _btn_w(text) + ICON_W
+
+
 VGAP = 6
 FL_MIN = 140
 DESC_MIN = 100
 # (navn, overskrift, bredde) efter Description. Delete er et ikon.
 # Class Data staar lige efter Assigned Class (issue #242).
-V_FIXED = ([("Kks", "KKS Type", 64), ("Cls", "Assigned Class", 96),
-            ("ClsData", "Class Data", _btn_w("Class data"))]
-           + [(n, _NO_CLASS[f]["Column"], w) for n, f, w in ROW_VALS]
-           + [("Abc", "ABC Indicator", 88), ("Atex", "ATEX", 40),
-              ("Mfr", "Manufacturer", _btn_w("Manufacturer")),
-              ("War", "Warranty", _btn_w("Warranty")),
+V_FIXED = ([("Kks", "KKS type", 64), ("Cls", "Assigned class", 96),
+            ("ClsData", "Class data", _pop_w("Class data"))]
+           # Reglernes etiket ("Sort Field") i appens sentence case (F1).
+           + [(n, _NO_CLASS[f]["Column"][:1] + _NO_CLASS[f]["Column"][1:].lower(), w)
+              for n, f, w in ROW_VALS]
+           + [("Abc", "ABC indicator", 88), ("Atex", "ATEX", 40),
+              ("Mfr", "Manufacturer", _pop_w("Manufacturer")),
+              ("War", "Warranty", _pop_w("Warranty")),
               # "Actions" er 47 px i 11 px - knappen er et ikon.
               ("Act", "Actions", 48)])
 V_SHOW_NO = at_least("Tablet")
@@ -368,7 +381,12 @@ ROW_TOP = 40
 ROW_H_MSG = 70
 MSG_Y = 38
 HAS_MSG = 'IfError(!IsEmpty(Filter(colFlRows, Status <> "draft")), false)'
-V_ROW_H = f"If({HAS_MSG}, {ROW_H_MSG}, {ROW_H})"
+# Delete er en ikonknap med klikfladen H.hit (UX-review F6, regel 40):
+# under Desktop er cellelinjen 44 hoej, og resten af raekken rykker
+# TOUCH_EXTRA (0 fra Desktop, 4 under) ned.
+ROW_TOP_F = f"Max({ROW_TOP}, {lay.HIT})"
+TOUCH_EXTRA = f"({ROW_TOP_F} - {ROW_TOP})"
+V_ROW_H = f"If({HAS_MSG}, {ROW_H_MSG}, {ROW_H}) + {TOUCH_EXTRA}"
 
 ERRS = 'CountRows(Filter(colFlRows, Status = "invalid"))'
 
@@ -414,9 +432,14 @@ def _pop_button(name, text, onselect, has, accessible, tooltip, display_mode):
     """En popup-knap i raekken med Long Text-knappens udfyldt-tilstand
     (build_helpers.mark_done, VH-plan): groen kant og tekst, naar popuppen
     har data - neutral, naar den er tom. Groen er data, ikke gyldighed."""
-    b = button(name, f'"{text}"', onselect, width=_btn_w(text), height=30,
+    b = button(name, f'"{text}"', onselect, width=_pop_w(text), height=30,
                display_mode=display_mode, accessible=accessible, tooltip=tooltip)
     b.props["Size"] = str(BTN_SIZE)
+    # UDFYLDT KAN SES (UX-review, FL Spool): et flueben foran teksten, naar
+    # popuppen har data - ikke kun den groenne kant.
+    b.props["Icon"] = f'If({has}, "Checkmark", "")'
+    b.props["Layout"] = f"If({has}, ButtonLayout.IconBefore, ButtonLayout.TextOnly)"
+    b.props["AccessibleLabel"] = f'{accessible} & If({has}, ", filled in", ", empty")'
     return mark_done(b, has)
 
 
@@ -458,7 +481,7 @@ def row_cells():
     # ABC Indicator: kun til visning - TRM-automatikken saetter den (FL49).
     abc = text_ctrl("txtFlRowAbc", f'With({{ v: {_val("ABC INDIC.")} }}, If(IsBlank(v), "-", v))',
                     size=13, weight="Semibold", height=20, wrap="false",
-                    accessible='"ABC Indicator, set automatically: " & Self.Text')
+                    accessible='"ABC indicator, set automatically: " & Self.Text')
     # ATEX: afkrydsning, der gemmer X eller intet (som i formularen, #166).
     atex = Ctrl("chkFlRowAtex", "ModernCheckbox", props=checkbox_theme({
         "AccessibleLabel": '"ATEX, row " & ThisItem.Pos',
@@ -479,7 +502,7 @@ def row_cells():
             f"Filter(colFlColumns, Cls = ThisItem.AssignedClass && {CLS_TEST}).Field"),
         '"Class data of row " & ThisItem.Pos',
         (f'If({has_cls}, "Edit the class characteristics, TRM and GIV_EXT / WCM fields of this row", '
-         '"No class yet - the class is determined by the KKS code. Enter a valid Functional Location first.")'),
+         '"Valid FL first - the class is determined by the KKS code of a valid Functional Location.")'),
         f"If({has_cls}, DisplayMode.Edit, DisplayMode.Disabled)")
     pops = [cls_data]
     for name, kind, fields, tip in (
@@ -502,6 +525,7 @@ If(CountRows(colFlRows) = 0, {add_row_fx()});
 {REVERIFY}""", danger=True, width=48, height=30, display_mode=DM_EDIT, icon="Delete",
                     accessible='"Delete row " & ThisItem.Pos', tooltip='"Delete row " & ThisItem.Pos')
     delete.props["Layout"] = "ButtonLayout.IconOnly"
+    ensure_hit(delete, square=False)
     # Samme raekkefoelge som V_FIXED: Class data lige efter Assigned Class.
     return _cells(V_SPEC, [no, fl, desc, kks, cls, pops[0]] + vals + [abc, atex] + pops[1:]
                   + [delete])
@@ -525,28 +549,33 @@ def row_message():
                     wrap="false", width=txt_w, visible=shown,
                     accessible='"Row " & ThisItem.Pos & ": " & Self.Text')
     txt.props["X"] = indent
-    txt.props["Y"] = str(MSG_Y + 5)
+    txt.props["Y"] = f"{MSG_Y + 5} + {TOUCH_EXTRA}"
     hint = button("btnFlRowHint", '"?"', f"Notify({hint_expr}, NotificationType.Information)",
                   width=30, height=30, visible=f"({shown}) && ({has_hint})",
                   accessible='"What does this message mean?"')
     hint.props["Tooltip"] = hint_expr
     hint.props["X"] = f"{indent} + ({txt_w}) + 6"
-    hint.props["Y"] = str(MSG_Y)
+    hint.props["Y"] = f"{MSG_Y} + {TOUCH_EXTRA}"
     return [txt, hint]
 
 
 def build_rows():
-    title = grow(text_ctrl("txtFlRowsH", '"Validation"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
-                           height=26, wrap="false"))
+    # "Rows" og hvor mange der er gyldige (UX-review F1/T7 og FL Spool):
+    # kortet hed "Validation".
+    title = text_ctrl("txtFlRowsH", '"Rows"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
+                      height=26, wrap="false", width=text_px("Rows", lay.SIZE_CARD_TITLE))
+    count = grow(text_ctrl("txtFlRowsCount",
+                           f'Text({S.READY}) & " of " & Text(CountRows(colFlRows)) & " valid"',
+                           size=13, color=C_MUTED, height=20, wrap="false"))
     add = _fit(button("btnFlAddRow", '"Add row"', add_row_fx() + ";\n" + REVERIFY,
-                      display_mode=DM_EDIT))
-    head_row = group("conFlRowsTop", pin_widths([title, add]), direction="Horizontal",
+                      display_mode=DM_EDIT, icon="Add", primary=True), icon=True)
+    head_row = group("conFlRowsTop", pin_widths([title, count, add]), direction="Horizontal",
                      gap=12, align_items="Center")
 
     head = table_head("conFlRowsHead", V_SPEC, gap=VGAP, width=V_GAL_W)
     gal = table_gallery("galFlRows", '"Functional Location rows"',
                         "Sort(colFlRows, RowNo)", "CountRows(colFlRows)", row_cells(), "conFlRow",
-                        row_h=V_ROW_H, gap=VGAP, width=V_GAL_W, tpl_h=str(ROW_TOP),
+                        row_h=V_ROW_H, gap=VGAP, width=V_GAL_W, tpl_h=ROW_TOP_F,
                         extra=row_message())
     # Vandret scroll, naar tabellen er bredere end kortet (Equipment/
     # Materials' moenster, domain_parts). Start, ikke Stretch - check_layout
@@ -559,7 +588,7 @@ def build_rows():
     # Kun noget at sige, naar der ER noget: en fejl ved gem/indsend, eller
     # raekker, der blokerer Submit. Ingen "Ready."/"Done." (issue #77).
     info = text_ctrl("txtFlInfo",
-                     f'Coalesce(varFlInfo, "Submit is blocked: " & {ERRS} & " row(s) have errors.")',
+                     f'Coalesce(varFlInfo, "Submit is blocked: " & {dt.plural(ERRS, "row has", "rows have")} & " errors.")',
                      size=12, color=C_INVALID_FG, height=18, wrap="false",
                      visible=f"!IsBlank(varFlInfo) || {ERRS} > 0")
     return card("conFlRowsCard", [head_row, table, info, verify_button()], gap=10)
@@ -921,6 +950,7 @@ def build_class_modal():
                    icon=icons.FLUENT["dismiss"], accessible='"Close without applying"',
                    tooltip='"Close without applying"')
     close.props["Layout"] = "ButtonLayout.IconOnly"
+    ensure_hit(close)
     head = group("conFlClsTop", pin_widths([left, close]), direction="Horizontal", gap=8,
                  align_items="Center")
 

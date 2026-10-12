@@ -49,6 +49,17 @@ _STEP = {k: step for k, _label, step in STATUS}
 DRAFT = "Kladde"
 SUBMITTED = "Indsendt"
 
+# "STUCK" (UX-review 2026-10): en anmodning staar fast, naar NOGEN ANDEN
+# skal handle og ingen har gjort det i STUCK_DAYS dage. Det er Indsendt,
+# UnderBehandling og AfventerInfo - ikke Kladde (brugerens egen) og ikke
+# KlarTilSAP (venter paa Master Data i SAP-opretteren). Foer gjaldt det
+# alle aabne, og "Stuck 7 d" stod under 20 af 23 raekker.
+STUCK_DAYS = 5
+STUCK_STATUSES = ("Indsendt", "UnderBehandling", "AfventerInfo")
+# De tre er praecis trin 2 og 3, saa hubbens filter kan delegeres som to
+# talsammenligninger paa StatusStep i stedet for OR'ede valgvaerdier.
+STUCK_STEPS = (2, 3)
+
 # AppUrl PEGER PAA DEN SAMLEDE APP (2026-09-30)
 #
 # BIO SAP App er den app, der skal bruges; de fem enkeltapps udfases. En
@@ -136,6 +147,23 @@ def record(domain, app_key, status, *, request_no, guid, me, short_text,
     return "{\n" + ",\n".join(pad + "    " + f for f in fields) + "\n" + pad + "}"
 
 
+def rows_text(title, n_expr):
+    """Opsummeringen i ShortText: "Equipment: 1 row" / "Equipment: 2 rows"
+    (UX-review B4). Her stod "row(s)" - og foer det "raekke(r)"."""
+    import display_text as dt
+    return f'"{title}: " & ' + dt.plural(n_expr, "row")
+
+
 def number_expr(prefix, id_expr):
     """Anmodningsnummeret: praefiks + listens ID med seks cifre (EQ-000912)."""
     return f'"{prefix}-" & Text({id_expr}, "000000")'
+
+
+def _check_stuck():
+    by_step = {k for k, _l, st in STATUS if STUCK_STEPS[0] <= st <= STUCK_STEPS[1]}
+    if by_step != set(STUCK_STATUSES):
+        raise SystemExit("request_index: STUCK_STEPS %s daekker %s, ikke STUCK_STATUSES %s"
+                         % (STUCK_STEPS, sorted(by_step), sorted(STUCK_STATUSES)))
+
+
+_check_stuck()

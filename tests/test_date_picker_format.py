@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Alle datovaelgere viser og tolker datoen som DD-MM-YYYY (issue #235).
+"""Alle datovaelgere viser og tolker datoen som DD-MM-YYYY (issue #235, UX-review T8).
 
 Formatet staar eet sted (layout_tokens.DATE_PICKER_FMT) og saettes af
 build_helpers.date_picker. Testen laeser de GENEREREDE skaerme i den samlede
@@ -55,8 +55,10 @@ def _pickers():
 
 
 def test_faelles_format_er_dd_mm_yyyy():
-    assert lay.DATE_PICKER_FMT == "dd-mm-yyyy"
+    # Samme format som datoer vist som tekst (UX-review T8).
+    assert lay.DATE_PICKER_FMT == "dd-mm-yyyy" == lay.DATE_FMT
     assert lay.DATE_PICKER_PLACEHOLDER == "dd-mm-yyyy"
+    assert lay.DATETIME_FMT == "dd-mm-yyyy hh:mm"
 
 
 def test_builder_bruger_faelles_format():

@@ -122,8 +122,11 @@ python3 generate_app_onstart.py && python3 assemble_screen.py && python3 check_l
    `MD_FLKey`, ingen delegeringsadvarsler.
 2. Vælg `L` → `LA` → `LAD`: grupperne og undergrupperne følger, stien viser
    `L / LA / LAD - …`, og *Back* går ét niveau op ad gangen.
-3. Søg `fødevand`: rækkerne fra alle sektioner; klik på en række, og
-   bogstav, gruppe og undergruppe sættes, og søgningen ryddes.
+3. Skriv `fødevand` i søgefeltet: listen filtreres, mens der skrives (ca.
+   350 ms efter sidste tast) — ingen Search-knap. Krydset rydder søgningen.
+   Klik på en række, og bogstav, gruppe og undergruppe sættes, og
+   søgningen ryddes. Kopier-ikonet på en række lægger koden i
+   udklipsholderen og siger "Copied …" nederst til højre.
 4. *Aggregate key*: 98 rækker under *All*, bogstaverne A B C D G H U, ingen
    undergruppe-række. *Component key*: 60 rækker, `-A` står under `A`.
 5. Gå til en anden skærm og tilbage: intet hentes igen, valget står.

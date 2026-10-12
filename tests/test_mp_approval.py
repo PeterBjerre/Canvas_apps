@@ -625,8 +625,10 @@ def test_the_plan_and_material_strips_are_the_same_with_the_flag(hub_on, hub_off
 
 def test_the_mp_strip_has_system_counter_and_sap(hub_on):
     mp = hub_on["mp"]
-    for name in (">System<", ">Counter<", ">SAP<"):
-        assert name in mp, name
+    # System, Counter og SAP: tre knuder (etiketterne er vaek, UX-review).
+    assert mp.count("<circle") == 3
+    for stage in ("System", "Counter"):
+        assert 'Stage = "%s"' % stage in mp, stage
     assert "Cost" not in mp and "Quality" not in mp and "Handover" not in mp
     # Uden raekker i nogen af de to trin: intet forloeb.
     assert 'CountRows(Filter(L, Stage = "System" || Stage = "Counter")) = 0' in mp
@@ -646,7 +648,7 @@ def test_the_row_strip_branches_to_mp(hub_on):
     row = hub_on["row"]
     i, j = row.index('ThisItem.Domain.Value = "Material"'), row.index(
         'ThisItem.Domain.Value = "MeasuringPoint",')
-    assert i < j and ">Counter<" in row
+    assert i < j and 'Stage = "Counter"' in row
 
 
 def test_the_popup_shows_mps_stages(hub_on):

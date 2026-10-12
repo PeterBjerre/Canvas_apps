@@ -350,7 +350,7 @@ def build_strategy_body():
             "        \"The plan can still be saved and submitted without a package allocation.\",\n"
             "\n"
             "    \"No operations on the active item yet. \" &\n"
-            "        \"Add operations under Tasklist and Operations.\"\n"
+            "        \"Add operations under Task list and operations.\"\n"
             ")"
         ), size=13, color=C_MUTED, height=40, wrap="true",
         visible=f"IfError(!{CAN_DRAW}, true)")

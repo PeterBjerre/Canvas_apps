@@ -164,6 +164,12 @@ FLUENT = {
     "expand": "ChevronDown",
     "collapse": "ChevronUp",
     "attach": "Attach",
+    # UX-review 2026-10 (efterproeves i Studio - ikke brugt foer):
+    "refresh": "ArrowClockwise",
+    "copy": "Copy",
+    "search": "Search",
+    "more": "MoreHorizontal",
+    "check": "Checkmark",
 }
 
 # Stregen ved en given tegnet stoerrelse - se ovenfor.

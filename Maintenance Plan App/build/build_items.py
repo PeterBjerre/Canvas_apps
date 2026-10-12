@@ -10,7 +10,7 @@ from design_tokens import ref_hex
 import layout_tokens as lay
 import icons
 from layout_tokens import if_below, at_least, below, fits, TWO_COL_MIN
-from build_helpers import (checkbox_theme, row_hit, text_ctrl, group, button,
+from build_helpers import (empty_state, checkbox_theme, row_hit, text_ctrl, group, button,
                            button_row, text_input, themed_dropdown, label_row,
                            field_cell, col_width, card, HINTS_ON, grow,
                            fit_button_width, column_grid, ICON_SAVE, ICON_W,
@@ -442,9 +442,11 @@ def build_items_rail():
         },
         children=[itemCard, btnOpen], h=ITEMS_GAL_H)
 
-    emptyState = text_ctrl(
-        "txtVhpItemsEmpty", "\"No items yet. Use Add item to create the first item for this plan.\"",
-        size=13, color=C_MUTED, height=40, wrap="true",
+    # Tom tilstand (UX-review F4): ikon, een saetning og Add item.
+    emptyState = empty_state(
+        "conVhpItemsEmpty", '"No items yet - choose Add item to create the first one."',
+        "Add item", btnAdd.props["OnSelect"], icon_key="vhplan",
+        button_name="btnVhpItemsEmptyAdd", action_icon="Add",
         visible="IfError(CountRows(colVhpItems) = 0, true)")
 
     return card("conVhpItemsCard", [header, btnRow, gallery, emptyState], gap=12)
@@ -458,7 +460,7 @@ FL_W = fits(EDITOR_CW, TWO_COL_MIN, EDITOR_CW, f"(({EDITOR_CW} - 40) / 3) * 2 + 
 
 
 def _obj_list_button(n_obj):
-    """Object List-knappen som et billede med SAMME udseende som en outline-
+    """Object list-knappen som et billede med SAMME udseende som en outline-
     knap. Et billede, fordi dets Tooltip er browserens egen: den bryder
     linjerne (Char(10)) og ombryder lange tekster. ModernButtons Fluent-
     tooltip samlede alle de valgte objekter paa een linje.
@@ -466,7 +468,7 @@ def _obj_list_button(n_obj):
     Udfyldt (mindst et objekt valgt): groen kant og tekst, som Item Long
     Text (issue #73) - tilstanden foelger antallet, saa den forsvinder, naar
     valget ryddes."""
-    w, h = fit_button_width('"Object List (000)"') + 28, 34
+    w, h = fit_button_width('"Object list (000)"') + 28, 34
     done = f"({n_obj} > 0)"
     off = f"(IsBlank(varVhpActiveItemId) || !({OBJ_HAS_DATA}))"
     hx = ref_hex
@@ -486,9 +488,9 @@ def _obj_list_button(n_obj):
                f'fill=\'" & {ink} & "\'>" & {label} & "</text>' if label else '')
             + '</svg>"')
     svg = (f'If({below("Tablet")}, ' + _svg(40, 12, None) + ', '
-           + _svg(w, 14, '"Object List (" & Text(' + n_obj + ') & ")"') + ')')
+           + _svg(w, 14, '"Object list (" & Text(' + n_obj + ') & ")"') + ')')
     img = Ctrl("imgVhpObjList", "Image", props={
-        "AccessibleLabel": f'"Object List, " & Text({n_obj}) & " selected"',
+        "AccessibleLabel": f'"Object list, " & Text({n_obj}) & " selected"',
         "AlignInContainer": "AlignInContainer.Start",
         "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0",
@@ -531,7 +533,7 @@ def build_item_editor():
     # staar stadig paa itemets kort i listen. "Invalid" bliver staaende som
     # badgets advarsel, naar det valgte item er gemt som ugyldigt.
     ST = "LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status"
-    header = section_header("conVhpEditorHead", "Item Editor", "Step 2",
+    header = section_header("conVhpEditorHead", "Item", "Step 2",
                             valid_fx=items_valid_fx(), attention_fx=f'{ST} = "invalid"')
     helpPanel = help_panel("conVhpItemHelp", "item")
 
@@ -687,7 +689,7 @@ def build_item_editor():
          '"No non flow user status"'),
         ("Zbow", "ZBOW", f"{NF_VAL} = {NF_ZBOW}", "Set(varVhpItemNfPick, { Value: " + NF_ZBOW + " })",
          NF_DESC),
-    ], display_mode=DM_ITEM, label="Non Flow User Status")
+    ], display_mode=DM_ITEM, label="Non-flow user status")
     NF_OTHER = f"(Len({NF_VAL}) > 0 && {NF_VAL} <> {NF_ZBOW})"
     nfOther = text_ctrl(
         "txtVhpItemNonFlowOther",
@@ -721,15 +723,15 @@ def build_item_editor():
                           hint_text=bh.hint(hint))
 
     fieldsGrid = column_grid("conVhpItemFieldsGrid", [
-        [cell("conVhpCellItemShortText", "Item Short Text", txtShort, "ItemShortText", True),
-         cell("conVhpCellItemMwc", "Main Work Center", drpMwc, "MainWorkCenter", True)],
-        [cell("conVhpCellItemLongText", "Item Long Text", btnLongText, "ItemLongText"),
-         cell("conVhpCellItemAct", "Maintenance Activity Type", drpAct, "ActivityType", True)],
+        [cell("conVhpCellItemShortText", "Item short text", txtShort, "ItemShortText", True),
+         cell("conVhpCellItemMwc", "Main work center", drpMwc, "MainWorkCenter", True)],
+        [cell("conVhpCellItemLongText", "Item long text", btnLongText, "ItemLongText"),
+         cell("conVhpCellItemAct", "Maintenance activity type", drpAct, "ActivityType", True)],
         [cell("conVhpCellItemRevision", "Revision", segRevision, "Revision"),
          cell("conVhpCellItemInitials", "Initials", txtInitials, "Initials", True)],
     ], container_w=CW, row_gap=12)
     # Samme celle som de andre felter, i tredje kolonnes bredde.
-    nfCell = cell("conVhpCellItemNonFlow", "Non Flow User Status", nfBlock,
+    nfCell = cell("conVhpCellItemNonFlow", "Non-flow user status", nfBlock,
                   "NonFlowUserStatus")
     flRow = row_n("conVhpItemFlRow", [flBlock, nfCell], container_w=CW)
 
@@ -865,7 +867,7 @@ ITEM_SAVE_W = fit_button_width("\"Save\"", min_w=96) + ICON_W
 
 
 def build_object_list_modal():
-    """Object List som popup (issue #54).
+    """Object list som popup (issue #54).
 
     Samme konstruktion som tasklist-pickeren (build_modal.py): en container
     oven paa skaermen med sloeret bagved, centreret, med titel, luk-knap og
@@ -875,7 +877,7 @@ def build_object_list_modal():
     den valgte Functional Location - men krydserne skrives i en KLADDE,
     colVhpObjDraft. Foerst "Use selected" skriver dem paa itemet. Close
     (eneste luk, issue #237) lukker uden at aendre noget."""
-    title = text_ctrl("txtVhpObjListTitle", "\"Object List\"", size=lay.SIZE_CARD_TITLE, weight="Semibold",
+    title = text_ctrl("txtVhpObjListTitle", "\"Object list\"", size=lay.SIZE_CARD_TITLE, weight="Semibold",
                       height=26, wrap="false")
     grow(title)
     btnX = button("btnVhpObjListClose", "\"Close\"",

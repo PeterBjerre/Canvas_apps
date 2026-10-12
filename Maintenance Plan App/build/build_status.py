@@ -22,7 +22,7 @@ TRINENE
 -------
 Et trin er GROENT, naar dets paakraevede felter er udfyldt OG gemt:
 
-    Plan         gemt og laast (Save i Plan Header). Edit laaser op, og saa
+    Plan         gemt og laast (Save i Plan header). Edit laaser op, og saa
                  er trinnet ikke faerdigt, foer det er gemt igen.
     Item         mindst eet item, og alle gemte items er valid. Usavede
                  aendringer i Item Editoren tjekkes paa skaermen
@@ -77,7 +77,7 @@ IS_STRAT_PLAN = 'varVhpPlan.PlanType = "Strategy"'
 
 
 def item_ref(item_id):
-    """Power Fx-tekst: "Item <nr> (<Item Short Text>)" for itemet med
+    """Power Fx-tekst: "Item <nr> (<Item short text>)" for itemet med
     ItemId = item_id. Nummeret er itemets plads i Items-listen (sorteret
     paa ItemId). Uden kort tekst kun "Item <nr>". item_id skal vaere et
     navn fra en With - ikke ItemId direkte, for inde i Filter(colVhpItems)
@@ -117,26 +117,26 @@ ITEM_RULE = _per_row(
     "With(\n"
     "    {\n"
     "        f:\n"
-    "            If(IsBlank(ShortText), \", Item Short Text\", \"\") &\n"
-    "            If(IsBlank(MainWorkCenter), \", Main Work Center\", \"\") &\n"
-    "            If(IsBlank(ActivityType), \", Maintenance Activity Type\", \"\") &\n"
+    "            If(IsBlank(ShortText), \", Item short text\", \"\") &\n"
+    "            If(IsBlank(MainWorkCenter), \", Main work center\", \"\") &\n"
+    "            If(IsBlank(ActivityType), \", Maintenance activity type\", \"\") &\n"
     "            If(IsBlank(FunctionalLocation), \", Functional Location\", \"\")\n"
     "    },\n"
     f"    {_nest(REF)} &\n"
-    "        \": fill in \" & Mid(f, 3) & \" in the Item Editor.\"\n"
+    "        \": fill in \" & Mid(f, 3) & \" in the item editor.\"\n"
     ")")
 
 # (sektion, navn, udtryk) - navnet er kun til tests og laesning.
 RULES = [
     ("Plan", "strategy",
      f"If(\n    {IS_STRAT_PLAN} && IsBlank(varVhpPlan.Strategy),\n"
-     "    \"Choose a Maintenance Strategy in the Plan Header - a strategy plan needs one.\",\n"
+     "    \"Choose a Maintenance strategy in the Plan header - a strategy plan needs one.\",\n"
      "    \"\"\n)"),
     ("Plan", "plant_prefix",
      "If(\n"
      "    !IsBlank(varVhpPlan.Plant) && !IsBlank(varVhpPlan.PlanText) &&\n"
      "        !StartsWith(Upper(varVhpPlan.PlanText), Upper(varVhpPlan.Plant)),\n"
-     "    \"Start the Plan Text in the Plan Header with the plant code \" & varVhpPlan.Plant &\n"
+     "    \"Start the Plan text in the Plan header with the plant code \" & varVhpPlan.Plant &\n"
      "        \" - otherwise the plan cannot be found without searching by plant.\",\n"
      "    \"\"\n)"),
     ("Plan", "sort_field",
@@ -144,14 +144,14 @@ RULES = [
      "    IsBlank(varVhpPlan.SortField),\n"
      "    " + _nest(_items_list(
          "Filter(VhpSaveableItems, StartsWith(ActivityType, \"110\") || StartsWith(ActivityType, \"115\"))",
-         "\"Choose a Sort Field in the Plan Header - it is required for activity type 110 or 115: \"")) + ",\n"
+         "\"Choose a Sort field in the Plan header - it is required for activity type 110 or 115: \"")) + ",\n"
      "    \"\"\n)"),
     ("Plan", "first_call",
      "If(\n"
      "    varVhpPlan.FirstCallDay <> 1 || varVhpPlan.FirstCallMonth <> 1,\n"
      "    " + _nest(_items_list(
          "Filter(VhpSaveableItems, !IsBlank(Revision))",
-         "\"Set First call to 01/01 (day 1, month 1) in the Plan Header - otherwise the outage work \" &\n"
+         "\"Set First call to January 1 (yyyy-01-01) in the plan header - otherwise the outage work \" &\n"
          "        \"misses the outage. Marked as outage work (Revision): \"")) + ",\n"
      "    \"\"\n)"),
     ("Item", "item_fields", ITEM_RULE),
@@ -220,7 +220,7 @@ STEP_MISSING = {
     # halvdel der mangler.
     "Item": [("!VhpStepItemDone",
               'If(IsEmpty(VhpSaveableItems), "Add at least one item.", '
-              '"Save every item as valid in the Item Editor.")')],
+              '"Save every item as valid in the item editor.")')],
     "Ops": [("!VhpStepTasklistDone", '"Choose a task list for every item."'),
             ("!VhpStepOpsDone",
              f'If({IS_STRAT}, "Give every item operations, each with a package.", '
@@ -268,16 +268,16 @@ def formulas():
     # Usavede aendringer i Item Editoren (build_hero.ITEM_DIRTY) kan kun
     # skaermen se - de laegges til paa skaermen.
     add("VhpPlanRuleErrors", _section_rules("Plan"),
-        "Reglerne, der rettes i Plan Header.")
+        "Reglerne, der rettes i Plan header.")
     add("VhpItemRuleErrors", _section_rules("Item"),
         "Reglerne, der rettes i Item Editoren.")
     add("VhpOpsRuleErrors", _section_rules("Ops"),
-        "Reglerne, der rettes i Tasklist and Operations.")
-    for sec, why in (("Plan", "Plan Header"), ("Item", "Items"), ("Ops", "Tasklist and Operations")):
+        "Reglerne, der rettes i Task list and operations.")
+    for sec, why in (("Plan", "Plan header"), ("Item", "Items"), ("Ops", "Task list and operations")):
         add(MISSING_NAMES[sec], _section_missing(sec),
             f"Det, der mangler i {why} (issue #220) - een linje pr. krav. Tom = intet.")
     add("VhpPlanValid", "VhpStepPlanDone && IsBlank(VhpPlanRuleErrors)",
-        "Plan Header er gemt og opfylder sine regler.")
+        "Plan header er gemt og opfylder sine regler.")
     add("VhpItemsValid", "VhpStepItemDone && IsBlank(VhpItemRuleErrors)",
         "Alle items er gemt som valid og opfylder deres regler.")
     add("VhpOpsValid", "VhpStepTasklistDone && VhpStepOpsDone && IsBlank(VhpOpsRuleErrors)",

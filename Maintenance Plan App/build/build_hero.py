@@ -4,10 +4,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, SHELL_W, C_PRIMARY, C_CARD_BORDER, C_VALID_FG, C_MUTED,
                         C_DIVIDER, C_MODAL_BG, C_PRIMARY_SOFT, stack_height)
 import layout_tokens as lay
-from build_helpers import (group, fit_button_width, popup_head, text_ctrl, text_px,
+from build_helpers import (ensure_hit, group, fit_button_width, popup_head, text_ctrl, text_px,
                            flow_row, page_icon, PAGE_ICON, ICON_W, top_bar, grow,
                            button, confirm_modal, edit_button, delete_modal, tap_backdrop,
-                           new_request_label, new_request_widths)
+                           new_request_label, new_request_widths, ghost, with_fix_count,
+                           SUBMIT_FIX_LONGEST, breadcrumb, CRUMB_H)
 from build_status import MISSING_NAMES, join_lines
 from layout_tokens import if_below, at_least, below
 from design_tokens import ref_hex
@@ -120,12 +121,12 @@ CAN_SUBMIT = f"VhpCanSubmit && !({ITEM_DIRTY})"
 # tooltip, linjen under trinene og listen "Before you can submit" bygges
 # alle af GROUPS. Foer stod der "Fix 1 plan rule - hover Submit to see
 # them" - nu staar selve reglerne der.
-DIRTY_MSG = '"Save the changes in the Item Editor."'
+DIRTY_MSG = '"Save the changes in the item editor."'
 # (overskrift = sektionens titel, tekst med een linje pr. krav, trin)
 GROUPS = [
-    ("Plan Header", MISSING_NAMES["Plan"], 1),
+    ("Plan header", MISSING_NAMES["Plan"], 1),
     ("Items", join_lines([MISSING_NAMES["Item"], f'If({ITEM_DIRTY}, {DIRTY_MSG}, "")']), 2),
-    ("Tasklist and Operations", MISSING_NAMES["Ops"], 3),
+    ("Task list and operations", MISSING_NAMES["Ops"], 3),
 ]
 # Listen "Before you can submit" (missing_modal) har een tekst pr. gruppe.
 # De tekster ER skaermens kilde: ITEM_DIRTY regnes kun der, og linjen under
@@ -392,11 +393,18 @@ READY_OK = f"(VhpSubmitted || ({CAN_SUBMIT}))"
 # Save draft og Submit - bredderne bruges af knapperne.
 # "Save draft" sagde ikke, om man oprettede eller opdaterede (issue #88).
 # Knappen hedder nu det, den goer; status i SharePoint er stadig Draft.
-DRAFT_TEXT = 'If(IsBlank(varVhpPlanKey), "Create draft", "Update draft")'
-SAVE_W = fit_button_width('"Update draft"') + ICON_W
+# UX-review T1: "Save draft" som i alle andre domaener - ikke "Create
+# draft"/"Update draft". Tooltip'en siger stadig, om planen er gemt foer.
+DRAFT_TEXT = '"Save draft"'
+SAVE_W = fit_button_width('"Save draft"') + ICON_W
 # Submit har ikonet foran teksten - det skal ogsaa have plads, ellers
 # klippes "Submit" (issue #211).
-SUB_W = fit_button_width('"Submit"', min_w=72) + ICON_W
+# Plads til taelleren "Submit (2 to fix)" (UX-review T1/M4).
+SUB_W = fit_button_width(SUBMIT_FIX_LONGEST, min_w=72) + ICON_W
+# Kompakt (lille Desktop): kun tallet - "Submit (2)". Skaermlaeseren og
+# tooltip'en har stadig hele teksten.
+SUB_C_LONGEST = '"Submit (99)"'
+SUB_C_W = fit_button_width(SUB_C_LONGEST, min_w=72) + ICON_W
 SUBTITLE = '"Plan header, items, task lists and operations - submitted to SAP master data."'
 # New Request er en ren tekstknap uden plus-ikon (issue #238) og hedder
 # praecis "New Request" paa alle skaermbredder (issue #243) - den faelles
@@ -473,8 +481,9 @@ def readiness_line():
     info.props["Layout"] = "ButtonLayout.IconOnly"
     info.props["LayoutMinWidth"] = str(INFO_W)
     info.props["BorderColor"] = f"If({MISSING_ON}, {C_PRIMARY}, {C_CARD_BORDER})"
+    ensure_hit(info)                   # H.hit (UX-review F6, regel 40)
     return group("conVhpReadyRow", [ctrl, info], direction="Horizontal", gap=8,
-                 height=READY_H, align_items="Center", justify="Center")
+                 height=f"Max({READY_H}, {lay.HIT})", align_items="Center", justify="Center")
 
 
 def _lines_h(text, width, px=7.2, line_h=19):
@@ -492,8 +501,8 @@ MODAL_PAD = 18
 def missing_modal():
     """"Before you can submit" (issue #220) - [sloer, popup].
 
-    Alt, der mangler, grupperet efter sektion: Plan Header, Items og
-    Tasklist and Operations. Samme kilde som linjen under trinene, Submits
+    Alt, der mangler, grupperet efter sektion: Plan header, Items og
+    Task list and operations. Samme kilde som linjen under trinene, Submits
     tooltip og trinene (GROUPS), saa listen kan ikke sige noget andet end
     knappen. Den regnes om, mens brugeren retter - et krav forsvinder,
     naar det er opfyldt, og er alt i orden, siger popuppen det. Indholdet
@@ -579,7 +588,7 @@ PLAN_W = max(EDIT_W, SAVE_W)
 # Notes og Delete er to ikon-knapper i enden (issue #230).
 FULL_W = NEW_W + SEP_W + PLAN_W + SUB_W + 2 * ICON_BTN + 5 * BTN_GAP
 # New request beholder sin tekst, ogsaa naar de andre er ikoner (issue #238).
-COMPACT_W = NEW_W + SEP_W + ICON_BTN + SUB_W + 2 * ICON_BTN + 5 * BTN_GAP
+COMPACT_W = NEW_W + SEP_W + ICON_BTN + SUB_C_W + 2 * ICON_BTN + 5 * BTN_GAP
 # En telefon har kun plads til EEN af de to: staar Delete der (Edit mode),
 # viger View notes - noterne kan stadig laeses i View mode, og et
 # returneringsnotat staar i linjen under trinene.
@@ -638,7 +647,7 @@ def _header_actions(notes_vis, notes_fx):
                     tooltip=('If(VhpSubmitted, "A submitted plan cannot be deleted.", '
                              'varVhpSaving, "Saving ... - wait until saving is done.", '
                              '"Delete this draft request - you are asked to confirm first")'))
-    return _icon_only(notes), _icon_only(delete)
+    return ensure_hit(_icon_only(notes)), ensure_hit(_icon_only(delete))
 
 
 def build_top_bar():
@@ -658,10 +667,11 @@ def build_top_bar():
     # "New Request" - kun tekst, intet plus-ikon, paa alle skaermbredder
     # (issue #238 / #243).
     btnNew = new_request_label(button(
-        "btnVhpNewRequest", '"New Request"',
+        "btnVhpNewRequest", '"New request"',
         f"If({HAS_UNSAVED}, Set(varVhpConfirmNew, true), {NEW_PLAN_FX})",
         height=36, accessible='"Start a new blank request"',
         tooltip='"Start a new blank request"'))
+    ghost(btnNew)
     # Den faelles Edit (build_helpers.edit_button). Den skifter KUN til Edit
     # mode (issue #103): sektionerne er altid foldet ud (issue #192), og Plan
     # Header laases op med sin egen Edit - foer laaste denne knap ogsaa den op.
@@ -679,20 +689,28 @@ def build_top_bar():
     more_vis = f"({NOTES_HAVE} || {DELETE_VIS})"
     btnDraft.props["Text"] = DRAFT_TEXT
     btnDraft.props["AccessibleLabel"] = (
-        'If(IsBlank(varVhpPlanKey), "Create the plan as a draft", "Update the saved draft")')
+        'If(IsBlank(varVhpPlanKey), "Save the plan as a draft", "Save the changes to the draft")')
     # Hvorfor knappen er graa - samme betingelser som build_save.DRAFT_DM.
     btnDraft.props["Tooltip"] = (
         "If(\n"
         "    varVhpSaving, \"Saving ...\",\n"
-        "    !varVhpPlanCommitted, \"Save the plan header first - then you can create the draft.\",\n"
+        "    !varVhpPlanCommitted, \"Confirm the plan header first - then you can save the draft.\",\n"
         f"    {SAVEABLE_COUNT} = 0, \"Add at least one item with a short text or functional location first.\",\n"
-        "    IsBlank(varVhpPlanKey), \"Not saved yet. Create a draft so you can come back to it.\",\n"
-        "    \"Saved as draft \" & varVhpPlanKey & \". Update draft saves your changes to the same plan, items and operations.\"\n"
+        "    IsBlank(varVhpPlanKey), \"Not saved yet. Save a draft so you can come back to it.\",\n"
+        "    \"Saved as draft \" & varVhpPlanKey & \". Save draft saves your changes to the same plan, items and operations.\"\n"
         ")")
     btnDraft.props["Visible"] = btnDraft.vis = DRAFT_VIS
     focus_border(btnDraft, (4,), C_CARD_BORDER)
     _compact(btnDraft, SAVE_W)
-    btnSubmit.props["Width"] = if_below("Tablet", str(SUB_PHONE_W), str(SUB_W))
+    # Submit er primaer og viser, hvor mange krav der mangler (T1/M4).
+    with_fix_count(btnSubmit, f"CountRows({ALL_MISSING})")
+    full_txt = btnSubmit.props["Text"]
+    btnSubmit.props["AccessibleLabel"] = full_txt
+    btnSubmit.props["Text"] = (
+        f'If({COMPACT}, With({{ _f: CountRows({ALL_MISSING}) }}, "Submit" & '
+        f'If(_f > 0, " (" & Text(_f) & ")", "")), {full_txt})')
+    btnSubmit.props["Width"] = if_below("Tablet", str(SUB_PHONE_W),
+                                        f"If({COMPACT}, {SUB_C_W}, {SUB_W})")
     btnSubmit.props["LayoutMinWidth"] = btnSubmit.props["Width"]
     btnSubmit.props["Layout"] = (f"If({below('Tablet')}, ButtonLayout.IconOnly, "
                                  "ButtonLayout.IconBefore)")
@@ -705,7 +723,7 @@ def build_top_bar():
                 visible=f"!({below('Tablet')}) && ({EDIT_VIS} || {DRAFT_VIS} || {SUBMIT_VIS} || {more_vis})")
     sep.props["AlignInContainer"] = "AlignInContainer.Center"
     title_bar = top_bar("Vhp", '"Maintenance Plan"', SUBTITLE, [], icon="vhplan", mode_var="varVhpViewOnly",
-                     num_var="varVhpPlanKey")
+                     num_var="varVhpPlanKey", crumb=breadcrumb("Vhp", "vhplan", "varVhpPlanKey"))
     # Nye navne: Studio beholdt bjaelkens gamle tilstand paa conVhpBar fra foer redesignet.
     title_bar.name = "conVhpTitleRow"
     title_bar.children[1].name = "conVhpTitleText"
@@ -749,7 +767,8 @@ def build_top_bar():
                  justify="End", align_items="Center")
     btns.props["LayoutMinWidth"] = btns.props["Width"]
     head = group("conVhpHeadLine", [title_bar, steps, btns],
-                 height=if_below("Tablet", "60", str(STEP_H + 28)),
+                 # + broedkrummen over titlen (F9) fra Tablet og op.
+                 height=if_below("Tablet", "60", str(STEP_H + 28 + CRUMB_H + 2)),
                  direction="Horizontal", gap=16, align_items="Center", justify="SpaceBetween")
     title_bar.vis = at_least("Tablet")
     head.props["LayoutJustifyContent"] = ("If(%s, LayoutJustifyContent.End, LayoutJustifyContent.SpaceBetween)" % below("Tablet"))

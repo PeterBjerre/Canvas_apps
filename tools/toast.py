@@ -159,7 +159,7 @@ def controls(tag):
     appen."""
     from gen_screen import (Ctrl, C_MODAL_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
                             C_BORDER_ERROR, C_TRANSPARENT)
-    from build_helpers import group, text_ctrl, button, grow
+    from build_helpers import group, text_ctrl, button, grow, ensure_hit
     vis = VISIBLE
     icon = Ctrl(f"img{tag}ToastIcon", "Image", props={
         "AccessibleLabel": f'IfError({VAR}.Kind, "Message")',
@@ -186,6 +186,7 @@ def controls(tag):
     close.props["Color"] = C_MUTED
     close.props["Tooltip"] = '"Close"'
     close.props["LayoutMinWidth"] = "32"
+    ensure_hit(close)                     # H.hit (regel 40)
     card = group(f"con{tag}Toast", [icon, text, close], direction="Horizontal", gap=10,
                  height=TOAST_H, align_items="Center", fill=C_MODAL_BG,
                  border_color=f"If({IS_ERROR}, {C_BORDER_ERROR}, {C_CARD_BORDER})",

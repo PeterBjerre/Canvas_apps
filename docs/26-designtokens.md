@@ -428,6 +428,41 @@ melder om sin egen dokumentation, bliver slået fra.
 
 ---
 
+## Feltkanten: `border-input` (UX-review 2026-10, F7)
+
+Et redigerbart felts kant var `border-default` — den samme lyse streg som
+kortenes, 1,2–1,35:1 mod baggrunden. Et tomt felt kunne ikke ses.
+
+| Token | Lys | Mørk |
+|---|---|---|
+| `border-input` | `RGBA(132,145,163,1)` | `RGBA(100,116,139,1)` |
+
+- Kun **felter** bruger den, og kun gennem `build_helpers.border_rule`
+  (via `gen_screen.C_INPUT_BORDER`). Kort, skillestreger og knapper
+  beholder `border-default`.
+- Et felt, der ikke kan redigeres (View, låst), får `border-default`, så
+  låst og redigerbart kan skelnes uden at læse teksten.
+- `CONTRAST` har tre nye par: `border-input` mod `input-bg`, `bg-card` og
+  `bg-surface` (mindst 3,0:1, WCAG 1.4.11). Vagten fejler bygningen, hvis
+  et af dem falder under.
+
+## Valg, der huskes (UX-review 2026-10, F8)
+
+Det samme lager som temaet (`colAppPrefs`, `SaveData` med nøglen
+`"prefs"`) husker nu også hubbens visning, status, flag, domæne og
+søgning (`PREF_HUB`) og hver rækkelistes søgning, status og vaerk
+(`PREF_ROWS`). `prefs_save({...})` retter kun de felter, den får;
+`pref_get(felt, standard)` læser dem. Hubben læser lageret én gang pr.
+session (`varMdPrefsRead`).
+
+## Statuschippen (UX-review 2026-10, T4)
+
+Status har ét udseende overalt: `tools/status_chip.py` tegner ikon + tekst
+i sentence case i statussens `state-*`-farvepar. Tabellerne `REQUEST`,
+`ROW`, Issue Boards statusser og `PRIORITY` er de eneste steder, en status
+får ikon og farve. Prioriteten Normal/Low er almindelig tekst (tonen
+`plain`), så den ikke ligner en status.
+
 ## Det, der stadig mangler
 
 De tre punkter, der stod her — feltfarvningen (§2), `AccessibleLabel` på

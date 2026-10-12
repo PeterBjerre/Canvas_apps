@@ -116,6 +116,17 @@ synlige del af hele standardiseringen — se på den, før den ruller videre.
 
 ---
 
+## Kanten på et tomt felt (UX-review 2026-10, F7)
+
+Kantens hvilefarve er nu `border-input` (se docs/26), ikke
+`border-default`: et tomt felt skal kunne ses. Reglen er uændret — rød
+ved fejl efter Validate/Save/Submit, grøn ved gyldig, ellers hvilefarven —
+og den står stadig ét sted, `border_rule`. Et felt i View (låst) får
+`border-default`, så det ligner tekst og ikke et felt, man kan skrive i.
+
+Ja/nej-felter er segmenter (`domain_parts.yes_no`, T6) og farves ikke af
+`border_rule`.
+
 ## Det, der ikke blev ændret
 
 `ValidationState` sidder stadig kun på `text_input`, `number_input` og
