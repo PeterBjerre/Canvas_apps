@@ -5,10 +5,21 @@ import os
 
 import pytest
 
+import importlib.util
+
 import build_helpers as bh
-import check_layout as ck
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def _check_layout():
+    """tools/check_layout.py via stien - flere tests laegger en app's
+    build-mappe (med sin egen check_layout.py) forrest i sys.path."""
+    spec = importlib.util.spec_from_file_location(
+        "tools_check_layout", os.path.join(ROOT, "tools", "check_layout.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 
 def test_number_field_is_a_text_input_with_the_number_as_text():
@@ -47,5 +58,5 @@ def test_rule_41_flags_a_number_input():
     class Ctx:
         problems = []
         all_nodes = [("p", "numXOld", {"Control": "ModernNumberInput@1.0", "Properties": {}})]
-    ck.rule_41(Ctx)
+    _check_layout().rule_41(Ctx)
     assert len(Ctx.problems) == 1 and "numXOld" in Ctx.problems[0]
