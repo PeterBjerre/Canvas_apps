@@ -518,9 +518,21 @@ def missing_modal():
                       height=38, wrap="true")
     text_w = f"{MODAL_W} - {2 * MODAL_PAD} - {lay.SCROLLBAR_W}"
     blocks = []
-    for (head, fx, _st), name, ref in zip(GROUPS, MISS_TXT, GT):
-        h = text_ctrl(f"{name}H", f'"{head}"', size=13, weight="Semibold",
-                      height=20, wrap="false")
+    for (head, fx, st), name, ref in zip(GROUPS, MISS_TXT, GT):
+        h = grow(text_ctrl(f"{name}H", f'"{head}"', size=13, weight="Semibold",
+                           height=20, wrap="false"))
+        # "Go to ..." (UX-review M4): lukker listen og fremhaever sektionen
+        # (samme handling som trinet i progressbaren - SetFocus kan ikke naa
+        # ind i en container, se KLIK = FREMHAEV ovenfor).
+        go_txt = f'"Go to {head[0].lower() + head[1:]}"'
+        go = button(f"btn{name[3:]}Go", go_txt,
+                    f"{MISSING_CLOSE};\n{STEPS[st - 1][4]}",
+                    width=fit_button_width(go_txt, size=lay.SIZE_SMALL), height=30,
+                    accessible=go_txt)
+        go.props["Size"] = str(lay.SIZE_SMALL)
+        go.props["LayoutMinWidth"] = go.props["Width"]
+        h = group(f"con{name[3:]}Top", [h, go], direction="Horizontal", gap=8, height=30,
+                  align_items="Center")
         body_fx = f"With(\n    {{ t: {fx} }},\n    If(IsBlank(t), \"\", {bullets('t')})\n)"
         if ITEM_DIRTY in body_fx:
             body_fx = with_dirty(body_fx)
