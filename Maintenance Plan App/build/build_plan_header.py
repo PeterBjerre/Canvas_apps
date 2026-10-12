@@ -5,7 +5,7 @@ from gen_screen import (Ctrl, C_MUTED, C_REQUIRED, C_INFO_BG, SHELL_W, C_DISABLE
                         C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG, C_NEUTRAL_BG)
 import build_help as bh
 import layout_tokens as lay
-from build_helpers import (child_name, text_min_height, text_ctrl, group, button, text_input, number_input,
+from build_helpers import (child_name, text_min_height, text_ctrl, group, button, text_input, number_field, num_value,
                            themed_dropdown, field_cell, col_width, badge, card, grow,
                            row_n, text_px, fit_button_width, ICON_W, date_picker)
 # Sektionsoverskriften og dens trin-badge staar i build_helpers (issue #228),
@@ -67,6 +67,8 @@ LIVE_IS_STRATEGY = "(drpVhpPlanType.Selected.Key = \"Strategy\")"
 LIVE_NOT_STRATEGY = "(drpVhpPlanType.Selected.Key <> \"Strategy\")"
 DM_CYCLE = f"If(varVhpPlanLocked || {LIVE_IS_STRATEGY}, DisplayMode.Disabled, DisplayMode.Edit)"
 REQ_CYCLE = f"(varVhpPlanValidated && {LIVE_NOT_STRATEGY})"
+# Cyklussen som tal (UX-review T10: feltet er tekst uden spin-pile).
+CYCLE = num_value("inpVhpCycle")
 
 
 def help_var(section):
@@ -151,7 +153,7 @@ def help_panel(name, section):
 # alle varVhpPlan som Default. Reset() giver derfor den senest gemte plan
 # tilbage, eller appens startvaerdier, hvis planen aldrig er gemt.
 PLAN_CONTROLS = ("drpVhpPlanType", "drpVhpStrategy", "drpVhpPlant", "drpVhpStatus",
-                 "inpVhpPlanText", "drpVhpSortField", "numVhpCycle", "drpVhpUnit",
+                 "inpVhpPlanText", "drpVhpSortField", "inpVhpCycle", "drpVhpUnit",
                  "dteVhpFirstCall")
 
 
@@ -214,8 +216,10 @@ def build_plan_header():
     drpSortField = themed_dropdown("drpVhpSortField", "colVhpSortFieldOptions",
                             "LookUp(colVhpSortFieldOptions, Value = varVhpPlan.SortField).Value",
                             display_mode=DM_PLAN)
-    numCycle = number_input("numVhpCycle", "varVhpPlan.Cycle", min_v=1, required_formula=REQ_CYCLE,
-                            display_mode=DM_CYCLE)
+    # Tal som tekst uden spin-pile (UX-review T10); enheden er dropdown'en
+    # ved siden af. Mindst 1 tjekkes ved gem (se nedenfor).
+    numCycle = number_field("inpVhpCycle", "varVhpPlan.Cycle", required_formula=REQ_CYCLE,
+                            display_mode=DM_CYCLE, label='"Cycle"')
     drpUnit = themed_dropdown("drpVhpUnit", "colVhpUnitOptions", "LookUp(colVhpUnitOptions, Value = varVhpPlan.Unit).Value",
                        required_formula=REQ_CYCLE, display_mode=DM_CYCLE)
     # FIRST CALL ER EEN DATO (UX-review F3). Her stod tre talfelter (dag,
@@ -295,7 +299,7 @@ def build_plan_header():
             "            IsBlank(drpVhpPlanType.Selected.Key) ||\n"
             "            (isStrat && IsBlank(drpVhpStrategy.Selected.Key)) ||\n"
             "            IsBlank(Trim(inpVhpPlanText.Text)) || Len(Trim(inpVhpPlanText.Text)) > 40 ||\n"
-            "            (!isStrat && (IsBlank(numVhpCycle.Value) || numVhpCycle.Value <= 0)) ||\n"
+            "            (!isStrat && (IsBlank(" + CYCLE + ") || " + CYCLE + " <= 0)) ||\n"
             "            (!isStrat && IsBlank(drpVhpUnit.Selected.Value)) ||\n"
             # Datovaelgeren giver kun datoer, der findes (F3) - kun aaret
             # skal ligge i det interval, SAP-opretteren godtager.
@@ -316,7 +320,7 @@ def build_plan_header():
             "                    Strategy: If(isStrat, drpVhpStrategy.Selected.Key, \"\"),\n"
             "                    PlanText: Trim(inpVhpPlanText.Text),\n"
             "                    SortField: drpVhpSortField.Selected.Value,\n"
-            "                    Cycle: If(isStrat, 0, numVhpCycle.Value),\n"
+            "                    Cycle: If(isStrat, 0, " + CYCLE + "),\n"
             "                    Unit: If(isStrat, \"\", drpVhpUnit.Selected.Value),\n"
             "                    FirstCallDay: Day(dteVhpFirstCall.SelectedDate),\n"
             "                    FirstCallMonth: Month(dteVhpFirstCall.SelectedDate),\n"
