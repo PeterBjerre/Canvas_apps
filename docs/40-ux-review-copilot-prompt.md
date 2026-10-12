@@ -3,7 +3,7 @@
 Prompten nedenfor holdes opdateret efter hver PR i UX-reviewet. Kopiér
 alt i kodeblokken ind i GitHub Copilot (agent mode / coding agent).
 
-Senest opdateret: efter #250 (merget). #251 er åben.
+Senest opdateret: efter #253 (åben). #251 og #253 er åbne.
 
 ````markdown
 # Opgave: Færdiggør UX-review 2026-10 for BIO SAP (etape 2 og 3)
@@ -15,7 +15,11 @@ Repo: PeterBjerre/Canvas_apps. Svar og PR-beskrivelser på dansk. Appens tekster
   - #248 (etape 1)
   - #249 (2a, M7: pladsholder-rækker)
   - #250 (2b, M4: validation_summary)
-- Åben: #251 (2c, M3: hubbens fliser, Continue og sortering). Rør den ikke. Er den merget, når du starter, så byg ovenpå. Er den ikke, så start fra origin/main og forvent en lille konflikt i REVIEW.md-tabellen.
+- Åbne PR'er, som du ikke må ændre i:
+  - #251 (2c, M3: hubbens fliser, Continue og sortering)
+  - #253 (2d, T10: talfelter som tekst uden spin-pile — `number_field()`/`num_value()`, check_layout regel 41)
+
+  Er de merget, når du starter, så byg ovenpå. Er de ikke, så start fra origin/main og forvent en lille konflikt i REVIEW.md-tabellen.
 - Status står i REVIEW.md, afsnittet "UX-review 2026-10 — status", tabellen "Etape 2 — middel". Tilføj en linje i hver PR.
 - Opdater også denne fil (`docs/40-ux-review-copilot-prompt.md`) i hver PR: flyt punktet fra "Rest" til "Status".
 
@@ -74,7 +78,7 @@ Repo: PeterBjerre/Canvas_apps. Svar og PR-beskrivelser på dansk. Appens tekster
 ## Fælles hjælpere, der findes
 I `tools/build_helpers.py`:
 - `empty_state`, `breadcrumb`, `request_actions` (header: [New request ghost] | [Save draft] [Submit "N to fix"]), `with_fix_count`
-- `ensure_hit`/`hit_size`, `skeleton_rows`, `validation_summary`
+- `ensure_hit`/`hit_size`, `skeleton_rows`, `validation_summary`, `number_field`/`num_value` (når #253 er merget; brug aldrig ModernNumberInput, regel 41)
 - `group`, `card`, `button`, `text_ctrl`, `text_input`, `themed_dropdown`, `date_picker`, `segmented`, `confirm_modal`, `popup_head`
 
 Andre steder:
@@ -86,12 +90,11 @@ Andre steder:
 - Designmockups: designlærredet "BIO SAP — UX review" (Equipments-mockup og VH-plan-mockup). Følg dem så tæt, som Power Apps tillader, og skriv afvigelser i PR'en.
 
 ## Rest af etape 2 — én PR pr. linje, i denne rækkefølge
-1. **2d – T10 talfelter med enhed:** ca. 17 ModernNumberInput (num-felter i `domain_parts._input_for`, VH `build_tasklist` og `build_plan_header` numVhpCycle). Lav en `number_field()`-hjælper: ModernTextInput uden spin-pile, med en enhed som suffix ("days", "h", "DKK", …) og samme validering (`IsNumeric`/`Value()`, min/max) og OnChange (`Set(var, Value(Self.Text))`). Gemte værdier og typer skal være uændrede. Behold `H.control`-højden. Tests.
-2. **2e – M6 navngivne størrelser:** udvid `layout_tokens.NAMED` med T (typografi: `T.body`, `T.small`, `T.title` …), S (spacing) og R (radier) som navngivne formler i `App.Formulas`, ligesom `H`. Brug dem i byggerne, hvor tallet står som et magisk tal. Tilføj en check_layout-regel mod rå størrelser i Size/Radius, hvor der findes et navn, og opdater docs/27 og SKILL-tabellen.
-3. **2f – M2 sektionerede formularer i to kolonner:** formularerne i Equipments/Materials/MP/FL/Issue Board deles i navngivne sektioner (fx "Identification", "Technical data", "Supplier", "Notes") i to kolonner fra Desktop og én under. Følg mockuppens grupperinger.
-4. **2g – M5 VH-plan efter mockup:** layout og hierarki efter VH-plan-mockuppen. Rør IKKE logikken i `build_save.py`.
-5. **2h – M8 under Desktop:** rækkerne som kort (findes delvis: `domain_parts._compact_row`) og en fast bundbjælke med de primære handlinger på tablet/telefon.
-6. **2i–2l – M1 + T3 + T5 rækkeliste med sidepanel**, delt i flere PR'er:
+1. **2e – M6 navngivne størrelser:** udvid `layout_tokens.NAMED` med T (typografi: `T.body`, `T.small`, `T.title` …), S (spacing) og R (radier) som navngivne formler i `App.Formulas`, ligesom `H`. Brug dem i byggerne, hvor tallet står som et magisk tal. Tilføj en check_layout-regel mod rå størrelser i Size/Radius, hvor der findes et navn, og opdater docs/27 og SKILL-tabellen.
+2. **2f – M2 sektionerede formularer i to kolonner:** formularerne i Equipments/Materials/MP/FL/Issue Board deles i navngivne sektioner (fx "Identification", "Technical data", "Supplier", "Notes") i to kolonner fra Desktop og én under. Følg mockuppens grupperinger.
+3. **2g – M5 VH-plan efter mockup:** layout og hierarki efter VH-plan-mockuppen. Rør IKKE logikken i `build_save.py`.
+4. **2h – M8 under Desktop:** rækkerne som kort (findes delvis: `domain_parts._compact_row`) og en fast bundbjælke med de primære handlinger på tablet/telefon.
+5. **2i–2l – M1 + T3 + T5 rækkeliste med sidepanel**, delt i flere PR'er:
    - **2i:** fælles hjælpere `request_shell()`, `row_list()` og `row_editor_panel()`. Panelet er 480 px fra Desktop og har "Row 2 of 3", forrige/næste/luk, sektioner og en bundbjælke [Delete row] … [Cancel] [Update row]. Under Desktop er det fuld skærm.
    - **2j:** Equipments (og Measuring points) på de nye hjælpere. Rækkehandlinger: Documents-ikon med antal plus en More-menu (Objects, Copy row, Delete row).
    - **2k:** Materials med fanerne Details/Objects/Documents i panelet.
