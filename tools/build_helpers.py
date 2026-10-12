@@ -1206,6 +1206,77 @@ EMPTY_ICON = 40
 EMPTY_TEXT_H = 40
 
 
+# ---------------------------------------------------------------------------
+# HVAD MANGLER, OG HVOR (UX-review 2026-10, M4)
+#
+# Submit sagde "N to fix", men ikke HVILKE. validation_summary er een liste
+# med en linje pr. ting, der mangler, og en knap, der gaar derhen ("Open
+# row", "Go to items"). SetFocus kan ikke naa ind i en container (regel
+# 10b), saa "derhen" er at aabne raekken/afsnittet - ikke et felt.
+#
+# Listen staar kun, naar brugeren har bedt om noget (Submit) og der faktisk
+# mangler noget - aldrig mens der skrives (designsystemets regel).
+# ---------------------------------------------------------------------------
+FIX_ROW_H = 40
+FIX_ROWS_MAX = 5
+
+
+def validation_summary(prefix, items, label_expr, go_text, go_fx, title_fx, visible,
+                       close_fx):
+    """Kortet med det, der mangler.
+
+    items: Power Fx-tabel (een raekke pr. ting). label_expr: raekkens tekst
+    (ThisItem...). go_text/go_fx: knappen pr. raekke. title_fx: overskrift
+    (fx "2 rows to fix before you submit"). visible: hvornaar kortet staar.
+    close_fx: Dismiss. Galleriet viser hoejst FIX_ROWS_MAX raekker og
+    scroller derefter."""
+    from gen_screen import C_WARN_BG, C_WARN_FG
+    title = grow(text_ctrl(f"txt{prefix}FixTitle", title_fx, size=lay.SIZE_BODY,
+                           weight="Semibold", color=C_WARN_FG, height=20, wrap="false"))
+    close = button(f"btn{prefix}FixClose", '"Dismiss"', close_fx, icon="Dismiss",
+                   width=40, height=32, accessible='"Hide the list of things to fix"',
+                   tooltip='"Hide"')
+    close.props["Layout"] = "ButtonLayout.IconOnly"
+    close.props["BorderColor"] = C_TRANSPARENT
+    close.props["LayoutMinWidth"] = "40"
+    ensure_hit(close)
+    head = group(f"con{prefix}FixHead", [title, close], direction="Horizontal", gap=8,
+                 height=hit_size(32), align_items="Center")
+    go_w = fit_button_width(f'"{go_text}"', size=lay.SIZE_SMALL)
+    go = button(f"btn{prefix}FixGo", f'"{go_text}"', go_fx, width=go_w, height=32,
+                accessible=f'"{go_text}: " & {label_expr}')
+    go.props["Size"] = str(lay.SIZE_SMALL)
+    go.props["X"] = "Parent.TemplateWidth - Self.Width - 8"
+    go.props["Y"] = f"({FIX_ROW_H} - Self.Height) / 2"
+    go.props["_OnTop"] = "true"
+    txt = text_ctrl(f"txt{prefix}FixItem", label_expr, size=lay.SIZE_BODY, height=20,
+                    wrap="false", width=f"Parent.TemplateWidth - {go_w + 28}",
+                    accessible=label_expr)
+    txt.props["X"] = "8"
+    txt.props["Y"] = f"{(FIX_ROW_H - 20) // 2}"
+    gal_h = f"Min(CountRows({items}), {FIX_ROWS_MAX}) * {FIX_ROW_H}"
+    gal = Ctrl(f"gal{prefix}Fix", "Gallery", variant="Vertical", props={
+        "AccessibleLabel": title_fx,
+        "BorderStyle": "BorderStyle.None",
+        "Fill": C_TRANSPARENT,
+        "FillPortions": "0",
+        "Height": gal_h,
+        "Items": items,
+        "LayoutMinWidth": "0",
+        "LoadingSpinner": "LoadingSpinner.None",
+        "Selectable": "false",
+        "ShowScrollbar": f"CountRows({items}) > {FIX_ROWS_MAX}",
+        "TabIndex": "0",
+        "TemplatePadding": "0",
+        "TemplateSize": str(FIX_ROW_H),
+        "Width": "Parent.Width",
+        "WrapCount": "1",
+    }, children=[txt, go], h=gal_h)
+    return group(f"con{prefix}Fix", [head, gal], direction="Vertical", gap=4,
+                 fill=C_WARN_BG, radius=lay.RADIUS_INPUT, pad=(8, 12, 8, 12),
+                 visible=visible)
+
+
 def empty_state(name, text, action_text=None, action_fx=None, icon_key=None,
                 icon_path=None, visible=None, width=None, primary=True,
                 button_name=None, action_icon=None, action_visible=None):
