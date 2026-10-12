@@ -336,20 +336,81 @@ CONTROL_H = 36         # standardhoejden for et felt
 BUTTON_MIN_H = 30      # mindste knaphoejde (check_layout regel 25)
 CARD_PAD = 18          # kortets indre polstring
 
-# Datoer vises og indtastes ens i alle apps: sorterbart og uden tvivl om,
-# hvilket lands format der menes. Power Fx-formatstrenge.
-DATE_FMT = "yyyy-mm-dd"
-DATETIME_FMT = "yyyy-mm-dd hh:mm"
+# Datoer vises og indtastes ens i alle apps: DD-MM-YYYY (15-01-2024) -
+# det datoformat, organisationen bruger. Power Fx-formatstrenge.
+DATE_FMT = "dd-mm-yyyy"
+DATETIME_FMT = "dd-mm-yyyy hh:mm"
 
-# Datovaelgere (issue #235): ALLE datovaelgere i alle apps viser og tolker
-# datoen som DD-MM-YYYY, fx 15-10-2026. Kun visning og indtastning - den
-# gemte vaerdi er stadig en dato (SelectedDate), saa Patch, flows og
-# SAP-mappings er uaendrede. Formatstrengen er dokumenteret for den moderne
-# Date picker ("dd-mm-yyyy" -> 15-01-2024). Pladsholderen viser samme
-# moenster, saa brugeren ser, hvordan en dato tastes.
-# DATE_FMT ovenfor bruges stadig til datoer vist som TEKST i lister.
-DATE_PICKER_FMT = "dd-mm-yyyy"
-DATE_PICKER_PLACEHOLDER = "dd-mm-yyyy"
+# Datovaelgere: SAMME format som datoer vist som tekst (issue #235 og
+# UX-review 2026-10, T8: "eet datoformat overalt"). Kun visning og
+# indtastning - den gemte vaerdi er stadig en dato (SelectedDate), saa
+# Patch, flows og SAP-mappings er uaendrede. Pladsholderen viser
+# moenstret, saa brugeren ser, hvordan en dato tastes.
+DATE_PICKER_FMT = DATE_FMT
+DATE_PICKER_PLACEHOLDER = DATE_FMT
+
+
+# ---------------------------------------------------------------------------
+# NAVNGIVNE MAAL I App.Formulas (UX-review 2026-10, F6/M6)
+#
+# Som C (farverne) staar maalene som navngivne formler, saa den, der retter
+# i Studio, kan se, hvad et tal betyder. H er hoejderne:
+#
+#   H.hit     KLIKFLADEN for et ikon eller en lille knap. 44 px under
+#             Desktop (touch, WCAG 2.5.5), 32 px fra Desktop og op.
+#             check_layout regel 40 kraever den paa ikonknapper.
+#   H.control standardhoejden for et felt - 44 under Desktop.
+#
+# Vaerdierne er Power Fx; check_layout regner dem ud for hver testbredde
+# (named_value).
+# ---------------------------------------------------------------------------
+NAMED = {
+    "H": [("control", "If(LayoutRank < 3, 44, %d)" % 36),
+          ("buttonMin", "30"),
+          ("hit", "If(LayoutRank < 3, 44, 32)"),
+          ("badge", "22")],
+}
+HIT = "H.hit"   # klikfladen - se NAMED
+CONTROL = "H.control"   # feltets hoejde - se NAMED
+HIT_DESKTOP = 32
+HIT_TOUCH = 44
+
+
+def named_value(record, field, width):
+    """Vaerdien af fx H.hit ved en given App.Width - til check_layout."""
+    for f, expr in NAMED[record]:
+        if f == field:
+            r = rank_for(width)
+            e = expr.replace("LayoutRank", str(r))
+            m = __import__("re").fullmatch(r"If\((\d+) < (\d+), (\d+), (\d+)\)", e)
+            if m:
+                a, b, x, y = (int(g) for g in m.groups())
+                return x if a < b else y
+            return int(e)
+    raise KeyError("%s.%s" % (record, field))
+
+
+def _named_formulas():
+    out = []
+    for rec, fields in NAMED.items():
+        body = ", ".join("%s: %s" % (f, e) for f, e in fields)
+        out.append("%s = { %s };" % (rec, body))
+    return "\n".join(out)
+
+
+# TAL VISES ENS OVERALT (UX-review 2026-10, B2/T8): tusindtalsseparator
+# komma, decimalpunktum, hoejst to decimaler - og ingen efterhaengt
+# separator. VH-planens total viste "7," og "1.192,00": formatets
+# "[$-en-US]" blev ikke fulgt, og ".##" lod skilletegnet staa paa et heltal.
+NUM_FMT = "#,##0.##"
+NUM_INT_FMT = "#,##0"
+NUM_LANG = "en-US"
+
+
+def num_text(expr):
+    """Et tal som tekst i appens ene format: 1,192 / 1,192.5 / 7."""
+    return (f'With({{ _n: {expr} }}, If(IsBlank(_n), "", '
+            f'Text(_n, If(Mod(_n, 1) = 0, "{NUM_INT_FMT}", "{NUM_FMT}"), "{NUM_LANG}")))')
 
 
 def radius(r):
@@ -370,8 +431,10 @@ def formula():
         "// SAMMENLIGNE med: \"desktop eller bredere\" er LayoutRank >= 3.\n"
         "// Braekpunkterne staar eet sted for alle apps.\n"
         "%s = %s;\n\n"
-        "%s = %s;" % (CONTEXT, _ladder(lambda n: '"%s"' % n),
-                      RANK, _ladder(lambda n: str(_RANK[n])))
+        "%s = %s;\n\n"
+        "// Maal (UX-review F6/M6): H.hit er klikfladen, 44 px under Desktop.\n"
+        "%s" % (CONTEXT, _ladder(lambda n: '"%s"' % n),
+                RANK, _ladder(lambda n: str(_RANK[n])), _named_formulas())
     )
 
 

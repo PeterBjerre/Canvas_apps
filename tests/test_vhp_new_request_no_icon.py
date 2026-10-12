@@ -42,10 +42,10 @@ def test_new_request_has_no_icon():
     assert "Icon:" not in b
     assert _prop(b, "Layout") == "=ButtonLayout.TextOnly"
     assert _prop(b, "Align") == "=Align.Center"
-    # Praecis "New Request" paa alle skaermbredder (issue #243).
-    assert _prop(b, "Text") == '="New Request"'
+    # Praecis "New request" paa alle skaermbredder (issue #243, UX-review F1).
+    assert _prop(b, "Text") == '="New request"'
     # Bredden er teksten + luft - ingen plads til et ikon.
-    assert bh.NEW_W == fit_button_width('"New Request"')
+    assert bh.NEW_W == fit_button_width('"New request"')
     assert _prop(b, "Width") == "=If(LayoutRank < 2, %d, %d)" % (bh.NEW_PHONE_W, bh.NEW_W)
     # Samme handling og bekraeftelse som foer.
     assert "Set(varVhpConfirmNew, true)" in b
@@ -59,7 +59,8 @@ def test_discard_and_start_new_has_no_icon():
     assert _prop(b, "Text") == '="Discard and start new"'
     assert _prop(b, "Width") == "=%d" % fit_button_width('"Discard and start new"')
     assert "=Set(varVhpConfirmNew, false);" in b
-    assert 'Notify("New request started.", NotificationType.Success)' in b
+    # Beskeden er appens egen (tools/toast.py), ikke platformens Notify.
+    assert 'Set(gblToast, { Text: "New request started.", Kind: "Success", At: Now() })' in b
 
 
 def test_other_confirm_buttons_keep_their_icons():

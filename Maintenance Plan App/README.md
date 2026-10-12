@@ -97,6 +97,18 @@ Kør den efter enhver ændring i builderne.
 | 11 | `conVhpLegend`: 123 px indhold i en 110 px række | "Skal udfyldes" klippet |
 | 12 | `conVhpPickerListWrap` 4 px for lav | Sidste picker-række klippet |
 
+### UX-review 2026-10 (etape 1)
+
+- Bjælken: [New request] | [Save draft] [Submit "N to fix"] og
+  brødkrummen *Masterdata Hub / VH-plan / nummer*. På en lille Desktop
+  står Submit som "Submit (N)".
+- *First call* er én datovælger (dd-mm-yyyy); Day/Month/Year gemmes som
+  før.
+- Totalerne i materialetabellen (også *Cost*) formateres med
+  `layout_tokens.num_text`.
+- "Step 3"-chippen og de overflødige Reset-knapper er væk; tomme tabeller
+  har en tom-tilstand; et låst planhoved vises som View.
+
 ## Strategiplaner
 
 Pakkerne hører til **arbejdsplanens operationer**, ikke til planen. I SAP ejer

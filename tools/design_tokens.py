@@ -95,6 +95,13 @@ LIGHT = {
     # --- kanter ---
     'border-default': "RGBA(215, 222, 232, 1)",
     'border-subtle':  "RGBA(228, 233, 241, 1)",
+    # KANTEN PAA ET INPUTFELT (UX-review 2026-10, F7). border-default er
+    # 1,2-1,35:1 mod feltet - et tomt felt paa et kort kunne naesten ikke
+    # ses. Kun redigerbare felter (text, number, dropdown, combobox,
+    # datovaelger) faar den, via build_helpers.border_rule(). Kort,
+    # skillelinjer og laaste felter beholder border-default, saa skaermen
+    # ikke bliver tungere. 3,2:1 mod feltet, 3,09:1 mod kortet.
+    'border-input':   "RGBA(132, 145, 163, 1)",
 
     # --- inputfelter ---
     'input-bg':          "RGBA(255, 255, 255, 1)",
@@ -209,6 +216,8 @@ DARK = {
     # --- kanter ---
     'border-default': "RGBA(100, 116, 139, 1)",
     'border-subtle':  "RGBA(51, 65, 85, 1)",
+    # Samme som border-default: den klarer allerede 4,41:1 mod det sorte felt.
+    'border-input':   "RGBA(100, 116, 139, 1)",
 
     # --- inputfelter ---
     # SORT, ikke slate-950 (2, 6, 23). Feltteksten skal kunne laeses baade
@@ -378,6 +387,8 @@ CONTRAST = (
      for bg in ("bg-card", "bg-app")] +
     # -- kanter og streger (1.4.11) ---------------------------------------
     # border-default staar IKKE her - se CONTRAST_OPEN nedenfor.
+    # Inputfeltets kant (F7) mod feltet og de flader, feltet staar paa.
+    [("border-input", bg, UI_MIN) for bg in ("input-bg", "bg-card", "bg-surface")] +
     # Feltkanten, naar et krav er opfyldt eller mangler.
     [(fg, bg, UI_MIN) for fg in ("border-ok", "border-error")
      for bg in ("input-bg", "input-bg-disabled", "bg-card")] +
@@ -636,7 +647,11 @@ HTML_TOKENS = ("text-primary", "text-muted",
                # som C_DIVIDER i galleriernes raekker.
                "border-subtle",
                # Operationstabellens overskrift er en grå kasse som listernes.
-               "bg-muted")
+               "bg-muted",
+               # Statuschippen (tools/status_chip.py, UX-review T4): pillens
+               # flade i statussens tone.
+               "state-ok-bg", "state-warn-bg", "state-error-bg", "state-violet-bg",
+               "state-lime-bg", "state-rose-bg")
 
 
 
@@ -761,12 +776,53 @@ def onstart_block():
     )
 
 
+# ---------------------------------------------------------------------------
+# BRUGERENS VALG I SAMME LAGER (UX-review 2026-10, F8)
+#
+# Lageret bag temaet (colAppPrefs, SaveData "prefs") husker nu ogsaa
+# hubbens filtre og raekkelisternes soegning og filtre, saa brugeren, der
+# altid arbejder med eet vaerk og egne kladder, ikke saetter dem igen ved
+# hvert besoeg. EEN raekke i samlingen; hvert felt er tekst (undtagen Dark).
+#
+# Domaenernes felter hedder pref<Tag><Navn>. I Equipments/Materials/MP's
+# byggere staar pref**Dom**Search, og BIO SAP doeber Dom om til Eq, Mat og
+# Mp (combined.rename) - derfor staar alle fire i skemaet.
+# ---------------------------------------------------------------------------
+PREF_HUB = ("prefMdView", "prefMdStatus", "prefMdFlag", "prefMdDomain", "prefMdSearch")
+PREF_ROW_TAGS = ("Dom", "Eq", "Mat", "Mp")
+PREF_ROWS = tuple("pref%s%s" % (t, f) for t in PREF_ROW_TAGS
+                  for f in ("Search", "Status", "Plant"))
+PREF_TEXT = PREF_HUB + PREF_ROWS
+
+
+def pref_get(field, default='""'):
+    """Det gemte valg - eller default, foer noget er gemt."""
+    return 'Coalesce(First(%s).%s, %s)' % (PREFS_COLLECTION, field, default)
+
+
+def prefs_save(values):
+    """Gem felterne {navn: Power Fx-udtryk} i lageret - de andre felter
+    roeres ikke. Samlingen har hoejst een raekke."""
+    for k in values:
+        if k != "Dark" and k not in PREF_TEXT and not k.startswith("pref"):
+            raise KeyError("prefs_save: ukendt felt %r" % k)
+    body = ", ".join("%s: %s" % kv for kv in values.items())
+    return (
+        "If(IsEmpty(%s), Collect(%s, { Dark: %s }));\n"
+        "Patch(%s, First(%s), { %s });\n"
+        "IfError(SaveData(%s, \"%s\"), Blank())"
+        % (PREFS_COLLECTION, PREFS_COLLECTION, DARK_VAR,
+           PREFS_COLLECTION, PREFS_COLLECTION, body,
+           PREFS_COLLECTION, PREFS_KEY))
+
+
 def toggle_action():
     """OnSelect paa temaknappen.
 
     Skriver BAADE variablen (saa skaermen skifter med det samme) og
     lageret (saa valget er der naeste gang). SaveData er pakket ind af
-    samme grund som LoadData.
+    samme grund som LoadData. Lagerets andre felter (filtrene, F8) roeres
+    ikke - foer stod her ClearCollect, der ville have slettet dem.
 
     FORUDSAETNING: appens "Formula-level error management" skal vaere slaaet
     TIL (Settings > Updates > Retired: "Disable formula-level management"
@@ -776,13 +832,7 @@ def toggle_action():
 
     Ingen trailing semikolon: OnStart-generatoren i dette repo klipper en
     afsluttende ';' af, og det samme moenster foelges her."""
-    return (
-        "Set(%s, !%s);\n"
-        "ClearCollect(%s, { Dark: %s });\n"
-        "IfError(SaveData(%s, \"%s\"), Blank())"
-        % (DARK_VAR, DARK_VAR, PREFS_COLLECTION, DARK_VAR,
-           PREFS_COLLECTION, PREFS_KEY)
-    )
+    return "Set(%s, !%s);\n" % (DARK_VAR, DARK_VAR) + prefs_save({"Dark": DARK_VAR})
 
 
 def prefs_schema():
@@ -792,7 +842,9 @@ def prefs_schema():
     med een raekke og derefter Clear, saa Power Fx kender kolonnetypen,
     foer der er data. Uden det kender den ikke typen paa .Dark, og
     Coalesce i onstart_block() kan ikke oversaettes."""
-    return (PREFS_COLLECTION, {"Dark": "false"})
+    schema = {"Dark": "false"}
+    schema.update({f: '""' for f in PREF_TEXT})
+    return (PREFS_COLLECTION, schema)
 
 
 def launch_suffix(url_expr_is_literal=True):

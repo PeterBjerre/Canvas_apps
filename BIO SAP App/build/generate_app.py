@@ -28,6 +28,7 @@ import combined as cb
 if cb.TOOLS not in sys.path:
     sys.path.insert(0, cb.TOOLS)
 import app_yaml  # noqa: E402
+import toast  # noqa: E402
 
 
 def regenerate_sources():
@@ -78,6 +79,7 @@ def build_onstart():
     return "\n\n".join([
         cb.prefs_block(),
         cb.theme_block(),
+        toast.onstart() + ";",
         "// Hubbens visning. Den er startskaermen, og den eneste, der ikke\n"
         "// klargoeres i sin OnVisible - se build_screens.open_block().\n"
         + cb.domain_onstart(hub),

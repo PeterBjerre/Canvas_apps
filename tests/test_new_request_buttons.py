@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Issue #243: hver knap, der starter en ny anmodning, hedder praecis
-"New Request" - uden plus-ikon og uden "+" i teksten, paa alle
+"New request" (sentence case, UX-review F1/T7) - uden plus-ikon og uden "+" i teksten, paa alle
 skaermbredder (ogsaa paa en telefon, hvor den foer hed "New").
 
 Raekkeknapper (New row, Add ...) er ikke anmodningsknapper og roeres ikke."""
@@ -42,10 +42,10 @@ def _prop(block, prop):
 
 def test_every_new_request_button_has_the_exact_label_and_no_icon():
     full_w, phone_w = new_request_widths()
-    assert full_w == fit_button_width('"New Request"')
+    assert full_w == fit_button_width('"New request"')
     for screen, name in BUTTONS:
         b = _block(_yaml(screen), name)
-        assert _prop(b, "Text") == '="New Request"', (screen, name)
+        assert _prop(b, "Text") == '="New request"', (screen, name)
         assert "Icon:" not in b, (screen, name)
         assert _prop(b, "Layout") == "=ButtonLayout.TextOnly", (screen, name)
         assert _prop(b, "Align") == "=Align.Center", (screen, name)
@@ -60,6 +60,7 @@ def test_no_button_text_says_new_request_any_other_way():
         y = _yaml(screen)
         for m in re.finditer(r"^\s*- (\w+):\n\s*Control: ModernButton", y, re.M):
             text = _prop(_block(y, m.group(1)), "Text")
-            assert "New request" not in text, (screen, m.group(1), text)
+            # Kun den faelles stavemaade - ikke Title Case.
+            assert "New Request" not in text, (screen, m.group(1), text)
             assert not re.search(r'"\+\s*New', text), (screen, m.group(1), text)
             assert '"New"' not in text, (screen, m.group(1), text)

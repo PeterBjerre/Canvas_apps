@@ -238,6 +238,33 @@ bruge `fits()`.
 
 ---
 
+## Navngivne mål: `H` (UX-review 2026-10, F6/M6)
+
+Som `C` for farverne står højderne som en navngiven formel i
+`App.Formulas`, så den, der retter i Studio, kan se, hvad et tal betyder:
+
+| Navn | Værdi | Bruges til |
+|---|---|---|
+| `H.hit` | `If(LayoutRank < 3, 44, 32)` | klikfladen for et ikon eller en lille knap |
+| `H.control` | `If(LayoutRank < 3, 44, 36)` | et felts højde |
+| `H.buttonMin` | `30` | mindste knaphøjde (regel 25) |
+| `H.badge` | `22` | statuschip |
+
+`build_helpers.ensure_hit(ctrl)` gør en ikonknaps klikflade mindst
+`H.hit` (ikonet bliver i sin størrelse; et billede får
+`ImagePosition.Center`), og `hit_size(n)` er `Max(n, H.hit)`.
+**check_layout regel 40** kræver det på hver `ModernButton` med
+`ButtonLayout.IconOnly` og hvert klikbart billede op til 60 px —
+`named_value` regner `H.*` ud for hver testbredde.
+
+## Datoer og tal
+
+- **Datoer: `dd-mm-yyyy`** (`DATE_FMT`) og `dd-mm-yyyy hh:mm`
+  (`DATETIME_FMT`) — organisationens format. Datovælgerne bruger det samme
+  (`DATE_PICKER_FMT`). Kun visningen; den gemte værdi er stadig en dato.
+- **Tal:** `num_text(udtryk)` → `#,##0` eller `#,##0.##` med kulturen
+  `"en-US"`, tom ved blank.
+
 ## Det, der stadig mangler
 
 - `LayoutContext` bruges kun som læsbar formel; alle beslutninger går

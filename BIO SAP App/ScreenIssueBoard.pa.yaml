@@ -45,7 +45,7 @@ Screens:
               Set(varIbSyncFailed, IfError(ClearCollect(colIbFresh, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
               If(
                   varIbSyncFailed,
-                  Notify("The issues could not be refreshed. The list shows what was loaded last.", NotificationType.Error),
+                  Set(gblToast, { Text: "The issues could not be refreshed. The list shows what was loaded last.", Kind: "Error", At: Now() }); true,
                   ClearCollect(colIbAll, colIbFresh);
                   Clear(colIbFresh);
                   Set(varIbSyncedAt, Now())
@@ -111,7 +111,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =25 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)), (36), (36))) * 1 + 0)
+                      =25 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)), (Max(36, H.hit)), (36))) * 1 + 0)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -146,7 +146,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)), (36), (36))) * 1 + 0
+                            =0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)), (Max(36, H.hit)), (36))) * 1 + 0
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Center
                         LayoutDirection: |-
@@ -214,7 +214,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - (If(LayoutRank >= 2, (91) + 10, 0)) - ((If(LayoutRank < 2, 40, 133)) + 10) - 2)
+                                  =Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - (If(LayoutRank >= 2, (Max(40, H.hit)) + 10, 0)) - ((If(LayoutRank < 2, 40, 133)) + 10) - 2)
                             Children:
                               - txtIbTitle:
                                   Control: ModernText
@@ -308,11 +308,13 @@ Screens:
                               FontWeight: |-
                                   =FontWeight.Semibold
                               Height: |-
-                                  =36
+                                  =Max(36, H.hit)
+                              Icon: |-
+                                  ="ArrowClockwise"
                               Layout: |-
-                                  =ButtonLayout.TextOnly
+                                  =ButtonLayout.IconOnly
                               LayoutMinWidth: |-
-                                  =91
+                                  =Max(40, H.hit)
                               OnSelect: |-
                                   =If(
                                       varIbLoaded,
@@ -320,7 +322,7 @@ Screens:
                                       Set(varIbSyncFailed, IfError(ClearCollect(colIbFresh, ForAll(ShowColumns(Sort(IB_Tickets, LastActivityOn, SortOrder.Descending), ID, Title, TicketNo, Description, Application, Section, Severity, Priority, Status, AssignedToName, ReporterEmail, ReporterName, AssignedToEmail, Created, LastActivityOn, IsArchived) As r, { Id: r.ID, TicketNo: If(IsBlank(r.TicketNo), "ISS-" & Text(r.ID, "000000"), r.TicketNo), Title: Coalesce(r.Title, ""), Description: Coalesce(r.Description, ""), Steps: "", Expected: "", Actual: "", Application: Coalesce(r.Application, ""), Section: Coalesce(r.Section, ""), Other: "", RelatedNo: "", Severity: Coalesce(r.Severity.Value, ""), Priority: Coalesce(r.Priority.Value, ""), Status: Coalesce(r.Status.Value, "New"), Resolution: "", Assigned: Coalesce(r.AssignedToName, ""), CreatedOn: r.Created, UpdatedOn: Coalesce(r.LastActivityOn, r.Created), Archived: Coalesce(r.IsArchived, false), Reporter: Lower(Coalesce(r.ReporterEmail, "")), ReporterName: Coalesce(r.ReporterName, ""), AssignedEmail: Lower(Coalesce(r.AssignedToEmail, "")), PriRank: Switch(r.Priority.Value, "Urgent", 1, "High", 2, "Normal", 3, "Low", 4, 5), StatusRank: Switch(r.Status.Value, "New", 1, "Reopened", 2, "Triaged", 3, "In progress", 4, "Ready for retest", 5, "Closed", 6, 9) })); false, true));
                                       If(
                                           varIbSyncFailed,
-                                          Notify("The issues could not be refreshed. The list shows what was loaded last.", NotificationType.Error),
+                                          Set(gblToast, { Text: "The issues could not be refreshed. The list shows what was loaded last.", Kind: "Error", At: Now() }); true,
                                           ClearCollect(colIbAll, colIbFresh);
                                           Clear(colIbFresh);
                                           Set(varIbSyncedAt, Now())
@@ -351,13 +353,15 @@ Screens:
                               Size: |-
                                   =14
                               Text: |-
-                                  ="Refresh"
+                                  =""
+                              Tooltip: |-
+                                  ="Refresh - load the latest changes from everyone"
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Visible: |-
                                   =LayoutRank >= 2
                               Width: |-
-                                  =91
+                                  =Max(40, H.hit)
                         - btnIbNew:
                             Control: ModernButton
                             Properties:
@@ -461,7 +465,7 @@ Screens:
                   FillPortions: |-
                       =1
                   Height: |-
-                      =Parent.Height - (25 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)), (36), (36))) * 1 + 0))
+                      =Parent.Height - (25 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)), (Max(36, H.hit)), (36))) * 1 + 0))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -500,7 +504,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =74 + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) >= 856, 36, (34) + 12 + (34) + 12 + (36))) + 8 + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) >= 710, 36, (36) + 12 + (36) + 12 + (36))) + If(IsAdmin && varIbScope in ["all", "assigned"], 8 + (34), 0) + If(LayoutRank >= 3, 8 + (20), 0) + If(LayoutRank >= 3, 8 + (1), 0) + If(galIbList.AllItemsCount > 0, 8 + (Min(galIbList.AllItemsCount * (If(LayoutRank < 3, 92, 48)), Max(3 * (If(LayoutRank < 3, 92, 48)), App.Height - If(LayoutRank >= 2, 0, 52) - (14 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)), (36), (36))) * 1 + 0) + 10 + 1) - 16 - 40 - 36 - 2 - (38 + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) >= 856, 36, (34) + 12 + (34) + 12 + (36))) + 8 + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) >= 710, 36, (36) + 12 + (36) + 12 + (36))) + If(IsAdmin && varIbScope in ["all", "assigned"], 8 + (34), 0) + If(LayoutRank >= 3, 8 + (20), 0) + If(LayoutRank >= 3, 8 + (1), 0)) - 8))), 0) + If(galIbList.AllItemsCount = 0, 8 + (40), 0) + If(IbFailed && !varIbLoading, 8 + (36), 0)
+                            =74 + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) >= 856, 36, (34) + 12 + (34) + 12 + (36))) + 8 + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) >= 710, 36, (36) + 12 + (36) + 12 + (36))) + If(IsAdmin && varIbScope in ["all", "assigned"], 8 + (34), 0) + If(LayoutRank >= 3, 8 + (20), 0) + If(LayoutRank >= 3, 8 + (1), 0) + If(galIbList.AllItemsCount > 0, 8 + (Min(galIbList.AllItemsCount * (If(LayoutRank < 3, 92, 48)), Max(3 * (If(LayoutRank < 3, 92, 48)), App.Height - If(LayoutRank >= 2, 0, 52) - (14 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)), (Max(36, H.hit)), (36))) * 1 + 0) + 10 + 1) - 16 - 40 - 36 - 2 - (38 + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) >= 856, 36, (34) + 12 + (34) + 12 + (36))) + 8 + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) >= 710, 36, (36) + 12 + (36) + 12 + (36))) + If(IsAdmin && varIbScope in ["all", "assigned"], 8 + (34), 0) + If(LayoutRank >= 3, 8 + (20), 0) + If(LayoutRank >= 3, 8 + (1), 0)) - 8))), 0) + If(galIbList.AllItemsCount = 0, 8 + (112 + If((!IsBlank(varIbApp) || !IsBlank(varIbSection) || !IsBlank(varIbStatusF) || !IsBlank(varIbPriF) || !IsBlank(Trim(inpIbSearch.Text))) && !IbFailed && !varIbLoading, 8 + (36), 0)), 0) + If(IbFailed && !varIbLoading, 8 + (36), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -907,7 +911,7 @@ Screens:
                                     BasePaletteColor: |-
                                         =C.'color-brand-primary'
                                     BorderColor: |-
-                                        =C.'border-default'
+                                        =C.'border-input'
                                     BorderStyle: |-
                                         =BorderStyle.Solid
                                     BorderThickness: |-
@@ -1008,7 +1012,7 @@ Screens:
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
-                                              =C.'border-default'
+                                              =C.'border-input'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -1057,7 +1061,7 @@ Screens:
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
-                                              =C.'border-default'
+                                              =If((If(IsBlank(varIbApp), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'border-input', C.'border-default')
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -1133,7 +1137,7 @@ Screens:
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
-                                              =C.'border-default'
+                                              =If((If(varIbState = "closed", DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'border-input', C.'border-default')
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -1182,7 +1186,7 @@ Screens:
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
-                                              =C.'border-default'
+                                              =C.'border-input'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -1229,7 +1233,7 @@ Screens:
                                     BasePaletteColor: |-
                                         =C.'color-brand-primary'
                                     BorderColor: |-
-                                        =C.'border-default'
+                                        =C.'border-input'
                                     BorderStyle: |-
                                         =BorderStyle.Solid
                                     BorderThickness: |-
@@ -1891,7 +1895,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =Min(galIbList.AllItemsCount * (If(LayoutRank < 3, 92, 48)), Max(3 * (If(LayoutRank < 3, 92, 48)), App.Height - If(LayoutRank >= 2, 0, 52) - (14 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)), (36), (36))) * 1 + 0) + 10 + 1) - 16 - 40 - 36 - 2 - (38 + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) >= 856, 36, (34) + 12 + (34) + 12 + (36))) + 8 + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) >= 710, 36, (36) + 12 + (36) + 12 + (36))) + If(IsAdmin && varIbScope in ["all", "assigned"], 8 + (34), 0) + If(LayoutRank >= 3, 8 + (20), 0) + If(LayoutRank >= 3, 8 + (1), 0)) - 8))
+                                  =Min(galIbList.AllItemsCount * (If(LayoutRank < 3, 92, 48)), Max(3 * (If(LayoutRank < 3, 92, 48)), App.Height - If(LayoutRank >= 2, 0, 52) - (14 + (0 + (Max((32), (0 + If(LayoutRank >= 2, 0 + (33), 0) + If(LayoutRank >= 2, 2 + (20), 0)), (Max(36, H.hit)), (36))) * 1 + 0) + 10 + 1) - 16 - 40 - 36 - 2 - (38 + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) >= 856, 36, (34) + 12 + (34) + 12 + (36))) + 8 + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 2 * 18) >= 710, 36, (36) + 12 + (36) + 12 + (36))) + If(IsAdmin && varIbScope in ["all", "assigned"], 8 + (34), 0) + If(LayoutRank >= 3, 8 + (20), 0) + If(LayoutRank >= 3, 8 + (1), 0)) - 8))
                               Items: |-
                                   =With(
                                       { q: Trim(inpIbSearch.Text) },
@@ -1954,7 +1958,7 @@ Screens:
                                     FontWeight: |-
                                         =FontWeight.Semibold
                                     Height: |-
-                                        =24
+                                        =22
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -1986,7 +1990,7 @@ Screens:
                                     X: |-
                                         =0 + 10 + 0
                                     Y: |-
-                                        =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (24)) / 2
+                                        =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (22)) / 2
                               - txtIbRowReq:
                                   Control: ModernText
                                   Properties:
@@ -2145,112 +2149,77 @@ Screens:
                                         =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((140 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (20)) / 2
-                              - txtIbRowPriority:
-                                  Control: ModernText
+                              - imgIbRowPriority:
+                                  Control: Image
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Priority: " & Self.Text
-                                    Align: |-
-                                        =Align.Center
+                                        ="Priority: " & Switch(ThisItem.Priority, "Urgent", "Urgent", "High", "High", "Normal", "Normal", "Low", "Low", "-")
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
                                         =0
-                                    Color: |-
-                                        =If(IsBlank(ThisItem.Priority), C.'text-muted', Switch(ThisItem.Priority, "Urgent", C.'state-error-fg', "High", C.'state-warn-fg', "Normal", C.'state-neutral-fg', "Low", C.'state-neutral-fg', C.'state-neutral-fg'))
-                                    Fill: |-
-                                        =If(IsBlank(ThisItem.Priority), RGBA(0, 0, 0, 0), Switch(ThisItem.Priority, "Urgent", C.'state-error-bg', "High", C.'state-warn-bg', "Normal", C.'state-neutral-bg', "Low", C.'state-neutral-bg', C.'state-neutral-bg'))
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
                                     Height: |-
-                                        =24
-                                    PaddingBottom: |-
+                                        =22
+                                    Image: |-
+                                        ="data:image/svg+xml;utf8," & EncodeUrl(Switch(
+                                            ThisItem.Priority,
+                                            "Urgent", "<svg xmlns='http://www.w3.org/2000/svg' width='74' height='22' viewBox='0 0 74 22'><rect width='71' height='22' rx='11' fill='" & C.'hex-state-error-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-error-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 7.5v5.5M12 16.5v.01'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-error-fg' & "'>Urgent</text></svg>",
+                                            "High", "<svg xmlns='http://www.w3.org/2000/svg' width='74' height='22' viewBox='0 0 74 22'><rect width='60' height='22' rx='11' fill='" & C.'hex-state-warn-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 15l6-6 6 6'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-warn-fg' & "'>High</text></svg>",
+                                            "Normal", "<svg xmlns='http://www.w3.org/2000/svg' width='74' height='22' viewBox='0 0 74 22'><text x='0' y='15' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-primary' & "'>Normal</text></svg>",
+                                            "Low", "<svg xmlns='http://www.w3.org/2000/svg' width='74' height='22' viewBox='0 0 74 22'><text x='0' y='15' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-primary' & "'>Low</text></svg>",
+                                            "<svg xmlns='http://www.w3.org/2000/svg' width='74' height='22' viewBox='0 0 74 22'><text x='0' y='15' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-primary' & "'>-</text></svg>"
+                                        ))
+                                    ImagePosition: |-
+                                        =ImagePosition.Fit
+                                    OnSelect: |-
+                                        =false
+                                    TabIndex: |-
                                         =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    RadiusBottomLeft: |-
-                                        =12
-                                    RadiusBottomRight: |-
-                                        =12
-                                    RadiusTopLeft: |-
-                                        =12
-                                    RadiusTopRight: |-
-                                        =12
-                                    Size: |-
-                                        =11
-                                    Text: |-
-                                        =If(IsBlank(ThisItem.Priority), "-", ThisItem.Priority)
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
                                     Visible: |-
                                         =LayoutRank >= 3
                                     Width: |-
                                         =72
-                                    Wrap: |-
-                                        =false
                                     X: |-
                                         =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((140 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0)
                                     Y: |-
-                                        =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (24)) / 2
-                              - txtIbRowStatus:
-                                  Control: ModernText
+                                        =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (22)) / 2
+                              - imgIbRowStatus:
+                                  Control: Image
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Status: " & Self.Text
-                                    Align: |-
-                                        =Align.Center
+                                        ="Status: " & Switch(If(ThisItem.Archived, "Archived", ThisItem.Status), "New", "New", "Reopened", "Reopened", "Triaged", "Triaged", "In progress", "In progress", "Ready for retest", "Ready for retest", "Closed", "Closed", "Archived", "Archived", "Unknown")
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
                                         =0
-                                    Color: |-
-                                        =If(ThisItem.Archived, C.'state-neutral-fg', Switch(ThisItem.Status, "New", C.'state-info-fg', "Reopened", C.'state-rose-fg', "Triaged", C.'state-violet-fg', "In progress", C.'state-warn-fg', "Ready for retest", C.'state-lime-fg', "Closed", C.'state-ok-fg', C.'state-neutral-fg'))
-                                    Fill: |-
-                                        =If(ThisItem.Archived, C.'state-neutral-bg', Switch(ThisItem.Status, "New", C.'state-info-bg', "Reopened", C.'state-rose-bg', "Triaged", C.'state-violet-bg', "In progress", C.'state-warn-bg', "Ready for retest", C.'state-lime-bg', "Closed", C.'state-ok-bg', C.'state-neutral-bg'))
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
                                     Height: |-
-                                        =24
-                                    PaddingBottom: |-
+                                        =22
+                                    Image: |-
+                                        ="data:image/svg+xml;utf8," & EncodeUrl(Switch(
+                                            If(ThisItem.Archived, "Archived", ThisItem.Status),
+                                            "New", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='58' height='22' rx='11' fill='" & C.'hex-state-info-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21.5 3 2.5 10.5l7 3 3 7L21.5 3Z M9.5 13.5 21.5 3'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-info-fg' & "'>New</text></svg>",
+                                            "Reopened", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='89' height='22' rx='11' fill='" & C.'hex-state-rose-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-rose-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3.5 12a8.5 8.5 0 1 0 8.5-8.5a9.2 9.2 0 0 0-6.4 2.6L3.5 8 M3.5 3.5V8H8 M12 7.5V12l3 2'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-rose-fg' & "'>Reopened</text></svg>",
+                                            "Triaged", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='74' height='22' rx='11' fill='" & C.'hex-state-violet-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-violet-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6h11M9 12h11M9 18h11 M4.5 6h.01M4.5 12h.01M4.5 18h.01'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-violet-fg' & "'>Triaged</text></svg>",
+                                            "In progress", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='94' height='22' rx='11' fill='" & C.'hex-state-warn-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z'/><path d='M12 6.5a5.5 5.5 0 0 1 0 11Z' fill='" & C.'hex-state-warn-fg' & "' stroke='none'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-warn-fg' & "'>In progress</text></svg>",
+                                            "Ready for retest", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='119' height='22' rx='11' fill='" & C.'hex-state-lime-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-lime-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12Z M12 14.8a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6Z'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-lime-fg' & "'>Ready for retest</text></svg>",
+                                            "Closed", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='70' height='22' rx='11' fill='" & C.'hex-state-ok-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M8 12.2l2.8 2.8L16 9.5'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-ok-fg' & "'>Closed</text></svg>",
+                                            "Archived", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='81' height='22' rx='11' fill='" & C.'hex-state-neutral-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-neutral-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M5.3 5.3l13.4 13.4'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-neutral-fg' & "'>Archived</text></svg>",
+                                            "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='85' height='22' rx='11' fill='" & C.'hex-state-neutral-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-neutral-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21.5 3 2.5 10.5l7 3 3 7L21.5 3Z M9.5 13.5 21.5 3'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-neutral-fg' & "'>Unknown</text></svg>"
+                                        ))
+                                    ImagePosition: |-
+                                        =ImagePosition.Fit
+                                    OnSelect: |-
+                                        =false
+                                    TabIndex: |-
                                         =0
-                                    PaddingLeft: |-
-                                        =8
-                                    PaddingRight: |-
-                                        =8
-                                    PaddingTop: |-
-                                        =0
-                                    RadiusBottomLeft: |-
-                                        =12
-                                    RadiusBottomRight: |-
-                                        =12
-                                    RadiusTopLeft: |-
-                                        =12
-                                    RadiusTopRight: |-
-                                        =12
-                                    Size: |-
-                                        =11
-                                    Text: |-
-                                        =If(ThisItem.Archived, "Archived", ThisItem.Status)
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
                                     Visible: |-
                                         =LayoutRank >= 3
                                     Width: |-
                                         =116
-                                    Wrap: |-
-                                        =false
                                     X: |-
                                         =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((140 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8
                                     Y: |-
-                                        =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (24)) / 2
+                                        =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (22)) / 2
                               - txtIbRowAssigned:
                                   Control: ModernText
                                   Properties:
@@ -2318,7 +2287,7 @@ Screens:
                                     Size: |-
                                         =12
                                     Text: |-
-                                        =Text(ThisItem.CreatedOn, "dd mmm yyyy")
+                                        =Text(ThisItem.CreatedOn, "dd-mm-yyyy")
                                     Visible: |-
                                         =(LayoutRank >= 3) && (LayoutRank >= 4)
                                     Width: |-
@@ -2357,7 +2326,7 @@ Screens:
                                     Size: |-
                                         =12
                                     Text: |-
-                                        =If(DateDiff(ThisItem.CreatedOn, ThisItem.UpdatedOn, TimeUnit.Minutes) >= 5, Text(ThisItem.UpdatedOn, "dd mmm yyyy"), "-")
+                                        =If(DateDiff(ThisItem.CreatedOn, ThisItem.UpdatedOn, TimeUnit.Minutes) >= 5, Text(ThisItem.UpdatedOn, "dd-mm-yyyy"), "-")
                                     Visible: |-
                                         =LayoutRank >= 3
                                     Width: |-
@@ -2388,7 +2357,7 @@ Screens:
                                     FontWeight: |-
                                         =FontWeight.Semibold
                                     Height: |-
-                                        =24
+                                        =22
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -2420,113 +2389,78 @@ Screens:
                                     X: |-
                                         =0 + 12 + 0 + 0
                                     Y: |-
-                                        =0 + 10 + 0 + 0 + (((24) - 0 - 0) - (24)) / 2
-                              - txtIbRowPriorityC:
-                                  Control: ModernText
+                                        =0 + 10 + 0 + 0 + (((22) - 0 - 0) - (22)) / 2
+                              - imgIbRowPriorityC:
+                                  Control: Image
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Priority: " & Self.Text
-                                    Align: |-
-                                        =Align.Center
+                                        ="Priority: " & Switch(ThisItem.Priority, "Urgent", "Urgent", "High", "High", "Normal", "Normal", "Low", "Low", "-")
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
                                         =0
-                                    Color: |-
-                                        =Switch(ThisItem.Priority, "Urgent", C.'state-error-fg', "High", C.'state-warn-fg', "Normal", C.'state-neutral-fg', "Low", C.'state-neutral-fg', C.'state-neutral-fg')
-                                    Fill: |-
-                                        =Switch(ThisItem.Priority, "Urgent", C.'state-error-bg', "High", C.'state-warn-bg', "Normal", C.'state-neutral-bg', "Low", C.'state-neutral-bg', C.'state-neutral-bg')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
                                     Height: |-
-                                        =24
-                                    PaddingBottom: |-
+                                        =22
+                                    Image: |-
+                                        ="data:image/svg+xml;utf8," & EncodeUrl(Switch(
+                                            ThisItem.Priority,
+                                            "Urgent", "<svg xmlns='http://www.w3.org/2000/svg' width='74' height='22' viewBox='0 0 74 22'><rect width='71' height='22' rx='11' fill='" & C.'hex-state-error-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-error-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 7.5v5.5M12 16.5v.01'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-error-fg' & "'>Urgent</text></svg>",
+                                            "High", "<svg xmlns='http://www.w3.org/2000/svg' width='74' height='22' viewBox='0 0 74 22'><rect width='60' height='22' rx='11' fill='" & C.'hex-state-warn-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 15l6-6 6 6'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-warn-fg' & "'>High</text></svg>",
+                                            "Normal", "<svg xmlns='http://www.w3.org/2000/svg' width='74' height='22' viewBox='0 0 74 22'><text x='0' y='15' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-primary' & "'>Normal</text></svg>",
+                                            "Low", "<svg xmlns='http://www.w3.org/2000/svg' width='74' height='22' viewBox='0 0 74 22'><text x='0' y='15' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-primary' & "'>Low</text></svg>",
+                                            "<svg xmlns='http://www.w3.org/2000/svg' width='74' height='22' viewBox='0 0 74 22'><text x='0' y='15' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-primary' & "'>-</text></svg>"
+                                        ))
+                                    ImagePosition: |-
+                                        =ImagePosition.Fit
+                                    OnSelect: |-
+                                        =false
+                                    TabIndex: |-
                                         =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    RadiusBottomLeft: |-
-                                        =12
-                                    RadiusBottomRight: |-
-                                        =12
-                                    RadiusTopLeft: |-
-                                        =12
-                                    RadiusTopRight: |-
-                                        =12
-                                    Size: |-
-                                        =11
-                                    Text: |-
-                                        =ThisItem.Priority
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
                                     Visible: |-
                                         =(LayoutRank < 3) && ((LayoutRank >= 2) && !IsBlank(ThisItem.Priority))
                                     Width: |-
-                                        =72
-                                    Wrap: |-
-                                        =false
+                                        =74
                                     X: |-
                                         =0 + 12 + 0 + 0 + (96) + 8
                                     Y: |-
-                                        =0 + 10 + 0 + 0 + (((24) - 0 - 0) - (24)) / 2
-                              - txtIbRowStatusC:
-                                  Control: ModernText
+                                        =0 + 10 + 0 + 0 + (((22) - 0 - 0) - (22)) / 2
+                              - imgIbRowStatusC:
+                                  Control: Image
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Status: " & Self.Text
-                                    Align: |-
-                                        =Align.Center
+                                        ="Status: " & Switch(If(ThisItem.Archived, "Archived", ThisItem.Status), "New", "New", "Reopened", "Reopened", "Triaged", "Triaged", "In progress", "In progress", "Ready for retest", "Ready for retest", "Closed", "Closed", "Archived", "Archived", "Unknown")
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
                                         =0
-                                    Color: |-
-                                        =If(ThisItem.Archived, C.'state-neutral-fg', Switch(ThisItem.Status, "New", C.'state-info-fg', "Reopened", C.'state-rose-fg', "Triaged", C.'state-violet-fg', "In progress", C.'state-warn-fg', "Ready for retest", C.'state-lime-fg', "Closed", C.'state-ok-fg', C.'state-neutral-fg'))
-                                    Fill: |-
-                                        =If(ThisItem.Archived, C.'state-neutral-bg', Switch(ThisItem.Status, "New", C.'state-info-bg', "Reopened", C.'state-rose-bg', "Triaged", C.'state-violet-bg', "In progress", C.'state-warn-bg', "Ready for retest", C.'state-lime-bg', "Closed", C.'state-ok-bg', C.'state-neutral-bg'))
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
                                     Height: |-
-                                        =24
-                                    PaddingBottom: |-
+                                        =22
+                                    Image: |-
+                                        ="data:image/svg+xml;utf8," & EncodeUrl(Switch(
+                                            If(ThisItem.Archived, "Archived", ThisItem.Status),
+                                            "New", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='58' height='22' rx='11' fill='" & C.'hex-state-info-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21.5 3 2.5 10.5l7 3 3 7L21.5 3Z M9.5 13.5 21.5 3'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-info-fg' & "'>New</text></svg>",
+                                            "Reopened", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='89' height='22' rx='11' fill='" & C.'hex-state-rose-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-rose-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3.5 12a8.5 8.5 0 1 0 8.5-8.5a9.2 9.2 0 0 0-6.4 2.6L3.5 8 M3.5 3.5V8H8 M12 7.5V12l3 2'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-rose-fg' & "'>Reopened</text></svg>",
+                                            "Triaged", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='74' height='22' rx='11' fill='" & C.'hex-state-violet-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-violet-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6h11M9 12h11M9 18h11 M4.5 6h.01M4.5 12h.01M4.5 18h.01'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-violet-fg' & "'>Triaged</text></svg>",
+                                            "In progress", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='94' height='22' rx='11' fill='" & C.'hex-state-warn-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z'/><path d='M12 6.5a5.5 5.5 0 0 1 0 11Z' fill='" & C.'hex-state-warn-fg' & "' stroke='none'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-warn-fg' & "'>In progress</text></svg>",
+                                            "Ready for retest", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='119' height='22' rx='11' fill='" & C.'hex-state-lime-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-lime-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12Z M12 14.8a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6Z'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-lime-fg' & "'>Ready for retest</text></svg>",
+                                            "Closed", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='70' height='22' rx='11' fill='" & C.'hex-state-ok-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M8 12.2l2.8 2.8L16 9.5'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-ok-fg' & "'>Closed</text></svg>",
+                                            "Archived", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='81' height='22' rx='11' fill='" & C.'hex-state-neutral-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-neutral-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M5.3 5.3l13.4 13.4'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-neutral-fg' & "'>Archived</text></svg>",
+                                            "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='85' height='22' rx='11' fill='" & C.'hex-state-neutral-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-neutral-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21.5 3 2.5 10.5l7 3 3 7L21.5 3Z M9.5 13.5 21.5 3'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-neutral-fg' & "'>Unknown</text></svg>"
+                                        ))
+                                    ImagePosition: |-
+                                        =ImagePosition.Fit
+                                    OnSelect: |-
+                                        =false
+                                    TabIndex: |-
                                         =0
-                                    PaddingLeft: |-
-                                        =8
-                                    PaddingRight: |-
-                                        =8
-                                    PaddingTop: |-
-                                        =0
-                                    RadiusBottomLeft: |-
-                                        =12
-                                    RadiusBottomRight: |-
-                                        =12
-                                    RadiusTopLeft: |-
-                                        =12
-                                    RadiusTopRight: |-
-                                        =12
-                                    Size: |-
-                                        =11
-                                    Text: |-
-                                        =If(ThisItem.Archived, "Archived", ThisItem.Status)
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
                                     Visible: |-
                                         =LayoutRank < 3
                                     Width: |-
-                                        =124
-                                    Wrap: |-
-                                        =false
+                                        =119
                                     X: |-
-                                        =0 + 12 + 0 + 0 + (96) + 8 + If((LayoutRank >= 2) && !IsBlank(ThisItem.Priority), (72) + 8, 0) + (Max(0, ((((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12 - 12)) - ((96) + 8) - (If((LayoutRank >= 2) && !IsBlank(ThisItem.Priority), (72) + 8, 0)) - ((124) + 8) - 2)) + 8
+                                        =0 + 12 + 0 + 0 + (96) + 8 + If((LayoutRank >= 2) && !IsBlank(ThisItem.Priority), (74) + 8, 0) + (Max(0, ((((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12 - 12)) - ((96) + 8) - (If((LayoutRank >= 2) && !IsBlank(ThisItem.Priority), (74) + 8, 0)) - ((119) + 8) - 2)) + 8
                                     Y: |-
-                                        =0 + 10 + 0 + 0 + (((24) - 0 - 0) - (24)) / 2
+                                        =0 + 10 + 0 + 0 + (((22) - 0 - 0) - (22)) / 2
                               - txtIbRowTitleC:
                                   Control: ModernText
                                   Properties:
@@ -2567,7 +2501,7 @@ Screens:
                                     X: |-
                                         =0 + 12
                                     Y: |-
-                                        =0 + 10 + 0 + (24) + 4
+                                        =0 + 10 + 0 + (22) + 4
                               - txtIbRowMetaC:
                                   Control: ModernText
                                   Properties:
@@ -2596,7 +2530,7 @@ Screens:
                                     Size: |-
                                         =12
                                     Text: |-
-                                        =If(IsBlank(ThisItem.Reporter), "-", Upper(First(Split(ThisItem.Reporter, "@")).Value)) & "  ·  " & ThisItem.Application & "  ·  " & ThisItem.Section & If(LayoutRank < 2 && !IsBlank(ThisItem.Priority), "  ·  " & ThisItem.Priority, "") & If(DateDiff(ThisItem.CreatedOn, ThisItem.UpdatedOn, TimeUnit.Minutes) >= 5, "  ·  Updated " & Text(ThisItem.UpdatedOn, "dd mmm yyyy"), "  ·  Reported " & Text(ThisItem.CreatedOn, "dd mmm yyyy"))
+                                        =If(IsBlank(ThisItem.Reporter), "-", Upper(First(Split(ThisItem.Reporter, "@")).Value)) & "  ·  " & ThisItem.Application & "  ·  " & ThisItem.Section & If(LayoutRank < 2 && !IsBlank(ThisItem.Priority), "  ·  " & ThisItem.Priority, "") & If(DateDiff(ThisItem.CreatedOn, ThisItem.UpdatedOn, TimeUnit.Minutes) >= 5, "  ·  Updated " & Text(ThisItem.UpdatedOn, "dd-mm-yyyy"), "  ·  Reported " & Text(ThisItem.CreatedOn, "dd-mm-yyyy"))
                                     Visible: |-
                                         =LayoutRank < 3
                                     Width: |-
@@ -2606,7 +2540,7 @@ Screens:
                                     X: |-
                                         =0 + 12 + 0 + 0
                                     Y: |-
-                                        =0 + 10 + 0 + (24) + 4 + (21) + 4 + 0 + (((18) - 0 - 0) - (18)) / 2
+                                        =0 + 10 + 0 + (22) + 4 + (21) + 4 + 0 + (((18) - 0 - 0) - (18)) / 2
                               - rctIbRowRule:
                                   Control: Rectangle
                                   Properties:
@@ -2750,7 +2684,7 @@ Screens:
                                     FontWeight: |-
                                         =FontWeight.Semibold
                                     Height: |-
-                                        =32
+                                        =H.hit
                                     Icon: |-
                                         ="Attach"
                                     Layout: |-
@@ -2821,11 +2755,11 @@ Screens:
                                     Visible: |-
                                         =LayoutRank < 3 && !ThisItem.Archived && (ThisItem.Reporter = varIbMe || IsAdmin)
                                     Width: |-
-                                        =40
+                                        =Max(40, H.hit)
                                     X: |-
-                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12 - 40
+                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0)))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 12 - Self.Width
                                     Y: |-
-                                        =56
+                                        =88 - Self.Height
                               - btnIbRowAttach:
                                   Control: ModernButton
                                   Properties:
@@ -2846,7 +2780,7 @@ Screens:
                                     FontWeight: |-
                                         =FontWeight.Semibold
                                     Height: |-
-                                        =32
+                                        =H.hit
                                     Icon: |-
                                         ="Attach"
                                     Layout: |-
@@ -2921,40 +2855,155 @@ Screens:
                                     X: |-
                                         =0 + 10 + 0 + (88) + 8 + ((64 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((140 + 3 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + ((100 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8 + If(LayoutRank >= 4, ((104 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + (72) + 8 + (116) + 8 + If(LayoutRank >= 4, ((92 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + If(LayoutRank >= 4, ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8, 0) + ((84 + 1 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64) - 36 - 4 - 18 - 40) - If(LayoutRank >= 4, 1096, 792)) / If(LayoutRank >= 4, 12, 7)))) + 8
                                     Y: |-
-                                        =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (32)) / 2
-                        - txtIbEmpty:
-                            Control: ModernText
+                                        =0 + 0 + ((((If(LayoutRank < 3, 92, 48)) - 1) - 0 - 0) - (H.hit)) / 2
+                        - conIbEmpty:
+                            Control: GroupContainer
+                            Variant: AutoLayout
                             Properties:
-                              AccessibleLabel: |-
-                                  =Self.Text
                               BorderStyle: |-
                                   =BorderStyle.None
-                              BorderThickness: |-
+                              DropShadow: |-
+                                  =DropShadow.None
+                              FillPortions: |-
                                   =0
-                              Color: |-
-                                  =If(IbFailed, C.'state-error-fg', C.'text-muted')
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
                               Height: |-
-                                  =40
-                              PaddingBottom: |-
+                                  =112 + If((!IsBlank(varIbApp) || !IsBlank(varIbSection) || !IsBlank(varIbStatusF) || !IsBlank(varIbPriF) || !IsBlank(Trim(inpIbSearch.Text))) && !IbFailed && !varIbLoading, 8 + (36), 0)
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Center
+                              LayoutDirection: |-
+                                  =LayoutDirection.Vertical
+                              LayoutGap: |-
+                                  =8
+                              LayoutMinWidth: |-
                                   =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              PaddingBottom: |-
+                                  =12
                               PaddingLeft: |-
                                   =0
                               PaddingRight: |-
                                   =0
                               PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =13
-                              Text: |-
-                                  =If(varIbLoading, "Loading issues...", IbFailed, "The issues could not be loaded. Check your connection and try again.", varIbScope = "mine" && IsEmpty(IbMine), "You have not reported any issues yet. Use New issue to report one.", varIbScope = "all" && IsEmpty(colIbAll), "No issues have been reported yet.", varIbScope = "assigned" && IsEmpty(Filter(colIbAll, AssignedEmail = varIbMe)), "No issues are assigned to you.", !IsBlank(varIbApp) || !IsBlank(varIbSection) || !IsBlank(varIbStatusF) || !IsBlank(varIbPriF) || !IsBlank(Trim(inpIbSearch.Text)), "No issues match the filters. Clear the filters to see more.", Switch(varIbState, "closed", "There are no closed issues here.", "archived", "There are no archived issues here.", "There are no open issues here."))
+                                  =12
                               Visible: |-
                                   =galIbList.AllItemsCount = 0
-                              Wrap: |-
-                                  =true
+                            Children:
+                              - imgIbEmptyIcon:
+                                  Control: Image
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Empty list"
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Height: |-
+                                        =40
+                                    Image: |-
+                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><rect width='40' height='40' rx='10' fill='" & C.'hex-text-muted' & "' fill-opacity='0.12'/><g transform='translate(10 10)'><svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><g fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M4 6h16a1 1 0 0 1 1 1v3a2 2 0 0 0 0 4v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-3a2 2 0 0 0 0-4V7a1 1 0 0 1 1-1Z M15 6.5v2M15 11v2M15 15.5v2'/></g></svg></g></svg>")
+                                    ImagePosition: |-
+                                        =ImagePosition.Fit
+                                    OnSelect: |-
+                                        =false
+                                    TabIndex: |-
+                                        =0
+                                    Width: |-
+                                        =40
+                              - txtIbEmptyText:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =Self.Text
+                                    Align: |-
+                                        =Align.Center
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =If(IbFailed, C.'state-error-fg', C.'text-muted')
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =40
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =13
+                                    Text: |-
+                                        =If(varIbLoading, "Loading issues...", IbFailed, "The issues could not be loaded. Check your connection and try again.", varIbScope = "mine" && IsEmpty(IbMine), "You have not reported any issues yet. Use New issue to report one.", varIbScope = "all" && IsEmpty(colIbAll), "No issues have been reported yet.", varIbScope = "assigned" && IsEmpty(Filter(colIbAll, AssignedEmail = varIbMe)), "No issues are assigned to you.", !IsBlank(varIbApp) || !IsBlank(varIbSection) || !IsBlank(varIbStatusF) || !IsBlank(varIbPriF) || !IsBlank(Trim(inpIbSearch.Text)), "No issues match the filters. Clear the filters to see more.", Switch(varIbState, "closed", "There are no closed issues here.", "archived", "There are no archived issues here.", "There are no open issues here."))
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Wrap: |-
+                                        =true
+                              - btnIbEmptyAction:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Clear filters"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =36
+                                    Layout: |-
+                                        =ButtonLayout.TextOnly
+                                    LayoutMinWidth: |-
+                                        =124
+                                    OnSelect: |-
+                                        =Set(varIbApp, "");
+                                        Set(varIbSection, "");
+                                        Set(varIbStatusF, "");
+                                        Set(varIbPriF, "");
+                                        Reset(inpIbSearch);
+                                        Reset(drpIbFltApp);
+                                        Reset(drpIbFltSection);
+                                        Reset(drpIbFltStatus);
+                                        Reset(drpIbFltPriority)
+                                    RadiusBottomLeft: |-
+                                        =10
+                                    RadiusBottomRight: |-
+                                        =10
+                                    RadiusTopLeft: |-
+                                        =10
+                                    RadiusTopRight: |-
+                                        =10
+                                    Size: |-
+                                        =14
+                                    Text: |-
+                                        ="Clear filters"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Visible: |-
+                                        =(!IsBlank(varIbApp) || !IsBlank(varIbSection) || !IsBlank(varIbStatusF) || !IsBlank(varIbPriF) || !IsBlank(Trim(inpIbSearch.Text))) && !IbFailed && !varIbLoading
+                                    Width: |-
+                                        =124
                         - btnIbRetry:
                             Control: ModernButton
                             Properties:
@@ -3070,7 +3119,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =380
+                      =44 + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Start
                   LayoutDirection: |-
@@ -3108,7 +3157,7 @@ Screens:
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='44' viewBox='0 0 56 44'><image x='15' y='9' width='26' height='26' preserveAspectRatio='xMidYMid meet' href='" & AppLogo & "'/></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None)
                         PressedFill: |-
@@ -3133,13 +3182,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l6 6-6 6 M12 6l6 6-6 6'/></g></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, true)
                         PressedFill: |-
@@ -3166,13 +3215,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 11 12 3' stroke='" & C.'hex-domain-fl' & "'/><path d='M12 3l9.5 8' stroke='" & C.'hex-domain-vhp' & "'/><path d='M12 14a2 2 0 0 0-2 2v4.5H6.5A1.5 1.5 0 0 1 5 19V9' stroke='" & C.'hex-domain-mat' & "'/><path d='M12 14a2 2 0 0 1 2 2v4.5h3.5A1.5 1.5 0 0 0 19 19V9' stroke='" & C.'hex-domain-eq' & "'/></g></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None)
                         PressedFill: |-
@@ -3199,13 +3248,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblNavTo, "Fl"); Navigate(ScreenFunctionalLocation, ScreenTransition.None)
                         PressedFill: |-
@@ -3232,13 +3281,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblNavTo, "Vhp"); Navigate(ScreenVhPlan, ScreenTransition.None)
                         PressedFill: |-
@@ -3265,13 +3314,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblNavTo, "Mat"); Navigate(ScreenMaterial, ScreenTransition.None)
                         PressedFill: |-
@@ -3298,13 +3347,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblNavTo, "Eq"); Navigate(ScreenEquipment, ScreenTransition.None)
                         PressedFill: |-
@@ -3331,13 +3380,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 6h11M3 11h7M3 16h5M15.5 11.5a3.5 3.5 0 1 1 0 7a3.5 3.5 0 1 1 0-7ZM18.1 18.1 21 21'/></g></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Navigate(ScreenKks, ScreenTransition.None)
                         PressedFill: |-
@@ -3364,13 +3413,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =RGBA(0, 0, 0, 0)
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><rect x='8' y='0' width='40' height='40' rx='8' fill='" & C.'hex-state-info-bg' & "'/><rect x='0' y='10' width='3' height='20' rx='1.5' fill='" & C.'hex-text-muted' & "'/><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M4 6h16a1 1 0 0 1 1 1v3a2 2 0 0 0 0 4v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-3a2 2 0 0 0 0-4V7a1 1 0 0 1 1-1Z M15 6.5v2M15 11v2M15 15.5v2'/></g></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false)
                         PressedFill: |-
@@ -3392,7 +3441,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =139
+                      =47 + 10 + (Max(36, H.hit)) + 10 + (Max(36, H.hit))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Start
                   LayoutDirection: |-
@@ -3460,13 +3509,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =36
+                            =Max(36, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'><g transform='translate(9 9) scale(0.75)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-4.5 3.5v-3.5H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2Z'/></g></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblFbMe, Lower(User().Email)); Set(gblFbPick, false); Set(gblFbBusy, false); ClearCollect(colFbRequests, ForAll(FirstN(Sort(Filter('MD_RequestIndex', RequesterEmail = gblFbMe), LastActionOn, SortOrder.Descending), 100) As R, {Code: R.RequestNo, Title: Coalesce(R.ShortText, ""), Domain: R.Domain.Value, TypeName: Switch(R.Domain.Value, "FunctionalLocation", "Functional location", "Equipment", "Equipment", "MeasuringPoint", "Measuring point", "Material", "Material", "MaintenancePlan", "Maintenance plan", "Request"), Url: Coalesce(R.AppUrl, "")})); Set(gblFbOpen, true)
                         PressedFill: |-
@@ -3484,7 +3533,7 @@ Screens:
                         Tooltip: |-
                             ="Message SAP maintenance"
                         Width: |-
-                            =36
+                            =Max(36, H.hit)
                   - imgIbNavLang:
                       Control: Image
                       Properties:
@@ -3532,7 +3581,7 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =36
+                            =Max(36, H.hit)
                         HoverFill: |-
                             =RGBA(0, 0, 0, 0)
                         Image: |-
@@ -3541,17 +3590,18 @@ Screens:
                                 "<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'><rect x='1' y='1' width='34' height='34' rx='17' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='18' cy='18' r='14' fill='" & C.'hex-bg-surface' & "'/><circle cx='18' cy='18' r='4' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8'/><line x1='24.5' y1='18.0' x2='27.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='22.6' y1='22.6' x2='24.4' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='18.0' y1='24.5' x2='18.0' y2='27.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='13.4' y1='22.6' x2='11.6' y2='24.4' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='11.5' y1='18.0' x2='9.0' y2='18.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='13.4' y1='13.4' x2='11.6' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='18.0' y1='11.5' x2='18.0' y2='9.0' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/><line x1='22.6' y1='13.4' x2='24.4' y2='11.6' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round'/></svg>"
                             ))
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(darkModeEnabled, !darkModeEnabled);
-                            ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
+                            If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
+                            Patch(colAppPrefs, First(colAppPrefs), { Dark: darkModeEnabled });
                             IfError(SaveData(colAppPrefs, "prefs"), Blank())
                         PressedFill: |-
                             =RGBA(0, 0, 0, 0)
                         TabIndex: |-
                             =0
                         Width: |-
-                            =36
+                            =Max(36, H.hit)
       - conIbMobileBar:
           Control: GroupContainer
           Variant: AutoLayout
@@ -3613,13 +3663,13 @@ Screens:
                   FocusedBorderThickness: |-
                       =2
                   Height: |-
-                      =40
+                      =Max(40, H.hit)
                   HoverFill: |-
                       =C.'bg-muted'
                   Image: |-
                       ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 7h16M4 12h16M4 17h16'/></g></svg>")
                   ImagePosition: |-
-                      =ImagePosition.Fit
+                      =ImagePosition.Center
                   OnSelect: |-
                       =Set(gblNavOpen, true)
                   PressedFill: |-
@@ -3783,7 +3833,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =380
+                      =44 + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Start
                   LayoutDirection: |-
@@ -3821,7 +3871,7 @@ Screens:
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='44' viewBox='0 0 232 44'><image x='15' y='9' width='26' height='26' preserveAspectRatio='xMidYMid meet' href='" & AppLogo & "'/><text x='56' y='28' font-family='Segoe UI, sans-serif' font-size='16' font-weight='600' fill='" & C.'hex-text-primary' & "'>BIO SAP</text></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None)
                         PressedFill: |-
@@ -3846,13 +3896,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M18 6l-6 6 6 6 M12 6l-6 6 6 6'/></g></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false)
                         PressedFill: |-
@@ -3879,13 +3929,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 11 12 3' stroke='" & C.'hex-domain-fl' & "'/><path d='M12 3l9.5 8' stroke='" & C.'hex-domain-vhp' & "'/><path d='M12 14a2 2 0 0 0-2 2v4.5H6.5A1.5 1.5 0 0 1 5 19V9' stroke='" & C.'hex-domain-mat' & "'/><path d='M12 14a2 2 0 0 1 2 2v4.5h3.5A1.5 1.5 0 0 0 19 19V9' stroke='" & C.'hex-domain-eq' & "'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-muted' & "'>" & "Masterdata Hub" & "</text></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Navigate(ScreenMdHub, ScreenTransition.None)
                         PressedFill: |-
@@ -3910,13 +3960,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-muted' & "'>" & "Functional Location" & "</text></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblNavTo, "Fl"); Navigate(ScreenFunctionalLocation, ScreenTransition.None)
                         PressedFill: |-
@@ -3941,13 +3991,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-muted' & "'>" & "Maintenance Plan" & "</text></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblNavTo, "Vhp"); Navigate(ScreenVhPlan, ScreenTransition.None)
                         PressedFill: |-
@@ -3972,13 +4022,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-muted' & "'>" & "Materials" & "</text></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblNavTo, "Mat"); Navigate(ScreenMaterial, ScreenTransition.None)
                         PressedFill: |-
@@ -4003,13 +4053,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-muted' & "'>" & "Equipments" & "</text></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblNavTo, "Eq"); Navigate(ScreenEquipment, ScreenTransition.None)
                         PressedFill: |-
@@ -4034,13 +4084,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 6h11M3 11h7M3 16h5M15.5 11.5a3.5 3.5 0 1 1 0 7a3.5 3.5 0 1 1 0-7ZM18.1 18.1 21 21'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-muted' & "'>" & "KKS lookup" & "</text></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Navigate(ScreenKks, ScreenTransition.None)
                         PressedFill: |-
@@ -4065,13 +4115,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =40
+                            =Max(40, H.hit)
                         HoverFill: |-
                             =RGBA(0, 0, 0, 0)
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><rect x='8' y='0' width='216' height='40' rx='8' fill='" & C.'hex-state-info-bg' & "'/><rect x='0' y='10' width='3' height='20' rx='1.5' fill='" & C.'hex-text-muted' & "'/><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M4 6h16a1 1 0 0 1 1 1v3a2 2 0 0 0 0 4v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-3a2 2 0 0 0 0-4V7a1 1 0 0 1 1-1Z M15 6.5v2M15 11v2M15 15.5v2'/></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='700' fill='" & C.'hex-state-info-fg' & "'>" & "Issue Board" & "</text></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false)
                         PressedFill: |-
@@ -4091,7 +4141,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =139
+                      =93 + 10 + (Max(36, H.hit))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Start
                   LayoutDirection: |-
@@ -4159,13 +4209,13 @@ Screens:
                         FocusedBorderThickness: |-
                             =2
                         Height: |-
-                            =36
+                            =Max(36, H.hit)
                         HoverFill: |-
                             =C.'bg-muted'
                         Image: |-
                             ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='148' height='36' viewBox='0 0 148 36'><g transform='translate(12 9) scale(0.75)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-4.5 3.5v-3.5H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2Z'/></g><text x='40' y='23' font-family='Segoe UI, sans-serif' font-size='13' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Message us" & "</text></svg>")
                         ImagePosition: |-
-                            =ImagePosition.Fit
+                            =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblFbMe, Lower(User().Email)); Set(gblFbPick, false); Set(gblFbBusy, false); ClearCollect(colFbRequests, ForAll(FirstN(Sort(Filter('MD_RequestIndex', RequesterEmail = gblFbMe), LastActionOn, SortOrder.Descending), 100) As R, {Code: R.RequestNo, Title: Coalesce(R.ShortText, ""), Domain: R.Domain.Value, TypeName: Switch(R.Domain.Value, "FunctionalLocation", "Functional location", "Equipment", "Equipment", "MeasuringPoint", "Measuring point", "Material", "Material", "MaintenancePlan", "Maintenance plan", "Request"), Url: Coalesce(R.AppUrl, "")})); Set(gblFbOpen, true)
                         PressedFill: |-
@@ -4243,7 +4293,8 @@ Screens:
                             =ImagePosition.Fit
                         OnSelect: |-
                             =Set(darkModeEnabled, !darkModeEnabled);
-                            ClearCollect(colAppPrefs, { Dark: darkModeEnabled });
+                            If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
+                            Patch(colAppPrefs, First(colAppPrefs), { Dark: darkModeEnabled });
                             IfError(SaveData(colAppPrefs, "prefs"), Blank())
                         PressedFill: |-
                             =RGBA(0, 0, 0, 0)
@@ -4313,7 +4364,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =242 + 12 + (0 + (62) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354))))))
+                      =242 + 12 + (0 + (20 + 6 + (H.control)) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354))))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -4713,7 +4764,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + (62) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354)))))
+                            =0 + (20 + 6 + (H.control)) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354)))))
                         LayoutMinWidth: |-
                             =0
                         Width: |-
@@ -4728,7 +4779,7 @@ Screens:
                               DropShadow: |-
                                   =DropShadow.None
                               Height: |-
-                                  =0 + (62) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354)))))
+                                  =0 + (20 + 6 + (H.control)) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354)))))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -4757,7 +4808,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =62
+                                        =20 + 6 + (H.control)
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
@@ -4821,7 +4872,7 @@ Screens:
                                           FillPortions: |-
                                               =0
                                           Height: |-
-                                              =36
+                                              =H.control
                                           LayoutAlignItems: |-
                                               =LayoutAlignItems.Center
                                           LayoutDirection: |-
@@ -4839,7 +4890,7 @@ Screens:
                                           PaddingLeft: |-
                                               =12
                                           PaddingRight: |-
-                                              =10
+                                              =4
                                           PaddingTop: |-
                                               =0
                                           RadiusBottomLeft: |-
@@ -4871,7 +4922,7 @@ Screens:
                                                 ImagePosition: |-
                                                     =ImagePosition.Fit
                                                 OnSelect: |-
-                                                    =Set(gblFbPick, !gblFbPick)
+                                                    =false
                                                 TabIndex: |-
                                                     =0
                                                 Visible: |-
@@ -4938,7 +4989,7 @@ Screens:
                                                 VerticalAlign: |-
                                                     =VerticalAlign.Middle
                                                 Width: |-
-                                                    =Max(0, ((((((Min(560, App.Width - 40)) - 18 - 18)))) - 12 - 10) - (If(gblFbSel.Kind = "R", (20) + 8, 0)) - ((20) + 8) - 2)
+                                                    =Max(0, ((((((Min(560, App.Width - 40)) - 18 - 18)))) - 12 - 4) - (If(gblFbSel.Kind = "R", (20) + 8, 0)) - ((H.hit) + 8) - 2)
                                           - imgIbFbSubjectChevron:
                                               Control: Image
                                               Properties:
@@ -4951,17 +5002,17 @@ Screens:
                                                 Fill: |-
                                                     =RGBA(0, 0, 0, 0)
                                                 Height: |-
-                                                    =20
+                                                    =H.hit
                                                 Image: |-
                                                     ="data:image/svg+xml;utf8," & EncodeUrl(If(gblFbPick, "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 15l6-6 6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></g></svg>"))
                                                 ImagePosition: |-
-                                                    =ImagePosition.Fit
+                                                    =ImagePosition.Center
                                                 OnSelect: |-
                                                     =Set(gblFbPick, !gblFbPick)
                                                 TabIndex: |-
                                                     =0
                                                 Width: |-
-                                                    =20
+                                                    =H.hit
                               - conIbFbMessageCell:
                                   Control: GroupContainer
                                   Variant: AutoLayout
@@ -5032,7 +5083,7 @@ Screens:
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
-                                              =C.'border-default'
+                                              =C.'border-input'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -5165,7 +5216,7 @@ Screens:
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
-                                              =C.'border-default'
+                                              =C.'border-input'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -5499,7 +5550,7 @@ Screens:
                                   =Launch("mailto:sapvedligehold@orsted.com?subject=" & EncodeUrl("SAP maintenance - " & Switch(gblFbSel.Kind, "R", gblFbSel.TypeName & " request " & gblFbSel.Code, "G", gblFbSel.Label, "question")) & "&body=" & EncodeUrl(If(gblFbSel.Kind = "R", "Request: " & gblFbSel.Code & Char(10) & "Type: " & gblFbSel.TypeName & Char(10) & "Title: " & gblFbSel.Title & Char(10) & If(IsBlank(gblFbSel.Url), "", "Link: " & gblFbSel.Url & Char(10)) & Char(10), "") & Left(inpIbFbMessage.Text, Find("Kind regards,", inpIbFbMessage.Text & "Kind regards,") - 1)));
                                   Set(gblFbOpen, false);
                                   Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpIbFbSubjectFind); Reset(inpIbFbMessage);
-                                  Notify("The mail is ready in Outlook. Press Send there.", NotificationType.Information)
+                                  Set(gblToast, { Text: "The mail is ready in Outlook. Press Send there.", Kind: "Information", At: Now() }); true
                               RadiusBottomLeft: |-
                                   =10
                               RadiusBottomRight: |-
@@ -5548,9 +5599,9 @@ Screens:
                                   IfError(
                                       With({ res: 'BioSap-SendFeedbackMail'.Run("sapvedligehold@orsted.com", "SAP maintenance - " & Switch(gblFbSel.Kind, "R", gblFbSel.TypeName & " request " & gblFbSel.Code, "G", gblFbSel.Label, "question"), inpIbFbMessage.Text, "[]", JSON({Kind: gblFbSel.Kind, Topic: gblFbSel.Label, Code: gblFbSel.Code, Type: gblFbSel.TypeName, Title: gblFbSel.Title, Url: gblFbSel.Url, Name: User().FullName}, JSONFormat.Compact)) },
                                           If(res.sent = "yes",
-                                              Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpIbFbSubjectFind); Reset(inpIbFbMessage); Notify("Message sent.", NotificationType.Success),
-                                              Notify("The message could not be sent. " & res.message, NotificationType.Error))),
-                                      Notify("The message could not be sent.", NotificationType.Error));
+                                              Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpIbFbSubjectFind); Reset(inpIbFbMessage); Set(gblToast, { Text: "Message sent.", Kind: "Success", At: Now() }); true,
+                                              Set(gblToast, { Text: "The message could not be sent. " & res.message, Kind: "Error", At: Now() }); true)),
+                                      Set(gblToast, { Text: "The message could not be sent.", Kind: "Error", At: Now() }); true);
                                   Set(gblFbBusy, false)
                               RadiusBottomLeft: |-
                                   =10
@@ -6028,7 +6079,7 @@ Screens:
                                               =If(
                                                   true && IsBlank(Self.Selected.Application),
                                                   C.'border-error',
-                                                  If(IsBlank(Self.Selected.Application), C.'border-default', C.'border-ok')
+                                                  If(IsBlank(Self.Selected.Application), C.'border-input', C.'border-ok')
                                               )
                                           BorderStyle: |-
                                               =BorderStyle.Solid
@@ -6202,11 +6253,11 @@ Screens:
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
-                                              =If(
+                                              =If((If(IsBlank(varIbFormApp), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, If(
                                                   true && IsBlank(Self.Selected.Section),
                                                   C.'border-error',
-                                                  If(IsBlank(Self.Selected.Section), C.'border-default', C.'border-ok')
-                                              )
+                                                  If(IsBlank(Self.Selected.Section), C.'border-input', C.'border-ok')
+                                              ), C.'border-default')
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -6417,7 +6468,7 @@ Screens:
                                         =If(
                                             true && IsBlank(Trim(Self.Text)),
                                             C.'border-error',
-                                            If(IsBlank(Trim(Self.Text)), C.'border-default', C.'border-ok')
+                                            If(IsBlank(Trim(Self.Text)), C.'border-input', C.'border-ok')
                                         )
                                     BorderStyle: |-
                                         =BorderStyle.Solid
@@ -6592,7 +6643,7 @@ Screens:
                                         =If(
                                             true && IsBlank(Trim(Self.Text)),
                                             C.'border-error',
-                                            If(IsBlank(Trim(Self.Text)), C.'border-default', C.'border-ok')
+                                            If(IsBlank(Trim(Self.Text)), C.'border-input', C.'border-ok')
                                         )
                                     BorderStyle: |-
                                         =BorderStyle.Solid
@@ -6828,7 +6879,7 @@ Screens:
                                           Text: |-
                                               =ThisItem.Title
                                           Width: |-
-                                              =(((((Min(680, App.Width - 24)) - 18 - 18) - 18) - 10 - 10) - 2 * 0 - 0 - 40) - 112 - 124 - 8
+                                              =(((((Min(680, App.Width - 24)) - 18 - 18) - 18) - 10 - 10) - 2 * 0 - 0 - 40) - 112 - 119 - 8
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -6865,62 +6916,50 @@ Screens:
                                           Text: |-
                                               =ThisItem.Where
                                           Width: |-
-                                              =(((((Min(680, App.Width - 24)) - 18 - 18) - 18) - 10 - 10) - 2 * 0 - 0 - 40) - 16 - 124 - 8
+                                              =(((((Min(680, App.Width - 24)) - 18 - 18) - 18) - 10 - 10) - 2 * 0 - 0 - 40) - 16 - 119 - 8
                                           Wrap: |-
                                               =false
                                           X: |-
                                               =8
                                           Y: |-
                                               =23
-                                    - txtIbSimStatus:
-                                        Control: ModernText
+                                    - imgIbSimStatus:
+                                        Control: Image
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Status: " & Self.Text
-                                          Align: |-
-                                              =Align.Center
+                                              ="Status: " & Switch(If(ThisItem.Archived, "Archived", ThisItem.Status), "New", "New", "Reopened", "Reopened", "Triaged", "Triaged", "In progress", "In progress", "Ready for retest", "Ready for retest", "Closed", "Closed", "Archived", "Archived", "Unknown")
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
                                               =0
-                                          Color: |-
-                                              =If(ThisItem.Archived, C.'state-neutral-fg', Switch(ThisItem.Status, "New", C.'state-info-fg', "Reopened", C.'state-rose-fg', "Triaged", C.'state-violet-fg', "In progress", C.'state-warn-fg', "Ready for retest", C.'state-lime-fg', "Closed", C.'state-ok-fg', C.'state-neutral-fg'))
-                                          Fill: |-
-                                              =If(ThisItem.Archived, C.'state-neutral-bg', Switch(ThisItem.Status, "New", C.'state-info-bg', "Reopened", C.'state-rose-bg', "Triaged", C.'state-violet-bg', "In progress", C.'state-warn-bg', "Ready for retest", C.'state-lime-bg', "Closed", C.'state-ok-bg', C.'state-neutral-bg'))
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
                                           Height: |-
-                                              =24
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =8
-                                          PaddingRight: |-
-                                              =8
-                                          PaddingTop: |-
-                                              =0
-                                          RadiusBottomLeft: |-
-                                              =12
-                                          RadiusBottomRight: |-
-                                              =12
-                                          RadiusTopLeft: |-
-                                              =12
-                                          RadiusTopRight: |-
-                                              =12
-                                          Size: |-
-                                              =11
-                                          Text: |-
-                                              =If(ThisItem.Archived, "Archived", ThisItem.Status)
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =124
-                                          Wrap: |-
+                                              =22
+                                          Image: |-
+                                              ="data:image/svg+xml;utf8," & EncodeUrl(Switch(
+                                                  If(ThisItem.Archived, "Archived", ThisItem.Status),
+                                                  "New", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='58' height='22' rx='11' fill='" & C.'hex-state-info-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21.5 3 2.5 10.5l7 3 3 7L21.5 3Z M9.5 13.5 21.5 3'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-info-fg' & "'>New</text></svg>",
+                                                  "Reopened", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='89' height='22' rx='11' fill='" & C.'hex-state-rose-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-rose-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3.5 12a8.5 8.5 0 1 0 8.5-8.5a9.2 9.2 0 0 0-6.4 2.6L3.5 8 M3.5 3.5V8H8 M12 7.5V12l3 2'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-rose-fg' & "'>Reopened</text></svg>",
+                                                  "Triaged", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='74' height='22' rx='11' fill='" & C.'hex-state-violet-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-violet-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6h11M9 12h11M9 18h11 M4.5 6h.01M4.5 12h.01M4.5 18h.01'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-violet-fg' & "'>Triaged</text></svg>",
+                                                  "In progress", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='94' height='22' rx='11' fill='" & C.'hex-state-warn-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z'/><path d='M12 6.5a5.5 5.5 0 0 1 0 11Z' fill='" & C.'hex-state-warn-fg' & "' stroke='none'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-warn-fg' & "'>In progress</text></svg>",
+                                                  "Ready for retest", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='119' height='22' rx='11' fill='" & C.'hex-state-lime-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-lime-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12Z M12 14.8a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6Z'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-lime-fg' & "'>Ready for retest</text></svg>",
+                                                  "Closed", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='70' height='22' rx='11' fill='" & C.'hex-state-ok-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M8 12.2l2.8 2.8L16 9.5'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-ok-fg' & "'>Closed</text></svg>",
+                                                  "Archived", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='81' height='22' rx='11' fill='" & C.'hex-state-neutral-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-neutral-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M5.3 5.3l13.4 13.4'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-neutral-fg' & "'>Archived</text></svg>",
+                                                  "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='85' height='22' rx='11' fill='" & C.'hex-state-neutral-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-neutral-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21.5 3 2.5 10.5l7 3 3 7L21.5 3Z M9.5 13.5 21.5 3'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-neutral-fg' & "'>Unknown</text></svg>"
+                                              ))
+                                          ImagePosition: |-
+                                              =ImagePosition.Fit
+                                          LayoutMinWidth: |-
+                                              =119
+                                          OnSelect: |-
                                               =false
+                                          TabIndex: |-
+                                              =0
+                                          Width: |-
+                                              =119
                                           X: |-
-                                              =(((((Min(680, App.Width - 24)) - 18 - 18) - 18) - 10 - 10) - 2 * 0 - 0 - 40) - 124 - 4
+                                              =(((((Min(680, App.Width - 24)) - 18 - 18) - 18) - 10 - 10) - 2 * 0 - 0 - 40) - 119 - 4
                                           Y: |-
                                               =10
                                     - btnIbSimOpen:
@@ -7158,7 +7197,7 @@ Screens:
                                         =If(
                                             true && IsBlank(Trim(Self.Text)),
                                             C.'border-error',
-                                            If(IsBlank(Trim(Self.Text)), C.'border-default', C.'border-ok')
+                                            If(IsBlank(Trim(Self.Text)), C.'border-input', C.'border-ok')
                                         )
                                     BorderStyle: |-
                                         =BorderStyle.Solid
@@ -7344,7 +7383,7 @@ Screens:
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
-                                              =C.'border-default'
+                                              =C.'border-input'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -7453,7 +7492,7 @@ Screens:
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
-                                              =C.'border-default'
+                                              =C.'border-input'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -7562,7 +7601,7 @@ Screens:
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
-                                              =C.'border-default'
+                                              =C.'border-input'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -7698,7 +7737,7 @@ Screens:
                                                 BasePaletteColor: |-
                                                     =C.'color-brand-primary'
                                                 BorderColor: |-
-                                                    =C.'border-default'
+                                                    =C.'border-input'
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
@@ -7805,7 +7844,7 @@ Screens:
                                                 BasePaletteColor: |-
                                                     =C.'color-brand-primary'
                                                 BorderColor: |-
-                                                    =C.'border-default'
+                                                    =C.'border-input'
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
@@ -8019,7 +8058,7 @@ Screens:
                                                 BasePaletteColor: |-
                                                     =C.'color-brand-primary'
                                                 BorderColor: |-
-                                                    =C.'border-default'
+                                                    =C.'border-input'
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
@@ -8126,7 +8165,7 @@ Screens:
                                                 BasePaletteColor: |-
                                                     =C.'color-brand-primary'
                                                 BorderColor: |-
-                                                    =C.'border-default'
+                                                    =C.'border-input'
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
@@ -8233,7 +8272,7 @@ Screens:
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
-                                              =C.'border-default'
+                                              =C.'border-input'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -8340,7 +8379,7 @@ Screens:
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
-                                              =C.'border-default'
+                                              =C.'border-input'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -8528,7 +8567,7 @@ Screens:
                                             false,
                                             !(!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && (!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))),
                                             Set(varIbTried, true);
-                                            Notify(If(varIbFormMode = "edit", "To save, add ", "To submit, add ") & Concat(Filter(Table({ m: "an application", ok: !IsBlank(varIbFormApp) }, { m: "a section", ok: !IsBlank(varIbFormSection) }, { m: "where it happened", ok: !IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text)) }, { m: "a title of at least 4 characters", ok: Len(Trim(inpIbTitle.Text)) >= 4 }, { m: "what happened", ok: !IsBlank(Trim(inpIbDesc.Text)) }), !ok), m, ", ") & ".", NotificationType.Warning),
+                                            Set(gblToast, { Text: If(varIbFormMode = "edit", "To save, add ", "To submit, add ") & Concat(Filter(Table({ m: "an application", ok: !IsBlank(varIbFormApp) }, { m: "a section", ok: !IsBlank(varIbFormSection) }, { m: "where it happened", ok: !IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text)) }, { m: "a title of at least 4 characters", ok: Len(Trim(inpIbTitle.Text)) >= 4 }, { m: "what happened", ok: !IsBlank(Trim(inpIbDesc.Text)) }), !ok), m, ", ") & ".", Kind: "Warning", At: Now() }); true,
                                             If(
                                                 varIbFormMode = "edit",
                                                 Set(varIbBusy, true);
@@ -8536,9 +8575,9 @@ Screens:
                                                 Set(varIbCur, IfError(LookUp(IB_Tickets, ID = varIbSelId), Blank()));
                                                 If(
                                                     IsBlank(varIbCur),
-                                                    Notify("The issue could not be loaded. It may have been deleted - close it and try again.", NotificationType.Error),
+                                                    Set(gblToast, { Text: "The issue could not be loaded. It may have been deleted - close it and try again.", Kind: "Error", At: Now() }); true,
                                                     !IsAdmin && (varIbCur.Status.Value <> "New" || Coalesce(varIbCur.IsArchived, false)),
-                                                    Notify("You can edit your issue only while it is New. Add a comment instead.", NotificationType.Warning),
+                                                    Set(gblToast, { Text: "You can edit your issue only while it is New. Add a comment instead.", Kind: "Warning", At: Now() }); true,
                                                     IfError(
                                                         Set(varIbEdited, Patch(
                                                             IB_Tickets,
@@ -8563,7 +8602,7 @@ Screens:
                                                             }
                                                         ));
                                                         Set(varIbSaved, true),
-                                                        Notify("The changes could not be saved. " & FirstError.Message, NotificationType.Error)
+                                                        Set(gblToast, { Text: "The changes could not be saved. " & FirstError.Message, Kind: "Error", At: Now() }); true
                                                     )
                                                 );
                                                 If(
@@ -8618,8 +8657,8 @@ Screens:
                                                     Set(varIbDetailOn, true);
                                                     If(
                                                         varIbRes.ok = "yes",
-                                                        Notify("Your changes have been saved.", NotificationType.Success),
-                                                        Notify("Your changes have been saved, but they could not be added to the activity. " & Coalesce(varIbRes.message, ""), NotificationType.Warning)
+                                                        Set(gblToast, { Text: "Your changes have been saved.", Kind: "Success", At: Now() }); true,
+                                                        Set(gblToast, { Text: "Your changes have been saved, but they could not be added to the activity. " & Coalesce(varIbRes.message, ""), Kind: "Warning", At: Now() }); true
                                                     )
                                                 );
                                                 Set(varIbBusy, false),
@@ -8651,7 +8690,7 @@ Screens:
                                                         }
                                                     ));
                                                     Set(varIbSaved, true),
-                                                    Notify("The issue could not be submitted. " & FirstError.Message, NotificationType.Error)
+                                                    Set(gblToast, { Text: "The issue could not be submitted. " & FirstError.Message, Kind: "Error", At: Now() }); true
                                                 );
                                                 If(
                                                     varIbSaved,
@@ -8708,7 +8747,7 @@ Screens:
                                                     If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
                                                     Set(varIbActBusy, false);
                                                     Set(varIbDetailOn, true);
-                                                    Notify("Thank you. Issue " & varIbNew.TicketNo & " has been submitted. To add screenshots or files, select Attachments here or the paperclip on the issue.", NotificationType.Success)
+                                                    Set(gblToast, { Text: "Thank you. Issue " & varIbNew.TicketNo & " has been submitted. To add screenshots or files, select Attachments here or the paperclip on the issue.", Kind: "Success", At: Now() }); true
                                                 );
                                                 Set(varIbBusy, false)
                                             )
@@ -9087,7 +9126,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =36 + (Max(34, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36)) - 96 - 34 - 20) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))) + 12 + (57 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 24, 24 + 6 + 20)) + 12 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 38, 2 * 38 + 8)) + If(IbCanReopen || IbCanEdit || IbCanManage, 12 + (34), 0) + If(varIbSelPeek, 12 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 12 + (34), 0)) + 12 + (Max(160, Min(App.Height - 32 - 36 - (Max(34, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36)) - 96 - 34 - 20) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))) - 12 - (57 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 24, 24 + 6 + 20)) + 12 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 38, 2 * 38 + 8)) + If(IbCanReopen || IbCanEdit || IbCanManage, 12 + (34), 0) + If(varIbSelPeek, 12 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 12 + (34), 0)) - 12, Max(360, (0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)), (If(IbSeeActivity, 0 + If((varIbActBusy && IsEmpty(colIbActivity)) || IfError(varIbActFailed, false), 0 + (34), 0) + If(!IsEmpty(colIbActivity), 12 + (Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((Min(760, App.Width - 24) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40))), 0) + If(IbCanComment, 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0) + If(varIbSel.Archived, 12 + (18), 0), 0)), (0 + If(galIbFiles.AllItemsCount = 0, 0 + (20), 0) + If(galIbFiles.AllItemsCount > 0, 12 + (galIbFiles.AllItemsCount * 60), 0) + If(IbCanAttach, 12 + (86 + (If(CountRows(attIbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFiles.Attachments), 4) * 36))), 0))))))
+                      =36 + (Max(Max(34, H.hit), Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36)) - 96 - 34 - 20) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))) + 12 + (57 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 22, 22 + 6 + 20)) + 12 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 38, 2 * 38 + 8)) + If(IbCanReopen || IbCanEdit || IbCanManage, 12 + (Max(34, H.hit)), 0) + If(varIbSelPeek, 12 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 12 + (34), 0)) + 12 + (Max(160, Min(App.Height - 32 - 36 - (Max(Max(34, H.hit), Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36)) - 96 - 34 - 20) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))) - 12 - (57 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 22, 22 + 6 + 20)) + 12 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 38, 2 * 38 + 8)) + If(IbCanReopen || IbCanEdit || IbCanManage, 12 + (Max(34, H.hit)), 0) + If(varIbSelPeek, 12 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 12 + (34), 0)) - 12, Max(360, (0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)), (If(IbSeeActivity, 0 + If((varIbActBusy && IsEmpty(colIbActivity)) || IfError(varIbActFailed, false), 0 + (34), 0) + If(!IsEmpty(colIbActivity), 12 + (Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((Min(760, App.Width - 24) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40))), 0) + If(IbCanComment, 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0) + If(varIbSel.Archived, 12 + (18), 0), 0)), (0 + If(galIbFiles.AllItemsCount = 0, 0 + (20), 0) + If(galIbFiles.AllItemsCount > 0, 12 + (galIbFiles.AllItemsCount * 60), 0) + If(IbCanAttach, 12 + (86 + (If(CountRows(attIbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFiles.Attachments), 4) * 36))), 0))))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -9130,7 +9169,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =Max(34, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36)) - 96 - 34 - 20) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))
+                            =Max(Max(34, H.hit), Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36)) - 96 - 34 - 20) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Center
                         LayoutDirection: |-
@@ -9166,7 +9205,7 @@ Screens:
                               FontWeight: |-
                                   =FontWeight.Semibold
                               Height: |-
-                                  =24
+                                  =22
                               LayoutMinWidth: |-
                                   =96
                               PaddingBottom: |-
@@ -9231,7 +9270,7 @@ Screens:
                               Text: |-
                                   =varIbSel.Title
                               Width: |-
-                                  =Max(0, (((Min(760, App.Width - 24)) - 18 - 18)) - ((96) + 10) - ((34) + 10) - 2)
+                                  =Max(0, (((Min(760, App.Width - 24)) - 18 - 18)) - ((96) + 10) - ((Max(34, H.hit)) + 10) - 2)
                               Wrap: |-
                                   =true
                         - btnIbDetClose:
@@ -9256,13 +9295,13 @@ Screens:
                               FontWeight: |-
                                   =FontWeight.Semibold
                               Height: |-
-                                  =34
+                                  =Max(34, H.hit)
                               Icon: |-
                                   ="Dismiss"
                               Layout: |-
                                   =ButtonLayout.IconOnly
                               LayoutMinWidth: |-
-                                  =34
+                                  =Max(34, H.hit)
                               OnSelect: |-
                                   =Set(varIbDetailOn, false)
                               RadiusBottomLeft: |-
@@ -9282,7 +9321,7 @@ Screens:
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
-                                  =34
+                                  =Max(34, H.hit)
                   - conIbDetTop:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -9294,7 +9333,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =57 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 24, 24 + 6 + 20)) + 12 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 38, 2 * 38 + 8)) + If(IbCanReopen || IbCanEdit || IbCanManage, 12 + (34), 0) + If(varIbSelPeek, 12 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 12 + (34), 0)
+                            =57 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 22, 22 + 6 + 20)) + 12 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 38, 2 * 38 + 8)) + If(IbCanReopen || IbCanEdit || IbCanManage, 12 + (Max(34, H.hit)), 0) + If(varIbSelPeek, 12 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 12 + (34), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -9321,7 +9360,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 24, 24 + 6 + 20)
+                                  =If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 22, 22 + 6 + 20)
                               LayoutAlignItems: |-
                                   =If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, LayoutAlignItems.Center, LayoutAlignItems.Start)
                               LayoutDirection: |-
@@ -9348,7 +9387,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =24
+                                        =22
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Center
                                     LayoutDirection: |-
@@ -9356,114 +9395,83 @@ Screens:
                                     LayoutGap: |-
                                         =8
                                     LayoutMinWidth: |-
-                                        =((124 + 8 + If(IsBlank(varIbSel.Priority), 0, 72 + 8)) - 8)
+                                        =((119 + 8 + If(IsBlank(varIbSel.Priority), 0, 74 + 8)) - 8)
                                     LayoutOverflowX: |-
                                         =LayoutOverflow.Hide
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =((124 + 8 + If(IsBlank(varIbSel.Priority), 0, 72 + 8)) - 8)
+                                        =((119 + 8 + If(IsBlank(varIbSel.Priority), 0, 74 + 8)) - 8)
                                   Children:
-                                    - txtIbDetStatus:
-                                        Control: ModernText
+                                    - imgIbDetStatus:
+                                        Control: Image
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Status: " & Self.Text
-                                          Align: |-
-                                              =Align.Center
+                                              ="Status: " & Switch(If(varIbSel.Archived, "Archived", varIbSel.Status), "New", "New", "Reopened", "Reopened", "Triaged", "Triaged", "In progress", "In progress", "Ready for retest", "Ready for retest", "Closed", "Closed", "Archived", "Archived", "Unknown")
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
                                               =0
-                                          Color: |-
-                                              =If(varIbSel.Archived, C.'state-neutral-fg', Switch(varIbSel.Status, "New", C.'state-info-fg', "Reopened", C.'state-rose-fg', "Triaged", C.'state-violet-fg', "In progress", C.'state-warn-fg', "Ready for retest", C.'state-lime-fg', "Closed", C.'state-ok-fg', C.'state-neutral-fg'))
-                                          Fill: |-
-                                              =If(varIbSel.Archived, C.'state-neutral-bg', Switch(varIbSel.Status, "New", C.'state-info-bg', "Reopened", C.'state-rose-bg', "Triaged", C.'state-violet-bg', "In progress", C.'state-warn-bg', "Ready for retest", C.'state-lime-bg', "Closed", C.'state-ok-bg', C.'state-neutral-bg'))
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
                                           Height: |-
-                                              =24
+                                              =22
+                                          Image: |-
+                                              ="data:image/svg+xml;utf8," & EncodeUrl(Switch(
+                                                  If(varIbSel.Archived, "Archived", varIbSel.Status),
+                                                  "New", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='58' height='22' rx='11' fill='" & C.'hex-state-info-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21.5 3 2.5 10.5l7 3 3 7L21.5 3Z M9.5 13.5 21.5 3'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-info-fg' & "'>New</text></svg>",
+                                                  "Reopened", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='89' height='22' rx='11' fill='" & C.'hex-state-rose-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-rose-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3.5 12a8.5 8.5 0 1 0 8.5-8.5a9.2 9.2 0 0 0-6.4 2.6L3.5 8 M3.5 3.5V8H8 M12 7.5V12l3 2'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-rose-fg' & "'>Reopened</text></svg>",
+                                                  "Triaged", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='74' height='22' rx='11' fill='" & C.'hex-state-violet-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-violet-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6h11M9 12h11M9 18h11 M4.5 6h.01M4.5 12h.01M4.5 18h.01'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-violet-fg' & "'>Triaged</text></svg>",
+                                                  "In progress", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='94' height='22' rx='11' fill='" & C.'hex-state-warn-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z'/><path d='M12 6.5a5.5 5.5 0 0 1 0 11Z' fill='" & C.'hex-state-warn-fg' & "' stroke='none'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-warn-fg' & "'>In progress</text></svg>",
+                                                  "Ready for retest", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='119' height='22' rx='11' fill='" & C.'hex-state-lime-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-lime-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12Z M12 14.8a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6Z'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-lime-fg' & "'>Ready for retest</text></svg>",
+                                                  "Closed", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='70' height='22' rx='11' fill='" & C.'hex-state-ok-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M8 12.2l2.8 2.8L16 9.5'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-ok-fg' & "'>Closed</text></svg>",
+                                                  "Archived", "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='81' height='22' rx='11' fill='" & C.'hex-state-neutral-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-neutral-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M5.3 5.3l13.4 13.4'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-neutral-fg' & "'>Archived</text></svg>",
+                                                  "<svg xmlns='http://www.w3.org/2000/svg' width='119' height='22' viewBox='0 0 119 22'><rect width='85' height='22' rx='11' fill='" & C.'hex-state-neutral-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-neutral-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21.5 3 2.5 10.5l7 3 3 7L21.5 3Z M9.5 13.5 21.5 3'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-neutral-fg' & "'>Unknown</text></svg>"
+                                              ))
+                                          ImagePosition: |-
+                                              =ImagePosition.Fit
                                           LayoutMinWidth: |-
-                                              =124
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =8
-                                          PaddingRight: |-
-                                              =8
-                                          PaddingTop: |-
-                                              =0
-                                          RadiusBottomLeft: |-
-                                              =12
-                                          RadiusBottomRight: |-
-                                              =12
-                                          RadiusTopLeft: |-
-                                              =12
-                                          RadiusTopRight: |-
-                                              =12
-                                          Size: |-
-                                              =11
-                                          Text: |-
-                                              =If(varIbSel.Archived, "Archived", varIbSel.Status)
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =124
-                                          Wrap: |-
+                                              =119
+                                          OnSelect: |-
                                               =false
-                                    - txtIbDetPriority:
-                                        Control: ModernText
+                                          TabIndex: |-
+                                              =0
+                                          Width: |-
+                                              =119
+                                    - imgIbDetPriority:
+                                        Control: Image
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Priority: " & Self.Text
-                                          Align: |-
-                                              =Align.Center
+                                              ="Priority: " & Switch(varIbSel.Priority, "Urgent", "Urgent", "High", "High", "Normal", "Normal", "Low", "Low", "-")
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
                                               =0
-                                          Color: |-
-                                              =Switch(varIbSel.Priority, "Urgent", C.'state-error-fg', "High", C.'state-warn-fg', "Normal", C.'state-neutral-fg', "Low", C.'state-neutral-fg', C.'state-neutral-fg')
-                                          Fill: |-
-                                              =Switch(varIbSel.Priority, "Urgent", C.'state-error-bg', "High", C.'state-warn-bg', "Normal", C.'state-neutral-bg', "Low", C.'state-neutral-bg', C.'state-neutral-bg')
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
                                           Height: |-
-                                              =24
+                                              =22
+                                          Image: |-
+                                              ="data:image/svg+xml;utf8," & EncodeUrl(Switch(
+                                                  varIbSel.Priority,
+                                                  "Urgent", "<svg xmlns='http://www.w3.org/2000/svg' width='74' height='22' viewBox='0 0 74 22'><rect width='71' height='22' rx='11' fill='" & C.'hex-state-error-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-error-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 7.5v5.5M12 16.5v.01'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-error-fg' & "'>Urgent</text></svg>",
+                                                  "High", "<svg xmlns='http://www.w3.org/2000/svg' width='74' height='22' viewBox='0 0 74 22'><rect width='60' height='22' rx='11' fill='" & C.'hex-state-warn-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 15l6-6 6 6'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-warn-fg' & "'>High</text></svg>",
+                                                  "Normal", "<svg xmlns='http://www.w3.org/2000/svg' width='74' height='22' viewBox='0 0 74 22'><text x='0' y='15' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-primary' & "'>Normal</text></svg>",
+                                                  "Low", "<svg xmlns='http://www.w3.org/2000/svg' width='74' height='22' viewBox='0 0 74 22'><text x='0' y='15' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-primary' & "'>Low</text></svg>",
+                                                  "<svg xmlns='http://www.w3.org/2000/svg' width='74' height='22' viewBox='0 0 74 22'><text x='0' y='15' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-primary' & "'>-</text></svg>"
+                                              ))
+                                          ImagePosition: |-
+                                              =ImagePosition.Fit
                                           LayoutMinWidth: |-
-                                              =72
-                                          PaddingBottom: |-
+                                              =74
+                                          OnSelect: |-
+                                              =false
+                                          TabIndex: |-
                                               =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          RadiusBottomLeft: |-
-                                              =12
-                                          RadiusBottomRight: |-
-                                              =12
-                                          RadiusTopLeft: |-
-                                              =12
-                                          RadiusTopRight: |-
-                                              =12
-                                          Size: |-
-                                              =11
-                                          Text: |-
-                                              =varIbSel.Priority
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
                                           Visible: |-
                                               =(true) && !IsBlank(varIbSel.Priority)
                                           Width: |-
-                                              =72
-                                          Wrap: |-
-                                              =false
+                                              =74
                               - conIbDetWhere:
                                   Control: GroupContainer
                                   Variant: AutoLayout
@@ -9489,7 +9497,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, (((Min(760, App.Width - 24) - 36) - 18)) - (124 + 8 + If(IsBlank(varIbSel.Priority), 0, 72 + 8)) - 4, ((Min(760, App.Width - 24) - 36) - 18))
+                                        =If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, (((Min(760, App.Width - 24) - 36) - 18)) - (119 + 8 + If(IsBlank(varIbSel.Priority), 0, 74 + 8)) - 4, ((Min(760, App.Width - 24) - 36) - 18))
                                   Children:
                                     - txtIbDetApp:
                                         Control: ModernText
@@ -9523,7 +9531,7 @@ Screens:
                                           Text: |-
                                               =varIbSel.Application
                                           Width: |-
-                                              =((If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, (((Min(760, App.Width - 24) - 36) - 18)) - (124 + 8 + If(IsBlank(varIbSel.Priority), 0, 72 + 8)) - 4, ((Min(760, App.Width - 24) - 36) - 18))) - 12) / 2
+                                              =((If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, (((Min(760, App.Width - 24) - 36) - 18)) - (119 + 8 + If(IsBlank(varIbSel.Priority), 0, 74 + 8)) - 4, ((Min(760, App.Width - 24) - 36) - 18))) - 12) / 2
                                           Wrap: |-
                                               =false
                                     - txtIbDetSection:
@@ -9556,7 +9564,7 @@ Screens:
                                           Text: |-
                                               =varIbSel.Section
                                           Width: |-
-                                              =((If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, (((Min(760, App.Width - 24) - 36) - 18)) - (124 + 8 + If(IsBlank(varIbSel.Priority), 0, 72 + 8)) - 4, ((Min(760, App.Width - 24) - 36) - 18))) - 12) / 2
+                                              =((If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, (((Min(760, App.Width - 24) - 36) - 18)) - (119 + 8 + If(IsBlank(varIbSel.Priority), 0, 74 + 8)) - 4, ((Min(760, App.Width - 24) - 36) - 18))) - 12) / 2
                                           Wrap: |-
                                               =false
                         - conIbDetFacts:
@@ -10001,7 +10009,7 @@ Screens:
                                                 Size: |-
                                                     =13
                                                 Text: |-
-                                                    =Text(varIbSel.CreatedOn, "dd mmm yyyy")
+                                                    =Text(varIbSel.CreatedOn, "dd-mm-yyyy")
                                                 Wrap: |-
                                                     =false
                                     - conIbFactUpdated:
@@ -10094,7 +10102,7 @@ Screens:
                                                 Size: |-
                                                     =13
                                                 Text: |-
-                                                    =Text(IbSelUpdatedOn, "dd mmm yyyy")
+                                                    =Text(IbSelUpdatedOn, "dd-mm-yyyy")
                                                 Wrap: |-
                                                     =false
                         - conIbDetActions:
@@ -10108,7 +10116,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =34
+                                  =Max(34, H.hit)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Center
                               LayoutDirection: |-
@@ -10205,8 +10213,8 @@ Screens:
                                             If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
                                             Set(varIbActBusy, false)
                                             );
-                                            Notify("The issue has been reopened. An administrator will look at it again.", NotificationType.Success),
-                                            Notify("The issue could not be reopened. " & varIbRes.message, NotificationType.Error)
+                                            Set(gblToast, { Text: "The issue has been reopened. An administrator will look at it again.", Kind: "Success", At: Now() }); true,
+                                            Set(gblToast, { Text: "The issue could not be reopened. " & varIbRes.message, Kind: "Error", At: Now() }); true
                                         );
                                         Set(varIbBusy, false)
                                     RadiusBottomLeft: |-
@@ -10251,13 +10259,13 @@ Screens:
                                     FontWeight: |-
                                         =FontWeight.Semibold
                                     Height: |-
-                                        =34
+                                        =Max(34, H.hit)
                                     Icon: |-
                                         ="Edit"
                                     Layout: |-
                                         =ButtonLayout.IconOnly
                                     LayoutMinWidth: |-
-                                        =34
+                                        =Max(34, H.hit)
                                     OnSelect: |-
                                         =Set(varIbFormMode, "edit");
                                         Set(varIbFormApp, varIbSel.Application);
@@ -10304,7 +10312,7 @@ Screens:
                                     Visible: |-
                                         =IbCanEdit
                                     Width: |-
-                                        =34
+                                        =Max(34, H.hit)
                               - btnIbArchive:
                                   Control: ModernButton
                                   Properties:
@@ -10329,13 +10337,13 @@ Screens:
                                     FontWeight: |-
                                         =FontWeight.Semibold
                                     Height: |-
-                                        =34
+                                        =Max(34, H.hit)
                                     Icon: |-
                                         =If(varIbSel.Archived, "ArrowUndo", "Archive")
                                     Layout: |-
                                         =ButtonLayout.IconOnly
                                     LayoutMinWidth: |-
-                                        =34
+                                        =Max(34, H.hit)
                                     OnSelect: |-
                                         =Set(varIbBusy, true);
                                         Set(varIbRes, IfError('BioSap-IssueBoard-Submit'.Run(
@@ -10384,8 +10392,8 @@ Screens:
                                             If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
                                             Set(varIbActBusy, false)
                                             );
-                                            Notify(If(varIbSel.Archived, "The issue has been archived. It is kept under Archived.", "The issue has been restored."), NotificationType.Success),
-                                            Notify("The issue could not be changed. " & varIbRes.message, NotificationType.Error)
+                                            Set(gblToast, { Text: If(varIbSel.Archived, "The issue has been archived. It is kept under Archived.", "The issue has been restored."), Kind: "Success", At: Now() }); true,
+                                            Set(gblToast, { Text: "The issue could not be changed. " & varIbRes.message, Kind: "Error", At: Now() }); true
                                         );
                                         Set(varIbBusy, false)
                                     RadiusBottomLeft: |-
@@ -10407,7 +10415,7 @@ Screens:
                                     Visible: |-
                                         =IbCanManage
                                     Width: |-
-                                        =34
+                                        =Max(34, H.hit)
                               - btnIbDelete:
                                   Control: ModernButton
                                   Properties:
@@ -10432,13 +10440,13 @@ Screens:
                                     FontWeight: |-
                                         =FontWeight.Semibold
                                     Height: |-
-                                        =34
+                                        =Max(34, H.hit)
                                     Icon: |-
                                         ="Delete"
                                     Layout: |-
                                         =ButtonLayout.IconOnly
                                     LayoutMinWidth: |-
-                                        =34
+                                        =Max(34, H.hit)
                                     OnSelect: |-
                                         =Reset(inpIbDelConfirm);
                                         Set(varIbDelOn, true)
@@ -10461,7 +10469,7 @@ Screens:
                                     Visible: |-
                                         =IbCanManage
                                     Width: |-
-                                        =34
+                                        =Max(34, H.hit)
                         - txtIbDetPeek:
                             Control: ModernText
                             Properties:
@@ -10759,7 +10767,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =Max(160, Min(App.Height - 32 - 36 - (Max(34, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36)) - 96 - 34 - 20) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))) - 12 - (57 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 24, 24 + 6 + 20)) + 12 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 38, 2 * 38 + 8)) + If(IbCanReopen || IbCanEdit || IbCanManage, 12 + (34), 0) + If(varIbSelPeek, 12 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 12 + (34), 0)) - 12, Max(360, (0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)), (If(IbSeeActivity, 0 + If((varIbActBusy && IsEmpty(colIbActivity)) || IfError(varIbActFailed, false), 0 + (34), 0) + If(!IsEmpty(colIbActivity), 12 + (Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((Min(760, App.Width - 24) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40))), 0) + If(IbCanComment, 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0) + If(varIbSel.Archived, 12 + (18), 0), 0)), (0 + If(galIbFiles.AllItemsCount = 0, 0 + (20), 0) + If(galIbFiles.AllItemsCount > 0, 12 + (galIbFiles.AllItemsCount * 60), 0) + If(IbCanAttach, 12 + (86 + (If(CountRows(attIbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFiles.Attachments), 4) * 36))), 0)))))
+                            =Max(160, Min(App.Height - 32 - 36 - (Max(Max(34, H.hit), Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36)) - 96 - 34 - 20) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))) - 12 - (57 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 22, 22 + 6 + 20)) + 12 + (If((((Min(760, App.Width - 24) - 36) - 18)) >= 600, 38, 2 * 38 + 8)) + If(IbCanReopen || IbCanEdit || IbCanManage, 12 + (Max(34, H.hit)), 0) + If(varIbSelPeek, 12 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 12 + (34), 0)) - 12, Max(360, (0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown((((Min(760, App.Width - 24) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)), (If(IbSeeActivity, 0 + If((varIbActBusy && IsEmpty(colIbActivity)) || IfError(varIbActFailed, false), 0 + (34), 0) + If(!IsEmpty(colIbActivity), 12 + (Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((Min(760, App.Width - 24) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40))), 0) + If(IbCanComment, 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0) + If(varIbSel.Archived, 12 + (18), 0), 0)), (0 + If(galIbFiles.AllItemsCount = 0, 0 + (20), 0) + If(galIbFiles.AllItemsCount > 0, 12 + (galIbFiles.AllItemsCount * 60), 0) + If(IbCanAttach, 12 + (86 + (If(CountRows(attIbFiles.Attachments) = 0, 112, 112 + Min(CountRows(attIbFiles.Attachments), 4) * 36))), 0)))))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -11750,7 +11758,7 @@ Screens:
                                           Size: |-
                                               =12
                                           Text: |-
-                                              =Text(ThisItem.At, "dd mmm yyyy hh:mm")
+                                              =Text(ThisItem.At, "dd-mm-yyyy hh:mm")
                                           Width: |-
                                               =150
                                           Wrap: |-
@@ -11835,7 +11843,7 @@ Screens:
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
-                                              =C.'border-default'
+                                              =C.'border-input'
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -11969,10 +11977,10 @@ Screens:
                                                   Reset(inpIbComment);
                                                   UpdateIf(colIbAll, Id = varIbSelId, { UpdatedOn: Now() });
                                                   Set(varIbSel, Patch(varIbSel, { UpdatedOn: Now() }));
-                                                  Notify(If(varIbInternal, "Internal note added.", "Comment posted."), NotificationType.Success);
+                                                  Set(gblToast, { Text: If(varIbInternal, "Internal note added.", "Comment posted."), Kind: "Success", At: Now() });
                                                   Set(varIbInternal, false);
                                                   Reset(chkIbInternal),
-                                                  Notify("The comment could not be posted. " & varIbRes.message, NotificationType.Error)
+                                                  Set(gblToast, { Text: "The comment could not be posted. " & varIbRes.message, Kind: "Error", At: Now() }); true
                                               );
                                               Set(varIbPosting, false)
                                           RadiusBottomLeft: |-
@@ -12280,7 +12288,7 @@ Screens:
                                           Size: |-
                                               =12
                                           Text: |-
-                                              =With({ e: LookUp(colIbActivity, Kind = "Attachment" && File = ThisItem.DisplayName) }, Upper(Lower(Last(Split(ThisItem.DisplayName, ".")).Value)) & If(IsBlank(e), "", "  ·  " & e.SizeKb & " KB  ·  " & e.Actor & "  ·  " & Text(e.At, "dd mmm yyyy hh:mm") & If(e.Initial, "  ·  with the report", "  ·  added later")))
+                                              =With({ e: LookUp(colIbActivity, Kind = "Attachment" && File = ThisItem.DisplayName) }, Upper(Lower(Last(Split(ThisItem.DisplayName, ".")).Value)) & If(IsBlank(e), "", "  ·  " & e.SizeKb & " KB  ·  " & e.Actor & "  ·  " & Text(e.At, "dd-mm-yyyy hh:mm") & If(e.Initial, "  ·  with the report", "  ·  added later")))
                                           Width: |-
                                               =(((((Min(760, App.Width - 24)) - 18 - 18)) - 18) - 2 * 0 - 0 - 40) - 56 - 72 - 12
                                           Wrap: |-
@@ -12453,7 +12461,7 @@ Screens:
                                           OnSelect: |-
                                               =If(
                                                   CountRows(attIbFiles.Attachments) = 0,
-                                                  Notify("Choose one or more files first.", NotificationType.Warning),
+                                                  Set(gblToast, { Text: "Choose one or more files first.", Kind: "Warning", At: Now() }); true,
                                                   Set(varIbUploading, true);
                                                   ClearCollect(
                                                       colIbUp,
@@ -12507,8 +12515,8 @@ Screens:
                                                   Set(varIbUploading, false);
                                                   If(
                                                       CountRows(Filter(colIbUp, !IsBlank(Msg))) > 0,
-                                                      Notify("Not attached: " & Concat(Filter(colIbUp, !IsBlank(Msg)), Name & " (" & Msg & ")", "; "), NotificationType.Error),
-                                                      Notify("The file(s) have been attached.", NotificationType.Success)
+                                                      Set(gblToast, { Text: "Not attached: " & Concat(Filter(colIbUp, !IsBlank(Msg)), Name & " (" & Msg & ")", "; "), Kind: "Error", At: Now() }); true,
+                                                      Set(gblToast, { Text: "The files have been attached.", Kind: "Success", At: Now() }); true
                                                   )
                                               )
                                           RadiusBottomLeft: |-
@@ -12860,7 +12868,7 @@ Screens:
                                     BasePaletteColor: |-
                                         =C.'color-brand-primary'
                                     BorderColor: |-
-                                        =C.'border-default'
+                                        =C.'border-input'
                                     BorderStyle: |-
                                         =BorderStyle.Solid
                                     BorderThickness: |-
@@ -12967,8 +12975,8 @@ Screens:
                                       Set(varIbDelOn, false);
                                       Set(varIbDiscardOn, false);
                                       Set(varIbDetailOn, false);
-                                      Notify(varIbSel.TicketNo & " has been deleted permanently.", NotificationType.Success),
-                                      Notify("The issue could not be deleted. " & varIbRes.message, NotificationType.Error)
+                                      Set(gblToast, { Text: varIbSel.TicketNo & " has been deleted permanently.", Kind: "Success", At: Now() }); true,
+                                      Set(gblToast, { Text: "The issue could not be deleted. " & varIbRes.message, Kind: "Error", At: Now() }); true
                                   );
                                   Set(varIbBusy, false)
                               RadiusBottomLeft: |-
@@ -13086,3 +13094,194 @@ Screens:
                 =0
             Y: |-
                 =0
+      - conIbToast:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =If(IfError(gblToast.Kind, "") = "Error", C.'border-error', C.'border-default')
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.Bold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =64
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Center
+            LayoutDirection: |-
+                =LayoutDirection.Horizontal
+            LayoutGap: |-
+                =10
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =8
+            PaddingLeft: |-
+                =14
+            PaddingRight: |-
+                =8
+            PaddingTop: |-
+                =8
+            RadiusBottomLeft: |-
+                =10
+            RadiusBottomRight: |-
+                =10
+            RadiusTopLeft: |-
+                =10
+            RadiusTopRight: |-
+                =10
+            Visible: |-
+                =!IsBlank(IfError(gblToast.Text, ""))
+            Width: |-
+                =Min(420, App.Width - 32)
+            X: |-
+                =Max(16, App.Width - Self.Width - 24)
+            Y: |-
+                =App.Height - Self.Height - 24
+          Children:
+            - imgIbToastIcon:
+                Control: Image
+                Properties:
+                  AccessibleLabel: |-
+                      =IfError(gblToast.Kind, "Message")
+                  AlignInContainer: |-
+                      =AlignInContainer.Center
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Height: |-
+                      =20
+                  Image: |-
+                      ="data:image/svg+xml;utf8," & EncodeUrl(Switch(IfError(gblToast.Kind, ""), "Success", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M8 12.2l2.8 2.8L16 9.5'/></g></svg>", "Warning", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 7.5v5.5M12 16.5v.01'/></g></svg>", "Error", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-error-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M9 9l6 6M15 9l-6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 11v5.5M12 7.5v.01'/></g></svg>"))
+                  ImagePosition: |-
+                      =ImagePosition.Fit
+                  LayoutMinWidth: |-
+                      =20
+                  OnSelect: |-
+                      =false
+                  TabIndex: |-
+                      =0
+                  Width: |-
+                      =20
+            - txtIbToastText:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-primary'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  FillPortions: |-
+                      =0
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =40
+                  LayoutMinWidth: |-
+                      =0
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =13
+                  Text: |-
+                      =IfError(gblToast.Text, "")
+                  VerticalAlign: |-
+                      =VerticalAlign.Middle
+                  Width: |-
+                      =Max(0, ((Min(420, App.Width - 32)) - 14 - 8) - ((20) + 10) - ((H.hit) + 10) - 2)
+                  Wrap: |-
+                      =true
+            - btnIbToastClose:
+                Control: ModernButton
+                Properties:
+                  AccessibleLabel: |-
+                      ="Close the message"
+                  Align: |-
+                      =Align.Center
+                  AlignInContainer: |-
+                      =AlignInContainer.Center
+                  Appearance: |-
+                      =ButtonAppearance.Outline
+                  BorderColor: |-
+                      =RGBA(0, 0, 0, 0)
+                  BorderThickness: |-
+                      =1
+                  Color: |-
+                      =C.'text-muted'
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =H.hit
+                  Icon: |-
+                      ="Dismiss"
+                  Layout: |-
+                      =ButtonLayout.IconOnly
+                  LayoutMinWidth: |-
+                      =H.hit
+                  OnSelect: |-
+                      =Set(gblToast, { Text: "", Kind: "", At: Now() })
+                  RadiusBottomLeft: |-
+                      =10
+                  RadiusBottomRight: |-
+                      =10
+                  RadiusTopLeft: |-
+                      =10
+                  RadiusTopRight: |-
+                      =10
+                  Size: |-
+                      =14
+                  Text: |-
+                      =""
+                  Tooltip: |-
+                      ="Close"
+                  VerticalAlign: |-
+                      =VerticalAlign.Middle
+                  Width: |-
+                      =H.hit
+      - tmrIbToast:
+          Control: Timer
+          Properties:
+            AutoPause: |-
+                =true
+            AutoStart: |-
+                =false
+            Duration: |-
+                =500
+            Height: |-
+                =1
+            OnTimerEnd: |-
+                =If(
+                    !IsBlank(IfError(gblToast.Text, "")) && !(IfError(gblToast.Kind, "") = "Error") &&
+                    DateDiff(gblToast.At, Now(), TimeUnit.Milliseconds) >= 4000,
+                    Set(gblToast, { Text: "", Kind: "", At: Now() })
+                )
+            Repeat: |-
+                =true
+            Start: |-
+                =!IsBlank(IfError(gblToast.Text, "")) && !(IfError(gblToast.Kind, "") = "Error")
+            Visible: |-
+                =false
+            Width: |-
+                =1

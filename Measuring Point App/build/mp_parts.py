@@ -30,6 +30,8 @@ hoejdealgebraen (gen_screen.stack_height) taeller dem kun med, naar de
 vises. Felterne har DEN SAMME betingelse i domain_config.WHEN, og den
 bruges ogsaa til at rydde et skjult felt ved gem.
 """
+import layout_tokens as lay
+import display_text as dt
 import domain_config as cfg
 import domain_parts as dp
 from gen_screen import C_INFO_FG, C_MUTED, C_WARN_FG
@@ -127,8 +129,12 @@ def _characteristic_cell():
 
 def _readonly_cell(col, label):
     """Et felt, karakteristikken bestemmer. Det vises, men tastes ikke."""
-    inp = text_input(f"inpDom{col}", dp._var(col), display_mode="DisplayMode.View",
-                     label=f'"{label}, from the characteristic"')
+    # LAESETEKST, IKKE ET FELT (UX-review): vaerdien udledes af
+    # karakteristikken, saa den skal ikke ligne noget, brugeren udfylder.
+    inp = text_ctrl(f"txtDom{col}", f'Coalesce({dp._var(col)}, "-")', size=lay.SIZE_INPUT,
+                    height=36, wrap="false",
+                    accessible=f'"{label}, from the characteristic: " & Self.Text',
+                    extra={"VerticalAlign": "VerticalAlign.Middle"})
     cell = dp.grid_cell(f"conDom{col}", label, inp)
     cell.vis = cfg.WHEN[col]
     return cell
@@ -282,7 +288,7 @@ def save_fx(status):
 # ---------------------------------------------------------------------------
 def build_form():
     dp.check_form_order(FORM_ORDER, SPECIAL, NOT_IN_GRID)
-    head = dp.form_head("Measuring Point Form")
+    head = dp.form_head("Row details")
     rows = []
     for name, cond, keys in ROWS:
         row = dp.grid_row(f"conDomGrid{name}", [_cell(k) for k in keys])
@@ -623,8 +629,8 @@ def _steps_hint():
         "        If(\n"
         f'            {IDX_ST} = "OprettetISAP", "The measuring points are created in SAP.",\n'
         f'            {IDX_ST} = "KlarTilSAP", "The request is with Master Data for creation in SAP.",\n'
-        f'            {IN_COUNTER}, "Waiting for the PRODOS/SRO creator: " & {CTR_LEFT} & '
-        '" counter(s) left to create.",\n'
+        f'            {IN_COUNTER}, "Waiting for the PRODOS/SRO creator: " & {dt.plural(CTR_LEFT, "counter")} & '
+        '" left to create.",\n'
         '            "Waiting for the System Manager to approve the new counters - you get an '
         'e-mail when it moves on."\n'
         "        ),\n"
@@ -633,9 +639,9 @@ def _steps_hint():
         f'        CountRows({BAD}) > 0, "Cannot submit: " & First({BAD}).Error & ".",\n'
         f'        {CRE_BLOCKED}, {MSG_NO_CREATOR}First({BAD_CRE}).Plant & ".",\n'
         '        d > 0 && v = 0, "Finish the draft row before submitting.",\n'
-        '        "Ready: " & v & " row(s) will be submitted." & '
+        '        "Ready: " & ' + dt.plural("v", "row") + ' & " will be submitted." & '
         f'If(CountRows({APPR_ROWS}) > 0, " New counters are approved by the System Manager.", "") & '
-        'If(d > 0, " " & d & " draft row(s) stay as drafts.", "")\n'
+        'If(d > 0, " " & ' + dt.plural("d", "draft row") + ' & " stay as drafts.", "")\n'
         "    )\n"
         ")")
 
@@ -772,7 +778,7 @@ def _counter_line(row):
     state = (
         f"With({{ r: {row} }}, If(\n"
         f'    !{_missing("r")}, "Not required",\n'
-        '    !IsBlank(r.CounterCreatedOn), "Created " & Text(r.CounterCreatedOn, "dd-mm-yyyy") & '
+        '    !IsBlank(r.CounterCreatedOn), "Created " & Text(r.CounterCreatedOn, "' + lay.DATE_FMT + '") & '
         '" by " & Coalesce(r.CounterCreatedBy, "-"),\n'
         '    "To be created in " & Coalesce(r.CounterCreateIn, "PRODOS")\n'
         "))")

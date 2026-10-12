@@ -71,7 +71,7 @@ def _cell(key):
 
 def build_form():
     dp.check_form_order(FORM_ORDER, SPECIAL, NOT_IN_GRID)
-    head = dp.form_head("Equipment Form")
+    head = dp.form_head("Row details")
     rows = dp.grid_rows("conDomGrid", [_cell(k) for k in FORM_ORDER])
     # Soegningens svar under den foerste raekke - den med FL i.
     rows.insert(1, dp.build_fl_msg())

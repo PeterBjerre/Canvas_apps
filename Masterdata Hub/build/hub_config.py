@@ -115,16 +115,11 @@ for _d in DOMAINS:
 # ---------------------------------------------------------------------------
 # Vaerdi, etiket og trin kommer fra tools/request_index.py - det samme
 # ordforraad, som domaeneapperne skriver med. Her tilfoejes kun farverne.
-_STATUS_COLORS = {
-    "Kladde":          ("state-neutral-fg", "state-neutral-bg"),
-    "Indsendt":        ("state-info-fg",    "state-info-bg"),
-    "UnderBehandling": ("state-violet-fg",  "state-violet-bg"),
-    "AfventerInfo":    ("state-warn-fg",    "state-warn-bg"),
-    "KlarTilSAP":      ("state-ok-fg",      "state-ok-bg"),
-    "OprettetISAP":    ("state-lime-fg",    "state-lime-bg"),
-    "Afvist":          ("state-error-fg",   "state-error-bg"),
-    "Annulleret":      ("state-rose-fg",    "state-rose-bg"),
-}
+# Farverne og ikonerne staar i tools/status_chip.py (UX-review T4) - EEN
+# statuschip for hele appen. Her laeses de.
+import status_chip as _sc
+_STATUS_COLORS = {k: ("state-%s-fg" % tone, "state-%s-bg" % tone)
+                  for k, _l, _p, tone in _sc.REQUEST}
 if set(_STATUS_COLORS) != {k for k, _l, _s in ri.STATUS}:
     raise SystemExit("hub_config: _STATUS_COLORS og request_index.STATUS har ikke "
                      "de samme noegler.")
@@ -146,16 +141,7 @@ STATUS = [(k, label, step, _t(_STATUS_COLORS[k][0]), _t(_STATUS_COLORS[k][1]))
 #   Rejected        roedt kryds               Cancelled     rose overstreget cirkel
 # In progress var et ur; uret betyder nu tid (Stuck-filteret, aktivitet),
 # og "paabegyndt" er den halvt fyldte cirkel.
-STATUS_ICON = {
-    "Kladde":          (icons.STATUS_DRAFT,     "state-neutral-fg"),
-    "Indsendt":        (icons.STATUS_SUBMITTED, "state-info-fg"),
-    "UnderBehandling": (icons.STATUS_PROGRESS,  "state-violet-fg"),
-    "AfventerInfo":    (icons.STATUS_AWAITING,  "state-warn-fg"),
-    "KlarTilSAP":      (icons.STATUS_READY,     "state-ok-fg"),
-    "OprettetISAP":    (icons.STATUS_CREATED,   "state-lime-fg"),
-    "Afvist":          (icons.STATUS_REJECTED,  "state-error-fg"),
-    "Annulleret":      (icons.STATUS_CANCELLED, "state-rose-fg"),
-}
+STATUS_ICON = {k: (path, "state-%s-fg" % tone) for k, _l, path, tone in _sc.REQUEST}
 
 # Ingen to statusser maa have samme ikon OG samme farve.
 if len(set(STATUS_ICON.values())) != len(STATUS_ICON):

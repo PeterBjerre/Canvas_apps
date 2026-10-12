@@ -104,6 +104,8 @@ C_CARD_BG = _t("bg-card")
 C_SURFACE = _t("bg-surface")
 C_MUTED_BG = _t("bg-muted")
 C_CARD_BORDER = _t("border-default")
+# Inputfeltets kant (UX-review F7) - kun redigerbare felter, se border_rule.
+C_INPUT_BORDER = _t("border-input")
 C_TITLE = _t("text-primary")
 C_MUTED = _t("text-muted")
 C_REQUIRED = _t("state-error-fg")
@@ -799,12 +801,31 @@ def _lock_inputs_in_view(children):
                 n.props["DisplayMode"] = (
                     f"If((If({var}, DisplayMode.View, {dm})) = DisplayMode.Edit, "
                     "DisplayMode.Edit, DisplayMode.View)")
+                # Laast i View mode = View-kanten, ikke groen/roed (UX-review).
+                bc = n.props.get("BorderColor")
+                if bc and var not in str(bc):
+                    n.props["BorderColor"] = f"If({var}, {C_CARD_BORDER}, {bc})"
+
+
+def _toast_rewrite(children, screen_props):
+    """Notify(...) -> appens egen besked nederst til hoejre (tools/toast.py,
+    UX-review B1). Platformens banner laa oven paa headeren."""
+    import toast
+    for n in _walk(children):
+        for k, v in list(n.props.items()):
+            if isinstance(v, str) and "Notify" in v:
+                n.props[k] = toast.rewrite(v)
+    for k, v in list(screen_props.items()):
+        if isinstance(v, str) and "Notify" in v:
+            screen_props[k] = toast.rewrite(v)
 
 
 def render_screen(screen_name, screen_props, children):
     resolve_templates(children)
     flatten_galleries(children)
     _lock_inputs_in_view(children)
+    screen_props = dict(screen_props)
+    _toast_rewrite(children, screen_props)
     lines = ["Screens:", f"  {screen_name}:", "    Properties:"]
     ppad = " " * 6
     cpad = " " * 10

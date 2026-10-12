@@ -121,7 +121,9 @@ SECTIONS = [
         # tekstkolonne (issue #204, Q2: Critical = Strategic). Gamle
         # vaerdier (Ja, Y, true) laeses som Yes og skrives ikke om.
         ("StrategicPart", "Strategic part", "choice", ["Yes", "No"]),
-        ("WearPart", "Wear part", "text", None),
+        # Ja/nej som segment (UX-review T6). Kolonnen er stadig tekst, og
+        # den gemte vaerdi er "Yes"/"No" som foer.
+        ("WearPart", "Wear part", "choice", ["Yes", "No"]),
     ]),
     # YDERLIGERE OPLYSNINGER (issue #204) - alle valgfrie. Remarks hedder
     # "Purchase order text" paa skaermen (issue #228); kolonnen er den samme.

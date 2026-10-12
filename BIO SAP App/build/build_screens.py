@@ -264,6 +264,14 @@ def done(domain):
             "Set(gblNavigating, false);\nSet(gblNavTo, \"\")")
 
 
+def with_toast(domain, children):
+    """Beskederne nederst til hoejre (tools/toast.py, UX-review B1) - paa
+    HVER skaerm, sidst, saa de ligger oven paa popupper og menuer. Selve
+    Notify -> gblToast-omskrivningen sker i gen_screen.render_screen."""
+    import toast
+    return list(children) + toast.controls(domain["tag"])
+
+
 def screen_props(props):
     """Skaermens egne egenskaber - uden Power Apps' LoadingSpinner.
 
@@ -427,7 +435,7 @@ def build_hub():
     seen["children"].append(shared_overlay("imgMdNavigating", "gblNavigating",
                                            "Opening, please wait", "Opening..."))
     _write(d["screen"], render_screen(d["screen"], screen_props(seen["props"]),
-                                      seen["children"]))
+                                      with_toast(d, seen["children"])))
 
 
 # ---------------------------------------------------------------------------
@@ -458,7 +466,7 @@ def build_functionallocation():
     attach_open(d, seen, guarded(d, load_all), "Functional Location")
     from gen_screen import render_screen
     _write(d["screen"], render_screen(d["screen"], screen_props(seen["props"]),
-                                      seen["children"]))
+                                      with_toast(d, seen["children"])))
 
 
 # ---------------------------------------------------------------------------
@@ -517,7 +525,7 @@ def build_domain_app(key):
     attach_open(d, seen, guarded(d, load), label)
     from gen_screen import render_screen
     _write(d["screen"], render_screen(d["screen"], screen_props(seen["props"]),
-                                      seen["children"]), d)
+                                      with_toast(d, seen["children"])), d)
 
 
 # ---------------------------------------------------------------------------
@@ -583,7 +591,7 @@ def build_vhplan():
     attach_open(d, seen, guarded(d, body), "Maintenance Plan")
     from gen_screen import render_screen
     _write(d["screen"], render_screen(d["screen"], screen_props(seen["props"]),
-                                      seen["children"]))
+                                      with_toast(d, seen["children"])))
 
 
 # ---------------------------------------------------------------------------
@@ -608,7 +616,7 @@ def build_lookup(key):
                                   + seen["props"]["OnVisible"])
     from gen_screen import render_screen
     _write(d["screen"], render_screen(d["screen"], screen_props(seen["props"]),
-                                      seen["children"]))
+                                      with_toast(d, seen["children"])))
 
 
 # ---------------------------------------------------------------------------

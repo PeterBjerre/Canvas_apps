@@ -196,7 +196,7 @@ class Pane(object):
             "            \". Select Upload again to retry.\",\n"
             "            NotificationType.Error\n"
             "        ),\n"
-            "        Notify(\"Document(s) uploaded.\", NotificationType.Success)\n"
+            "        Notify(\"Documents uploaded.\", NotificationType.Success)\n"
             "    )\n"
             ")"
         )

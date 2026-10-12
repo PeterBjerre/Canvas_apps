@@ -51,7 +51,7 @@ from gen_screen import Ctrl, C_OVERLAY, C_MODAL_BG, C_PRIMARY_SOFT, C_MUTED, C_T
 from gen_screen import C_DISABLED_BG, C_DIVIDER, C_INPUT_BG, C_INPUT_FG, C_PRIMARY, C_TRANSPARENT, FONT
 from design_tokens import ref as _t, ref_hex
 from build_helpers import (group, text_ctrl, button, text_input,
-                           fit_button_width, grow, row_hit, ICON_W)
+                           fit_button_width, grow, row_hit, ICON_W, ensure_hit)
 import layout_tokens as lay
 import request_index as ri
 import icons
@@ -211,7 +211,8 @@ def _subject_picker(n, avail):
     icon = Ctrl(n("img", "SubjectIcon"), "Image", props={
         "AccessibleLabel": '"Choose a subject or request"', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
         "Fill": C_TRANSPARENT, "Height": "20", "Image": _icon_fx(f"{SEL}.Domain"),
-        "ImagePosition": "ImagePosition.Fit", "OnSelect": toggle, "TabIndex": "0",
+        # Pynt: knappen ved siden af er klikfladen (regel 40).
+        "ImagePosition": "ImagePosition.Fit", "OnSelect": "false", "TabIndex": "0",
         "Visible": is_req, "Width": "20",
     }, h=20, vis=is_req)
     label = f'If({has}, {SEL}.Label, "Pick a subject or request")'
@@ -245,8 +246,11 @@ def _subject_picker(n, avail):
         "ImagePosition": "ImagePosition.Fit", "OnSelect": toggle, "TabIndex": "0",
         "Width": "20",
     }, h=20)
+    # Pilen er ogsaa en klikflade - mindst H.hit (regel 40), og feltet er
+    # derfor H.control hoejt (44 paa touch).
+    ensure_hit(chevron)
     trigger = group(n("con", "Subject"), [icon, grow(btn), chevron], direction="Horizontal",
-                    gap=8, height=36, align_items="Center", pad=(0, 10, 0, 12),
+                    gap=8, height=lay.CONTROL, align_items="Center", pad=(0, 4, 0, 12),
                     fill=C_INPUT_BG, border_color=f"If({PICK}, {C_PRIMARY}, {C_DIVIDER})",
                     radius=lay.RADIUS_INPUT)
 
