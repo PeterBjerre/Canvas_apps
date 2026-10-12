@@ -188,6 +188,14 @@ ROWS = [
     ("More", None, ["Remarks", "DOCS"]),
 ]
 FORM_ORDER = [k for _n, _c, keys in ROWS for k in keys]
+# SEKTIONERNE (UX-review M2): (titel, synlighed) foer den raekke, der
+# aabner sektionen. Maalepunktet og PRODOS kun for et nyt maalepunkt.
+SECTION_STARTS = {
+    "Object": ("Identification", None),
+    "Type": ("Measuring point", cfg.NEW),
+    "Source": ("PRODOS", cfg.NEW),
+    "More": ("Notes and documents", None),
+}
 NOT_IN_GRID = {cfg.FL_FIELD}
 
 
@@ -291,6 +299,9 @@ def build_form():
     head = dp.form_head("Row details")
     rows = []
     for name, cond, keys in ROWS:
+        if name in SECTION_STARTS:
+            title, vis = SECTION_STARTS[name]
+            rows.append(dp.form_section(name, title, visible=vis, first=not rows))
         row = dp.grid_row(f"conDomGrid{name}", [_cell(k) for k in keys])
         if cond:
             row.vis = cond

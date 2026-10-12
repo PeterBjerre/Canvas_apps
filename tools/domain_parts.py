@@ -49,7 +49,7 @@ from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_MUTED_BG, C_REQUIRED, C_PRIMARY, C_WHITE,
                         C_TRANSPARENT, C_NEUTRAL_BG, C_NEUTRAL_FG, C_INFO_FG,
                         C_INFO_BG, C_VALID_FG, C_VALID_BG, C_WARN_FG,
-                        C_WARN_BG, C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY)
+                        C_WARN_BG, C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY, C_DIVIDER)
 import layout_tokens as lay
 from layout_tokens import fits, if_below, below, at_least
 from build_helpers import (ensure_hit, validation_summary, tap_backdrop, text_ctrl, text_min_height, group, button, text_input,
@@ -1838,6 +1838,34 @@ def docs_cell():
 # ---------------------------------------------------------------------------
 # Formularens hoved og fod
 # ---------------------------------------------------------------------------
+# SEKTIONER (UX-review 2026-10, M2): formularen er grupper med en
+# overskrift - Identification, Location, Manufacturer ... - i stedet for
+# fire anonyme raekker felter. Overskriften er en tynd streg og et ord;
+# den foerste har ingen streg (hovedet staar lige over den).
+SECTION_TITLE_H = 20
+
+
+def form_section(key, title, visible=None, first=False):
+    """Sektionens overskrift: [streg] Titel. key: navnets hale (conDomSec<key>)."""
+    t = text_ctrl(f"txtDomSec{key}", f'"{title}"', size=lay.SIZE_BODY, weight="Semibold",
+                  height=SECTION_TITLE_H, wrap="false")
+    kids = [t] if first else [group(f"conDomSec{key}Rule", [], direction="Horizontal",
+                                    height=1, fill=C_DIVIDER), t]
+    return group(f"conDomSec{key}", kids, direction="Vertical", gap=10,
+                 visible=visible, pad=(0 if first else 6, 0, 0, 0))
+
+
+def sectioned(sections):
+    """[(key, titel, synlighed, [kontroller...]), ...] -> een liste: hver
+    sektions overskrift efterfulgt af dens raekker. En sektion uden synlige
+    raekker skjules med sin synlighed (fx Stock kun for en lagervare)."""
+    out = []
+    for i, (key, title, vis, ctrls) in enumerate(sections):
+        out.append(form_section(key, title, visible=vis, first=(i == 0)))
+        out.extend(ctrls)
+    return out
+
+
 def form_head(title_txt, right=()):
     """Titlen, "* Required" og evt. kontroller til hoejre (No BOM Item)."""
     title = text_ctrl("txtDomFormH", f'"{title_txt}"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
