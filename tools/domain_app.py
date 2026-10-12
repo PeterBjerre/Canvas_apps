@@ -18,7 +18,7 @@ import layout_tokens as lay
 import domain_parts as dp
 import permissions as perm
 import display_text as dt
-from build_helpers import app_frame
+from build_helpers import app_frame, sticky_actions
 from gen_screen import C_APP_BG
 from side_nav import side_nav
 
@@ -157,7 +157,10 @@ def build_screen(cfg, parts, render):
     er popups. parts er appens *_parts (build_form, build_rows); render er
     gen_screen.render_screen - eller BIO SAP's opsamler."""
     dp.use(cfg)
-    root = app_frame("Dom", dp.build_bar(), [parts.build_form(), parts.build_rows()])
+    bar = dp.build_bar()
+    # Save draft og Submit i en fast bjaelke nederst under Desktop (UX-review M8).
+    root = app_frame("Dom", bar, [parts.build_form(), parts.build_rows()],
+                     footer=sticky_actions("Dom", dp.BAR_ACTIONS))
     # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
     nav, overlay = side_nav("Dom", cfg.APP_KEY)
     # Appens EGNE popupper ([sloer, popup], fx Materials' fakturaimport).
