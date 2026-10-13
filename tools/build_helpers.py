@@ -739,7 +739,7 @@ def open_overlay(prefix, busy_var, failed_var, slow_var, *, title_fx, step_fx, h
     return [scrim, card, timer]
 
 
-def tap_backdrop(name, vis, close_fx):
+def tap_backdrop(name, vis, close_fx, fill=C_OVERLAY):
     """Sloeret bag en popup. Paa mobil lukker et tryk udenfor popuppen den;
     sloeret daekker hele skaermen, saa siden under ikke kan trykkes paa. Er
     ventespinneren oppe, ligger den oven paa og tager trykket.
@@ -754,7 +754,7 @@ def tap_backdrop(name, vis, close_fx):
         "AccessibleLabel": '"Close the dialog"',
         "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0",
-        **stable_scrim(),
+        **stable_scrim(fill),
         "Height": "App.Height",
         "Image": '""',
         "OnSelect": f"If({below}, {close_fx})",
@@ -772,13 +772,19 @@ def with_busy(busy_var, fx):
 
 
 def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
-                  confirm_name, icon=ICON_SUBMIT):
+                  confirm_name, icon=ICON_SUBMIT, danger=None):
     """Bekraeftelsen foer Submit (issue #54) - [sloer, popup].
 
     Samme konstruktion som appernes andre popupper: en centreret container
     med sloer bag, titel, en linje tekst og to knapper. Submit-knappen
     aabner den (Set(open_var, true)); foerst "Submit" HER koerer
-    indsendelsen. Cancel lukker uden at goere noget."""
+    indsendelsen. Cancel lukker uden at goere noget.
+
+    danger: knappen sletter eller kasserer noget - roed kant og tekst i
+    stedet for den blaa primaerknap (UX-review, screenshots 2026-10-13).
+    Uden angivelse er en Delete-knap (icon="Delete") altid danger."""
+    if danger is None:
+        danger = icon == "Delete"
     vis = f"IfError({open_var}, false)"
     backdrop = tap_backdrop(f"con{prefix}ConfirmBackdrop", vis, f"Set({open_var}, false)")
     t = text_ctrl(f"txt{prefix}ConfirmTitle", f'"{title}"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
@@ -788,7 +794,7 @@ def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
     cancel = button(f"btn{prefix}ConfirmCancel", '"Close"', f"Set({open_var}, false)",
                     width=fit_button_width('"Close"'), height=36)
     ok = button(confirm_name, f'"{confirm_text}"',
-                f"Set({open_var}, false);\n{confirm_fx}", primary=True,
+                f"Set({open_var}, false);\n{confirm_fx}", primary=not danger, danger=danger,
                 width=fit_button_width(f'"{confirm_text}"') + (ICON_W if icon else 0), height=36, icon=icon)
     footer = group(f"con{prefix}ConfirmFooter", [cancel, ok], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
@@ -1222,7 +1228,7 @@ FIX_ROWS_MAX = 5
 
 
 def validation_summary(prefix, items, label_expr, go_text, go_fx, title_fx, visible,
-                       close_fx):
+                       close_fx, closable=True):
     """Kortet med det, der mangler.
 
     items: Power Fx-tabel (een raekke pr. ting). label_expr: raekkens tekst
@@ -1240,8 +1246,9 @@ def validation_summary(prefix, items, label_expr, go_text, go_fx, title_fx, visi
     close.props["BorderColor"] = C_TRANSPARENT
     close.props["LayoutMinWidth"] = "40"
     ensure_hit(close)
-    head = group(f"con{prefix}FixHead", [title, close], direction="Horizontal", gap=8,
-                 height=hit_size(32), align_items="Center")
+    head = group(f"con{prefix}FixHead", [title, close] if closable else [title],
+                 direction="Horizontal", gap=8,
+                 height=hit_size(32) if closable else 24, align_items="Center")
     go_w = fit_button_width(f'"{go_text}"', size=lay.SIZE_SMALL)
     go = button(f"btn{prefix}FixGo", f'"{go_text}"', go_fx, width=go_w, height=32,
                 accessible=f'"{go_text}: " & {label_expr}')
@@ -1354,6 +1361,10 @@ def empty_state(name, text, action_text=None, action_fx=None, icon_key=None,
     msg = text_ctrl(f"txt{base}Text", text, size=lay.SIZE_BODY, color=C_MUTED,
                     align="Center", height=EMPTY_TEXT_H, wrap="true",
                     extra={"VerticalAlign": "VerticalAlign.Middle"})
+    # Teksten faar hele gruppens bredde (Stretch). Med gruppens Center fik
+    # den sin egen smalle standardbredde, ombroed og blev klippet med en
+    # rullepil (Measuring points, screenshots 2026-10-13).
+    msg.props["AlignInContainer"] = "AlignInContainer.Stretch"
     kids = [img, msg]
     if action_text:
         w = fit_button_width(f'"{action_text}"') + (ICON_W if action_icon else 0)
@@ -1687,6 +1698,103 @@ def app_frame(prefix, header, body, body_gap=16, body_pad_b=None, footer=None):
     root.props["X"] = lay.ROOT_X
     root.props["Y"] = lay.ROOT_Y
     return root
+
+
+def row_list(prefix, items, row_controls, height, template_size, onselect="false",
+             width="Parent.Width", visible=None, accessible="Request rows"):
+    """Et vaelgbart galleri med en fast raekkeskaabelon.
+
+    row_controls skal vaere galleriets direkte boern; containere i et
+    galleri flades ikke ud her og afvises af layout-tjekket.
+    """
+    props = {
+        "AccessibleLabel": f'"{accessible}"',
+        "BorderStyle": "BorderStyle.None",
+        "Fill": C_TRANSPARENT,
+        "FillPortions": "0",
+        "Height": str(height),
+        "Items": items,
+        "LayoutMinWidth": "0",
+        "LoadingSpinner": "LoadingSpinner.None",
+        "OnSelect": onselect,
+        "Selectable": "true",
+        "ShowScrollbar": "true",
+        "TabIndex": "0",
+        "TemplatePadding": "2",
+        "TemplateSize": str(template_size),
+        "Width": str(width),
+        "WrapCount": "1",
+    }
+    if visible is not None:
+        props["Visible"] = visible
+    return Ctrl(f"gal{prefix}Rows", "Gallery", variant="Vertical", props=props,
+                children=row_controls, h=height, vis=visible)
+
+
+def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
+                     close_fx, visible, width=480, previous_mode=None,
+                     next_mode=None, side_by_side=False):
+    """Et responsivt raekke-editorpanel; footer holdes uden for scrollomraadet.
+
+    side_by_side: fra PANEL_SIDE_MIN staar panelet ved siden af listen
+    (PanelInset), og saa maa baggrunden ikke daekke listen."""
+    vis = f"IfError({visible}, false)"
+    scrim_vis = f"{vis} && {lay.INSET} = 0" if side_by_side else vis
+    backdrop = Ctrl(f"img{prefix}EditorBackdrop", "Image", props={
+        "AccessibleLabel": '"Close row editor"',
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        **stable_scrim(C_TRANSPARENT),
+        "Height": "App.Height",
+        "Image": '""',
+        "OnSelect": close_fx,
+        "TabIndex": "0",
+        "Visible": scrim_vis,
+        "Width": "App.Width",
+        "X": "0",
+        "Y": "0",
+    }, h="App.Height", vis=scrim_vis)
+    def nav_icon(name, label, fx, icon, mode=None):
+        b = button(name, '""', fx, icon=icon, width=lay.HIT_TOUCH, height=lay.HIT_TOUCH,
+                   display_mode=mode, accessible=f'"{label}"', tooltip=f'"{label}"')
+        b.props["Layout"] = "ButtonLayout.IconOnly"
+        b.props["BorderColor"] = C_TRANSPARENT
+        b.props["LayoutMinWidth"] = str(lay.HIT_TOUCH)
+        return b
+
+    prev = nav_icon(f"btn{prefix}EditorPrevious", "Previous row", previous_fx,
+                    "ChevronLeft", previous_mode)
+    next_ = nav_icon(f"btn{prefix}EditorNext", "Next row", next_fx, "ChevronRight", next_mode)
+    close = nav_icon(f"btn{prefix}EditorClose", "Close", close_fx, "Dismiss")
+    title = text_ctrl(f"txt{prefix}EditorPosition", position, size=lay.SIZE_CARD_TITLE,
+                      weight="Semibold", height=28, wrap="false")
+    grow(title)
+    navigation_width = sum(int(item.props["Width"]) for item in (prev, next_, close)) + 16
+    navigation = group(f"con{prefix}EditorNavigation", [prev, next_, close],
+                       direction="Horizontal", gap=8, height=lay.HIT_TOUCH,
+                       width=navigation_width, align_items="Center", justify="End")
+    heading = group(f"con{prefix}EditorHeading", [title, navigation],
+                    direction="Horizontal", gap=12, height=lay.HIT_TOUCH,
+                    align_items="Center")
+    scroll = group(f"con{prefix}EditorSections", sections, direction="Vertical", gap=16,
+                   height="App.Height - 160", overflow_y="Scroll",
+                   pad=(16, 20, 16, 20))
+    panel = group(f"con{prefix}EditorPanel", [heading, scroll, footer],
+                  direction="Vertical", gap=12, height="App.Height",
+                  width=f"If({at_least('Desktop')}, {width}, App.Width)",
+                  fill=C_CARD_BG, border_color=C_CARD_BORDER, pad=(16, 20, 16, 20),
+                  visible=vis, drop_shadow="Bold")
+    panel.props["X"] = f"If({at_least('Desktop')}, App.Width - Self.Width, 0)"
+    panel.props["Y"] = "0"
+    return [backdrop, panel]
+
+
+def request_shell(prefix, header, breadcrumb, actions, rows, editor=None, footer=None,
+                  body_gap=16):
+    """Komponer header, anmodningsnavigation, raekkeliste og editor-overlay."""
+    body = [item for item in (breadcrumb, actions, rows) if item is not None]
+    root = app_frame(prefix, header, body, body_gap=body_gap, footer=footer)
+    return [root, *(editor or [])]
 
 
 def button_row(name, buttons, container_w, gap=8, height=36, align_items="Center"):

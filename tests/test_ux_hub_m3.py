@@ -42,6 +42,8 @@ def test_continue_where_you_left_off_opens_the_latest_draft_in_edit():
 
 
 def test_every_sort_branch_names_its_column_as_a_constant():
+    assert bh.SORT_COLS["REQUEST"] == "Title"
+    assert bh.COL_NO == "RequestNo"
     for key, col in bh.SORT_COLS.items():
         assert f'"{col}", {bh.SORT_ORDER}' in bh.ITEMS, key
     # Filteret staar i hver gren - ellers ville With/variabler bryde

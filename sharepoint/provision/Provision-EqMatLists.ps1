@@ -185,6 +185,12 @@ function New-EquipmentList {
     New-MdField 'EquipmentItems' 'FunctionalLocation1' Text
     New-MdField 'EquipmentItems' 'FunctionalLocation2' Text
 
+    # OBJECT LIST: flere funktionspladser paa samme udstyr.
+    # FunctionalLocation ovenfor bevares som primaer kode for eksisterende
+    # filtre og integrationer; listen og JSON'en er appens fulde vaerdier.
+    New-MdNoteField 'EquipmentItems' 'ObjectList'      6
+    New-MdNoteField 'EquipmentItems' 'ObjectListJson'  6
+
     New-MdField 'EquipmentItems' 'ClassData'          Text
     New-MdField 'EquipmentItems' 'RoomCoordinates'    Text
     New-MdField 'EquipmentItems' 'Placement'          Text

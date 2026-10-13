@@ -107,6 +107,54 @@ def test_request_actions_order_and_submit_counter():
     assert sub.props["Width"] == str(bh.fit_button_width(bh.SUBMIT_FIX_LONGEST))
 
 
+def test_row_list_uses_direct_template_controls_and_accessible_selection():
+    text = bh.text_ctrl("txtXRowTitle", "ThisItem.Title")
+    gallery = bh.row_list("X", "colRows", [text], 360, 56,
+                          onselect="Set(varSelected, ThisItem.ID)",
+                          accessible="Saved request rows")
+    assert gallery.name == "galXRows"
+    assert gallery.control == "Gallery" and gallery.children == [text]
+    assert gallery.props["Items"] == "colRows"
+    assert gallery.props["OnSelect"] == "Set(varSelected, ThisItem.ID)"
+    assert gallery.props["TabIndex"] == "0"
+    assert gallery.props["AccessibleLabel"] == '"Saved request rows"'
+
+
+def test_row_editor_panel_has_responsive_width_navigation_and_fixed_footer():
+    section = bh.group("conXSection", [])
+    footer = bh.group("conXFooter", [])
+    backdrop, panel = bh.row_editor_panel(
+        "X", '"Row 2 of 3"', [section], footer,
+        "Set(varRow, varRow - 1)", "Set(varRow, varRow + 1)",
+        "Set(varEditorOpen, false)", "varEditorOpen",
+        previous_mode="If(varRow = 1, DisplayMode.Disabled, DisplayMode.Edit)")
+    assert backdrop.name == "imgXEditorBackdrop"
+    assert backdrop.props["OnSelect"] == "Set(varEditorOpen, false)"
+    assert panel.name == "conXEditorPanel"
+    assert "LayoutRank >= 3" in panel.props["Width"] and "480" in panel.props["Width"]
+    heading, scroll, panel_footer = panel.children
+    assert heading.children[0].props["Text"] == '"Row 2 of 3"'
+    assert [child.props["OnSelect"] for child in heading.children[1].children] == [
+        "Set(varRow, varRow - 1)", "Set(varRow, varRow + 1)", "Set(varEditorOpen, false)"]
+    assert heading.children[1].children[0].props["DisplayMode"].startswith("If(varRow = 1")
+    assert scroll.children == [section] and scroll.props["LayoutOverflowY"] == "LayoutOverflow.Scroll"
+    assert panel_footer is footer
+
+
+def test_request_shell_keeps_editor_overlay_above_the_app_frame():
+    header = bh.group("conXHeaderContent", [])
+    crumb = bh.group("conXCrumb", [])
+    actions = bh.group("conXActions", [])
+    rows = bh.group("conXRows", [])
+    backdrop = bh.group("conXBackdrop", [])
+    panel = bh.group("conXPanel", [])
+    screen = bh.request_shell("X", header, crumb, actions, rows,
+                              editor=[backdrop, panel])
+    assert screen[0].name == "conXRoot"
+    assert screen[1:] == [backdrop, panel]
+    assert screen[0].children[1].children == [crumb, actions, rows]
+
+
 # --- klikfladen ----------------------------------------------------------------
 def test_h_hit_is_32_on_desktop_and_44_on_touch():
     assert lay.named_value("H", "hit", 1366) == lay.HIT_DESKTOP == 32

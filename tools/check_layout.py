@@ -202,6 +202,8 @@ def _evaluate_n(expr, w, n):
     e = re.sub(r"\b(%s)\.(\w+)\b" % "|".join(lay.NAMED),
                lambda m: str(lay.named_value(m.group(1), m.group(2), w)), e)
     e = re.sub(r"\bLayoutRank\b", str(lay.rank_for(w)), e)
+    # Panelet ved siden af listen er lukket i tjekket; aaben svarer til en smallere skaerm.
+    e = re.sub(r"\bPanelInset\b", "0", e)
 
     e = e.replace("App.Width", str(w)).replace("App.Height", "900")
     # Booleske testvaerdier: det ugunstigste tilfaelde er at alt er synligt.

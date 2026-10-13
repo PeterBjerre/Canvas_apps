@@ -36,7 +36,7 @@ import display_text as dt
 from build_helpers import (ensure_hit, checkbox_theme, new_request_label, request_actions, breadcrumb, text_ctrl, group, button, text_input, themed_dropdown, card,
                            pin_widths, top_bar, grow, badge, fit_button_width, row_rule, mark_done,
                            loading_overlay, with_busy, confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
-                           ICON_W, text_px)
+                           ICON_W, text_px, row_editor_panel)
 
 NARROW = below("Tablet")
 
@@ -343,6 +343,7 @@ V_FIXED = ([("Kks", "KKS type", 64), ("Cls", "Assigned class", 96),
            + [("Abc", "ABC indicator", 88), ("Atex", "ATEX", 40),
               ("Mfr", "Manufacturer", _pop_w("Manufacturer")),
               ("War", "Warranty", _pop_w("Warranty")),
+                  ("Status", "Status", 80),
               # "Actions" er 47 px i 11 px - knappen er et ikon.
               ("Act", "Actions", 48)])
 V_SHOW_NO = at_least("Tablet")
@@ -522,6 +523,16 @@ def row_cells():
             f'"{kind} of row " & ThisItem.Pos', f'"{tip}"',
             f"If(({CLS_LOCKED}) && !({has}), DisplayMode.Disabled, DisplayMode.Edit)"))
 
+    status = button(
+        "btnFlRowStatus",
+        'Switch(ThisItem.Status, "valid", "Ready", "warning", "Warning", '
+        '"invalid", "Error", "Draft")',
+        open_row_panel_fx("ThisItem.RowGuid"),
+        width=80, height=30, accessible='"Row status: " & Self.Text',
+        tooltip='"Open row details"')
+    status.props["Color"] = _status_color("ThisItem")
+    status.props["Size"] = str(lay.SIZE_SMALL)
+
     delete = button("btnFlRowDelete", '"Delete"', f"""Collect(colFlDeleted, {{ RowGuid: ThisItem.RowGuid }});
 Remove(colFlRows, LookUp(colFlRows, RowGuid = ThisItem.RowGuid));
 RemoveIf(colFlVals, RowGuid = ThisItem.RowGuid);
@@ -532,8 +543,50 @@ If(CountRows(colFlRows) = 0, {add_row_fx()});
     delete.props["Layout"] = "ButtonLayout.IconOnly"
     ensure_hit(delete, square=False)
     # Samme raekkefoelge som V_FIXED: Class data lige efter Assigned Class.
-    return _cells(V_SPEC, [no, fl, desc, kks, cls, pops[0]] + vals + [abc, atex] + pops[1:]
-                  + [delete])
+    return _cells(V_SPEC, [no, fl, desc, kks, cls, pops[0]] + vals + [abc, atex]
+                  + pops[1:] + [status, delete])
+
+
+def open_row_panel_fx(guid):
+    return (f"Set(varFlDetailRow, {guid});\n"
+            "ClearCollect(colFlDet, " + det_items("varFlDetailRow", "true") + ");\n"
+            "Set(varFlPanelOpen, true)")
+
+
+def _panel_section(key, title):
+    fields = field_grid(f"Panel{key}", f'Section = "{key}"', f'"{title}"')
+    heading = text_ctrl(f"txtFlPanel{key}Title", f'"{title}"', size=lay.SIZE_BODY,
+                        weight="Semibold", height=22, wrap="false",
+                        visible=f'CountRows(Filter(colFlDet, Section = "{key}")) > 0')
+    return group(f"conFlPanel{key}", [heading, fields], direction="Vertical", gap=8,
+                 visible=f'CountRows(Filter(colFlDet, Section = "{key}")) > 0')
+
+
+def build_row_panel():
+    position = ('"Row " & Text(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos) & '
+                '" of " & Text(CountRows(colFlRows))')
+    current = "LookUp(colFlRows, RowGuid = varFlDetailRow).Pos"
+    rows = "Sort(colFlRows, RowNo)"
+    previous_id = f"Index({rows}, Max(1, {current} - 1)).RowGuid"
+    next_id = f"Index({rows}, Min(CountRows({rows}), {current} + 1)).RowGuid"
+    previous = open_row_panel_fx(previous_id)
+    next_ = open_row_panel_fx(next_id)
+    previous_mode = f"If({current} <= 1, DisplayMode.Disabled, DisplayMode.Edit)"
+    next_mode = f"If({current} >= CountRows({rows}), DisplayMode.Disabled, DisplayMode.Edit)"
+    close_fx = "Set(varFlPanelOpen, false); Set(varFlDetailRow, \"\"); Clear(colFlDet)"
+    footer = button("btnFlPanelClose", '"Close"', close_fx,
+                    width=fit_button_width('"Close"'), height=lay.HIT_TOUCH)
+    sections = [
+        _panel_section("Master", "Functional location"),
+        _panel_section("Status", "Status"),
+        _panel_section("Class", "Class characteristics"),
+        _panel_section("TRM", "TRM"),
+        _panel_section("Ext", "GIV_EXT and WCM"),
+    ]
+    return row_editor_panel("Fl", position, sections, footer, previous, next_,
+                            close_fx, "varFlPanelOpen",
+                            previous_mode=previous_mode, next_mode=next_mode,
+                            side_by_side=True)
 
 
 def row_message():

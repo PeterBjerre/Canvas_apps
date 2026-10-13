@@ -29,8 +29,9 @@ import env_config as env
 # --- appen ------------------------------------------------------------
 APP_KEY = "equipment"
 SCREEN = "ScreenEquipment"
-TITLE = "Equipment"
+TITLE = "Equipments"
 SUBTITLE = "Create, change and delete equipment"
+ROW_PANEL_ENABLED = True
 
 # Praefikset i noeglerne: EQ-000912.
 PREFIX = "EQ"
@@ -105,7 +106,7 @@ FL_FIELD = "FunctionalLocation"
 # equipment_parts.FORM_ORDER.
 SECTIONS = [
     ("What should happen", [
-        ("RequestType", "Type", "text", None),
+        ("RequestType", "Status", "text", None),
     ]),
     ("Master data", [
         ("EquipmentCategory", "Equipment type", "text", None),
