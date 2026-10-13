@@ -197,7 +197,9 @@ def build_plan_header():
     # med kun et flueben (issue #137).
     drpStatus = themed_dropdown("drpVhpStatus", "colVhpPlanStatusOptions",
                          'Coalesce(varVhpPlan.Status, "New")',
-                         display_mode="DisplayMode.Disabled")
+                         # Laast er View, ikke Disabled: Disabled tegnede et
+                         # hvidt felt i moerkt tema (screenshots 2026-10-13).
+                         display_mode="DisplayMode.View")
 
     # --- Plantype og strategi ------------------------------------------------
     drpPlanType = themed_dropdown("drpVhpPlanType", "colVhpPlanTypeOptions",
