@@ -13,7 +13,8 @@ def _read(name):
 def test_panel_inset_covers_the_three_row_panel_domains():
     app = _read("App.pa.yaml")
     line = re.search(r"PanelInset = .*", app).group(0)
-    for var in ("varEqEditorOpen", "varMatEditorOpen", "varMpEditorOpen"):
+    for var in ("varEqEditorOpen", "varMatEditorOpen", "varMpEditorOpen",
+                "varFlPanelOpen", "varIbDetailOn"):
         assert var in line
     assert "App.Width >= 1280" in line
 

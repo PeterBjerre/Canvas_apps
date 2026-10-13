@@ -82,7 +82,8 @@ def build_screen(render=render_screen):
     # paa de andre skaerme. Hver popup er sit eget sloer med popuppen
     # indeni (fl_parts.scrim_with_popup, issue #242).
     nav, overlay = side_nav("Fl", "functionallocation")
-    return render(cfg.SCREEN, {"Fill": C_APP_BG, "OnVisible": on_visible()},
+    return render(cfg.SCREEN, {"Fill": C_APP_BG, "OnVisible": on_visible(),
+                               "OnHidden": "Set(varFlPanelOpen, false)"},
                          [root, *nav, *P.build_class_modal(), *P.build_field_modal(),
                           *overlay, *P.build_row_panel(), *P.build_submit_confirm()])
 

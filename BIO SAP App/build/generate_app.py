@@ -61,7 +61,7 @@ def build_formulas():
             name = cb.rename(name, d)
             if name == lay.INSET:
                 # Hvert domaene har sin egen aaben-variabel; de samles i een formel.
-                inset_vars += re.findall(r"IfError\((\w+), false\)", text)
+                inset_vars += re.findall(r"IfError\((.+?), false\)", text)
                 if name not in merged:
                     merged[name], owner[name] = text, d["folder"]
                     order.append(name)
