@@ -490,6 +490,7 @@ OPEN_FORM = (
     "Set(varIbMore, false);\n"
     "Set(varIbTried, false);\n"
     + RESET_FORM + ";\n"
+    "Set(varIbDetailOn, false);\n"
     "Set(varIbFormOn, true)"
 )
 
@@ -1070,7 +1071,7 @@ POP_MARGIN = 16
 
 
 def _popup(prefix, kids, vis, width=POP_W, foot=None, own_scroll=False,
-           side_panel=False):
+           side_panel=False, close_fx="Set(varIbDetailOn, false)"):
     """Popuppen holder sig inden for skaermen (issue #177): hovedet (titel
     og Close) og en eventuel fod staar fast; kun indholdet imellem scroller,
     og kun naar det ikke kan staa. Close kan altid naas.
@@ -1093,8 +1094,8 @@ def _popup(prefix, kids, vis, width=POP_W, foot=None, own_scroll=False,
                   pad=(POP_PAD, POP_PAD, POP_PAD, POP_PAD), width=width,
                   drop_shadow="ExtraBold", align_in_container="Center")
     if side_panel:
-        backdrop = tap_backdrop(f"img{prefix}Backdrop", vis,
-                                "Set(varIbDetailOn, false)", fill=C_TRANSPARENT)
+        backdrop = tap_backdrop(f"img{prefix}Backdrop", f"({vis}) && {lay.INSET} = 0",
+                                close_fx, fill=C_TRANSPARENT)
         modal.props["Height"] = "App.Height"
         modal.h = "App.Height"
         modal.props["Width"] = f"If({at_least('Desktop')}, 480, App.Width)"
@@ -1381,7 +1382,7 @@ SIMILAR_ITEMS = (
 SIM_ROW_H = 44
 
 
-FORM_W = "Min(680, App.Width - 24)"
+FORM_W = f"If({at_least('Desktop')}, 480, App.Width)"
 # Indholdet staar i popuppens scrollende krop - scrollbaren er trukket fra.
 FORM_IN = f"({FORM_W} - {2 * POP_PAD} - {lay.SCROLLBAR_W})"
 
@@ -1644,7 +1645,8 @@ def build_form():
     kids = [head, intro, where, sec_hint, other_f, title_f, similar, desc_f, more, details,
             manage, context]
     # Foden staar fast under det, der scroller: Submit kan altid naas.
-    return [_popup("IbForm", kids, FORM_ON, width=FORM_W, foot=foot), *build_discard()]
+    return [*_popup("IbForm", kids, FORM_ON, width=FORM_W, foot=foot, side_panel=True,
+                    close_fx=CLOSE_ASK), *build_discard()]
 
 
 # ---------------------------------------------------------------------------

@@ -106,7 +106,7 @@ def editor_kind(col):
 
 
 def formulas_block():
-    parts = [tok.formula(), lay.formula(), perm.formula(), dt.formula()]
+    parts = [tok.formula(), lay.formula("varFlPanelOpen"), perm.formula(), dt.formula()]
     parts.append(_table(
         "colFlPlan", R["plan"],
         ["Cls", "Ord", "Rule", "Field", "Label", "Chk", "Num", "List", "Msg"],

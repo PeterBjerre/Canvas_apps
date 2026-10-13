@@ -26,7 +26,7 @@ OUT_DIR = os.path.join(HERE, "..")
 
 
 def formulas_block():
-    return "\n\n".join([tok.formula(), lay.formula(), perm.formula(), P.FORMULAS])
+    return "\n\n".join([tok.formula(), lay.formula("varIbDetailOn || varIbFormOn"), perm.formula(), P.FORMULAS])
 
 
 def collection_block():

@@ -3,6 +3,8 @@ Screens:
     Properties:
       Fill: |-
           =C.'bg-app'
+      OnHidden: |-
+          =Set(varFlPanelOpen, false)
       OnVisible: |-
           =// Klargoeringen staar paa en skjult knap, saa Retry kan koere den igen
           // (BIO SAP App/build/build_screens.py, attach_open). Sloeret taendes
@@ -9485,7 +9487,7 @@ Screens:
             TabIndex: |-
                 =0
             Visible: |-
-                =IfError(varFlPanelOpen, false)
+                =IfError(varFlPanelOpen, false) && PanelInset = 0
             Width: |-
                 =App.Width
             X: |-

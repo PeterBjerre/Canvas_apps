@@ -585,7 +585,8 @@ def build_row_panel():
     ]
     return row_editor_panel("Fl", position, sections, footer, previous, next_,
                             close_fx, "varFlPanelOpen",
-                            previous_mode=previous_mode, next_mode=next_mode)
+                            previous_mode=previous_mode, next_mode=next_mode,
+                            side_by_side=True)
 
 
 def row_message():
