@@ -341,6 +341,59 @@ def submit_press_fx():
             ")")
 
 
+DUP_VIS = '!IsBlank(varDomRequestGuid)'
+
+
+def duplicate_fx():
+    """DUPLICATE (UX-review L2): kopier anmodningens raekker til en NY
+    kladde, som brugeren ejer.
+
+    Kopierne hentes fra LISTEN (Filter paa RequestGuid er delegerbar), ikke
+    fra colDomRows, hvor valg og tal er laest om til tekst. Hver kopi faar
+    sin egen ItemKey og mappe, som en ny raekke ved Gem - dokumenter,
+    SAP-svar og godkendelser foelger ikke med. En indsendt raekke bliver
+    "valid" igen; kopien er en ny anmodning uden GUID, som Save draft
+    giver nummer."""
+    cols = [cfg.C_TEXT, "Plant"] + [c for c, _l, _k, _ch in FIELDS]
+    cols += [c for c, _e in HOOKS["extra_patch"]] + list(EXTRA_PATCH)
+    seen, copy = set(), []
+    for c in cols:
+        if c not in seen:
+            seen.add(c)
+            copy.append(f"                    {c}: R.{c},")
+    key = f'"{cfg.PREFIX}-" & Text(n.ID, "000000")'
+    return (
+        "If(\n"
+        "    IsBlank(varDomRequestGuid),\n"
+        '    Notify("Save the request before you duplicate it.", NotificationType.Warning),\n'
+        "    IfError(\n"
+        "        ForAll(\n"
+        f"            Filter({cfg.L_ROWS}, RequestGuid = varDomRequestGuid) As R,\n"
+        "            With(\n"
+        "                { n: Patch(\n"
+        f"                    {cfg.L_ROWS}, Defaults({cfg.L_ROWS}), {{\n"
+        + "\n".join(copy) + "\n"
+        '                    RowStatus: { Value: If(R.RowStatus.Value = "submitted", "valid", Coalesce(R.RowStatus.Value, "valid")) },\n'
+        '                    RequestGuid: "", RequestNo: "",\n'
+        "                    RequesterEmail: varDomMe, RequesterName: User().FullName\n"
+        "                }) },\n"
+        f"                Patch({cfg.L_ROWS}, n, {{ RowId: n.ID, ItemKey: {key},\n"
+        f'                    AttachmentFolder: "{attflows.LIBRARY}/" & {key} }})\n'
+        "            )\n"
+        "        );\n"
+        '        Set(varDomRequestGuid, "");\n'
+        '        Set(varDomRequestNo, "");\n'
+        "        Set(varDomIdx, Blank());\n"
+        "        Set(varDomViewOnly, false);\n"
+        "        Set(varDomCanEdit, false);\n"
+        + _indent(clear_form_fx(), 8) + ";\n"
+        + refresh_rows_fx(8) + ";\n"
+        '        Notify("Duplicated as a new draft request. Choose Save draft to keep it.", NotificationType.Success),\n'
+        '        Notify("Could not duplicate the request: " & FirstError.Message, NotificationType.Error)\n'
+        "    )\n"
+        ")")
+
+
 BAR_ACTIONS = []
 
 
@@ -394,8 +447,14 @@ def build_bar():
     # SAMME RAEKKEFOELGE SOM ALLE ANDRE DOMAENER (UX-review T1):
     # [New request] | [Edit] [Save draft] [Submit (N to fix)] [Delete].
     # Taelleren er raekkerne, der stadig er kladder - de sendes ikke med.
+    dup = button("btnDomDuplicate", '"Duplicate"', with_busy(SAVING_VAR, duplicate_fx()),
+                 icon="Copy", visible=DUP_VIS,
+                 tooltip='"Copy all rows to a new draft request - documents are not copied"')
+    sized(dup, True)
+    dup.props["Width"] = f"If({below('Tablet')}, 40, {dup.props['Width']})"
+    dup.props["Layout"] = f"If({below('Tablet')}, ButtonLayout.IconOnly, ButtonLayout.IconBefore)"
     actions = request_actions("Dom", new, save, submit, fix_expr=f"CountRows({DRAFTS})",
-                              extra=[edit])
+                              extra=[edit, dup])
     # Bundbjaelken under Desktop (UX-review M8) kopierer disse to.
     BAR_ACTIONS[:] = [save, submit]
     narrow = below("Tablet")
@@ -531,7 +590,8 @@ def _plant_dropdown():
     selv slaar recorden op til Default - fejl 1 kan ikke opstaa igen."""
     return themed_dropdown("drpDomPlant", "colDomPlants", "varDomFPlant",
                            required_formula=REQUIRED, display_mode=DM_ROW,
-                           onchange="Set(varDomFPlant, Self.Selected.Value)")
+                           onchange="Set(varDomFPlant, Self.Selected.Value);\n"
+                                    + tok.prefs_save({"prefDomNewPlant": "Self.Selected.Value"}))
 
 
 # FL-vaelgerens tilstand. Selve vaelgeren er tools/fl_picker.py - den
@@ -721,7 +781,8 @@ def clear_form_fx():
              'Set(varDomRowStatus, "valid");',
              f'Set({REQUIRED}, false);',
              'Set(varDomFText, "");',
-             'Set(varDomFPlant, "");']
+             # Det sidst valgte vaerk paa en ny raekke (UX-review L2).
+             f'Set(varDomFPlant, {tok.pref_get("prefDomNewPlant")});']
     if getattr(cfg, "ROW_PANEL_ENABLED", False):
         lines.append('Set(varDomEditorOpen, false);')
     if getattr(cfg, "ROW_EDITOR_TAB_VAR", None):
