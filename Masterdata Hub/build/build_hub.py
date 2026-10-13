@@ -251,12 +251,22 @@ SCOPE_REFRESH = (
     'Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))')
 SCOPE_FULL = f"CountRows(colMdScope) >= {ROW_LIMIT}"
 
-# "CONTINUE WHERE YOU LEFT OFF" (UX-review M3): brugerens senest aendrede
-# kladde - een delegerbar forespoergsel (Filter paa konstanter + Sort paa
-# en dato) og First. Tom, naar brugeren ingen kladder har.
+# "CONTINUE WHERE YOU LEFT OFF" (UX-review M3, L4): brugerens op til tre
+# senest aendrede kladder - een delegerbar forespoergsel (Filter paa
+# konstanter + Sort paa en dato) og FirstN. Tom, naar brugeren ingen
+# kladder har.
+RESUME_N = 3
 RESUME_REFRESH = (
-    f"Set(varMdResume, First(Sort(Filter('{LIST}', RequesterEmail = varMdMe && "
-    f'Status.Value = "{ri.DRAFT}"), LastActionOn, SortOrder.Descending)))')
+    f"Set(varMdResumeList, FirstN(Sort(Filter('{LIST}', RequesterEmail = varMdMe && "
+    f'Status.Value = "{ri.DRAFT}"), LastActionOn, SortOrder.Descending), {RESUME_N}))')
+
+# "MY QUEUE" (L4): det, der venter paa MIG, uanset om listen viser mine
+# egne eller afdelingens. AssignedToEmail og IsOpen er indekserede; kun ID
+# hentes. Knappen skifter til afdelingens omfang, saa sagerne ikke
+# skjules af "My requests" (dem har en anden oprettet).
+QUEUE_REFRESH = (
+    f"Set(varMdQueueN, CountRows(ShowColumns(Filter('{LIST}', AssignedToEmail = varMdMe, "
+    "IsOpen = true), ID)))")
 
 # SKAERMENS OnVisible - IKKE AFHAENGIG AF App.OnStart
 #
@@ -291,7 +301,7 @@ HUB_ON_VISIBLE = (
     # varMdLoading: pladsholder-raekkerne under hentningen (UX-review M7).
     "Set(varMdLoading, true);\n"
     "Concurrent(\n    " + SCOPE_REFRESH + ",\n    " + approval_flow.LOG_REFRESH + ",\n    " +
-    RESUME_REFRESH + ",\n    " +
+    RESUME_REFRESH + ",\n    " + QUEUE_REFRESH + ",\n    " +
     # Note to self-raekkerne, brugeren maa se - kun RequestGuid (issue #115).
     sn.hub_self_refresh("varMdMe") + "\n);\n"
     "Set(varMdLoading, false)"
@@ -755,11 +765,14 @@ def _chip(name, label, value, icon):
     return _selected_style(b, f'varMdStatusMode = "{value}"', idle_color=C_MUTED)
 
 
-def _flag_pill(name, flag, label, field, icon):
-    n = f"Text(CountRows(Filter(colMdScope, {field})))"
+def _flag_pill(name, flag, label, field, icon, count=None, on_view=None):
+    """count: tallet paa knappen (standard: taelles i colMdScope).
+    on_view: varMdView, knappen skifter til, naar den slaas til."""
+    n = count or f"Text(CountRows(Filter(colMdScope, {field})))"
     full_txt = f'"{label} (" & {n} & ")"'
+    view = (f'If(varMdFlag = "{flag}", Set(varMdView, "{on_view}"));\n' if on_view else "")
     b = button(name, full_txt,
-               f'Set(varMdFlag, If(varMdFlag = "{flag}", "", "{flag}"));\n'
+               f'Set(varMdFlag, If(varMdFlag = "{flag}", "", "{flag}"));\n' + view +
                'If(varMdFlag <> "", Set(varMdStatusMode, "open"));\n' + SCOPE_REFRESH + ";\n" + SAVE_HUB,
                width=fit_button_width(f'"{label} (99)"') + ICON_W, height=36, icon=icon)
     # Kort trin: ikonet og tallet. Skaermlaeseren faar stadig hele teksten
@@ -772,32 +785,48 @@ def _flag_pill(name, flag, label, field, icon):
     return _selected_style(b, f'varMdFlag = "{flag}"', idle_color=C_MUTED)
 
 
-def build_resume():
-    """"Continue where you left off": den seneste kladde med Continue -
-    samme handling som raekkens Edit, paa varMdResume i stedet for
-    ThisItem."""
-    vis = "!IsBlank(varMdResume) && !IfError(varMdLoading, false)"
-    rec = "varMdResume"
-    icon = _image("imgMdResumeIcon",
+RESUME_ROW_H = 40
+
+
+def _resume_row(i):
+    """Kladde nr. i (1-3) i varMdResumeList: ikon, nummer og tekst, Continue.
+    If-vagten giver en tom post - ikke en Index-fejl - naar der er faerre
+    kladder."""
+    rec = f"If(CountRows(varMdResumeList) >= {i}, Index(varMdResumeList, {i}))"
+    icon = _image(f"imgMdResumeIcon{i}",
                   _svg_uri(_domain_switch(lambda d: '"' + _tile_icon_svg(d) + '"', '""')
-                           .replace("ThisItem", rec)), 32, 32,
+                           .replace("ThisItem", rec)), 28, 28,
                   label=DOMAIN_LABEL.replace("ThisItem", rec))
-    title = text_ctrl("txtMdResumeTitle", '"Continue where you left off"', size=lay.SIZE_BODY,
-                      weight="Semibold", height=20, wrap="false")
     when = f'Text({rec}.LastActionOn, "{lay.DATE_FMT}")'
-    line = text_ctrl("txtMdResumeLine",
-                     f'{rec}.{COL_NO} & "  \u00b7  " & {SHORT_TEXT.replace("ThisItem", rec)} & '
-                     f'"  \u00b7  draft, updated " & {when}',
-                     size=12, color=C_MUTED, height=18, wrap="false")
-    words = grow(group("conMdResumeWords", [title, line], direction="Vertical", gap=0))
+    line = grow(text_ctrl(f"txtMdResumeLine{i}",
+                          f'{rec}.{COL_NO} & "  \u00b7  " & {SHORT_TEXT.replace("ThisItem", rec)} & '
+                          f'"  \u00b7  draft, updated " & {when}',
+                          size=13, height=20, wrap="false"))
     go_txt = '"Continue"'
-    go = button("btnMdResumeGo", go_txt, _open_action("edit").replace("ThisItem", rec),
-                primary=True, width=fit_button_width(go_txt), height=32,
+    go = button(f"btnMdResumeGo{i}", go_txt, _open_action("edit").replace("ThisItem", rec),
+                primary=(i == 1), width=fit_button_width(go_txt), height=32,
                 accessible=f'"Continue " & {rec}.{COL_NO}')
     go.props["LayoutMinWidth"] = go.props["Width"]
-    return group("conMdResume", [icon, words, go], direction="Horizontal", gap=12, height=56,
-                 align_items="Center", fill=C_CARD_BG, border_color=C_CARD_BORDER,
+    return group(f"conMdResumeRow{i}", [icon, line, go], direction="Horizontal", gap=12,
+                 height=RESUME_ROW_H, align_items="Center",
+                 visible=f"CountRows(varMdResumeList) >= {i}")
+
+
+def build_resume():
+    """"Continue where you left off": op til tre kladder, nyeste foerst, hver
+    med Continue - samme handling som raekkens Edit (L4)."""
+    vis = "!IsEmpty(varMdResumeList) && !IfError(varMdLoading, false)"
+    title = text_ctrl("txtMdResumeTitle", '"Continue where you left off"', size=lay.SIZE_BODY,
+                      weight="Semibold", height=20, wrap="false")
+    rows = [_resume_row(i) for i in range(1, RESUME_N + 1)]
+    card = group("conMdResume", [title, *rows], direction="Vertical", gap=4,
+                 fill=C_CARD_BG, border_color=C_CARD_BORDER,
                  radius=lay.RADIUS_INPUT, pad=(8, 12, 8, 12), visible=vis)
+    # Skjulte raekker fylder intet i en lodret container; hoejden foelger
+    # antallet af kladder.
+    card.props["Height"] = (f"16 + 20 + Min(CountRows(varMdResumeList), {RESUME_N}) * "
+                            f"({RESUME_ROW_H} + 4)")
+    return card
 
 
 def build_banner():
@@ -850,7 +879,8 @@ def build_filters():
     _FLT_LV[sep.name] = {k: (1, None, None) for k in FLT_LEVELS}
     chips = [_chip("btnMdFltOpen", "Open", "open", "MailInbox"), closed,
              _chip("btnMdFltAll", "All", "all", "TextBulletListLtr"), _peek_button(), sep,
-             _flag_pill("btnMdFltMe", "me", "Waiting for me", "Mine", "Person"),
+             _flag_pill("btnMdFltMe", "me", "My queue", "Mine", "Person",
+                        count="Text(varMdQueueN)", on_view="queue"),
              _flag_pill("btnMdFltStuck", "stuck", STUCK_LABEL, "Stuck", "Clock")]
     # Soegefelt og knapper staar til venstre; My requests | Department og
     # tallet til hoejre. Under Tablet erstattes knapperne af EN dropdown
@@ -917,16 +947,18 @@ def build_filters():
     return group("conMdFlt", [row, mobile], direction="Vertical", gap=8)
 
 
-_MOBILE_FILTERS = ("Open", "Closed", "All", "Waiting for me", STUCK_LABEL)
+_MOBILE_FILTERS = ("Open", "Closed", "All", "My queue", STUCK_LABEL)
 
 
 def _mobile_filter():
     """Telefon: een dropdown med de samme valg som knapperne + info-knappen."""
     items = "Table(" + ", ".join(f'{{ Value: "{v}" }}' for v in _MOBILE_FILTERS) + ")"
-    cur = ('Switch(varMdFlag, "me", "Waiting for me", "stuck", "' + STUCK_LABEL + '", '
+    cur = ('Switch(varMdFlag, "me", "My queue", "stuck", "' + STUCK_LABEL + '", '
            'Switch(varMdStatusMode, "done", "Closed", "all", "All", "Open"))')
     on_change = ('With({ v: Self.Selected.Value },\n'
-                 '    Set(varMdFlag, Switch(v, "Waiting for me", "me", "' + STUCK_LABEL + '", "stuck", ""));\n'
+                 '    Set(varMdFlag, Switch(v, "My queue", "me", "' + STUCK_LABEL + '", "stuck", ""));\n'
+                 # My queue er sager, en anden har oprettet: afdelingens omfang.
+                 '    If(varMdFlag = "me", Set(varMdView, "queue"));\n'
                  '    Set(varMdStatusMode, Switch(v, "Closed", "done", "All", "all", "open"))\n'
                  ');\n' + SCOPE_REFRESH + ";\n" + SAVE_HUB)
     dd = themed_dropdown("ddMdFltMobile", items, cur, width="Parent.Width",
