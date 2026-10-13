@@ -190,8 +190,7 @@ indsendelse på linje med de eksisterende regler.
 `*SUP`" ud af materialet og byggede den som en blokerende regel. Peter har
 bekræftet, at det ikke passer. En regel, der blokerer folk på noget, der
 ikke er en regel, er værre end ingen validering — den lærer dem at ignorere
-panelet. Nummereringen står urørt, så fejlen kan genkendes her og i
-`TEST-manuelt.md`.
+panelet. Nummereringen står urørt, så fejlen kan genkendes.
 
 ---
 

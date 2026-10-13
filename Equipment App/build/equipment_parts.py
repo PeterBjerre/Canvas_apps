@@ -2,7 +2,8 @@
 """
 Equipments EGNE dele: formularens felter og listens kolonner (issue #68).
 
-Skaermen er tegnet efter eq.png i app-mappen - HTML-projektets
+Skaermen er tegnet efter eq.png (skaermbilledet ligger nu kun i
+git-historikken) - HTML-projektets
 udstyrsformular. Byggeklodserne - gitteret, knapperne, pillerne,
 dokumentcellen, FL-comboboksen, listen og indsend - er faelles med
 Materials og staar i tools/domain_parts.py. Her staar kun det, der er

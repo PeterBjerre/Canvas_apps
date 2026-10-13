@@ -161,7 +161,7 @@ COLLECTIONS = [
     # Spool-felterne: een raekke pr. udfyldt felt. Feltnavnet er
     # normaliseret (versaler), som noeglerne i controllerens spoolValues.
     ("colFlVals", {"RowGuid": '""', "Field": '""', "Value": '""'}),
-    # MEDDELELSESTABELLEN - moenstret fra powerfx/03-validering.fx.
+    # MEDDELELSESTABELLEN - moenstret fra oplaeggets powerfx/03-validering.fx.
     ("colFlIssues", ISSUE),
     ("colFlIssuesRaw", ISSUE),
     # Mellemregningerne i Verify (fl_validation.py, afsnit B og E).
