@@ -1791,8 +1791,17 @@ def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
 
 def request_shell(prefix, header, breadcrumb, actions, rows, editor=None, footer=None,
                   body_gap=16):
-    """Komponer header, anmodningsnavigation, raekkeliste og editor-overlay."""
-    body = [item for item in (breadcrumb, actions, rows) if item is not None]
+    """Komponer header, anmodningsnavigation, raekkeliste og editor-overlay.
+
+    DEN FAELLES SKAL (UX-review L1). Alle anmodningsskaerme - Equipments,
+    Materials, Measuring points, Functional Location og Issue Board - bygger
+    rammen her. rows er een del eller en liste af dele (FL har raekker,
+    klasser og struktur under hinanden). Skaermen leverer kun sine dele;
+    editor er panelet, som skaermen selv kan placere i lagene (det skal staa
+    over sidebarens aabne panel paa FL og Issue Board), og saa gives det
+    ikke her."""
+    parts = list(rows) if isinstance(rows, (list, tuple)) else [rows]
+    body = [item for item in (breadcrumb, actions, *parts) if item is not None]
     root = app_frame(prefix, header, body, body_gap=body_gap, footer=footer)
     return [root, *(editor or [])]
 
