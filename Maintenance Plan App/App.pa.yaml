@@ -506,10 +506,10 @@ App:
       );
 
       // Det, der mangler i Plan header (issue #220) - een linje pr. krav. Tom = intet.
-      VhpPlanMissing = Concat(Filter(Table({ m: If(!VhpStepPlanDone, "Save the plan header.", "") }, { m: VhpPlanRuleErrors }), !IsBlank(m)), m, Char(10));
+      VhpPlanMissing = Concat(Filter(Table({ m: If(!VhpStepPlanDone, "Press Done in the plan header.", "") }, { m: VhpPlanRuleErrors }), !IsBlank(m)), m, Char(10));
 
       // Det, der mangler i Items (issue #220) - een linje pr. krav. Tom = intet.
-      VhpItemMissing = Concat(Filter(Table({ m: If(!VhpStepItemDone, If(IsEmpty(VhpSaveableItems), "Add at least one item.", "Save every item as valid in the item editor."), "") }, { m: VhpItemRuleErrors }), !IsBlank(m)), m, Char(10));
+      VhpItemMissing = Concat(Filter(Table({ m: If(!VhpStepItemDone, If(IsEmpty(VhpSaveableItems), "Add at least one item.", "Press Done on every item in the item editor."), "") }, { m: VhpItemRuleErrors }), !IsBlank(m)), m, Char(10));
 
       // Det, der mangler i Task list and operations (issue #220) - een linje pr. krav. Tom = intet.
       VhpOpsMissing = Concat(Filter(Table({ m: If(!VhpStepTasklistDone, "Choose a task list for every item.", "") }, { m: If(!VhpStepOpsDone, If(varVhpPlan.PlanType = "Strategy", "Give every item operations, each with a package.", "Give every item at least one operation."), "") }, { m: VhpOpsRuleErrors }), !IsBlank(m)), m, Char(10));

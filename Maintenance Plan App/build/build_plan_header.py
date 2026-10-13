@@ -47,7 +47,7 @@ def section_footer(name, info, buttons, cw):
 # Indholdsbredden i et kort: skaermens indholdsbredde minus kortets polstring.
 PLAN_CW = f"({SHELL_W} - 36)"
 # Save/Edit-knappens bredde.
-PLAN_SAVE_W = fit_button_width("\"Save\"", min_w=96) + ICON_W
+PLAN_SAVE_W = fit_button_width("\"Done\"", min_w=96) + ICON_W
 
 # En strategiplan henter sin cyklus fra strategiens pakker. Cycle/Unit paa
 # planhovedet gaelder derfor kun single cycle-planer.
@@ -299,7 +299,7 @@ def build_plan_header():
                        gap=0, justify="Center")
 
     btnSave = button(
-        "btnVhpPlanSave", "If(varVhpPlanLocked, \"Edit\", \"Save\")",
+        "btnVhpPlanSave", "If(varVhpPlanLocked, \"Edit\", \"Done\")",
         (
             "If(\n"
             "    varVhpPlanLocked,\n"
@@ -364,8 +364,8 @@ def build_plan_header():
             "                )\n"
             "            );\n"
             "            Notify(\n"
-            "                \"Plan saved and locked: \" & drpVhpPlant.Selected.Value & \" \" & Trim(inpVhpPlanText.Text) &\n"
-            "                If(isStrat, \" (strategy \" & drpVhpStrategy.Selected.Key & \").\", \".\"),\n"
+            "                \"Plan header done: \" & drpVhpPlant.Selected.Value & \" \" & Trim(inpVhpPlanText.Text) &\n"
+            "                If(isStrat, \" (strategy \" & drpVhpStrategy.Selected.Key & \")\", \"\") & \". Save draft to keep it.\",\n"
             "                NotificationType.Success\n"
             "            )\n"
             "        )\n"
@@ -373,7 +373,7 @@ def build_plan_header():
             ")"
         ),
         primary=True, width=140, height=36,
-        icon="If(varVhpPlanLocked, \"Edit\", \"Save\")",
+        icon="If(varVhpPlanLocked, \"Edit\", \"Checkmark\")",
         # Edit kun i Edit mode (issue #103) - i View mode skifter topbjaelkens
         # Edit (build_hero.btnVhpEdit) til Edit mode, som for de andre sektioner.
         visible="!varVhpViewOnly")

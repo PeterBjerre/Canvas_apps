@@ -121,7 +121,7 @@ CAN_SUBMIT = f"VhpCanSubmit && !({ITEM_DIRTY})"
 # tooltip, linjen under trinene og listen "Before you can submit" bygges
 # alle af GROUPS. Foer stod der "Fix 1 plan rule - hover Submit to see
 # them" - nu staar selve reglerne der.
-DIRTY_MSG = '"Save the changes in the item editor."'
+DIRTY_MSG = '"Press Done in the item editor to keep the changes."'
 # (overskrift = sektionens titel, tekst med een linje pr. krav, trin)
 GROUPS = [
     ("Plan header", MISSING_NAMES["Plan"], 1),
