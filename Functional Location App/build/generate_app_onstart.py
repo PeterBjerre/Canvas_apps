@@ -219,6 +219,9 @@ Set(varFlViewOnly, false);
 Set(varFlBadgeOn, false);
 Set(varFlCanEdit, false);
 Set(varFlNextRowNo, 1);
+// Paste rows (UX-review L3).
+Set(varFlPasteOpen, false);
+Set(varFlPasteText, "");
 // Aktiv klassefane. ALL som i renderClassTabs.
 Set(varFlTab, "ALL");
 // Raekken bag Manufacturer/Warranty-popuppen (issue #232). Valideringen
