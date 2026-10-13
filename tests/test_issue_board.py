@@ -768,6 +768,13 @@ def test_toolbar_reserves_its_full_width_and_height_at_every_size():
                     assert cw <= inner + 0.5, (kn, w, admin, cw, inner)
                     if kb["Control"] != "GroupContainer":
                         assert ch <= h + 0.01
+                        # Kontakterne staar direkte i raekken (screenshots
+                        # 2026-10-13): mindst 30 px hoeje og ikke smallere
+                        # end deres tekst kan staa i.
+                        if kb["Control"] == "ModernButton":
+                            assert ch >= 30
+                            assert cw >= 60, (kn, w)
+                        checked += 1
                         continue
                     gp = kb["Properties"]
                     ggap = cl.gap_at(gp, w)
