@@ -153,7 +153,7 @@ SAP har gemt. Når planen er oprettet, kopieres den til `Kvitteringer` med
 ## 6. Det, der sker i SAP
 
 For hvert item, og til sidst planen. Felternes rækkefølge og ID'er er det
-gamle scripts (`excel/src/Modules/GUI_Script.bas`), samlet i `VhpConfig.bas`.
+gamle scripts (`excel/src/Modules/GUI_Script.bas`, nu kun i git-historikken), samlet i `VhpConfig.bas`.
 
 | Trin | Transaktion | Gør |
 |---|---|---|

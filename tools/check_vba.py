@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Statisk kontrol af VBA-modulerne i excel/src og excel/opretter.
+"""Statisk kontrol af VBA-modulerne i excel/opretter.
 
 Regnearket kan kun kompileres i Excel, og hver kompilering koster en runde
 frem og tilbage. Det her fanger de fejl, der ellers foerst dukker op der:
@@ -17,14 +17,13 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = ROOT / "excel" / "src"
+SRC = ROOT / "excel" / "opretter"
 
-# Hver mappe er sit eget VBA-projekt: modulnavnene maa gerne gaa igen paa
-# tvaers (begge har fx et modul, der hedder noget med Config), men ikke inde
-# i en mappe. Opretteren faar de strenge tjek i tools/vba_strict.py.
+# Hver mappe er sit eget VBA-projekt: modulnavnene maa ikke gaa igen inde
+# i en mappe. Opretteren faar de strenge tjek i tools/vba_strict.py. (Det
+# gamle regnearks eksport i excel/src er fjernet - den ligger i git-historikken.)
 PROJECTS = [
-    (SRC, False),                              # det gamle regneark (eksport)
-    (ROOT / "excel" / "opretter", True),       # VH-plan Opretter
+    (SRC, True),                               # SAP Opretter
 ]
 
 PROC_START = re.compile(
