@@ -344,7 +344,13 @@ def _key_tabs():
 
 
 SEARCH_MIN = 2
-SEARCH_ROW_W = f"If({lay.below('Tablet')}, {CARD_W}, Max(460, {CARD_W} / 3))"
+# EEN FILTERLINJE (UX-review, KKS): fra Tablet staar fanerne og soegningen
+# paa samme linje, og soegningen tager resten af bredden. Bogstaverne og
+# grupperne staar som chips under linjen. Under Tablet staar de under
+# hinanden som foer.
+TOP_GAP = 16
+KEYS_W = f"(3 * {TAB_W} + 2 * 8)"
+SEARCH_ROW_W = f"If({lay.below('Tablet')}, {CARD_W}, {CARD_W} - {KEYS_W} - {TOP_GAP})"
 # Soegningen (UX-review, KKS): et tekstfelt med soegeikon og et kryds, der
 # rydder det. Den soeger, mens man skriver - en timer laegger teksten i
 # varKksQuery et kort ophold efter sidste tastetryk, saa filtreringen over
@@ -557,7 +563,28 @@ def build_browse():
     for m in (m1, m2):
         m.props["Visible"] = below("Tablet")
         m.vis = m.props["Visible"]
-    return card("conKksBrowseCard", [_key_tabs(), l1, l2, l3, m1, m2, m3, _search_row()], gap=12)
+    return card("conKksBrowseCard", [_top_line(), l1, l2, l3, m1, m2, m3], gap=12)
+
+
+def _top_line():
+    """Fanerne og soegningen - een linje fra Tablet, ellers under hinanden.
+    Begge boern er grupper i en ALMINDELIG gruppe (ikke en flow_row, hvor
+    indlejrede grupper blev tomme, #244); retningen skifter med bredden."""
+    from layout_tokens import at_least
+    wide = at_least("Tablet")
+    keys, find = _key_tabs(), _search_row()
+    keys.props["Width"] = f"If({wide}, {KEYS_W}, {CARD_W})"
+    keys.props["LayoutMinWidth"] = keys.props["Width"]
+    keys.props["AlignInContainer"] = "AlignInContainer.Center"
+    find.props["LayoutMinWidth"] = find.props["Width"]
+    h = f"If({wide}, Max({keys.h}, {find.h}), ({keys.h}) + {TOP_GAP} + ({find.h}))"
+    line = group("conKksTopLine", [keys, find], direction="Horizontal", gap=TOP_GAP,
+                 height=h, width=CARD_W)
+    line.props["LayoutDirection"] = (f"If({wide}, LayoutDirection.Horizontal, "
+                                     "LayoutDirection.Vertical)")
+    line.props["LayoutAlignItems"] = (f"If({wide}, LayoutAlignItems.Center, "
+                                      "LayoutAlignItems.Start)")
+    return line
 
 
 # Et klik paa en raekke gaar til dens plads i hierarkiet og rydder
