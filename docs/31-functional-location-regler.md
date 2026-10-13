@@ -1,13 +1,14 @@
 ﻿# 31 – Functional Location: regelinventaret
 
 Kontrakten for canvas-appen **Functional Location App**. Hver regel, der
-står i `html/functional-location.html` og de scripts, siden indlæser, har et
+stod i HTML-siden `functional-location.html` og de scripts, siden indlæste, har et
 ID her (FL1 …). Appen må ikke have en regel, der ikke står her, og en regel
 her uden en implementering er en fejl.
 
 ## Kilden
 
-`functional-location.html` er kun markup: en tabel (#, Functional Location,
+`functional-location.html` var kun markup (siden er fjernet fra repoet, men
+findes i git-historikken): en tabel (#, Functional Location,
 Description, KKS Type, Assigned Class, Validation, Action), knapperne
 **Verify**, **Export JSON**, **Add row** og et kort med klassefaner (appen har
 hverken Verify eller Export JSON - valideringen er automatisk, issue #77). Alle
@@ -21,7 +22,7 @@ regler står i de scripts, siden indlæser:
 | `lookups.generated.js` | `FL_LOOKUPS`: 23 tabeller fra SPOOL-arket, bl.a. `Char`, `SCEq`, `Plant`, `FunctionKeyDict` (6.445), `ClassDetermination*Key`, `BR18_Keys` og værdilisterne | **Data** |
 | `fl-classification-data.js` | `FL_CLASSIFICATION_DATA` - overskrives helt af `FL_LOOKUPS` i `applyLookupOverrides` (`fl-rule-engine.js:264`) | Ingen virkning |
 | `fl-spool-columns.js` | `FL_SPOOL_COLUMNS`: kolonnerne pr. klasse | **Data** |
-| `shell.js`, `functional-location-extract.html` | Navigation / en anden side (masseudtræk) | Ikke i omfang, se AQ3 |
+| `shell.js`, `functional-location-extract.html` | Navigation / en anden side (masseudtræk). Fjernet fra repoet | Ikke i omfang, se AQ3 |
 
 VBA'en i `excel/vba/spool-validation/` er den oprindelige kilde, som JS'en er
 en port af. **Hvor de to er uenige, vinder JS'en** - det er den, opgaven
