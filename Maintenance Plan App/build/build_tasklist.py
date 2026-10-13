@@ -883,9 +883,10 @@ def build_tasklist_section():
     toolbar = flow_row("conVhpOpsToolbar", tb_kids, OPS_CW, gap=12)
 
     # Reset (kun dropdownen tilbage) er fjernet (UX-review): task listen
-    # vaelges bare om. Sektionen gemmes med Save.
+    # vaelges bare om. Sektionen afsluttes med Done (beslutning 1a,
+    # 2026-10-13): kun Save draft skriver til SharePoint.
     btnTlSave = button(
-        "btnVhpTasklistSave", "\"Save\"",
+        "btnVhpTasklistSave", "\"Done\"",
         (
             "If(\n"
             "    IsBlank(varVhpActiveItemId),\n"
@@ -902,15 +903,15 @@ def build_tasklist_section():
             "                colVhpItems, ItemId = varVhpActiveItemId,\n"
             "                { TasklistKey: drpVhpItemTasklist.Selected.Key, TasklistName: drpVhpItemTasklist.Selected.Name }\n"
             "            );\n"
-            "            Select(btnVhpSaveDraft)\n"
+            "            Notify(\"Task list done. Save draft to keep it.\", NotificationType.Success)\n"
             "        )\n"
             "    )\n"
             ")"
-        ), primary=True, icon=ICON_SAVE,
-        width=fit_button_width("\"Save\"", min_w=96) + ICON_W, height=36,
+        ), primary=True, icon='"Checkmark"',
+        width=fit_button_width("\"Done\"", min_w=96) + ICON_W, height=36,
         display_mode=("If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, "
                       "btnVhpSaveDraft.DisplayMode)"))
-    btnTlSave.props["AccessibleLabel"] = '"Save the task list and operations"'
+    btnTlSave.props["AccessibleLabel"] = '"Done with the task list and operations"'
 
     # ALTID FOLDET UD (issue #192): fanerne og ruderne staar der altid.
     # Foden siger, hvad der mangler, foer sektionen kan gemmes.
