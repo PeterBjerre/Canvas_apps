@@ -209,8 +209,7 @@ $site = "https://<tenant>.sharepoint.com/sites/<site>"
 
 VH-planens egne lister (`MaintenancePlans`, `MaintenanceItems`,
 `TaskListMain` …) findes i forvejen; scripterne ovenfor tilføjer kolonner og
-de nye `MD_*`-lister. Det tidligere `Provision-VHPlanLists.ps1` ligger i
-`archive/` — det oprettede den ubrugte `VHP_*`-model.
+de nye `MD_*`-lister.
 
 Åbn derefter `html/cycle-timeline-reference.html` i en browser for at se,
 hvad forfaldskalenderen skal ende med at vise.
