@@ -2,7 +2,7 @@
 """
 VERIFY - reglerne som EEN meddelelsestabel (colFlIssues).
 
-Moenstret er powerfx/03-validering.fx: hver regel er en raekke i en tabel
+Moenstret er oplaeggets powerfx/03-validering.fx (nu i git-historikken): hver regel er en raekke i en tabel
 med kode, alvor og besked, og alt andet - raekkens status, den foerste
 fejl, feltets roede kant, Submit-knappen - laeses ud af den tabel. Koderne
 er ID'erne i docs/31-functional-location-regler.md (FL4, FL30 ...).

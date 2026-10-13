@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-GEM, INDSEND OG DYBLINK - efter powerfx/04-submit-patch.fx.
+GEM, INDSEND OG DYBLINK - efter oplaeggets powerfx/04-submit-patch.fx
+(fjernet fra repoet, ligger i git-historikken).
 
 SharePoint har ingen transaktioner. Hvert gem er derfor GENOPTAGELIGT i
 stedet for atomart:
