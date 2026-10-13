@@ -269,6 +269,7 @@ RESUME_REFRESH = (
 # FILTRENE HUSKES (UX-review F8): foerste besoeg i sessionen laeses de fra
 # SaveData-lageret (design_tokens.prefs_save), og hver aendring gemmes der.
 # Kommer man tilbage fra et domaene, staar de, som man forlod dem.
+DOMAIN_KEYS = ", ".join('"%s"' % d["key"] for d in DOMAINS)
 SAVE_HUB = tok.prefs_save({"prefMdView": "varMdView", "prefMdStatus": "varMdStatusMode",
                            "prefMdFlag": "varMdFlag", "prefMdDomain": "varMdDomain",
                            "prefMdSearch": "varMdSearch"})
@@ -278,7 +279,10 @@ HUB_ON_VISIBLE = (
     "    Set(varMdView, " + tok.pref_get("prefMdView", '"mine"') + ");\n"
     "    Set(varMdStatusMode, " + tok.pref_get("prefMdStatus", '"open"') + ");\n"
     f"    Set(varMdFlag, {tok.pref_get('prefMdFlag')});\n"
-    f"    Set(varMdDomain, {tok.pref_get('prefMdDomain')});\n"
+    # Kun et kendt domaene: en gammel eller tom vaerdi gav en tom
+    # "Filter:"-chip og en tom liste (screenshots 2026-10-13).
+    "    Set(varMdDomain, With({ d: IfError(" + tok.pref_get('prefMdDomain') + ', "") }, '
+    + "If(d in [" + DOMAIN_KEYS + '], d, "")));\n'
     f"    Set(varMdSearch, {tok.pref_get('prefMdSearch')});\n"
     "    Set(varMdPrefsRead, true)\n);\n"
     "If(IsBlank(varMdView), Set(varMdView, \"mine\"));\n"
@@ -301,7 +305,7 @@ def scope_count(pred=None):
 
 
 # Flisernes undertekst: hvad tallet taeller.
-SCOPE_WORDS = ('Switch(varMdStatusMode, "open", "Filter", "done", "Closed", "All") & '
+SCOPE_WORDS = ('Switch(varMdStatusMode, "open", "open", "done", "closed", "in total") & '
                'If(varMdView = "mine", " - my requests", " - whole department")')
 
 # De seneste lukkede indmeldinger i det valgte omfang - til Closed-preview'et.
@@ -1445,7 +1449,7 @@ def _active_filter():
     farve, saa man kan se, HVORFOR listen er kortere, og fjerne filteret
     uden at finde flisen igen. Tabellen selv forbliver neutral: farven
     staar kun her, paa flisens kant og i ikonerne."""
-    on = 'varMdDomain <> ""'
+    on = "IfError(varMdDomain in [" + DOMAIN_KEYS + "], false)"
     color = _domain_switch_on("varMdDomain", lambda d: d["color"], C_PRIMARY)
     name = _domain_switch_on("varMdDomain", lambda d: f'"{d["name"]}"', '""')
     longest = max((d["name"] for d in DOMAINS), key=len)

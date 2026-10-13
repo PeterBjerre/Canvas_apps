@@ -297,13 +297,13 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 2
                                     Width: |-
-                                        =Max(0, Min(211, ((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - ((If(LayoutRank < 2, 103, 124)) + 10) - (If(LayoutRank >= 2, (1) + 10, 0)) - (If(IfError(varEqViewOnly && varEqCanEdit, false), (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 135)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 186)) + 10, 0)) - (If(!IfError(varEqViewOnly, true) && !IsBlank(varEqRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - 2)))))
+                                        =Max(0, Min(221, ((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - ((If(LayoutRank < 2, 103, 124)) + 10) - (If(LayoutRank >= 2, (1) + 10, 0)) - (If(IfError(varEqViewOnly && varEqCanEdit, false), (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 135)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 186)) + 10, 0)) - (If(!IfError(varEqViewOnly, true) && !IsBlank(varEqRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - 2)))))
                                   Children:
                                     - txtEqTitle:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Equipment"
+                                              ="Equipments"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -331,11 +331,11 @@ Screens:
                                           Size: |-
                                               =T.pageTitle
                                           Text: |-
-                                              ="Equipment"
+                                              ="Equipments"
                                           Visible: |-
                                               =LayoutRank >= 2
                                           Width: |-
-                                              =Max(0, Min(117, ((Max(0, Min(211, ((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - ((If(LayoutRank < 2, 103, 124)) + 10) - (If(LayoutRank >= 2, (1) + 10, 0)) - (If(IfError(varEqViewOnly && varEqCanEdit, false), (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 135)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 186)) + 10, 0)) - (If(!IfError(varEqViewOnly, true) && !IsBlank(varEqRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - 2))))))) - (If(IsBlank(varEqRequestNo), 0, 6 + 88))))
+                                              =Max(0, Min(127, ((Max(0, Min(221, ((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - ((If(LayoutRank < 2, 103, 124)) + 10) - (If(LayoutRank >= 2, (1) + 10, 0)) - (If(IfError(varEqViewOnly && varEqCanEdit, false), (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 135)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 186)) + 10, 0)) - (If(!IfError(varEqViewOnly, true) && !IsBlank(varEqRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - 2))))))) - (If(IsBlank(varEqRequestNo), 0, 6 + 88))))
                                           Wrap: |-
                                               =false
                                     - imgEqNumber:
@@ -641,7 +641,7 @@ Screens:
                                                       RequestGuid: varEqRequestGuid,
                                                       RequesterEmail: Coalesce(varEqIdx.RequesterEmail, varEqMe),
                                                       RequesterName: Coalesce(varEqIdx.RequesterName, User().FullName),
-                                                      ShortText: "Equipment: " & With({ _c: CountRows(Filter(colEqRows, Status <> "submitted")) }, Text(_c) & If(_c = 1, " row", " rows")),
+                                                      ShortText: "Equipments: " & With({ _c: CountRows(Filter(colEqRows, Status <> "submitted")) }, Text(_c) & If(_c = 1, " row", " rows")),
                                                       Plant: First(Filter(colEqRows, Status <> "submitted")).Plant,
                                                       ItemCount: CountRows(Filter(colEqRows, Status <> "submitted")),
                                                       AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=equipment&reqid=" & varEqRequestGuid,
@@ -2614,6 +2614,8 @@ Screens:
                                         =Self.Text
                                     Align: |-
                                         =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Stretch
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -3125,7 +3127,7 @@ Screens:
                                                       RequestGuid: varEqRequestGuid,
                                                       RequesterEmail: Coalesce(varEqIdx.RequesterEmail, varEqMe),
                                                       RequesterName: Coalesce(varEqIdx.RequesterName, User().FullName),
-                                                      ShortText: "Equipment: " & With({ _c: CountRows(Filter(colEqRows, Status <> "submitted")) }, Text(_c) & If(_c = 1, " row", " rows")),
+                                                      ShortText: "Equipments: " & With({ _c: CountRows(Filter(colEqRows, Status <> "submitted")) }, Text(_c) & If(_c = 1, " row", " rows")),
                                                       Plant: First(Filter(colEqRows, Status <> "submitted")).Plant,
                                                       ItemCount: CountRows(Filter(colEqRows, Status <> "submitted")),
                                                       AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=equipment&reqid=" & varEqRequestGuid,
@@ -13680,10 +13682,14 @@ Screens:
                             =Align.Center
                         AlignInContainer: |-
                             =AlignInContainer.Center
-                        BasePaletteColor: |-
-                            =C.'color-brand-primary'
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-error'
+                        BorderThickness: |-
+                            =1
                         Color: |-
-                            =C.'text-on-primary'
+                            =C.'state-error-fg'
                         Font: |-
                             =Font.'Segoe UI'
                         FontWeight: |-
@@ -14113,7 +14119,7 @@ Screens:
                                                 RequestGuid: varEqRequestGuid,
                                                 RequesterEmail: Coalesce(varEqIdx.RequesterEmail, varEqMe),
                                                 RequesterName: Coalesce(varEqIdx.RequesterName, User().FullName),
-                                                ShortText: "Equipment: " & With({ _c: CountRows(Filter(colEqRows, Status = "valid")) }, Text(_c) & If(_c = 1, " row", " rows")),
+                                                ShortText: "Equipments: " & With({ _c: CountRows(Filter(colEqRows, Status = "valid")) }, Text(_c) & If(_c = 1, " row", " rows")),
                                                 Plant: First(Filter(colEqRows, Status = "valid")).Plant,
                                                 ItemCount: CountRows(Filter(colEqRows, Status = "valid")),
                                                 AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=equipment&reqid=" & varEqRequestGuid,
@@ -14478,10 +14484,14 @@ Screens:
                             =Align.Center
                         AlignInContainer: |-
                             =AlignInContainer.Center
-                        BasePaletteColor: |-
-                            =C.'color-brand-primary'
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-error'
+                        BorderThickness: |-
+                            =1
                         Color: |-
-                            =C.'text-on-primary'
+                            =C.'state-error-fg'
                         Font: |-
                             =Font.'Segoe UI'
                         FontWeight: |-
