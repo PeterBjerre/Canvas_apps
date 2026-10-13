@@ -8,8 +8,8 @@ er ét Python-script, der taler JSON-RPC over stdio med serveren.
 # alt på én gang: byg -> compile -> sync -> app checker
 python tools\canvas_mcp.py deploy --app biosap
 
-# eller, med forudsætningstjek først
-.\tools\Deploy-CanvasApp.ps1 -App biosap
+# forudsætningerne tjekkes med
+python tools\doctor.py
 ```
 
 ## Før du kører
