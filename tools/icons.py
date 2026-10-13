@@ -170,6 +170,7 @@ FLUENT = {
     "search": "Search",
     "more": "MoreHorizontal",
     "check": "Checkmark",
+    "paste": "ClipboardPaste",   # Paste rows (UX-review L3) - efterproeves i Studio
 }
 
 # Stregen ved en given tegnet stoerrelse - se ovenfor.

@@ -240,6 +240,8 @@ App:
       ClearCollect(colAppPrefs, { Dark: false, prefMdView: "", prefMdStatus: "", prefMdFlag: "", prefMdDomain: "", prefMdSearch: "", prefDomSearch: "", prefDomStatus: "", prefDomPlant: "", prefDomNewPlant: "", prefEqSearch: "", prefEqStatus: "", prefEqPlant: "", prefEqNewPlant: "", prefMatSearch: "", prefMatStatus: "", prefMatPlant: "", prefMatNewPlant: "", prefMpSearch: "", prefMpStatus: "", prefMpPlant: "", prefMpNewPlant: "" });
       Clear(colAppPrefs);
 
+      If(false, ClearCollect(colDomPaste, { Line: 0, Ok: false, Note: "", MaterialDescription: "", Plant: "", Manufacturer: "", ModelNumber: "", ManufacturerPartNo: "", Supplier: "", SupplierPartNo: "", PriceUnit: "", StockUnit: "", StorageBin: "", StrategicPart: "", WearPart: "", Remarks: "", MaintenanceOrderNo: "", ReplacedMaterialNo: "" }));
+
       If(false, ClearCollect(colDomObjects, { Code: "", Description: "" }));
 
       If(false, ClearCollect(colDomObjPop, { Code: "", Description: "" }));
@@ -287,6 +289,9 @@ App:
       // roed. false ved opstart: en tom formular, ingen har roert, skal ikke
       // staa og lyse roedt. Saettes af Gem/Indsend - se domain_parts.REQUIRED.
       Set(varDomValidated, false);
+      // Paste rows (UX-review L3): popuppen og den indsatte tekst.
+      Set(varDomPasteOpen, false);
+      Set(varDomPasteText, "");
 
       Set(varDomEditorOpen, false);
 
