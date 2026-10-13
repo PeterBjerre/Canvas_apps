@@ -9,6 +9,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_MUTED, C_INFO_FG,
 from design_tokens import ref_hex
 import layout_tokens as lay
 import icons
+import status_chip as sc
 from layout_tokens import if_below, at_least, below, fits, TWO_COL_MIN
 from build_helpers import (empty_state, checkbox_theme, row_hit, text_ctrl, group, button,
                            button_row, text_input, themed_dropdown, label_row,
@@ -362,16 +363,8 @@ def build_items_rail():
         size=12, color=C_MUTED, height=18, wrap="false")
     cardTextCol = grow(group("conVhpItemCardText", [cardTitle, cardFl, cardTasklist],
                              direction="Vertical", gap=2))
-    cardStatus = text_ctrl(
-        "txtVhpItemCardStatus", "Upper(ThisItem.Status)", size=11, weight="Semibold", height=22, width=66,
-        wrap="false",
-        extra={
-            "Align": "Align.Center", "AlignInContainer": "AlignInContainer.Center",
-            "Color": f"Switch(ThisItem.Status, \"valid\", {C_VALID_FG}, \"invalid\", {C_INVALID_FG}, {C_MUTED})",
-            "Fill": f"Switch(ThisItem.Status, \"valid\", {C_VALID_BG}, \"invalid\", {C_INVALID_BG}, {C_NEUTRAL_BG})",
-            "PaddingLeft": "6", "PaddingRight": "6",
-            "RadiusBottomLeft": "10", "RadiusBottomRight": "10", "RadiusTopLeft": "10", "RadiusTopRight": "10",
-        })
+    # Samme statuschip som resten af appen (UX-review T4) - ikke versaler.
+    cardStatus = sc.status_chip("imgVhpItemCardStatus", "ThisItem.Status", sc.VH_ITEM)
     # DELETE PAA KORTET (issue #54). Hed "Remove item" og stod i knaprakken
     # over listen, hvor den slettede det AKTIVE item - ikke noedvendigvis
     # det, man kiggede paa. Nu sletter den sit eget kort. Id'et laeses FOER

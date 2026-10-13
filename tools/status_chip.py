@@ -49,6 +49,13 @@ ROW = [
     ("submitted", "Submitted", icons.STATUS_SUBMITTED, "info"),
 ]
 
+# ET ITEM i VH-planen (colVhpItems.Status - valideringens resultat).
+VH_ITEM = [
+    ("draft", "Draft", icons.STATUS_DRAFT, "neutral"),
+    ("valid", "Valid", icons.STATUS_READY, "ok"),
+    ("invalid", "To fix", icons.STATUS_AWAITING, "error"),
+]
+
 # EN SAG i Issue Board (IB_Tickets.Status). Toner fra ib_config.STATUS.
 ISSUE_ICONS = {
     "New": icons.STATUS_SUBMITTED,
