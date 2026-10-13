@@ -93,12 +93,8 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 
 | Fil | Indhold |
 |---|---|
-| [`docs/01-loesningsoplaeg.md`](docs/01-loesningsoplaeg.md) | Domæneforståelse, arkitektur, komponentvalg, åbne spørgsmål |
 | [`docs/02-datamodel-sharepoint.md`](docs/02-datamodel-sharepoint.md) | Lister og kolonner, felt for felt |
-| [`docs/03-canvas-app-design.md`](docs/03-canvas-app-design.md) | Skærme, komponenter, tilstand, gem/submit |
 | [`docs/04-integration-sap.md`](docs/04-integration-sap.md) | Fire veje til SAP – kontrakt, idempotens, fejlhåndtering |
-| [`docs/05-implementeringsplan.md`](docs/05-implementeringsplan.md) | Faser, risici, hvad der kan skæres væk |
-| [`docs/06-excel-gui-scripting.md`](docs/06-excel-gui-scripting.md) | Oplæggets Excel + GUI Scripting. Den byggede vej er docs/34 |
 | [`docs/07-landingsside.md`](docs/07-landingsside.md) | Landingsside for alle fem masterdata-domæner: hub vs. monolit, indekslisten, performanceregler |
 | [`docs/32-godkendelsesflow.md`](docs/32-godkendelsesflow.md) | **Oplæg:** godkendelsesflow for nye VH-planer — system- og omkostningsgodkendelse pr. item (Power BI Plant Section Key + MD_Approver, 300.000 kr.), kvalitet pr. værk; statusmodel, kolonner, flows |
 | [`docs/34-sap-oprettelse.md`](docs/34-sap-oprettelse.md) | **Vejen til SAP:** SAP Opretter (Excel + GUI Scripting), én JSON-ordre pr. plan i et synkroniseret bibliotek, kvittering tilbage; sikkerhed, fejl, afprøvning |

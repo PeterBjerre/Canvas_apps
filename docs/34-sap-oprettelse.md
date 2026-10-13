@@ -95,7 +95,7 @@ skiftes. Appen, flowene og filerne bliver.
 |---|---|
 | Power Query mod SharePoint | Login i Excel, kolonnerne kommer ud forskelligt, og de fem queries i det gamle regneark læste en lokal fil på én pc (docs/20) |
 | VBA mod SharePoints REST-API | Login virker kun med en tilfældig cookie. Det er grunden til, at hentningen i dag "virker nogle gange" (docs/20) |
-| HTTP-flow med signeret URL | URL'en *er* adgangen og ville ligge i projektmappen (docs/06) |
+| HTTP-flow med signeret URL | URL'en *er* adgangen og ville ligge i projektmappen |
 | **Bibliotek synkroniseret med OneDrive** | OneDrive står for login, filerne er bare der, og det virker begge veje uden hemmeligheder |
 
 Mailen kan stadig bruges: en ordrefil vedhæftet mailen kan lægges ind med
