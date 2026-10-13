@@ -110,11 +110,9 @@ fra en af de fem enkeltapps — skriver den `AppUrl` =
    `MaintenancePlans`, `MaterialItems`, `PlantList`, `SortFieldList`,
    `TaskListMain`
 
-   *Flows (5):* `BioSap-DeleteSubmittedAttachments`,
+   *Flows (4):* `BioSap-DeleteSubmittedAttachments`,
    `BioSap-GetSubmittedAttachments`, `BioSap-Integration-FunctionalLocations`,
-   `BioSap-TaskListAttachment`, `BioSap-Material-ReadInvoice` (fakturaimporten,
-   [`docs/34`](../docs/34-faktura-import.md) — flowet og Office Scriptet skal
-   oprettes først)
+   `BioSap-TaskListAttachment`
 
    *Kun med Issue Board slået til (issue #114):* listerne `IB_Tickets`,
    `IB_TicketComments`, `IB_AppSections` og flowet
@@ -164,8 +162,6 @@ fra en af de fem enkeltapps — skriver den `AppUrl` =
    8. Submit med gyldige rækker → status *Indsendt*, og formularen låses.
 8. Mål: tid til hubben vises og første besøg på hvert domæne, sammenlignet
    med de fem apps.
-9. **Materials → Import invoice:** testplanen i
-   [`docs/34`](../docs/34-faktura-import.md#testplan).
 
 ### UX-review 2026-10 (etape 1)
 

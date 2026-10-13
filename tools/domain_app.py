@@ -141,8 +141,7 @@ def write_app(cfg, app_dir, extra_collections=(), extra_state=""):
     """App.pa.yaml. OnStart HENTER INGEN DATA - raekkerne hentes i
     skaermens OnVisible. Kun samlingsskemaerne og tilstanden staar her.
 
-    extra_collections / extra_state: det, der kun er den ene apps - fx
-    Materials' fakturaimport (Material App/build/invoice_parts.py). De
+    extra_collections / extra_state: det, der kun er den ene apps. De
     skrives efter de faelles, i samme form."""
     dp.use(cfg)
     body = onstart(cfg, extra_collections, extra_state)
@@ -225,7 +224,7 @@ def build_screen(cfg, parts, render):
         editor = []
     # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
     nav, overlay = side_nav("Dom", cfg.APP_KEY)
-    # Appens EGNE popupper ([sloer, popup], fx Materials' fakturaimport).
+    # Appens EGNE popupper ([sloer, popup], fx en popup, kun den ene app har).
     # De staar efter de faelles og foer sidebarens aabne panel.
     own = parts.build_popups() if hasattr(parts, "build_popups") else []
     # Appens egne linjer nederst i detaljeruden (opt-in, issue #210).
