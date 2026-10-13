@@ -15,7 +15,7 @@ af dem:
 | **VH-plan** | [`Maintenance Plan App/`](Maintenance%20Plan%20App) | Indmelding af vedligeholdsplaner, inkl. strategiplaner med pakker |
 | **Equipments** | [`Equipment App/`](Equipment%20App) | Indmelding af udstyr |
 | **Materials** | [`Material App/`](Material%20App) | Indmelding af reservedele |
-| **Functional Location** | [`Functional Location App/`](Functional%20Location%20App) | Functional Locations (SPOOL): KKS-syntaks, klasse og spool-felter pr. klasse. Reglerne er HTML-sidens (`html/functional-location.html` + JS) - se [`docs/31`](docs/31-functional-location-regler.md) |
+| **Functional Location** | [`Functional Location App/`](Functional%20Location%20App) | Functional Locations (SPOOL): KKS-syntaks, klasse og spool-felter pr. klasse. Reglerne er HTML-sidens JS (`html/*.js`) - se [`docs/31`](docs/31-functional-location-regler.md) |
 | **KKS lookup** | [`KKS App/`](KKS%20App) | Opslag i KKS-vejledningen: funktions-, aggregat- og komponentnøgler. Kun en skærm i BIO SAP - den var aldrig en af de fem enkeltapps. Data i SharePoint; aggregat og komponent genbruger `MD_FLKey`. Se [`KKS App/README.md`](KKS%20App/README.md) |
 
 > **Equipments og Materials deler byggeklodser, men er to apps.** De var
@@ -130,7 +130,6 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 | `schema/fl-sap-order.schema.json`, `fl-sap-receipt.schema.json` | Det samme for FL-anmodninger |
 | `schema/vhplan-request.schema.json` | Oplæggets kontrakt mod SAP (historisk) |
 | `schema/example-strategy-request.json` | Udfyldt eksempel (kompressor, Z-MONTH) |
-| `html/cycle-timeline-reference.html` | Referenceoutput – åbn i en browser |
 | `excel/opretter/` | **SAP Opretter** (VH-planer og FL): VBA-modulerne, `Build-Opretter.ps1` og teamets vejledning |
 | `excel/vba/spool-gui/` | SPOOL-arkets GUI-script til FL, trukket ud som reference for porten |
 | `flow/sap-ordre/` | Udtrykkene til flowene i `docs/35` (VH-planer) og `docs/36` (FL, `fl-*`) |
@@ -210,6 +209,3 @@ $site = "https://<tenant>.sharepoint.com/sites/<site>"
 VH-planens egne lister (`MaintenancePlans`, `MaintenanceItems`,
 `TaskListMain` …) findes i forvejen; scripterne ovenfor tilføjer kolonner og
 de nye `MD_*`-lister.
-
-Åbn derefter `html/cycle-timeline-reference.html` i en browser for at se,
-hvad forfaldskalenderen skal ende med at vise.
