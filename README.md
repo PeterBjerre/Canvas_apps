@@ -114,12 +114,6 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 |---|---|
 | `tools/canvas_mcp.py` | Byg, compile og synk til Studio via canvas-authoring MCP-serveren — uden VS Code |
 | `tools/export_solution.ps1` | Hent solution BIO SAP ned som læsbare filer — flows, miljøvariabler, connection references |
-| `powerfx/*.fx` | **Designnoter** fra oplægget — ikke kode, der bygges. FL-builderne bruger 03/04 som mønster |
-| `powerfx/01-app-formulas.fx` | Named formulas, opstart, navigation |
-| `powerfx/02-pakkematrix.fx` | Pakkematricen – nested gallery, toggle, genveje |
-| `powerfx/03-validering.fx` | Regelsæt S1–S9 som én meddelelsestabel |
-| `powerfx/04-submit-patch.fx` | Genoptageligt gem + JSON-snapshot ved submit |
-| `powerfx/05-html-timeline.fx` | Formel, der bygger HTML-forfaldskalenderen |
 | `sharepoint/provision/Provision-*.ps1` | Idempotent PnP-provisionering af de lister, apperne bruger (se Hurtig start) |
 | `sharepoint/provision/Provision-RequestIndex.ps1` | `MD_RequestIndex` — den fælles indeksliste bag landingssiden |
 | `sharepoint/provision/Provision-VHPlanApproval.ps1` | Godkendelsesflowets fase 1: kolonner på `MaintenancePlans`, `MD_Approver`, `MD_ApprovalLog`, grænsen i `AppSettings` — se `docs/32` |
@@ -128,8 +122,6 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 | `sharepoint/seed/*.csv` | Masterdata: strategier, pakker, hjælpetekster, godkendere, FL-nøgler |
 | `schema/vhplan-sap-order.schema.json`, `vhplan-sap-receipt.schema.json` | Ordren til opretteren og kvitteringen tilbage, med eksempler |
 | `schema/fl-sap-order.schema.json`, `fl-sap-receipt.schema.json` | Det samme for FL-anmodninger |
-| `schema/vhplan-request.schema.json` | Oplæggets kontrakt mod SAP (historisk) |
-| `schema/example-strategy-request.json` | Udfyldt eksempel (kompressor, Z-MONTH) |
 | `excel/opretter/` | **SAP Opretter** (VH-planer og FL): VBA-modulerne, `Build-Opretter.ps1` og teamets vejledning |
 | `excel/vba/spool-gui/GUI_SCRIPT.bas` | SPOOL-arkets GUI-script til FL, trukket ud som reference for porten |
 | `flow/sap-ordre/` | Udtrykkene til flowene i `docs/35` (VH-planer) og `docs/36` (FL, `fl-*`) |
