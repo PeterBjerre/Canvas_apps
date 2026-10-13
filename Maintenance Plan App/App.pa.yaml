@@ -199,6 +199,8 @@ App:
       T = { micro: 11, small: 12, body: 13, input: 14, inputMobile: 16, cardTitle: 17, pageTitle: 22 };
       R = { input: 10, card: 14, modal: 16 };
 
+      PanelInset = 0;
+
       // ADMIN. Genereret af tools/permissions.py - ret ikke her.
       // Een delegerbar LookUp i admin-listen, laest dovent og kun een gang.
       IsAdmin = !IsBlank(LookUp(UserAndGroups, Title = "Admin" && Member = Lower(User().Email)));
@@ -504,10 +506,10 @@ App:
       );
 
       // Det, der mangler i Plan header (issue #220) - een linje pr. krav. Tom = intet.
-      VhpPlanMissing = Concat(Filter(Table({ m: If(!VhpStepPlanDone, "Save the plan header.", "") }, { m: VhpPlanRuleErrors }), !IsBlank(m)), m, Char(10));
+      VhpPlanMissing = Concat(Filter(Table({ m: If(!VhpStepPlanDone, "Press Done in the plan header.", "") }, { m: VhpPlanRuleErrors }), !IsBlank(m)), m, Char(10));
 
       // Det, der mangler i Items (issue #220) - een linje pr. krav. Tom = intet.
-      VhpItemMissing = Concat(Filter(Table({ m: If(!VhpStepItemDone, If(IsEmpty(VhpSaveableItems), "Add at least one item.", "Save every item as valid in the item editor."), "") }, { m: VhpItemRuleErrors }), !IsBlank(m)), m, Char(10));
+      VhpItemMissing = Concat(Filter(Table({ m: If(!VhpStepItemDone, If(IsEmpty(VhpSaveableItems), "Add at least one item.", "Press Done on every item in the item editor."), "") }, { m: VhpItemRuleErrors }), !IsBlank(m)), m, Char(10));
 
       // Det, der mangler i Task list and operations (issue #220) - een linje pr. krav. Tom = intet.
       VhpOpsMissing = Concat(Filter(Table({ m: If(!VhpStepTasklistDone, "Choose a task list for every item.", "") }, { m: If(!VhpStepOpsDone, If(varVhpPlan.PlanType = "Strategy", "Give every item operations, each with a package.", "Give every item at least one operation."), "") }, { m: VhpOpsRuleErrors }), !IsBlank(m)), m, Char(10));

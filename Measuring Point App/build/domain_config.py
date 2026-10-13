@@ -42,6 +42,7 @@ APP_KEY = "measuringpoint"
 SCREEN = "ScreenMeasuringPoint"
 TITLE = "Measuring Points"
 SUBTITLE = "Report counters and measuring points for a functional location."
+ROW_PANEL_ENABLED = True
 
 # Praefikset i noeglerne og i anmodningsnummeret: MP-000123.
 PREFIX = "MP"

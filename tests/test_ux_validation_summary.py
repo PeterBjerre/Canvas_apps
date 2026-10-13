@@ -31,14 +31,12 @@ def test_the_summary_is_a_list_with_one_go_button_per_item():
     assert f"{bh.FIX_ROWS_MAX}" in gal.props["Height"]
 
 
-def test_domains_show_draft_rows_after_submit_with_open_row():
+def test_domains_show_draft_rows_before_submit_with_go_to_field():
     for screen, tag in (("ScreenEquipment.pa.yaml", "Eq"), ("ScreenMaterial.pa.yaml", "Mat"),
                         ("ScreenMeasuringPoint.pa.yaml", "Mp")):
         y = _yaml(screen)
-        submit = _block(y, f"btn{tag}Submit")
-        assert f"Set(var{tag}FixOn, CountRows(" in submit, screen
         fix = _block(y, f"con{tag}Fix")
-        assert f"var{tag}FixOn" in fix and "!var%sViewOnly" % tag in fix
+        assert "Before you can submit" in y and "!var%sViewOnly" % tag in fix
         go = _block(y, f"btn{tag}FixGo")
         assert f"Set(var{tag}ActiveRowId, ThisItem.RowId)" in go, screen
 

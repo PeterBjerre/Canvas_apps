@@ -75,6 +75,7 @@ from gen_screen import (Ctrl, stack_height, C_APP_BG, C_CARD_BG, C_CARD_BORDER, 
 from build_helpers import (empty_state, skeleton_rows, ensure_hit, hit_size, button, card, checkbox_theme, concurrent, confirm_modal,
                            fit_button_width, group,
                            flow_row, grow, icon_on_mobile, label_row, loading_overlay, row_hit, row_rule,
+                           tap_backdrop,
                            text_ctrl, text_input, themed_dropdown, top_bar, ICON_W)
 from permissions import IS_ADMIN, ADMIN_LIST, ADMIN_GROUP
 from design_tokens import ref as _t
@@ -489,6 +490,7 @@ OPEN_FORM = (
     "Set(varIbMore, false);\n"
     "Set(varIbTried, false);\n"
     + RESET_FORM + ";\n"
+    "Set(varIbDetailOn, false);\n"
     "Set(varIbFormOn, true)"
 )
 
@@ -606,39 +608,31 @@ CLEAR_FILTERS = ('Set(varIbApp, "");\nSet(varIbSection, "");\nSet(varIbStatusF, 
 # raekken (segmenterne og listeparrene), og den har sin egen hoejde.
 # Kontrollernes bredder regnes af kortets indre bredde (TB_W, en nedre
 # graense), og soegefeltet tager resten (grow). Ingen Y, ingen forskydning.
+#
+# UX-review (screenshots 2026-10-13): de to indlejrede grupper (kontakterne
+# og listeparrene) blev stadig tegnet som tomme rammer. Nu staar hver knap
+# og hver liste DIREKTE i sin flow_row, som i hubbens filterlinje.
 TB_W = CARD_W
-SEG_GAP = 4
 SCOPE_W = {"btnIbScopeAll": 96, "btnIbScopeMine": 100, "btnIbScopeAssigned": 128}
 STATE_W = {"btnIbStateOpen": 76, "btnIbStateClosed": 84, "btnIbStateArchived": 92}
-SCOPE_ADMIN_W = sum(SCOPE_W.values()) + 2 * SEG_GAP
-SCOPE_USER_W = SCOPE_W["btnIbScopeAll"] + SCOPE_W["btnIbScopeMine"] + SEG_GAP
-STATE_ALL_W = sum(STATE_W.values()) + 2 * SEG_GAP
 TB_GAP = 12          # mellem grupperne i en linje
 SEARCH_MIN = 240
 SORT_W = 150
 DD_MIN = 130         # en filterliste ("All applications" + pilen)
-PAIR_MIN = 2 * DD_MIN + 8
 # Linje 1 paa een linje: begge kontakter + soegefeltets mindstebredde.
-TOP_OK = f"{TB_W} >= {SCOPE_ADMIN_W + TB_GAP + STATE_ALL_W + TB_GAP + SEARCH_MIN}"
-# Linje 2 paa een linje: to listepar + sorteringen.
-FLT_OK = f"{TB_W} >= {2 * PAIR_MIN + TB_GAP + TB_GAP + SORT_W}"
+# Knapperne staar direkte i raekken (ingen indlejret gruppe), saa der er
+# TB_GAP mellem alle seks og soegefeltet.
+# Regnet for administratoren (tre kontakter) - en bruger har een mindre.
+TOP_OK = (f"{TB_W} >= "
+          f"{sum(SCOPE_W.values()) + sum(STATE_W.values()) + 6 * TB_GAP + SEARCH_MIN}")
+# Linje 2 paa een linje: fire filterlister + sorteringen.
+FLT_OK = f"{TB_W} >= {4 * DD_MIN + 4 * TB_GAP + SORT_W}"
 # Hver linjes hoejde, naar den staar vandret.
 TB_LINE_H = 36
 
 
-def _seg_group(name, segs, wide_w, ok):
-    """En fast, vandret gruppe af segmenter. Paa een linje: de faste
-    bredder. Under hinanden (flow_row lodret, Stretch): hele linjen, og
-    segmenterne deler den."""
-    g = group(name, segs, direction="Horizontal", gap=SEG_GAP, height=SEG_H,
-              align_items="Center", width=f"If({ok}, {wide_w}, {TB_W})")
-    return g
-
-
 def build_filters():
     """Vaerktoejslinjens to raekker - de staar direkte i listekortet."""
-    n_scope = f"If({IS_ADMIN}, 3, 2)"
-    narrow_scope = f"(({TB_W}) - {SEG_GAP} * ({n_scope} - 1)) / {n_scope}"
     all_seg = _seg("btnIbScopeAll", "All issues", SCOPE_ALL,
                    'Set(varIbScope, "all")', SCOPE_W["btnIbScopeAll"],
                    '"Show all issues from all testers"')
@@ -651,10 +645,7 @@ def build_filters():
     asg_seg.props["Visible"] = IS_ADMIN
     asg_seg.vis = IS_ADMIN
     for s in (all_seg, mine_seg, asg_seg):
-        s.props["Width"] = f"If({TOP_OK}, {SCOPE_W[s.name]}, {narrow_scope})"
-        s.props["LayoutMinWidth"] = s.props["Width"]
-    scope = _seg_group("conIbScope", [all_seg, mine_seg, asg_seg],
-                       f"If({IS_ADMIN}, {SCOPE_ADMIN_W}, {SCOPE_USER_W})", TOP_OK)
+        s.props["Width"] = str(SCOPE_W[s.name])
 
     states = [("btnIbStateOpen", "Open", "open", '"Show open issues"'),
               ("btnIbStateClosed", "Closed", "closed", '"Show closed issues"'),
@@ -663,10 +654,7 @@ def build_filters():
     for name, label, key, acc in states:
         s = _seg(name, label, f'varIbState = "{key}"', f'Set(varIbState, "{key}")', STATE_W[name],
                  acc)
-        s.props["Width"] = f"If({TOP_OK}, {STATE_W[name]}, (({TB_W}) - {2 * SEG_GAP}) / 3)"
-        s.props["LayoutMinWidth"] = s.props["Width"]
         segs.append(s)
-    state = _seg_group("conIbState", segs, STATE_ALL_W, TOP_OK)
 
     search = text_input("inpIbSearch", '""', placeholder='"Search number, title or description"',
                         label='"Search issues"')
@@ -674,7 +662,7 @@ def build_filters():
     # om for hvert tegn.
     search.props["TriggerOutput"] = "TriggerOutput.Delayed"
     search.props["Width"] = str(SEARCH_MIN)
-    top = flow_row("conIbTbTop", [scope, state, search], TB_W, gap=TB_GAP, flex=search,
+    top = flow_row("conIbTbTop", [all_seg, mine_seg, asg_seg, *segs, search], TB_W, gap=TB_GAP, flex=search,
                    flex_min=SEARCH_MIN, ok=TOP_OK)
 
     # Application og den afhaengige Section, status og prioritet - to og
@@ -708,15 +696,10 @@ def build_filters():
                                "varIbSort", label='"Sort issues"',
                                onchange="Set(varIbSort, Self.Selected.Value)")
     drp_sort.props["Width"] = f"If({FLT_OK}, {SORT_W}, {TB_W})"
-    pair_w = f"If({FLT_OK}, (({TB_W}) - {SORT_W + 2 * TB_GAP}) / 2, {TB_W})"
     for c in (drp_app, drp_sec, drp_status, drp_pri):
-        c.props["Width"] = f"(({pair_w}) - 8) / 2"
-        c.props["LayoutMinWidth"] = c.props["Width"]
-    pair_a = group("conIbFltPairA", [drp_app, drp_sec], direction="Horizontal", gap=8,
-                   height=TB_LINE_H, align_items="Center", width=pair_w)
-    pair_b = group("conIbFltPairB", [drp_status, drp_pri], direction="Horizontal", gap=8,
-                   height=TB_LINE_H, align_items="Center", width=pair_w)
-    filters = flow_row("conIbTbFilters", [pair_a, pair_b, drp_sort], TB_W, gap=TB_GAP, ok=FLT_OK)
+        c.props["Width"] = f"If({FLT_OK}, (({TB_W}) - {SORT_W + 4 * TB_GAP}) / 4, {TB_W})"
+    filters = flow_row("conIbTbFilters", [drp_app, drp_sec, drp_status, drp_pri, drp_sort], TB_W,
+                       gap=TB_GAP, ok=FLT_OK)
     return [top, filters]
 
 
@@ -1068,7 +1051,8 @@ POP_GAP = 12
 POP_MARGIN = 16
 
 
-def _popup(prefix, kids, vis, width=POP_W, foot=None, own_scroll=False):
+def _popup(prefix, kids, vis, width=POP_W, foot=None, own_scroll=False,
+           side_panel=False, close_fx="Set(varIbDetailOn, false)"):
     """Popuppen holder sig inden for skaermen (issue #177): hovedet (titel
     og Close) og en eventuel fod staar fast; kun indholdet imellem scroller,
     og kun naar det ikke kan staa. Close kan altid naas.
@@ -1090,6 +1074,23 @@ def _popup(prefix, kids, vis, width=POP_W, foot=None, own_scroll=False):
                   border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(POP_PAD, POP_PAD, POP_PAD, POP_PAD), width=width,
                   drop_shadow="ExtraBold", align_in_container="Center")
+    if side_panel:
+        backdrop = tap_backdrop(f"img{prefix}Backdrop", f"({vis}) && {lay.INSET} = 0",
+                                close_fx, fill=C_TRANSPARENT)
+        modal.props["Height"] = "App.Height"
+        modal.h = "App.Height"
+        modal.props["Width"] = f"If({at_least('Desktop')}, 480, App.Width)"
+        modal.props["X"] = f"If({at_least('Desktop')}, App.Width - Self.Width, 0)"
+        modal.props["Y"] = "0"
+        modal.props["RadiusTopRight"] = "0"
+        modal.props["RadiusBottomRight"] = "0"
+        modal.props["AlignInContainer"] = "AlignInContainer.Start"
+        # Panelet staar frit paa skaermen (ikke i sloeret), saa det skal
+        # selv skjules. Uden det stod Description- og New issue-panelet
+        # altid halvt synlige over listen (screenshots 2026-10-13).
+        modal.props["Visible"] = vis
+        modal.vis = vis
+        return [backdrop, modal]
     backdrop = group(f"con{prefix}Backdrop", [modal], direction="Vertical", gap=0,
                      height="App.Height", width="App.Width", fill=C_OVERLAY, visible=vis,
                      justify="Center", align_items="Center",
@@ -1367,7 +1368,7 @@ SIMILAR_ITEMS = (
 SIM_ROW_H = 44
 
 
-FORM_W = "Min(680, App.Width - 24)"
+FORM_W = f"If({at_least('Desktop')}, 480, App.Width)"
 # Indholdet staar i popuppens scrollende krop - scrollbaren er trukket fra.
 FORM_IN = f"({FORM_W} - {2 * POP_PAD} - {lay.SCROLLBAR_W})"
 
@@ -1457,7 +1458,7 @@ def build_discard():
         f'If({EDITING}, "Your changes to " & {SEL_REF}.TicketNo & " have not been saved. '
         'They are lost if you close.", "The issue has not been submitted. What you have '
         'entered is lost if you close.")',
-        "Discard and close", CLOSE_FORM, "btnIbDiscardConfirm", icon=None)
+        "Discard and close", CLOSE_FORM, "btnIbDiscardConfirm", icon=None, danger=True)
 
 
 def build_form():
@@ -1630,7 +1631,8 @@ def build_form():
     kids = [head, intro, where, sec_hint, other_f, title_f, similar, desc_f, more, details,
             manage, context]
     # Foden staar fast under det, der scroller: Submit kan altid naas.
-    return [_popup("IbForm", kids, FORM_ON, width=FORM_W, foot=foot), *build_discard()]
+    return [*_popup("IbForm", kids, FORM_ON, width=FORM_W, foot=foot, side_panel=True,
+                    close_fx=CLOSE_ASK), *build_discard()]
 
 
 # ---------------------------------------------------------------------------
@@ -1638,7 +1640,9 @@ def build_form():
 # ---------------------------------------------------------------------------
 DETAIL_ON = "IfError(varIbDetailOn, false)"
 SEL = "varIbSel"
-DET_IN = f"({POP_IN} - {lay.SCROLLBAR_W})"
+DETAIL_PANEL_W = f"If({at_least('Desktop')}, 480, App.Width)"
+DETAIL_PANEL_IN = f"({DETAIL_PANEL_W} - {2 * POP_PAD})"
+DET_IN = f"({DETAIL_PANEL_IN} - {lay.SCROLLBAR_W})"
 ACT_ROW_PAD = 12
 ACT_W = f"({DET_IN} - {lay.SCROLLBAR_W} - {lay.GALLERY_RESERVE})"
 ACT_BODY_W = f"({ACT_W} - {2 * ACT_ROW_PAD})"
@@ -1962,7 +1966,7 @@ def build_detail():
     no = _no_badge("txtIbDetNo", f"{SEL}.TicketNo")
     no.props["LayoutMinWidth"] = str(NO_W)
     head = _head("IbDet", f"{SEL}.Title", "Set(varIbDetailOn, false)",
-                 lead=[no], title_w=f"({POP_IN}) - {NO_W} - {ICON_BTN} - 20", close_icon=True)
+                 lead=[no], title_w=f"({DETAIL_PANEL_IN}) - {NO_W} - {ICON_BTN} - 20", close_icon=True)
 
     # 2. Status, prioritet, Application og Section - maerker og to korte
     #    vaerdier, ikke en lang streng. Paa en smal popup paa to linjer.
@@ -2174,7 +2178,8 @@ def build_detail():
         p.props["LayoutOverflowY"] = "LayoutOverflow.Scroll"
         p.h = "Parent.Height"
     content = group("conIbDetContent", panels, direction="Vertical", gap=0, height=content_h)
-    return [_popup("IbDet", [head, top, content], DETAIL_ON, own_scroll=True)]
+    return _popup("IbDet", [head, top, content], DETAIL_ON, own_scroll=True,
+                  side_panel=True)
 
 
 def build_delete():
