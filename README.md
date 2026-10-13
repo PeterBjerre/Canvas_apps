@@ -131,11 +131,8 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 | `schema/vhplan-request.schema.json` | Oplæggets kontrakt mod SAP (historisk) |
 | `schema/example-strategy-request.json` | Udfyldt eksempel (kompressor, Z-MONTH) |
 | `excel/opretter/` | **SAP Opretter** (VH-planer og FL): VBA-modulerne, `Build-Opretter.ps1` og teamets vejledning |
-| `excel/vba/spool-gui/` | SPOOL-arkets GUI-script til FL, trukket ud som reference for porten |
+| `excel/vba/spool-gui/GUI_SCRIPT.bas` | SPOOL-arkets GUI-script til FL, trukket ud som reference for porten |
 | `flow/sap-ordre/` | Udtrykkene til flowene i `docs/35` (VH-planer) og `docs/36` (FL, `fl-*`) |
-| `excel/vba/*.bas` | Oplæggets VBA-moduler (afløst af `excel/opretter`) |
-| `excel/powerquery/*.m` | Oplæggets Power Query (afløst: opretteren læser JSON) |
-| `excel/VHPlan-SAP-skabelon.xlsx` | Oplæggets projektmappe med tabeller og eksempeldata (historisk) |
 
 ## Vejen til SAP
 
