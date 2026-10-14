@@ -782,13 +782,19 @@ def with_busy(busy_var, fx):
 
 
 def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
-                  confirm_name, icon=ICON_SUBMIT):
+                  confirm_name, icon=ICON_SUBMIT, danger=None):
     """Bekraeftelsen foer Submit (issue #54) - [sloer, popup].
 
     Samme konstruktion som appernes andre popupper: en centreret container
     med sloer bag, titel, en linje tekst og to knapper. Submit-knappen
     aabner den (Set(open_var, true)); foerst "Submit" HER koerer
-    indsendelsen. Cancel lukker uden at goere noget."""
+    indsendelsen. Cancel lukker uden at goere noget.
+
+    danger: knappen sletter eller kasserer noget - roed kant og tekst i
+    stedet for den blaa primaerknap (UX-review, screenshots 2026-10-13).
+    Uden angivelse er en Delete-knap (icon="Delete") altid danger."""
+    if danger is None:
+        danger = icon == "Delete"
     vis = f"IfError({open_var}, false)"
     backdrop = tap_backdrop(f"con{prefix}ConfirmBackdrop", vis, f"Set({open_var}, false)")
     t = text_ctrl(f"txt{prefix}ConfirmTitle", f'"{title}"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
@@ -798,7 +804,7 @@ def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
     cancel = button(f"btn{prefix}ConfirmCancel", '"Close"', f"Set({open_var}, false)",
                     width=fit_button_width('"Close"'), height=36)
     ok = button(confirm_name, f'"{confirm_text}"',
-                f"Set({open_var}, false);\n{confirm_fx}", primary=True,
+                f"Set({open_var}, false);\n{confirm_fx}", primary=not danger, danger=danger,
                 width=fit_button_width(f'"{confirm_text}"') + (ICON_W if icon else 0), height=36, icon=icon)
     footer = group(f"con{prefix}ConfirmFooter", [cancel, ok], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
@@ -1365,6 +1371,10 @@ def empty_state(name, text, action_text=None, action_fx=None, icon_key=None,
     msg = text_ctrl(f"txt{base}Text", text, size=lay.SIZE_BODY, color=C_MUTED,
                     align="Center", height=EMPTY_TEXT_H, wrap="true",
                     extra={"VerticalAlign": "VerticalAlign.Middle"})
+    # Teksten faar hele gruppens bredde (Stretch). Med gruppens Center fik
+    # den sin egen smalle standardbredde, ombroed og blev klippet med en
+    # rullepil (Measuring points, screenshots 2026-10-13).
+    msg.props["AlignInContainer"] = "AlignInContainer.Stretch"
     kids = [img, msg]
     if action_text:
         w = fit_button_width(f'"{action_text}"') + (ICON_W if action_icon else 0)
@@ -1829,8 +1839,17 @@ def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
 
 def request_shell(prefix, header, breadcrumb, actions, rows, editor=None, footer=None,
                   body_gap=16):
-    """Komponer header, anmodningsnavigation, raekkeliste og editor-overlay."""
-    body = [item for item in (breadcrumb, actions, rows) if item is not None]
+    """Komponer header, anmodningsnavigation, raekkeliste og editor-overlay.
+
+    DEN FAELLES SKAL (UX-review L1). Alle anmodningsskaerme - Equipments,
+    Materials, Measuring points, Functional Location og Issue Board - bygger
+    rammen her. rows er een del eller en liste af dele (FL har raekker,
+    klasser og struktur under hinanden). Skaermen leverer kun sine dele;
+    editor er panelet, som skaermen selv kan placere i lagene (det skal staa
+    over sidebarens aabne panel paa FL og Issue Board), og saa gives det
+    ikke her."""
+    parts = list(rows) if isinstance(rows, (list, tuple)) else [rows]
+    body = [item for item in (breadcrumb, actions, *parts) if item is not None]
     root = app_frame(prefix, header, body, body_gap=body_gap, footer=footer)
     return [root, *(editor or [])]
 

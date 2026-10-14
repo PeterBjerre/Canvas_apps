@@ -2,8 +2,8 @@
 
 > **AFKLARET:** vejen er valgt — **Excel-makro med SAP GUI Scripting**, altså
 > en automatiseret variant af mulighed A. Se
-> [`06-excel-gui-scripting.md`](06-excel-gui-scripting.md) for den løsning,
-> der faktisk skal bygges. Dette dokument bevares, fordi afsnittet om
+> [`34-sap-oprettelse.md`](34-sap-oprettelse.md) for den løsning,
+> der blev bygget. Dette dokument bevares, fordi afsnittet om
 > kontrakten, idempotens og fejlhåndtering gælder uanset transportvej — og
 > fordi mulighederne B–D bliver relevante igen, hvis døren åbner sig
 > serverside.
@@ -112,7 +112,7 @@ Et ugentligt flow samler alle anmodninger i status `KlarTilSAP` i én fil
 ## Anbefaling
 
 **Start på A. Byg kontrakten som om det var B.** *(Valgt — i form af Excel +
-GUI Scripting, se `06-excel-gui-scripting.md`.)*
+GUI Scripting, se `34-sap-oprettelse.md`.)*
 
 Payload, `requestGuid`, `IntegrationStatus`, `IntegrationMessage` og
 `IntegrationRetries` skal være på plads fra dag ét, også selvom det første

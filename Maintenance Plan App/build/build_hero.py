@@ -121,7 +121,7 @@ CAN_SUBMIT = f"VhpCanSubmit && !({ITEM_DIRTY})"
 # tooltip, linjen under trinene og listen "Before you can submit" bygges
 # alle af GROUPS. Foer stod der "Fix 1 plan rule - hover Submit to see
 # them" - nu staar selve reglerne der.
-DIRTY_MSG = '"Save the changes in the item editor."'
+DIRTY_MSG = '"Press Done in the item editor to keep the changes."'
 # (overskrift = sektionens titel, tekst med een linje pr. krav, trin)
 GROUPS = [
     ("Plan header", MISSING_NAMES["Plan"], 1),
@@ -699,7 +699,7 @@ def build_top_bar():
     confirmNew = confirm_modal(
         "VhpNew", "varVhpConfirmNew", "Start a new request?",
         '"Unsaved work on this request is discarded. Save a draft first to keep it."',
-        "Discard and start new", NEW_PLAN_FX, "btnVhpNewConfirm", icon=None)
+        "Discard and start new", NEW_PLAN_FX, "btnVhpNewConfirm", icon=None, danger=True)
     CONFIRM[:] = (confirm + confirmNew + delete_modal("Vhp", "varVhpRequestGuid", _cfg.L_INDEX, "MaintenancePlan")
                   + missing_modal())
     btnNotes, btnDelete = _header_actions(NOTES_HAVE, NOTES_OPEN_VIEW)

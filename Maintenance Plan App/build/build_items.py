@@ -9,6 +9,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_MUTED, C_INFO_FG,
 from design_tokens import ref_hex
 import layout_tokens as lay
 import icons
+import status_chip as sc
 from layout_tokens import if_below, at_least, below, fits, TWO_COL_MIN
 from build_helpers import (empty_state, checkbox_theme, row_hit, text_ctrl, group, button,
                            button_row, text_input, themed_dropdown, label_row,
@@ -220,7 +221,7 @@ CARD_NO = "CountRows(Filter(colVhpItems, ItemId <= ThisItem.ItemId))"
 
 
 def _delete_item_fx(item_id):
-    """Sletningen af et item - kortets Delete og editorens "Delete item"
+    """Sletningen af et item - editorens "Delete item"
     (UX-review M5). Id'et laeses FOER noget fjernes."""
     return (
             "With(\n"
@@ -253,8 +254,7 @@ def build_items_rail():
         (
             "If(\n"
             "    !varVhpPlanCommitted,\n"
-            "    Notify(\"Save the plan before adding items.\", NotificationType.Warning),\n"
-            "\n"
+            "    Notify(\"Press Done in the plan header before adding items.\", NotificationType.Warning),\n"
             "    Set(varVhpNextItemId, varVhpNextItemId + 1);\n"
             "    Collect(\n"
             "        colVhpItems,\n"
@@ -427,8 +427,7 @@ def build_items_rail():
 
     # HELE KORTET ER KLIKBART (issue #54). En gennemsigtig knap over kortet
     # med Open-knappens OnSelect - navnet er Open-knappens, saa intet, der
-    # pegede paa den, er brudt. Den ligger OVER teksterne og UNDER Delete
-    # (_OnTop), saa et klik paa Delete aldrig ogsaa aabner kortet.
+    # pegede paa den, er brudt. Den ligger OVER teksterne.
     #
     # Det er det faelles moenster for klikbare raekker (build_helpers.row_hit,
     # issue #79): tone ved hover og tryk, kant ved fokus - og her ogsaa en
@@ -791,7 +790,7 @@ def build_item_editor():
     # Den tredje besked er en faelde, der ellers ikke kunne ses: rammer
     # UpdateIf ingen raekke, goer den ingenting og siger heller ingenting.
     btnSaveItem = button(
-        "btnVhpSaveItem", "\"Save\"",
+        "btnVhpSaveItem", "\"Done\"",
         (
             "If(\n"
             "    IsBlank(varVhpActiveItemId),\n"
@@ -834,19 +833,19 @@ def build_item_editor():
             "        If(\n"
             "            CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId)) = 0,\n"
             "            Notify(\n"
-            "                \"Item \" & Text(varVhpActiveItemId) & \" is not in the list - nothing was saved.\",\n"
+            "                \"Item \" & Text(varVhpActiveItemId) & \" is not in the list - nothing was changed.\",\n"
             "                NotificationType.Error\n"
             "            ),\n"
             # Issue #158: itemet har nu en Functional Location - vaelg den
             # foerste tasklist, hvis det ikke allerede har et gyldigt valg.
             f"            {AUTO_SELECT_TL};\n"
-            "            Notify(\"Item saved: \" & Trim(inpVhpItemShortText.Text) & \".\", NotificationType.Success)\n"
+            "            Notify(\"Item done: \" & Trim(inpVhpItemShortText.Text) & \". Save draft to keep it.\", NotificationType.Success)\n"
             "        )\n"
             "    )\n"
             ")"
-        ), primary=True, width=110, icon=ICON_SAVE,
+        ), primary=True, width=110, icon='"Checkmark"',
         display_mode=DM_ITEM)
-    btnSaveItem.props["AccessibleLabel"] = '"Save item " & Text(varVhpActiveItemId)'
+    btnSaveItem.props["AccessibleLabel"] = '"Done with item " & Text(varVhpActiveItemId)'
     # RESET (issue #54): Item Editorens usavede aendringer tilbage til det,
     # der sidst blev gemt paa itemet - eller tomt, hvis itemet aldrig er
     # gemt. Felterne har itemets gemte vaerdi som Default, saa Reset() er
@@ -890,8 +889,8 @@ def build_item_editor():
     # itemet er gemt som gyldigt.
     attention = text_ctrl(
         "txtVhpItemAttention",
-        f'Switch({ST}, "invalid", "Fix the fields marked * and save.", '
-        '"valid", "Item is valid.", "Not saved yet.")',
+        f'Switch({ST}, "invalid", "Fix the fields marked * and press Done.", '
+        '"valid", "Item is valid.", "Not done yet.")',
         size=12, height=36, wrap="true",
         visible="(!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)",
         extra={"Color": f'If({ST} = "invalid", {C_INVALID_FG}, {C_MUTED})',
@@ -902,7 +901,27 @@ def build_item_editor():
 
     # The card stretches to the height of the items list; SpaceBetween keeps
     # Reset and Save at the bottom edge when the editor card is taller.
-    body = group("conVhpEditorBody", [header, helpPanel, fieldsGrid, flRow],
+    # "BEFORE YOU CAN SUBMIT" I EDITOREN (VH-mockuppen). Det, der mangler
+    # paa items og operationer, staar ved felterne, hvor det rettes - samme
+    # navngivne formler som trinene og Submit (build_status). Planhovedets
+    # krav staar ved planhovedet og i linjen under trinene.
+    todo_fx = ('Concat(Filter(Table({ m: VhpItemMissing }, { m: VhpOpsMissing }), '
+               '!IsBlank(m)), m, Char(10))')
+    todo_vis = (f"(!IsBlank(varVhpActiveItemId) && !varVhpViewOnly && "
+                f"!IsBlank({todo_fx}))")
+    todoTitle = text_ctrl("txtVhpEditorTodoTitle", '"Before you can submit"', size=13,
+                          weight="Semibold", height=20, wrap="false",
+                          color=C_INVALID_FG)
+    # Hoejden af linjerne: hver linje ombrydes efter et skoen paa 6.5 px
+    # pr. tegn i 12 pt (samme skoen som andre ombrudte beskeder).
+    todo_h = (f"Max(18, 18 * Sum(Split({todo_fx}, Char(10)), "
+              f"RoundUp(Len(Value) * 6.5 / Max(100, {EDITOR_CW} - 26), 0)))")
+    todoText = text_ctrl("txtVhpEditorTodo", todo_fx, size=12, color=C_INVALID_FG,
+                         height=todo_h, wrap="true")
+    todo = group("conVhpEditorTodo", [todoTitle, todoText], direction="Vertical", gap=4,
+                 fill=C_INVALID_BG, border_color=C_INVALID_FG, border_thickness="1",
+                 radius=8, pad=(8, 12, 8, 12), visible=todo_vis)
+    body = group("conVhpEditorBody", [header, helpPanel, fieldsGrid, flRow, todo],
                  direction="Vertical", gap=14)
     editor = card("conVhpEditorCard", [body, footer])
     editor.props["LayoutJustifyContent"] = "LayoutJustifyContent.SpaceBetween"
@@ -910,7 +929,7 @@ def build_item_editor():
 
 
 # Save-knappens bredde i Item Editoren.
-ITEM_SAVE_W = fit_button_width("\"Save\"", min_w=96) + ICON_W
+ITEM_SAVE_W = fit_button_width("\"Done\"", min_w=96) + ICON_W
 
 
 def build_object_list_modal():

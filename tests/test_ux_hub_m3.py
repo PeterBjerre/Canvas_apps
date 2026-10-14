@@ -32,13 +32,17 @@ def test_tiles_are_72_px_with_a_new_icon_button():
         assert f'"New {d["name"].lower()} request"' in b
 
 
-def test_continue_where_you_left_off_opens_the_latest_draft_in_edit():
+def test_continue_where_you_left_off_lists_up_to_three_drafts_and_returned():
     assert "Status.Value = \"Kladde\"" in bh.RESUME_REFRESH
     assert "SortOrder.Descending" in bh.RESUME_REFRESH
+    assert ", 3))" in bh.RESUME_REFRESH
+    assert 'Status.Value = "AfventerInfo"' in bh.RESUME_REFRESH
     assert bh.RESUME_REFRESH in bh.HUB_ON_VISIBLE
-    go = _block(_yaml(), "btnMdResumeGo", 4000)
-    assert '"edit:" & varMdResume.RequestGuid' in go
-    assert "ThisItem" not in go
+    y = _yaml()
+    for i in (1, 2, 3):
+        go = _block(y, f"btnMdResumeGo{i}", 4000)
+        assert f'Index(varMdResumeList, {i})).RequestGuid' in go
+        assert "ThisItem" not in go
 
 
 def test_every_sort_branch_names_its_column_as_a_constant():

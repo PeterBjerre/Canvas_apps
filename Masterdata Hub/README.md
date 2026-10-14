@@ -21,7 +21,7 @@ hver dag, så den er bygget efter de ni performanceregler i dokumentet.
 
 ## Designet
 
-Efter `image.png`, med to afvigelser:
+Efter skærmbilledet `image.png` (nu kun i git-historikken), med to afvigelser:
 
 - **Hele flisen er filterknappen.** Der er ingen "Filter"-knap. Flisens
   forside (ikon, navn, tal) er ét SVG-billede med `OnSelect`, så et klik

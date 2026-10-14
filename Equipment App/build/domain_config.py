@@ -29,7 +29,7 @@ import env_config as env
 # --- appen ------------------------------------------------------------
 APP_KEY = "equipment"
 SCREEN = "ScreenEquipment"
-TITLE = "Equipment"
+TITLE = "Equipments"
 SUBTITLE = "Create, change and delete equipment"
 ROW_PANEL_ENABLED = True
 

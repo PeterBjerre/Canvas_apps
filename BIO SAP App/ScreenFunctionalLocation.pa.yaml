@@ -1135,9 +1135,62 @@ Screens:
                                     Text: |-
                                         =Text(CountRows(Filter(colFlRows, Status = "valid" || Status = "warning"))) & " of " & Text(CountRows(colFlRows)) & " valid"
                                     Width: |-
-                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18)) - ((47) + 12) - ((115) + 12) - 2)
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18)) - ((47) + 12) - ((138) + 12) - ((115) + 12) - 2)
                                     Wrap: |-
                                         =false
+                              - btnFlPasteRows:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Paste rows"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-default'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    DisplayMode: |-
+                                        =If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =36
+                                    Icon: |-
+                                        ="ClipboardPaste"
+                                    Layout: |-
+                                        =ButtonLayout.IconBefore
+                                    LayoutMinWidth: |-
+                                        =138
+                                    OnSelect: |-
+                                        =Set(varFlPasteText, "");
+                                        Reset(inpFlPaste);
+                                        Set(varFlPasteOpen, true)
+                                    RadiusBottomLeft: |-
+                                        =R.input
+                                    RadiusBottomRight: |-
+                                        =R.input
+                                    RadiusTopLeft: |-
+                                        =R.input
+                                    RadiusTopRight: |-
+                                        =R.input
+                                    Size: |-
+                                        =T.input
+                                    Text: |-
+                                        ="Paste rows"
+                                    Tooltip: |-
+                                        ="Paste functional locations and descriptions copied from Excel"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =138
                               - btnFlAddRow:
                                   Control: ModernButton
                                   Properties:
@@ -12048,6 +12101,366 @@ Screens:
                       =VerticalAlign.Middle
                   Width: |-
                       =77
+      - conFlPasteBackdrop:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Close the dialog"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =C.'overlay'
+            FocusedBorderThickness: |-
+                =0
+            Height: |-
+                =App.Height
+            HoverFill: |-
+                =C.'overlay'
+            Image: |-
+                =""
+            OnSelect: |-
+                =If(LayoutRank < 2, Set(varFlPasteOpen, false))
+            PressedFill: |-
+                =C.'overlay'
+            TabIndex: |-
+                =If(LayoutRank < 2, 0, -1)
+            Visible: |-
+                =IfError(varFlPasteOpen, false)
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conFlPasteModal:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'color-brand-primary-soft'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.ExtraBold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =340
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =18
+            PaddingRight: |-
+                =18
+            PaddingTop: |-
+                =18
+            RadiusBottomLeft: |-
+                =R.modal
+            RadiusBottomRight: |-
+                =R.modal
+            RadiusTopLeft: |-
+                =R.modal
+            RadiusTopRight: |-
+                =R.modal
+            Visible: |-
+                =IfError(varFlPasteOpen, false)
+            Width: |-
+                =Min(560, App.Width - 24)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =Max(12, (App.Height - Self.Height) / 3)
+          Children:
+            - conFlPasteHead:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =32
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =12
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - txtFlPasteTitle:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Paste rows"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =26
+                        LayoutMinWidth: |-
+                            =0
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.cardTitle
+                        Text: |-
+                            ="Paste rows"
+                        Width: |-
+                            =Max(0, (((Min(560, App.Width - 24)) - 18 - 18)) - ((90) + 12) - 2)
+                        Wrap: |-
+                            =false
+                  - btnFlPasteClose:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-default'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =32
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varFlPasteOpen, false)
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Close"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =90
+            - txtFlPasteHelp:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="Copy two columns in Excel and paste them here, one row per line: the functional location and the description."
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =40
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =T.body
+                  Text: |-
+                      ="Copy two columns in Excel and paste them here, one row per line: the functional location and the description."
+                  Wrap: |-
+                      =true
+            - inpFlPaste:
+                Control: ModernTextInput
+                Properties:
+                  AccessibleLabel: |-
+                      ="Rows to paste"
+                  Appearance: |-
+                      =Appearance.FilledDarker
+                  BasePaletteColor: |-
+                      =C.'color-brand-primary'
+                  BorderColor: |-
+                      =If(varFlViewOnly, C.'border-default', C.'border-input')
+                  BorderStyle: |-
+                      =BorderStyle.Solid
+                  BorderThickness: |-
+                      =1
+                  Color: |-
+                      =C.'input-fg'
+                  Default: |-
+                      =Coalesce(varFlPasteText, "")
+                  DisplayMode: |-
+                      =If((If(varFlViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                  Fill: |-
+                      =C.'input-bg'
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =160
+                  LayoutMinWidth: |-
+                      =0
+                  OnChange: |-
+                      =Set(varFlPasteText, Self.Text)
+                  Placeholder: |-
+                      ="Paste from Excel"
+                  RadiusBottomLeft: |-
+                      =R.input
+                  RadiusBottomRight: |-
+                      =R.input
+                  RadiusTopLeft: |-
+                      =R.input
+                  RadiusTopRight: |-
+                      =R.input
+                  Size: |-
+                      =If(LayoutRank < 2, 16, 14)
+                  Type: |-
+                      =TextInputType.Multiline
+                  ValidationState: |-
+                      =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                  Width: |-
+                      =Parent.Width
+            - conFlPasteFooter:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =36
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutJustifyContent: |-
+                      =LayoutJustifyContent.End
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - btnFlPasteAdd:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            =If(CountRows(Filter(Split(Substitute(Coalesce(varFlPasteText, ""), Char(13), ""), Char(10)), !IsBlank(Trim(Value)) && Upper(Trim(First(Split(Value, Char(9))).Value)) <> "FUNCTIONAL LOCATION")) = 0, "Add rows", "Add " & Text(CountRows(Filter(Split(Substitute(Coalesce(varFlPasteText, ""), Char(13), ""), Char(10)), !IsBlank(Trim(Value)) && Upper(Trim(First(Split(Value, Char(9))).Value)) <> "FUNCTIONAL LOCATION"))) & " rows")
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        Color: |-
+                            =C.'text-on-primary'
+                        DisplayMode: |-
+                            =If(CountRows(Filter(Split(Substitute(Coalesce(varFlPasteText, ""), Char(13), ""), Char(10)), !IsBlank(Trim(Value)) && Upper(Trim(First(Split(Value, Char(9))).Value)) <> "FUNCTIONAL LOCATION")) = 0, DisplayMode.Disabled, DisplayMode.Edit)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Icon: |-
+                            ="Add"
+                        Layout: |-
+                            =ButtonLayout.IconBefore
+                        OnSelect: |-
+                            =With(
+                                { lines: Filter(Split(Substitute(Coalesce(varFlPasteText, ""), Char(13), ""), Char(10)), !IsBlank(Trim(Value)) && Upper(Trim(First(Split(Value, Char(9))).Value)) <> "FUNCTIONAL LOCATION") },
+                                RemoveIf(colFlRows, SpId = 0 && IsBlank(FL) && IsBlank(Description));
+                                ForAll(
+                                    Sequence(CountRows(lines)),
+                                    Collect(colFlRows, { RowGuid: Text(GUID()), RowNo: varFlNextRowNo + Value - 1, SpId: 0, FL: Upper(Trim(Substitute(Substitute(Substitute(IfError(Index(Split(Index(lines, Value).Value, Char(9)), 1).Value, ""), Char(160), " "), Char(13), ""), Char(10), ""))), Description: Trim(IfError(Index(Split(Index(lines, Value).Value, Char(9)), 2).Value, "")), KksType: "", AssignedClass: "", Status: "draft", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0, Pos: 0, FlBad: false, DescBad: false, Hint: "" })
+                                );
+                                Set(varFlNextRowNo, varFlNextRowNo + CountRows(lines));
+                                Set(gblToast, { Text: Text(CountRows(lines)) & " rows added. Check the messages on each row.", Kind: "Success", At: Now() }); true
+                            );
+                            Set(varFlPasteOpen, false);
+                            Set(varFlPasteText, "");
+                            Set(varFlStale, true);
+                            Select(btnFlVerify)
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            =If(CountRows(Filter(Split(Substitute(Coalesce(varFlPasteText, ""), Char(13), ""), Char(10)), !IsBlank(Trim(Value)) && Upper(Trim(First(Split(Value, Char(9))).Value)) <> "FUNCTIONAL LOCATION")) = 0, "Add rows", "Add " & Text(CountRows(Filter(Split(Substitute(Coalesce(varFlPasteText, ""), Char(13), ""), Char(10)), !IsBlank(Trim(Value)) && Upper(Trim(First(Split(Value, Char(9))).Value)) <> "FUNCTIONAL LOCATION"))) & " rows")
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =148
       - conFlConfirmBackdrop:
           Control: Image
           Properties:
@@ -12883,10 +13296,14 @@ Screens:
                             =Align.Center
                         AlignInContainer: |-
                             =AlignInContainer.Center
-                        BasePaletteColor: |-
-                            =C.'color-brand-primary'
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-error'
+                        BorderThickness: |-
+                            =1
                         Color: |-
-                            =C.'text-on-primary'
+                            =C.'state-error-fg'
                         Font: |-
                             =Font.'Segoe UI'
                         FontWeight: |-
@@ -13104,6 +13521,9 @@ Screens:
                             Set(varFlBadgeOn, false);
                             Set(varFlCanEdit, false);
                             Set(varFlNextRowNo, 1);
+                            // Paste rows (UX-review L3).
+                            Set(varFlPasteOpen, false);
+                            Set(varFlPasteText, "");
                             // Aktiv klassefane. ALL som i renderClassTabs.
                             Set(varFlTab, "ALL");
                             // Raekken bag Manufacturer/Warranty-popuppen (issue #232). Valideringen

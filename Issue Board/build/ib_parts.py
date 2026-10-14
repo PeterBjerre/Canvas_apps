@@ -607,6 +607,10 @@ CLEAR_FILTERS = ('Set(varIbApp, "");\nSet(varIbSection, "");\nSet(varIbStatusF, 
 # raekken (segmenterne og listeparrene), og den har sin egen hoejde.
 # Kontrollernes bredder regnes af kortets indre bredde (TB_W, en nedre
 # graense), og soegefeltet tager resten (grow). Ingen Y, ingen forskydning.
+#
+# UX-review (screenshots 2026-10-13): de to indlejrede grupper (kontakterne
+# og listeparrene) blev stadig tegnet som tomme rammer. Nu staar hver knap
+# og hver liste DIREKTE i sin flow_row, som i hubbens filterlinje.
 TB_W = CARD_W
 def _track_w(*texts):
     w = sum(fit_button_width('"%s"' % t, size=SEG_SIZE, min_w=0) + ICON_W + 8 for t in texts)
@@ -1121,6 +1125,11 @@ def _popup(prefix, kids, vis, width=POP_W, foot=None, own_scroll=False,
         modal.props["RadiusTopRight"] = "0"
         modal.props["RadiusBottomRight"] = "0"
         modal.props["AlignInContainer"] = "AlignInContainer.Start"
+        # Panelet staar frit paa skaermen (ikke i sloeret), saa det skal
+        # selv skjules. Uden det stod Description- og New issue-panelet
+        # altid halvt synlige over listen (screenshots 2026-10-13).
+        modal.props["Visible"] = vis
+        modal.vis = vis
         return [backdrop, modal]
     backdrop = group(f"con{prefix}Backdrop", [modal], direction="Vertical", gap=0,
                      height="App.Height", width="App.Width", fill=C_OVERLAY, visible=vis,
@@ -1483,7 +1492,7 @@ def build_discard():
         f'If({EDITING}, "Your changes to " & {SEL_REF}.TicketNo & " have not been saved. '
         'They are lost if you close.", "The issue has not been submitted. What you have '
         'entered is lost if you close.")',
-        "Discard and close", CLOSE_FORM, "btnIbDiscardConfirm", icon=None)
+        "Discard and close", CLOSE_FORM, "btnIbDiscardConfirm", icon=None, danger=True)
 
 
 def build_form():

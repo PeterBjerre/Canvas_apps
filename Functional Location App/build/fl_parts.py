@@ -628,7 +628,11 @@ def build_rows():
                            size=13, color=C_MUTED, height=20, wrap="false"))
     add = _fit(button("btnFlAddRow", '"Add row"', add_row_fx() + ";\n" + REVERIFY,
                       display_mode=DM_EDIT, icon="Add", primary=True), icon=True)
-    head_row = group("conFlRowsTop", pin_widths([title, count, add]), direction="Horizontal",
+    paste = _fit(button("btnFlPasteRows", '"Paste rows"', PASTE_OPEN,
+                        display_mode=DM_EDIT, icon=icons.FLUENT["paste"],
+                        tooltip='"Paste functional locations and descriptions copied from Excel"'),
+                 icon=True)
+    head_row = group("conFlRowsTop", pin_widths([title, count, paste, add]), direction="Horizontal",
                      gap=12, align_items="Center")
 
     head = table_head("conFlRowsHead", V_SPEC, gap=VGAP, width=V_GAL_W)
@@ -1207,3 +1211,69 @@ def build_submit_confirm():
         "Submit", with_busy("varFlSaving", S.submit_fx()), "btnFlSubmitConfirm") + delete_modal(
         "Fl", "varFlRequestGuid", cfg.L_INDEX, cfg.DOMAIN) + [
         loading_overlay("imgFlSaving", "varFlSaving")]
+
+
+# ---------------------------------------------------------------------------
+# PASTE ROWS FROM EXCEL (UX-review L3)
+#
+# To kolonner fra Excel - funktionsplads og beskrivelse, adskilt af
+# tabulator - bliver hver sin raekke i tabellen. Raekkerne er kun lokale,
+# til Save draft, og valideringen koerer bagefter, saa hver raekke viser
+# sine fejl som en raekke, der er tastet. Tomme, ugemte raekker fjernes
+# foerst, saa den tomme startraekke ikke staar tilbage.
+# ---------------------------------------------------------------------------
+PASTE_OPEN = 'Set(varFlPasteText, "");\nReset(inpFlPaste);\nSet(varFlPasteOpen, true)'
+PASTE_LINES = ('Filter(Split(Substitute(Coalesce(varFlPasteText, ""), Char(13), ""), Char(10)), '
+               '!IsBlank(Trim(Value)) && Upper(Trim(First(Split(Value, Char(9))).Value)) '
+               '<> "FUNCTIONAL LOCATION")')
+
+
+def _paste_add_fx():
+    cell = 'IfError(Index(Split(Index(lines, Value).Value, Char(9)), {i}).Value, "")'
+    return (
+        f"With(\n    {{ lines: {PASTE_LINES} }},\n"
+        "    RemoveIf(colFlRows, SpId = 0 && IsBlank(FL) && IsBlank(Description));\n"
+        "    ForAll(\n"
+        "        Sequence(CountRows(lines)),\n"
+        "        Collect(colFlRows, { RowGuid: Text(GUID()), RowNo: varFlNextRowNo + Value - 1, SpId: 0, "
+        f"FL: {norm_fl(cell.format(i=1))}, Description: Trim({cell.format(i=2)}), "
+        'KksType: "", AssignedClass: "", Status: "draft", FirstIssue: "", FirstWarning: "", '
+        'IssueCount: 0, WarningCount: 0, Pos: 0, FlBad: false, DescBad: false, Hint: "" })\n'
+        "    );\n"
+        "    Set(varFlNextRowNo, varFlNextRowNo + CountRows(lines));\n"
+        '    Notify(Text(CountRows(lines)) & " rows added. Check the messages on each row.", '
+        "NotificationType.Success)\n"
+        ");\n"
+        'Set(varFlPasteOpen, false);\nSet(varFlPasteText, "");\n' + REVERIFY)
+
+
+def build_paste():
+    """Popuppen "Paste rows" - [sloer, popup]."""
+    from build_helpers import popup_head, tap_backdrop
+    vis = "IfError(varFlPasteOpen, false)"
+    close = "Set(varFlPasteOpen, false)"
+    backdrop = tap_backdrop("conFlPasteBackdrop", vis, close)
+    title = text_ctrl("txtFlPasteTitle", '"Paste rows"', size=lay.SIZE_CARD_TITLE,
+                      weight="Semibold", height=26, wrap="false")
+    head = popup_head("conFlPasteHead", title, "btnFlPasteClose", close)
+    help_ = text_ctrl("txtFlPasteHelp",
+                      '"Copy two columns in Excel and paste them here, one row per line: '
+                      'the functional location and the description."',
+                      size=13, color=C_MUTED, height=40, wrap="true")
+    inp = text_input("inpFlPaste", 'Coalesce(varFlPasteText, "")', height=160, ttype="Multiline",
+                     placeholder='"Paste from Excel"', label='"Rows to paste"',
+                     onchange="Set(varFlPasteText, Self.Text)")
+    n = f"CountRows({PASTE_LINES})"
+    add = button("btnFlPasteAdd", f'If({n} = 0, "Add rows", "Add " & Text({n}) & " rows")',
+                 _paste_add_fx(), primary=True, icon="Add",
+                 width=fit_button_width('"Add 00 rows"') + ICON_W, height=36,
+                 display_mode=f"If({n} = 0, DisplayMode.Disabled, DisplayMode.Edit)")
+    footer = group("conFlPasteFooter", [add], direction="Horizontal", gap=8,
+                   height=36, justify="End", align_items="Center")
+    modal = group("conFlPasteModal", [head, help_, inp, footer], direction="Vertical",
+                  gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
+                  pad=(18, 18, 18, 18), width="Min(560, App.Width - 24)",
+                  drop_shadow="ExtraBold", visible=vis)
+    modal.props["X"] = "(App.Width - Self.Width) / 2"
+    modal.props["Y"] = "Max(12, (App.Height - Self.Height) / 3)"
+    return [backdrop, modal]
