@@ -16,12 +16,13 @@ filter, og flisernes tal taelles paa det samme, allerede afgraensede saet.
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
-                        C_PRIMARY, C_MUTED_BG, C_MODAL_BG, C_DIVIDER,
+                        C_PRIMARY, C_NEUTRAL_BG, C_MUTED_BG, C_MODAL_BG, C_DIVIDER,
                         C_TRANSPARENT, SHELL_W, C_WARN_FG, C_WARN_BG, C_ROW_HOVER, C_WHITE)
 import layout_tokens as lay
 from build_helpers import (_sum_expr, row_rule, row_hit, text_input, text_ctrl, group, button, card, flow_row, top_bar,
                            fit_button_width, text_px, ICON_W, grow, themed_dropdown, icon_on_mobile,
-                           confirm_modal, new_request_label, empty_state, skeleton_rows, ensure_hit)
+                           confirm_modal, new_request_label, empty_state, skeleton_rows, ensure_hit,
+                           SEG_H, SEG_PAD, SEG_BTN_H, SEG_GAP)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET
 from design_tokens import theme_query, ref_hex, ref as _t
 import design_tokens as tok
@@ -455,6 +456,42 @@ def _selected_style(b, selected, color=C_PRIMARY, idle_color=C_TITLE):
     return b
 
 
+_SEG_SEL = {}    # segmentknap -> dens "valgt"-udtryk
+_SEG_KIDS = {}   # skinne -> dens segmenter
+
+
+def _seg_style(b, selected):
+    """Et segment som build_helpers.segmented (UX-review, hubbens mockup):
+    valgt = udfyldt i primaerfarven med hvid tekst og flueben, ellers
+    kantloes med daempet tekst paa skinnens flade. Layout (flueben eller
+    ej) saettes i build_filters, der kender filterlinjens trin."""
+    _SEG_SEL[b.name] = selected
+    b.props["Appearance"] = f"If({selected}, ButtonAppearance.Primary, ButtonAppearance.Outline)"
+    b.props["BasePaletteColor"] = C_PRIMARY
+    b.props["BorderColor"] = f"If({selected}, {C_PRIMARY}, {C_TRANSPARENT})"
+    b.props["BorderThickness"] = "1"
+    b.props["Color"] = f"If({selected}, {C_WHITE}, {C_MUTED})"
+    b.props["FontWeight"] = f"If({selected}, FontWeight.Semibold, FontWeight.Normal)"
+    b.props["Icon"] = f'If({selected}, "Checkmark", "")'
+    b.props["Height"] = str(SEG_BTN_H)
+    b.h = SEG_BTN_H
+    b.props.update(lay.radius(SEG_BTN_H // 2))
+    return b
+
+
+def _seg_track(name, kids):
+    """Skinnen om segmenterne. Bredden saettes i build_filters (summen af
+    segmenternes bredde i hvert trin)."""
+    g = group(name, kids, direction="Horizontal", gap=SEG_GAP, height=SEG_H,
+              align_items="Center", fill=C_NEUTRAL_BG, border_color=C_CARD_BORDER,
+              radius=SEG_H // 2, pad=SEG_PAD)
+    g.props["AlignInContainer"] = "AlignInContainer.Center"
+    _SEG_KIDS[name] = kids
+    _FLT_LV[name] = {k: (sum(_FLT_LV[c.name][k][0] for c in kids) + (len(kids) - 1) * SEG_GAP
+                         + 2 * SEG_PAD, None, None) for k in FLT_LEVELS}
+    return g
+
+
 def build_bar():
     """Toplinjen - build_helpers.top_bar(), den samme i alle apps.
 
@@ -485,11 +522,14 @@ def _view_switch(mobile=False):
             ("btnMdViewMine", "mine", "My requests", "My", "Mine"),
             ("btnMdViewAll", "queue", "Department", "All", "Dept.")):
         label = short if mobile else wide
-        w = fit_button_width(f'"{label}"', size=size, min_w=0) + 20
+        w = fit_button_width(f'"{label}"', size=size, min_w=0) + 20 + (0 if mobile else ICON_W)
         b = button(name + ("M" if mobile else ""), f'"{label}"',
                    f'Set(varMdView, "{key}"); Set(varMdDomain, "");\n' + SCOPE_REFRESH + ";\n" + SAVE_HUB,
                    width=w, height=36, accessible=f'"{wide}"')
-        _selected_style(b, f'varMdView = "{key}"', idle_color=C_MUTED)
+        if mobile:
+            _selected_style(b, f'varMdView = "{key}"', idle_color=C_MUTED)
+        else:
+            _seg_style(b, f'varMdView = "{key}"')
         b.props["Size"] = str(size)
         b.props["LayoutMinWidth"] = b.props["Width"]
         b.vis = below("Tablet") if mobile else at_least("Tablet")
@@ -765,13 +805,16 @@ def _tight(label, icon=False):
 
 
 def _chip(name, label, value, icon):
+    sel = f'varMdStatusMode = "{value}"'
     b = button(name, f'"{label}"', f'Set(varMdStatusMode, "{value}");\n' + SCOPE_REFRESH + ";\n" + SAVE_HUB,
-               width=fit_button_width(f'"{label}"') + ICON_W, height=36, icon=icon)
+               width=fit_button_width(f'"{label}"') + ICON_W, height=SEG_BTN_H,
+               accessible=f'"{label}" & If({sel}, ", selected", "")')
     # Pr. trin: (bredde, Layout, tekst). None = teksten er den samme.
-    _FLT_LV[b.name] = {"full": (int(b.props["Width"]), "ButtonLayout.IconBefore", None),
-             "compact": (_tight(label), "ButtonLayout.TextOnly", None),
-             "short": (_tight(label), "ButtonLayout.TextOnly", None)}
-    return _selected_style(b, f'varMdStatusMode = "{value}"', idle_color=C_MUTED)
+    # Layout (flueben paa det valgte) saettes i build_filters.
+    _FLT_LV[b.name] = {"full": (int(b.props["Width"]), None, None),
+             "compact": (_tight(label), None, None),
+             "short": (_tight(label), None, None)}
+    return _seg_style(b, sel)
 
 
 def _flag_pill(name, flag, label, field, icon, count=None, on_view=None):
@@ -912,8 +955,11 @@ def build_filters():
                 fill=C_DIVIDER, layout_min_width=1)
     sep.props["AlignInContainer"] = "AlignInContainer.Center"
     _FLT_LV[sep.name] = {k: (1, None, None) for k in FLT_LEVELS}
-    chips = [_chip("btnMdFltOpen", "Open", "open", "MailInbox"), closed,
-             _chip("btnMdFltAll", "All", "all", "TextBulletListLtr"), _peek_button(), sep,
+    # Open | Closed | All som EET segment (mockuppen), ikke tre knapper.
+    state = _seg_track("conMdFltState", [_chip("btnMdFltOpen", "Open", "open", "MailInbox"), closed,
+                                         _chip("btnMdFltAll", "All", "all", "TextBulletListLtr")])
+    peek = _peek_button()
+    chips = [state, peek, sep,
              _flag_pill("btnMdFltMe", "me", "My queue", "Mine", "Person",
                         count="Text(varMdQueueN)", on_view="queue"),
              _flag_pill("btnMdFltStuck", "stuck", STUCK_LABEL, "Stuck", "Clock")]
@@ -925,9 +971,11 @@ def build_filters():
     mobile = _mobile_filter()
     spacer = group("conMdFltGap", [], direction="Horizontal", height=0)
     spacer.vis = at_least("Tablet")
-    _FLT_LV[chips[3].name] = {k: (PEEK_BTN_W[k], None, None) for k in FLT_LEVELS}
+    _FLT_LV[peek.name] = {k: (PEEK_BTN_W[k], None, None) for k in FLT_LEVELS}
     _FLT_LV[count.name] = {k: (COUNT_W[k], None, None) for k in FLT_LEVELS}
-    fixed = chips + _view_switch() + [count]
+    view = _seg_track("conMdFltView", _view_switch())
+    view.vis = at_least("Tablet")
+    fixed = chips + [view, count]
     n_gaps = len(fixed) + 1          # soegefeltet + mellemrummet (spacer)
 
     # Hvad hvert trin skal bruge: alle knapper + soegefeltets mindstebredde
@@ -945,15 +993,20 @@ def build_filters():
 
     gap = lvl(*(FLT_GAP[k] for k in FLT_LEVELS))
     is_short = f"!({compact_ok})"
-    for c in fixed:
+    for c in [k for c in fixed for k in _SEG_KIDS.get(c.name, [])] + fixed:
         c.props["Width"] = lvl(*(_FLT_LV[c.name][k][0] for k in FLT_LEVELS))
+        if c.name in _SEG_SEL:
+            # Fluebenet kun i det brede trin; de smalle har ikke plads til det.
+            c.props["Layout"] = (f"If({full_ok} && {_SEG_SEL[c.name]}, ButtonLayout.IconBefore, "
+                                 "ButtonLayout.TextOnly)")
+            c.props["LayoutMinWidth"] = c.props["Width"]
         lays = [_FLT_LV[c.name][k][1] for k in FLT_LEVELS]
         if lays[0] is not None:
             c.props["Layout"] = lvl(*lays)
         txt = _FLT_LV[c.name]["short"][2]
         if txt is not None:
             c.props["Text"] = f"If({is_short}, {txt}, {c.props['Text']})"
-        if c.props.get("Size") and c is not count and c is not chips[3]:
+        if c.props.get("Size") and c is not count and c is not peek:
             c.props["Size"] = lvl(*(FLT_SIZE[k] for k in FLT_LEVELS))
         if c.name in _FLT_TIP:
             c.props["Tooltip"] = f'If({is_short}, {_FLT_TIP[c.name]}, "")'
@@ -972,7 +1025,7 @@ def build_filters():
         f'If(Self.Width < {text_px(long_ph, 14, semibold=False) + 48}, '
         f'"Search...", "{long_ph}")')
     search.props["Size"] = f"If({below('Tablet')}, {lay.SIZE_INPUT_MOBILE}, {is_short}, 12, {lay.SIZE_INPUT})"
-    row = flow_row("conMdFltRow", [search] + fixed[:7] + [spacer] + fixed[7:], SHELL_W,
+    row = flow_row("conMdFltRow", [search] + fixed[:5] + [spacer] + fixed[5:], SHELL_W,
                    gap=gap, flex=spacer, flex_min=0, ok=at_least("Tablet"))
     # Altid een linje: vandret fra Tablet, og under Tablet er soegefeltet
     # det eneste synlige barn. flow_rows stablede hoejde ville aldrig blive
