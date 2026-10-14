@@ -505,6 +505,7 @@ layoutfejl bor:
 | 13 | Parent.Template* uden for et galleris direkte barn |
 | 14 | Vandret scroll under Stretch |
 | 15 | Mutation inde i ForAll (ADVARSEL, ikke fejl) |
+| 15b | ForAll maa ikke skrive i den kilde, den loeber over (issue #265) |
 | 21 | ButtonAppearance.Secondary |
 | 22 | Concurrent med en indbyrdes afhaengighed |
 | 16 | Ingen Classic/DropDown |
