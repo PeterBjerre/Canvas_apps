@@ -369,8 +369,13 @@ def duplicate_fx():
         "    IsBlank(varDomRequestGuid),\n"
         '    Notify("Save the request before you duplicate it.", NotificationType.Warning),\n'
         "    IfError(\n"
+        # Kilden SKAL vaere en kopi: Power Fx afviser Patch mod den liste,
+        # ForAll loeber over ("cannot operate on the same data source that
+        # is used in ForAll", issue #265). Filter er delegerbar, og
+        # samlingen beholder listens typer (valg er stadig poster).
+        f"        ClearCollect(colDomDupSrc, Filter({cfg.L_ROWS}, RequestGuid = varDomRequestGuid));\n"
         "        ForAll(\n"
-        f"            Filter({cfg.L_ROWS}, RequestGuid = varDomRequestGuid) As R,\n"
+        "            colDomDupSrc As R,\n"
         "            With(\n"
         "                { n: Patch(\n"
         f"                    {cfg.L_ROWS}, Defaults({cfg.L_ROWS}), {{\n"
