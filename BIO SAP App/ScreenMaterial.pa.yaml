@@ -622,8 +622,9 @@ Screens:
                                       IsBlank(varMatRequestGuid),
                                       Set(gblToast, { Text: "Save the request before you duplicate it.", Kind: "Warning", At: Now() }); true,
                                       IfError(
+                                          ClearCollect(colMatDupSrc, Filter(MaterialItems, RequestGuid = varMatRequestGuid));
                                           ForAll(
-                                              Filter(MaterialItems, RequestGuid = varMatRequestGuid) As R,
+                                              colMatDupSrc As R,
                                               With(
                                                   { n: Patch(
                                                       MaterialItems, Defaults(MaterialItems), {
