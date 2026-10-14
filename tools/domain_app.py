@@ -18,7 +18,7 @@ import layout_tokens as lay
 import domain_parts as dp
 import permissions as perm
 import display_text as dt
-from build_helpers import (app_frame, sticky_actions, request_shell, row_editor_panel,
+from build_helpers import (click_outside_overlay, app_frame, sticky_actions, request_shell, row_editor_panel,
                            button, fit_button_width, group)
 from gen_screen import C_APP_BG
 from side_nav import side_nav
@@ -97,6 +97,8 @@ def _collection_block(cfg, extra=()):
 STATE = '''Set(varDomMe, Lower(User().Email));
 Set(varDomRequestNo, "");
 Set(varDomRequestGuid, "");
+// Kun raekker oprettet siden nu hoerer til en ny anmodning (refresh_rows_fx).
+Set(varDomSessionStart, DateAdd(Now(), -2, TimeUnit.Minutes));
 Set(varDomViewOnly, false);
 Set(varDomBadgeOn, false);
 Set(varDomCanEdit, false);
@@ -129,8 +131,11 @@ Set(varDomPasteText, "")'''
 def onstart(cfg, extra_collections=(), extra_state=""):
     # Temaet saettes FOER resten: skaermen tegner sig selv ud af C, og C
     # laeser darkModeEnabled.
+    state = STATE
+    if getattr(cfg, "ROW_PANEL_ENABLED", False):
+        state = state.replace("Set(varDomDetailsId, Blank());\n", "")
     body = (_collection_block(cfg, extra_collections) + "\n\n"
-            + tok.onstart_block() + "\n\n" + STATE)
+            + tok.onstart_block() + "\n\n" + state)
     if getattr(cfg, "ROW_PANEL_ENABLED", False):
         body += ";\n\nSet(varDomEditorOpen, false)"
         if any(action.name == "btnDomRowMore" for action in (dp.HOOKS["row_actions"] or ())):
@@ -205,7 +210,21 @@ def _row_editor(form, panel_content=None):
         "Dom", f'If(IsBlank(varDomActiveRowId), "New row", "Row " & Text({position}) & '
         f'" of " & Text(CountRows({order})))', content, footer,
         previous, next_, dp.clear_form_fx(), "varDomEditorOpen",
-        previous_mode=previous_mode, next_mode=next_mode, side_by_side=True)
+        previous_mode=previous_mode, next_mode=next_mode, side_by_side=True,
+        multiple=f"CountRows({order}) > 1")
+
+
+def _panel_extras(parts):
+    """Appens egne linjer under felterne (Materials materialenummer, MP's
+    nummer og taeller) - nu i sidepanelet i stedet for detaljepopuppen."""
+    row = dp.ACTIVE
+    lines = list(dp.HOOKS["details_rows"](row)) if dp.HOOKS["details_rows"] else []
+    if hasattr(parts, "details_extra"):
+        lines += list(parts.details_extra(row))
+    if not lines:
+        return []
+    return [group("conDomPanelExtras", lines, direction="Vertical", gap=8,
+                  visible="!IsBlank(varDomActiveRowId)")]
 
 
 def build_screen(cfg, parts, render):
@@ -219,8 +238,13 @@ def build_screen(cfg, parts, render):
     rows = parts.build_rows()
     footer = sticky_actions("Dom", dp.BAR_ACTIONS)
     if panel_enabled:
-        panel_content = (parts.editor_panel_content(form)
-                         if hasattr(parts, "editor_panel_content") else None)
+        extras = _panel_extras(parts)
+        if hasattr(parts, "editor_panel_content"):
+            panel_content = parts.editor_panel_content(form, extras)
+        elif extras:
+            panel_content = list(form.children[:-2]) + extras + [form.children[-1]]
+        else:
+            panel_content = None
         shell = request_shell("Dom", bar, None, None, rows,
                               editor=_row_editor(form, panel_content), footer=footer)
         root, editor = shell[0], shell[1:]
@@ -236,12 +260,18 @@ def build_screen(cfg, parts, render):
     extra = parts.details_extra if hasattr(parts, "details_extra") else ()
     # Sloeret FOER popupperne: kontrollerne tegnes i den raekkefoelge, de
     # staar, saa det, der skal ligge bagved, skal staa foerst.
+    # Et klik UDEN FOR sidepanelet lukker det - ogsaa naar panelet staar ved
+    # siden af listen (der er scrimmet i row_editor_panel skjult).
+    outside = ([click_outside_overlay("imgDomEditorOutside", dp.clear_form_fx(),
+                                      "IfError(varDomEditorOpen, false)", "Close row editor")]
+               if panel_enabled else [])
     return render(cfg.SCREEN,
                   {"Fill": C_APP_BG, "OnVisible": on_visible(),
                    **({"OnHidden": "Set(varDomEditorOpen, false)"} if panel_enabled else {})},
-                                    [root, *nav, dp.build_backdrop(), dp.build_details(extra=extra),
+                                    [root, *nav, dp.build_backdrop(),
+                                     *([] if panel_enabled else [dp.build_details(extra=extra)]),
                                      *([] if panel_enabled and hasattr(parts, "editor_panel_content")
-                                         else [dp.build_attachments()]), *own, *overlay, *editor,
+                                         else [dp.build_attachments()]), *own, *overlay, *outside, *editor,
                                      *dp.build_row_menu(), *dp.build_paste(),
                    # Bekraeftelserne og ventespinneren - oeverst.
                    *dp.build_delete_confirm(), *dp.build_submit_confirm()])

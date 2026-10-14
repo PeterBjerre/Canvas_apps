@@ -150,8 +150,7 @@ STRAT_POP = is_strategic(f"{OBJ_REC}.StrategicPart")
 # Reset spoerger foerst, naar der er noget at miste.
 RESET_ASK = "varDomResetAsk"
 # Appens egen tilstand i App.OnStart (domain_app.write_app).
-EXTRA_STATE = (f'Set(varDomDetCreatedNo, "");\n'
-               f"Set({OBJ_ROW}, Blank());\n"
+EXTRA_STATE = (f"Set({OBJ_ROW}, Blank());\n"
                f'Set({PICK}, "");\n'
                f"Set({PO_OPEN}, false);\n"
                f"Set({RESET_ASK}, false)")
@@ -324,7 +323,12 @@ def _editor_head():
     # Een linje paa en bred skaerm, to eller tre paa en smal - hoejden
     # foelger kortets bredde, saa intet klippes.
     need = text_px(EDITOR_HINT, 12, semibold=False)
-    h = fits(dp.FORM_W, need, if_below("Tablet", "54", "36"), "18")
+    if getattr(cfg, "ROW_PANEL_ENABLED", False):
+        # I sidepanelet er teksten bundet af panelets bredde: tael linjerne
+        # (med 25 % luft til ordbrud), saa feltet aldrig faar en scrollbar.
+        h = f"20 * RoundUp({need} * 1.25 / ({dp.PANEL_FORM_W}), 0) + 4"
+    else:
+        h = fits(dp.FORM_W, need, if_below("Tablet", "54", "36"), "18")
     hint = text_ctrl("txtDomEditorHint", f'"{EDITOR_HINT}"', size=12, color=C_MUTED,
                      height=h, wrap="true")
     return [head, hint]
@@ -393,7 +397,7 @@ def build_form(panel=False):
     return card("conDomFormCard", _editor_head() + top + rows + dp.form_footer(buttons))
 
 
-def editor_panel_content(form):
+def editor_panel_content(form, extras=()):
     tab = cfg.ROW_EDITOR_TAB_VAR
     open_objects = (f"Set({OBJ_ROW}, varDomActiveRowId);\nSet({PICK}, \"\");\n"
                     f"{dp.fl_reset_fx_dom()};\n"
@@ -410,7 +414,7 @@ def editor_panel_content(form):
     reset = button("btnDomNew", '"Reset"', reset_fx(),
                    width=fit_button_width('"Reset"'), height=36,
                    tooltip='"Clear the form and start a new row"')
-    details = group("conDomEditorDetails", list(form.children[:-2]) + [form.children[-1], reset],
+    details = group("conDomEditorDetails", list(form.children[:-2]) + list(extras) + [form.children[-1], reset],
                     direction="Vertical", gap=12, visible=f'{tab} = "Details"')
     objects_body = _objects_popup()[1].children[1]
     objects_body.props["Height"] = "App.Height - 250"
@@ -709,7 +713,7 @@ DETAILS_GROUPS = [
 # og nummeret findes foerst efter den.
 CREATED_VAR = "varDomDetCreatedNo"
 CREATED_IN = "inpDomDetCreatedNo"
-DET_ROW = "LookUp(colDomRows, RowId = varDomDetailsId)"
+DET_ROW = "LookUp(colDomRows, RowId = varDomActiveRowId)"
 # Naar ruden skifter raekke, skal feltet vise DEN raekkes nummer.
 DETAILS_SYNC = (f'Set({CREATED_VAR}, Coalesce({DET_ROW}.CreatedMaterialNo, ""));\n'
                 f"Reset({CREATED_IN})")
@@ -721,7 +725,7 @@ def _save_created_fx():
     return (
         "IfError(\n"
         f"    Patch(\n        {cfg.L_ROWS},\n"
-        f"        LookUp({cfg.L_ROWS}, ID = varDomDetailsId),\n"
+        f"        LookUp({cfg.L_ROWS}, ID = varDomActiveRowId),\n"
         f'        {{ CreatedMaterialNo: Trim(Coalesce({CREATED_VAR}, "")) }}\n'
         "    );\n"
         + dp.refresh_rows_fx(4) + ";\n"

@@ -36,7 +36,7 @@ def test_domains_show_draft_rows_before_submit_with_go_to_field():
                         ("ScreenMeasuringPoint.pa.yaml", "Mp")):
         y = _yaml(screen)
         fix = _block(y, f"con{tag}Fix")
-        assert "Before you can submit" in y and "!var%sViewOnly" % tag in fix
+        assert "Still missing" in y and "!var%sViewOnly" % tag in fix
         go = _block(y, f"btn{tag}FixGo")
         assert f"Set(var{tag}ActiveRowId, ThisItem.RowId)" in go, screen
 

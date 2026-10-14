@@ -68,7 +68,7 @@ HENTNING (issue #177)
     Refresh. Ingen timer. Listerne hentes i en midlertidig samling, saa en
     fejlet hentning aldrig toemmer det, der staar.
 """
-from gen_screen import (Ctrl, stack_height, C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_DIVIDER, C_INFO_BG,
+from gen_screen import (Ctrl, stack_height, C_INPUT_BORDER, C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_DIVIDER, C_INFO_BG,
                         C_INFO_FG, C_INVALID_FG, C_MUTED, C_MUTED_BG, C_MODAL_BG, C_OVERLAY,
                         C_PRIMARY, C_PRIMARY_SOFT, C_TITLE, C_TRANSPARENT, C_WARN_BG,
                         C_WARN_FG)
@@ -726,19 +726,35 @@ def build_filters():
     drp_sort = themed_dropdown("drpIbSort", '["Last updated", "Newest", "Oldest", "Priority", "Status"]',
                                "varIbSort", label='"Sort issues"',
                                onchange="Set(varIbSort, Self.Selected.Value)")
-    drp_sort.props["Width"] = f"If({FLT_OK}, {SORT_W}, {TB_W})"
+    drp_sort.props["Width"] = f"Min({SORT_W}, {TB_W})"
     # Listerne er saa brede som deres tekst; under hinanden deler et par
     # linjen.
     for c, w in ((drp_app, DD_APP_W), (drp_sec, DD_SEC_W), (drp_status, DD_STATUS_W),
                  (drp_pri, DD_PRI_W)):
-        c.props["Width"] = f"If({FLT_OK}, {w}, (({TB_W}) - 8) / 2)"
+        c.props["Width"] = f"Min({w}, (({TB_W}) - 8) / 2)"
         c.props["LayoutMinWidth"] = c.props["Width"]
     pair_a = group("conIbFltPairA", [drp_app, drp_sec], direction="Horizontal", gap=8,
-                   height=TB_LINE_H, align_items="Center", width=f"If({FLT_OK}, {PAIR_A_W}, {TB_W})")
+                   height=TB_LINE_H, align_items="Center", width=f"Min({PAIR_A_W}, {TB_W})")
     pair_b = group("conIbFltPairB", [drp_status, drp_pri], direction="Horizontal", gap=8,
-                   height=TB_LINE_H, align_items="Center", width=f"If({FLT_OK}, {PAIR_B_W}, {TB_W})")
+                   height=TB_LINE_H, align_items="Center", width=f"Min({PAIR_B_W}, {TB_W})")
     filters = flow_row("conIbTbFilters", [pair_a, pair_b, drp_sort], TB_W, gap=TB_GAP, ok=FLT_OK)
+    # Staar listerne under hinanden, holder de deres tekstbredde (Start) i
+    # stedet for at strakke sig til hele linjen.
+    filters.props["LayoutAlignItems"] = (f"If({FLT_OK}, LayoutAlignItems.Center, "
+                                         "LayoutAlignItems.Start)")
+    # Luft over og under linjerne: Studio tegnede kontrollerne helt op i
+    # raekkens overkant, og toppen blev skaaret af.
+    for line in (top, filters):
+        _air(line, 8, 4)
     return [top, filters]
+
+
+def _air(row, top, bottom):
+    """Polstring over/under en flow_row; hoejden vokser med det samme."""
+    row.props["PaddingTop"] = str(top)
+    row.props["PaddingBottom"] = str(bottom)
+    row.props["Height"] = f"({row.props['Height']}) + {top + bottom}"
+    row.h = row.props["Height"]
 
 
 # ---------------------------------------------------------------------------
@@ -1115,6 +1131,10 @@ def _popup(prefix, kids, vis, width=POP_W, foot=None, own_scroll=False,
     if side_panel:
         backdrop = tap_backdrop(f"img{prefix}Backdrop", f"({vis}) && {lay.INSET} = 0",
                                 close_fx, fill=C_TRANSPARENT)
+        # Et klik paa siden bag panelet lukker det paa ALLE bredder (tap_backdrop
+        # lukker kun under Tablet); et tab stop, saa tastaturet kan det samme.
+        backdrop.props["OnSelect"] = close_fx
+        backdrop.props["TabIndex"] = "0"
         modal.props["Visible"] = vis
         modal.vis = vis
         modal.props["Height"] = "App.Height"
@@ -1149,17 +1169,13 @@ def _head(prefix, title_fx, close_fx, lead=(), title_w=None, close_icon=False, n
         h = f"Min(3 * 23 + 2, Max(26, {_lines_h(title_fx, title_w, px=9.2, line_h=23)}))"
     title = grow(text_ctrl(f"txt{prefix}Title", title_fx, size=lay.SIZE_CARD_TITLE,
                            weight="Semibold", height=h, wrap="true" if title_w else "false"))
-    if close_icon:
-        close = icon_button(f"btn{prefix}Close", "Close", close_fx, icons.CLOSE)
-        close.props["AlignInContainer"] = "AlignInContainer.Start"
-    else:
-        close = button(f"btn{prefix}Close", '"Close"', close_fx,
-                       width=fit_button_width('"Close"'), height=32,
-                       accessible='"Close"')
+    close = icon_button(f"btn{prefix}Close", "Close", close_fx, icons.CLOSE)
+    close.props["AlignInContainer"] = "AlignInContainer.Start"
     close.props["LayoutMinWidth"] = close.props["Width"]
-    hmin = hit_size(34) if close_icon else 32
+    hmin = lay.HIT_TOUCH
     return group(f"con{prefix}Head", [*lead, title, *nav, close], direction="Horizontal", gap=10 if not nav else 4,
-                 height=hmin if title_w is None else f"Max({hmin}, {h})", align_items="Center")
+                 height=hmin if title_w is None else f"Max({hmin}, {h})",
+                 align_items="Center" if title_w is None else "Start")
 
 
 def _field(name, label, ctrl, required=False, visible=None):
@@ -1682,7 +1698,7 @@ ACT_W = f"({DET_IN} - {lay.SCROLLBAR_W} - {lay.GALLERY_RESERVE})"
 ACT_BODY_W = f"({ACT_W} - {2 * ACT_ROW_PAD})"
 # Indholdsfladen i sagens popup: mindst saa hoej, naar skaermen tillader det -
 # og aldrig lavere end DET_SAFE_MIN_H (issue #212).
-DET_MIN_H = 360
+DET_MIN_H = 200
 DET_SAFE_MIN_H = 160
 
 # Efter enhver aendring gennem flowet (issue #229 - live): KUN den ene
@@ -1807,7 +1823,7 @@ def _tab(name, label_fx, key, accessible, onselect=None):
     return b
 
 
-ICON_BTN = 34
+ICON_BTN = lay.HIT_TOUCH
 
 
 def _icon_action(name, icon, onselect, visible, label, tooltip, display_mode, danger=False):
@@ -1818,8 +1834,9 @@ def _icon_action(name, icon, onselect, visible, label, tooltip, display_mode, da
                danger=danger)
     b.props["Layout"] = "ButtonLayout.IconOnly"
     b.props["Appearance"] = "ButtonAppearance.Outline"
-    b.props["BorderColor"] = C_INVALID_FG if danger else C_CARD_BORDER
+    b.props["BorderColor"] = C_INVALID_FG if danger else C_INPUT_BORDER
     b.props["BorderThickness"] = "1"
+    b.props["BorderStyle"] = "BorderStyle.Solid"
     b.props["LayoutMinWidth"] = str(ICON_BTN)
     ensure_hit(b)
     return b
@@ -2017,6 +2034,10 @@ def build_detail():
     next_fx = f"With({{r: LookUp(colIbAll, Id = Index({nav_list}, {pos} + 1).Id)}}, {open_ticket('r', 'false')})"
     nav = [icon_button("btnIbDetPrevious", "Previous issue", prev_fx, icons.CHEVRON_LEFT, prev_mode),
            icon_button("btnIbDetNext", "Next issue", next_fx, icons.CHEVRON_RIGHT, next_mode)]
+    # Kun en sag i listen: ingen pile.
+    for arrow in nav:
+        arrow.props["Visible"] = "galIbList.AllItemsCount > 1"
+        arrow.vis = "galIbList.AllItemsCount > 1"
     head = _head("IbDet", f"{SEL}.Title", "Set(varIbDetailOn, false)",
                  lead=[no], title_w=f"({DETAIL_PANEL_IN}) - {NO_W} - {3 * lay.HIT_TOUCH} - 30",
                  close_icon=True, nav=nav)

@@ -391,7 +391,7 @@ def _save_mpno_fx(row):
         "\n"
         "    IfError(\n"
         f"    Patch(\n        {cfg.L_ROWS},\n"
-        f"        LookUp({cfg.L_ROWS}, ID = varDomDetailsId),\n"
+        f"        LookUp({cfg.L_ROWS}, ID = varDomActiveRowId),\n"
         f"        {{ CreatedMeasuringPointNo: {new_no} }}\n"
         "    );\n"
         + log + ";\n"
@@ -717,7 +717,7 @@ def after_submit_fx():
 # Details aabnes eller skifter raekke (HOOKS details_open/details_nav) -
 # ikke i knappens DisplayMode, der evalueres igen og igen.
 # ---------------------------------------------------------------------------
-DET_ROW = "LookUp(colDomRows, RowId = varDomDetailsId)"
+DET_ROW = "LookUp(colDomRows, RowId = varDomActiveRowId)"
 CTR_MAY = "varDomCtrMay"
 CTR_ROW = "varDomCtrRow"
 CTR_IDX = "varDomCtrIdx"

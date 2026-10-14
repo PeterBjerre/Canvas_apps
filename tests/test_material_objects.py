@@ -279,13 +279,12 @@ def test_the_tables_keep_the_columns_compact_showed():
         assert '"%s"' % head in eq, head
 
 
-def test_details_is_grouped_in_one_gallery():
+def test_details_popup_is_replaced_by_the_side_panel():
     y = _mat()
-    assert "galMatDetails" in y
-    for group in ("Identification", "Object list", "Manufacturer and supplier",
-                  "Stock and storage", "Classification and approval",
-                  "Additional information", "Requester and request"):
-        assert '"%s"' % group in y, group
+    # Details-popuppen er erstattet af sidepanelet (ingen galMatDetails).
+    assert "galMatDetails" not in y
+    assert "conMatEditorDetails" in y
+    assert "inpMatDetCreatedNo" in y
 
 
 def test_row_actions_are_details_edit_docs_objects_copy_and_delete_last():

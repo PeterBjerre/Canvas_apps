@@ -230,11 +230,12 @@ ROOT_X = NAV_OFFSET
 ROOT_Y = BAR_OFFSET
 # Raekkepanelet ligger ved siden af listen fra PANEL_SIDE_MIN og op: rammen
 # og SHELL_W mister saa panelets bredde. PanelInset er 0 ellers.
-PANEL_W = 480
+PANEL_W = 560
 PANEL_SIDE_MIN = 1280
-# Panelet fylder en tredjedel af skaermen, dog mindst PANEL_W. Det er en
-# beregning, ikke en sammenligning af App.Width med et tal.
-PANEL_W_FX = "Max(%d, App.Width / 3)" % PANEL_W
+# Panelet fylder en tredjedel af skaermen (34 %), dog mindst PANEL_W, saa tre
+# kolonner kan staa i panelet. Det er en beregning, ikke en sammenligning af
+# App.Width med et tal.
+PANEL_W_FX = "Max(%d, App.Width * 0.34)" % PANEL_W
 INSET = "PanelInset"
 ROOT_W = "Parent.Width - %s - %s" % (NAV_OFFSET, INSET)
 ROOT_H = "Parent.Height - %s" % BAR_OFFSET

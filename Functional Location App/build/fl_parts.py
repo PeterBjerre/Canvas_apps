@@ -33,10 +33,10 @@ import layout_tokens as lay
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least, below
 import icons
 import display_text as dt
-from build_helpers import (ensure_hit, checkbox_theme, new_request_label, request_actions, breadcrumb, text_ctrl, group, button, text_input, themed_dropdown, card,
+from build_helpers import (C_INPUT_BORDER, ensure_hit, checkbox_theme, new_request_label, request_actions, breadcrumb, text_ctrl, group, button, text_input, themed_dropdown, card,
                            pin_widths, top_bar, grow, badge, fit_button_width, row_rule, mark_done,
                            loading_overlay, with_busy, confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
-                           ICON_W, text_px, row_editor_panel)
+                           ICON_W, text_px, stable_scrim, icon_button)
 
 NARROW = below("Tablet")
 
@@ -161,6 +161,11 @@ def build_bar():
     actions = request_actions("Fl", new, save, submit, fix_expr=S.ERRS, extra=[edit])
     # Bundbjaelken under Desktop (UX-review M8) kopierer disse to.
     BAR_ACTIONS[:] = [save, submit]
+    # Synlig kant rundt om alle sekundaere knapper (feedback).
+    for b in (new, edit, save):
+        b.props["Appearance"] = "ButtonAppearance.Outline"
+        b.props["BorderColor"] = C_INPUT_BORDER
+        b.props["BorderThickness"] = "1"
     _bar_btn(edit)
     _bar_btn(save)
     # Submit ogsaa kun sit ikon paa en telefon, saa "New request" kan staa
@@ -322,17 +327,18 @@ BTN_SIZE = 13
 
 
 def _btn_w(text):
-    return fit_button_width(f'"{text}"', size=BTN_SIZE, min_w=0)
+    # Smalt (feedback): text_px er allerede et skoen med 10 %, saa kun 20 px luft.
+    return text_px(text, BTN_SIZE) + 20
 
 
 def _pop_w(text):
     """Popup-knappen med plads til fluebenet foran teksten (UX-review)."""
-    return _btn_w(text) + ICON_W - 8
+    return _btn_w(text) + 16
 
 
 VGAP = 6
 FL_MIN = 140
-DESC_MIN = 100
+DESC_MIN = 150
 # (navn, overskrift, bredde) efter Description. Delete er et ikon.
 # Class Data staar lige efter Assigned Class (issue #242).
 V_FIXED = ([("Kks", "KKS type", 64), ("Cls", "Assigned class", 96),
@@ -362,7 +368,8 @@ V_W = f"Max({ROWS_W}, {V_MIN})"
 # deles ligeligt af kolonnerne i V_GROW. ATEX (afkrydsning) og Actions
 # (ikon) har fast bredde. Andelene summer til 1, saa raekken er stadig
 # praecis V_W bred, og overskrift og raekke bruger de samme bredder.
-V_PAIR_SHARE = "1 / 8"
+V_PAIR_SHARE = "1 / 10"
+V_DESC_SHARE = "3 / 20"
 V_GROW = ("Kks", "Cls", "Room", "Sort", "Abc")
 V_GROW_SHARE = f"3 / {4 * len(V_GROW)}"
 assert set(V_GROW) <= {n for n, _l, _w in V_FIXED}
@@ -374,7 +381,7 @@ def _v_w(n, w):
 
 V_SPEC = ([("No", "#", 28, V_SHOW_NO),
            ("Fl", "Functional Location", f"{FL_MIN} + ({V_SPARE}) * {V_PAIR_SHARE}", None),
-           ("Desc", "Description", f"{DESC_MIN} + ({V_SPARE}) * {V_PAIR_SHARE}", None)]
+           ("Desc", "Description", f"{DESC_MIN} + ({V_SPARE}) * {V_DESC_SHARE}", None)]
           + [(n, l, _v_w(n, w), None) for n, l, w in V_FIXED])
 V_GAL_W = f"({V_W}) + {SCROLLBAR_W} + {GALLERY_RESERVE}"
 V_WIDE = f"({ROWS_W}) < {V_MIN}"
@@ -555,12 +562,21 @@ def open_row_panel_fx(guid):
 
 
 def _panel_section(key, title):
-    fields = field_grid(f"Panel{key}", f'Section = "{key}"', f'"{title}"')
+    fields = field_grid(f"Panel{key}", f'Section = "{key}"', f'"{title}"', cols=PANEL_COLS)
     heading = text_ctrl(f"txtFlPanel{key}Title", f'"{title}"', size=lay.SIZE_BODY,
                         weight="Semibold", height=22, wrap="false",
                         visible=f'CountRows(Filter(colFlDet, Section = "{key}")) > 0')
     return group(f"conFlPanel{key}", [heading, fields], direction="Vertical", gap=8,
                  visible=f'CountRows(Filter(colFlDet, Section = "{key}")) > 0')
+
+
+PANEL_PAD = 20
+# Panelets formularbredde: panelet minus pad, scrollens pad og scrollbaren.
+PANEL_FORM_W = f"({lay.PANEL_W_AT}) - 2 * {PANEL_PAD} - 2 * {PANEL_PAD} - {SCROLLBAR_W}"
+PANEL_COL_MIN = 200
+# 3 kolonner naar de kan faa PANEL_COL_MIN hver, ellers 2, ellers 1.
+PANEL_COLS = (f"If(({PANEL_FORM_W}) >= 3 * {PANEL_COL_MIN}, 3, "
+              f"If(({PANEL_FORM_W}) >= 2 * {PANEL_COL_MIN}, 2, 1))")
 
 
 def build_row_panel():
@@ -570,13 +586,43 @@ def build_row_panel():
     rows = "Sort(colFlRows, RowNo)"
     previous_id = f"Index({rows}, Max(1, {current} - 1)).RowGuid"
     next_id = f"Index({rows}, Min(CountRows({rows}), {current} + 1)).RowGuid"
-    previous = open_row_panel_fx(previous_id)
-    next_ = open_row_panel_fx(next_id)
     previous_mode = f"If({current} <= 1, DisplayMode.Disabled, DisplayMode.Edit)"
     next_mode = f"If({current} >= CountRows({rows}), DisplayMode.Disabled, DisplayMode.Edit)"
     close_fx = "Set(varFlPanelOpen, false); Set(varFlDetailRow, \"\"); Clear(colFlDet)"
-    footer = button("btnFlPanelClose", '"Close"', close_fx,
-                    width=fit_button_width('"Close"'), height=lay.HIT_TOUCH)
+    vis = "IfError(varFlPanelOpen, false)"
+
+    # Gennemsigtigt slor bag panelet: et tryk paa siden bag lukker det
+    # (som side_nav's NavScrim). Ogsaa naar listen staar ved siden af.
+    backdrop = Ctrl("imgFlEditorBackdrop", "Image", props={
+        "AccessibleLabel": '"Close row editor"',
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        **stable_scrim(C_TRANSPARENT),
+        "Height": "App.Height",
+        "Image": '""',
+        "OnSelect": close_fx,
+        "TabIndex": "0",
+        "Visible": vis,
+        "Width": "App.Width",
+        "X": "0",
+        "Y": "0",
+    }, h="App.Height", vis=vis)
+
+    prev = icon_button("btnFlEditorPrevious", "Previous row", open_row_panel_fx(previous_id),
+                       icons.CHEVRON_LEFT, previous_mode)
+    next_ = icon_button("btnFlEditorNext", "Next row", open_row_panel_fx(next_id),
+                        icons.CHEVRON_RIGHT, next_mode)
+    prev.vis = next_.vis = "CountRows(colFlRows) > 1"
+    close = icon_button("btnFlEditorClose", "Close", close_fx, icons.CLOSE)
+    title = grow(text_ctrl("txtFlEditorPosition", position, size=lay.SIZE_CARD_TITLE,
+                           weight="Semibold", height=28, wrap="false"))
+    nav_w = 3 * lay.HIT_TOUCH + 8
+    navigation = group("conFlEditorNavigation", [prev, next_, close], direction="Horizontal",
+                       gap=4, height=lay.HIT_TOUCH, width=nav_w, align_items="Center",
+                       justify="End")
+    heading = group("conFlEditorHeading", [title, navigation], direction="Horizontal", gap=12,
+                    height=lay.HIT_TOUCH, align_items="Center")
+
     sections = [
         _panel_section("Master", "Functional location"),
         _panel_section("Status", "Status"),
@@ -584,10 +630,18 @@ def build_row_panel():
         _panel_section("TRM", "TRM"),
         _panel_section("Ext", "GIV_EXT and WCM"),
     ]
-    return row_editor_panel("Fl", position, sections, footer, previous, next_,
-                            close_fx, "varFlPanelOpen",
-                            previous_mode=previous_mode, next_mode=next_mode,
-                            side_by_side=True)
+    # Pad (2 x 16), overskrift og mellemrum: bunden klippes aldrig.
+    scroll_h = f"App.Height - ({2 * 16 + lay.HIT_TOUCH + 12})"
+    scroll = group("conFlEditorSections", sections, direction="Vertical", gap=16,
+                   height=scroll_h, overflow_y="Scroll",
+                   pad=(16, PANEL_PAD, 16, PANEL_PAD))
+    panel = group("conFlEditorPanel", [heading, scroll], direction="Vertical", gap=12,
+                  height="App.Height", width=lay.PANEL_W_AT, fill=C_CARD_BG,
+                  border_color=C_CARD_BORDER, pad=(16, PANEL_PAD, 16, PANEL_PAD),
+                  visible=vis, drop_shadow="Bold")
+    panel.props["X"] = f"If({at_least('Desktop')}, App.Width - Self.Width, 0)"
+    panel.props["Y"] = "0"
+    return [backdrop, panel]
 
 
 def row_message():
@@ -860,10 +914,11 @@ def _set_copy(value):
             f"{{ Value: {value} }})")
 
 
-def field_grid(tag, section_test, label, source="colFlDet", set_fx=_set_detail):
+def field_grid(tag, section_test, label, source="colFlDet", set_fx=_set_detail, cols=None):
     """Et gitter af felter fra source (colFlDet eller popuppens kopi). Hvert
     felt: etiket, editor (efter Kind) og en linje med beskeden - eller en
     kort hjaelp."""
+    cols = cols or FORM_COLS
     items = f"Filter({source}, {section_test})"
     n = f"CountRows({items})"
     w = "Parent.Width"
@@ -905,7 +960,7 @@ def field_grid(tag, section_test, label, source="colFlDet", set_fx=_set_detail):
     tile = group(f"conFl{tag}Tile", [lbl, txt, dd, chk, ro, issue], direction="Vertical", gap=2,
                  width="Parent.TemplateWidth", height="Parent.TemplateHeight",
                  pad=(0, TILE_GAP, 10, 0))
-    gal_h = f"RoundUp({n} / ({FORM_COLS}), 0) * {TILE_H}"
+    gal_h = f"RoundUp({n} / ({cols}), 0) * {TILE_H}"
     vis = f"IfError({n} > 0, false)"
     gal = Ctrl(f"galFl{tag}Fields", "Gallery", variant="Vertical", props={
         "AccessibleLabel": label,
@@ -923,7 +978,7 @@ def field_grid(tag, section_test, label, source="colFlDet", set_fx=_set_detail):
         "TemplateSize": str(TILE_H),
         "Visible": vis,
         "Width": "Parent.Width",
-        "WrapCount": FORM_COLS,
+        "WrapCount": cols,
     }, children=[tile], h=gal_h, vis=vis)
     return gal
 

@@ -901,27 +901,7 @@ def build_item_editor():
 
     # The card stretches to the height of the items list; SpaceBetween keeps
     # Reset and Save at the bottom edge when the editor card is taller.
-    # "BEFORE YOU CAN SUBMIT" I EDITOREN (VH-mockuppen). Det, der mangler
-    # paa items og operationer, staar ved felterne, hvor det rettes - samme
-    # navngivne formler som trinene og Submit (build_status). Planhovedets
-    # krav staar ved planhovedet og i linjen under trinene.
-    todo_fx = ('Concat(Filter(Table({ m: VhpItemMissing }, { m: VhpOpsMissing }), '
-               '!IsBlank(m)), m, Char(10))')
-    todo_vis = (f"(!IsBlank(varVhpActiveItemId) && !varVhpViewOnly && "
-                f"!IsBlank({todo_fx}))")
-    todoTitle = text_ctrl("txtVhpEditorTodoTitle", '"Before you can submit"', size=13,
-                          weight="Semibold", height=20, wrap="false",
-                          color=C_INVALID_FG)
-    # Hoejden af linjerne: hver linje ombrydes efter et skoen paa 6.5 px
-    # pr. tegn i 12 pt (samme skoen som andre ombrudte beskeder).
-    todo_h = (f"Max(18, 18 * Sum(Split({todo_fx}, Char(10)), "
-              f"RoundUp(Len(Value) * 6.5 / Max(100, {EDITOR_CW} - 26), 0)))")
-    todoText = text_ctrl("txtVhpEditorTodo", todo_fx, size=12, color=C_INVALID_FG,
-                         height=todo_h, wrap="true")
-    todo = group("conVhpEditorTodo", [todoTitle, todoText], direction="Vertical", gap=4,
-                 fill=C_INVALID_BG, border_color=C_INVALID_FG, border_thickness="1",
-                 radius=8, pad=(8, 12, 8, 12), visible=todo_vis)
-    body = group("conVhpEditorBody", [header, helpPanel, fieldsGrid, flRow, todo],
+    body = group("conVhpEditorBody", [header, helpPanel, fieldsGrid, flRow],
                  direction="Vertical", gap=14)
     editor = card("conVhpEditorCard", [body, footer])
     editor.props["LayoutJustifyContent"] = "LayoutJustifyContent.SpaceBetween"

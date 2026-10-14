@@ -715,7 +715,8 @@ def test_toolbar_is_built_like_the_rows_that_render():
         props = body["Properties"]
         assert "If(" in props["LayoutDirection"] and "If(" in props["LayoutAlignItems"], name
         assert "LayoutAlignItems.Center" in props["LayoutAlignItems"]
-        assert "LayoutAlignItems.Stretch" in props["LayoutAlignItems"]
+        assert ("LayoutAlignItems.Start" in props["LayoutAlignItems"]
+                or "LayoutAlignItems.Stretch" in props["LayoutAlignItems"])
         for it in body["Children"]:
             (kn, kb), = it.items()
             if kb["Control"] != "GroupContainer":

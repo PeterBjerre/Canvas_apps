@@ -344,7 +344,7 @@ def _key_tabs():
 
 
 SEARCH_MIN = 2
-SEARCH_ROW_W = f"If({lay.below('Tablet')}, {CARD_W}, Min({CARD_W}, 380))"
+SEARCH_ROW_W = f"If({lay.below('Tablet')}, {CARD_W}, Min({CARD_W}, 420))"
 # Soegningen (UX-review, KKS): et tekstfelt med soegeikon og et kryds, der
 # rydder det. Den soeger, mens man skriver - en timer laegger teksten i
 # varKksQuery et kort ophold efter sidste tastetryk, saa filtreringen over
@@ -371,7 +371,7 @@ def _search_row():
         "OnSelect": "false", "TabIndex": "0", "Width": str(SEARCH_ICON),
     }, h=SEARCH_ICON)
     inp = text_input("inpKksFind", "varKksQuery", placeholder='"Search code or description"',
-                     height=SEARCH_H, ttype="Search", label='"Search KKS codes and descriptions"')
+                     height=SEARCH_H, label='"Search KKS codes and descriptions"')
     inp.props["TriggerOutput"] = "TriggerOutput.Keypress"
     grow(inp)
     clear = button("btnKksFindClear", '""', CLEAR_QUERY, width=SEARCH_H, height=SEARCH_H,

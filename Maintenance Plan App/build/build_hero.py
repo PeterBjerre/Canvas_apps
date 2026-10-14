@@ -381,7 +381,7 @@ READINESS = with_dirty(
     '    "Ready to submit.",\n'
     '    varVhpSaving,\n'
     '    "Saving ...",\n'
-    f'    "Before you can submit: " & Mid(First({ALL_MISSING}).Value, {len(BULLET) + 1})\n'
+    f'    Mid(First({ALL_MISSING}).Value, {len(BULLET) + 1})\n'
     ")")
 # Planen er ikke indsendt og staar i Edit mode: kravene giver mening, og
 # info-ikonet staar ved linjen (issue #230). Er alt i orden, siger listen
@@ -499,7 +499,7 @@ MODAL_PAD = 18
 
 
 def missing_modal():
-    """"Before you can submit" (issue #220) - [sloer, popup].
+    """"Listen over det, der mangler (issue #220) - [sloer, popup].
 
     Alt, der mangler, grupperet efter sektion: Plan header, Items og
     Task list and operations. Samme kilde som linjen under trinene, Submits
@@ -509,7 +509,7 @@ def missing_modal():
     scroller, hvis listen er hoejere end skaermen; Close kan altid naas."""
     vis = MISSING_ON
     backdrop = tap_backdrop("conVhpMissingBackdrop", vis, MISSING_CLOSE)
-    title = text_ctrl("txtVhpMissingTitle", '"Before you can submit"', size=lay.SIZE_CARD_TITLE,
+    title = text_ctrl("txtVhpMissingTitle", '"Still missing"', size=lay.SIZE_CARD_TITLE,
                       weight="Semibold", height=26, wrap="false")
     intro = text_ctrl("txtVhpMissingIntro",
                       f'If(IsEmpty({ALL_MISSING}), "Everything is in place. You can submit the plan now.", '
