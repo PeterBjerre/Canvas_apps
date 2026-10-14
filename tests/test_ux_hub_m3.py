@@ -32,10 +32,11 @@ def test_tiles_are_72_px_with_a_new_icon_button():
         assert f'"New {d["name"].lower()} request"' in b
 
 
-def test_continue_where_you_left_off_lists_up_to_three_drafts():
+def test_continue_where_you_left_off_lists_up_to_three_drafts_and_returned():
     assert "Status.Value = \"Kladde\"" in bh.RESUME_REFRESH
     assert "SortOrder.Descending" in bh.RESUME_REFRESH
     assert ", 3))" in bh.RESUME_REFRESH
+    assert 'Status.Value = "AfventerInfo"' in bh.RESUME_REFRESH
     assert bh.RESUME_REFRESH in bh.HUB_ON_VISIBLE
     y = _yaml()
     for i in (1, 2, 3):
