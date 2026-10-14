@@ -49,7 +49,8 @@ from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_MUTED_BG, C_REQUIRED, C_PRIMARY, C_WHITE,
                         C_TRANSPARENT, C_ROW_PRESSED, C_NEUTRAL_BG, C_NEUTRAL_FG, C_INFO_FG,
                         C_INFO_BG, C_VALID_FG, C_VALID_BG, C_WARN_FG,
-                        C_WARN_BG, C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY, C_DIVIDER)
+                        C_WARN_BG, C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY, C_DIVIDER,
+                        C_INVALID_FG)
 import layout_tokens as lay
 from layout_tokens import fits, if_below, below, at_least
 from build_helpers import (ensure_hit, validation_summary, tap_backdrop, text_ctrl, text_min_height, group, button, text_input,
@@ -85,6 +86,7 @@ import permissions as perm
 import request_index as ri
 import display_text as dt
 import status_chip as sc
+import icons
 import design_tokens as tok
 
 # Flowkontrakten staar i tools/attflows.py; ruden her er dens
@@ -341,6 +343,59 @@ def submit_press_fx():
             ")")
 
 
+DUP_VIS = '!IsBlank(varDomRequestGuid)'
+
+
+def duplicate_fx():
+    """DUPLICATE (UX-review L2): kopier anmodningens raekker til en NY
+    kladde, som brugeren ejer.
+
+    Kopierne hentes fra LISTEN (Filter paa RequestGuid er delegerbar), ikke
+    fra colDomRows, hvor valg og tal er laest om til tekst. Hver kopi faar
+    sin egen ItemKey og mappe, som en ny raekke ved Gem - dokumenter,
+    SAP-svar og godkendelser foelger ikke med. En indsendt raekke bliver
+    "valid" igen; kopien er en ny anmodning uden GUID, som Save draft
+    giver nummer."""
+    cols = [cfg.C_TEXT, "Plant"] + [c for c, _l, _k, _ch in FIELDS]
+    cols += [c for c, _e in HOOKS["extra_patch"]] + list(EXTRA_PATCH)
+    seen, copy = set(), []
+    for c in cols:
+        if c not in seen:
+            seen.add(c)
+            copy.append(f"                    {c}: R.{c},")
+    key = f'"{cfg.PREFIX}-" & Text(n.ID, "000000")'
+    return (
+        "If(\n"
+        "    IsBlank(varDomRequestGuid),\n"
+        '    Notify("Save the request before you duplicate it.", NotificationType.Warning),\n'
+        "    IfError(\n"
+        "        ForAll(\n"
+        f"            Filter({cfg.L_ROWS}, RequestGuid = varDomRequestGuid) As R,\n"
+        "            With(\n"
+        "                { n: Patch(\n"
+        f"                    {cfg.L_ROWS}, Defaults({cfg.L_ROWS}), {{\n"
+        + "\n".join(copy) + "\n"
+        '                    RowStatus: { Value: If(R.RowStatus.Value = "submitted", "valid", Coalesce(R.RowStatus.Value, "valid")) },\n'
+        '                    RequestGuid: "", RequestNo: "",\n'
+        "                    RequesterEmail: varDomMe, RequesterName: User().FullName\n"
+        "                }) },\n"
+        f"                Patch({cfg.L_ROWS}, n, {{ RowId: n.ID, ItemKey: {key},\n"
+        f'                    AttachmentFolder: "{attflows.LIBRARY}/" & {key} }})\n'
+        "            )\n"
+        "        );\n"
+        '        Set(varDomRequestGuid, "");\n'
+        '        Set(varDomRequestNo, "");\n'
+        "        Set(varDomIdx, Blank());\n"
+        "        Set(varDomViewOnly, false);\n"
+        "        Set(varDomCanEdit, false);\n"
+        + _indent(clear_form_fx(), 8) + ";\n"
+        + refresh_rows_fx(8) + ";\n"
+        '        Notify("Duplicated as a new draft request. Choose Save draft to keep it.", NotificationType.Success),\n'
+        '        Notify("Could not duplicate the request: " & FirstError.Message, NotificationType.Error)\n'
+        "    )\n"
+        ")")
+
+
 BAR_ACTIONS = []
 
 
@@ -394,8 +449,14 @@ def build_bar():
     # SAMME RAEKKEFOELGE SOM ALLE ANDRE DOMAENER (UX-review T1):
     # [New request] | [Edit] [Save draft] [Submit (N to fix)] [Delete].
     # Taelleren er raekkerne, der stadig er kladder - de sendes ikke med.
+    dup = button("btnDomDuplicate", '"Duplicate"', with_busy(SAVING_VAR, duplicate_fx()),
+                 icon="Copy", visible=DUP_VIS,
+                 tooltip='"Copy all rows to a new draft request - documents are not copied"')
+    sized(dup, True)
+    dup.props["Width"] = f"If({below('Tablet')}, 40, {dup.props['Width']})"
+    dup.props["Layout"] = f"If({below('Tablet')}, ButtonLayout.IconOnly, ButtonLayout.IconBefore)"
     actions = request_actions("Dom", new, save, submit, fix_expr=f"CountRows({DRAFTS})",
-                              extra=[edit])
+                              extra=[edit, dup])
     # Bundbjaelken under Desktop (UX-review M8) kopierer disse to.
     BAR_ACTIONS[:] = [save, submit]
     narrow = below("Tablet")
@@ -531,7 +592,8 @@ def _plant_dropdown():
     selv slaar recorden op til Default - fejl 1 kan ikke opstaa igen."""
     return themed_dropdown("drpDomPlant", "colDomPlants", "varDomFPlant",
                            required_formula=REQUIRED, display_mode=DM_ROW,
-                           onchange="Set(varDomFPlant, Self.Selected.Value)")
+                           onchange="Set(varDomFPlant, Self.Selected.Value);\n"
+                                    + tok.prefs_save({"prefDomNewPlant": "Self.Selected.Value"}))
 
 
 # FL-vaelgerens tilstand. Selve vaelgeren er tools/fl_picker.py - den
@@ -721,7 +783,8 @@ def clear_form_fx():
              'Set(varDomRowStatus, "valid");',
              f'Set({REQUIRED}, false);',
              'Set(varDomFText, "");',
-             'Set(varDomFPlant, "");']
+             # Det sidst valgte vaerk paa en ny raekke (UX-review L2).
+             f'Set(varDomFPlant, {tok.pref_get("prefDomNewPlant")});']
     if getattr(cfg, "ROW_PANEL_ENABLED", False):
         lines.append('Set(varDomEditorOpen, false);')
     if getattr(cfg, "ROW_EDITOR_TAB_VAR", None):
@@ -2379,6 +2442,11 @@ def build_list(slots, badge_head, search_placeholder):
             display_mode=("If(varDomViewOnly || IsBlank(varDomActiveRowId), "
                           "DisplayMode.Disabled, DisplayMode.Edit)"),
             visible="!varDomViewOnly"))
+        row_add.append(button("btnDomPasteRows", '"Paste rows"', paste_open_fx(),
+                              icon=icons.FLUENT["paste"],
+                              width=fit_button_width('"Paste rows"') + ICON_W, height=36,
+                              tooltip='"Paste rows copied from Excel - they are added as drafts"',
+                              visible="!varDomViewOnly"))
         row_add.append(button("btnDomNewRow", '"Add row"', new_row_fx(), primary=True,
                               width=fit_button_width('"Add row"'), height=36,
                               visible="!varDomViewOnly"))
@@ -2504,3 +2572,168 @@ def _submit_parts():
          ')'),
         size=13, color=C_MUTED, height=20, wrap="false", visible="!IsBlank(varDomRequestNo)")
     return [state]
+
+
+# ---------------------------------------------------------------------------
+# PASTE ROWS FROM EXCEL (UX-review L3)
+#
+# Brugeren kopierer celler i Excel og indsaetter dem: en raekke pr. linje,
+# kolonnerne adskilt af tabulator i raekkefoelgen PASTE_COLS. "Preview"
+# laeser teksten ind i colDomPaste og siger pr. linje, om den kan tilfoejes;
+# "Add" skriver de gode linjer som KLADDE-raekker, som brugeren derefter
+# aabner og fuldfoerer i panelet. En overskriftslinje (beskrivelsens navn i
+# foerste celle) springes over. Kun tekst- og valgfelter kan indsaettes -
+# tal, datoer og ja/nej udfyldes i panelet.
+# ---------------------------------------------------------------------------
+PASTE_VAR = "varDomPasteOpen"
+PASTE_TEXT = "varDomPasteText"
+
+
+def paste_cols():
+    """[(kolonne, etiket)] i den raekkefoelge, cellerne skal staa i."""
+    cols = [(cfg.C_TEXT, cfg.TEXT_LABEL), ("Plant", cfg.PLANT_LABEL)]
+    for col, label, kind, _ch in FIELDS:
+        if kind in ("text", "long", "choice") and col not in ("Plant", cfg.C_TEXT):
+            cols.append((col, label))
+    return cols
+
+
+def paste_schema():
+    s = {"Line": "0", "Ok": "false", "Note": '""'}
+    for col, _l in paste_cols():
+        s[col] = '""'
+    return ("colDomPaste", s)
+
+
+def _paste_preview_fx():
+    cols = paste_cols()
+    cells = ",\n".join(
+        f"                    {c}: IfError(Trim(Index(c, {i + 1}).Value), \"\")"
+        for i, (c, _l) in enumerate(cols) if c != "Plant")
+    return (
+        "ClearCollect(\n"
+        "    colDomPaste,\n"
+        "    ForAll(\n"
+        f"        Filter(Split(Substitute(Coalesce({PASTE_TEXT}, \"\"), Char(13), \"\"), Char(10)),\n"
+        f"               !IsBlank(Trim(Value)) && Upper(Trim(First(Split(Value, Char(9))).Value)) <> \"{cfg.TEXT_LABEL.upper()}\") As L,\n"
+        "        With(\n"
+        "            { c: Split(L.Value, Char(9)) },\n"
+        "            With(\n"
+        "                {\n"
+        f"                    p: IfError(Trim(Index(c, 2).Value), \"\")\n"
+        "                },\n"
+        "                With(\n"
+        "                    { plant: If(IsBlank(p), \"\", LookUp(colDomPlants, Upper(Value) = Upper(p)).Value) },\n"
+        "                    {\n"
+        "                        Line: 0,\n"
+        "                        Plant: Coalesce(plant, p),\n"
+        + cells.replace("                    ", "                        ") + ",\n"
+        "                        Ok: !IsBlank(IfError(Trim(Index(c, 1).Value), \"\")) && (IsBlank(p) || !IsBlank(plant)),\n"
+        "                        Note: If(\n"
+        "                            IsBlank(IfError(Trim(Index(c, 1).Value), \"\")), \"" + cfg.TEXT_LABEL + " is missing\",\n"
+        "                            !IsBlank(p) && IsBlank(plant), \"Unknown plant \" & p,\n"
+        "                            \"Ready\"\n"
+        "                        )\n"
+        "                    }\n"
+        "                )\n"
+        "            )\n"
+        "        )\n"
+        "    )\n"
+        f")"
+    )
+
+
+def _paste_add_fx():
+    copy = []
+    for col, _l in paste_cols():
+        if col == "Plant":
+            copy.append("                    Plant: P.Plant,")
+        elif col in SP_CHOICE:
+            copy.append(f"                    {col}: If(IsBlank(P.{col}), Blank(), {{ Value: P.{col} }}),")
+        else:
+            copy.append(f"                    {col}: P.{col},")
+    key = f'"{cfg.PREFIX}-" & Text(n.ID, "000000")'
+    return (
+        "IfError(\n"
+        "    ForAll(\n"
+        "        Filter(colDomPaste, Ok) As P,\n"
+        "        With(\n"
+        "            { n: Patch(\n"
+        f"                {cfg.L_ROWS}, Defaults({cfg.L_ROWS}), {{\n"
+        + "\n".join(copy) + "\n"
+        '                    RowStatus: { Value: "draft" },\n'
+        f'                    RequestGuid: If({AS_ADMIN}, varDomRequestGuid, ""),\n'
+        f'                    RequestNo: If({AS_ADMIN}, varDomRequestNo, ""),\n'
+        f"                    RequesterEmail: If({AS_ADMIN}, Lower(varDomIdx.RequesterEmail), varDomMe),\n"
+        f"                    RequesterName: If({AS_ADMIN}, varDomIdx.RequesterName, User().FullName)\n"
+        "                }) },\n"
+        f"            Patch({cfg.L_ROWS}, n, {{ RowId: n.ID, ItemKey: {key},\n"
+        f'                AttachmentFolder: "{attflows.LIBRARY}/" & {key} }})\n'
+        "        )\n"
+        "    );\n"
+        + refresh_rows_fx(4) + ";\n"
+        '    Notify(Text(CountRows(Filter(colDomPaste, Ok))) & " rows added as drafts. Open each row to complete it.", '
+        "NotificationType.Success);\n"
+        f"    Set({PASTE_VAR}, false);\n"
+        f'    Set({PASTE_TEXT}, "");\n'
+        "    Clear(colDomPaste),\n"
+        '    Notify("Could not add the rows: " & FirstError.Message, NotificationType.Error)\n'
+        ")")
+
+
+def paste_open_fx():
+    return f'Set({PASTE_TEXT}, "");\nClear(colDomPaste);\nReset(inpDomPaste);\nSet({PASTE_VAR}, true)'
+
+
+def build_paste():
+    """Popuppen "Paste rows" - [sloer, popup]."""
+    from build_helpers import popup_head
+    vis = f"IfError({PASTE_VAR}, false)"
+    close = f"Set({PASTE_VAR}, false)"
+    backdrop = tap_backdrop("conDomPasteBackdrop", vis, close)
+    title = text_ctrl("txtDomPasteTitle", '"Paste rows"', size=lay.SIZE_CARD_TITLE,
+                      weight="Semibold", height=26, wrap="false")
+    head = popup_head("conDomPasteHead", title, "btnDomPasteClose", close)
+    # Kolonnenavnene som hver sin tekst - de er etiketter, ikke en saetning.
+    names = "Concat([" + ", ".join(f'"{l}"' for _c, l in paste_cols()) + '], Value, ", ")'
+    help_ = text_ctrl("txtDomPasteHelp",
+                      '"Copy the cells in Excel and paste them here, one row per line. '
+                      'The rows are added as drafts. Columns in this order: " & ' + names,
+                      size=13, color=C_MUTED, height=80, wrap="true")
+    inp = text_input("inpDomPaste", f"Coalesce({PASTE_TEXT}, \"\")", height=140, ttype="Multiline",
+                     placeholder='"Paste from Excel"', label='"Rows to paste"',
+                     onchange=f"Set({PASTE_TEXT}, Self.Text)")
+    preview = button("btnDomPastePreview", '"Preview"', _paste_preview_fx(),
+                     width=fit_button_width('"Preview"'), height=36,
+                     display_mode=f'If(IsBlank(Trim(Coalesce({PASTE_TEXT}, ""))), '
+                                  "DisplayMode.Disabled, DisplayMode.Edit)")
+    line = text_ctrl(
+        "txtDomPasteLine",
+        f'ThisItem.{cfg.C_TEXT} & If(IsBlank(ThisItem.Plant), "", "  ·  " & ThisItem.Plant) '
+        '& "  —  " & ThisItem.Note',
+        size=13, height=24, wrap="false",
+        extra={"Color": f"If(ThisItem.Ok, {C_TITLE}, {C_INVALID_FG})",
+               "Width": "Parent.TemplateWidth"})
+    gal_h = "Min(CountRows(colDomPaste), 6) * 26"
+    gal = Ctrl("galDomPaste", "Gallery", variant="Vertical", props={
+        "AccessibleLabel": '"Preview of the pasted rows"',
+        "BorderStyle": "BorderStyle.None", "Fill": C_TRANSPARENT, "FillPortions": "0",
+        "Height": gal_h, "Items": "colDomPaste", "LayoutMinWidth": "0",
+        "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
+        "ShowScrollbar": "true", "TabIndex": "0", "TemplatePadding": "0",
+        "TemplateSize": "26", "Width": "Parent.Width",
+    }, children=[line], h=gal_h, vis="!IsEmpty(colDomPaste)")
+    ok_n = "CountRows(Filter(colDomPaste, Ok))"
+    add_txt = f'If({ok_n} = 0, "Add rows", "Add " & Text({ok_n}) & " rows")'
+    add = button("btnDomPasteAdd", add_txt, with_busy(SAVING_VAR, _paste_add_fx()), primary=True,
+                 icon="Add", width=fit_button_width('"Add 00 rows"') + ICON_W, height=36,
+                 display_mode=f"If({ok_n} = 0, DisplayMode.Disabled, DisplayMode.Edit)")
+    footer = group("conDomPasteFooter", [preview, add], direction="Horizontal", gap=8,
+                   height=36, justify="End", align_items="Center")
+    modal = group("conDomPasteModal", [head, help_, inp, gal, footer], direction="Vertical",
+                  gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
+                  pad=(18, 18, 18, 18), width="Min(640, App.Width - 24)",
+                  drop_shadow="ExtraBold", visible=vis)
+    modal.props["X"] = "(App.Width - Self.Width) / 2"
+    modal.props["Y"] = "Max(12, (App.Height - Self.Height) / 3)"
+    return [backdrop, modal]
