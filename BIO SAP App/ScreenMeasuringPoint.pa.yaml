@@ -617,8 +617,9 @@ Screens:
                                       IsBlank(varMpRequestGuid),
                                       Set(gblToast, { Text: "Save the request before you duplicate it.", Kind: "Warning", At: Now() }); true,
                                       IfError(
+                                          ClearCollect(colMpDupSrc, Filter(MeasuringPointItems, RequestGuid = varMpRequestGuid));
                                           ForAll(
-                                              Filter(MeasuringPointItems, RequestGuid = varMpRequestGuid) As R,
+                                              colMpDupSrc As R,
                                               With(
                                                   { n: Patch(
                                                       MeasuringPointItems, Defaults(MeasuringPointItems), {
