@@ -34,7 +34,7 @@ Value ligesom den klassiske, og det er de to, flowet faar.
 from gen_screen import (Ctrl, C_MUTED, C_MUTED_BG, C_INVALID_FG, C_VALID_FG, C_CARD_BORDER,
                         C_INFO_BG)
 import layout_tokens as lay
-from build_helpers import text_ctrl, button, group, grow, fit_button_width, ICON_W, ensure_hit
+from build_helpers import text_ctrl, button, group, grow, fit_button_width, ICON_W, ensure_hit, capped_body
 
 CONTROL = "Attachments@2.3.0"
 
@@ -176,16 +176,6 @@ def remove_confirm(prefix, pane):
     return group(f"con{prefix}Remove", [msg, btns], direction="Vertical", gap=8,
                  fill=C_INFO_BG, border_color=C_CARD_BORDER, radius=lay.RADIUS_INPUT,
                  pad=(10, 12, 10, 12), visible=vis)
-
-
-def capped_body(name, kids, max_h, gap=12):
-    """Popuppens indhold: saa hoejt som indholdet, men aldrig hoejere end
-    max_h. Foerst naar indholdet ikke kan vaere der, scroller det - og
-    titlen og Close staar uden for, saa de bliver staaende."""
-    body = group(name, kids, direction="Vertical", gap=gap, overflow_y="Scroll")
-    body.props["Height"] = f"Min({body.h}, {max_h})"
-    body.h = body.props["Height"]
-    return body
 
 
 def readonly_note(name, visible):

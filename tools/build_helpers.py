@@ -830,6 +830,24 @@ def popup_head(name, title, close_name, close_fx, accessible=None):
                  height=32, align_items="Center")
 
 
+def capped_body(name, kids, max_h, gap=12):
+    """Popuppens indhold: saa hoejt som indholdet, men aldrig hoejere end
+    max_h. Foerst naar indholdet ikke kan vaere der, scroller det - og
+    titlen og Close staar uden for, saa de bliver staaende."""
+    body = group(name, kids, direction="Vertical", gap=gap, overflow_y="Scroll")
+    body.props["Height"] = f"Min({body.h}, {max_h})"
+    body.h = body.props["Height"]
+    return body
+
+
+def popup_body_max(fixed_h, margin=12, gap=12, pad=18):
+    """Den hoejeste indholdsflade en popup kan have paa skaermen: skaermens
+    hoejde minus luften over og under, polstringen og de faste dele (hoved,
+    bund) med deres mellemrum. Tallet er til capped_body."""
+    chrome = 2 * margin + 2 * pad + sum(fixed_h) + gap * len(fixed_h)
+    return f"App.Height - {chrome}"
+
+
 def text_modal(prefix, open_var, title_fx, body_fx, body_h):
     """Et laeseudsnit: titel med Close oeverst til hoejre og broedtekst -
     [sloer, popup]. Ingen bund: Close sad der foer (issue #237)."""

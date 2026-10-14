@@ -1304,7 +1304,7 @@ def _paste_add_fx():
 
 def build_paste():
     """Popuppen "Paste rows" - [sloer, popup]."""
-    from build_helpers import popup_head, tap_backdrop
+    from build_helpers import popup_head, tap_backdrop, popup_body_max, capped_body
     vis = "IfError(varFlPasteOpen, false)"
     close = "Set(varFlPasteOpen, false)"
     backdrop = tap_backdrop("conFlPasteBackdrop", vis, close)
@@ -1314,7 +1314,7 @@ def build_paste():
     help_ = text_ctrl("txtFlPasteHelp",
                       '"Copy two columns in Excel and paste them here, one row per line: '
                       'the functional location and the description."',
-                      size=13, color=C_MUTED, height=40, wrap="true")
+                      size=13, color=C_MUTED, height=lay.if_below("Tablet", 60, 40), wrap="true")
     inp = text_input("inpFlPaste", 'Coalesce(varFlPasteText, "")', height=160, ttype="Multiline",
                      placeholder='"Paste from Excel"', label='"Rows to paste"',
                      onchange="Set(varFlPasteText, Self.Text)")
@@ -1325,7 +1325,8 @@ def build_paste():
                  display_mode=f"If({n} = 0, DisplayMode.Disabled, DisplayMode.Edit)")
     footer = group("conFlPasteFooter", [add], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
-    modal = group("conFlPasteModal", [head, help_, inp, footer], direction="Vertical",
+    body = capped_body("conFlPasteBody", [help_, inp], popup_body_max([head.h, footer.h]))
+    modal = group("conFlPasteModal", [head, body, footer], direction="Vertical",
                   gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(18, 18, 18, 18), width="Min(560, App.Width - 24)",
                   drop_shadow="ExtraBold", visible=vis)
