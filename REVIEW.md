@@ -54,6 +54,18 @@ Grundlag: designreviewet af BIO SAP (designlærredet "BIO SAP — UX review"), t
 | M3 | 2c: fliserne er 72 px (før 148) med en (+)-knap for ny anmodning (teksten "New" alene er forbudt, issue #243); "Continue where you left off" viser brugerens senest ændrede kladde med Continue; REQUEST, PLANT, STATUS og UPDATED sorterer ved klik (konstant kolonnenavn pr. gren, så SharePoint stadig sorterer). | `build_hub.py` |
 | T10 | 2d: talfelterne er tekstfelter uden spin-pile (`number_field()`, værdi via `num_value()` — heltal som før, tom ved ikke-tal); enhed efter feltet uden for gallerier (VH-modalens Work "h" og Persons "people"). Alle `num*` er nu `inp*` (regel 33). Ny check_layout **regel 41**: ingen ModernNumberInput. | `build_helpers.number_field`, `domain_parts`, `build_tasklist`, `build_plan_header` |
 
+**Sidepaneler og rettelsesliste 2026-10** (branch `claude/ux-sidepaneler-rettelser`)
+
+| Område | Status | Hvor |
+|---|---|---|
+| Alle sidepaneler | Gjort: bredde ca. 1/3 af skærmen (`PANEL_W_FX` = `Max(480, App.Width / 3)`, 3 kolonner i rækkeeditoren); klik udenfor lukker; luk- og pileknapper er outline; indholdets højde regnes ud, så bundknapperne altid er synlige. I side-om-side-visning lukker et klik på en anden række først panelet. | `layout_tokens.py`, `build_helpers.row_editor_panel`, `domain_parts.py` |
+| Hub | Gjort: flisens farvelinje i fuld bredde øverst (`rctMdTileStripe`), hover kun på selve fladen (farvelinjen er ikke med i hoveren), højere fliser. | `build_hub.py` |
+| Functional location | Gjort: Class data åbner rækkens panel; statusknappen viser kun en besked; smallere Class data/Manufacturer/Warranty; "Row X of Y" med pile; New request med kant. | `fl_parts.py`, `build_helpers.new_request_label` |
+| Vedligeholdelsesplan | Gjort: sammenfoldet hoved er én række (Show ved siden af Edit/Reset; "Plan created" kun udfoldet); tooltips om indsendelse forkortet. Linjen om klar-til-indsendelse og info-popup er uændret. | `build_plan_header.py`, `build_hero.py` |
+| Materials | Gjort: New request med kant; rækkerne og sidepanelets krop uden rullebjælke; søgning/filtre til venstre og Add row/Paste/Copy til højre. | `domain_parts.py`, `material_parts.py` |
+| KKS | Gjort: smallere søgefelt med søgeknappen efter feltet. | `kks_parts.py` |
+| Issue Board | Gjort: scope og tilstand som Hubbens trevejsvælger (outline, farvet kant ved valgt); rullelister tilpasset teksten; edit/delete/luk med kant; mere kompakt detaljepanel. | `ib_parts.py` |
+
 **Etape 3**: se de enkelte PR'er; afsnittet opdateres pr. etape.
 
 **Ikke efterprøvet i Studio** — kør `python tools\canvas_mcp.py deploy --app biosap` og se især: beskeden nederst til højre (auto-skjul, luk-kryds), datovælgerne i dd-mm-yyyy, statuschips i lys og mørk tilstand, `H.hit` på touch, de gemte filtre efter genstart, KKS-søgningen mens der skrives, Fluent-ikonerne `ArrowClockwise`/`Copy`/`Checkmark`.

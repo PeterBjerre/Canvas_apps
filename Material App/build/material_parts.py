@@ -413,11 +413,11 @@ def editor_panel_content(form):
     details = group("conDomEditorDetails", list(form.children[:-2]) + [form.children[-1], reset],
                     direction="Vertical", gap=12, visible=f'{tab} = "Details"')
     objects_body = _objects_popup()[1].children[1]
-    objects_body.props["Height"] = "App.Height - 220"
+    objects_body.props["Height"] = "App.Height - 250"
     objects = group("conDomEditorObjects", [objects_body], direction="Vertical", gap=12,
                     visible=f'{tab} = "Objects"')
     documents_body = dp.build_attachments().children[1]
-    documents_body.props["Height"] = "App.Height - 220"
+    documents_body.props["Height"] = "App.Height - 250"
     documents = group("conDomEditorDocuments", [documents_body], direction="Vertical", gap=12,
                       visible=f'{tab} = "Documents"')
     return [selector, details, objects, documents]

@@ -56,7 +56,7 @@ from layout_tokens import fits, if_below, below, at_least
 from build_helpers import (ensure_hit, validation_summary, tap_backdrop, text_ctrl, text_min_height, group, button, text_input,
                            checkbox_theme, date_picker, fit_button_row,
                            fit_button_width, number_field, num_value, themed_dropdown,
-                           card, field_cell, pin_widths, badge, top_bar, grow,
+                           card, field_cell, pin_widths, badge, top_bar, grow, flow_ok,
                            flow_row, label_px, text_px, loading_overlay,
                            with_busy, confirm_modal, edit_button, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
                            ICON_W, icon_on_mobile, new_request_label, segmented, empty_state, breadcrumb,
@@ -250,8 +250,7 @@ ACTIVE = "LookUp(colDomRows, RowId = varDomActiveRowId)"
 #
 # Kortets padding er 18 i hver side; det er de 36.
 FORM_W = f"({SHELL_W} - 36)"
-PANEL_FORM_W = (f"If({at_least('Desktop')}, 480, App.Width) "
-                f"- 2 * 20 - 2 * 20 - {SCROLLBAR_W}")
+PANEL_FORM_W = f"{lay.PANEL_W_AT} - 2 * 20 - 2 * 20 - {SCROLLBAR_W}"
 
 # DOKUMENTERNE OG DETALJERNE ER POPUPS
 # ------------------------------------
@@ -1767,6 +1766,7 @@ CELL_MIN_2 = 220
 NEED_4 = 4 * CELL_MIN_4 + 3 * GRID_GAP
 NEED_2 = 2 * CELL_MIN_2 + GRID_GAP
 PANEL_NEED_2 = 360
+PANEL_NEED_3 = 3 * 150 + 2 * GRID_GAP
 GRID_COLS = 4
 
 # Een celles bredde - maalt paa KORTETS bredde, ikke paa App.Width.
@@ -1774,7 +1774,9 @@ CELL_W = fits(FORM_W, NEED_4,
               fits(FORM_W, NEED_2, FORM_W, f"(({FORM_W}) - {GRID_GAP}) / 2"),
               f"(({FORM_W}) - {3 * GRID_GAP}) / 4")
 PANEL_CELL_W = fits(PANEL_FORM_W, PANEL_NEED_2, PANEL_FORM_W,
-                    f"(({PANEL_FORM_W}) - {GRID_GAP}) / 2")
+                    fits(PANEL_FORM_W, PANEL_NEED_3,
+                         f"(({PANEL_FORM_W}) - {GRID_GAP}) / 2",
+                         f"(({PANEL_FORM_W}) - {2 * GRID_GAP}) / 3"))
 
 
 # Felter, der fylder hele panelets bredde (mockuppen: FL og Description).
@@ -1816,31 +1818,34 @@ def grid_row(name, cells, container_w=None, columns=None, cell_width=None):
                  fits(calc_w, NEED_2, _chunk_h(hs, 1), _chunk_h(hs, 2)),
                  _chunk_h(hs, 4))
     elif columns == 2:
-        pairs = []
-        lines, cur = [], []
+        # Panelets gitter: to kolonner, tre naar panelet er bredt nok, een
+        # naar det er smalt. Felter, der fylder hele bredden, deler gitteret.
+        runs, cur = [], []
         for cell in cells:
             if cell.name in PANEL_FULL_NAMES:
                 if cur:
-                    lines.append(cur)
+                    runs.append(cur)
                     cur = []
-                lines.append([cell])
+                runs.append([cell])
                 continue
             cur.append(cell)
-            if len(cur) == 2:
-                lines.append(cur)
+            if len(cur) == 3:
+                runs.append(cur)
                 cur = []
         if cur:
-            lines.append(cur)
-        for index, pair in enumerate(lines):
-            pair_heights = [cell.h for cell in pair]
-            pair_height = (pair_heights[0] if len(pair) == 1 else
-                           fits(calc_w, PANEL_NEED_2,
-                                _chunk_h(pair_heights, 1), _chunk_h(pair_heights, 2)))
-            pairs.append(group(f"{name}Pair{index}", pair,
-                               direction="Horizontal", gap=GRID_GAP,
-                               height=pair_height, width=container_w or "Parent.Width",
-                               wrap="true"))
-        return group(name, pairs, direction="Vertical", gap=GRID_GAP,
+            runs.append(cur)
+        groups = []
+        for index, run in enumerate(runs):
+            run_heights = [cell.h for cell in run]
+            run_height = (run_heights[0] if len(run) == 1 else
+                          fits(calc_w, PANEL_NEED_2, _chunk_h(run_heights, 1),
+                               fits(calc_w, PANEL_NEED_3, _chunk_h(run_heights, 2),
+                                    _chunk_h(run_heights, 3))))
+            groups.append(group(f"{name}Pair{index}", run,
+                                direction="Horizontal", gap=GRID_GAP,
+                                height=run_height, width=container_w or "Parent.Width",
+                                wrap="true"))
+        return group(name, groups, direction="Vertical", gap=GRID_GAP,
                      width=container_w or "Parent.Width", wrap="false")
     else:
         if columns < 1 or columns > GRID_COLS:
@@ -2457,8 +2462,20 @@ def build_list(slots, badge_head, search_placeholder):
                            height=text_min_height(lay.SIZE_CARD_TITLE),
                            width=head_flex + 8 + 28, align_items="Center")
         head_flex += 8 + 28
-    head = flow_row("conDomRowsTop", [head_title, search] + row_add + [status, plant], FORM_W,
-                    gap=8, flex=head_title, flex_min=head_flex)
+    # Soegning og filtre staar til venstre, Add row/Copy til hoejre: en tom,
+    # fleksibel gruppe tager resten af linjen og skubber knapperne ud.
+    if row_add:
+        gap_ = grow(group("conDomRowsTopGap", [], direction="Horizontal", height=0))
+        kids = [head_title, search, status, plant, gap_] + row_add
+        gap_.vis = flow_ok(kids, FORM_W, gap=8, flex=gap_, flex_min=0)
+        gap_.props["Visible"] = gap_.vis
+        head = flow_row("conDomRowsTop", kids, FORM_W, gap=8, flex=gap_, flex_min=0)
+    else:
+        gap_ = grow(group("conDomRowsTopGap", [], direction="Horizontal", height=0))
+        kids = [head_title, search, status, plant, gap_]
+        gap_.vis = flow_ok(kids, FORM_W, gap=8, flex=gap_, flex_min=0)
+        gap_.props["Visible"] = gap_.vis
+        head = flow_row("conDomRowsTop", kids, FORM_W, gap=8, flex=gap_, flex_min=0)
 
     # --- tabellen -----------------------------------------------------------
     heads = [_head_text("txtDomHeadStatus", f'"{badge_head}"', BADGE_W)]

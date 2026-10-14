@@ -327,7 +327,7 @@ def _btn_w(text):
 
 def _pop_w(text):
     """Popup-knappen med plads til fluebenet foran teksten (UX-review)."""
-    return _btn_w(text) + ICON_W
+    return _btn_w(text) + ICON_W - 8
 
 
 VGAP = 6
@@ -363,7 +363,7 @@ V_W = f"Max({ROWS_W}, {V_MIN})"
 # (ikon) har fast bredde. Andelene summer til 1, saa raekken er stadig
 # praecis V_W bred, og overskrift og raekke bruger de samme bredder.
 V_PAIR_SHARE = "1 / 8"
-V_GROW = ("Kks", "Cls", "ClsData", "Room", "Sort", "Abc", "Mfr", "War")
+V_GROW = ("Kks", "Cls", "Room", "Sort", "Abc")
 V_GROW_SHARE = f"3 / {4 * len(V_GROW)}"
 assert set(V_GROW) <= {n for n, _l, _w in V_FIXED}
 
@@ -502,7 +502,7 @@ def row_cells():
 
     has_cls = "!IsBlank(ThisItem.AssignedClass)"
     cls_data = _pop_button(
-        "btnFlRowClassData", "Class data", open_cls_fx("ThisItem.RowGuid"),
+        "btnFlRowClassData", "Class data", open_row_panel_fx("ThisItem.RowGuid"),
         f"{has_cls} && " + has_vals(
             "ThisItem.RowGuid",
             f"Filter(colFlColumns, Cls = ThisItem.AssignedClass && {CLS_TEST}).Field"),
@@ -527,9 +527,10 @@ def row_cells():
         "btnFlRowStatus",
         'Switch(ThisItem.Status, "valid", "Ready", "warning", "Warning", '
         '"invalid", "Error", "Draft")',
-        open_row_panel_fx("ThisItem.RowGuid"),
+        'Notify(Coalesce(ThisItem.FirstIssue, ThisItem.FirstWarning, "Row status: " & Self.Text), '
+        'NotificationType.Information)',
         width=80, height=30, accessible='"Row status: " & Self.Text',
-        tooltip='"Open row details"')
+        tooltip='Coalesce(ThisItem.FirstIssue, ThisItem.FirstWarning, "Row status")')
     status.props["Color"] = _status_color("ThisItem")
     status.props["Size"] = str(lay.SIZE_SMALL)
 

@@ -435,11 +435,11 @@ Screens:
                               Appearance: |-
                                   =ButtonAppearance.Outline
                               BorderColor: |-
-                                  =RGBA(0, 0, 0, 0)
+                                  =C.'border-input'
                               BorderThickness: |-
                                   =1
                               Color: |-
-                                  =C.'text-muted'
+                                  =C.'text-primary'
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
@@ -1204,7 +1204,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =36 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (124) + (138) + (91) + (170) + (170) + (83) + 48, 36, (26) + 8 + (36) + If(!varMatViewOnly, 8 + (36), 0) + If(!varMatViewOnly, 8 + (36), 0) + If(!varMatViewOnly, 8 + (36), 0) + 8 + (36) + 8 + (36))) + If(!IsEmpty(Filter(
+                            =36 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (83) + (240) + (170) + (170) + (124) + (138) + (91) + (0) + 56, 36, (26) + 8 + (36) + 8 + (36) + 8 + (36) + If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (83) + (240) + (170) + (170) + (124) + (138) + (91) + (0) + 56, 8 + (0), 0) + If(!varMatViewOnly, 8 + (36), 0) + If(!varMatViewOnly, 8 + (36), 0) + If(!varMatViewOnly, 8 + (36), 0))) + If(!IsEmpty(Filter(
                                 colMatRows,
                                 (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
                                 (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
@@ -1268,11 +1268,11 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (124) + (138) + (91) + (170) + (170) + (83) + 48, 36, (26) + 8 + (36) + If(!varMatViewOnly, 8 + (36), 0) + If(!varMatViewOnly, 8 + (36), 0) + If(!varMatViewOnly, 8 + (36), 0) + 8 + (36) + 8 + (36))
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (83) + (240) + (170) + (170) + (124) + (138) + (91) + (0) + 56, 36, (26) + 8 + (36) + 8 + (36) + 8 + (36) + If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (83) + (240) + (170) + (170) + (124) + (138) + (91) + (0) + 56, 8 + (0), 0) + If(!varMatViewOnly, 8 + (36), 0) + If(!varMatViewOnly, 8 + (36), 0) + If(!varMatViewOnly, 8 + (36), 0))
                               LayoutAlignItems: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (124) + (138) + (91) + (170) + (170) + (83) + 48, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (83) + (240) + (170) + (170) + (124) + (138) + (91) + (0) + 56, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (124) + (138) + (91) + (170) + (170) + (83) + 48, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (83) + (240) + (170) + (170) + (124) + (138) + (91) + (0) + 56, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =8
                               LayoutMinWidth: |-
@@ -1303,13 +1303,13 @@ Screens:
                                     LayoutGap: |-
                                         =8
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (83) + (240) + (170) + (170) + (124) + (138) + (91) + (0) + 56, 83, 0)
                                     LayoutOverflowX: |-
                                         =LayoutOverflow.Hide
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18)) - ((240) + 8) - (If(!varMatViewOnly, (124) + 8, 0)) - (If(!varMatViewOnly, (138) + 8, 0)) - (If(!varMatViewOnly, (91) + 8, 0)) - ((170) + 8) - ((170) + 8) - 2)
+                                        =83
                                   Children:
                                     - txtMatRowsH:
                                         Control: ModernText
@@ -1403,7 +1403,7 @@ Screens:
                                     Height: |-
                                         =36
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (124) + (138) + (91) + (170) + (170) + (83) + 48, 240, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (83) + (240) + (170) + (170) + (124) + (138) + (91) + (0) + 56, 240, 0)
                                     OnChange: |-
                                         =If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
                                         Patch(colAppPrefs, First(colAppPrefs), { prefMatSearch: Self.Text });
@@ -1424,6 +1424,140 @@ Screens:
                                         =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                     Width: |-
                                         =240
+                              - drpMatStatusFilter:
+                                  Control: ModernDropdown
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Filter by status"
+                                    Appearance: |-
+                                        =Appearance.FilledDarker
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
+                                    BorderColor: |-
+                                        =C.'border-input'
+                                    BorderStyle: |-
+                                        =BorderStyle.Solid
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'input-fg'
+                                    Default: |-
+                                        =LookUp(["All status", "Draft", "Valid", "Submitted"] As _dd, _dd.Value = (Coalesce(First(colAppPrefs).prefMatStatus, "All status")))
+                                    Fill: |-
+                                        =C.'input-bg'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =36
+                                    ItemDisplayText: |-
+                                        =ThisItem.Value
+                                    Items: |-
+                                        =["All status", "Draft", "Valid", "Submitted"]
+                                    LayoutMinWidth: |-
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (83) + (240) + (170) + (170) + (124) + (138) + (91) + (0) + 56, 170, 0)
+                                    OnChange: |-
+                                        =If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
+                                        Patch(colAppPrefs, First(colAppPrefs), { prefMatStatus: Self.Selected.Value });
+                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                    RadiusBottomLeft: |-
+                                        =R.input
+                                    RadiusBottomRight: |-
+                                        =R.input
+                                    RadiusTopLeft: |-
+                                        =R.input
+                                    RadiusTopRight: |-
+                                        =R.input
+                                    Size: |-
+                                        =If(LayoutRank < 2, 16, 14)
+                                    ValidationState: |-
+                                        =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
+                                    Width: |-
+                                        =170
+                              - drpMatPlantFilter:
+                                  Control: ModernDropdown
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Filter by plant"
+                                    Appearance: |-
+                                        =Appearance.FilledDarker
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
+                                    BorderColor: |-
+                                        =C.'border-input'
+                                    BorderStyle: |-
+                                        =BorderStyle.Solid
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'input-fg'
+                                    Default: |-
+                                        =LookUp(Ungroup(
+                                            Table({ Rows: Table({ Value: "All plants" }) },
+                                                  { Rows: Sort(Distinct(Filter(colMatRows, !IsBlank(Plant)), Plant), Value) }),
+                                            Rows
+                                        ) As _dd, _dd.Value = (Coalesce(First(colAppPrefs).prefMatPlant, "All plants")))
+                                    Fill: |-
+                                        =C.'input-bg'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =36
+                                    ItemDisplayText: |-
+                                        =ThisItem.Value
+                                    Items: |-
+                                        =Ungroup(
+                                            Table({ Rows: Table({ Value: "All plants" }) },
+                                                  { Rows: Sort(Distinct(Filter(colMatRows, !IsBlank(Plant)), Plant), Value) }),
+                                            Rows
+                                        )
+                                    LayoutMinWidth: |-
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (83) + (240) + (170) + (170) + (124) + (138) + (91) + (0) + 56, 170, 0)
+                                    OnChange: |-
+                                        =If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
+                                        Patch(colAppPrefs, First(colAppPrefs), { prefMatPlant: Self.Selected.Value });
+                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                    RadiusBottomLeft: |-
+                                        =R.input
+                                    RadiusBottomRight: |-
+                                        =R.input
+                                    RadiusTopLeft: |-
+                                        =R.input
+                                    RadiusTopRight: |-
+                                        =R.input
+                                    Size: |-
+                                        =If(LayoutRank < 2, 16, 14)
+                                    ValidationState: |-
+                                        =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
+                                    Width: |-
+                                        =170
+                              - conMatRowsTopGap:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =0
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Horizontal
+                                    LayoutGap: |-
+                                        =8
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    Visible: |-
+                                        =(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (83) + (240) + (170) + (170) + (124) + (138) + (91) + (0) + 56
+                                    Width: |-
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18)) - ((83) + 8) - ((240) + 8) - ((170) + 8) - ((170) + 8) - (If(!varMatViewOnly, (124) + 8, 0)) - (If(!varMatViewOnly, (138) + 8, 0)) - (If(!varMatViewOnly, (91) + 8, 0)) - 2)
                               - btnMatToolbarCopy:
                                   Control: ModernButton
                                   Properties:
@@ -1454,7 +1588,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.IconBefore
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (124) + (138) + (91) + (170) + (170) + (83) + 48, 124, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (83) + (240) + (170) + (170) + (124) + (138) + (91) + (0) + 56, 124, 0)
                                     OnSelect: |-
                                         =Set(varMatActiveRowId, Blank());
                                         Set(varMatRowStatus, "draft");
@@ -1548,7 +1682,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.IconBefore
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (124) + (138) + (91) + (170) + (170) + (83) + 48, 138, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (83) + (240) + (170) + (170) + (124) + (138) + (91) + (0) + 56, 138, 0)
                                     OnSelect: |-
                                         =Set(varMatPasteText, "");
                                         Clear(colMatPaste);
@@ -1596,7 +1730,7 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.TextOnly
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (124) + (138) + (91) + (170) + (170) + (83) + 48, 91, 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (83) + (240) + (170) + (170) + (124) + (138) + (91) + (0) + 56, 91, 0)
                                     OnSelect: |-
                                         =Set(varMatActiveRowId, Blank());
                                         Set(varMatRowStatus, "valid");
@@ -1648,112 +1782,6 @@ Screens:
                                         =!varMatViewOnly
                                     Width: |-
                                         =91
-                              - drpMatStatusFilter:
-                                  Control: ModernDropdown
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Filter by status"
-                                    Appearance: |-
-                                        =Appearance.FilledDarker
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =C.'border-input'
-                                    BorderStyle: |-
-                                        =BorderStyle.Solid
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =C.'input-fg'
-                                    Default: |-
-                                        =LookUp(["All status", "Draft", "Valid", "Submitted"] As _dd, _dd.Value = (Coalesce(First(colAppPrefs).prefMatStatus, "All status")))
-                                    Fill: |-
-                                        =C.'input-bg'
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =36
-                                    ItemDisplayText: |-
-                                        =ThisItem.Value
-                                    Items: |-
-                                        =["All status", "Draft", "Valid", "Submitted"]
-                                    LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (124) + (138) + (91) + (170) + (170) + (83) + 48, 170, 0)
-                                    OnChange: |-
-                                        =If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
-                                        Patch(colAppPrefs, First(colAppPrefs), { prefMatStatus: Self.Selected.Value });
-                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
-                                    RadiusBottomLeft: |-
-                                        =R.input
-                                    RadiusBottomRight: |-
-                                        =R.input
-                                    RadiusTopLeft: |-
-                                        =R.input
-                                    RadiusTopRight: |-
-                                        =R.input
-                                    Size: |-
-                                        =If(LayoutRank < 2, 16, 14)
-                                    ValidationState: |-
-                                        =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
-                                    Width: |-
-                                        =170
-                              - drpMatPlantFilter:
-                                  Control: ModernDropdown
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Filter by plant"
-                                    Appearance: |-
-                                        =Appearance.FilledDarker
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =C.'border-input'
-                                    BorderStyle: |-
-                                        =BorderStyle.Solid
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =C.'input-fg'
-                                    Default: |-
-                                        =LookUp(Ungroup(
-                                            Table({ Rows: Table({ Value: "All plants" }) },
-                                                  { Rows: Sort(Distinct(Filter(colMatRows, !IsBlank(Plant)), Plant), Value) }),
-                                            Rows
-                                        ) As _dd, _dd.Value = (Coalesce(First(colAppPrefs).prefMatPlant, "All plants")))
-                                    Fill: |-
-                                        =C.'input-bg'
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =36
-                                    ItemDisplayText: |-
-                                        =ThisItem.Value
-                                    Items: |-
-                                        =Ungroup(
-                                            Table({ Rows: Table({ Value: "All plants" }) },
-                                                  { Rows: Sort(Distinct(Filter(colMatRows, !IsBlank(Plant)), Plant), Value) }),
-                                            Rows
-                                        )
-                                    LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (124) + (138) + (91) + (170) + (170) + (83) + 48, 170, 0)
-                                    OnChange: |-
-                                        =If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
-                                        Patch(colAppPrefs, First(colAppPrefs), { prefMatPlant: Self.Selected.Value });
-                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
-                                    RadiusBottomLeft: |-
-                                        =R.input
-                                    RadiusBottomRight: |-
-                                        =R.input
-                                    RadiusTopLeft: |-
-                                        =R.input
-                                    RadiusTopRight: |-
-                                        =R.input
-                                    Size: |-
-                                        =If(LayoutRank < 2, 16, 14)
-                                    ValidationState: |-
-                                        =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
-                                    Width: |-
-                                        =170
                         - conMatTableWrap:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -2103,7 +2131,7 @@ Screens:
                                     Selectable: |-
                                         =true
                                     ShowScrollbar: |-
-                                        =true
+                                        =false
                                     TabIndex: |-
                                         =0
                                     TemplateFill: |-
@@ -2827,7 +2855,7 @@ Screens:
                                           Visible: |-
                                               =LayoutRank < 3
                                           Width: |-
-                                              =Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(1136, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 18) - 10 - 10)) - ((89) + 8) - 2)
+                                              =Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(1136, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 0) - 10 - 10)) - ((89) + 8) - 2)
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -2864,7 +2892,7 @@ Screens:
                                           Width: |-
                                               =89
                                           X: |-
-                                              =0 + 10 + 0 + 0 + (Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(1136, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 18) - 10 - 10)) - ((89) + 8) - 2)) + 8
+                                              =0 + 10 + 0 + 0 + (Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(1136, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 0) - 10 - 10)) - ((89) + 8) - 2)) + 8
                                           Y: |-
                                               =0 + 8 + 0 + 0 + (((22) - 0 - 0) - (22)) / 2
                                     - txtMatRowMetaC:
@@ -2899,7 +2927,7 @@ Screens:
                                           Visible: |-
                                               =LayoutRank < 3
                                           Width: |-
-                                              =(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(1136, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 18) - 10 - 10
+                                              =(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(1136, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 0) - 10 - 10
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -8495,7 +8523,7 @@ Screens:
             Visible: |-
                 =IfError(varMatEditorOpen, false)
             Width: |-
-                =If(LayoutRank >= 3, 480, App.Width)
+                =If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width)
             X: |-
                 =If(LayoutRank >= 3, App.Width - Self.Width, 0)
             Y: |-
@@ -8578,7 +8606,7 @@ Screens:
                                  Plant = drpMatPlantFilter.Selected.Value)
                             ), RowId, SortOrder.Descending))))
                         Width: |-
-                            =Max(0, (((If(LayoutRank >= 3, 480, App.Width)) - 20 - 20)) - ((148) + 12) - 2)
+                            =Max(0, (((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width)) - 20 - 20)) - ((140) + 12) - 2)
                         Wrap: |-
                             =false
                   - conMatEditorNavigation:
@@ -8598,7 +8626,7 @@ Screens:
                         LayoutDirection: |-
                             =LayoutDirection.Horizontal
                         LayoutGap: |-
-                            =8
+                            =4
                         LayoutJustifyContent: |-
                             =LayoutJustifyContent.End
                         LayoutMinWidth: |-
@@ -8608,25 +8636,21 @@ Screens:
                         LayoutOverflowY: |-
                             =LayoutOverflow.Hide
                         Width: |-
-                            =148
+                            =140
                       Children:
                         - btnMatEditorPrevious:
-                            Control: ModernButton
+                            Control: Image
                             Properties:
                               AccessibleLabel: |-
                                   ="Previous row"
-                              Align: |-
-                                  =Align.Center
-                              AlignInContainer: |-
-                                  =AlignInContainer.Center
-                              Appearance: |-
-                                  =ButtonAppearance.Outline
-                              BorderColor: |-
-                                  =RGBA(0, 0, 0, 0)
+                              BorderStyle: |-
+                                  =BorderStyle.None
                               BorderThickness: |-
-                                  =1
-                              Color: |-
-                                  =C.'text-primary'
+                                  =0
+                              DisabledBorderColor: |-
+                                  =RGBA(0, 0, 0, 0)
+                              DisabledFill: |-
+                                  =RGBA(0, 0, 0, 0)
                               DisplayMode: |-
                                   =If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
                                       colMatRows,
@@ -8636,18 +8660,41 @@ Screens:
                                       (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
                                        Plant = drpMatPlantFilter.Selected.Value)
                                   ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              FocusedBorderColor: |-
+                                  =C.'color-brand-primary'
+                              FocusedBorderThickness: |-
+                                  =If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
+                                      colMatRows,
+                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                       Plant = drpMatPlantFilter.Selected.Value)
+                                  ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 2, 0)
                               Height: |-
-                                  =44
-                              Icon: |-
-                                  ="ChevronLeft"
-                              Layout: |-
-                                  =ButtonLayout.IconOnly
-                              LayoutMinWidth: |-
-                                  =44
+                                  =H.hit
+                              HoverFill: |-
+                                  =If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
+                                      colMatRows,
+                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                       Plant = drpMatPlantFilter.Selected.Value)
+                                  ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
+                              Image: |-
+                                  ="data:image/svg+xml;utf8," & EncodeUrl(If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
+                                      colMatRows,
+                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                       Plant = drpMatPlantFilter.Selected.Value)
+                                  ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M15 6l-6 6 6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M15 6l-6 6 6 6'/></g></svg>"))
+                              ImagePosition: |-
+                                  =ImagePosition.Center
                               OnSelect: |-
                                   =Set(varMatActiveRowId, Index(Sort(Filter(
                                       colMatRows,
@@ -8691,41 +8738,49 @@ Screens:
                                   Set(varMatFReplacesExisting, LookUp(colMatRows, RowId = varMatActiveRowId).ReplacesExisting);
                                   Set(varMatFReplacedMaterialNo, LookUp(colMatRows, RowId = varMatActiveRowId).ReplacedMaterialNo);
                                   Clear(colMatObjects)
+                              PressedFill: |-
+                                  =If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
+                                      colMatRows,
+                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                       Plant = drpMatPlantFilter.Selected.Value)
+                                  ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
                               RadiusBottomLeft: |-
-                                  =R.input
+                                  =6
                               RadiusBottomRight: |-
-                                  =R.input
+                                  =6
                               RadiusTopLeft: |-
-                                  =R.input
+                                  =6
                               RadiusTopRight: |-
-                                  =R.input
-                              Size: |-
-                                  =T.input
-                              Text: |-
-                                  =""
+                                  =6
+                              TabIndex: |-
+                                  =If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
+                                      colMatRows,
+                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                       Plant = drpMatPlantFilter.Selected.Value)
+                                  ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
                               Tooltip: |-
                                   ="Previous row"
-                              VerticalAlign: |-
-                                  =VerticalAlign.Middle
                               Width: |-
-                                  =44
+                                  =H.hit
                         - btnMatEditorNext:
-                            Control: ModernButton
+                            Control: Image
                             Properties:
                               AccessibleLabel: |-
                                   ="Next row"
-                              Align: |-
-                                  =Align.Center
-                              AlignInContainer: |-
-                                  =AlignInContainer.Center
-                              Appearance: |-
-                                  =ButtonAppearance.Outline
-                              BorderColor: |-
-                                  =RGBA(0, 0, 0, 0)
+                              BorderStyle: |-
+                                  =BorderStyle.None
                               BorderThickness: |-
-                                  =1
-                              Color: |-
-                                  =C.'text-primary'
+                                  =0
+                              DisabledBorderColor: |-
+                                  =RGBA(0, 0, 0, 0)
+                              DisabledFill: |-
+                                  =RGBA(0, 0, 0, 0)
                               DisplayMode: |-
                                   =If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
                                       colMatRows,
@@ -8742,18 +8797,62 @@ Screens:
                                       (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
                                        Plant = drpMatPlantFilter.Selected.Value)
                                   ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              FocusedBorderColor: |-
+                                  =C.'color-brand-primary'
+                              FocusedBorderThickness: |-
+                                  =If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
+                                      colMatRows,
+                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                       Plant = drpMatPlantFilter.Selected.Value)
+                                  ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 >= CountRows(Sort(Filter(
+                                      colMatRows,
+                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                       Plant = drpMatPlantFilter.Selected.Value)
+                                  ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 2, 0)
                               Height: |-
-                                  =44
-                              Icon: |-
-                                  ="ChevronRight"
-                              Layout: |-
-                                  =ButtonLayout.IconOnly
-                              LayoutMinWidth: |-
-                                  =44
+                                  =H.hit
+                              HoverFill: |-
+                                  =If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
+                                      colMatRows,
+                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                       Plant = drpMatPlantFilter.Selected.Value)
+                                  ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 >= CountRows(Sort(Filter(
+                                      colMatRows,
+                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                       Plant = drpMatPlantFilter.Selected.Value)
+                                  ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
+                              Image: |-
+                                  ="data:image/svg+xml;utf8," & EncodeUrl(If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
+                                      colMatRows,
+                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                       Plant = drpMatPlantFilter.Selected.Value)
+                                  ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 >= CountRows(Sort(Filter(
+                                      colMatRows,
+                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                       Plant = drpMatPlantFilter.Selected.Value)
+                                  ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6l6 6-6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M9 6l6 6-6 6'/></g></svg>"))
+                              ImagePosition: |-
+                                  =ImagePosition.Center
                               OnSelect: |-
                                   =Set(varMatActiveRowId, Index(Sort(Filter(
                                       colMatRows,
@@ -8804,53 +8903,77 @@ Screens:
                                   Set(varMatFReplacesExisting, LookUp(colMatRows, RowId = varMatActiveRowId).ReplacesExisting);
                                   Set(varMatFReplacedMaterialNo, LookUp(colMatRows, RowId = varMatActiveRowId).ReplacedMaterialNo);
                                   Clear(colMatObjects)
+                              PressedFill: |-
+                                  =If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
+                                      colMatRows,
+                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                       Plant = drpMatPlantFilter.Selected.Value)
+                                  ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 >= CountRows(Sort(Filter(
+                                      colMatRows,
+                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                       Plant = drpMatPlantFilter.Selected.Value)
+                                  ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
                               RadiusBottomLeft: |-
-                                  =R.input
+                                  =6
                               RadiusBottomRight: |-
-                                  =R.input
+                                  =6
                               RadiusTopLeft: |-
-                                  =R.input
+                                  =6
                               RadiusTopRight: |-
-                                  =R.input
-                              Size: |-
-                                  =T.input
-                              Text: |-
-                                  =""
+                                  =6
+                              TabIndex: |-
+                                  =If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
+                                      colMatRows,
+                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                       Plant = drpMatPlantFilter.Selected.Value)
+                                  ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 >= CountRows(Sort(Filter(
+                                      colMatRows,
+                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                       Plant = drpMatPlantFilter.Selected.Value)
+                                  ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
                               Tooltip: |-
                                   ="Next row"
-                              VerticalAlign: |-
-                                  =VerticalAlign.Middle
                               Width: |-
-                                  =44
+                                  =H.hit
                         - btnMatEditorClose:
-                            Control: ModernButton
+                            Control: Image
                             Properties:
                               AccessibleLabel: |-
                                   ="Close"
-                              Align: |-
-                                  =Align.Center
-                              AlignInContainer: |-
-                                  =AlignInContainer.Center
-                              Appearance: |-
-                                  =ButtonAppearance.Outline
-                              BorderColor: |-
-                                  =RGBA(0, 0, 0, 0)
+                              BorderStyle: |-
+                                  =BorderStyle.None
                               BorderThickness: |-
-                                  =1
-                              Color: |-
-                                  =C.'text-primary'
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
+                                  =0
+                              DisabledBorderColor: |-
+                                  =RGBA(0, 0, 0, 0)
+                              DisabledFill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              FocusedBorderColor: |-
+                                  =C.'color-brand-primary'
+                              FocusedBorderThickness: |-
+                                  =2
                               Height: |-
-                                  =44
-                              Icon: |-
-                                  ="Dismiss"
-                              Layout: |-
-                                  =ButtonLayout.IconOnly
-                              LayoutMinWidth: |-
-                                  =44
+                                  =H.hit
+                              HoverFill: |-
+                                  =C.'row-hover'
+                              Image: |-
+                                  ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>")
+                              ImagePosition: |-
+                                  =ImagePosition.Center
                               OnSelect: |-
                                   =Set(varMatActiveRowId, Blank());
                                   Set(varMatRowStatus, "valid");
@@ -8883,24 +9006,22 @@ Screens:
                                   Set(varMatObjRowId, Blank());
                                   Clear(colMatObjPop);
                                   Set(varMatInfo, "")
+                              PressedFill: |-
+                                  =C.'row-pressed'
                               RadiusBottomLeft: |-
-                                  =R.input
+                                  =6
                               RadiusBottomRight: |-
-                                  =R.input
+                                  =6
                               RadiusTopLeft: |-
-                                  =R.input
+                                  =6
                               RadiusTopRight: |-
-                                  =R.input
-                              Size: |-
-                                  =T.input
-                              Text: |-
-                                  =""
+                                  =6
+                              TabIndex: |-
+                                  =0
                               Tooltip: |-
                                   ="Close"
-                              VerticalAlign: |-
-                                  =VerticalAlign.Middle
                               Width: |-
-                                  =44
+                                  =H.hit
             - conMatEditorSections:
                 Control: GroupContainer
                 Variant: AutoLayout
@@ -8912,7 +9033,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =App.Height - 160
+                      =App.Height - (116 + (44))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -9201,7 +9322,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =74 + 12 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) < 805, If(LayoutRank < 2, 54, 36), 18)) + 12 + (20) + 12 + (0 + (62) + 20 + (62) + 20 + (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (60) + (60) + 20, (Max((60), (60))) + 0))) + If(Coalesce(varMatFIsStockItem, false), 12 + (0 + (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + 20, (Max((62), (62))) + 0)) + 20 + (62)), 0) + If(Coalesce(varMatFIsStockItem, false) && !IsBlank(varMatFMinStock) && !IsBlank(varMatFMaxStock) && varMatFMinStock > varMatFMaxStock, 12 + (18), 0) + If(Coalesce(varMatFReplacesExisting, false), 12 + (0 + (62)), 0) + 12 + (28) + 12 + (0 + (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + 20, (Max((62), (62))) + 0)) + 20 + (62)) + 12 + (0 + (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + 20, (Max((62), (62))) + 0)) + 20 + (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + 20, (Max((62), (62))) + 0))) + 12 + (28) + 12 + (0 + (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + 20, (Max((62), (62))) + 0)) + 20 + (62)) + 12 + (0 + (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (60) + (60) + 20, (Max((60), (60))) + 0)) + 20 + (62)) + If(!IsBlank(varMatInfo), 12 + (18), 0)
+                            =74 + 12 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) < 805, If(LayoutRank < 2, 54, 36), 18)) + 12 + (20) + 12 + (0 + (62) + 20 + (62) + 20 + (If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (60) + (60) + 20, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, (Max((60), (60))) + 0, (Max((60), (60))) + 0)))) + If(Coalesce(varMatFIsStockItem, false), 12 + (0 + (If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + (62) + 40, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, (Max((62), (62))) + (62) + 20, (Max((62), (62), (62))) + 0)))), 0) + If(Coalesce(varMatFIsStockItem, false) && !IsBlank(varMatFMinStock) && !IsBlank(varMatFMaxStock) && varMatFMinStock > varMatFMaxStock, 12 + (18), 0) + If(Coalesce(varMatFReplacesExisting, false), 12 + (0 + (62)), 0) + 12 + (28) + 12 + (0 + (If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + (62) + 40, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, (Max((62), (62))) + (62) + 20, (Max((62), (62), (62))) + 0)))) + 12 + (0 + (If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + (62) + 40, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, (Max((62), (62))) + (62) + 20, (Max((62), (62), (62))) + 0))) + 20 + (62)) + 12 + (28) + 12 + (0 + (If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + (62) + 40, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, (Max((62), (62))) + (62) + 20, (Max((62), (62), (62))) + 0)))) + 12 + (0 + (If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (60) + (60) + (62) + 40, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, (Max((60), (60))) + (62) + 20, (Max((60), (60), (62))) + 0)))) + If(!IsBlank(varMatInfo), 12 + (18), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -9376,7 +9497,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =Max(0, (((((If(LayoutRank >= 3, 480, App.Width)) - 20 - 20) - 20 - 20 - 18))) - ((107) + 12) - ((8) + 12) - ((55) + 12) - 2)
+                                        =Max(0, (((((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width)) - 20 - 20) - 20 - 20 - 18))) - ((107) + 12) - ((8) + 12) - ((55) + 12) - 2)
                         - txtMatEditorHint:
                             Control: ModernText
                             Properties:
@@ -9487,7 +9608,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =0 + (62) + 20 + (62) + 20 + (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (60) + (60) + 20, (Max((60), (60))) + 0))
+                                  =0 + (62) + 20 + (62) + 20 + (If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (60) + (60) + 20, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, (Max((60), (60))) + 0, (Max((60), (60))) + 0)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -9503,7 +9624,7 @@ Screens:
                               LayoutWrap: |-
                                   =false
                               Width: |-
-                                  =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
+                                  =If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18
                             Children:
                               - conMatGridMainPair0:
                                   Control: GroupContainer
@@ -9532,7 +9653,7 @@ Screens:
                                     LayoutWrap: |-
                                         =true
                                     Width: |-
-                                        =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
+                                        =If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18
                                   Children:
                                     - conMatPlant:
                                         Control: GroupContainer
@@ -9561,7 +9682,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                              =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
                                         Children:
                                           - conMatPlantRow:
                                               Control: GroupContainer
@@ -9622,7 +9743,7 @@ Screens:
                                                       Text: |-
                                                           ="Plant"
                                                       Width: |-
-                                                          =Min(32, (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)) - 13)
+                                                          =Min(32, (If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))) - 13)
                                                       Wrap: |-
                                                           =false
                                                 - txtMatPlantStar:
@@ -9743,7 +9864,7 @@ Screens:
                                     LayoutWrap: |-
                                         =true
                                     Width: |-
-                                        =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
+                                        =If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18
                                   Children:
                                     - conMatText:
                                         Control: GroupContainer
@@ -9772,7 +9893,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
+                                              =If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18
                                         Children:
                                           - conMatTextRow:
                                               Control: GroupContainer
@@ -9833,7 +9954,7 @@ Screens:
                                                       Text: |-
                                                           ="Material description"
                                                       Width: |-
-                                                          =Min(126, (If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 13)
+                                                          =Min(126, (If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 13)
                                                       Wrap: |-
                                                           =false
                                                 - txtMatTextStar:
@@ -9935,7 +10056,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (60) + (60) + 20, (Max((60), (60))) + 0)
+                                        =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (60) + (60) + 20, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, (Max((60), (60))) + 0, (Max((60), (60))) + 0))
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
@@ -9951,7 +10072,7 @@ Screens:
                                     LayoutWrap: |-
                                         =true
                                     Width: |-
-                                        =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
+                                        =If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18
                                   Children:
                                     - conMatIsStockItem:
                                         Control: GroupContainer
@@ -9980,7 +10101,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                              =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
                                         Children:
                                           - txtMatIsStockItemLbl:
                                               Control: ModernText
@@ -10199,7 +10320,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                              =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
                                         Children:
                                           - txtMatReplacesExistingLbl:
                                               Control: ModernText
@@ -10402,7 +10523,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =0 + (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + 20, (Max((62), (62))) + 0)) + 20 + (62)
+                                  =0 + (If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + (62) + 40, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, (Max((62), (62))) + (62) + 20, (Max((62), (62), (62))) + 0)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -10420,7 +10541,7 @@ Screens:
                               Visible: |-
                                   =Coalesce(varMatFIsStockItem, false)
                               Width: |-
-                                  =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
+                                  =If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18
                             Children:
                               - conMatGridStockPair0:
                                   Control: GroupContainer
@@ -10433,7 +10554,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + 20, (Max((62), (62))) + 0)
+                                        =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + (62) + 40, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, (Max((62), (62))) + (62) + 20, (Max((62), (62), (62))) + 0))
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
@@ -10449,7 +10570,7 @@ Screens:
                                     LayoutWrap: |-
                                         =true
                                     Width: |-
-                                        =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
+                                        =If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18
                                   Children:
                                     - conMatMinStock:
                                         Control: GroupContainer
@@ -10480,7 +10601,7 @@ Screens:
                                           Visible: |-
                                               =Coalesce(varMatFIsStockItem, false)
                                           Width: |-
-                                              =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                              =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
                                         Children:
                                           - conMatMinStockRow:
                                               Control: GroupContainer
@@ -10541,7 +10662,7 @@ Screens:
                                                       Text: |-
                                                           ="Min stock"
                                                       Width: |-
-                                                          =Min(61, (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)) - 13)
+                                                          =Min(61, (If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))) - 13)
                                                       Wrap: |-
                                                           =false
                                                 - txtMatMinStockStar:
@@ -10661,7 +10782,7 @@ Screens:
                                           Visible: |-
                                               =Coalesce(varMatFIsStockItem, false)
                                           Width: |-
-                                              =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                              =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
                                         Children:
                                           - conMatMaxStockRow:
                                               Control: GroupContainer
@@ -10722,7 +10843,7 @@ Screens:
                                                       Text: |-
                                                           ="Max stock"
                                                       Width: |-
-                                                          =Min(64, (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)) - 13)
+                                                          =Min(64, (If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))) - 13)
                                                       Wrap: |-
                                                           =false
                                                 - txtMatMaxStockStar:
@@ -10813,35 +10934,6 @@ Screens:
                                                     =If((varMatValidated && (Coalesce(varMatFIsStockItem, false))) && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =Parent.Width
-                              - conMatGridStockPair1:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =62
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Stretch
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =20
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutWrap: |-
-                                        =true
-                                    Width: |-
-                                        =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
-                                  Children:
                                     - conMatStorageBin:
                                         Control: GroupContainer
                                         Variant: AutoLayout
@@ -10871,7 +10963,7 @@ Screens:
                                           Visible: |-
                                               =Coalesce(varMatFIsStockItem, false)
                                           Width: |-
-                                              =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                              =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
                                         Children:
                                           - txtMatStorageBinLbl:
                                               Control: ModernText
@@ -11019,7 +11111,7 @@ Screens:
                               Visible: |-
                                   =Coalesce(varMatFReplacesExisting, false)
                               Width: |-
-                                  =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
+                                  =If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18
                             Children:
                               - conMatGridReplacePair0:
                                   Control: GroupContainer
@@ -11048,7 +11140,7 @@ Screens:
                                     LayoutWrap: |-
                                         =true
                                     Width: |-
-                                        =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
+                                        =If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18
                                   Children:
                                     - conMatReplacedMaterialNo:
                                         Control: GroupContainer
@@ -11079,7 +11171,7 @@ Screens:
                                           Visible: |-
                                               =Coalesce(varMatFReplacesExisting, false)
                                           Width: |-
-                                              =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                              =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
                                         Children:
                                           - conMatReplacedMaterialNoRow:
                                               Control: GroupContainer
@@ -11140,7 +11232,7 @@ Screens:
                                                       Text: |-
                                                           ="Replaced material no."
                                                       Width: |-
-                                                          =Min(136, (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)) - 13)
+                                                          =Min(136, (If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))) - 13)
                                                       Wrap: |-
                                                           =false
                                                 - txtMatReplacedMaterialNoStar:
@@ -11312,7 +11404,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =0 + (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + 20, (Max((62), (62))) + 0)) + 20 + (62)
+                                  =0 + (If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + (62) + 40, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, (Max((62), (62))) + (62) + 20, (Max((62), (62), (62))) + 0)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -11328,7 +11420,7 @@ Screens:
                               LayoutWrap: |-
                                   =false
                               Width: |-
-                                  =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
+                                  =If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18
                             Children:
                               - conMatGridMfrPair0:
                                   Control: GroupContainer
@@ -11341,7 +11433,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + 20, (Max((62), (62))) + 0)
+                                        =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + (62) + 40, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, (Max((62), (62))) + (62) + 20, (Max((62), (62), (62))) + 0))
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
@@ -11357,7 +11449,7 @@ Screens:
                                     LayoutWrap: |-
                                         =true
                                     Width: |-
-                                        =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
+                                        =If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18
                                   Children:
                                     - conMatManufacturer:
                                         Control: GroupContainer
@@ -11386,7 +11478,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                              =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
                                         Children:
                                           - txtMatManufacturerLbl:
                                               Control: ModernText
@@ -11499,7 +11591,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                              =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
                                         Children:
                                           - txtMatModelNumberLbl:
                                               Control: ModernText
@@ -11585,35 +11677,6 @@ Screens:
                                                     =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =Parent.Width
-                              - conMatGridMfrPair1:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =62
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Stretch
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =20
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutWrap: |-
-                                        =true
-                                    Width: |-
-                                        =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
-                                  Children:
                                     - conMatManufacturerPartNo:
                                         Control: GroupContainer
                                         Variant: AutoLayout
@@ -11641,7 +11704,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                              =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
                                         Children:
                                           - txtMatManufacturerPartNoLbl:
                                               Control: ModernText
@@ -11738,7 +11801,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =0 + (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + 20, (Max((62), (62))) + 0)) + 20 + (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + 20, (Max((62), (62))) + 0))
+                                  =0 + (If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + (62) + 40, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, (Max((62), (62))) + (62) + 20, (Max((62), (62), (62))) + 0))) + 20 + (62)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -11754,7 +11817,7 @@ Screens:
                               LayoutWrap: |-
                                   =false
                               Width: |-
-                                  =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
+                                  =If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18
                             Children:
                               - conMatGridSupplierPair0:
                                   Control: GroupContainer
@@ -11767,7 +11830,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + 20, (Max((62), (62))) + 0)
+                                        =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + (62) + 40, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, (Max((62), (62))) + (62) + 20, (Max((62), (62), (62))) + 0))
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
@@ -11783,7 +11846,7 @@ Screens:
                                     LayoutWrap: |-
                                         =true
                                     Width: |-
-                                        =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
+                                        =If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18
                                   Children:
                                     - conMatSupplier:
                                         Control: GroupContainer
@@ -11812,7 +11875,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                              =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
                                         Children:
                                           - txtMatSupplierLbl:
                                               Control: ModernText
@@ -11925,7 +11988,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                              =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
                                         Children:
                                           - txtMatSupplierPartNoLbl:
                                               Control: ModernText
@@ -12011,35 +12074,6 @@ Screens:
                                                     =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =Parent.Width
-                              - conMatGridSupplierPair1:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + 20, (Max((62), (62))) + 0)
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Stretch
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =20
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutWrap: |-
-                                        =true
-                                    Width: |-
-                                        =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
-                                  Children:
                                     - conMatDeliveringTime:
                                         Control: GroupContainer
                                         Variant: AutoLayout
@@ -12067,7 +12101,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                              =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
                                         Children:
                                           - txtMatDeliveringTimeLbl:
                                               Control: ModernText
@@ -12151,6 +12185,35 @@ Screens:
                                                     =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =Parent.Width
+                              - conMatGridSupplierPair1:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =62
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Horizontal
+                                    LayoutGap: |-
+                                        =20
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutWrap: |-
+                                        =true
+                                    Width: |-
+                                        =If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18
+                                  Children:
                                     - conMatPo:
                                         Control: GroupContainer
                                         Variant: AutoLayout
@@ -12178,7 +12241,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                              =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
                                         Children:
                                           - txtMatPoLbl:
                                               Control: ModernText
@@ -12240,7 +12303,7 @@ Screens:
                                                 LayoutOverflowY: |-
                                                     =LayoutOverflow.Hide
                                                 Width: |-
-                                                    =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                                    =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
                                               Children:
                                                 - inpMatPoInfo:
                                                     Control: ModernTextInput
@@ -12288,7 +12351,7 @@ Screens:
                                                       ValidationState: |-
                                                           =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                       Width: |-
-                                                          =Max(0, (((If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)))) - ((97) + 8) - 2)
+                                                          =Max(0, (((If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))))) - ((97) + 8) - 2)
                                                 - btnMatPoText:
                                                     Control: ModernButton
                                                     Properties:
@@ -12417,7 +12480,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =0 + (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + 20, (Max((62), (62))) + 0)) + 20 + (62)
+                                  =0 + (If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + (62) + 40, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, (Max((62), (62))) + (62) + 20, (Max((62), (62), (62))) + 0)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -12433,7 +12496,7 @@ Screens:
                               LayoutWrap: |-
                                   =false
                               Width: |-
-                                  =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
+                                  =If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18
                             Children:
                               - conMatGridPricePair0:
                                   Control: GroupContainer
@@ -12446,7 +12509,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + 20, (Max((62), (62))) + 0)
+                                        =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + (62) + 40, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, (Max((62), (62))) + (62) + 20, (Max((62), (62), (62))) + 0))
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
@@ -12462,7 +12525,7 @@ Screens:
                                     LayoutWrap: |-
                                         =true
                                     Width: |-
-                                        =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
+                                        =If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18
                                   Children:
                                     - conMatPrice:
                                         Control: GroupContainer
@@ -12491,7 +12554,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                              =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
                                         Children:
                                           - txtMatPriceLbl:
                                               Control: ModernText
@@ -12602,7 +12665,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                              =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
                                         Children:
                                           - txtMatPriceUnitLbl:
                                               Control: ModernText
@@ -12688,35 +12751,6 @@ Screens:
                                                     =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =Parent.Width
-                              - conMatGridPricePair1:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =62
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Stretch
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =20
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutWrap: |-
-                                        =true
-                                    Width: |-
-                                        =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
-                                  Children:
                                     - conMatStockUnit:
                                         Control: GroupContainer
                                         Variant: AutoLayout
@@ -12744,7 +12778,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                              =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
                                         Children:
                                           - txtMatStockUnitLbl:
                                               Control: ModernText
@@ -12841,7 +12875,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =0 + (If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (60) + (60) + 20, (Max((60), (60))) + 0)) + 20 + (62)
+                                  =0 + (If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (60) + (60) + (62) + 40, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, (Max((60), (60))) + (62) + 20, (Max((60), (60), (62))) + 0)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -12857,7 +12891,7 @@ Screens:
                               LayoutWrap: |-
                                   =false
                               Width: |-
-                                  =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
+                                  =If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18
                             Children:
                               - conMatGridClassPair0:
                                   Control: GroupContainer
@@ -12870,7 +12904,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (60) + (60) + 20, (Max((60), (60))) + 0)
+                                        =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (60) + (60) + (62) + 40, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, (Max((60), (60))) + (62) + 20, (Max((60), (60), (62))) + 0))
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
@@ -12886,7 +12920,7 @@ Screens:
                                     LayoutWrap: |-
                                         =true
                                     Width: |-
-                                        =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
+                                        =If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18
                                   Children:
                                     - conMatStrategicPart:
                                         Control: GroupContainer
@@ -12915,7 +12949,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                              =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
                                         Children:
                                           - txtMatStrategicPartLbl:
                                               Control: ModernText
@@ -13130,7 +13164,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                              =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
                                         Children:
                                           - txtMatWearPartLbl:
                                               Control: ModernText
@@ -13318,35 +13352,6 @@ Screens:
                                                           =VerticalAlign.Middle
                                                       Width: |-
                                                           =98
-                              - conMatGridClassPair1:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =62
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Stretch
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =20
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutWrap: |-
-                                        =true
-                                    Width: |-
-                                        =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
-                                  Children:
                                     - conMatMaintenanceOrderNo:
                                         Control: GroupContainer
                                         Variant: AutoLayout
@@ -13374,7 +13379,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18, ((If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2)
+                                              =If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) < 490, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
                                         Children:
                                           - txtMatMaintenanceOrderNoLbl:
                                               Control: ModernText
@@ -13668,7 +13673,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =App.Height - 220
+                                  =App.Height - 250
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -13928,7 +13933,7 @@ Screens:
                                                 ValidationState: |-
                                                     =If(false && IsBlank(Self.Selected.Code), ValidationState.Error, ValidationState.None)
                                                 Width: |-
-                                                    =Max(0, (((((((If(LayoutRank >= 3, 480, App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18))) - (If(!varMatFlBusy, (154) + 8, 0)) - (If(varMatFlBusy, (154) + 8, 0)) - 2)
+                                                    =Max(0, (((((((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18))) - (If(!varMatFlBusy, (154) + 8, 0)) - (If(varMatFlBusy, (154) + 8, 0)) - 2)
                                           - btnMatFlSearch:
                                               Control: ModernButton
                                               Properties:
@@ -14206,7 +14211,7 @@ Screens:
                                                 Text: |-
                                                     ="Object list (" & Text(CountRows(colMatObjPop)) & ")"
                                                 Width: |-
-                                                    =Max(0, (((((((If(LayoutRank >= 3, 480, App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18))) - (If((!IsBlank(varMatObjRowId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatObjRowId).Status <> "submitted"), (72) + 8, 0)) - 2)
+                                                    =Max(0, (((((((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18))) - (If((!IsBlank(varMatObjRowId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatObjRowId).Status <> "submitted"), (72) + 8, 0)) - 2)
                                                 Wrap: |-
                                                     =false
                                           - btnMatObjAdd:
@@ -14491,7 +14496,7 @@ Screens:
                                                 Text: |-
                                                     =Coalesce(ThisItem.Description, "")
                                                 Width: |-
-                                                    =Max(0, ((((((((If(LayoutRank >= 3, 480, App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18)) - 2 * 1 - 18 - 40)) - ((170) + 8) - ((76) + 8) - 2)
+                                                    =Max(0, ((((((((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18)) - 2 * 1 - 18 - 40)) - ((170) + 8) - ((76) + 8) - 2)
                                                 Wrap: |-
                                                     =false
                                                 X: |-
@@ -14624,7 +14629,7 @@ Screens:
                                                 Width: |-
                                                     =76
                                                 X: |-
-                                                    =0 + 0 + 0 + (170) + 8 + (Max(0, ((((((((If(LayoutRank >= 3, 480, App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18)) - 2 * 1 - 18 - 40)) - ((170) + 8) - ((76) + 8) - 2)) + 8
+                                                    =0 + 0 + 0 + (170) + 8 + (Max(0, ((((((((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18)) - 2 * 1 - 18 - 40)) - ((170) + 8) - ((76) + 8) - 2)) + 8
                                                 Y: |-
                                                     =0 + 0 + (((30) - 0 - 0) - (30)) / 2
                   - conMatEditorDocuments:
@@ -14667,7 +14672,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =App.Height - 220
+                                  =App.Height - 250
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -15362,7 +15367,7 @@ Screens:
                                           Text: |-
                                               =ThisItem.FileName
                                           Width: |-
-                                              =Max(0, (((((((If(LayoutRank >= 3, 480, App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18) - 2 * 2 - 0 - 40)) - ((44) + 10) - ((71) + 10) - (If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), (Max(40, H.hit)) + 10, 0)) - 2)
+                                              =Max(0, (((((((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18) - 2 * 2 - 0 - 40)) - ((44) + 10) - ((71) + 10) - (If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), (Max(40, H.hit)) + 10, 0)) - 2)
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -15413,7 +15418,7 @@ Screens:
                                           Width: |-
                                               =71
                                           X: |-
-                                              =0 + 0 + 0 + (44) + 10 + (Max(0, (((((((If(LayoutRank >= 3, 480, App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18) - 2 * 2 - 0 - 40)) - ((44) + 10) - ((71) + 10) - (If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), (Max(40, H.hit)) + 10, 0)) - 2)) + 10
+                                              =0 + 0 + 0 + (44) + 10 + (Max(0, (((((((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18) - 2 * 2 - 0 - 40)) - ((44) + 10) - ((71) + 10) - (If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), (Max(40, H.hit)) + 10, 0)) - 2)) + 10
                                           Y: |-
                                               =0 + 0 + ((((H.hit + 6) - 2) - 0 - 0) - (32)) / 2
                                     - btnMatAttRemove:
@@ -15466,7 +15471,7 @@ Screens:
                                           Width: |-
                                               =Max(40, H.hit)
                                           X: |-
-                                              =0 + 0 + 0 + (44) + 10 + (Max(0, (((((((If(LayoutRank >= 3, 480, App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18) - 2 * 2 - 0 - 40)) - ((44) + 10) - ((71) + 10) - (If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), (Max(40, H.hit)) + 10, 0)) - 2)) + 10 + (71) + 10
+                                              =0 + 0 + 0 + (44) + 10 + (Max(0, (((((((If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18) - 2 * 2 - 0 - 40)) - ((44) + 10) - ((71) + 10) - (If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), (Max(40, H.hit)) + 10, 0)) - 2)) + 10 + (71) + 10
                                           Y: |-
                                               =0 + 0 + ((((H.hit + 6) - 2) - 0 - 0) - (H.hit)) / 2
                               - txtMatAttEmpty:
@@ -15566,7 +15571,7 @@ Screens:
                   LayoutOverflowY: |-
                       =LayoutOverflow.Hide
                   Width: |-
-                      =If(LayoutRank >= 3, 480, App.Width) - 2 * 20 - 2 * 20 - 18
+                      =If(LayoutRank >= 3, Max(480, App.Width / 3), App.Width) - 2 * 20 - 2 * 20 - 18
                 Children:
                   - conMatEditorDeleteAction:
                       Control: GroupContainer

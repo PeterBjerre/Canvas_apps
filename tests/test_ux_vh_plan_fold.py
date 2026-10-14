@@ -18,14 +18,12 @@ def _block(y, name, n=3000):
 
 def test_the_summary_line_shows_only_when_the_plan_is_locked():
     y = _yaml()
-    row = _block(y, "conVhpPlanSummary", 1500)
-    assert "=varVhpPlanLocked" in row
-    txt = _block(y, "txtVhpPlanSummary")
-    for part in ('"Plant "', "drpVhpPlanType.Selected.Value", '"First call "',
-                 'Text(dteVhpFirstCall.SelectedDate, "dd-mm-yyyy")'):
-        assert part in txt, part
-
-
+    row = _block(y, "conVhpPlanFoldRow", 60000)
+    assert "varVhpPlanLocked && !IfError(varVhpPlanShow, false)" in row
+    assert y.index("- btnVhpPlanShow:") > y.index("- conVhpPlanFoldRow:")
+    for part in ('"Plant"', "drpVhpPlanType.Selected.Value", '"First call"',
+                 "dteVhpFirstCall.SelectedDate", '"dd-mm-yyyy"'):
+        assert part in row, part
 def test_the_fields_fold_away_and_show_brings_them_back():
     y = _yaml()
     grid = _block(y, "conVhpPlanGrid", 2500)

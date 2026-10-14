@@ -306,6 +306,10 @@ def new_request_label(btn):
     btn.props.pop("Icon", None)
     btn.props["Layout"] = "ButtonLayout.TextOnly"
     btn.props["Align"] = "Align.Center"
+    # Synlig kant (UX): den udfyldte knap stod uden omrids ved siden af de
+    # andre knapper.
+    btn.props["BorderColor"] = C_INPUT_BORDER
+    btn.props["BorderThickness"] = "1"
     btn.props["Size"] = f"If({narrow}, {NEW_REQUEST_PHONE_SIZE}, {lay.SIZE_INPUT})"
     btn.props["Width"] = f"If({narrow}, {phone_w}, {full_w})"
     btn.props["LayoutMinWidth"] = btn.props["Width"]
@@ -361,11 +365,11 @@ def ensure_hit(ctrl, square=True):
 
 
 def ghost(btn):
-    """En diskret knap: ingen synlig kant, daempet tekst (New request)."""
+    """New request: samme synlige ramme som Save draft (outline, 1 px)."""
     btn.props["Appearance"] = "ButtonAppearance.Outline"
-    btn.props["BorderColor"] = C_TRANSPARENT
+    btn.props["BorderColor"] = C_INPUT_BORDER
     btn.props["BorderThickness"] = "1"
-    btn.props["Color"] = C_MUTED
+    btn.props["Color"] = C_TITLE
     return btn
 
 
@@ -491,7 +495,7 @@ def seg_button_width():
     return max(fit_button_width('"%s"' % t, size=SEG_SIZE, min_w=0) for t in SEG_TEXTS) + ICON_W
 
 
-def segmented(name, options, display_mode=None, label=None):
+def segmented(name, options, display_mode=None, label=None, fit=False):
     """Segmenteret kontrol: en pilleformet skinne med een knap pr. valg.
 
     options: liste af (suffix, tekst, on, onselect, tooltip) - tekst er en
@@ -504,10 +508,16 @@ def segmented(name, options, display_mode=None, label=None):
     paa skinnens neutrale flade: synlige og klikbare, men uden samme vaegt.
     Hover, fokus og deaktiveret er ModernButtons egne, ens for alle
     segmenter. Knapperne er almindelige knapper, saa Tab/Enter/mellemrum
-    virker, og hver har sin AccessibleLabel med "selected"."""
-    w = seg_button_width()
+    virker, og hver har sin AccessibleLabel med "selected".
+
+    fit=True: hvert segment er lige bredt som sin tekst (+ flueben) - til
+    lange valg som "My requests" og "Department"."""
+    w_uni = seg_button_width()
     kids = []
+    widths = []
     for suffix, text, on, onselect, tooltip in options:
+        w = (fit_button_width('"%s"' % text, size=SEG_SIZE, min_w=0) + ICON_W + 8) if fit else w_uni
+        widths.append(w)
         acc = f'"{(label + ": ") if label else ""}{text}" & If({on}, ", selected", "")'
         b = button(f"{name}{suffix}", f'"{text}"', onselect, width=w, height=SEG_BTN_H,
                    display_mode=display_mode, accessible=acc, tooltip=tooltip)
@@ -523,7 +533,7 @@ def segmented(name, options, display_mode=None, label=None):
         b.props["LayoutMinWidth"] = str(w)
         b.props.update(lay.radius(SEG_BTN_H // 2))
         kids.append(b)
-    track_w = len(kids) * w + (len(kids) - 1) * SEG_GAP + 2 * SEG_PAD
+    track_w = sum(widths) + (len(kids) - 1) * SEG_GAP + 2 * SEG_PAD
     return group(name, kids, direction="Horizontal", gap=SEG_GAP, width=track_w,
                  align_items="Center", fill=C_NEUTRAL_BG, border_color=C_CARD_BORDER,
                  radius=SEG_H // 2, pad=SEG_PAD, align_in_container="Start")
@@ -1718,7 +1728,7 @@ def row_list(prefix, items, row_controls, height, template_size, onselect="false
         "LoadingSpinner": "LoadingSpinner.None",
         "OnSelect": onselect,
         "Selectable": "true",
-        "ShowScrollbar": "true",
+        "ShowScrollbar": "false",
         "TabIndex": "0",
         "TemplatePadding": "2",
         "TemplateSize": str(template_size),
@@ -1731,6 +1741,45 @@ def row_list(prefix, items, row_controls, height, template_size, onselect="false
                 children=row_controls, h=height, vis=visible)
 
 
+def icon_button(name, label, fx, path, mode=None):
+    """Et rent stregikon uden ramme som klikbar Image (plain icon button)."""
+    grey = '" & %s & "' % ref_hex_expr("text-muted")
+    svg = _icons.svg(path, grey, size=20)
+    if mode is None:
+        image = f'"data:image/svg+xml;utf8," & EncodeUrl("{svg}")'
+        enabled = "true"
+    else:
+        faded = _icons.svg(path, grey, size=20, opacity=_icons.DISABLED_OPACITY)
+        enabled = f"({mode}) <> DisplayMode.Disabled"
+        image = (f'"data:image/svg+xml;utf8," & EncodeUrl(If({enabled}, '
+                 f'"{svg}", "{faded}"))')
+    props = {
+        "AccessibleLabel": f'"{label}"',
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "DisabledBorderColor": C_TRANSPARENT,
+        "DisabledFill": C_TRANSPARENT,
+        "Fill": C_TRANSPARENT,
+        "FocusedBorderColor": C_PRIMARY,
+        "FocusedBorderThickness": "If(%s, 2, 0)" % enabled if mode else "2",
+        "Height": "20",
+        "HoverFill": "If(%s, %s, %s)" % (enabled, C_ROW_HOVER, C_TRANSPARENT) if mode else C_ROW_HOVER,
+        "Image": image,
+        "ImagePosition": "ImagePosition.Center",
+        "OnSelect": fx,
+        "PressedFill": "If(%s, %s, %s)" % (enabled, C_ROW_PRESSED, C_TRANSPARENT) if mode else C_ROW_PRESSED,
+        "TabIndex": "If(%s, 0, -1)" % enabled if mode else "0",
+        "Tooltip": f'"{label}"',
+        "Width": "20",
+    }
+    if mode:
+        props["DisplayMode"] = mode
+    _icons.hit_radius(props)
+    c = Ctrl(name, "Image", props=props, h=20)
+    ensure_hit(c)
+    return c
+
+
 def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
                      close_fx, visible, width=480, previous_mode=None,
                      next_mode=None, side_by_side=False):
@@ -1739,6 +1788,7 @@ def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
     side_by_side: fra PANEL_SIDE_MIN staar panelet ved siden af listen
     (PanelInset), og saa maa baggrunden ikke daekke listen."""
     vis = f"IfError({visible}, false)"
+    # Staar listen ved siden af, maa baggrunden ikke fange klik og rul.
     scrim_vis = f"{vis} && {lay.INSET} = 0" if side_by_side else vis
     backdrop = Ctrl(f"img{prefix}EditorBackdrop", "Image", props={
         "AccessibleLabel": '"Close row editor"',
@@ -1754,34 +1804,32 @@ def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
         "X": "0",
         "Y": "0",
     }, h="App.Height", vis=scrim_vis)
-    def nav_icon(name, label, fx, icon, mode=None):
-        b = button(name, '""', fx, icon=icon, width=lay.HIT_TOUCH, height=lay.HIT_TOUCH,
-                   display_mode=mode, accessible=f'"{label}"', tooltip=f'"{label}"')
-        b.props["Layout"] = "ButtonLayout.IconOnly"
-        b.props["BorderColor"] = C_TRANSPARENT
-        b.props["LayoutMinWidth"] = str(lay.HIT_TOUCH)
-        return b
 
-    prev = nav_icon(f"btn{prefix}EditorPrevious", "Previous row", previous_fx,
-                    "ChevronLeft", previous_mode)
-    next_ = nav_icon(f"btn{prefix}EditorNext", "Next row", next_fx, "ChevronRight", next_mode)
-    close = nav_icon(f"btn{prefix}EditorClose", "Close", close_fx, "Dismiss")
+    prev = icon_button(f"btn{prefix}EditorPrevious", "Previous row", previous_fx,
+                    _icons.CHEVRON_LEFT, previous_mode)
+    next_ = icon_button(f"btn{prefix}EditorNext", "Next row", next_fx,
+                     _icons.CHEVRON_RIGHT, next_mode)
+    close = icon_button(f"btn{prefix}EditorClose", "Close", close_fx, _icons.CLOSE)
     title = text_ctrl(f"txt{prefix}EditorPosition", position, size=lay.SIZE_CARD_TITLE,
                       weight="Semibold", height=28, wrap="false")
     grow(title)
-    navigation_width = sum(int(item.props["Width"]) for item in (prev, next_, close)) + 16
+    navigation_width = 3 * lay.HIT_TOUCH + 8
     navigation = group(f"con{prefix}EditorNavigation", [prev, next_, close],
-                       direction="Horizontal", gap=8, height=lay.HIT_TOUCH,
+                       direction="Horizontal", gap=4, height=lay.HIT_TOUCH,
                        width=navigation_width, align_items="Center", justify="End")
     heading = group(f"con{prefix}EditorHeading", [title, navigation],
                     direction="Horizontal", gap=12, height=lay.HIT_TOUCH,
                     align_items="Center")
+    # Panelets pad (2 x 16), overskriften, to mellemrum og bundbjaelken
+    # traekkes fra, og 16 px luft i bunden sikrer, at bundknapperne aldrig
+    # ligger tættere paa skaermkanten end panelets pad.
+    scroll_h = f"App.Height - ({2 * 16 + lay.HIT_TOUCH + 2 * 12 + 16} + ({footer.h}))"
     scroll = group(f"con{prefix}EditorSections", sections, direction="Vertical", gap=16,
-                   height="App.Height - 160", overflow_y="Scroll",
+                   height=scroll_h, overflow_y="Scroll",
                    pad=(16, 20, 16, 20))
     panel = group(f"con{prefix}EditorPanel", [heading, scroll, footer],
                   direction="Vertical", gap=12, height="App.Height",
-                  width=f"If({at_least('Desktop')}, {width}, App.Width)",
+                  width=lay.PANEL_W_AT,
                   fill=C_CARD_BG, border_color=C_CARD_BORDER, pad=(16, 20, 16, 20),
                   visible=vis, drop_shadow="Bold")
     panel.props["X"] = f"If({at_least('Desktop')}, App.Width - Self.Width, 0)"

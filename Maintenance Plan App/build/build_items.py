@@ -16,7 +16,8 @@ from build_helpers import (empty_state, checkbox_theme, row_hit, text_ctrl, grou
                            field_cell, col_width, card, HINTS_ON, grow,
                            fit_button_width, column_grid, ICON_SAVE, ICON_W,
                            mark_done, segmented, border_rule, row_n)
-from build_plan_header import section_header, help_panel, section_footer
+from build_plan_header import section_header, help_panel, section_footer, status_icon
+from build_helpers import ensure_hit
 import build_help as bh
 from fl_picker import fl_picker
 import sp_config as cfg
@@ -246,7 +247,7 @@ def build_items_rail():
     # Vaerket fra Plan Header staar ved titlen: det er den kontekst, alle
     # items arbejder i - arbejdscentre, tasklister og FL-soegningen er
     # filtreret paa det (issue #54).
-    header = section_header("conVhpItemsHead", "Items", "Step 2", valid_fx=items_valid_fx())
+    header = None  # bygges efter knapperne (copy + Add item staar i kortets hoved)
 
     btnAdd = button(
         "btnVhpAddItem", "\"Add item\"",
@@ -254,7 +255,6 @@ def build_items_rail():
             "If(\n"
             "    !varVhpPlanCommitted,\n"
             "    Notify(\"Press Done in the plan header before adding items.\", NotificationType.Warning),\n"
-            "\n"
             "    Set(varVhpNextItemId, varVhpNextItemId + 1);\n"
             "    Collect(\n"
             "        colVhpItems,\n"
@@ -272,10 +272,10 @@ def build_items_rail():
             f"    {RESET_EDITOR_CONTROLS};\n"
             "    Notify(\"Item \" & Text(CountRows(colVhpItems)) & \" added.\", NotificationType.Success)\n"
             ")"
-        ), display_mode=VIEW_LOCK)
+        ), primary=True, icon=icons.FLUENT["add"], display_mode=VIEW_LOCK)
 
     btnCopy = button(
-        "btnVhpCopyItem", "\"Copy item\"",
+        "btnVhpCopyItem", "\"\"",
         (
             "If(\n"
             "    IsBlank(varVhpActiveItemId) || CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId)) = 0,\n"
@@ -335,14 +335,28 @@ def build_items_rail():
             ")"
         ), display_mode=VIEW_LOCK)
 
-    # Knapperne deler bredden ligeligt, saa raekken aldrig ombryder. Delete
-    # staar nu paa hvert kort (se nedenfor), ikke her.
-    for b_, lit in ((btnAdd, '"Add item"'), (btnCopy, '"Copy item"')):
-        b_.props["Width"] = str(fit_button_width(lit, size=13, min_w=0) - 8)
-        b_.props["Size"] = "13"
-        b_.props["LayoutMinWidth"] = b_.props["Width"]
-    btnRow = group("conVhpItemButtonRow", [btnAdd, btnCopy], direction="Horizontal", gap=8,
-                   height=36, align_items="Center", width=RAIL_CW)
+    # KORTETS HOVED (mockup): Copy som ikonknap og "+ Add item" som blaa
+    # primaerknap staar til hoejre i overskriften, efter trin-badget. Delete
+    # staar paa hvert kort (se nedenfor).
+    btnAdd.props["Width"] = str(fit_button_width('"Add item"', size=13, min_w=0) + ICON_W - 8)
+    btnAdd.props["Size"] = "13"
+    btnAdd.props["LayoutMinWidth"] = btnAdd.props["Width"]
+    btnAdd.props["Height"] = "36"
+    btnCopy.props.update({
+        "Icon": f"\"{icons.FLUENT['copy']}\"",
+        "Layout": "ButtonLayout.IconOnly",
+        "AccessibleLabel": "\"Copy item\"",
+        "Tooltip": "\"Copy item\"",
+        "Width": "36", "Height": "36", "LayoutMinWidth": "36",
+    })
+    ensure_hit(btnCopy)
+    btnCopy.props["LayoutMinWidth"] = btnCopy.props["Width"]
+    header = section_header("conVhpItemsHead", "Items", "Step 2", extra_right=[btnCopy, btnAdd],
+                            valid_fx=items_valid_fx())
+    # Badget foer knapperne: [titel] [gap] [badge] [copy] [add]
+    _kids = header.children
+    _badge = _kids.pop()
+    _kids.insert(len(_kids) - 2, _badge)
 
     # --- item card template -------------------------------------------------
     # Uden kort tekst hedder kortet sit NUMMER i listen (issue #230) - det
@@ -352,7 +366,7 @@ def build_items_rail():
     cardTitle = text_ctrl(
         "txtVhpItemCardTitle",
         f"If(IsBlank(ThisItem.ShortText), \"Item \" & Text({CARD_NO}), ThisItem.ShortText)",
-        size=14, weight="Semibold", height=20, wrap="false")
+        size=14, weight="Bold", height=20, wrap="false")
     cardFl = text_ctrl(
         "txtVhpItemCardFl",
         "\"FL: \" & If(IsBlank(ThisItem.FunctionalLocation), \"No FL\", ThisItem.FunctionalLocation)",
@@ -363,21 +377,48 @@ def build_items_rail():
         size=12, color=C_MUTED, height=18, wrap="false")
     cardTextCol = grow(group("conVhpItemCardText", [cardTitle, cardFl, cardTasklist],
                              direction="Vertical", gap=2))
-    # Samme statuschip som resten af appen (UX-review T4) - ikke versaler.
-    cardStatus = sc.status_chip("imgVhpItemCardStatus", "ThisItem.Status", sc.VH_ITEM)
-    # DELETE STAAR KUN I EDITOREN (UX-review, VH-mockuppen). Kortet viser
-    # titel, FL, task list og status - "Delete item" i editorens hoved
-    # sletter det aktive item (btnVhpEditorDelete) med operationer og
-    # objekter. Foer stod en Delete ogsaa paa hvert kort (issue #54).
-    RIGHT_W = 66
-    cardRight = group("conVhpItemCardRight", [cardStatus], direction="Vertical", gap=6,
+    # STATUS (mockup): flueben/advarsel til venstre og "Valid" (groen) eller
+    # "N to fix" (roed) til hoejre - ikke et uppercase-badge. N er antal
+    # tomme paakraevede felter (samme som build_status.ITEM_RULE + tasklist
+    # paa en Strategy-plan).
+    FIX_N = ("(If(IsBlank(ThisItem.ShortText), 1, 0) + If(IsBlank(ThisItem.MainWorkCenter), 1, 0) + "
+             "If(IsBlank(ThisItem.ActivityType), 1, 0) + If(IsBlank(ThisItem.FunctionalLocation), 1, 0) + "
+             "If(IfError(varVhpPlan.PlanType = \"Strategy\", false) && IsBlank(ThisItem.TasklistKey), 1, 0))")
+    ITEM_OK = f"(ThisItem.Status <> \"invalid\" && {FIX_N} = 0)"
+    cardIcon = status_icon("imgVhpItemCardStatus", ITEM_OK, size=20)
+    cardIcon.props["AlignInContainer"] = "AlignInContainer.Center"
+    cardStatus = text_ctrl(
+        "txtVhpItemCardStatus",
+        f"If({ITEM_OK}, \"Valid\", If({FIX_N} > 0, Text({FIX_N}) & \" to fix\", \"Needs fixing\"))",
+        size=12, weight="Semibold", height=22, width=84, wrap="false", align="Right",
+        extra={
+            "AlignInContainer": "AlignInContainer.End",
+            "Color": f"If({ITEM_OK}, {C_VALID_FG}, {C_INVALID_FG})",
+        })
+    # DELETE PAA KORTET (issue #54). Hed "Remove item" og stod i knaprakken
+    # over listen, hvor den slettede det AKTIVE item - ikke noedvendigvis
+    # det, man kiggede paa. Nu sletter den sit eget kort. Id'et laeses FOER
+    # noget fjernes: raekken, ThisItem peger paa, forsvinder undervejs.
+    #
+    # Samme sletning som foer: operationer og objekter foelger med.
+    # Beskeden naevner itemets nummer i listen (issue #230), regnet FOER
+    # sletningen - ikke ItemId, som er SharePoint-ID'et.
+    DEL_W = fit_button_width("\"Delete\"", size=13, min_w=64)
+    btnDelete = button(
+        "btnVhpRemoveItem", "\"Delete\"",
+        _delete_item_fx("ThisItem.ItemId"), danger=True, width=DEL_W, height=30, display_mode=VIEW_LOCK,
+        accessible=f"\"Delete item \" & Text({CARD_NO})")
+    btnDelete.props["Size"] = "13"
+    btnDelete.props["_OnTop"] = "true"
+    RIGHT_W = max(84, DEL_W)
+    cardRight = group("conVhpItemCardRight", [cardStatus, btnDelete], direction="Vertical", gap=6,
                       align_items="End", width=RIGHT_W)
 
     # Det aktive item: kant i to px og info-farven - ikke kun en svag
     # forskel i fyldet (issue #54).
     ACTIVE = "ThisItem.ItemId = varVhpActiveItemId"
     itemCard = group(
-        "conVhpItemCard", [cardTextCol, cardRight], direction="Horizontal", gap=10,
+        "conVhpItemCard", [cardIcon, cardTextCol, cardRight], direction="Horizontal", gap=10,
         height=f"Parent.TemplateHeight - {ITEM_GAP}",
         fill=f"If({ACTIVE}, {C_INFO_BG}, {C_CARD_BG})",
         border_color=f"If({ACTIVE}, {C_INFO_FG}, {C_CARD_BORDER})",
@@ -437,7 +478,7 @@ def build_items_rail():
         button_name="btnVhpItemsEmptyAdd", action_icon="Add",
         visible="IfError(CountRows(colVhpItems) = 0, true)")
 
-    return card("conVhpItemsCard", [header, btnRow, gallery, emptyState], gap=12)
+    return card("conVhpItemsCard", [header, gallery, emptyState], gap=12)
 
 
 # Editorens to kolonner. Functional Location staar i sin egen raekke i
