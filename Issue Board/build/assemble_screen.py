@@ -16,7 +16,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 from gen_screen import render_screen, C_APP_BG, OUT_DIR
-from build_helpers import app_frame
+from build_helpers import request_shell
 from side_nav import side_nav
 import ib_config as cfg
 import ib_parts as P
@@ -24,7 +24,7 @@ import ib_parts as P
 
 def build_screen(render=render_screen):
     """render: gen_screen.render_screen - eller BIO SAP App's opsamler."""
-    root = app_frame(P.P, P.build_bar(), [P.build_list()])
+    root, = request_shell(P.P, P.build_bar(), None, None, P.build_list())
     nav, overlay = side_nav(P.P, cfg.APP_KEY)
     return render(cfg.SCREEN, {"Fill": C_APP_BG, "OnVisible": P.on_visible(),
                                "OnHidden": "Set(varIbDetailOn, false); Set(varIbFormOn, false)"},

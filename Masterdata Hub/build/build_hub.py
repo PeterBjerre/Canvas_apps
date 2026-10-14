@@ -16,12 +16,13 @@ filter, og flisernes tal taelles paa det samme, allerede afgraensede saet.
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
-                        C_PRIMARY, C_MUTED_BG, C_MODAL_BG, C_DIVIDER,
+                        C_PRIMARY, C_NEUTRAL_BG, C_MUTED_BG, C_MODAL_BG, C_DIVIDER,
                         C_TRANSPARENT, SHELL_W, C_WARN_FG, C_WARN_BG, C_ROW_HOVER, C_WHITE)
 import layout_tokens as lay
 from build_helpers import (_sum_expr, row_rule, row_hit, text_input, text_ctrl, group, button, card, flow_row, top_bar,
                            fit_button_width, text_px, ICON_W, grow, themed_dropdown, icon_on_mobile,
-                           confirm_modal, new_request_label, empty_state, skeleton_rows, ensure_hit)
+                           confirm_modal, new_request_label, empty_state, skeleton_rows, ensure_hit,
+                           SEG_H, SEG_PAD, SEG_BTN_H, SEG_GAP)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET
 from design_tokens import theme_query, ref_hex, ref as _t
 import design_tokens as tok
@@ -251,12 +252,31 @@ SCOPE_REFRESH = (
     'Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))')
 SCOPE_FULL = f"CountRows(colMdScope) >= {ROW_LIMIT}"
 
-# "CONTINUE WHERE YOU LEFT OFF" (UX-review M3): brugerens senest aendrede
-# kladde - een delegerbar forespoergsel (Filter paa konstanter + Sort paa
-# en dato) og First. Tom, naar brugeren ingen kladder har.
+# "CONTINUE WHERE YOU LEFT OFF" (UX-review M3, L4): brugerens op til tre
+# senest aendrede kladder OG anmodninger, der venter paa info fra brugeren
+# (mockuppens kort). To delegerbare forespoergsler - een status hver, da
+# OR'ede statusvaerdier ikke delegeres - lagt sammen med Table(a, b) og
+# sorteret i hukommelsen (hoejst seks poster).
+RESUME_N = 3
+RESUME_AWAITING = "AfventerInfo"
+
+
+def _resume_q(status):
+    return (f"FirstN(Sort(Filter('{LIST}', RequesterEmail = varMdMe && "
+            f'Status.Value = "{status}"), LastActionOn, SortOrder.Descending), {RESUME_N})')
+
+
 RESUME_REFRESH = (
-    f"Set(varMdResume, First(Sort(Filter('{LIST}', RequesterEmail = varMdMe && "
-    f'Status.Value = "{ri.DRAFT}"), LastActionOn, SortOrder.Descending)))')
+    f"Set(varMdResumeList, FirstN(Sort(Table({_resume_q(ri.DRAFT)}, {_resume_q(RESUME_AWAITING)}), "
+    f"LastActionOn, SortOrder.Descending), {RESUME_N}))")
+
+# "MY QUEUE" (L4): det, der venter paa MIG, uanset om listen viser mine
+# egne eller afdelingens. AssignedToEmail og IsOpen er indekserede; kun ID
+# hentes. Knappen skifter til afdelingens omfang, saa sagerne ikke
+# skjules af "My requests" (dem har en anden oprettet).
+QUEUE_REFRESH = (
+    f"Set(varMdQueueN, CountRows(ShowColumns(Filter('{LIST}', AssignedToEmail = varMdMe, "
+    "IsOpen = true), ID)))")
 
 # SKAERMENS OnVisible - IKKE AFHAENGIG AF App.OnStart
 #
@@ -291,7 +311,7 @@ HUB_ON_VISIBLE = (
     # varMdLoading: pladsholder-raekkerne under hentningen (UX-review M7).
     "Set(varMdLoading, true);\n"
     "Concurrent(\n    " + SCOPE_REFRESH + ",\n    " + approval_flow.LOG_REFRESH + ",\n    " +
-    RESUME_REFRESH + ",\n    " +
+    RESUME_REFRESH + ",\n    " + QUEUE_REFRESH + ",\n    " +
     # Note to self-raekkerne, brugeren maa se - kun RequestGuid (issue #115).
     sn.hub_self_refresh("varMdMe") + "\n);\n"
     "Set(varMdLoading, false)"
@@ -436,6 +456,42 @@ def _selected_style(b, selected, color=C_PRIMARY, idle_color=C_TITLE):
     return b
 
 
+_SEG_SEL = {}    # segmentknap -> dens "valgt"-udtryk
+_SEG_KIDS = {}   # skinne -> dens segmenter
+
+
+def _seg_style(b, selected):
+    """Et segment som build_helpers.segmented (UX-review, hubbens mockup):
+    valgt = udfyldt i primaerfarven med hvid tekst og flueben, ellers
+    kantloes med daempet tekst paa skinnens flade. Layout (flueben eller
+    ej) saettes i build_filters, der kender filterlinjens trin."""
+    _SEG_SEL[b.name] = selected
+    b.props["Appearance"] = f"If({selected}, ButtonAppearance.Primary, ButtonAppearance.Outline)"
+    b.props["BasePaletteColor"] = C_PRIMARY
+    b.props["BorderColor"] = f"If({selected}, {C_PRIMARY}, {C_TRANSPARENT})"
+    b.props["BorderThickness"] = "1"
+    b.props["Color"] = f"If({selected}, {C_WHITE}, {C_MUTED})"
+    b.props["FontWeight"] = f"If({selected}, FontWeight.Semibold, FontWeight.Normal)"
+    b.props["Icon"] = f'If({selected}, "Checkmark", "")'
+    b.props["Height"] = str(SEG_BTN_H)
+    b.h = SEG_BTN_H
+    b.props.update(lay.radius(SEG_BTN_H // 2))
+    return b
+
+
+def _seg_track(name, kids):
+    """Skinnen om segmenterne. Bredden saettes i build_filters (summen af
+    segmenternes bredde i hvert trin)."""
+    g = group(name, kids, direction="Horizontal", gap=SEG_GAP, height=SEG_H,
+              align_items="Center", fill=C_NEUTRAL_BG, border_color=C_CARD_BORDER,
+              radius=SEG_H // 2, pad=SEG_PAD)
+    g.props["AlignInContainer"] = "AlignInContainer.Center"
+    _SEG_KIDS[name] = kids
+    _FLT_LV[name] = {k: (sum(_FLT_LV[c.name][k][0] for c in kids) + (len(kids) - 1) * SEG_GAP
+                         + 2 * SEG_PAD, None, None) for k in FLT_LEVELS}
+    return g
+
+
 def build_bar():
     """Toplinjen - build_helpers.top_bar(), den samme i alle apps.
 
@@ -466,11 +522,14 @@ def _view_switch(mobile=False):
             ("btnMdViewMine", "mine", "My requests", "My", "Mine"),
             ("btnMdViewAll", "queue", "Department", "All", "Dept.")):
         label = short if mobile else wide
-        w = fit_button_width(f'"{label}"', size=size, min_w=0) + 20
+        w = fit_button_width(f'"{label}"', size=size, min_w=0) + 20 + (0 if mobile else ICON_W)
         b = button(name + ("M" if mobile else ""), f'"{label}"',
                    f'Set(varMdView, "{key}"); Set(varMdDomain, "");\n' + SCOPE_REFRESH + ";\n" + SAVE_HUB,
                    width=w, height=36, accessible=f'"{wide}"')
-        _selected_style(b, f'varMdView = "{key}"', idle_color=C_MUTED)
+        if mobile:
+            _selected_style(b, f'varMdView = "{key}"', idle_color=C_MUTED)
+        else:
+            _seg_style(b, f'varMdView = "{key}"')
         b.props["Size"] = str(size)
         b.props["LayoutMinWidth"] = b.props["Width"]
         b.vis = below("Tablet") if mobile else at_least("Tablet")
@@ -746,20 +805,26 @@ def _tight(label, icon=False):
 
 
 def _chip(name, label, value, icon):
+    sel = f'varMdStatusMode = "{value}"'
     b = button(name, f'"{label}"', f'Set(varMdStatusMode, "{value}");\n' + SCOPE_REFRESH + ";\n" + SAVE_HUB,
-               width=fit_button_width(f'"{label}"') + ICON_W, height=36, icon=icon)
+               width=fit_button_width(f'"{label}"') + ICON_W, height=SEG_BTN_H,
+               accessible=f'"{label}" & If({sel}, ", selected", "")')
     # Pr. trin: (bredde, Layout, tekst). None = teksten er den samme.
-    _FLT_LV[b.name] = {"full": (int(b.props["Width"]), "ButtonLayout.IconBefore", None),
-             "compact": (_tight(label), "ButtonLayout.TextOnly", None),
-             "short": (_tight(label), "ButtonLayout.TextOnly", None)}
-    return _selected_style(b, f'varMdStatusMode = "{value}"', idle_color=C_MUTED)
+    # Layout (flueben paa det valgte) saettes i build_filters.
+    _FLT_LV[b.name] = {"full": (int(b.props["Width"]), None, None),
+             "compact": (_tight(label), None, None),
+             "short": (_tight(label), None, None)}
+    return _seg_style(b, sel)
 
 
-def _flag_pill(name, flag, label, field, icon):
-    n = f"Text(CountRows(Filter(colMdScope, {field})))"
+def _flag_pill(name, flag, label, field, icon, count=None, on_view=None):
+    """count: tallet paa knappen (standard: taelles i colMdScope).
+    on_view: varMdView, knappen skifter til, naar den slaas til."""
+    n = count or f"Text(CountRows(Filter(colMdScope, {field})))"
     full_txt = f'"{label} (" & {n} & ")"'
+    view = (f'If(varMdFlag = "{flag}", Set(varMdView, "{on_view}"));\n' if on_view else "")
     b = button(name, full_txt,
-               f'Set(varMdFlag, If(varMdFlag = "{flag}", "", "{flag}"));\n'
+               f'Set(varMdFlag, If(varMdFlag = "{flag}", "", "{flag}"));\n' + view +
                'If(varMdFlag <> "", Set(varMdStatusMode, "open"));\n' + SCOPE_REFRESH + ";\n" + SAVE_HUB,
                width=fit_button_width(f'"{label} (99)"') + ICON_W, height=36, icon=icon)
     # Kort trin: ikonet og tallet. Skaermlaeseren faar stadig hele teksten
@@ -772,32 +837,74 @@ def _flag_pill(name, flag, label, field, icon):
     return _selected_style(b, f'varMdFlag = "{flag}"', idle_color=C_MUTED)
 
 
-def build_resume():
-    """"Continue where you left off": den seneste kladde med Continue -
-    samme handling som raekkens Edit, paa varMdResume i stedet for
-    ThisItem."""
-    vis = "!IsBlank(varMdResume) && !IfError(varMdLoading, false)"
-    rec = "varMdResume"
-    icon = _image("imgMdResumeIcon",
-                  _svg_uri(_domain_switch(lambda d: '"' + _tile_icon_svg(d) + '"', '""')
-                           .replace("ThisItem", rec)), 32, 32,
-                  label=DOMAIN_LABEL.replace("ThisItem", rec))
-    title = text_ctrl("txtMdResumeTitle", '"Continue where you left off"', size=lay.SIZE_BODY,
-                      weight="Semibold", height=20, wrap="false")
-    when = f'Text({rec}.LastActionOn, "{lay.DATE_FMT}")'
-    line = text_ctrl("txtMdResumeLine",
-                     f'{rec}.{COL_NO} & "  \u00b7  " & {SHORT_TEXT.replace("ThisItem", rec)} & '
-                     f'"  \u00b7  draft, updated " & {when}',
+RESUME_CARD_H = 60
+RESUME_GAP = 12
+
+
+def _resume_card(i, wide):
+    """Kort nr. i (1-3) som i mockuppen: domaenets farvestribe, nummer og
+    statuschip, domaene og tekst, og Continue. If-vagten giver en tom post -
+    ikke en Index-fejl - naar der er faerre poster."""
+    rec = f"If(CountRows(varMdResumeList) >= {i}, Index(varMdResumeList, {i}))"
+    stripe = Ctrl(f"rctMdResumeStripe{i}", "Rectangle", props={
+        "AccessibleLabel": DOMAIN_LABEL.replace("ThisItem", rec),
+        "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+        "Fill": _domain_switch(lambda d: d["color"], C_MUTED).replace("ThisItem", rec),
+        "Height": "36", "OnSelect": "false", "TabIndex": "0", "Width": "4",
+        "LayoutMinWidth": "4"}, h=36)
+    no = text_ctrl(f"txtMdResumeNo{i}", f"{rec}.{COL_NO}", size=13, weight="Semibold",
+                   height=22, wrap="false")
+    no.props["Width"] = f"Min(140, Len({rec}.{COL_NO}) * 9 + 8)"
+    no.props["LayoutMinWidth"] = no.props["Width"]
+    chip = sc.status_chip(f"imgMdResumeStatus{i}", f"{rec}.Status.Value", sc.REQUEST)
+    top = group(f"conMdResumeTop{i}", [no, chip], direction="Horizontal", gap=8, height=22,
+                align_items="Center")
+    line = text_ctrl(f"txtMdResumeLine{i}",
+                     f'{DOMAIN_LABEL.replace("ThisItem", rec)} & "  \u00b7  " & '
+                     f'{SHORT_TEXT.replace("ThisItem", rec)}',
                      size=12, color=C_MUTED, height=18, wrap="false")
-    words = grow(group("conMdResumeWords", [title, line], direction="Vertical", gap=0))
+    words = grow(group(f"conMdResumeWords{i}", [top, line], direction="Vertical", gap=2, height=42))
+    can_edit = perm.may_change(f"{rec}.RequesterEmail", f"{rec}.Status.Value", "varMdMe")
+    act = (f"If(\n    {can_edit},\n    " + _open_action("edit").replace("ThisItem", rec) +
+           ",\n    " + _open_action().replace("ThisItem", rec) + "\n)")
     go_txt = '"Continue"'
-    go = button("btnMdResumeGo", go_txt, _open_action("edit").replace("ThisItem", rec),
-                primary=True, width=fit_button_width(go_txt), height=32,
-                accessible=f'"Continue " & {rec}.{COL_NO}')
+    go = button(f"btnMdResumeGo{i}", go_txt, act, width=fit_button_width(go_txt) + ICON_W,
+                height=32, icon="ChevronRight", accessible=f'"Continue " & {rec}.{COL_NO}')
     go.props["LayoutMinWidth"] = go.props["Width"]
-    return group("conMdResume", [icon, words, go], direction="Horizontal", gap=12, height=56,
-                 align_items="Center", fill=C_CARD_BG, border_color=C_CARD_BORDER,
-                 radius=lay.RADIUS_INPUT, pad=(8, 12, 8, 12), visible=vis)
+    card_ = group(f"conMdResumeCard{i}", [stripe, words, go], direction="Horizontal", gap=12,
+                  height=RESUME_CARD_H, align_items="Center", fill=C_CARD_BG,
+                  border_color=C_CARD_BORDER, radius=lay.RADIUS_INPUT, pad=(8, 12, 8, 12),
+                  visible=f"CountRows(varMdResumeList) >= {i}")
+    # Tre ens kort paa een linje fra Tablet; under hinanden paa en telefon.
+    card_.props["Width"] = (f"If({wide}, (({SHELL_W}) - {(RESUME_N - 1) * RESUME_GAP}) / {RESUME_N}, "
+                            f"{SHELL_W})")
+    card_.props["LayoutMinWidth"] = "0"
+    return card_
+
+
+def build_resume():
+    """"Continue where you left off": op til tre kort, nyeste foerst - egne
+    kladder og anmodninger, der venter paa info (UX-review M3, L4).
+    Continue aabner i Edit, naar brugeren maa rette, ellers i View."""
+    wide = at_least("Tablet")
+    vis = "!IsEmpty(varMdResumeList) && !IfError(varMdLoading, false)"
+    title = text_ctrl("txtMdResumeTitle", '"Continue where you left off"', size=13,
+                      weight="Semibold", height=20, wrap="false")
+    title.props["Width"] = str(fit_button_width(title.props["Text"], size=13, min_w=0))
+    title.props["LayoutMinWidth"] = title.props["Width"]
+    sub = grow(text_ctrl("txtMdResumeSub", '"Your latest drafts and requests that need information"',
+                         size=12, color=C_MUTED, height=20, wrap="false"))
+    head = group("conMdResumeHead", [title, sub], direction="Horizontal", gap=8, height=20,
+                 align_items="Center")
+    cards = [_resume_card(i, wide) for i in range(1, RESUME_N + 1)]
+    n = f"Min(CountRows(varMdResumeList), {RESUME_N})"
+    row_h = (f"If({wide}, {RESUME_CARD_H}, {n} * {RESUME_CARD_H} + Max({n} - 1, 0) * {RESUME_GAP})")
+    row = group("conMdResumeCards", cards, direction="Horizontal", gap=RESUME_GAP, height=row_h,
+                align_items="Start")
+    row.props["LayoutDirection"] = f"If({wide}, LayoutDirection.Horizontal, LayoutDirection.Vertical)"
+    sec = group("conMdResume", [head, row], direction="Vertical", gap=8, visible=vis)
+    sec.props["Height"] = f"20 + 8 + {row_h}"
+    return sec
 
 
 def build_banner():
@@ -848,9 +955,13 @@ def build_filters():
                 fill=C_DIVIDER, layout_min_width=1)
     sep.props["AlignInContainer"] = "AlignInContainer.Center"
     _FLT_LV[sep.name] = {k: (1, None, None) for k in FLT_LEVELS}
-    chips = [_chip("btnMdFltOpen", "Open", "open", "MailInbox"), closed,
-             _chip("btnMdFltAll", "All", "all", "TextBulletListLtr"), _peek_button(), sep,
-             _flag_pill("btnMdFltMe", "me", "Waiting for me", "Mine", "Person"),
+    # Open | Closed | All som EET segment (mockuppen), ikke tre knapper.
+    state = _seg_track("conMdFltState", [_chip("btnMdFltOpen", "Open", "open", "MailInbox"), closed,
+                                         _chip("btnMdFltAll", "All", "all", "TextBulletListLtr")])
+    peek = _peek_button()
+    chips = [state, peek, sep,
+             _flag_pill("btnMdFltMe", "me", "My queue", "Mine", "Person",
+                        count="Text(varMdQueueN)", on_view="queue"),
              _flag_pill("btnMdFltStuck", "stuck", STUCK_LABEL, "Stuck", "Clock")]
     # Soegefelt og knapper staar til venstre; My requests | Department og
     # tallet til hoejre. Under Tablet erstattes knapperne af EN dropdown
@@ -860,9 +971,11 @@ def build_filters():
     mobile = _mobile_filter()
     spacer = group("conMdFltGap", [], direction="Horizontal", height=0)
     spacer.vis = at_least("Tablet")
-    _FLT_LV[chips[3].name] = {k: (PEEK_BTN_W[k], None, None) for k in FLT_LEVELS}
+    _FLT_LV[peek.name] = {k: (PEEK_BTN_W[k], None, None) for k in FLT_LEVELS}
     _FLT_LV[count.name] = {k: (COUNT_W[k], None, None) for k in FLT_LEVELS}
-    fixed = chips + _view_switch() + [count]
+    view = _seg_track("conMdFltView", _view_switch())
+    view.vis = at_least("Tablet")
+    fixed = chips + [view, count]
     n_gaps = len(fixed) + 1          # soegefeltet + mellemrummet (spacer)
 
     # Hvad hvert trin skal bruge: alle knapper + soegefeltets mindstebredde
@@ -880,15 +993,20 @@ def build_filters():
 
     gap = lvl(*(FLT_GAP[k] for k in FLT_LEVELS))
     is_short = f"!({compact_ok})"
-    for c in fixed:
+    for c in [k for c in fixed for k in _SEG_KIDS.get(c.name, [])] + fixed:
         c.props["Width"] = lvl(*(_FLT_LV[c.name][k][0] for k in FLT_LEVELS))
+        if c.name in _SEG_SEL:
+            # Fluebenet kun i det brede trin; de smalle har ikke plads til det.
+            c.props["Layout"] = (f"If({full_ok} && {_SEG_SEL[c.name]}, ButtonLayout.IconBefore, "
+                                 "ButtonLayout.TextOnly)")
+            c.props["LayoutMinWidth"] = c.props["Width"]
         lays = [_FLT_LV[c.name][k][1] for k in FLT_LEVELS]
         if lays[0] is not None:
             c.props["Layout"] = lvl(*lays)
         txt = _FLT_LV[c.name]["short"][2]
         if txt is not None:
             c.props["Text"] = f"If({is_short}, {txt}, {c.props['Text']})"
-        if c.props.get("Size") and c is not count and c is not chips[3]:
+        if c.props.get("Size") and c is not count and c is not peek:
             c.props["Size"] = lvl(*(FLT_SIZE[k] for k in FLT_LEVELS))
         if c.name in _FLT_TIP:
             c.props["Tooltip"] = f'If({is_short}, {_FLT_TIP[c.name]}, "")'
@@ -907,7 +1025,7 @@ def build_filters():
         f'If(Self.Width < {text_px(long_ph, 14, semibold=False) + 48}, '
         f'"Search...", "{long_ph}")')
     search.props["Size"] = f"If({below('Tablet')}, {lay.SIZE_INPUT_MOBILE}, {is_short}, 12, {lay.SIZE_INPUT})"
-    row = flow_row("conMdFltRow", [search] + fixed[:7] + [spacer] + fixed[7:], SHELL_W,
+    row = flow_row("conMdFltRow", [search] + fixed[:5] + [spacer] + fixed[5:], SHELL_W,
                    gap=gap, flex=spacer, flex_min=0, ok=at_least("Tablet"))
     # Altid een linje: vandret fra Tablet, og under Tablet er soegefeltet
     # det eneste synlige barn. flow_rows stablede hoejde ville aldrig blive
@@ -917,16 +1035,18 @@ def build_filters():
     return group("conMdFlt", [row, mobile], direction="Vertical", gap=8)
 
 
-_MOBILE_FILTERS = ("Open", "Closed", "All", "Waiting for me", STUCK_LABEL)
+_MOBILE_FILTERS = ("Open", "Closed", "All", "My queue", STUCK_LABEL)
 
 
 def _mobile_filter():
     """Telefon: een dropdown med de samme valg som knapperne + info-knappen."""
     items = "Table(" + ", ".join(f'{{ Value: "{v}" }}' for v in _MOBILE_FILTERS) + ")"
-    cur = ('Switch(varMdFlag, "me", "Waiting for me", "stuck", "' + STUCK_LABEL + '", '
+    cur = ('Switch(varMdFlag, "me", "My queue", "stuck", "' + STUCK_LABEL + '", '
            'Switch(varMdStatusMode, "done", "Closed", "all", "All", "Open"))')
     on_change = ('With({ v: Self.Selected.Value },\n'
-                 '    Set(varMdFlag, Switch(v, "Waiting for me", "me", "' + STUCK_LABEL + '", "stuck", ""));\n'
+                 '    Set(varMdFlag, Switch(v, "My queue", "me", "' + STUCK_LABEL + '", "stuck", ""));\n'
+                 # My queue er sager, en anden har oprettet: afdelingens omfang.
+                 '    If(varMdFlag = "me", Set(varMdView, "queue"));\n'
                  '    Set(varMdStatusMode, Switch(v, "Closed", "done", "All", "all", "open"))\n'
                  ');\n' + SCOPE_REFRESH + ";\n" + SAVE_HUB)
     dd = themed_dropdown("ddMdFltMobile", items, cur, width="Parent.Width",
