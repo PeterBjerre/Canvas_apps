@@ -46,11 +46,24 @@ Grundlag: designreviewet af BIO SAP (designlærredet "BIO SAP — UX review"), t
 |---|---|---|
 | M7 | 2a: pladsholder-rækker (`skeleton_rows()`) mens hubben og Issue Board henter; hubbens "No requests match" og Issue Boards hjul over hele skærmen under hentningen er væk. KKS beholder sit hjul (alt hentes samlet én gang pr. session, uden data er der intet at vise). | `build_helpers.skeleton_rows` |
 | M4 | 2b: `validation_summary()` — efter Submit står kladde-rækkerne over rækkelisten med "Open row" (Equipments/Materials/Measuring points). VH's "Before you can submit" har "Go to …" pr. sektion, som lukker listen og fremhæver sektionen. SetFocus kan ikke nå ind i containere (regel 10b), så "Go to" åbner rækken/fremhæver afsnittet. | `build_helpers.validation_summary`, `domain_parts`, `build_hero` |
+| M1 | 2i: fælles `request_shell()`, `row_list()` og `row_editor_panel()`-hjælpere. 2j: Equipment/MP-paneler, Documents med antal og More-menu med Copy/Delete. 2k: Materials' Details/Objects/Documents med editor- og dokumentindhold indlejret i fanerne. 2l: FL-statuskolonne og panel grupperet efter Master/Status/Class/TRM/Ext; Issue Board-detaljer som sidepanel med de eksisterende faner. Panelet viser position, forrige/næste/luk, scroller indhold separat og er 480 px fra Desktop / fuld bredde under Desktop. ObjectList/ObjectListJson er provisioneret på DEV for Eq/MP; builderintegration og genindlæsning af datakildeskema i Studio mangler. | `build_helpers.py`, `domain_app.py`, domænebuilders |
 | M5 | 2g (del 1): VH-planens hoved foldes sammen til én linje, når planen er gemt ("Plant ASV · Strategy plan · Z-MONTH · First call dd-mm-yyyy") med Show/Hide; Edit folder ud. Ændrer issue #192 ("altid foldet ud"). Resten af mockuppen (titel med plannavn og nummer, item-editorens "Documents (n)"/"Delete item", "From the plan header") tages i næste M5-PR. `build_save.py` er ikke rørt. | `build_plan_header.py` |
 | M2 | 2f: formularerne er sektioner med en overskrift (`form_section()`/`sectioned()`): Equipments efter mockuppen — Identification, Location, Manufacturer, Warranty and documents; Materials — Identification, Manufacturer and supplier, Price and classification; Measuring points — Identification, Measuring point, PRODOS, Notes and documents (de to midterste kun for et nyt målepunkt). Gitteret er stadig 4/2/1 kolonner; to kolonner i et 480 px panel kommer med M1. FL (tabelindtastning) og Issue Boards popup følger med M1. | `domain_parts.form_section`, `equipment_parts`, `material_parts`, `mp_parts` |
 | M6 | 2e: typeskalaen og radierne som navngivne formler `T` (micro … pageTitle) og `R` (input/card/modal) ved siden af `H`; `gen_screen` skriver navnet for hver Size/Radius, der er et af tallene. Ny check_layout **regel 42**: Size skal være på typeskalaen (én chevron på 18 → 17). | `layout_tokens.NAMED`, `gen_screen._named_sizes` |
 | M3 | 2c: fliserne er 72 px (før 148) med en (+)-knap for ny anmodning (teksten "New" alene er forbudt, issue #243); "Continue where you left off" viser brugerens senest ændrede kladde med Continue; REQUEST, PLANT, STATUS og UPDATED sorterer ved klik (konstant kolonnenavn pr. gren, så SharePoint stadig sorterer). | `build_hub.py` |
 | T10 | 2d: talfelterne er tekstfelter uden spin-pile (`number_field()`, værdi via `num_value()` — heltal som før, tom ved ikke-tal); enhed efter feltet uden for gallerier (VH-modalens Work "h" og Persons "people"). Alle `num*` er nu `inp*` (regel 33). Ny check_layout **regel 41**: ingen ModernNumberInput. | `build_helpers.number_field`, `domain_parts`, `build_tasklist`, `build_plan_header` |
+
+**Sidepaneler og rettelsesliste 2026-10** (branch `claude/ux-sidepaneler-rettelser`)
+
+| Område | Status | Hvor |
+|---|---|---|
+| Alle sidepaneler | Gjort: bredde ca. 1/3 af skærmen (`PANEL_W_FX` = `Max(480, App.Width / 3)`, 3 kolonner i rækkeeditoren); klik udenfor lukker; luk- og pileknapper er outline; indholdets højde regnes ud, så bundknapperne altid er synlige. I side-om-side-visning lukker et klik på en anden række først panelet. | `layout_tokens.py`, `build_helpers.row_editor_panel`, `domain_parts.py` |
+| Hub | Gjort: flisens farvelinje i fuld bredde øverst (`rctMdTileStripe`), hover kun på selve fladen (farvelinjen er ikke med i hoveren), højere fliser. | `build_hub.py` |
+| Functional location | Gjort: Class data åbner rækkens panel; statusknappen viser kun en besked; smallere Class data/Manufacturer/Warranty; "Row X of Y" med pile; New request med kant. | `fl_parts.py`, `build_helpers.new_request_label` |
+| Vedligeholdelsesplan | Gjort: sammenfoldet hoved er én række (Show ved siden af Edit/Reset; "Plan created" kun udfoldet); tooltips om indsendelse forkortet. Linjen om klar-til-indsendelse og info-popup er uændret. | `build_plan_header.py`, `build_hero.py` |
+| Materials | Gjort: New request med kant; rækkerne og sidepanelets krop uden rullebjælke; søgning/filtre til venstre og Add row/Paste/Copy til højre. | `domain_parts.py`, `material_parts.py` |
+| KKS | Gjort: smallere søgefelt med søgeknappen efter feltet. | `kks_parts.py` |
+| Issue Board | Gjort: scope og tilstand som Hubbens trevejsvælger (outline, farvet kant ved valgt); rullelister tilpasset teksten; edit/delete/luk med kant; mere kompakt detaljepanel. | `ib_parts.py` |
 
 **Etape 3**: se de enkelte PR'er; afsnittet opdateres pr. etape.
 
@@ -89,7 +102,7 @@ Linjenumrene i fundene nedenfor henviser til udgangspunktet (`764fbcb`).
   - D2: ny trigger-signatur. `excel/artifact/BIO SAP VH-plan lister.xlsm`, som bar den gamle URL i VBA-projektet, er fjernet fra repoet (ligger stadig i historikken).
   - Omskrivning af git-historikken.
 - **Kræver adgang til SharePoint:** E9 (nyt skemaudtræk).
-- **Provisionering:** `_Common.psm1` er kørt med `Provision-VHPlanColumns.ps1` mod DEV (issue #83). De otte andre scripts er kun tjekket af `check_ps1` og `check_datasources`.
+- **Provisionering:** `_Common.psm1` er kørt med `Provision-VHPlanColumns.ps1` mod DEV (issue #83). `Provision-EqMatLists.ps1 -Domain Equipment -SkipLibrary` og `Provision-MeasuringPointLists.ps1` er også kørt mod DEV uden seed; `ObjectList`/`ObjectListJson` findes nu som plain-text Note på EquipmentItems og MeasuringPointItems. Schemaet er eksporteret med `-NoData`.
 - **Fra E8 ikke gjort:** `-WhatIfOnly` i de scripts, der ikke har det. Deres øvrige PnP-kald (visninger, seed) respekterer det ikke, så et halvt tørløb ville skrive alligevel.
 - **Ikke efterprøvet i Studio:** alle Power Fx-ændringer er bygget og layout-tjekket, men ikke compilet mod Studio. Kør `python tools\canvas_mcp.py deploy --app <nøgle>` pr. app, og efterprøv især:
   - `Ungroup` i VH-planens dyblink;

@@ -20,6 +20,12 @@ SCREENS = sorted(glob.glob(os.path.join(ROOT, "BIO SAP App", "Screen*.pa.yaml"))
 BUTTONS = ("ModernButton", "Classic/Button")
 
 
+def _icon_close(v):
+    # Et almindeligt X-ikon uden ramme (Image) er ogsaa en Close.
+    return (v.get("Control") == "Image"
+            and str((v.get("Properties") or {}).get("AccessibleLabel", "")).strip().lstrip("=") == '"Close"')
+
+
 def _kids(node):
     for c in node.get("Children", []) or []:
         for n, v in c.items():
@@ -59,7 +65,7 @@ IDS = [f"{f}:{n}" for f, n, _ in POPUPS]
 def _buttons(node):
     out = []
     _walk("root", node, out)
-    return [(n, v, p) for n, v, p in out if v.get("Control") in BUTTONS]
+    return [(n, v, p) for n, v, p in out if v.get("Control") in BUTTONS or _icon_close(v)]
 
 
 def test_popups_found():
@@ -74,7 +80,7 @@ def test_popups_found():
 @pytest.mark.parametrize("screen,name,node", POPUPS, ids=IDS)
 def test_one_close_no_cancel(screen, name, node):
     btns = _buttons(node)
-    closes = [n for n, v, _ in btns if _prop(v, "Text") == '"Close"']
+    closes = [n for n, v, _ in btns if _prop(v, "Text") == '"Close"' or _icon_close(v)]
     cancels = [n for n, v, _ in btns if _prop(v, "Text") == '"Cancel"'
                and not n.endswith("RemoveCancel")]
     assert len(closes) == 1, f"{name}: Close-knapper {closes}"
@@ -90,7 +96,7 @@ def test_close_top_right_and_fixed(screen, name, node):
     assert "Horizontal" in _prop(head, "LayoutDirection"), f"{name}: {first_name}"
     kids = list(_kids(head))
     last_name, last = kids[-1]
-    assert last.get("Control") in BUTTONS and _prop(last, "Text") == '"Close"', \
+    assert (last.get("Control") in BUTTONS and _prop(last, "Text") == '"Close"') or _icon_close(last), \
         f"{name}: sidste i hovedet er {last_name}"
     # Hovedet scroller ikke med indholdet.
     assert "Scroll" not in _prop(node, "LayoutOverflowY"), name

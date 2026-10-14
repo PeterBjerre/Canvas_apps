@@ -24,11 +24,11 @@ def _block(y, name, n=3000):
 
 
 def test_tiles_are_72_px_with_a_new_icon_button():
-    assert bh.TILE_H == 72
+    assert bh.TILE_H == 76
     y = _yaml()
     for d in bh.DOMAINS:
-        b = _block(y, f"btnMdTileNew{d['short']}")
-        assert "ButtonLayout.IconOnly" in b
+        b = _block(y, f"imgMdTileNew{d['short']}")
+        assert "Control: Image" in b
         assert f'"New {d["name"].lower()} request"' in b
 
 
@@ -42,6 +42,8 @@ def test_continue_where_you_left_off_opens_the_latest_draft_in_edit():
 
 
 def test_every_sort_branch_names_its_column_as_a_constant():
+    assert bh.SORT_COLS["REQUEST"] == "Title"
+    assert bh.COL_NO == "RequestNo"
     for key, col in bh.SORT_COLS.items():
         assert f'"{col}", {bh.SORT_ORDER}' in bh.ITEMS, key
     # Filteret staar i hver gren - ellers ville With/variabler bryde

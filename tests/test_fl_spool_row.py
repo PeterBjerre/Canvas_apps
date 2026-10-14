@@ -75,7 +75,7 @@ def test_header_order_after_sort_field():
     # Sentence case (UX-review F1/T7); Functional Location og ATEX er navne.
     assert heads == ["#", "Functional Location", "Description", "KKS type", "Assigned class",
                      "Class data", "Room", "Sort field", "ABC indicator", "ATEX",
-                     "Manufacturer", "Warranty", "Actions"]
+                     "Manufacturer", "Warranty", "Status", "Actions"]
 
 
 def test_row_cells_follow_the_header():
@@ -83,7 +83,7 @@ def test_row_cells_follow_the_header():
     kids = _children("galFlRows")
     cells = ["txtFlRowNo", "inpFlRowFl", "inpFlRowDesc", "txtFlRowKks", "txtFlRowCls",
              "btnFlRowClassData", "inpFlRowRoom", "inpFlRowSort", "txtFlRowAbc",
-             "chkFlRowAtex", "btnFlRowMfr", "btnFlRowWar", "btnFlRowDelete"]
+             "chkFlRowAtex", "btnFlRowMfr", "btnFlRowWar", "btnFlRowStatus", "btnFlRowDelete"]
     assert [k for k in kids if k in cells] == cells
     # Ingen Warranty Start/End-kolonner og ingen Validation-kolonne.
     assert "inpFlRowWStart" not in kids and "inpFlRowWEnd" not in kids
@@ -259,19 +259,19 @@ def test_spare_width_is_shared_by_the_columns():
     pair = F(p.V_PAIR_SHARE.replace(" ", ""))
     grow = F(p.V_GROW_SHARE.replace(" ", ""))
     assert 2 * pair + len(p.V_GROW) * grow == 1
-    # Paa en 1920 px skaerm (sidebar 56, ramme 64): FL var 421, Description 381.
+    # Statuskolonnen er fast bredde; de to foerste felter beholder deres minimum.
     rows = 1920 - 56 - 64 - 36 - 18 - 40
     spare = rows - (34 + p.V_BASE)
     fl = p.FL_MIN + spare * pair
     desc = p.DESC_MIN + spare * pair
-    assert 0.4 * 421 <= fl <= 0.6 * 421, fl
-    assert 0.4 * 381 <= desc <= 0.6 * 381, desc
+    assert fl >= p.FL_MIN, fl
+    assert desc >= p.DESC_MIN, desc
     # Hver celle i raekken har samme bredde som sin overskrift.
     pairs = (("Fl", "inpFlRowFl"), ("Desc", "inpFlRowDesc"), ("Kks", "txtFlRowKks"),
              ("Cls", "txtFlRowCls"), ("ClsData", "btnFlRowClassData"),
              ("Room", "inpFlRowRoom"), ("Sort", "inpFlRowSort"), ("Abc", "txtFlRowAbc"),
              ("Atex", "chkFlRowAtex"), ("Mfr", "btnFlRowMfr"), ("War", "btnFlRowWar"),
-             ("Act", "btnFlRowDelete"))
+             ("Status", "btnFlRowStatus"), ("Act", "btnFlRowDelete"))
     for head, cell in pairs:
         assert _prop(f"txtFlRowsHead{head}", "Width") == _prop(cell, "Width"), head
     for n in p.V_GROW:

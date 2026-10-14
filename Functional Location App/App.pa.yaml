@@ -199,6 +199,8 @@ App:
       T = { micro: 11, small: 12, body: 13, input: 14, inputMobile: 16, cardTitle: 17, pageTitle: 22 };
       R = { input: 10, card: 14, modal: 16 };
 
+      PanelInset = If(App.Width >= 1280 && IfError(varFlPanelOpen, false), Max(480, App.Width / 3), 0);
+
       // ADMIN. Genereret af tools/permissions.py - ret ikke her.
       // Een delegerbar LookUp i admin-listen, laest dovent og kun een gang.
       IsAdmin = !IsBlank(LookUp(UserAndGroups, Title = "Admin" && Member = Lower(User().Email)));
@@ -1861,6 +1863,7 @@ App:
       // vaelger den foerste, naar den er tom. varFlPop: navnet paa den aabne
       // popup - Manufacturer, Warranty - og tom, naar ingen er aaben.
       Set(varFlDetailRow, "");
+      Set(varFlPanelOpen, false);
       Set(varFlPop, "");
       // Class data-popuppen (issue #184): aaben, for hvilken raekke, og skal
       // valideringen lukke den efter Apply?

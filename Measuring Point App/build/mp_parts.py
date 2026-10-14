@@ -92,7 +92,7 @@ def _clear_characteristic_fx():
             f'Set({V_UNIT_DESC}, "")')
 
 
-def _type_cell():
+def _type_cell(width=dp.CELL_W):
     """Typevalget. Det erstatter "Is it a counter?" (Q14) - IsCounter
     udledes af det (domain_config.EXTRA_PATCH)."""
     items = "[" + ", ".join(f'"{x}"' for x in cfg.MP_TYPES) + "]"
@@ -104,12 +104,12 @@ def _type_cell():
                   + "\n".join("    " + l for l in _clear_characteristic_fx().split("\n"))
                   + "\n)"))
     cell = dp.grid_cell("conDomMeasuringPointType", "Measuring point type", drp,
-                        required=True)
+                        required=True, width=width)
     cell.vis = cfg.WHEN["MeasuringPointType"]
     return cell
 
 
-def _characteristic_cell():
+def _characteristic_cell(width=dp.CELL_W):
     """Karakteristikken - og enheden foelger med (Q3).
 
     Beskrivelsen og enheden KOPIERES ned paa raekken, saa raekken er
@@ -122,12 +122,13 @@ def _characteristic_cell():
                   f"Set({V_UNIT}, Self.Selected.Unit);\n"
                   f"Set({V_UNIT_DESC}, Self.Selected.UnitDescription);\n"
                   f"Set({V_DEC}, Self.Selected.DefaultDecimalPlaces)"))
-    cell = dp.grid_cell("conDomCharacteristic", "Characteristic", drp, required=True)
+    cell = dp.grid_cell("conDomCharacteristic", "Characteristic", drp, required=True,
+                        width=width)
     cell.vis = cfg.WHEN["Characteristic"]
     return cell
 
 
-def _readonly_cell(col, label):
+def _readonly_cell(col, label, width=dp.CELL_W):
     """Et felt, karakteristikken bestemmer. Det vises, men tastes ikke."""
     # LAESETEKST, IKKE ET FELT (UX-review): vaerdien udledes af
     # karakteristikken, saa den skal ikke ligne noget, brugeren udfylder.
@@ -135,30 +136,30 @@ def _readonly_cell(col, label):
                     height=36, wrap="false",
                     accessible=f'"{label}, from the characteristic: " & Self.Text',
                     extra={"VerticalAlign": "VerticalAlign.Middle"})
-    cell = dp.grid_cell(f"conDom{col}", label, inp)
+    cell = dp.grid_cell(f"conDom{col}", label, inp, width=width)
     cell.vis = cfg.WHEN[col]
     return cell
 
 
-def _cell(key):
+def _cell(key, width=dp.CELL_W):
     if key == "FL":
         return dp.grid_cell("conDomFl", "Functional location",
-                            dp.build_fl_picker(dp.CELL_W, required_formula=REQUIRED),
-                            required=True)
+                            dp.build_fl_picker(width, required_formula=REQUIRED),
+                            required=True, width=width)
     if key == "TEXT":
-        return dp.text_cell()
+        return dp.text_cell(width)
     if key == "DOCS":
-        return dp.docs_cell()
+        return dp.docs_cell(width)
     if key == "PLANT":
-        return dp.plant_cell()
+        return dp.plant_cell(width)
     if key == "MeasuringPointType":
-        return _type_cell()
+        return _type_cell(width)
     if key == "Characteristic":
-        return _characteristic_cell()
+        return _characteristic_cell(width)
     if key in ("CharacteristicDescription", "CharacteristicUnit",
                "CharacteristicUnitDescription"):
-        return _readonly_cell(key, dict(_LABELS)[key])
-    return dp.field_grid_cell(key, required=key in REQUIRED_FIELDS)
+        return _readonly_cell(key, dict(_LABELS)[key], width)
+    return dp.field_grid_cell(key, required=key in REQUIRED_FIELDS, width=width)
 
 
 _LABELS = [(c, label) for _sec, fields in cfg.SECTIONS for c, label, _k, _ch in fields]
@@ -294,15 +295,20 @@ def save_fx(status):
 # ---------------------------------------------------------------------------
 # Formularen
 # ---------------------------------------------------------------------------
-def build_form():
+def build_form(panel=False):
     dp.check_form_order(FORM_ORDER, SPECIAL, NOT_IN_GRID)
-    head = dp.form_head("Row details")
+    form_width = dp.PANEL_FORM_W if panel else dp.FORM_W
+    cell_width = dp.PANEL_CELL_W if panel else dp.CELL_W
+    head = dp.form_head(None if panel else "Row details")
     rows = []
     for name, cond, keys in ROWS:
         if name in SECTION_STARTS:
             title, vis = SECTION_STARTS[name]
             rows.append(dp.form_section(name, title, visible=vis, first=not rows))
-        row = dp.grid_row(f"conDomGrid{name}", [_cell(k) for k in keys])
+        row = dp.grid_row(f"conDomGrid{name}",
+                          [_cell(k, dp.panel_cell_w(k, cell_width)) for k in keys],
+                          container_w=form_width, columns=2 if panel else None,
+                  cell_width=cell_width)
         if cond:
             row.vis = cond
         rows.append(row)
@@ -342,6 +348,18 @@ SLOTS = [PLANT, FL_C, MPNO, TYPE, CHAR, UNIT, TAG]
 def build_rows():
     return dp.build_list(SLOTS, "STATUS",
                          "Search FL, measuring point, characteristic, PRODOS tag")
+
+
+dp.configure(row_actions=[
+    dp.RowAction("btnDomRowDocs",
+                 'If(Coalesce(ThisItem.FileCount, 0) > 0, "Documents (" & ThisItem.FileCount & ")", "Documents")',
+                 dp.open_docs_fx(), 126, icon="Document",
+                 label='"Documents for " & ThisItem.ItemKey'),
+    dp.RowAction("btnDomRowOpen", '"Edit"', dp.load_row_fx(), 64,
+                 mode=dp.DM_ROW_EDIT),
+    dp.RowAction("btnDomRowMore", '"More"', "Set(varDomMoreRowId, ThisItem.RowId)",
+                 64, label='"More actions for " & ThisItem.ItemKey', line=2),
+])
 
 
 # ---------------------------------------------------------------------------

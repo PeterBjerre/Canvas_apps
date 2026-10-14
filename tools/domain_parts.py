@@ -47,7 +47,7 @@ sys.path.insert(0, HERE)
 
 from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_MUTED_BG, C_REQUIRED, C_PRIMARY, C_WHITE,
-                        C_TRANSPARENT, C_NEUTRAL_BG, C_NEUTRAL_FG, C_INFO_FG,
+                        C_TRANSPARENT, C_ROW_PRESSED, C_NEUTRAL_BG, C_NEUTRAL_FG, C_INFO_FG,
                         C_INFO_BG, C_VALID_FG, C_VALID_BG, C_WARN_FG,
                         C_WARN_BG, C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY, C_DIVIDER)
 import layout_tokens as lay
@@ -55,11 +55,11 @@ from layout_tokens import fits, if_below, below, at_least
 from build_helpers import (ensure_hit, validation_summary, tap_backdrop, text_ctrl, text_min_height, group, button, text_input,
                            checkbox_theme, date_picker, fit_button_row,
                            fit_button_width, number_field, num_value, themed_dropdown,
-                           card, field_cell, pin_widths, badge, top_bar, grow,
+                           card, field_cell, pin_widths, badge, top_bar, grow, flow_ok,
                            flow_row, label_px, text_px, loading_overlay,
                            with_busy, confirm_modal, edit_button, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
                            ICON_W, icon_on_mobile, new_request_label, segmented, empty_state, breadcrumb,
-                           request_actions)
+                           request_actions, row_list)
 
 # Mens en gemning koerer, staar ventespinneren oven paa skaermen (issue #54).
 SAVING_VAR = "varDomSaving"
@@ -248,6 +248,7 @@ ACTIVE = "LookUp(colDomRows, RowId = varDomActiveRowId)"
 #
 # Kortets padding er 18 i hver side; det er de 36.
 FORM_W = f"({SHELL_W} - 36)"
+PANEL_FORM_W = f"{lay.PANEL_W_AT} - 2 * 20 - 2 * 20 - {SCROLLBAR_W}"
 
 # DOKUMENTERNE OG DETALJERNE ER POPUPS
 # ------------------------------------
@@ -324,6 +325,8 @@ def submit_press_fx():
     # gyldige kan stadig sendes, saa bekraeftelsen aabner som foer.
     open_confirm = (f"Set({FIX_VAR}, CountRows({DRAFTS}) > 0);\n"
                     f"Set({CONFIRM_VAR}, true)")
+    if getattr(cfg, "ROW_PANEL_ENABLED", False):
+        open_confirm = f"Set({CONFIRM_VAR}, true)"
     if not HOOKS["submit_guard"]:
         return open_confirm
     before, blocked, message = HOOKS["submit_guard"]
@@ -718,6 +721,10 @@ def clear_form_fx():
              f'Set({REQUIRED}, false);',
              'Set(varDomFText, "");',
              'Set(varDomFPlant, "");']
+    if getattr(cfg, "ROW_PANEL_ENABLED", False):
+        lines.append('Set(varDomEditorOpen, false);')
+    if getattr(cfg, "ROW_EDITOR_TAB_VAR", None):
+        lines.append(f'Set({cfg.ROW_EDITOR_TAB_VAR}, "Details");')
     for col, _lab, kind, _ch in FIELDS:
         # Appens standardvaerdi, hvor der er en (HOOKS["field_defaults"]).
         lines.append(f"Set({_var(col)}, {HOOKS['field_defaults'].get(col, _blank(kind))});")
@@ -726,6 +733,10 @@ def clear_form_fx():
         lines.append(HOOKS["clear_extra"] + ";")
     lines.append('Set(varDomInfo, "")')
     return "\n".join(lines)
+
+
+def new_row_fx():
+    return clear_form_fx() + ";\nSet(varDomEditorOpen, true)"
 
 
 def copy_row_fx():
@@ -747,6 +758,10 @@ def copy_row_fx():
              f'Set({REQUIRED}, false);',
              f'Set(varDomFText, ThisItem.{cfg.C_TEXT});',
              'Set(varDomFPlant, ThisItem.Plant);']
+    if getattr(cfg, "ROW_PANEL_ENABLED", False):
+        lines.append('Set(varDomEditorOpen, true);')
+    if getattr(cfg, "ROW_EDITOR_TAB_VAR", None):
+        lines.append(f'Set({cfg.ROW_EDITOR_TAB_VAR}, "Details");')
     # cfg.COPY_SKIP: felter, der IKKE maa foelge med i en kopi (opt-in).
     # Measuring Point bruger den til det eksisterende maalepunktsnummer -
     # to raekker kan ikke vaere det samme punkt (issue #210).
@@ -773,6 +788,33 @@ def delete_this_row_fx():
     en raekke; formularens "Delete row" er fjernet (issue #94)."""
     return f"Set({DELETE_ID}, ThisItem.RowId);\nSet({DELETE_VAR}, true)"
 
+
+def build_row_menu():
+    """More-menu til de domaener, der bruger request-panelet."""
+    actions = HOOKS["row_actions"] or ()
+    has_more = any(action.name == "btnDomRowMore" for action in actions)
+    if not getattr(cfg, "ROW_PANEL_ENABLED", False) or not has_more:
+        return []
+    row = "LookUp(colDomRows, RowId = varDomMoreRowId)"
+    close = "Set(varDomMoreRowId, Blank())"
+    backdrop = tap_backdrop("imgDomRowMenuBackdrop", "!IsBlank(varDomMoreRowId)", close)
+    copy_fx = copy_row_fx().replace("ThisItem.", row + ".") + ";\n" + close
+    copy = button("btnDomMoreCopy", '"Copy row"', copy_fx,
+                  width=fit_button_width('"Copy row"'), height=36,
+                  display_mode="If(varDomViewOnly, DisplayMode.Disabled, DisplayMode.Edit)")
+    delete_fx = f"Set({DELETE_ID}, varDomMoreRowId);\nSet({DELETE_VAR}, true);\n{close}"
+    delete = button("btnDomMoreDelete", '"Delete row"', delete_fx, danger=True,
+                    width=fit_button_width('"Delete row"'), height=36,
+                    display_mode=(f"If(varDomViewOnly || {row}.Status = \"submitted\", "
+                                  "DisplayMode.Disabled, DisplayMode.Edit)"))
+    menu = group("conDomRowMoreMenu", [copy, delete], direction="Vertical", gap=8,
+                 width=220, fill=C_MODAL_BG, border_color=C_CARD_BORDER,
+                 radius=lay.RADIUS_CARD, pad=(12, 12, 12, 12),
+                 visible="!IsBlank(varDomMoreRowId)", drop_shadow="Bold")
+    menu.props["X"] = "App.Width - Self.Width - 16"
+    menu.props["Y"] = "96"
+    return [backdrop, menu]
+
 def load_row_fx():
     """Vaelg en gemt raekke og laeg den i formularen.
 
@@ -784,6 +826,10 @@ def load_row_fx():
              f'Set({REQUIRED}, false);',
              f'Set(varDomFText, ThisItem.{cfg.C_TEXT});',
              'Set(varDomFPlant, ThisItem.Plant);']
+    if getattr(cfg, "ROW_PANEL_ENABLED", False):
+        lines.append('Set(varDomEditorOpen, true);')
+    if getattr(cfg, "ROW_EDITOR_TAB_VAR", None):
+        lines.append(f'Set({cfg.ROW_EDITOR_TAB_VAR}, "Details");')
     for col, _lab, _kind, _ch in FIELDS:
         lines.append(f"Set({_var(col)}, ThisItem.{col});")
     if getattr(cfg, "FL_FIELD", None):
@@ -984,8 +1030,11 @@ def save_row_fx(status="valid", required=(), always=()):
         + refresh_rows_fx(4) + ";\n"
         "\n"
         f'    Set(varDomInfo, "{done}" & ' + ACTIVE + '.ItemKey);\n'
-        f'    Notify("{done}" & ' + ACTIVE + '.ItemKey, '
-        "NotificationType.Success),\n"
+          f'    Notify("{done}" & ' + ACTIVE + '.ItemKey, '
+          "NotificationType.Success)"
+          + (";\n    Set(varDomEditorOpen, false)"
+              if getattr(cfg, "ROW_PANEL_ENABLED", False) else "")
+          + ",\n"
         "\n"
         '    Set(varDomInfo, "Save failed: " & FirstError.Message);\n'
         '    Notify("Save failed: " & FirstError.Message, '
@@ -1653,12 +1702,28 @@ CELL_MIN_4 = 200
 CELL_MIN_2 = 220
 NEED_4 = 4 * CELL_MIN_4 + 3 * GRID_GAP
 NEED_2 = 2 * CELL_MIN_2 + GRID_GAP
+PANEL_NEED_2 = 360
+PANEL_NEED_3 = 3 * 150 + 2 * GRID_GAP
 GRID_COLS = 4
 
 # Een celles bredde - maalt paa KORTETS bredde, ikke paa App.Width.
 CELL_W = fits(FORM_W, NEED_4,
               fits(FORM_W, NEED_2, FORM_W, f"(({FORM_W}) - {GRID_GAP}) / 2"),
               f"(({FORM_W}) - {3 * GRID_GAP}) / 4")
+PANEL_CELL_W = fits(PANEL_FORM_W, PANEL_NEED_2, PANEL_FORM_W,
+                    fits(PANEL_FORM_W, PANEL_NEED_3,
+                         f"(({PANEL_FORM_W}) - {GRID_GAP}) / 2",
+                         f"(({PANEL_FORM_W}) - {2 * GRID_GAP}) / 3"))
+
+
+# Felter, der fylder hele panelets bredde (mockuppen: FL og Description).
+PANEL_FULL_KEYS = {"FL", "TEXT", "DOCS"}
+PANEL_FULL_NAMES = {"conDomFl", "conDomText", "conDomDocs"}
+
+
+def panel_cell_w(key, cell_width):
+    """Cellebredden for et felt i panelet: hele bredden for FL/TEXT/DOCS."""
+    return PANEL_FORM_W if key in PANEL_FULL_KEYS and cell_width == PANEL_CELL_W else cell_width
 
 
 def _line_h(hs):
@@ -1675,7 +1740,7 @@ def _chunk_h(heights, k):
             + " + %d" % (GRID_GAP * (len(lines) - 1)))
 
 
-def grid_row(name, cells):
+def grid_row(name, cells, container_w=None, columns=None, cell_width=None):
     """Op til fire celler (eller kolonner), der ombryder til to og een.
 
     Hoejden regnes for hver af de tre tilstande af cellernes egne hoejder
@@ -1684,15 +1749,59 @@ def grid_row(name, cells):
         raise SystemExit(f"domain_parts.grid_row: {name} har {len(cells)} celler - "
                          f"hoejst {GRID_COLS}")
     hs = [c.h for c in cells]
-    h = fits(FORM_W, NEED_4,
-             fits(FORM_W, NEED_2, _chunk_h(hs, 1), _chunk_h(hs, 2)),
-             _chunk_h(hs, 4))
-    return group(name, cells, direction="Horizontal", gap=GRID_GAP, height=h, wrap="true")
+    calc_w = FORM_W if container_w is None else container_w
+    if columns is None:
+        h = fits(calc_w, NEED_4,
+                 fits(calc_w, NEED_2, _chunk_h(hs, 1), _chunk_h(hs, 2)),
+                 _chunk_h(hs, 4))
+    elif columns == 2:
+        # Panelets gitter: to kolonner, tre naar panelet er bredt nok, een
+        # naar det er smalt. Felter, der fylder hele bredden, deler gitteret.
+        runs, cur = [], []
+        for cell in cells:
+            if cell.name in PANEL_FULL_NAMES:
+                if cur:
+                    runs.append(cur)
+                    cur = []
+                runs.append([cell])
+                continue
+            cur.append(cell)
+            if len(cur) == 3:
+                runs.append(cur)
+                cur = []
+        if cur:
+            runs.append(cur)
+        groups = []
+        for index, run in enumerate(runs):
+            run_heights = [cell.h for cell in run]
+            run_height = (run_heights[0] if len(run) == 1 else
+                          fits(calc_w, PANEL_NEED_2, _chunk_h(run_heights, 1),
+                               fits(calc_w, PANEL_NEED_3, _chunk_h(run_heights, 2),
+                                    _chunk_h(run_heights, 3))))
+            groups.append(group(f"{name}Pair{index}", run,
+                                direction="Horizontal", gap=GRID_GAP,
+                                height=run_height, width=container_w or "Parent.Width",
+                                wrap="true"))
+        return group(name, groups, direction="Vertical", gap=GRID_GAP,
+                     width=container_w or "Parent.Width", wrap="false")
+    else:
+        if columns < 1 or columns > GRID_COLS:
+            raise ValueError("grid_row columns must be between 1 and 4")
+        h = _chunk_h(hs, columns)
+    if cell_width is not None:
+        for cell in cells:
+            cell.props["Width"] = str(cell_width)
+            cell.props["LayoutMinWidth"] = "0"
+    direction = "Vertical" if columns == 1 else "Horizontal"
+    return group(name, cells, direction=direction, gap=GRID_GAP, height=h,
+                 width="Parent.Width" if container_w is None else container_w,
+                 wrap="true" if direction == "Horizontal" else "false")
 
 
-def grid_rows(prefix, cells):
+def grid_rows(prefix, cells, container_w=None, columns=None, cell_width=None):
     """Celler i RAEKKE-orden: fire pr. raekke, venstre mod hoejre."""
-    return [grid_row(f"{prefix}{i // GRID_COLS}", cells[i:i + GRID_COLS])
+    return [grid_row(f"{prefix}{i // GRID_COLS}", cells[i:i + GRID_COLS],
+                     container_w=container_w, columns=columns, cell_width=cell_width)
             for i in range(0, len(cells), GRID_COLS)]
 
 
@@ -1706,12 +1815,12 @@ def grid_columns(name, columns, row_gap=14):
     return grid_row(name, cols)
 
 
-def grid_cell(name, label, ctrl, required=False):
-    return field_cell(name, label, ctrl, required=required, width=CELL_W,
+def grid_cell(name, label, ctrl, required=False, width=CELL_W):
+    return field_cell(name, label, ctrl, required=required, width=width,
                       fill_portions_formula="0")
 
 
-def field_grid_cell(col, required=False, visible=None):
+def field_grid_cell(col, required=False, visible=None, width=CELL_W):
     """Et felt fra SECTIONS som celle i gitteret.
 
     required: stjernen ved etiketten - true, eller et UDTRYK, naar kravet
@@ -1727,7 +1836,7 @@ def field_grid_cell(col, required=False, visible=None):
                       else (REQUIRED if required else "false"))
             cell = grid_cell(f"conDom{c}", label,
                              _input_for(c, kind, choices, required_formula=req_fx),
-                             required=bool(required))
+                             required=bool(required), width=width)
             if isinstance(required, str):
                 # Stjernen kun, naar kravet gaelder. En stjerne ved et felt,
                 # der ikke kraeves lige nu, ville lyve.
@@ -1742,18 +1851,19 @@ def field_grid_cell(col, required=False, visible=None):
     raise SystemExit(f"domain_parts: {col} er ikke et felt i SECTIONS")
 
 
-def text_cell():
+def text_cell(width=CELL_W):
     """Raekkens tekst (Title) - kraevet, ogsaa paa en kladde."""
     return grid_cell("conDomText", cfg.TEXT_LABEL,
                      text_input("inpDomText", "varDomFText", max_length=40,
                                 placeholder=cfg.TEXT_PLACEHOLDER,
                                 required_formula=REQUIRED, display_mode=DM_ROW,
                                 onchange="Set(varDomFText, Self.Text)"),
-                     required=True)
+                     required=True, width=width)
 
 
-def plant_cell():
-    return grid_cell("conDomPlant", cfg.PLANT_LABEL, _plant_dropdown(), required=True)
+def plant_cell(width=CELL_W):
+    return grid_cell("conDomPlant", cfg.PLANT_LABEL, _plant_dropdown(), required=True,
+                     width=width)
 
 
 def check_form_order(order, special, not_in_grid=()):
@@ -1821,7 +1931,7 @@ def open_active_docs_fx():
     )
 
 
-def docs_cell():
+def docs_cell(width=CELL_W):
     """Documentation: hvor mange dokumenter raekken har, og en knap til
     den eksisterende dokumentpopup. Dokumenterne ligger i en mappe, der
     hedder raekkens noegle, saa knappen virker foerst efter Save."""
@@ -1836,8 +1946,8 @@ def docs_cell():
                  accessible='"Open the documents for this row"')
     btn.props["LayoutMinWidth"] = btn.props["Width"]
     row = group("conDomDocsRow", [info, btn], direction="Horizontal", gap=8,
-                height=36, align_items="Center", width=CELL_W)
-    return grid_cell("conDomDocs", "Documentation", row)
+                height=36, align_items="Center", width=width)
+    return grid_cell("conDomDocs", "Documentation", row, width=width)
 
 
 # ---------------------------------------------------------------------------
@@ -1852,12 +1962,10 @@ SECTION_TITLE_H = 20
 
 def form_section(key, title, visible=None, first=False):
     """Sektionens overskrift: [streg] Titel. key: navnets hale (conDomSec<key>)."""
-    t = text_ctrl(f"txtDomSec{key}", f'"{title}"', size=lay.SIZE_BODY, weight="Semibold",
-                  height=SECTION_TITLE_H, wrap="false")
-    kids = [t] if first else [group(f"conDomSec{key}Rule", [], direction="Horizontal",
-                                    height=1, fill=C_DIVIDER), t]
-    return group(f"conDomSec{key}", kids, direction="Vertical", gap=10,
-                 visible=visible, pad=(0 if first else 6, 0, 0, 0))
+    t = text_ctrl(f"txtDomSec{key}", f'Upper("{title}")', size=lay.SIZE_MICRO,
+                  weight="Semibold", color=C_MUTED, height=SECTION_TITLE_H, wrap="false")
+    return group(f"conDomSec{key}", [t], direction="Vertical", gap=0,
+                 visible=visible, pad=(0 if first else 8, 0, 0, 0))
 
 
 def sectioned(sections):
@@ -1873,20 +1981,22 @@ def sectioned(sections):
 
 def form_head(title_txt, right=()):
     """Titlen, "* Required" og evt. kontroller til hoejre (No BOM Item)."""
-    title = text_ctrl("txtDomFormH", f'"{title_txt}"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
-                      height=text_min_height(lay.SIZE_CARD_TITLE),
-                      width=text_px(title_txt, lay.SIZE_CARD_TITLE), wrap="false")
+    title = None if title_txt is None else text_ctrl(
+        "txtDomFormH", f'"{title_txt}"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
+        height=text_min_height(lay.SIZE_CARD_TITLE),
+        width=text_px(title_txt, lay.SIZE_CARD_TITLE), wrap="false")
     star = text_ctrl("txtDomFormReqStar", '"*"', size=12, color=C_REQUIRED,
                      weight="Semibold", height=18, width=8, wrap="false",
                      accessible='"Required"')
     legend = text_ctrl("txtDomFormReq", '"Required"', size=12, color=C_MUTED,
                        height=18, width=text_px("Required", 12, semibold=False),
                        wrap="false")
-    left = group("conDomFormTitle", [title, star, legend], direction="Horizontal",
+    parts = [c for c in (title, star, legend) if c is not None]
+    left = group("conDomFormTitle", parts, direction="Horizontal",
                  gap=4, height=26, align_items="Center")
     if not right:
         return left
-    left_w = sum(int(c.props["Width"]) for c in (title, star, legend)) + 2 * 4
+    left_w = sum(int(c.props["Width"]) for c in parts) + (len(parts) - 1) * 4
     return flow_row("conDomFormHead", [left] + list(right), FORM_W, gap=12,
                     flex=left, flex_min=left_w)
 
@@ -2125,10 +2235,12 @@ class ListLayout:
     tilovers. Er der intet tilovers (en tablet), er tabellen sine
     mindstebredder og scroller vandret."""
 
-    def __init__(self, slots):
+    def __init__(self, slots, actions=True):
         self.slots = list(slots)
         acts = HOOKS["row_actions"]
-        if acts:
+        if not actions:
+            fixed = BADGE_W + T_GAP * (len(self.slots) + 1)
+        elif acts:
             # Een ACTIONS-kolonne og ingen MORE (issue #228).
             fixed = BADGE_W + _actions_w(acts) + T_GAP * (len(self.slots) + 1)
         else:
@@ -2260,8 +2372,42 @@ def build_list(slots, badge_head, search_placeholder):
                             tok.pref_get("prefDomPlant", f'"{ALL_PLANTS}"'),
                             width="170", label='"Filter by plant"',
                             onchange=tok.prefs_save({"prefDomPlant": "Self.Selected.Value"}))
-    head = flow_row("conDomRowsTop", [title, search, status, plant], FORM_W, gap=8,
-                    flex=title, flex_min=text_px("Rows", 17))
+    row_add = []
+    panel_on = bool(getattr(cfg, "ROW_PANEL_ENABLED", False))
+    count = text_ctrl("txtDomRowsCount", "Text(CountRows(colDomRows))", size=lay.SIZE_BODY,
+                      color=C_MUTED, height=20, width=28, wrap="false")
+    if panel_on:
+        copy_active = copy_row_fx().replace("ThisItem.", ACTIVE + ".")
+        row_add.append(button(
+            "btnDomToolbarCopy", '"Copy row"', copy_active, icon="Copy",
+            width=fit_button_width('"Copy row"') + ICON_W, height=36,
+            display_mode=("If(varDomViewOnly || IsBlank(varDomActiveRowId), "
+                          "DisplayMode.Disabled, DisplayMode.Edit)"),
+            visible="!varDomViewOnly"))
+        row_add.append(button("btnDomNewRow", '"Add row"', new_row_fx(), primary=True,
+                              width=fit_button_width('"Add row"'), height=36,
+                              visible="!varDomViewOnly"))
+    head_title = title
+    head_flex = text_px("Rows", 17)
+    if panel_on:
+        head_title = group("conDomRowsTitle", [title, count], direction="Horizontal", gap=8,
+                           height=text_min_height(lay.SIZE_CARD_TITLE),
+                           width=head_flex + 8 + 28, align_items="Center")
+        head_flex += 8 + 28
+    # Soegning og filtre staar til venstre, Add row/Copy til hoejre: en tom,
+    # fleksibel gruppe tager resten af linjen og skubber knapperne ud.
+    if row_add:
+        gap_ = grow(group("conDomRowsTopGap", [], direction="Horizontal", height=0))
+        kids = [head_title, search, status, plant, gap_] + row_add
+        gap_.vis = flow_ok(kids, FORM_W, gap=8, flex=gap_, flex_min=0)
+        gap_.props["Visible"] = gap_.vis
+        head = flow_row("conDomRowsTop", kids, FORM_W, gap=8, flex=gap_, flex_min=0)
+    else:
+        gap_ = grow(group("conDomRowsTopGap", [], direction="Horizontal", height=0))
+        kids = [head_title, search, status, plant, gap_]
+        gap_.vis = flow_ok(kids, FORM_W, gap=8, flex=gap_, flex_min=0)
+        gap_.props["Visible"] = gap_.vis
+        head = flow_row("conDomRowsTop", kids, FORM_W, gap=8, flex=gap_, flex_min=0)
 
     # --- tabellen -----------------------------------------------------------
     heads = [_head_text("txtDomHeadStatus", f'"{badge_head}"', BADGE_W)]
@@ -2304,24 +2450,14 @@ def build_list(slots, badge_head, search_placeholder):
     gal_h = (f"Max(Min(CountRows({LIST_SCOPE}), "
              + if_below("Desktop", str(GAL_ROWS_C), str(GAL_ROWS)) + f"), 1) * "
              + if_below("Desktop", str(ROW_H_C + 2), str(ROW_H + 2)))
-    gal = Ctrl("galDomRows", "Gallery", variant="Vertical", props={
-        "AccessibleLabel": '"Saved rows"',
-        "BorderStyle": "BorderStyle.None",
-        "Fill": C_TRANSPARENT,
-        "FillPortions": "0",
-        "Height": gal_h,
-        "Items": f"Sort({LIST_SCOPE}, RowId, SortOrder.Descending)",
-        "LayoutMinWidth": "0",
-        "LoadingSpinner": "LoadingSpinner.None",
-        "OnSelect": load_row_fx(),
-        "Selectable": "true",
-        "ShowScrollbar": "true",
-        "TabIndex": "0",
-        "TemplatePadding": "2",
-        "TemplateSize": if_below("Desktop", str(ROW_H_C), str(ROW_H)),
-        "Width": f"({table_w}) + 4 + {SCROLLBAR_W}",
-        "WrapCount": "1",
-    }, children=[row, row_c], h=gal_h)
+    gal = row_list("Dom", f"Sort({LIST_SCOPE}, RowId, SortOrder.Descending)",
+                   [row, row_c], gal_h, if_below("Desktop", str(ROW_H_C), str(ROW_H)),
+                   onselect=load_row_fx(), width=f"({table_w}) + 4 + {SCROLLBAR_W}",
+                   accessible="Saved rows")
+    if panel_on:
+        gal.props["TemplateFill"] = (
+            f"If(ThisItem.RowId = varDomActiveRowId && IfError(varDomEditorOpen, false), "
+            f"{C_ROW_PRESSED}, {C_TRANSPARENT})")
 
     # Vandret scroll, naar tabellen er bredere end kortet (All columns, og
     # Compact paa en tablet). Start, ikke Stretch - check_layout regel 14.
@@ -2339,7 +2475,8 @@ def build_list(slots, badge_head, search_placeholder):
         "conDomRowsEmpty",
         f'If(IsEmpty(colDomRows), "No rows yet - fill in the details and choose Add row.", '
         f'"No rows match the search and filters.")',
-        "Add row", ADD_ROW_FX[0] or "false", icon_key=cfg.APP_KEY,
+        "Add row", new_row_fx() if getattr(cfg, "ROW_PANEL_ENABLED", False)
+        else ADD_ROW_FX[0] or "false", icon_key=cfg.APP_KEY,
         button_name="btnDomRowsEmptyAdd", action_icon="Add",
         action_visible="IsEmpty(colDomRows) && !varDomViewOnly",
         visible=f"IsEmpty({LIST_SCOPE})")
@@ -2352,13 +2489,16 @@ def build_list(slots, badge_head, search_placeholder):
     fix = validation_summary(
         "Dom", f"Sort({DRAFTS}, RowId, SortOrder.Descending)",
         f'ThisItem.ItemKey & If(IsBlank(ThisItem.{cfg.C_TEXT}), "", "  \u00b7  " & ThisItem.{cfg.C_TEXT})',
-        "Open row", load_row_fx(),
-        f'{dt.plural(f"CountRows({DRAFTS})", "draft row")} & '
-        f'If(CountRows({DRAFTS}) = 1, " - complete it to submit it too", '
-        '" - complete them to submit them too")',
-        f"IfError({FIX_VAR}, false) && CountRows({DRAFTS}) > 0 && !varDomViewOnly",
-        f"Set({FIX_VAR}, false)")
-    return card("conDomRowsCard", [head, fix, table, empty] + _submit_parts())
+        "Open row" if not panel_on else "Go to field", load_row_fx(),
+        (f'{dt.plural(f"CountRows({DRAFTS})", "draft row")} & '
+         f'If(CountRows({DRAFTS}) = 1, " - complete it to submit it too", '
+         '" - complete them to submit them too")') if not panel_on else '"Before you can submit"',
+        (f"IfError({FIX_VAR}, false) && CountRows({DRAFTS}) > 0 && !varDomViewOnly"
+         if not panel_on else f"CountRows({DRAFTS}) > 0 && !varDomViewOnly"),
+        f"Set({FIX_VAR}, false)", closable=not panel_on)
+    parts = [head, table, empty] + _submit_parts()
+    parts.insert(1 if not panel_on else 3, fix)
+    return card("conDomRowsCard", parts)
 
 
 # ---------------------------------------------------------------------------

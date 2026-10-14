@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 """Formularer i sektioner (UX-review 2026-10, M2)."""
 import os
+import sys
+
+import yaml
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import layout_tokens as lay  # noqa: E402
 APP = os.path.join(ROOT, "BIO SAP App")
 
 
@@ -10,14 +15,29 @@ def _yaml(screen):
     return open(os.path.join(APP, screen), encoding="utf-8").read()
 
 
+def _properties(screen):
+    doc = yaml.safe_load(open(os.path.join(APP, screen), encoding="utf-8"))
+    result = {}
+
+    def walk(nodes):
+        for item in nodes or []:
+            for name, body in item.items():
+                result[name] = body.get("Properties") or {}
+                walk(body.get("Children"))
+
+    for screen_doc in doc["Screens"].values():
+        walk(screen_doc.get("Children"))
+    return result
+
+
 def _order(y, names):
     return [y.index(f"- {n}:") for n in names]
 
 
-def test_a_section_is_a_rule_and_a_title_and_the_first_has_no_rule():
+def test_a_section_is_a_muted_uppercase_title_without_rules():
     y = _yaml("ScreenEquipment.pa.yaml")
-    assert "conEqSecIdentRule:" not in y
-    assert "conEqSecLocRule:" in y and "conEqSecWarrantyRule:" in y
+    assert "conEqSecIdentRule:" not in y and "conEqSecLocRule:" not in y
+    assert 'Upper("Location")' in y
 
 
 def test_equipment_sections_follow_the_mockup():
@@ -25,7 +45,7 @@ def test_equipment_sections_follow_the_mockup():
     pos = _order(y, ["txtEqSecIdent", "txtEqSecLoc", "txtEqSecMfr", "txtEqSecWarranty"])
     assert pos == sorted(pos)
     for t in ("Identification", "Location", "Manufacturer", "Warranty and documents"):
-        assert f'="{t}"' in y, t
+        assert f'Upper("{t}")' in y, t
     # Felterne staar i deres sektion.
     assert y.index("txtEqSecLoc:") < y.index("conEqFl:") < y.index("txtEqSecMfr:")
     assert y.index("txtEqSecMfr:") < y.index("conEqManufacturer:") < y.index("txtEqSecWarranty:")
@@ -34,11 +54,77 @@ def test_equipment_sections_follow_the_mockup():
 def test_materials_and_measuring_points_have_titled_sections():
     m = _yaml("ScreenMaterial.pa.yaml")
     for t in ("Identification", "Manufacturer and supplier", "Price and classification"):
-        assert f'="{t}"' in m, t
+        assert f'Upper("{t}")' in m, t
     p = _yaml("ScreenMeasuringPoint.pa.yaml")
     for t in ("Identification", "Measuring point", "PRODOS", "Notes and documents"):
-        assert f'="{t}"' in p, t
+        assert f'Upper("{t}")' in p, t
     # Maalepunktets sektion kun for et nyt maalepunkt - som dens raekker.
     i = p.index("- conMpSecType:")
     j = p.index("Children:", i)
     assert "Visible:" in p[i:j]
+
+
+def test_equipment_and_measuring_point_use_the_responsive_row_panel():
+    for screen, prefix in (("ScreenEquipment.pa.yaml", "Eq"),
+                          ("ScreenMeasuringPoint.pa.yaml", "Mp")):
+        props = _properties(screen)
+        assert props[f"con{prefix}EditorPanel"]["Width"] == "=" + lay.PANEL_W_AT
+        assert props[f"con{prefix}EditorSections"]["LayoutOverflowY"] == "=LayoutOverflow.Scroll"
+        assert props[f"btn{prefix}EditorClose"]["OnSelect"].startswith(f"=Set(var{prefix}ActiveRowId")
+
+
+def test_domain_panels_match_the_bright_two_column_mockup():
+    panels = [
+        ("ScreenEquipment.pa.yaml", "Eq", "conEqGridIdent0"),
+        ("ScreenMaterial.pa.yaml", "Mat", "conMatGridMain"),
+        ("ScreenMeasuringPoint.pa.yaml", "Mp", "conMpGridObject"),
+    ]
+    for screen, prefix, grid in panels:
+        props = _properties(screen)
+        assert props[f"img{prefix}EditorBackdrop"]["Fill"] == "=RGBA(0, 0, 0, 0)"
+        assert props[grid]["LayoutDirection"] == "=LayoutDirection.Vertical"
+        pair = props[f"{grid}Pair0"]
+        assert pair["LayoutDirection"] == "=LayoutDirection.Horizontal"
+        assert pair["LayoutWrap"] == "=true"
+
+
+def test_issue_board_detail_panel_does_not_dim_the_workspace():
+    props = _properties("ScreenIssueBoard.pa.yaml")
+    assert props["imgIbDetBackdrop"]["Fill"] == "=RGBA(0, 0, 0, 0)"
+
+
+def test_material_editor_exposes_the_three_requested_tabs():
+    props = _properties("ScreenMaterial.pa.yaml")
+    for name in ("conMatEditorTabsDetails", "conMatEditorTabsObjects",
+                 "conMatEditorTabsDocuments"):
+        assert name in props
+    assert props["conMatEditorObjects"]["Visible"] == '=varMatEditorTab = "Objects"'
+    assert props["conMatEditorDocuments"]["Visible"] == '=varMatEditorTab = "Documents"'
+    assert "conMatObjPopBody" in props and "conMatAttBody" in props
+    assert "conMatObjPopModal" not in props and "conMatAttModal" not in props
+
+
+def test_functional_location_has_status_column_and_row_panel():
+    props = _properties("ScreenFunctionalLocation.pa.yaml")
+    assert "btnFlRowStatus" in props
+    assert "conFlEditorPanel" in props
+    assert props["conFlEditorPanel"]["Width"] == "=" + lay.PANEL_W_AT
+    assert all(f"conFlPanel{section}" in props
+               for section in ("Master", "Status", "Class", "TRM", "Ext"))
+
+
+def test_issue_board_details_use_a_side_panel_without_losing_tabs():
+    props = _properties("ScreenIssueBoard.pa.yaml")
+    assert props["conIbDetModal"]["Width"] == "=" + lay.PANEL_W_AT
+    assert all(name in props for name in ("btnIbTabDetails", "btnIbTabActivity", "btnIbTabFiles"))
+
+
+def test_equipment_and_measuring_point_have_documents_and_more_actions():
+    for screen, prefix in (("ScreenEquipment.pa.yaml", "Eq"),
+                          ("ScreenMeasuringPoint.pa.yaml", "Mp")):
+        props = _properties(screen)
+        assert f"btn{prefix}RowDocs" in props
+        assert "FileCount" in props[f"btn{prefix}RowDocs"]["Text"]
+        assert f"btn{prefix}RowMore" in props
+        assert f"con{prefix}RowMoreMenu" in props
+        assert f"btn{prefix}MoreCopy" in props and f"btn{prefix}MoreDelete" in props
