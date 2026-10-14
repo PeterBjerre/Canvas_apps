@@ -73,10 +73,10 @@ from gen_screen import (Ctrl, stack_height, C_APP_BG, C_CARD_BG, C_CARD_BORDER, 
                         C_PRIMARY, C_PRIMARY_SOFT, C_TITLE, C_TRANSPARENT, C_WARN_BG,
                         C_WARN_FG)
 from build_helpers import (empty_state, skeleton_rows, ensure_hit, hit_size, button, card, checkbox_theme, concurrent, confirm_modal,
-                           fit_button_width, group,
+                           fit_button_width, group, icon_button, segmented, SEG_GAP, SEG_H, SEG_PAD, SEG_SIZE,
                            flow_row, grow, icon_on_mobile, label_row, loading_overlay, row_hit, row_rule,
                            tap_backdrop,
-                           text_ctrl, text_input, themed_dropdown, top_bar, ICON_W)
+                           text_ctrl, text_input, text_px, themed_dropdown, top_bar, ICON_W)
 from permissions import IS_ADMIN, ADMIN_LIST, ADMIN_GROUP
 from design_tokens import ref as _t
 import icons
@@ -546,11 +546,10 @@ def build_bar():
 # Filtre
 # ---------------------------------------------------------------------------
 CARD_W = f"({SHELL_W} - 2 * {lay.CARD_PAD})"
-SEG_H = 34
 
 
 def _seg(name, label, selected, onselect, width, accessible):
-    """Et segment i en kontakt: valgt = fyldt, ikke valgt = kant."""
+    """Et segment i en fane-raekke: valgt = fyldt, ikke valgt = kant."""
     b = button(name, label if label.startswith("If(") else f'"{label}"', onselect, width=width,
                height=SEG_H, accessible=accessible)
     b.props["Appearance"] = f"If({selected}, ButtonAppearance.Primary, ButtonAppearance.Outline)"
@@ -613,48 +612,80 @@ CLEAR_FILTERS = ('Set(varIbApp, "");\nSet(varIbSection, "");\nSet(varIbStatusF, 
 # og listeparrene) blev stadig tegnet som tomme rammer. Nu staar hver knap
 # og hver liste DIREKTE i sin flow_row, som i hubbens filterlinje.
 TB_W = CARD_W
-SCOPE_W = {"btnIbScopeAll": 96, "btnIbScopeMine": 100, "btnIbScopeAssigned": 128}
-STATE_W = {"btnIbStateOpen": 76, "btnIbStateClosed": 84, "btnIbStateArchived": 92}
+def _track_w(*texts):
+    w = sum(fit_button_width('"%s"' % t, size=SEG_SIZE, min_w=0) + ICON_W + 8 for t in texts)
+    return w + (len(texts) - 1) * SEG_GAP + 2 * SEG_PAD
+
+
+SCOPE_ADMIN_W = _track_w("All issues", "My issues", "Assigned to me")
+SCOPE_USER_W = _track_w("All issues", "My issues")
+STATE_ALL_W = _track_w("Open", "Closed", "Archived")
 TB_GAP = 12          # mellem grupperne i en linje
 SEARCH_MIN = 240
 SORT_W = 150
-DD_MIN = 130         # en filterliste ("All applications" + pilen)
+def _dd_w(*texts):
+    """En filterlistes bredde: den laengste tekst + polstring og pil."""
+    return max(text_px(t, lay.SIZE_INPUT) for t in texts) + 56
+
+
+DD_APP_W = _dd_w("All applications")
+DD_SEC_W = _dd_w("All sections")
+DD_STATUS_W = _dd_w("All statuses", *[x for x, _c, _r in cfg.STATUS if x != cfg.STATUS_CLOSED])
+DD_PRI_W = _dd_w("All priorities", *[x for x, _r in cfg.PRIORITY])
+PAIR_A_W = DD_APP_W + 8 + DD_SEC_W
+PAIR_B_W = DD_STATUS_W + 8 + DD_PRI_W
+PAIR_MIN = max(PAIR_A_W, PAIR_B_W)
 # Linje 1 paa een linje: begge kontakter + soegefeltets mindstebredde.
-# Knapperne staar direkte i raekken (ingen indlejret gruppe), saa der er
-# TB_GAP mellem alle seks og soegefeltet.
-# Regnet for administratoren (tre kontakter) - en bruger har een mindre.
-TOP_OK = (f"{TB_W} >= "
-          f"{sum(SCOPE_W.values()) + sum(STATE_W.values()) + 6 * TB_GAP + SEARCH_MIN}")
-# Linje 2 paa een linje: fire filterlister + sorteringen.
-FLT_OK = f"{TB_W} >= {4 * DD_MIN + 4 * TB_GAP + SORT_W}"
+TOP_OK = f"{TB_W} >= {SCOPE_ADMIN_W + TB_GAP + STATE_ALL_W + TB_GAP + SEARCH_MIN}"
+# Linje 2 paa een linje: to listepar + sorteringen.
+FLT_OK = f"{TB_W} >= {PAIR_A_W + PAIR_B_W + TB_GAP + TB_GAP + SORT_W}"
 # Hver linjes hoejde, naar den staar vandret.
 TB_LINE_H = 36
 
 
 def build_filters():
     """Vaerktoejslinjens to raekker - de staar direkte i listekortet."""
-    all_seg = _seg("btnIbScopeAll", "All issues", SCOPE_ALL,
-                   'Set(varIbScope, "all")', SCOPE_W["btnIbScopeAll"],
-                   '"Show all issues from all testers"')
-    mine_seg = _seg("btnIbScopeMine", "My issues", 'varIbScope = "mine"',
-                    'Set(varIbScope, "mine")', SCOPE_W["btnIbScopeMine"],
-                    '"Show the issues you reported"')
-    asg_seg = _seg("btnIbScopeAssigned", f'If({NARROW}, "Assigned", "Assigned to me")',
-                   'varIbScope = "assigned"', 'Set(varIbScope, "assigned")',
-                   SCOPE_W["btnIbScopeAssigned"], '"Show the issues assigned to me"')
-    asg_seg.props["Visible"] = IS_ADMIN
-    asg_seg.vis = IS_ADMIN
-    for s in (all_seg, mine_seg, asg_seg):
-        s.props["Width"] = str(SCOPE_W[s.name])
+    scope = segmented("conIbScope", [
+        ("All", "All issues", SCOPE_ALL, 'Set(varIbScope, "all")',
+         '"Show all issues from all testers"'),
+        ("Mine", "My issues", 'varIbScope = "mine"', 'Set(varIbScope, "mine")',
+         '"Show the issues you reported"'),
+        ("Assigned", "Assigned to me", 'varIbScope = "assigned"', 'Set(varIbScope, "assigned")',
+         '"Show the issues assigned to me"'),
+    ], label="Show", fit=True)
+    for child, nm in zip(scope.children, ("btnIbScopeAll", "btnIbScopeMine", "btnIbScopeAssigned")):
+        child.name = nm
+    asg = scope.children[2]
+    asg.props["Visible"] = IS_ADMIN
+    asg.vis = IS_ADMIN
+    # Smalt: skinnen faar hele linjen og knapperne deler den, saa den aldrig
+    # er bredere end kortet.
+    wide = f"If({IS_ADMIN}, {SCOPE_ADMIN_W}, {SCOPE_USER_W})"
+    scope.props["Width"] = f"If({TOP_OK}, {wide}, {TB_W})"
+    n_btn = f"If({IS_ADMIN}, 3, 2)"
+    share = f"(({TB_W}) - 2 * {SEG_PAD} - ({n_btn} - 1) * {SEG_GAP}) / {n_btn}"
+    for child in scope.children:
+        w0 = child.props["Width"]
+        child.props["Width"] = f"If({TOP_OK}, {w0}, {share})"
+        child.props["LayoutMinWidth"] = "0"
+    scope.h = SEG_H
 
-    states = [("btnIbStateOpen", "Open", "open", '"Show open issues"'),
-              ("btnIbStateClosed", "Closed", "closed", '"Show closed issues"'),
-              ("btnIbStateArchived", "Archived", "archived", '"Show archived issues"')]
-    segs = []
-    for name, label, key, acc in states:
-        s = _seg(name, label, f'varIbState = "{key}"', f'Set(varIbState, "{key}")', STATE_W[name],
-                 acc)
-        segs.append(s)
+    state = segmented("conIbState", [
+        ("Open", "Open", 'varIbState = "open"', 'Set(varIbState, "open")', '"Show open issues"'),
+        ("Closed", "Closed", 'varIbState = "closed"', 'Set(varIbState, "closed")',
+         '"Show closed issues"'),
+        ("Archived", "Archived", 'varIbState = "archived"', 'Set(varIbState, "archived")',
+         '"Show archived issues"'),
+    ], label="Show", fit=True)
+    for child, nm in zip(state.children, ("btnIbStateOpen", "btnIbStateClosed", "btnIbStateArchived")):
+        child.name = nm
+    state.props["Width"] = f"If({TOP_OK}, {STATE_ALL_W}, {TB_W})"
+    share3 = f"(({TB_W}) - 2 * {SEG_PAD} - 2 * {SEG_GAP}) / 3"
+    for child in state.children:
+        w0 = child.props["Width"]
+        child.props["Width"] = f"If({TOP_OK}, {w0}, {share3})"
+        child.props["LayoutMinWidth"] = "0"
+    state.h = SEG_H
 
     search = text_input("inpIbSearch", '""', placeholder='"Search number, title or description"',
                         label='"Search issues"')
@@ -662,7 +693,7 @@ def build_filters():
     # om for hvert tegn.
     search.props["TriggerOutput"] = "TriggerOutput.Delayed"
     search.props["Width"] = str(SEARCH_MIN)
-    top = flow_row("conIbTbTop", [all_seg, mine_seg, asg_seg, *segs, search], TB_W, gap=TB_GAP, flex=search,
+    top = flow_row("conIbTbTop", [scope, state, search], TB_W, gap=TB_GAP, flex=search,
                    flex_min=SEARCH_MIN, ok=TOP_OK)
 
     # Application og den afhaengige Section, status og prioritet - to og
@@ -696,10 +727,17 @@ def build_filters():
                                "varIbSort", label='"Sort issues"',
                                onchange="Set(varIbSort, Self.Selected.Value)")
     drp_sort.props["Width"] = f"If({FLT_OK}, {SORT_W}, {TB_W})"
-    for c in (drp_app, drp_sec, drp_status, drp_pri):
-        c.props["Width"] = f"If({FLT_OK}, (({TB_W}) - {SORT_W + 4 * TB_GAP}) / 4, {TB_W})"
-    filters = flow_row("conIbTbFilters", [drp_app, drp_sec, drp_status, drp_pri, drp_sort], TB_W,
-                       gap=TB_GAP, ok=FLT_OK)
+    # Listerne er saa brede som deres tekst; under hinanden deler et par
+    # linjen.
+    for c, w in ((drp_app, DD_APP_W), (drp_sec, DD_SEC_W), (drp_status, DD_STATUS_W),
+                 (drp_pri, DD_PRI_W)):
+        c.props["Width"] = f"If({FLT_OK}, {w}, (({TB_W}) - 8) / 2)"
+        c.props["LayoutMinWidth"] = c.props["Width"]
+    pair_a = group("conIbFltPairA", [drp_app, drp_sec], direction="Horizontal", gap=8,
+                   height=TB_LINE_H, align_items="Center", width=f"If({FLT_OK}, {PAIR_A_W}, {TB_W})")
+    pair_b = group("conIbFltPairB", [drp_status, drp_pri], direction="Horizontal", gap=8,
+                   height=TB_LINE_H, align_items="Center", width=f"If({FLT_OK}, {PAIR_B_W}, {TB_W})")
+    filters = flow_row("conIbTbFilters", [pair_a, pair_b, drp_sort], TB_W, gap=TB_GAP, ok=FLT_OK)
     return [top, filters]
 
 
@@ -1077,9 +1115,11 @@ def _popup(prefix, kids, vis, width=POP_W, foot=None, own_scroll=False,
     if side_panel:
         backdrop = tap_backdrop(f"img{prefix}Backdrop", f"({vis}) && {lay.INSET} = 0",
                                 close_fx, fill=C_TRANSPARENT)
+        modal.props["Visible"] = vis
+        modal.vis = vis
         modal.props["Height"] = "App.Height"
         modal.h = "App.Height"
-        modal.props["Width"] = f"If({at_least('Desktop')}, 480, App.Width)"
+        modal.props["Width"] = lay.PANEL_W_AT
         modal.props["X"] = f"If({at_least('Desktop')}, App.Width - Self.Width, 0)"
         modal.props["Y"] = "0"
         modal.props["RadiusTopRight"] = "0"
@@ -1100,7 +1140,7 @@ def _popup(prefix, kids, vis, width=POP_W, foot=None, own_scroll=False,
     return backdrop
 
 
-def _head(prefix, title_fx, close_fx, lead=(), title_w=None, close_icon=False):
+def _head(prefix, title_fx, close_fx, lead=(), title_w=None, close_icon=False, nav=()):
     """Titel og Close. title_w: titlens bredde - saa ombrydes en lang titel
     paa op til tre linjer i stedet for at blive klippet. close_icon: Close
     som ikon (Dismiss) oeverst til hoejre - sagens popup (issue #229)."""
@@ -1109,22 +1149,16 @@ def _head(prefix, title_fx, close_fx, lead=(), title_w=None, close_icon=False):
         h = f"Min(3 * 23 + 2, Max(26, {_lines_h(title_fx, title_w, px=9.2, line_h=23)}))"
     title = grow(text_ctrl(f"txt{prefix}Title", title_fx, size=lay.SIZE_CARD_TITLE,
                            weight="Semibold", height=h, wrap="true" if title_w else "false"))
-    close = button(f"btn{prefix}Close", '"Close"', close_fx,
-                   width=fit_button_width('"Close"'), height=32,
-                   accessible='"Close"')
     if close_icon:
-        close.props["Width"] = "34"
-        close.props["Height"] = "34"
-        close.h = 34
-        close.props["Icon"] = '"Dismiss"'
-        close.props["Layout"] = "ButtonLayout.IconOnly"
-        close.props["Tooltip"] = '"Close"'
-        close.props["BorderColor"] = C_TRANSPARENT
+        close = icon_button(f"btn{prefix}Close", "Close", close_fx, icons.CLOSE)
         close.props["AlignInContainer"] = "AlignInContainer.Start"
-        ensure_hit(close)
+    else:
+        close = button(f"btn{prefix}Close", '"Close"', close_fx,
+                       width=fit_button_width('"Close"'), height=32,
+                       accessible='"Close"')
     close.props["LayoutMinWidth"] = close.props["Width"]
     hmin = hit_size(34) if close_icon else 32
-    return group(f"con{prefix}Head", [*lead, title, close], direction="Horizontal", gap=10,
+    return group(f"con{prefix}Head", [*lead, title, *nav, close], direction="Horizontal", gap=10 if not nav else 4,
                  height=hmin if title_w is None else f"Max({hmin}, {h})", align_items="Center")
 
 
@@ -1368,7 +1402,7 @@ SIMILAR_ITEMS = (
 SIM_ROW_H = 44
 
 
-FORM_W = f"If({at_least('Desktop')}, 480, App.Width)"
+FORM_W = lay.PANEL_W_AT
 # Indholdet staar i popuppens scrollende krop - scrollbaren er trukket fra.
 FORM_IN = f"({FORM_W} - {2 * POP_PAD} - {lay.SCROLLBAR_W})"
 
@@ -1640,7 +1674,7 @@ def build_form():
 # ---------------------------------------------------------------------------
 DETAIL_ON = "IfError(varIbDetailOn, false)"
 SEL = "varIbSel"
-DETAIL_PANEL_W = f"If({at_least('Desktop')}, 480, App.Width)"
+DETAIL_PANEL_W = lay.PANEL_W_AT
 DETAIL_PANEL_IN = f"({DETAIL_PANEL_W} - {2 * POP_PAD})"
 DET_IN = f"({DETAIL_PANEL_IN} - {lay.SCROLLBAR_W})"
 ACT_ROW_PAD = 12
@@ -1778,12 +1812,14 @@ ICON_BTN = 34
 
 def _icon_action(name, icon, onselect, visible, label, tooltip, display_mode, danger=False):
     """En handling paa sagen som ikon (issue #229): kun ikonet, engelsk
-    tooltip og etiket, ingen kant - deaktiveret er den graa, ikke indrammet."""
+    tooltip og etiket, med kant (som de andre knapper)."""
     b = button(name, label, onselect, width=ICON_BTN, height=ICON_BTN, icon=icon,
                visible=visible, accessible=label, tooltip=tooltip, display_mode=display_mode,
                danger=danger)
     b.props["Layout"] = "ButtonLayout.IconOnly"
-    b.props["BorderColor"] = C_TRANSPARENT
+    b.props["Appearance"] = "ButtonAppearance.Outline"
+    b.props["BorderColor"] = C_INVALID_FG if danger else C_CARD_BORDER
+    b.props["BorderThickness"] = "1"
     b.props["LayoutMinWidth"] = str(ICON_BTN)
     ensure_hit(b)
     return b
@@ -1813,18 +1849,23 @@ def _actions():
     edit = _icon_action("btnIbEdit", "Edit", OPEN_EDIT, "IbCanEdit", '"Edit issue"',
                         f'If({ready}, "Edit issue", "Edit issue - loading the issue...")',
                         f"If({ready} && !varIbBusy, DisplayMode.Edit, DisplayMode.Disabled)")
-    archive = _icon_action(
-        "btnIbArchive", f'If({SEL}.Archived, "ArrowUndo", "Archive")', ARCHIVE, "IbCanManage",
-        f'If({SEL}.Archived, "Restore issue", "Archive issue")',
-        f'If({SEL}.Archived, "Restore issue - bring it back to the active lists", '
-        '"Archive issue - keeps the issue, its comments, activity and files under Archived")',
-        "If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)")
+    idle = "If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)"
+    archive = icon_button("btnIbArchive", "Archive issue", ARCHIVE, icons.ARCHIVE, idle)
+    archive.props["Tooltip"] = ('"Archive issue - keeps the issue, its comments, activity and '
+                                'files under Archived"')
+    show_archive = f"IbCanManage && !{SEL}.Archived"
+    archive.props["Visible"] = show_archive
+    archive.vis = show_archive
+    restore = icon_button("btnIbRestore", "Restore issue", ARCHIVE, icons.UNDO, idle)
+    restore.props["Tooltip"] = '"Restore issue - bring it back to the active lists"'
+    show_restore = f"IbCanManage && {SEL}.Archived"
+    restore.props["Visible"] = show_restore
+    restore.vis = show_restore
     delete = _icon_action("btnIbDelete", "Delete", "Reset(inpIbDelConfirm);\nSet(varIbDelOn, true)",
                           "IbCanManage", '"Delete issue"',
                           '"Delete issue permanently - you confirm first"',
                           "If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)", danger=True)
-    delete.props["BorderColor"] = C_TRANSPARENT
-    row = group("conIbDetActions", [reopen, edit, archive, delete], direction="Horizontal",
+    row = group("conIbDetActions", [reopen, edit, archive, restore, delete], direction="Horizontal",
                 gap=4, height=hit_size(ICON_BTN), align_items="Center", justify="End",
                 visible=CAN_ACT)
     row.props["LayoutJustifyContent"] = (f"If({NARROW}, LayoutJustifyContent.Start, "
@@ -1906,7 +1947,7 @@ def _files_panel():
 FACT_H = 38
 FACT_GAP = 12
 # Fem fakta paa een linje, naar popuppen er bred nok; ellers tre og to.
-FACTS_OK = f"({DET_IN}) >= 600"
+FACTS_OK = f"({DET_IN}) >= 540"
 FACT_W = f"If({FACTS_OK}, (({DET_IN}) - 4 * {FACT_GAP}) / 5, (({DET_IN}) - 2 * {FACT_GAP}) / 3)"
 
 
@@ -1965,8 +2006,20 @@ def build_detail():
     #    hoejre - popuppens eneste vej ud).
     no = _no_badge("txtIbDetNo", f"{SEL}.TicketNo")
     no.props["LayoutMinWidth"] = str(NO_W)
+    # Bladring: raekkefoelgen er listens (filtreret og sorteret) - galIbList.AllItems.
+    nav_list = "galIbList.AllItems"
+    pos = (f"Coalesce(First(Filter(ForAll(Sequence(galIbList.AllItemsCount), "
+           f"{{n: Value, id: Index({nav_list}, Value).Id}}), id = varIbSelId)).n, 0)")
+    prev_mode = f"If(varIbSelPeek || {pos} <= 1, DisplayMode.Disabled, DisplayMode.Edit)"
+    next_mode = (f"If(varIbSelPeek || {pos} = 0 || {pos} >= galIbList.AllItemsCount, "
+                 f"DisplayMode.Disabled, DisplayMode.Edit)")
+    prev_fx = f"With({{r: LookUp(colIbAll, Id = Index({nav_list}, {pos} - 1).Id)}}, {open_ticket('r', 'false')})"
+    next_fx = f"With({{r: LookUp(colIbAll, Id = Index({nav_list}, {pos} + 1).Id)}}, {open_ticket('r', 'false')})"
+    nav = [icon_button("btnIbDetPrevious", "Previous issue", prev_fx, icons.CHEVRON_LEFT, prev_mode),
+           icon_button("btnIbDetNext", "Next issue", next_fx, icons.CHEVRON_RIGHT, next_mode)]
     head = _head("IbDet", f"{SEL}.Title", "Set(varIbDetailOn, false)",
-                 lead=[no], title_w=f"({DETAIL_PANEL_IN}) - {NO_W} - {ICON_BTN} - 20", close_icon=True)
+                 lead=[no], title_w=f"({DETAIL_PANEL_IN}) - {NO_W} - {3 * lay.HIT_TOUCH} - 30",
+                 close_icon=True, nav=nav)
 
     # 2. Status, prioritet, Application og Section - maerker og to korte
     #    vaerdier, ikke en lang streng. Paa en smal popup paa to linjer.
@@ -2164,7 +2217,7 @@ def build_detail():
     # DET_MIN_H), og den er aldrig hoejere end skaermen tillader. Hver fane
     # scroller selv, saa hver har sin egen scrollposition.
     top = group("conIbDetTop", [meta, facts, actions, peek_note, retest, rule, tabs],
-                direction="Vertical", gap=POP_GAP)
+                direction="Vertical", gap=8)
     files = _files_panel()
     panels = [details, activity, files]
     natural = [stack_height(p.children, 12) for p in panels]

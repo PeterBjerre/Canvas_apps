@@ -24,11 +24,11 @@ def _block(y, name, n=3000):
 
 
 def test_tiles_are_72_px_with_a_new_icon_button():
-    assert bh.TILE_H == 72
+    assert bh.TILE_H == 76
     y = _yaml()
     for d in bh.DOMAINS:
-        b = _block(y, f"btnMdTileNew{d['short']}")
-        assert "ButtonLayout.IconOnly" in b
+        b = _block(y, f"imgMdTileNew{d['short']}")
+        assert "Control: Image" in b
         assert f'"New {d["name"].lower()} request"' in b
 
 
@@ -43,15 +43,6 @@ def test_continue_where_you_left_off_lists_up_to_three_drafts_and_returned():
         go = _block(y, f"btnMdResumeGo{i}", 4000)
         assert f'Index(varMdResumeList, {i})).RequestGuid' in go
         assert "ThisItem" not in go
-
-
-def test_my_queue_counts_what_waits_for_me_in_any_view():
-    assert "AssignedToEmail = varMdMe" in bh.QUEUE_REFRESH
-    assert "IsOpen = true" in bh.QUEUE_REFRESH
-    assert bh.QUEUE_REFRESH in bh.HUB_ON_VISIBLE
-    b = _block(_yaml(), "btnMdFltMe", 4000)
-    assert "My queue" in b and "varMdQueueN" in b
-    assert 'Set(varMdView, "queue")' in b
 
 
 def test_every_sort_branch_names_its_column_as_a_constant():

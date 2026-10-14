@@ -22,8 +22,9 @@ def test_the_editor_says_which_item_and_can_delete_it():
     delete = _block(y, "btnVhpEditorDelete", 5000)
     assert "{ id: varVhpActiveItemId," in delete
     assert "RemoveIf(colVhpItems, ItemId = id)" in delete
-    # Kortet har ingen Delete laengere (VH-mockuppen).
-    assert "- btnVhpRemoveItem:" not in y
+    # Det samme som kortets Delete - bare paa det aktive item.
+    card = _block(y, "btnVhpRemoveItem", 5000)
+    assert "{ id: ThisItem.ItemId," in card
 
 
 def test_the_subtitle_is_the_plan_name_when_there_is_one():

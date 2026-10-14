@@ -41,7 +41,7 @@ SHARED = {"gblFbOpen", "gblFbMe", "gblFbSel", "gblFbPick", "gblFbBusy", "colFbRe
           # Beskederne nederst til hoejre (tools/toast.py, UX-review B1).
           "gblToast"}
 # Hubbens egne - de har aldrig haft et praefiks.
-HUB_OWN = {"varMdMe", "varMdSearch", "varMdPrefsRead", "varMdLoading", "varMdResumeList", "varMdQueueN", "varMdView", "varMdDomain", "varMdStatusMode", "varMdNewMenu", "varMdClosedPeek"}
+HUB_OWN = {"varMdMe", "varMdSearch", "varMdPrefsRead", "varMdLoading", "varMdResumeList", "varMdView", "varMdDomain", "varMdStatusMode", "varMdNewMenu", "varMdClosedPeek"}
 
 TAGS = sorted({d["tag"] for d in cb.DOMAINS}, key=len, reverse=True)
 TAGGED = re.compile(r"\b(?:var|col|gbl)(%s)(?=[A-Z0-9_])\w*" % "|".join(TAGS))

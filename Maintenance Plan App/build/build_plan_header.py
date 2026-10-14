@@ -3,6 +3,8 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_MUTED, C_REQUIRED, C_INFO_BG, SHELL_W, C_DISABLED_BG, C_DIVIDER,
                         C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG, C_NEUTRAL_BG)
+import icons
+from design_tokens import ref_hex
 import build_help as bh
 import layout_tokens as lay
 from build_helpers import (child_name, text_min_height, text_ctrl, group, button, text_input, number_field, num_value,
@@ -11,6 +13,7 @@ from build_helpers import (child_name, text_min_height, text_ctrl, group, button
 # Sektionsoverskriften og dens trin-badge staar i build_helpers (issue #228),
 # saa Materials kan bruge samme overskrift som Item Editor.
 from build_helpers import section_header, step_badge  # noqa: F401
+from build_helpers import ghost, fit  # noqa: F401
 
 DM_PLAN = "If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)"
 REQ_PLAN = "varVhpPlanValidated"
@@ -169,6 +172,85 @@ PLAN_SUMMARY = (
     + _SEP + ' & "First call " & If(IsBlank(dteVhpFirstCall.SelectedDate), "-", '
     f'Text(dteVhpFirstCall.SelectedDate, "{lay.DATE_FMT}"))'
 )
+
+
+CHIP_H = 24
+CHIP_CHAR_W = 7          # 12 px Segoe UI, en lidt rummelig gennemsnitsbredde
+CHIP_PAD = 10
+
+
+def status_icon(name, ok_fx, size=20, d_ok=None, d_bad=None, label_ok="Complete",
+                label_bad="Needs attention"):
+    """Et statusikon (issue #139): ring med flueben, naar ok_fx er sand, ellers
+    ring med udraabstegn - FORM og farve, ikke farve alene. Pynt ved siden af
+    en tekst: ingen hover."""
+    def svg(d, token):
+        col = '" & %s & "' % ref_hex(token)
+        return icons.svg(d, col, size=size)
+    ok = svg(d_ok or icons.STATUS_READY, "state-ok-fg")
+    bad = svg(d_bad or icons.STATUS_AWAITING, "state-error-fg")
+    img = ('"data:image/svg+xml;utf8," & EncodeUrl(If(%s, "%s", "%s"))' % (ok_fx, ok, bad))
+    return Ctrl(name, "Image", props={
+        "AccessibleLabel": 'If(%s, "%s", "%s")' % (ok_fx, label_ok, label_bad),
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "Height": str(size),
+        "Image": img,
+        "ImagePosition": "ImagePosition.Fit",
+        "OnSelect": "false",
+        "TabIndex": "0",
+        "Width": str(size),
+    }, h=size)
+
+
+def value_chip(name, label, value_fx, label_w=None, value_chars=None, visible=None):
+    """En lille pille: dæmpet label og vaerdien ved siden af, paa en neutral
+    flade med runde hjoerner, 12 px tekst. Bredden regnes af teksten:
+    label_w er labelens bredde (tal eller udtryk), vaerdien Len() * tegnbredde
+    - eller value_chars tegn, naar vaerdiens laengde er kendt."""
+    if label_w is None:
+        label_w = text_px(label.strip('"'), 12, False) + 2
+    lab = text_ctrl(f"txt{name[3:]}Label", label, size=12, color=C_MUTED, height=CHIP_H, width=label_w,
+                    wrap="false", extra={"AlignInContainer": "AlignInContainer.Center"})
+    vw = (str(value_chars * CHIP_CHAR_W) if value_chars is not None
+          else f"Len({value_fx}) * {CHIP_CHAR_W} + 2")
+    val = text_ctrl(f"txt{name[3:]}Value", value_fx, size=12, weight="Semibold", height=CHIP_H, width=vw,
+                    wrap="false", extra={"AlignInContainer": "AlignInContainer.Center"})
+    w = f"{2 * CHIP_PAD + 4} + ({label_w}) + ({vw})"
+    return group(name, [lab, val], direction="Horizontal", gap=4, height=CHIP_H, width=w,
+                 align_items="Center", fill=C_NEUTRAL_BG, radius=CHIP_H // 2,
+                 pad=(0, CHIP_PAD, 0, CHIP_PAD), visible=visible)
+
+
+def plan_fold_row(fold, toggle_set):
+    """Den foldede planhoved-linje (UX-review M5): flueben, titel, nogletallene
+    som piller og Show til hoejre. Vises kun, naar planen er gemt og foldet."""
+    ok = status_icon("imgVhpPlanFoldStatus", "VhpPlanValid", d_ok=icons.STATUS_READY)
+    title = text_ctrl("txtVhpPlanFoldTitle", '"Plan header"', size=lay.SIZE_BODY + 1, weight="Semibold",
+                      height=24, width=text_px("Plan header", lay.SIZE_BODY + 1) + 2,
+                      accessible='"Plan header"')
+    strat = 'drpVhpPlanType.Selected.Key = "Strategy"'
+    plant = value_chip("conVhpPlanPlantChip", '"Plant"', 'Coalesce(drpVhpPlant.Selected.Value, "-")')
+    ptype = value_chip("conVhpPlanTypeChip", '"Type"', 'Coalesce(drpVhpPlanType.Selected.Value, "-")')
+    cyc_val = (f'If({strat}, Coalesce(drpVhpStrategy.Selected.Value, "-"), '
+               '"Every " & Text(varVhpPlan.Cycle) & " " & Coalesce(drpVhpUnit.Selected.Value, ""))')
+    w_strat, w_cyc = text_px("Strategy", 12, False) + 2, text_px("Cycle", 12, False) + 2
+    cyc = value_chip("conVhpPlanCycleChip", f'If({strat}, "Strategy", "Cycle")', cyc_val,
+                     label_w=f"If({strat}, {w_strat}, {w_cyc})")
+    first = value_chip("conVhpPlanFirstCallChip", '"First call"',
+                       f'If(IsBlank(dteVhpFirstCall.SelectedDate), "-", '
+                       f'Text(dteVhpFirstCall.SelectedDate, "{lay.DATE_FMT}"))',
+                       value_chars=len(lay.DATE_FMT))
+    chips = group("conVhpPlanFoldChips", [plant, ptype, cyc, first], direction="Horizontal", gap=6,
+                  height=CHIP_H, align_items="Center")
+    grow(chips, 0)
+    show = button("btnVhpPlanShow", '"Show"', toggle_set,
+                  width=fit_button_width('"Show"') + ICON_W, height=36,
+                  accessible='"Show the plan header fields"', icon=icons.FLUENT["expand"])
+    show.props["LayoutMinWidth"] = show.props["Width"]
+    ghost(show)
+    return group("conVhpPlanFoldRow", [ok, title, chips, show], direction="Horizontal", gap=10,
+                 height=36, align_items="Center", visible=fold)
 
 
 def build_plan_header():
@@ -392,28 +474,31 @@ def build_plan_header():
         display_mode="If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)")
     btnSave.props["Width"] = str(PLAN_SAVE_W)
 
-    footer = section_footer("conVhpPlanFooter", footerInfo, [btnReset, btnSave], PLAN_CW)
-
-    # FOLDET SAMMEN, NAAR PLANEN ER GEMT (UX-review M5, VH-plan-mockuppen).
-    # Issue #192 lod felterne staa foldet ud i alle tilstande. Mockuppen
-    # samler en gemt (laast) plan i een linje - "Plant ASV · Strategy plan
-    # · Z-MONTH · First call ..." - saa Items staar hoejere paa skaermen.
-    # Show folder felterne ud igen (stadig laast; Edit laaser op og folder
-    # ud). Linjen laeser felterne selv, saa den siger det, der staar i dem.
     fold = f"varVhpPlanLocked && !IfError({SHOW_VAR}, false)"
-    summary = text_ctrl("txtVhpPlanSummary", PLAN_SUMMARY, size=lay.SIZE_BODY, height=20,
-                        wrap="false", accessible='"Plan header: " & Self.Text')
-    toggle_txt = f'If(IfError({SHOW_VAR}, false), "Hide", "Show")'
-    toggle = button("btnVhpPlanShow", toggle_txt, f"Set({SHOW_VAR}, !IfError({SHOW_VAR}, false))",
-                    width=fit_button_width('"Hide"'), height=32,
-                    accessible=f'{toggle_txt} & " the plan header fields"')
-    toggle.props["LayoutMinWidth"] = toggle.props["Width"]
-    summary_row = group("conVhpPlanSummary", [grow(summary), toggle], direction="Horizontal",
-                        gap=8, height=32, align_items="Center", visible="varVhpPlanLocked")
+    planMeta.props["Visible"] = f"!({fold})"
+    planMeta.vis = f"!({fold})"
+    # Show/Hide: i den foldede linje hedder den "Show" (btnVhpPlanShow, chevron
+    # ned); i en udfoldet, gemt plan staar "Hide" i foden (chevron op).
+    toggle_set = f"Set({SHOW_VAR}, !IfError({SHOW_VAR}, false))"
+    hide = button("btnVhpPlanHide", '"Hide"', toggle_set, width=fit_button_width('"Hide"') + ICON_W,
+                  height=36, accessible='"Hide the plan header fields"', visible="varVhpPlanLocked",
+                  icon=icons.FLUENT["collapse"])
+    hide.props["LayoutMinWidth"] = hide.props["Width"]
+    footer = section_footer("conVhpPlanFooter", group("conVhpPlanFooterInfo", [planMeta],
+                            direction="Vertical", gap=0, justify="Center"),
+                            [hide, btnReset, btnSave], PLAN_CW)
+    foldRow = plan_fold_row(fold, toggle_set)
+
+    # Foldet: kun foldRow (check, titel, nogletal som chips, Show). Udfoldet:
+    # overskrift, hjaelp, felter og fod som foer.
+    for part in (header, footer):
+        v = part.props.get("Visible")
+        part.props["Visible"] = f"!({fold})" if not v else f"!({fold}) && ({v})"
+        part.vis = part.props["Visible"]
     for part in (helpPanel, grid):
         v = part.props.get("Visible")
         part.props["Visible"] = f"!({fold})" if not v else f"!({fold}) && ({v})"
         part.vis = part.props["Visible"]
 
-    return card("conVhpPlanCard", [header, summary_row, helpPanel, grid, footer], gap=10,
+    return card("conVhpPlanCard", [header, foldRow, helpPanel, grid, footer], gap=10,
                 pad_y=12)
