@@ -5019,7 +5019,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18), Max(460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) / 3))
+                                  =If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18), Min(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18), 380))
                             Children:
                               - conKksFindRow:
                                   Control: GroupContainer
@@ -5054,33 +5054,8 @@ Screens:
                                     PaddingTop: |-
                                         =2
                                     Width: |-
-                                        =If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18), Max(460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) / 3))
+                                        =If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18), Min(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18), 380))
                                   Children:
-                                    - imgKksFindIcon:
-                                        Control: Image
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Search"
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Height: |-
-                                              =20
-                                          Image: |-
-                                              ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z M20 20l-4-4'/></g></svg>")
-                                          ImagePosition: |-
-                                              =ImagePosition.Fit
-                                          LayoutMinWidth: |-
-                                              =20
-                                          OnSelect: |-
-                                              =false
-                                          TabIndex: |-
-                                              =0
-                                          Width: |-
-                                              =20
                                     - inpKksFind:
                                         Control: ModernTextInput
                                         Properties:
@@ -5129,7 +5104,7 @@ Screens:
                                           ValidationState: |-
                                               =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                           Width: |-
-                                              =Max(0, (((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18), Max(460, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) / 3))))) - ((20) + 8) - (If(!IsBlank(inpKksFind.Text), (Max(36, H.hit)) + 8, 0)) - 2)
+                                              =Max(0, (((If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18), Min(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18), 380))))) - (If(!IsBlank(inpKksFind.Text), (Max(36, H.hit)) + 8, 0)) - ((20) + 8) - 2)
                                     - btnKksFindClear:
                                         Control: ModernButton
                                         Properties:
@@ -5182,6 +5157,31 @@ Screens:
                                               =!IsBlank(inpKksFind.Text)
                                           Width: |-
                                               =Max(36, H.hit)
+                                    - imgKksFindIcon:
+                                        Control: Image
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Search"
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Height: |-
+                                              =20
+                                          Image: |-
+                                              ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z M20 20l-4-4'/></g></svg>")
+                                          ImagePosition: |-
+                                              =ImagePosition.Fit
+                                          LayoutMinWidth: |-
+                                              =20
+                                          OnSelect: |-
+                                              =false
+                                          TabIndex: |-
+                                              =0
+                                          Width: |-
+                                              =20
                               - tmrKksFindApply:
                                   Control: Timer
                                   Properties:

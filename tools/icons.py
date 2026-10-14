@@ -186,6 +186,8 @@ HIT_RADIUS = 6
 
 # --- handlinger og navigation -------------------------------------------
 CHEVRON_RIGHT = "M9 6l6 6-6 6"
+CHEVRON_LEFT = "M15 6l-6 6 6 6"
+CLOSE = "M6 6l12 12M18 6L6 18"
 CHEVRON_DOWN = "M6 9l6 6 6-6"
 CHEVRON_UP = "M6 15l6-6 6 6"
 EXPAND = "M6 6l6 6-6 6 M12 6l6 6-6 6"
@@ -199,6 +201,10 @@ EDIT = ("M4 20h4.5L19.3 9.2a2 2 0 0 0 0-2.8l-1.7-1.7a2 2 0 0 0-2.8 0L4 15.5V20Z 
         "M13.5 6l4.5 4.5")
 DELETE = ("M4 6.5h16 M9.5 6.5v-2a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v2 "
           "M6 6.5l.9 12.6a2 2 0 0 0 2 1.9h6.2a2 2 0 0 0 2-1.9L18 6.5 M10 10.5v6M14 10.5v6")
+# Arkiv: en kasse med laag og haandtag. Gendan: en pil, der buer tilbage.
+ARCHIVE = ("M4 4.5h16a1 1 0 0 1 1 1V8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1Z "
+           "M5 9v9.5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9 M10 13h4")
+UNDO = "M9 14 4 9l5-5 M4 9h10.5a5.5 5.5 0 0 1 0 11H11"
 # Aktivitet (tidslinjen): et ur med en pil mod uret - "historik". Ikke
 # statusens ur: In progress er sin egen form (STATUS_PROGRESS).
 HISTORY = ("M3.5 12a8.5 8.5 0 1 0 8.5-8.5a9.2 9.2 0 0 0-6.4 2.6L3.5 8 "

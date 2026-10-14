@@ -77,8 +77,8 @@ def build_formulas():
             order.append(name)
     if inset_vars:
         cond = " || ".join(f"IfError({v}, false)" for v in inset_vars)
-        merged[lay.INSET] = ("%s = If(App.Width >= %d && (%s), %d, 0);"
-                             % (lay.INSET, lay.PANEL_SIDE_MIN, cond, lay.PANEL_W))
+        merged[lay.INSET] = ("%s = If(App.Width >= %d && (%s), %s, 0);"
+                             % (lay.INSET, lay.PANEL_SIDE_MIN, cond, lay.PANEL_W_FX))
     # Sidebarens app-logo (issue #203) - kun den samlede app har sidebaren.
     import side_nav
     if side_nav.LOGO in merged:

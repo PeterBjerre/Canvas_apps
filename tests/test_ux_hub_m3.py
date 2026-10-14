@@ -24,11 +24,11 @@ def _block(y, name, n=3000):
 
 
 def test_tiles_are_72_px_with_a_new_icon_button():
-    assert bh.TILE_H == 72
+    assert bh.TILE_H == 76
     y = _yaml()
     for d in bh.DOMAINS:
-        b = _block(y, f"btnMdTileNew{d['short']}")
-        assert "ButtonLayout.IconOnly" in b
+        b = _block(y, f"imgMdTileNew{d['short']}")
+        assert "Control: Image" in b
         assert f'"New {d["name"].lower()} request"' in b
 
 
