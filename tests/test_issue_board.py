@@ -434,12 +434,16 @@ def test_detail_popup_hierarchy_and_single_close():
     # fanens flade scroller, og den har samme hoejde for alle tre faner
     # (issue #212).
     assert [k.name for k in modal.children] == ["conIbDetHead", "conIbDetTop", "conIbDetContent"]
-    assert [k.name for k in ctrls["conIbDetHead"].children] == ["txtIbDetNo", "txtIbDetTitle",
-                                                               "btnIbDetClose"]
-    # Issue #229: Close er et ikon oeverst til hoejre - den eneste vej ud.
-    close = ctrls["btnIbDetClose"]
-    assert close.props["Icon"] == '"Dismiss"' and close.props["Layout"] == "ButtonLayout.IconOnly"
-    assert close.props["AccessibleLabel"] == '"Close"' == close.props["Tooltip"]
+    assert [k.name for k in ctrls["conIbDetHead"].children] == [
+        "txtIbDetNo", "txtIbDetTitle", "btnIbDetPrevious", "btnIbDetNext", "btnIbDetClose"]
+    # Pile til at blade mellem sagerne i listen og et kryds uden ramme -
+    # alle tre som stregikoner i en Image.
+    for n, label in (("btnIbDetPrevious", '"Previous issue"'), ("btnIbDetNext", '"Next issue"'),
+                     ("btnIbDetClose", '"Close"')):
+        b = ctrls[n]
+        assert b.control == "Image"
+        assert b.props["AccessibleLabel"] == label == b.props["Tooltip"]
+    assert ctrls["btnIbDetClose"].props["OnSelect"] == "Set(varIbDetailOn, false)"
     # Status, prioritet, Application og Section som maerker/vaerdier - ingen
     # lang streng med skilletegn.
     assert [k.name for k in ctrls["conIbDetMeta"].children] == ["conIbDetBadges", "conIbDetWhere"]
@@ -470,19 +474,24 @@ def test_detail_popup_hierarchy_and_single_close():
     # Delete sidst og i fare-farven.
     assert "btnIbMoreActs" not in ctrls and "conIbActsMenu" not in ctrls
     assert [k.name for k in ctrls["conIbDetActions"].children] == ["btnIbReopen", "btnIbEdit",
-                                                                   "btnIbArchive", "btnIbDelete"]
+                                                                   "btnIbArchive", "btnIbRestore",
+                                                                   "btnIbDelete"]
     assert ctrls["btnIbEdit"].props["Visible"] == "IbCanEdit"
-    assert ctrls["btnIbArchive"].props["Visible"] == "IbCanManage"
+    assert ctrls["btnIbArchive"].props["Visible"] == "IbCanManage && !varIbSel.Archived"
+    assert ctrls["btnIbRestore"].props["Visible"] == "IbCanManage && varIbSel.Archived"
     assert ctrls["btnIbDelete"].props["Visible"] == "IbCanManage"
     assert ctrls["btnIbReopen"].props["Visible"] == "IbCanReopen"
     for n, icon in (("btnIbEdit", '"Edit"'), ("btnIbDelete", '"Delete"')):
         assert ctrls[n].props["Icon"] == icon
-    assert '"Archive"' in ctrls["btnIbArchive"].props["Icon"]
-    for n in ("btnIbEdit", "btnIbArchive", "btnIbDelete"):
+    for n in ("btnIbArchive", "btnIbRestore"):
+        assert ctrls[n].control == "Image"
+        assert ctrls[n].props["Tooltip"] and ctrls[n].props["AccessibleLabel"]
+    for n in ("btnIbEdit", "btnIbDelete"):
         b = ctrls[n]
         assert b.props["Layout"] == "ButtonLayout.IconOnly"
         assert b.props["Tooltip"] and b.props["AccessibleLabel"]
-        assert b.props["BorderColor"] == P.C_TRANSPARENT
+        assert b.props["BorderThickness"] == "1"
+        assert b.props["BorderColor"] != P.C_TRANSPARENT
     assert ctrls["btnIbDelete"].props["Color"] == P.C_INVALID_FG
     assert ctrls["btnIbDelete"].props["OnSelect"].endswith("Set(varIbDelOn, true)")
     assert "varIbActsOn" not in open(os.path.join(ROOT, "BIO SAP App", "ScreenIssueBoard.pa.yaml"),

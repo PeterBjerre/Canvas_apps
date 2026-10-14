@@ -211,7 +211,7 @@ def _step_tooltip(i):
         # "Ready to submit" kraever det hele - hele listen, grupperet.
         return (f"If(\n    VhpSubmitted, {AFTER_TIPS[i]},\n"
                 f"    d{i + 1}, \"Ready - Submit is available.\",\n"
-                f"    \"Before you can submit:\" & Char(10) & {GROUPED}\n)")
+                f"    \"Not ready yet - select the info icon to see what is missing.\"\n)")
     # Sektionens krav - ogsaa naar trinet er groent, men en regel i
     # sektionen fejler. Saa siger tooltip og badge det samme.
     return (f"If(\n    VhpSubmitted, {AFTER_TIPS[i]},\n"
@@ -352,7 +352,7 @@ def _submit_tooltip():
             f"    IfError(varVhpViewOnly, false), \"View mode - select Edit to change or submit the plan.\",\n"
             f"    {CAN_SUBMIT},\n    \"Submit the plan for approval.\",\n"
             f"    varVhpSaving, \"Saving ...\",\n"
-            f"    \"Before you can submit:\" & Char(10) & {GROUPED}\n)")
+            f"    \"Not ready yet - select the info icon to see what is missing.\"\n)")
 
 
 # LINJEN UNDER TRINENE (issue #88): det, der mangler, uden at man skal

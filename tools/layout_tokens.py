@@ -232,6 +232,9 @@ ROOT_Y = BAR_OFFSET
 # og SHELL_W mister saa panelets bredde. PanelInset er 0 ellers.
 PANEL_W = 480
 PANEL_SIDE_MIN = 1280
+# Panelet fylder en tredjedel af skaermen, dog mindst PANEL_W. Det er en
+# beregning, ikke en sammenligning af App.Width med et tal.
+PANEL_W_FX = "Max(%d, App.Width / 3)" % PANEL_W
 INSET = "PanelInset"
 ROOT_W = "Parent.Width - %s - %s" % (NAV_OFFSET, INSET)
 ROOT_H = "Parent.Height - %s" % BAR_OFFSET
@@ -260,6 +263,10 @@ def below(name):
 def at_least(name):
     """Denne tier eller bredere."""
     return "%s >= %d" % (RANK, _RANK[_check(name)])
+
+
+# Panelets bredde paa skaermen: en tredjedel fra Desktop og op, ellers hele.
+PANEL_W_AT = "If(%s, %s, App.Width)" % ("%s >= %d" % (RANK, _RANK["Desktop"]), PANEL_W_FX)
 
 
 def tier_is(name):
@@ -448,7 +455,7 @@ def panel_inset_formula(open_var=None):
     cond = "App.Width >= %d" % PANEL_SIDE_MIN
     if open_var:
         cond += " && IfError(%s, false)" % open_var
-        return "%s = If(%s, %d, 0);" % (INSET, cond, PANEL_W)
+        return "%s = If(%s, %s, 0);" % (INSET, cond, PANEL_W_FX)
     return "%s = 0;" % INSET
 
 

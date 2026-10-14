@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 """Formularer i sektioner (UX-review 2026-10, M2)."""
 import os
+import sys
 
 import yaml
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import layout_tokens as lay  # noqa: E402
 APP = os.path.join(ROOT, "BIO SAP App")
 
 
@@ -65,7 +68,7 @@ def test_equipment_and_measuring_point_use_the_responsive_row_panel():
     for screen, prefix in (("ScreenEquipment.pa.yaml", "Eq"),
                           ("ScreenMeasuringPoint.pa.yaml", "Mp")):
         props = _properties(screen)
-        assert props[f"con{prefix}EditorPanel"]["Width"] == "=If(LayoutRank >= 3, 480, App.Width)"
+        assert props[f"con{prefix}EditorPanel"]["Width"] == "=" + lay.PANEL_W_AT
         assert props[f"con{prefix}EditorSections"]["LayoutOverflowY"] == "=LayoutOverflow.Scroll"
         assert props[f"btn{prefix}EditorClose"]["OnSelect"].startswith(f"=Set(var{prefix}ActiveRowId")
 
@@ -105,14 +108,14 @@ def test_functional_location_has_status_column_and_row_panel():
     props = _properties("ScreenFunctionalLocation.pa.yaml")
     assert "btnFlRowStatus" in props
     assert "conFlEditorPanel" in props
-    assert props["conFlEditorPanel"]["Width"] == "=If(LayoutRank >= 3, 480, App.Width)"
+    assert props["conFlEditorPanel"]["Width"] == "=" + lay.PANEL_W_AT
     assert all(f"conFlPanel{section}" in props
                for section in ("Master", "Status", "Class", "TRM", "Ext"))
 
 
 def test_issue_board_details_use_a_side_panel_without_losing_tabs():
     props = _properties("ScreenIssueBoard.pa.yaml")
-    assert props["conIbDetModal"]["Width"] == "=If(LayoutRank >= 3, 480, App.Width)"
+    assert props["conIbDetModal"]["Width"] == "=" + lay.PANEL_W_AT
     assert all(name in props for name in ("btnIbTabDetails", "btnIbTabActivity", "btnIbTabFiles"))
 
 

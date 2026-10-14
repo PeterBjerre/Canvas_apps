@@ -95,10 +95,10 @@ Andre steder:
 - Designmockups: designlærredet "BIO SAP — UX review" (Equipments-mockup og VH-plan-mockup). Følg dem så tæt, som Power Apps tillader, og skriv afvigelser i PR'en.
 
 ## Status for resten af etape 2
-- **2i:** De fælles hjælpere `request_shell()`, `row_list()` og `row_editor_panel()` er implementeret og testet. Panelet viser rækkeposition, forrige/næste/luk, har separat scroll og fast footer; bredden er 480 px fra Desktop og fuld skærm under Desktop.
+- **2i:** De fælles hjælpere `request_shell()`, `row_list()` og `row_editor_panel()` er implementeret og testet. Panelet viser rækkeposition, forrige/næste/luk, har separat scroll og fast footer; bredden er `Max(480, App.Width / 3)` (ca. 1/3 af skærmen) fra Desktop og fuld skærm under Desktop; et klik udenfor lukker panelet.
 - **2j:** Equipment og Measuring Points åbner formularen i panelet, viser Documents med antal og har en More-menu med Copy row/Delete row. `ObjectList` og `ObjectListJson` er nu provisioneret på begge lister; builderintegration og genindlæsning af datakildeskema i Studio mangler.
 - **2k:** Materials har fanerne Details/Objects/Documents med objektsøger og dokumentliste/upload indlejret i panelet.
-- **2l:** FL har statuskolonne og et panel grupperet efter Master/Status/Class/TRM/Ext i to kolonner; Issue Board-detaljevisningen er et 480 px-sidepanel med Description/Activity/Attachments.
+- **2l:** FL har statuskolonne og et panel grupperet efter Master/Status/Class/TRM/Ext i to kolonner; Issue Board-detaljevisningen er et sidepanel (samme bredde) med Description/Activity/Attachments.
 - **M3-rettelse:** Request-sorteringen bruger SharePoints interne `Title`; visningsnavnet `RequestNo` bruges fortsat i søgning og visning.
 
 ## Resterende etape 2

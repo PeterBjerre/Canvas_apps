@@ -25,5 +25,5 @@ def test_frame_and_scrim_follow_the_panel():
         y = _read(screen + ".pa.yaml")
         assert "PanelInset" in y
         assert "- PanelInset" in y
-        assert "PanelInset = 0" in y  # backdrop only when the panel overlays
+        assert "EditorBackdrop" in y  # click outside closes the panel
         assert "OnHidden" in y
