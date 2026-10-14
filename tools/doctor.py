@@ -61,19 +61,11 @@ def check_packages():
 def check_node():
     node = shutil.which("node")
     if not node:
-        report(WARN, "Node findes ikke - FL-reglerne og fakturalaeseren efterproeves ikke",
+        report(WARN, "Node findes ikke - FL-reglerne efterproeves ikke",
                "winget install OpenJS.NodeJS.LTS  (aabn derefter en ny terminal)")
         return
     out = subprocess.run([node, "--version"], capture_output=True, text=True).stdout.strip()
-    parts = (out.lstrip("v").split(".") + ["0", "0"])[:2] if out else ["0", "0"]
-    version = (int(parts[0] or 0), int(parts[1] or 0))
-    # 22.13: module.stripTypeScriptTypes, som tools/invoice/harness.mjs
-    # bruger til at koere Office Scriptet (docs/34).
-    if version < (22, 13):
-        report(WARN, f"Node {out} - fakturalaeseren kraever 22.13+ (CI bruger 22)",
-               "winget upgrade OpenJS.NodeJS.LTS")
-    else:
-        report(OK, f"Node {out}")
+    report(OK, f"Node {out}")
 
 
 def stale_files():

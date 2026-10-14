@@ -238,7 +238,7 @@ Begge apps har HTML-projektets formular og liste. **Byggeklodserne** er
 fælles i `tools/domain_parts.py`; **hvilke felter i hvilken rækkefølge og
 hvilke kolonner** er appens egen:
 
-| App | Fil | Reference |
+| App | Fil | Reference (skærmbillederne ligger i git-historikken) |
 |---|---|---|
 | Materials | `Material App/build/material_parts.py` | `materials.png`, `saved row.png` - felterne i række-orden |
 | Equipments | `Equipment App/build/equipment_parts.py` | `eq.png` - felterne i kolonne-orden |

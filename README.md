@@ -15,7 +15,7 @@ af dem:
 | **VH-plan** | [`Maintenance Plan App/`](Maintenance%20Plan%20App) | Indmelding af vedligeholdsplaner, inkl. strategiplaner med pakker |
 | **Equipments** | [`Equipment App/`](Equipment%20App) | Indmelding af udstyr |
 | **Materials** | [`Material App/`](Material%20App) | Indmelding af reservedele |
-| **Functional Location** | [`Functional Location App/`](Functional%20Location%20App) | Functional Locations (SPOOL): KKS-syntaks, klasse og spool-felter pr. klasse. Reglerne er HTML-sidens (`html/functional-location.html` + JS) - se [`docs/31`](docs/31-functional-location-regler.md) |
+| **Functional Location** | [`Functional Location App/`](Functional%20Location%20App) | Functional Locations (SPOOL): KKS-syntaks, klasse og spool-felter pr. klasse. Reglerne er HTML-sidens JS (`html/*.js`) - se [`docs/31`](docs/31-functional-location-regler.md) |
 | **KKS lookup** | [`KKS App/`](KKS%20App) | Opslag i KKS-vejledningen: funktions-, aggregat- og komponentnøgler. Kun en skærm i BIO SAP - den var aldrig en af de fem enkeltapps. Data i SharePoint; aggregat og komponent genbruger `MD_FLKey`. Se [`KKS App/README.md`](KKS%20App/README.md) |
 
 > **Equipments og Materials deler byggeklodser, men er to apps.** De var
@@ -93,12 +93,8 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 
 | Fil | Indhold |
 |---|---|
-| [`docs/01-loesningsoplaeg.md`](docs/01-loesningsoplaeg.md) | Domæneforståelse, arkitektur, komponentvalg, åbne spørgsmål |
 | [`docs/02-datamodel-sharepoint.md`](docs/02-datamodel-sharepoint.md) | Lister og kolonner, felt for felt |
-| [`docs/03-canvas-app-design.md`](docs/03-canvas-app-design.md) | Skærme, komponenter, tilstand, gem/submit |
 | [`docs/04-integration-sap.md`](docs/04-integration-sap.md) | Fire veje til SAP – kontrakt, idempotens, fejlhåndtering |
-| [`docs/05-implementeringsplan.md`](docs/05-implementeringsplan.md) | Faser, risici, hvad der kan skæres væk |
-| [`docs/06-excel-gui-scripting.md`](docs/06-excel-gui-scripting.md) | Oplæggets Excel + GUI Scripting. Den byggede vej er docs/34 |
 | [`docs/07-landingsside.md`](docs/07-landingsside.md) | Landingsside for alle fem masterdata-domæner: hub vs. monolit, indekslisten, performanceregler |
 | [`docs/32-godkendelsesflow.md`](docs/32-godkendelsesflow.md) | **Oplæg:** godkendelsesflow for nye VH-planer — system- og omkostningsgodkendelse pr. item (Power BI Plant Section Key + MD_Approver, 300.000 kr.), kvalitet pr. værk; statusmodel, kolonner, flows |
 | [`docs/34-sap-oprettelse.md`](docs/34-sap-oprettelse.md) | **Vejen til SAP:** SAP Opretter (Excel + GUI Scripting), én JSON-ordre pr. plan i et synkroniseret bibliotek, kvittering tilbage; sikkerhed, fejl, afprøvning |
@@ -114,12 +110,6 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 |---|---|
 | `tools/canvas_mcp.py` | Byg, compile og synk til Studio via canvas-authoring MCP-serveren — uden VS Code |
 | `tools/export_solution.ps1` | Hent solution BIO SAP ned som læsbare filer — flows, miljøvariabler, connection references |
-| `powerfx/*.fx` | **Designnoter** fra oplægget — ikke kode, der bygges. FL-builderne bruger 03/04 som mønster |
-| `powerfx/01-app-formulas.fx` | Named formulas, opstart, navigation |
-| `powerfx/02-pakkematrix.fx` | Pakkematricen – nested gallery, toggle, genveje |
-| `powerfx/03-validering.fx` | Regelsæt S1–S9 som én meddelelsestabel |
-| `powerfx/04-submit-patch.fx` | Genoptageligt gem + JSON-snapshot ved submit |
-| `powerfx/05-html-timeline.fx` | Formel, der bygger HTML-forfaldskalenderen |
 | `sharepoint/provision/Provision-*.ps1` | Idempotent PnP-provisionering af de lister, apperne bruger (se Hurtig start) |
 | `sharepoint/provision/Provision-RequestIndex.ps1` | `MD_RequestIndex` — den fælles indeksliste bag landingssiden |
 | `sharepoint/provision/Provision-VHPlanApproval.ps1` | Godkendelsesflowets fase 1: kolonner på `MaintenancePlans`, `MD_Approver`, `MD_ApprovalLog`, grænsen i `AppSettings` — se `docs/32` |
@@ -128,15 +118,9 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 | `sharepoint/seed/*.csv` | Masterdata: strategier, pakker, hjælpetekster, godkendere, FL-nøgler |
 | `schema/vhplan-sap-order.schema.json`, `vhplan-sap-receipt.schema.json` | Ordren til opretteren og kvitteringen tilbage, med eksempler |
 | `schema/fl-sap-order.schema.json`, `fl-sap-receipt.schema.json` | Det samme for FL-anmodninger |
-| `schema/vhplan-request.schema.json` | Oplæggets kontrakt mod SAP (historisk) |
-| `schema/example-strategy-request.json` | Udfyldt eksempel (kompressor, Z-MONTH) |
-| `html/cycle-timeline-reference.html` | Referenceoutput – åbn i en browser |
 | `excel/opretter/` | **SAP Opretter** (VH-planer og FL): VBA-modulerne, `Build-Opretter.ps1` og teamets vejledning |
-| `excel/vba/spool-gui/` | SPOOL-arkets GUI-script til FL, trukket ud som reference for porten |
+| `excel/vba/spool-gui/GUI_SCRIPT.bas` | SPOOL-arkets GUI-script til FL, trukket ud som reference for porten |
 | `flow/sap-ordre/` | Udtrykkene til flowene i `docs/35` (VH-planer) og `docs/36` (FL, `fl-*`) |
-| `excel/vba/*.bas` | Oplæggets VBA-moduler (afløst af `excel/opretter`) |
-| `excel/powerquery/*.m` | Oplæggets Power Query (afløst: opretteren læser JSON) |
-| `excel/VHPlan-SAP-skabelon.xlsx` | Oplæggets projektmappe med tabeller og eksempeldata (historisk) |
 
 ## Vejen til SAP
 
@@ -209,8 +193,4 @@ $site = "https://<tenant>.sharepoint.com/sites/<site>"
 
 VH-planens egne lister (`MaintenancePlans`, `MaintenanceItems`,
 `TaskListMain` …) findes i forvejen; scripterne ovenfor tilføjer kolonner og
-de nye `MD_*`-lister. Det tidligere `Provision-VHPlanLists.ps1` ligger i
-`archive/` — det oprettede den ubrugte `VHP_*`-model.
-
-Åbn derefter `html/cycle-timeline-reference.html` i en browser for at se,
-hvad forfaldskalenderen skal ende med at vise.
+de nye `MD_*`-lister.

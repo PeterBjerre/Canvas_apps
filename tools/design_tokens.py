@@ -791,7 +791,7 @@ def onstart_block():
 PREF_HUB = ("prefMdView", "prefMdStatus", "prefMdFlag", "prefMdDomain", "prefMdSearch")
 PREF_ROW_TAGS = ("Dom", "Eq", "Mat", "Mp")
 PREF_ROWS = tuple("pref%s%s" % (t, f) for t in PREF_ROW_TAGS
-                  for f in ("Search", "Status", "Plant"))
+                  for f in ("Search", "Status", "Plant", "NewPlant"))
 PREF_TEXT = PREF_HUB + PREF_ROWS
 
 

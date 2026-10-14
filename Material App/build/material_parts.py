@@ -606,7 +606,7 @@ def build_popups():
         "DomReset", RESET_ASK, "Discard unsaved changes?",
         '"The form is cleared and starts a new row. Saved rows and the request '
         'are not changed."',
-        "Reset", dp.clear_form_fx(), "btnDomResetConfirm", icon=None)
+        "Reset", dp.clear_form_fx(), "btnDomResetConfirm", icon=None, danger=True)
     objects = [] if getattr(cfg, "ROW_PANEL_ENABLED", False) else _objects_popup()
     return objects + _po_popup() + ask
 
