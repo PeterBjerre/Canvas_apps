@@ -975,7 +975,7 @@ def build_object_list_modal():
             "BorderThickness": "1",
             "Fill": C_INPUT_BG,
             "FillPortions": "0",
-            "Height": str(OBJ_ROWS * (OBJ_ROW_H + 2)),
+            "Height": f"Min({OBJ_ROWS * (OBJ_ROW_H + 2)}, Max(96, App.Height - 260))",
             "Items": OBJ_ROWS_FX,
             "LayoutMinWidth": "0",
             "LoadingSpinner": "LoadingSpinner.None",

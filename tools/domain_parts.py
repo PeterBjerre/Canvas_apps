@@ -2738,7 +2738,7 @@ def paste_open_fx():
 
 def build_paste():
     """Popuppen "Paste rows" - [sloer, popup]."""
-    from build_helpers import popup_head
+    from build_helpers import popup_head, popup_body_max
     vis = f"IfError({PASTE_VAR}, false)"
     close = f"Set({PASTE_VAR}, false)"
     backdrop = tap_backdrop("conDomPasteBackdrop", vis, close)
@@ -2750,7 +2750,7 @@ def build_paste():
     help_ = text_ctrl("txtDomPasteHelp",
                       '"Copy the cells in Excel and paste them here, one row per line. '
                       'The rows are added as drafts. Columns in this order: " & ' + names,
-                      size=13, color=C_MUTED, height=80, wrap="true")
+                      size=13, color=C_MUTED, height=if_below("Tablet", 132, 80), wrap="true")
     inp = text_input("inpDomPaste", f"Coalesce({PASTE_TEXT}, \"\")", height=140, ttype="Multiline",
                      placeholder='"Paste from Excel"', label='"Rows to paste"',
                      onchange=f"Set({PASTE_TEXT}, Self.Text)")
@@ -2765,13 +2765,15 @@ def build_paste():
         size=13, height=24, wrap="false",
         extra={"Color": f"If(ThisItem.Ok, {C_TITLE}, {C_INVALID_FG})",
                "Width": "Parent.TemplateWidth"})
-    gal_h = "Min(CountRows(colDomPaste), 6) * 26"
+    # Fra Desktop faar listen sin egen rulning efter seks linjer; under
+    # Desktop vokser den, og popuppens indhold scroller i stedet.
+    gal_h = f"If({at_least('Desktop')}, Min(CountRows(colDomPaste), 6), CountRows(colDomPaste)) * 26"
     gal = Ctrl("galDomPaste", "Gallery", variant="Vertical", props={
         "AccessibleLabel": '"Preview of the pasted rows"',
         "BorderStyle": "BorderStyle.None", "Fill": C_TRANSPARENT, "FillPortions": "0",
         "Height": gal_h, "Items": "colDomPaste", "LayoutMinWidth": "0",
         "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
-        "ShowScrollbar": "true", "TabIndex": "0", "TemplatePadding": "0",
+        "ShowScrollbar": at_least("Desktop"), "TabIndex": "0", "TemplatePadding": "0",
         "TemplateSize": "26", "Width": "Parent.Width",
     }, children=[line], h=gal_h, vis="!IsEmpty(colDomPaste)")
     ok_n = "CountRows(Filter(colDomPaste, Ok))"
@@ -2781,7 +2783,9 @@ def build_paste():
                  display_mode=f"If({ok_n} = 0, DisplayMode.Disabled, DisplayMode.Edit)")
     footer = group("conDomPasteFooter", [preview, add], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
-    modal = group("conDomPasteModal", [head, help_, inp, gal, footer], direction="Vertical",
+    body = du.capped_body("conDomPasteBody", [help_, inp, gal],
+                          popup_body_max([head.h, footer.h]))
+    modal = group("conDomPasteModal", [head, body, footer], direction="Vertical",
                   gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(18, 18, 18, 18), width="Min(640, App.Width - 24)",
                   drop_shadow="ExtraBold", visible=vis)

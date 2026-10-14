@@ -12098,7 +12098,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =340
+                =116 + 12 + (Min(172 + (If(LayoutRank < 2, 60, 40)), App.Height - 152))
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -12245,86 +12245,113 @@ Screens:
                             =VerticalAlign.Middle
                         Width: |-
                             =90
-            - txtFlPasteHelp:
-                Control: ModernText
+            - conFlPasteBody:
+                Control: GroupContainer
+                Variant: AutoLayout
                 Properties:
-                  AccessibleLabel: |-
-                      ="Copy two columns in Excel and paste them here, one row per line: the functional location and the description."
                   BorderStyle: |-
                       =BorderStyle.None
-                  BorderThickness: |-
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
                       =0
-                  Color: |-
-                      =C.'text-muted'
-                  Fill: |-
-                      =RGBA(0, 0, 0, 0)
-                  Font: |-
-                      =Font.'Segoe UI'
                   Height: |-
-                      =40
-                  PaddingBottom: |-
-                      =0
-                  PaddingLeft: |-
-                      =0
-                  PaddingRight: |-
-                      =0
-                  PaddingTop: |-
-                      =0
-                  Size: |-
-                      =T.body
-                  Text: |-
-                      ="Copy two columns in Excel and paste them here, one row per line: the functional location and the description."
-                  Wrap: |-
-                      =true
-            - inpFlPaste:
-                Control: ModernTextInput
-                Properties:
-                  AccessibleLabel: |-
-                      ="Rows to paste"
-                  Appearance: |-
-                      =Appearance.FilledDarker
-                  BasePaletteColor: |-
-                      =C.'color-brand-primary'
-                  BorderColor: |-
-                      =If(varFlViewOnly, C.'border-default', C.'border-input')
-                  BorderStyle: |-
-                      =BorderStyle.Solid
-                  BorderThickness: |-
-                      =1
-                  Color: |-
-                      =C.'input-fg'
-                  Default: |-
-                      =Coalesce(varFlPasteText, "")
-                  DisplayMode: |-
-                      =If((If(varFlViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                  Fill: |-
-                      =C.'input-bg'
-                  Font: |-
-                      =Font.'Segoe UI'
-                  Height: |-
-                      =160
+                      =Min(172 + (If(LayoutRank < 2, 60, 40)), App.Height - 152)
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Stretch
+                  LayoutDirection: |-
+                      =LayoutDirection.Vertical
+                  LayoutGap: |-
+                      =12
                   LayoutMinWidth: |-
                       =0
-                  OnChange: |-
-                      =Set(varFlPasteText, Self.Text)
-                  Placeholder: |-
-                      ="Paste from Excel"
-                  RadiusBottomLeft: |-
-                      =R.input
-                  RadiusBottomRight: |-
-                      =R.input
-                  RadiusTopLeft: |-
-                      =R.input
-                  RadiusTopRight: |-
-                      =R.input
-                  Size: |-
-                      =If(LayoutRank < 2, 16, 14)
-                  Type: |-
-                      =TextInputType.Multiline
-                  ValidationState: |-
-                      =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Scroll
                   Width: |-
                       =Parent.Width
+                Children:
+                  - txtFlPasteHelp:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Copy two columns in Excel and paste them here, one row per line: the functional location and the description."
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-muted'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =If(LayoutRank < 2, 60, 40)
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.body
+                        Text: |-
+                            ="Copy two columns in Excel and paste them here, one row per line: the functional location and the description."
+                        Wrap: |-
+                            =true
+                  - inpFlPaste:
+                      Control: ModernTextInput
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Rows to paste"
+                        Appearance: |-
+                            =Appearance.FilledDarker
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        BorderColor: |-
+                            =If(varFlViewOnly, C.'border-default', C.'border-input')
+                        BorderStyle: |-
+                            =BorderStyle.Solid
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'input-fg'
+                        Default: |-
+                            =Coalesce(varFlPasteText, "")
+                        DisplayMode: |-
+                            =If((If(varFlViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                        Fill: |-
+                            =C.'input-bg'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =160
+                        LayoutMinWidth: |-
+                            =0
+                        OnChange: |-
+                            =Set(varFlPasteText, Self.Text)
+                        Placeholder: |-
+                            ="Paste from Excel"
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =If(LayoutRank < 2, 16, 14)
+                        Type: |-
+                            =TextInputType.Multiline
+                        ValidationState: |-
+                            =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                        Width: |-
+                            =Parent.Width
             - conFlPasteFooter:
                 Control: GroupContainer
                 Variant: AutoLayout

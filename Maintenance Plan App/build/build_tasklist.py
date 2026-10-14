@@ -271,7 +271,7 @@ def _mat_header_html():
             f"font-weight:600;white-space:nowrap;'>{spans}</div>\"")
 
 
-def _modal(name, title, open_var, close_fx, kids, width=620, scroll=False):
+def _modal(name, title, open_var, close_fx, kids, width=620, scroll=False, cap=False):
     """En popup i appens moenster (som tasklist-pickeren): centreret,
     sloer bag (build_modal.build_modal_backdrop), titel og luk-knap.
     scroll: titel og Close staar fast, indholdet scroller."""
@@ -286,6 +286,8 @@ def _modal(name, title, open_var, close_fx, kids, width=620, scroll=False):
         body = group(f"con{name}Body", kids, direction="Vertical", gap=8, height=body_h,
                      overflow_y="Scroll")
         kids = [body]
+    elif cap:
+        kids = [du.capped_body(f"con{name}Body", kids, "App.Height - 40 - 36 - 32 - 12", gap=8)]
     modal = group(f"con{name}Modal", [head] + kids, direction="Vertical", gap=12,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(18, 18, 18, 18), width=f"Min({width}, App.Width - 40)",
@@ -417,7 +419,7 @@ def _materials_modal():
                   align_items="Start")
 
     return _modal("VhpMat", '"Materials - operation " & varVhpMatOpNo', MAT_OPEN,
-                  'Set(varVhpMatOpNo, "")', [actions, note, table])
+                  'Set(varVhpMatOpNo, "")', [actions, note, table], cap=True)
 
 
 # ---------------------------------------------------------------------------
