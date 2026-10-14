@@ -344,7 +344,7 @@ def _key_tabs():
 
 
 SEARCH_MIN = 2
-SEARCH_ROW_W = f"If({lay.below('Tablet')}, {CARD_W}, Max(460, {CARD_W} / 3))"
+SEARCH_ROW_W = f"If({lay.below('Tablet')}, {CARD_W}, Min({CARD_W}, 380))"
 # Soegningen (UX-review, KKS): et tekstfelt med soegeikon og et kryds, der
 # rydder det. Den soeger, mens man skriver - en timer laegger teksten i
 # varKksQuery et kort ophold efter sidste tastetryk, saa filtreringen over
@@ -381,7 +381,7 @@ def _search_row():
     clear.props["BorderColor"] = C_TRANSPARENT
     clear.props["LayoutMinWidth"] = str(SEARCH_H)
     ensure_hit(clear)                  # H.hit (UX-review F6, regel 40)
-    row = group("conKksFindRow", [ico, inp, clear], direction="Horizontal", gap=8,
+    row = group("conKksFindRow", [inp, clear, ico], direction="Horizontal", gap=8,
                 height=f"{hit_size(SEARCH_H)} + {2 * SEARCH_PAD}", pad=(SEARCH_PAD, 0, SEARCH_PAD, 0),
                 align_items="Center", width=SEARCH_ROW_W)
     apply = _timer("tmrKksFindApply", f'{QUERY_OF_TEXT} <> Coalesce(varKksQuery, "")', 350,

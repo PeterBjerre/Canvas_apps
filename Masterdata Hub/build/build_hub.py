@@ -21,7 +21,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
 import layout_tokens as lay
 from build_helpers import (_sum_expr, row_rule, row_hit, text_input, text_ctrl, group, button, card, flow_row, top_bar,
                            fit_button_width, text_px, ICON_W, grow, themed_dropdown, icon_on_mobile,
-                           confirm_modal, new_request_label, empty_state, skeleton_rows, ensure_hit)
+                           confirm_modal, new_request_label, empty_state, skeleton_rows, ensure_hit, segmented)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET
 from design_tokens import theme_query, ref_hex, ref as _t
 import design_tokens as tok
@@ -438,7 +438,7 @@ def build_bar():
     "My requests" er en kontakt: slaaet til viser listen og fliserne dine
     egne indmeldinger, slaaet fra afdelingens koe. "New request" aabner en
     menu med de fem domaener (build_new_menu)."""
-    seg = _view_switch(mobile=True)
+    seg = _view_switch()
     for s in seg:
         s.props["Visible"] = s.vis
     # "New Request" uden plus-ikon (issue #243) - den faelles
@@ -453,25 +453,23 @@ def build_bar():
     return bar
 
 
-def _view_switch(mobile=False):
-    """My requests | Department as two outline buttons in the row, styled like Open/Closed/All.
-    Mobile: My | All (first row under the top bar)."""
+def _view_switch():
+    """Mobile: My | All (first row under the top bar). On desktop the switcher is the
+    segmented track in build_filters."""
     btns = []
-    size = 12 if mobile else lay.SIZE_INPUT
+    size = 12
     for name, key, wide, short, tight in (
             ("btnMdViewMine", "mine", "My requests", "My", "Mine"),
             ("btnMdViewAll", "queue", "Department", "All", "Dept.")):
-        label = short if mobile else wide
-        w = fit_button_width(f'"{label}"', size=size, min_w=0) + 20
-        b = button(name + ("M" if mobile else ""), f'"{label}"',
-                   f'Set(varMdView, "{key}"); Set(varMdDomain, "");\n' + SCOPE_REFRESH + ";\n" + SAVE_HUB,
+        w = fit_button_width(f'"{short}"', size=size, min_w=0) + 20
+        b = button(name + "M", f'"{short}"',
+                   f'Set(varMdView, "{key}"); Set(varMdDomain, "");\n'
+                   + SCOPE_REFRESH + ";\n" + SAVE_HUB,
                    width=w, height=36, accessible=f'"{wide}"')
         _selected_style(b, f'varMdView = "{key}"', idle_color=C_MUTED)
         b.props["Size"] = str(size)
         b.props["LayoutMinWidth"] = b.props["Width"]
-        b.vis = below("Tablet") if mobile else at_least("Tablet")
-        # Filterlinjens trin (build_filters, issue #91): fuld tekst i de to
-        # brede, "Mine" | "Dept." i det korte.
+        b.vis = below("Tablet")
         _FLT_LV[b.name] = {"full": (w, None, None),
                  "compact": (_tight(wide), None, None),
                  "short": (_tight(tight), None, f'"{tight}"')}
@@ -552,7 +550,7 @@ def build_new_menu():
 TILE_GAP = 12
 TILE_GAP_X = TILE_GAP
 TILE_PAD_T = 4
-TILE_PAD_B = 8
+TILE_PAD_B = 14
 # Fliserne gaar hele vejen ud til listens kanter (ingen sidepolstring).
 TILES_CW = f"({SHELL_W})"
 TILE_W = if_below("Desktop", f"({TILES_CW} - {2 * TILE_GAP}) / 3",
@@ -561,14 +559,18 @@ TILE_LINES = if_below("Desktop", "2", "1")
 # KOMPAKTE FLISER (UX-review M3): 72 px i stedet for 148 - ikon, navn og
 # tal paa to linjer og "New" til hoejre, saa listen staar hoejere paa
 # skaermen. Telefonen beholder sine smaa fliser (tre pr. raekke, uden New).
-TILE_H = 72
-TILE_H_M = 100
+TILE_H = 76
+TILE_H_M = 104
 # New er en ikonknap (+): teksten "New" alene er forbudt (issue #243), og
 # "New request" er for bred til flisen. Klikfladen er H.hit (regel 40).
 TILE_NEW_W = lay.HIT_TOUCH
-TILE_NEW_GAP = 8
-TILE_NEW_PAD = 10
 STRIPE_H = 4
+# Flisens kant er 1-2 px: forsiden faar 4 px luft, saa den aldrig bliver
+# skaaleret ned af kanten (det skubbede stregen ned fra flisens top).
+TILE_PAD = 2
+TILE_RADIUS = 6
+TILE_ROW_H = TILE_H - STRIPE_H - TILE_PAD
+TILE_ROW_H_M = TILE_H_M - STRIPE_H - TILE_PAD
 
 
 def _tile_state(d, sel):
@@ -581,8 +583,8 @@ def _tile_state(d, sel):
         valgt      2 px kant i domaenets farve, bloed toning af hele
                    flisen og en let skygge - ikke en kraftig baggrund
 
-    Hover daekker hele flisen, fordi hele flisen ER eet billede (issue
-    #74): der er ingen knaprad under forsiden mere, som hover ikke naaede.
+    Hover daekker hele flisen: forsiden og New er to billeder uden mellemrum,
+    der sammen fylder flisen lige ind til kanten (TILE_PAD) under stregen.
 
     Den bloede farve (domain-*-soft) er domaenet blandet 8 % (lys) / 16 %
     (moerk) ind i kortets baggrund, og design_tokens.CONTRAST kraever, at
@@ -607,31 +609,30 @@ def _tile_face(d, count_expr):
     reagerer paa musen."""
     c = _hx(d["token"])
     w = '" & Self.Width & "'
-    h = TILE_H
+    h = TILE_ROW_H
+    hm = TILE_ROW_H_M
     words = d["name"].split(" ", 1)
     name_lines = "".join(
-        f"<text x='8' y='{60 + 14 * i}' {SVG_FONT} font-size='11' font-weight='600' "
+        f"<text x='8' y='{56 + 14 * i}' {SVG_FONT} font-size='11' font-weight='600' "
         f"fill='{_hx('text-primary')}'>{wd}</text>" for i, wd in enumerate(words))
-    sub_y = 60 + 14 * len(words) + 4
-    compact = ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{TILE_H_M}' "
-               f"viewBox='0 0 {w} {TILE_H_M}'>"
-               f"<rect width='{w}' height='{STRIPE_H}' fill='{c}'/>"
-               f"<circle cx='24' cy='28' r='14' fill='{c}' fill-opacity='0.12'/>"
-               + _dglyph(d, c, x=15, y=19, size=18) +
-               f"<text x='{w}' dx='-8' y='38' text-anchor='end' {SVG_FONT} font-size='22' "
+    sub_y = 56 + 14 * len(words) + 4
+    compact = ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{hm}' "
+               f"viewBox='0 0 {w} {hm}'>"
+               f"<circle cx='24' cy='24' r='14' fill='{c}' fill-opacity='0.12'/>"
+               + _dglyph(d, c, x=15, y=15, size=18) +
+               f"<text x='{w}' dx='-8' y='34' text-anchor='end' {SVG_FONT} font-size='22' "
                f"font-weight='600' fill='{_hx('text-primary')}'>\" & {count_expr} & \"</text>"
                + name_lines +
                f"<text x='8' y='{sub_y}' {SVG_FONT} font-size='10' "
                f"fill='{_hx('text-muted')}'>\" & \"filter\" & \"</text></svg>" + '"')
-    # 72 px: stregen foroven, ikonet, navnet og "12 open requests" under.
+    # Stregen foroven er IKKE med her: den er sin egen kontrol over hele flisens bredde.
     full = ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h}' "
             f"viewBox='0 0 {w} {h}'>"
-            f"<rect width='{w}' height='{STRIPE_H}' fill='{c}'/>"
-            f"<circle cx='30' cy='40' r='18' fill='{c}' fill-opacity='0.12'/>"
-            + _dglyph(d, c, x=21, y=31, size=18) +
-            f"<text x='58' y='36' {SVG_FONT} font-size='14' font-weight='600' "
+            f"<circle cx='30' cy='{h // 2}' r='18' fill='{c}' fill-opacity='0.12'/>"
+            + _dglyph(d, c, x=21, y=h // 2 - 9, size=18) +
+            f"<text x='58' y='{h // 2 - 4}' {SVG_FONT} font-size='14' font-weight='600' "
             f"fill='{_hx('text-primary')}'>\" & \"{d['name']}\" & \"</text>"
-            f"<text x='58' y='56' {SVG_FONT} font-size='12' "
+            f"<text x='58' y='{h // 2 + 16}' {SVG_FONT} font-size='12' "
             f"fill='{_hx('text-muted')}'><tspan font-weight='600' fill='{_hx('text-primary')}'>"
             f"\" & {count_expr} & \"</tspan> \" & {SCOPE_WORDS} & \"</text></svg>" + '"')
     return f"If({below('Tablet')}, {compact}, {full})"
@@ -650,34 +651,45 @@ def build_tiles():
         count = scope_count(f'Domain = "{d["key"]}"')
 
         st = _tile_state(d, sel)
-        # Fra Tablet: flisen er [forside | New]; forsiden er resten.
-        face_w = if_below("Tablet", f"({TILE_W})",
-                          f"({TILE_W}) - {TILE_NEW_W + TILE_NEW_GAP + TILE_NEW_PAD}")
-        face = _image(f"imgMdTile{n}", _svg_uri(_tile_face(d, count)), face_w,
-                      if_below("Tablet", str(TILE_H_M), str(TILE_H)),
+        # Fra Tablet: flisen er [forside | New]; begge er billeder over HELE
+        # flisens hoejde og uden mellemrum, saa hover toner hele flisen.
+        face_w = if_below("Tablet", f"({TILE_W} - {2 * TILE_PAD})",
+                          f"({TILE_W} - {2 * TILE_PAD}) - {TILE_NEW_W}")
+        row_h = if_below("Tablet", str(TILE_ROW_H_M), str(TILE_ROW_H))
+        face = _image(f"imgMdTile{n}", _svg_uri(_tile_face(d, count)), face_w, row_h,
                       onselect=f'Set(varMdDomain, If({sel}, "", "{d["key"]}"));\n' + SAVE_HUB,
                       # Uden tallet: det ville vaere endnu en forespoergsel.
                       label=f'If({sel}, "Show all domains", "Show only {d["name"].lower()}")',
                       hover=st["hover"])
         face.props["FocusedBorderColor"] = d["color"]
         # NEW PAA FLISEN (UX-review M3): den samme handling som menuen
-        # "New request" i bjaelken (_new_action) - een vej mindre at lede.
+        # "New request" i bjaelken (_new_action).
         act, ready = _new_action(d)
-        new = button(f"btnMdTileNew{n}", '"New request"', act, width=TILE_NEW_W, height=32,
-                     icon="Add",
-                     accessible=f'"New {d["name"].lower()} request"',
-                     tooltip=(f'"New {d["name"].lower()} request"' if ready
-                              else '"Coming soon"'),
-                     display_mode=None if ready else "DisplayMode.Disabled",
-                     visible=at_least("Tablet"))
-        new.props["Layout"] = "ButtonLayout.IconOnly"
-        new.props["LayoutMinWidth"] = str(TILE_NEW_W)
-        ensure_hit(new)
+        plus = _icon_svg("M12 5v14M5 12h14", _hx("text-muted"), size=20,
+                         box=TILE_NEW_W, opacity=None if ready else icons.DISABLED_OPACITY)
+        new = _image(f"imgMdTileNew{n}", _svg_uri(plus), TILE_NEW_W, row_h,
+                     onselect=act if ready else None,
+                     label=f'"New {d["name"].lower()} request"', hover=st["hover"])
+        new.props["Visible"] = at_least("Tablet")
+        new.props["Tooltip"] = (f'"New {d["name"].lower()} request"' if ready
+                                else '"Coming soon"')
+        new.props["TabIndex"] = "0" if ready else "-1"
+        new.props["FocusedBorderColor"] = d["color"]
 
+        row = group(
+            f"conMdTileRow{n}", [face, new], direction="Horizontal", gap=0,
+            align_items="Center", height=row_h)
+        # Stregen er hele flisens bredde og sidder alleroeverst.
+        stripe = Ctrl(f"rctMdTileStripe{n}", "Rectangle", props={
+            "AccessibleLabel": '"Tile colour stripe"', "BorderStyle": "BorderStyle.None",
+            "BorderThickness": "0", "Fill": d["color"], "Height": str(STRIPE_H),
+            "OnSelect": "false", "TabIndex": "0", "Width": f"({TILE_W}) - {2 * TILE_PAD}",
+        }, h=STRIPE_H)
         tile = group(
-            f"conMdTile{n}", [face, new], direction="Horizontal", gap=TILE_NEW_GAP,
-            fill=st["fill"], radius=lay.RADIUS_CARD, width=TILE_W, align_items="Center",
+            f"conMdTile{n}", [stripe, row], direction="Vertical", gap=0,
+            fill=st["fill"], radius=TILE_RADIUS, width=TILE_W,
             height=if_below("Tablet", str(TILE_H_M), str(TILE_H)),
+            pad=(0, TILE_PAD, TILE_PAD, TILE_PAD),
             border_color=st["border"], border_thickness=st["thickness"])
         tile.props["DropShadow"] = st["shadow"]
         tiles.append(tile)
@@ -739,16 +751,6 @@ _FLT_TIP = {}
 def _tight(label, icon=False):
     """Bredden i de smalle trin: teksten i 12 pt + FLT_PAD (+ ikonet)."""
     return text_px(label, 12) + FLT_PAD + (ICON_W if icon else 0)
-
-
-def _chip(name, label, value, icon):
-    b = button(name, f'"{label}"', f'Set(varMdStatusMode, "{value}");\n' + SCOPE_REFRESH + ";\n" + SAVE_HUB,
-               width=fit_button_width(f'"{label}"') + ICON_W, height=36, icon=icon)
-    # Pr. trin: (bredde, Layout, tekst). None = teksten er den samme.
-    _FLT_LV[b.name] = {"full": (int(b.props["Width"]), "ButtonLayout.IconBefore", None),
-             "compact": (_tight(label), "ButtonLayout.TextOnly", None),
-             "short": (_tight(label), "ButtonLayout.TextOnly", None)}
-    return _selected_style(b, f'varMdStatusMode = "{value}"', idle_color=C_MUTED)
 
 
 def _flag_pill(name, flag, label, field, icon):
@@ -813,13 +815,14 @@ def build_banner():
 
 
 def build_filters():
-    """Vaerktoejslinjen (issue #74):
+    """Vaerktoejslinjen (issue #74, omlagt til segmenterede kontakter):
 
-        [Search number, text or plant...][Open][Closed][i][All]      42 requests
+        [Search...] [Open|Closed|All] | Waiting for me | Stuck > 5 d | Clear
+                                         [My requests|Department]  3 of 23
 
-    Soegefeltet er saa bredt som det, man soeger efter (et nummer, et
-    vaerk, et par ord) - ikke resten af linjen. Taelleren staar til hoejre
-    og tager resten, saa den flugter med listens hoejre kant.
+    Open/Closed/All og My requests/Department er segmenterede kontakter
+    (build_helpers.segmented): en graa bane med en blaa valgt pille. Taelleren
+    staar yderst til hoejre og flugter med listens hoejre kant.
 
     Fra Tablet og op staar linjen ALTID vandret; den krymper i tre trin i
     stedet for at stable (FLT_LEVELS, issue #91). Under Tablet er den kun
@@ -833,32 +836,65 @@ def build_filters():
     shown = scope_count('varMdDomain = "" || Domain = varMdDomain')
     count = text_ctrl("txtMdTotal", f'{shown} & " requests"',
                       size=12, color=C_MUTED, height=36, align="Right", width=110, wrap="false")
-    closed = _chip("btnMdFltDone", "Closed", "done", "CheckmarkCircle")
-    # Statisk: tooltip'en hentede de seneste lukkede (en forespoergsel) ved
-    # hver visning af skaermen. Info-knappen ved siden af viser dem.
-    closed.props["Tooltip"] = '"Show closed requests - the (i) button lists the latest"'
-    # GRUPPERET (UX-review, hub): Open/Closed/All (og info-knappen) | de to
-    # flag | - og til hoejre My requests/Department og antallet. Stregen
-    # skiller de to foerste grupper.
+    tail = ";" + chr(10) + SCOPE_REFRESH + ";" + chr(10) + SAVE_HUB
+    status_track = segmented(
+        "conMdFltStatus",
+        [(sfx, txt, f'varMdStatusMode = "{val}"',
+          f'Set(varMdStatusMode, "{val}")' + tail, tip)
+         for sfx, txt, val, tip in (
+             ("Open", "Open", "open", None),
+             # Statisk: tooltip'en hentede de seneste lukkede (en forespoergsel)
+             # ved hver visning. Info-knappen ved siden af viser dem.
+             ("Closed", "Closed", "done",
+              '"Show closed requests - the (i) button lists the latest"'),
+             ("All", "All", "all", None))],
+        label="Status", fit=True)
+    view_track = segmented(
+        "conMdFltView",
+        [(sfx, txt, f'varMdView = "{key}"',
+          f'Set(varMdView, "{key}"); Set(varMdDomain, "")' + tail, None)
+         for sfx, txt, key in (("Mine", "My requests", "mine"),
+                               ("Dept", "Department", "queue"))],
+        label="View", fit=True)
+    # Skinnerne krymper med de andre knapper: fuld (13 pt, flueben), kompakt
+    # (12 pt) og kort (12 pt uden flueben, "Mine" | "Dept."). Knapperne faar
+    # deres formler, naar lvl() kendes (nedenfor).
+    seg_short = {"My requests": "Mine", "Department": "Dept."}
+    seg_w = {}                                   # knapnavn -> {trin: bredde}
+    for t in (status_track, view_track):
+        per = {k: 0 for k in FLT_LEVELS}
+        for b in t.children:
+            txt = b.props["Text"].strip('"')
+            ws = {"full": int(b.props["Width"]),
+                  "compact": text_px(txt, 12) + 20 + ICON_W,
+                  "short": text_px(seg_short.get(txt, txt), 12) + 20}
+            seg_w[b.name] = ws
+            for k in FLT_LEVELS:
+                per[k] += ws[k]
+        n = len(t.children)
+        extra = (n - 1) * 2 + 2 * 2             # SEG_GAP og SEG_PAD
+        _FLT_LV[t.name] = {k: (per[k] + extra, None, None) for k in FLT_LEVELS}
+    # GRUPPERET (som Hub-mockuppen): Open/Closed/All-skinnen og info-knappen |
+    # de to flag | - og til hoejre My requests/Department-skinnen og antallet.
     sep = group("conMdFltSep", [], direction="Horizontal", height=24, width="1",
                 fill=C_DIVIDER, layout_min_width=1)
     sep.props["AlignInContainer"] = "AlignInContainer.Center"
     _FLT_LV[sep.name] = {k: (1, None, None) for k in FLT_LEVELS}
-    chips = [_chip("btnMdFltOpen", "Open", "open", "MailInbox"), closed,
-             _chip("btnMdFltAll", "All", "all", "TextBulletListLtr"), _peek_button(), sep,
+    peek = _peek_button()
+    chips = [status_track, peek, sep,
              _flag_pill("btnMdFltMe", "me", "Waiting for me", "Mine", "Person"),
              _flag_pill("btnMdFltStuck", "stuck", STUCK_LABEL, "Stuck", "Clock")]
     # Soegefelt og knapper staar til venstre; My requests | Department og
     # tallet til hoejre. Under Tablet erstattes knapperne af EN dropdown
     # (+ info-knappen), og raekken er kun soegefeltet i fuld bredde.
-    for c in chips + [count]:
+    for c in chips + [view_track, count]:
         c.vis = at_least("Tablet")
     mobile = _mobile_filter()
     spacer = group("conMdFltGap", [], direction="Horizontal", height=0)
     spacer.vis = at_least("Tablet")
-    _FLT_LV[chips[3].name] = {k: (PEEK_BTN_W[k], None, None) for k in FLT_LEVELS}
+    _FLT_LV[peek.name] = {k: (PEEK_BTN_W[k], None, None) for k in FLT_LEVELS}
     _FLT_LV[count.name] = {k: (COUNT_W[k], None, None) for k in FLT_LEVELS}
-    fixed = chips + _view_switch() + [count]
+    fixed = chips + [view_track, count]
     n_gaps = len(fixed) + 1          # soegefeltet + mellemrummet (spacer)
 
     # Hvad hvert trin skal bruge: alle knapper + soegefeltets mindstebredde
@@ -884,10 +920,24 @@ def build_filters():
         txt = _FLT_LV[c.name]["short"][2]
         if txt is not None:
             c.props["Text"] = f"If({is_short}, {txt}, {c.props['Text']})"
-        if c.props.get("Size") and c is not count and c is not chips[3]:
+        if c.props.get("Size") and c is not count and c is not peek:
             c.props["Size"] = lvl(*(FLT_SIZE[k] for k in FLT_LEVELS))
         if c.name in _FLT_TIP:
             c.props["Tooltip"] = f'If({is_short}, {_FLT_TIP[c.name]}, "")'
+    # Segmenterne foelger skinnen: smallere og 12 pt paa de smalle trin, og
+    # uden flueben paa det korteste ("Mine" | "Dept.").
+    for t in (status_track, view_track):
+        for b in t.children:
+            ws = seg_w[b.name]
+            w = lvl(*(ws[k] for k in FLT_LEVELS))
+            b.props["Width"] = w
+            b.props["LayoutMinWidth"] = w
+            b.props["Size"] = lvl(*(FLT_SIZE[k] for k in FLT_LEVELS))
+            txt = b.props["Text"].strip('"')
+            if txt in seg_short:
+                b.props["Text"] = f'If({is_short}, "{seg_short[txt]}", "{txt}")'
+            on_layout = b.props["Layout"]
+            b.props["Layout"] = f"If({is_short}, ButtonLayout.TextOnly, {on_layout})"
     # Kort trin: kun tallet. "requests" er der ikke plads til paa en smal
     # tablet, og tallet staar lige efter "Dept.".
     count.props["Text"] = f'{shown} & If({is_short}, "", " requests")'
@@ -903,7 +953,7 @@ def build_filters():
         f'If(Self.Width < {text_px(long_ph, 14, semibold=False) + 48}, '
         f'"Search...", "{long_ph}")')
     search.props["Size"] = f"If({below('Tablet')}, {lay.SIZE_INPUT_MOBILE}, {is_short}, 12, {lay.SIZE_INPUT})"
-    row = flow_row("conMdFltRow", [search] + fixed[:7] + [spacer] + fixed[7:], SHELL_W,
+    row = flow_row("conMdFltRow", [search] + fixed[:5] + [spacer] + fixed[5:], SHELL_W,
                    gap=gap, flex=spacer, flex_min=0, ok=at_least("Tablet"))
     # Altid een linje: vandret fra Tablet, og under Tablet er soegefeltet
     # det eneste synlige barn. flow_rows stablede hoejde ville aldrig blive
@@ -1047,7 +1097,7 @@ _FILTERED = (
 # foerst. SortByColumns faar kolonnens navn som KONSTANT i hver gren (een
 # Switch), saa SharePoint stadig sorterer - et variabelt kolonnenavn kan
 # ikke delegeres.
-SORT_COLS = {"REQUEST": COL_NO, "PLANT": "Plant", "STATUS": "StatusStep",
+SORT_COLS = {"REQUEST": "Title", "PLANT": "Plant", "STATUS": "StatusStep",
              "UPDATED": "LastActionOn"}
 SORT_DEFAULT = "UPDATED"
 SORT_ORDER = "If(IfError(varMdSortAsc, false), SortOrder.Ascending, SortOrder.Descending)"

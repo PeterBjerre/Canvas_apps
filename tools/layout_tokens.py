@@ -228,10 +228,18 @@ NAV_OFFSET = "If(%s, %d, 0)" % (NAV_ON, NAV_W)       # rammens X
 BAR_OFFSET = "If(%s, 0, %d)" % (NAV_ON, MOBILE_BAR_H)  # rammens Y
 ROOT_X = NAV_OFFSET
 ROOT_Y = BAR_OFFSET
-ROOT_W = "Parent.Width - %s" % NAV_OFFSET
+# Raekkepanelet ligger ved siden af listen fra PANEL_SIDE_MIN og op: rammen
+# og SHELL_W mister saa panelets bredde. PanelInset er 0 ellers.
+PANEL_W = 480
+PANEL_SIDE_MIN = 1280
+# Panelet fylder en tredjedel af skaermen, dog mindst PANEL_W. Det er en
+# beregning, ikke en sammenligning af App.Width med et tal.
+PANEL_W_FX = "Max(%d, App.Width / 3)" % PANEL_W
+INSET = "PanelInset"
+ROOT_W = "Parent.Width - %s - %s" % (NAV_OFFSET, INSET)
 ROOT_H = "Parent.Height - %s" % BAR_OFFSET
 
-SHELL_W = "(App.Width - %s - %d)" % (NAV_OFFSET, SHELL_INSET)
+SHELL_W = "(App.Width - %s - %d - %s)" % (NAV_OFFSET, SHELL_INSET, INSET)
 
 # Top og bund. Bunden i kroppen er stor nok til, at det sidste kort ikke
 # ligger klos op ad kanten, naar man har scrollet helt ned.
@@ -255,6 +263,10 @@ def below(name):
 def at_least(name):
     """Denne tier eller bredere."""
     return "%s >= %d" % (RANK, _RANK[_check(name)])
+
+
+# Panelets bredde paa skaermen: en tredjedel fra Desktop og op, ellers hele.
+PANEL_W_AT = "If(%s, %s, App.Width)" % ("%s >= %d" % (RANK, _RANK["Desktop"]), PANEL_W_FX)
 
 
 def tier_is(name):
@@ -438,8 +450,17 @@ def radius(r):
     return {"Radius" + k: str(r) for k in ("BottomLeft", "BottomRight", "TopLeft", "TopRight")}
 
 
-def formula():
-    """De to navngivne formler til App.Formulas.
+def panel_inset_formula(open_var=None):
+    """PanelInset: panelets bredde, mens et raekkepanel staar ved siden af listen."""
+    cond = "App.Width >= %d" % PANEL_SIDE_MIN
+    if open_var:
+        cond += " && IfError(%s, false)" % open_var
+        return "%s = If(%s, %s, 0);" % (INSET, cond, PANEL_W_FX)
+    return "%s = 0;" % INSET
+
+
+def formula(open_var=None):
+    """De navngivne formler til App.Formulas.
 
     De staar sammen med C (designtokens) og udgoer tilsammen det, der
     afgoer, hvordan appen ser ud: farve og form, begge steder eet sted.
@@ -453,8 +474,9 @@ def formula():
         "%s = %s;\n\n"
         "%s = %s;\n\n"
         "// Maal (UX-review F6/M6): H.hit er klikfladen, 44 px under Desktop.\n"
-        "%s" % (CONTEXT, _ladder(lambda n: '"%s"' % n),
-                RANK, _ladder(lambda n: str(_RANK[n])), _named_formulas())
+        "%s\n\n%s" % (CONTEXT, _ladder(lambda n: '"%s"' % n),
+                      RANK, _ladder(lambda n: str(_RANK[n])), _named_formulas(),
+                      panel_inset_formula(open_var))
     )
 
 

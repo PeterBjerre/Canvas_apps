@@ -255,7 +255,7 @@ def _seg_fx(col, on):
     return fx
 
 
-def _seg_cell(col):
+def _seg_cell(col, width=CELL_W):
     label = next(l for c, l, _k, _ch in dp.FIELDS if c == col)
     on = f"Coalesce({dp._var(col)}, false)"
     tip = SEG_TIPS[col]
@@ -263,14 +263,14 @@ def _seg_cell(col):
         ("No", "No", f"!{on}", _seg_fx(col, False), tip),
         ("Yes", "Yes", on, _seg_fx(col, True), tip),
     ], display_mode=dp.DM_ROW, label=label)
-    return dp.grid_cell(f"conDom{col}", label, seg)
+    return dp.grid_cell(f"conDom{col}", label, seg, width=width)
 
 
 PO_TEXTS = ("Add text", "Edit text", "View text")
 HAS_PO = f'!IsBlank(Trim(Coalesce({PO}, "")))'
 
 
-def _po_cell():
+def _po_cell(width=CELL_W):
     """Purchase order text: de foerste ord af teksten og en knap til
     popuppen. Knappen er udfyldt, naar der ER en tekst."""
     info = grow(text_input(
@@ -287,20 +287,20 @@ def _po_cell():
     btn.props["LayoutMinWidth"] = str(w)
     dp.pill(btn, HAS_PO)
     row = group("conDomPoRow", [info, btn], direction="Horizontal", gap=8,
-                height=36, align_items="Center", width=CELL_W)
-    return dp.grid_cell("conDomPo", "Purchase order text", row)
+                height=36, align_items="Center", width=width)
+    return dp.grid_cell("conDomPo", "Purchase order text", row, width=width)
 
 
-def _cell(key):
+def _cell(key, width=CELL_W):
     if key == "TEXT":
-        return dp.text_cell()
+        return dp.text_cell(width)
     if key == "PLANT":
-        return dp.plant_cell()
+        return dp.plant_cell(width)
     if key == "PO":
-        return _po_cell()
+        return _po_cell(width)
     if key.startswith("SEG_"):
-        return _seg_cell(key[4:])
-    return dp.field_grid_cell(key, **CONDITIONAL.get(key, {}))
+        return _seg_cell(key[4:], width)
+    return dp.field_grid_cell(key, width=width, **CONDITIONAL.get(key, {}))
 
 
 # UX-review F2: "Add row" gemmer raekken (som kladde, til kravene er
@@ -364,14 +364,18 @@ def _dirty():
             + " ||\n    ".join(new) + ",\n    " + changed + "\n)")
 
 
-def build_form():
+def build_form(panel=False):
     dp.check_form_order(FORM_ORDER, SPECIAL, NOT_IN_GRID)
+    form_width = dp.PANEL_FORM_W if panel else dp.FORM_W
+    cell_width = dp.PANEL_CELL_W if panel else dp.CELL_W
     rows = []
     for name, keys, vis in FORM_ROWS:
         if name in SECTION_STARTS:
             key, title = SECTION_STARTS[name]
             rows.append(dp.form_section(key, title, first=not rows))
-        row = dp.grid_row(name, [_cell(k) for k in keys])
+        row = dp.grid_row(name, [_cell(k, dp.panel_cell_w(k, cell_width)) for k in keys],
+                          container_w=form_width, columns=2 if panel else None,
+                  cell_width=cell_width)
         if vis:
             row.vis = vis
         rows.append(row)
@@ -387,6 +391,36 @@ def build_form():
     # foerste, man ser (kun naar godkendelsen er med).
     top = [build_steps()] if APPROVAL_ON else []
     return card("conDomFormCard", _editor_head() + top + rows + dp.form_footer(buttons))
+
+
+def editor_panel_content(form):
+    tab = cfg.ROW_EDITOR_TAB_VAR
+    open_objects = (f"Set({OBJ_ROW}, varDomActiveRowId);\nSet({PICK}, \"\");\n"
+                    f"{dp.fl_reset_fx_dom()};\n"
+                    + ol.restore_fx(POP, json_src=f"{dp.ACTIVE}.ObjectListJson",
+                                    list_src=f"{dp.ACTIVE}.ObjectList",
+                                    fl_src=f"{dp.ACTIVE}.FunctionalLocation"))
+    selector = segmented("conDomEditorTabs", [
+        ("Details", "Details", f'{tab} = "Details"', f'Set({tab}, "Details")', None),
+        ("Objects", "Objects", f'{tab} = "Objects"',
+         f'Set({tab}, "Objects");\n{open_objects}', None),
+        ("Documents", "Documents", f'{tab} = "Documents"',
+         f'Set({tab}, "Documents");\n{dp.open_active_docs_fx()}', None),
+    ], label="Row details")
+    reset = button("btnDomNew", '"Reset"', reset_fx(),
+                   width=fit_button_width('"Reset"'), height=36,
+                   tooltip='"Clear the form and start a new row"')
+    details = group("conDomEditorDetails", list(form.children[:-2]) + [form.children[-1], reset],
+                    direction="Vertical", gap=12, visible=f'{tab} = "Details"')
+    objects_body = _objects_popup()[1].children[1]
+    objects_body.props["Height"] = "App.Height - 250"
+    objects = group("conDomEditorObjects", [objects_body], direction="Vertical", gap=12,
+                    visible=f'{tab} = "Objects"')
+    documents_body = dp.build_attachments().children[1]
+    documents_body.props["Height"] = "App.Height - 250"
+    documents = group("conDomEditorDocuments", [documents_body], direction="Vertical", gap=12,
+                      visible=f'{tab} = "Documents"')
+    return [selector, details, objects, documents]
 
 
 # ---------------------------------------------------------------------------
@@ -573,7 +607,8 @@ def build_popups():
         '"The form is cleared and starts a new row. Saved rows and the request '
         'are not changed."',
         "Reset", dp.clear_form_fx(), "btnDomResetConfirm", icon=None)
-    return _objects_popup() + _po_popup() + ask
+    objects = [] if getattr(cfg, "ROW_PANEL_ENABLED", False) else _objects_popup()
+    return objects + _po_popup() + ask
 
 
 # ---------------------------------------------------------------------------
@@ -612,11 +647,18 @@ def row_actions():
                      mode=dp.DM_ROW_EDIT),
         dp.RowAction("btnDomRowDocs",
                      f'If({docs_n} > 0, "Docs (" & {docs_n} & ")", "Docs")',
-                     dp.open_docs_fx(), _w("btnDomRowDocs", "Docs (00)"),
+                     (dp.load_row_fx() + f';\nSet({cfg.ROW_EDITOR_TAB_VAR}, "Documents");\n'
+                      + dp.open_active_docs_fx()), _w("btnDomRowDocs", "Docs (00)"),
                      label=f'"Documentation for " & ThisItem.ItemKey & ", " & {dt.plural(docs_n, "file")}'),
         dp.RowAction("btnDomRowObjects",
                      f'If({ROW_OBJ_N} > 0, "Objects (" & {ROW_OBJ_N} & ")", "Objects")',
-                     open_objects_fx(), _w("btnDomRowObjects", "Objects (00)"), line=2,
+                     (dp.load_row_fx() + f';\nSet({cfg.ROW_EDITOR_TAB_VAR}, "Objects");\n'
+                      + f"Set({OBJ_ROW}, varDomActiveRowId); Set({PICK}, \"\");\n"
+                      + dp.fl_reset_fx_dom() + ";\n"
+                      + ol.restore_fx(POP, json_src=f"{dp.ACTIVE}.ObjectListJson",
+                                      list_src=f"{dp.ACTIVE}.ObjectList",
+                                      fl_src=f"{dp.ACTIVE}.FunctionalLocation")),
+                     _w("btnDomRowObjects", "Objects (00)"), line=2,
                      label=f'"Functional locations for " & ThisItem.ItemKey'),
         dp.RowAction("btnDomRowCopy", '"Copy"', dp.copy_row_fx(), _w("btnDomRowCopy", "Copy"),
                      mode=dp.ROW_MODES["btnDomRowCopy"], line=2),
@@ -739,7 +781,7 @@ dp.configure(
     field_defaults={"StorageBin": '"X"'},
     # Formularens objekter er kun en kopis (se OBJECTS): de fyldes ved
     # Copy og ryddes ellers.
-    clear_extra=ol.clear_fx(OBJECTS),
+    clear_extra=(ol.clear_fx(OBJECTS) + f";\nSet({OBJ_ROW}, Blank());\n{ol.clear_fx(POP)}"),
     load_extra=ol.clear_fx(OBJECTS),
     copy_extra=OBJ_RESTORE,
     # Gem: koderne, JSON'en og FL-kolonnen som den FOERSTE kode.

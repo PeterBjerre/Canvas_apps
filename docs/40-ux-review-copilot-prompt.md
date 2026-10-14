@@ -94,12 +94,15 @@ Andre steder:
 - `tools/domain_parts.py` (Equipments/Materials/Measuring points), `Functional Location App/build/fl_parts.py`, `Maintenance Plan App/build/*.py`, `Issue Board/build/ib_parts.py`, `Masterdata Hub/build/build_hub.py`, `KKS App/build/kks_parts.py`
 - Designmockups: designlærredet "BIO SAP — UX review" (Equipments-mockup og VH-plan-mockup). Følg dem så tæt, som Power Apps tillader, og skriv afvigelser i PR'en.
 
-## Rest af etape 2 — én PR pr. linje, i denne rækkefølge
-1. **2i–2l – M1 + T3 + T5 rækkeliste med sidepanel**, delt i flere PR'er:
-   - **2i:** fælles hjælpere `request_shell()`, `row_list()` og `row_editor_panel()`. Panelet er 480 px fra Desktop og har "Row 2 of 3", forrige/næste/luk, sektioner og en bundbjælke [Delete row] … [Cancel] [Update row]. Under Desktop er det fuld skærm.
-   - **2j:** Equipments (og Measuring points) på de nye hjælpere. Rækkehandlinger: Documents-ikon med antal plus en More-menu (Objects, Copy row, Delete row).
-   - **2k:** Materials med fanerne Details/Objects/Documents i panelet.
-   - **2l:** FL beholder tabel-indtastning, men får en statuskolonne og panelet. Issue Board får liste + panel med faner. Panelets felter står i sektioner (`form_section`, #255) i to kolonner.
+## Status for resten af etape 2
+- **2i:** De fælles hjælpere `request_shell()`, `row_list()` og `row_editor_panel()` er implementeret og testet. Panelet viser rækkeposition, forrige/næste/luk, har separat scroll og fast footer; bredden er `Max(480, App.Width / 3)` (ca. 1/3 af skærmen) fra Desktop og fuld skærm under Desktop; et klik udenfor lukker panelet.
+- **2j:** Equipment og Measuring Points åbner formularen i panelet, viser Documents med antal og har en More-menu med Copy row/Delete row. `ObjectList` og `ObjectListJson` er nu provisioneret på begge lister; builderintegration og genindlæsning af datakildeskema i Studio mangler.
+- **2k:** Materials har fanerne Details/Objects/Documents med objektsøger og dokumentliste/upload indlejret i panelet.
+- **2l:** FL har statuskolonne og et panel grupperet efter Master/Status/Class/TRM/Ext i to kolonner; Issue Board-detaljevisningen er et sidepanel (samme bredde) med Description/Activity/Attachments.
+- **M3-rettelse:** Request-sorteringen bruger SharePoints interne `Title`; visningsnavnet `RequestNo` bruges fortsat i søgning og visning.
+
+## Resterende etape 2
+- **2j:** Objects-fanen/menuhandlingen i Equipment og Measuring Points skal kobles til de nu provisionerede `ObjectList`/`ObjectListJson`-felter. Studio skal have datakildeskemaet genindlæst efter ændringen.
 
 ## Etape 3 — én PR pr. linje
 - **3a – L1:** ét `request_shell()` for alle domæner (header, breadcrumb, actions, liste, panel), så domæneskærmene kun er komposition.

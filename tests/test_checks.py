@@ -53,8 +53,8 @@ def test_layout_clean_screen_passes(tmp_path):
 
 def test_layout_rule_1_height_references_other_control(tmp_path):
     def plant(t):
-        return re.sub(r"(conEqFormCard:\n(?:.*\n)*?\s+Height: \|-\n\s+)=[^\n]+",
-                      r"\1=btnEqSave.Height + 10", t, count=1)
+        return re.sub(r"(conEqEditorSections:\n(?:.*\n)*?\s+Height: \|-\n\s+)=[^\n]+",
+                      r"\1=btnEqEditorClose.Height + 10", t, count=1)
     rc, out = _layout(tmp_path, plant)
     assert rc == 1 and "[1]" in out
 
@@ -77,7 +77,7 @@ def test_layout_rule_8c_app_width_comparison(tmp_path):
 
 def test_layout_rule_0_duplicate_name(tmp_path):
     def plant(t):
-        return t.replace("btnEqNew:", "btnEqSave:", 1)
+        return t.replace("btnEqNewRequest:", "btnEqNewRow:", 1)
     rc, out = _layout(tmp_path, plant)
     assert rc == 1 and "[0]" in out
 

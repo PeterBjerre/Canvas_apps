@@ -26,7 +26,8 @@ def build_screen(render=render_screen):
     """render: gen_screen.render_screen - eller BIO SAP App's opsamler."""
     root = app_frame(P.P, P.build_bar(), [P.build_list()])
     nav, overlay = side_nav(P.P, cfg.APP_KEY)
-    return render(cfg.SCREEN, {"Fill": C_APP_BG, "OnVisible": P.on_visible()},
+    return render(cfg.SCREEN, {"Fill": C_APP_BG, "OnVisible": P.on_visible(),
+                               "OnHidden": "Set(varIbDetailOn, false); Set(varIbFormOn, false)"},
                   [root, *nav, *overlay, *P.build_form(), *P.build_detail(), *P.build_delete(),
                    *P.build_loading()])
 

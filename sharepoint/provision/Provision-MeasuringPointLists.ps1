@@ -162,6 +162,12 @@ function New-MeasuringPointList {
     # senere, og EquipmentNumber provisioneres derfor ikke endnu.
     New-MdField 'MeasuringPointItems' 'FunctionalLocation' Text -Indexed
 
+    # OBJECT LIST: flere funktionspladser paa samme maalepunkt.
+    # FunctionalLocation ovenfor bevares som primaer kode for eksisterende
+    # filtre og integrationer; listen og JSON'en er appens fulde vaerdier.
+    New-MdNoteField 'MeasuringPointItems' 'ObjectList'      6
+    New-MdNoteField 'MeasuringPointItems' 'ObjectListJson'  6
+
     # --- findes det allerede? --------------------------------------------
     New-MdField 'MeasuringPointItems' 'ExistsInSap'        Choice -Choices $YESNO
     # Samme navn som den gamle kolonne i MaintenanceItems, saa ordforraadet
