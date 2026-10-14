@@ -243,7 +243,8 @@ def button(name, text, onselect, primary=False, danger=False, width=140, height=
         props["Color"] = C_WHITE
     else:
         props["Appearance"] = "ButtonAppearance.Outline"
-        props["BorderColor"] = C_CARD_BORDER
+        # border-input (3:1 mod fladen), ikke border-default (1,2:1, naesten usynlig)
+        props["BorderColor"] = C_INPUT_BORDER
         props["BorderThickness"] = "1"
         props["Color"] = C_TITLE
     if display_mode:
@@ -1502,8 +1503,8 @@ HUB_LABEL = "Masterdata Hub"
 
 
 def breadcrumb(prefix, app_key, id_expr=None):
-    """[Masterdata Hub] / <skaermens navn> [/ <id>]. id_expr er et Power
-    Fx-udtryk (anmodningens nummer) - et tomt nummer viser intet led."""
+    """[Masterdata Hub] / <skaermens navn>. id_expr bruges ikke laengere:
+    nummeret staar i pillen ved titlen."""
     import side_nav
     import env_config as env
     page = (env.APPS.get(app_key) or {}).get("nav_label") or app_key
@@ -1532,9 +1533,8 @@ def breadcrumb(prefix, app_key, id_expr=None):
         "Tooltip": f'"Back to {HUB_LABEL} - your filters are kept"',
         "Width": str(w),
     }, h=CRUMB_H)
+    # Nummeret staar kun i pillen ved titlen - ikke ogsaa her.
     rest = f'"  /  {page}"'
-    if id_expr:
-        rest += f' & If(IsBlank({id_expr}), "", "  /  " & {id_expr})'
     tail = grow(text_ctrl(f"txt{prefix}Crumb", rest, size=CRUMB_SIZE, color=C_MUTED,
                           height=CRUMB_H, wrap="false"))
     return group(f"con{prefix}Crumb", [hub, tail], direction="Horizontal", gap=0,
@@ -1742,27 +1742,27 @@ def row_list(prefix, items, row_controls, height, template_size, onselect="false
 
 
 def icon_button(name, label, fx, path, mode=None):
-    """Et rent stregikon uden ramme som klikbar Image (plain icon button)."""
-    grey = '" & %s & "' % ref_hex_expr("text-muted")
-    svg = _icons.svg(path, grey, size=20)
+    """Et stregikon som klikbar Image UDEN ramme. Svg'en er lige saa stor som
+    klikfladen (ikonet tegnet midt i), saa intet bliver klippet."""
+    grey = '" & %s & "' % ref_hex_expr("text-primary")
+    box = lay.HIT_TOUCH
+    svg = _icons.svg(path, grey, size=20, box=box)
     if mode is None:
         image = f'"data:image/svg+xml;utf8," & EncodeUrl("{svg}")'
         enabled = "true"
     else:
-        faded = _icons.svg(path, grey, size=20, opacity=_icons.DISABLED_OPACITY)
+        faded = _icons.svg(path, grey, size=20, box=box, opacity=_icons.DISABLED_OPACITY)
         enabled = f"({mode}) <> DisplayMode.Disabled"
         image = (f'"data:image/svg+xml;utf8," & EncodeUrl(If({enabled}, '
                  f'"{svg}", "{faded}"))')
     props = {
         "AccessibleLabel": f'"{label}"',
+        "BorderColor": C_TRANSPARENT,
         "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0",
-        "DisabledBorderColor": C_TRANSPARENT,
         "DisabledFill": C_TRANSPARENT,
         "Fill": C_TRANSPARENT,
-        "FocusedBorderColor": C_PRIMARY,
-        "FocusedBorderThickness": "If(%s, 2, 0)" % enabled if mode else "2",
-        "Height": "20",
+        "Height": str(lay.HIT_TOUCH),
         "HoverFill": "If(%s, %s, %s)" % (enabled, C_ROW_HOVER, C_TRANSPARENT) if mode else C_ROW_HOVER,
         "Image": image,
         "ImagePosition": "ImagePosition.Center",
@@ -1770,19 +1770,40 @@ def icon_button(name, label, fx, path, mode=None):
         "PressedFill": "If(%s, %s, %s)" % (enabled, C_ROW_PRESSED, C_TRANSPARENT) if mode else C_ROW_PRESSED,
         "TabIndex": "If(%s, 0, -1)" % enabled if mode else "0",
         "Tooltip": f'"{label}"',
-        "Width": "20",
+        "Width": str(lay.HIT_TOUCH),
     }
     if mode:
         props["DisplayMode"] = mode
     _icons.hit_radius(props)
-    c = Ctrl(name, "Image", props=props, h=20)
+    c = Ctrl(name, "Image", props=props, h=lay.HIT_TOUCH)
     ensure_hit(c)
     return c
 
 
+def click_outside_overlay(name, close_fx, visible, label="Close panel"):
+    """Gennemsigtigt lag over hele skaermen: et klik UDEN FOR panelet kalder
+    close_fx. Laeg det FOER (under) panelet i lagene, saa panelet fanger egne
+    klik. Fra row_editor_panel gaar det samme lag med i listen. Bruges af
+    sidepaneler uden egen backdrop. Returnerer een Ctrl (Image)."""
+    return Ctrl(name, "Image", props={
+        "AccessibleLabel": f'"{label}"',
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        **stable_scrim(C_TRANSPARENT),
+        "Height": "App.Height",
+        "Image": '""',
+        "OnSelect": close_fx,
+        "TabIndex": "0",
+        "Visible": visible,
+        "Width": "App.Width",
+        "X": "0",
+        "Y": "0",
+    }, h="App.Height", vis=visible)
+
+
 def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
-                     close_fx, visible, width=480, previous_mode=None,
-                     next_mode=None, side_by_side=False):
+                     close_fx, visible, width=None, previous_mode=None,
+                     next_mode=None, side_by_side=False, multiple=None):
     """Et responsivt raekke-editorpanel; footer holdes uden for scrollomraadet.
 
     side_by_side: fra PANEL_SIDE_MIN staar panelet ved siden af listen
@@ -1810,6 +1831,9 @@ def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
     next_ = icon_button(f"btn{prefix}EditorNext", "Next row", next_fx,
                      _icons.CHEVRON_RIGHT, next_mode)
     close = icon_button(f"btn{prefix}EditorClose", "Close", close_fx, _icons.CLOSE)
+    if multiple:
+        prev.vis = multiple
+        next_.vis = multiple
     title = text_ctrl(f"txt{prefix}EditorPosition", position, size=lay.SIZE_CARD_TITLE,
                       weight="Semibold", height=28, wrap="false")
     grow(title)

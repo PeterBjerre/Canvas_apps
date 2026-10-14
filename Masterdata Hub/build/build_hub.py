@@ -600,8 +600,8 @@ def build_new_menu():
 # og TILE_W regnes af det, der er tilbage.
 TILE_GAP = 12
 TILE_GAP_X = TILE_GAP
-TILE_PAD_T = 4
-TILE_PAD_B = 14
+TILE_PAD_T = 6
+TILE_PAD_B = 44
 # Fliserne gaar hele vejen ud til listens kanter (ingen sidepolstring).
 TILES_CW = f"({SHELL_W})"
 TILE_W = if_below("Desktop", f"({TILES_CW} - {2 * TILE_GAP}) / 3",
@@ -618,7 +618,7 @@ TILE_NEW_W = lay.HIT_TOUCH
 STRIPE_H = 4
 # Flisens kant er 1-2 px: forsiden faar 4 px luft, saa den aldrig bliver
 # skaaleret ned af kanten (det skubbede stregen ned fra flisens top).
-TILE_PAD = 2
+TILE_PAD = 1  # kun forneden: stregen og forsiden/New gaar helt ud til siderne og toppen
 TILE_RADIUS = 6
 TILE_ROW_H = TILE_H - STRIPE_H - TILE_PAD
 TILE_ROW_H_M = TILE_H_M - STRIPE_H - TILE_PAD
@@ -704,9 +704,10 @@ def build_tiles():
         st = _tile_state(d, sel)
         # Fra Tablet: flisen er [forside | New]; begge er billeder over HELE
         # flisens hoejde og uden mellemrum, saa hover toner hele flisen.
-        face_w = if_below("Tablet", f"({TILE_W} - {2 * TILE_PAD})",
-                          f"({TILE_W} - {2 * TILE_PAD}) - {TILE_NEW_W}")
-        row_h = if_below("Tablet", str(TILE_ROW_H_M), str(TILE_ROW_H))
+        face_w = if_below("Tablet", f"({TILE_W})",
+                          f"({TILE_W}) - {TILE_NEW_W}")
+        row_h = if_below("Tablet", f"{TILE_H_M - STRIPE_H} - 2",
+                         f"{TILE_H - STRIPE_H} - 2")
         face = _image(f"imgMdTile{n}", _svg_uri(_tile_face(d, count)), face_w, row_h,
                       onselect=f'Set(varMdDomain, If({sel}, "", "{d["key"]}"));\n' + SAVE_HUB,
                       # Uden tallet: det ville vaere endnu en forespoergsel.
@@ -727,21 +728,25 @@ def build_tiles():
         new.props["TabIndex"] = "0" if ready else "-1"
         new.props["FocusedBorderColor"] = d["color"]
 
+        # Kanten er IKKE containerens egen (den ville indsaette stregen): flisen er
+        # kantfarven, stregen ligger over hele bredden, og kortet ligger indenfor.
         row = group(
             f"conMdTileRow{n}", [face, new], direction="Horizontal", gap=0,
-            align_items="Center", height=row_h)
-        # Stregen er hele flisens bredde og sidder alleroeverst.
-        stripe = Ctrl(f"rctMdTileStripe{n}", "Rectangle", props={
-            "AccessibleLabel": '"Tile colour stripe"', "BorderStyle": "BorderStyle.None",
-            "BorderThickness": "0", "Fill": d["color"], "Height": str(STRIPE_H),
-            "OnSelect": "false", "TabIndex": "0", "Width": f"({TILE_W}) - {2 * TILE_PAD}",
-        }, h=STRIPE_H)
+            align_items="Center", height=row_h, fill=st["fill"])
+        body = group(
+            f"conMdTileBody{n}", [row], direction="Vertical", gap=0,
+            height=if_below("Tablet", str(TILE_H_M - STRIPE_H), str(TILE_H - STRIPE_H)),
+            pad=(0, st["thickness"], 2, st["thickness"]))
+        stripe = group(f"conMdTileStripe{n}", [], direction="Vertical", gap=0,
+                       height=str(STRIPE_H), width=f"({TILE_W})", fill=d["color"])
+        stripe.props["RadiusTopLeft"] = str(TILE_RADIUS)
+        stripe.props["RadiusTopRight"] = str(TILE_RADIUS)
+        stripe.props["RadiusBottomLeft"] = "0"
+        stripe.props["RadiusBottomRight"] = "0"
         tile = group(
-            f"conMdTile{n}", [stripe, row], direction="Vertical", gap=0,
-            fill=st["fill"], radius=TILE_RADIUS, width=TILE_W,
-            height=if_below("Tablet", str(TILE_H_M), str(TILE_H)),
-            pad=(0, TILE_PAD, TILE_PAD, TILE_PAD),
-            border_color=st["border"], border_thickness=st["thickness"])
+            f"conMdTile{n}", [stripe, body], direction="Vertical", gap=0,
+            fill=st["border"], radius=TILE_RADIUS, width=TILE_W,
+            height=if_below("Tablet", str(TILE_H_M), str(TILE_H)))
         tile.props["DropShadow"] = st["shadow"]
         tiles.append(tile)
 

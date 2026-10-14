@@ -92,7 +92,7 @@ def test_breadcrumb_links_back_to_the_hub_and_shows_the_page_and_id():
     hub, tail = g.children
     assert hub.control == "Image" and hub.props["OnSelect"] != "false"
     assert hub.props["AccessibleLabel"] == '"Back to Masterdata Hub"'
-    assert "Equipments" in tail.props["Text"] and "varEqReqNo" in tail.props["Text"]
+    assert "Equipments" in tail.props["Text"] and "varEqReqNo" not in tail.props["Text"]
     assert g.props["Height"] == str(bh.CRUMB_H)
 
 
@@ -131,7 +131,7 @@ def test_row_editor_panel_has_responsive_width_navigation_and_fixed_footer():
     assert backdrop.name == "imgXEditorBackdrop"
     assert backdrop.props["OnSelect"] == "Set(varEditorOpen, false)"
     assert panel.name == "conXEditorPanel"
-    assert "LayoutRank >= 3" in panel.props["Width"] and "480" in panel.props["Width"]
+    assert "LayoutRank >= 3" in panel.props["Width"] and "App.Width * 0.34" in panel.props["Width"]
     heading, scroll, panel_footer = panel.children
     assert heading.children[0].props["Text"] == '"Row 2 of 3"'
     assert [child.props["OnSelect"] for child in heading.children[1].children] == [

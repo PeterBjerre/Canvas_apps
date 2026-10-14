@@ -154,7 +154,7 @@ def use(expected):
             "Byg hver domaeneapp i sin egen proces."
             % (cfg.APP_KEY, cfg.__file__, expected.APP_KEY, expected.__file__))
 
-ROW_H = 44
+ROW_H = 56
 GAL_ROWS = 8
 
 # ---------------------------------------------------------------------------
@@ -342,6 +342,9 @@ def submit_press_fx():
             ")")
 
 
+# En ny anmodnings "session": raekker uden GUID, oprettet fra nu af, hoerer til
+# den. 2 min. margen mod forskel mellem enhedens ur og SharePoints.
+SESSION_FX = "Set(varDomSessionStart, DateAdd(Now(), -2, TimeUnit.Minutes))"
 DUP_VIS = '!IsBlank(varDomRequestGuid)'
 
 
@@ -372,6 +375,7 @@ def duplicate_fx():
         # ForAll loeber over ("cannot operate on the same data source that
         # is used in ForAll", issue #265). Filter er delegerbar, og
         # samlingen beholder listens typer (valg er stadig poster).
+        "        " + SESSION_FX + ";\n"
         f"        ClearCollect(colDomDupSrc, Filter({cfg.L_ROWS}, RequestGuid = varDomRequestGuid));\n"
         "        ForAll(\n"
         "            colDomDupSrc As R,\n"
@@ -442,7 +446,7 @@ def build_bar():
     # "New request" - den faelles tekst (build_helpers.new_request_label).
     new = new_request_label(button(
         "btnDomNewRequest", '"New request"',
-        'Set(varDomRequestGuid, "");\nSet(varDomRequestNo, "");\nSet(varDomViewOnly, false);\nSet(varDomCanEdit, false);\n' + clear_form_fx(),
+        'Set(varDomRequestGuid, "");\nSet(varDomRequestNo, "");\nSet(varDomViewOnly, false);\nSet(varDomCanEdit, false);\n' + SESSION_FX + ";\n" + refresh_rows_fx() + ";\n" + clear_form_fx(),
         tooltip='"Start a new request - your saved rows stay in SharePoint"'))
     # Edit og Delete er VH-planens (issue #94): de faelles knapper i
     # build_helpers, samme synlighed, placering og ikon-kun under Tablet.
@@ -693,7 +697,16 @@ def refresh_rows_fx(indent=0):
     anmodning, DEN anmodnings raekker (AS_ADMIN). To hele ClearCollect i
     en If, saa hvert filter delegeres for sig."""
     pad = " " * indent
-    mine = _collect_rows(f"Filter({cfg.L_ROWS}, RequesterEmail = varDomMe)")
+    # Kun DENNE anmodnings raekker: de med anmodningens GUID, og de nye
+    # raekker uden GUID, der er oprettet siden skaermen blev klargjort
+    # (varDomSessionStart). Tidligere indsendte/gemte anmodninger staar ikke
+    # i listen, naar man kommer ind direkte eller starter en ny - kun
+    # hubbens Open henter en eksisterende (varDomRequestGuid).
+    mine = _collect_rows(
+        f"Filter({cfg.L_ROWS}, RequesterEmail = varDomMe, "
+        f"(!IsBlank(varDomRequestGuid) && RequestGuid = varDomRequestGuid) || "
+        f"Created >= varDomSessionStart, "
+        f"RequestGuid = varDomRequestGuid || IsBlank(RequestGuid))")
     theirs = _collect_rows(f"Filter({cfg.L_ROWS}, RequestGuid = varDomRequestGuid)")
     ind = lambda t: "\n".join("    " + l for l in t.split("\n"))
     body = f"If(\n    {AS_ADMIN},\n{ind(theirs)},\n{ind(mine)}\n)"
@@ -904,6 +917,8 @@ def load_row_fx():
         lines.append(_fl_known_fx(f"ThisItem.{cfg.FL_FIELD}"))
     if HOOKS["load_extra"]:
         lines.append(HOOKS["load_extra"] + ";")
+    if getattr(cfg, "ROW_PANEL_ENABLED", False) and HOOKS["details_open"]:
+        lines.append(HOOKS["details_open"] + ";")
     lines[-1] = lines[-1].rstrip(";")
     return "\n".join(lines)
 
@@ -928,6 +943,10 @@ def open_docs_fx():
 def build_backdrop():
     """Sloeret bag popupperne. EEN kontrol til begge - to ville lagre oven
     paa hinanden og goere baggrunden dobbelt saa moerk."""
+    if getattr(cfg, "ROW_PANEL_ENABLED", False):
+        # Sidepanelet har ingen detaljepopup: kun dokumentpopuppen er tilbage.
+        return tap_backdrop("conDomBackdrop", "!IsBlank(varDomDocsId)",
+                            f"If(!{att.busy}, {DOCS_CLOSE})")
     vis = "!IsBlank(varDomDetailsId) || !IsBlank(varDomDocsId)"
     # Mens en upload koerer, lukker et tryk udenfor IKKE (issue #134).
     return tap_backdrop("conDomBackdrop", vis,
@@ -1173,7 +1192,8 @@ def delete_confirmed_fx():
         "            false\n"
         "        ),\n"
         f"        RemoveIf(colDomAttachments, RowId = {DELETE_ID});\n"
-        f"        If(varDomDetailsId = {DELETE_ID}, Set(varDomDetailsId, Blank()));\n"
+        + ("" if getattr(cfg, "ROW_PANEL_ENABLED", False) else
+           f"        If(varDomDetailsId = {DELETE_ID}, Set(varDomDetailsId, Blank()));\n") +
         f"        If(varDomDocsId = {DELETE_ID}, Set(varDomDocsId, Blank()));\n"
         # Var det den aabne raekke, skal formularen ogsaa ryddes - ellers
         # staar der felter fra noget, der ikke findes.
@@ -1616,7 +1636,7 @@ def send_fx(submit):
     # patchede naeste "Save as draft" i samme session den INDSENDTE
     # indeksraekke tilbage til Kladde. Naeste batch er en ny anmodning.
     after = (';\n        Set(varDomRequestGuid, "");\n'
-             '        Set(varDomRequestNo, "")') if submit else ""
+             '        Set(varDomRequestNo, "");\n        ' + SESSION_FX) if submit else ""
     # Indeksraekken er den samme i alle apps - tools/request_index.py.
     index_rec = ri.record(
         cfg.DOMAIN, cfg.APP_KEY, status,
@@ -1771,7 +1791,7 @@ CELL_MIN_2 = 220
 NEED_4 = 4 * CELL_MIN_4 + 3 * GRID_GAP
 NEED_2 = 2 * CELL_MIN_2 + GRID_GAP
 PANEL_NEED_2 = 360
-PANEL_NEED_3 = 3 * 150 + 2 * GRID_GAP
+PANEL_NEED_3 = 3 * 140 + 2 * GRID_GAP
 GRID_COLS = 4
 
 # Een celles bredde - maalt paa KORTETS bredde, ikke paa App.Width.
@@ -2205,6 +2225,9 @@ ACTION_BTNS = [("btnDomRowDetails", '"Details"'), ("btnDomRowOpen", '"Edit"'),
 def details_fx():
     """Raekkens Details-knap. HOOKS["details_open"] er appens egne felter i
     ruden (Materials' materialenummer)."""
+    if getattr(cfg, "ROW_PANEL_ENABLED", False):
+        # Details aabner sidepanelet (ingen separat popup): samme som Edit.
+        return load_row_fx()
     fx = "Set(varDomDetailsId, ThisItem.RowId)"
     if HOOKS["details_open"]:
         fx += ";\n" + HOOKS["details_open"]
@@ -2423,8 +2446,10 @@ def build_list(slots, badge_head, search_placeholder):
     lay_ = ListLayout(slots)
 
     # --- hovedet: titel, soegning og de to filtre ---------------------
+    title_w = text_px("Rows", lay.SIZE_CARD_TITLE) + 4
     title = text_ctrl("txtDomRowsH", '"Rows"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
-                      height=text_min_height(lay.SIZE_CARD_TITLE), wrap="false")
+                      height=text_min_height(lay.SIZE_CARD_TITLE), wrap="false",
+                      width=title_w, layout_min_width=title_w)
     # Soegning og filtre huskes i SaveData-lageret (UX-review F8). Feltet
     # hedder prefDom* her og prefEq*/prefMat*/prefMp* i BIO SAP.
     search = text_input("inpDomSearch", tok.pref_get("prefDomSearch"), width="240",
@@ -2461,7 +2486,7 @@ def build_list(slots, badge_head, search_placeholder):
                               width=fit_button_width('"Add row"'), height=36,
                               visible="!varDomViewOnly"))
     head_title = title
-    head_flex = text_px("Rows", 17)
+    head_flex = title_w
     if panel_on:
         head_title = group("conDomRowsTitle", [title, count], direction="Horizontal", gap=8,
                            height=text_min_height(lay.SIZE_CARD_TITLE),
@@ -2481,6 +2506,10 @@ def build_list(slots, badge_head, search_placeholder):
         gap_.vis = flow_ok(kids, FORM_W, gap=8, flex=gap_, flex_min=0)
         gap_.props["Visible"] = gap_.vis
         head = flow_row("conDomRowsTop", kids, FORM_W, gap=8, flex=gap_, flex_min=0)
+    head.props["PaddingTop"] = "6"
+    head.props["PaddingBottom"] = "6"
+    head.props["Height"] = f"({head.props['Height']}) + 12"
+    head.h = head.props["Height"]
 
     # --- tabellen -----------------------------------------------------------
     heads = [_head_text("txtDomHeadStatus", f'"{badge_head}"', BADGE_W)]
@@ -2565,7 +2594,7 @@ def build_list(slots, badge_head, search_placeholder):
         "Open row" if not panel_on else "Go to field", load_row_fx(),
         (f'{dt.plural(f"CountRows({DRAFTS})", "draft row")} & '
          f'If(CountRows({DRAFTS}) = 1, " - complete it to submit it too", '
-         '" - complete them to submit them too")') if not panel_on else '"Before you can submit"',
+         '" - complete them to submit them too")') if not panel_on else '"Still missing"',
         (f"IfError({FIX_VAR}, false) && CountRows({DRAFTS}) > 0 && !varDomViewOnly"
          if not panel_on else f"CountRows({DRAFTS}) > 0 && !varDomViewOnly"),
         f"Set({FIX_VAR}, false)", closable=not panel_on)

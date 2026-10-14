@@ -258,12 +258,13 @@ def test_spare_width_is_shared_by_the_columns():
     p = _parts()
     pair = F(p.V_PAIR_SHARE.replace(" ", ""))
     grow = F(p.V_GROW_SHARE.replace(" ", ""))
-    assert 2 * pair + len(p.V_GROW) * grow == 1
+    desc_share = F(p.V_DESC_SHARE.replace(" ", ""))
+    assert pair + desc_share + len(p.V_GROW) * grow == 1
     # Statuskolonnen er fast bredde; de to foerste felter beholder deres minimum.
     rows = 1920 - 56 - 64 - 36 - 18 - 40
     spare = rows - (34 + p.V_BASE)
     fl = p.FL_MIN + spare * pair
-    desc = p.DESC_MIN + spare * pair
+    desc = p.DESC_MIN + spare * desc_share
     assert fl >= p.FL_MIN, fl
     assert desc >= p.DESC_MIN, desc
     # Hver celle i raekken har samme bredde som sin overskrift.

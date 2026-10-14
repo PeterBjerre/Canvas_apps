@@ -20,7 +20,7 @@ def test_the_summary_line_shows_only_when_the_plan_is_locked():
     y = _yaml()
     row = _block(y, "conVhpPlanFoldRow", 60000)
     assert "varVhpPlanLocked && !IfError(varVhpPlanShow, false)" in row
-    assert y.index("- btnVhpPlanShow:") > y.index("- conVhpPlanFoldRow:")
+    assert y.index("- btnVhpPlanHide:") > y.index("- conVhpPlanFoldRow:")
     for part in ('"Plant"', "drpVhpPlanType.Selected.Value", '"First call"',
                  "dteVhpFirstCall.SelectedDate", '"dd-mm-yyyy"'):
         assert part in row, part
@@ -28,7 +28,7 @@ def test_the_fields_fold_away_and_show_brings_them_back():
     y = _yaml()
     grid = _block(y, "conVhpPlanGrid", 2500)
     assert "!(varVhpPlanLocked && !IfError(varVhpPlanShow, false))" in grid
-    show = _block(y, "btnVhpPlanShow", 2500)
+    show = _block(y, "btnVhpPlanHide", 2500)
     assert "Set(varVhpPlanShow, !IfError(varVhpPlanShow, false))" in show
 
 
