@@ -610,8 +610,9 @@ Screens:
                                       IsBlank(varEqRequestGuid),
                                       Set(gblToast, { Text: "Save the request before you duplicate it.", Kind: "Warning", At: Now() }); true,
                                       IfError(
+                                          ClearCollect(colEqDupSrc, Filter(EquipmentItems, RequestGuid = varEqRequestGuid));
                                           ForAll(
-                                              Filter(EquipmentItems, RequestGuid = varEqRequestGuid) As R,
+                                              colEqDupSrc As R,
                                               With(
                                                   { n: Patch(
                                                       EquipmentItems, Defaults(EquipmentItems), {
