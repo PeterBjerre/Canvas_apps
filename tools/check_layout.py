@@ -1886,6 +1886,34 @@ def rule_15(ctx):
                     break
     _export(ctx, locals(), ['warnings'])
 
+def rule_15b(ctx):
+    """ForAll maa ikke skrive i den kilde, den loeber over (issue #265)"""
+    # ForAll(Filter(Liste, ...) As R, Patch(Liste, ...)) afvises af
+    # compile: "This function cannot operate on the same data source that
+    # is used in ForAll". Det gaelder baade lister og samlinger. Loeb over
+    # en kopi i stedet: ClearCollect(colKopi, Filter(Liste, ...)) foerst.
+    MUT_RE = re.compile(r"\b(Collect|ClearCollect|Patch|Remove|RemoveIf|"
+                        r"UpdateIf|Clear)\s*\(")
+    for p_, name, body in ctx.all_nodes:
+        for key, val in (body.get("Properties") or {}).items():
+            if not isinstance(val, str) or "ForAll" not in val:
+                continue
+            for m in re.finditer(r"\bForAll\s*\(", val):
+                args = fx.call_args(val, m.start())
+                if len(args) < 2:
+                    continue
+                src = set(re.findall(r"[A-Za-z_]\w*", args[0]))
+                inner = ",".join(args[1:])
+                hit = sorted({fx.first_arg(inner, k.start())
+                              for k in MUT_RE.finditer(inner)} & src)
+                if hit:
+                    ctx.problems.append(
+                        f"[15b] {name}.{key}: ForAll loeber over {', '.join(hit)} "
+                        f"og skriver i den samme kilde - compile afviser det. "
+                        f"Loeb over en kopi (ClearCollect(colKopi, ...) foerst)")
+                    break
+
+
 def rule_21(ctx):
     """ButtonAppearance.Secondary"""
     all_nodes = ctx.all_nodes
@@ -2423,6 +2451,7 @@ RULES = [
     Rule('13', 'Parent.Template* uden for et galleris direkte barn', rule_13),
     Rule('14', 'Vandret scroll under Stretch', rule_14),
     Rule('15', 'Mutation inde i ForAll (ADVARSEL, ikke fejl)', rule_15),
+    Rule('15b', 'ForAll maa ikke skrive i den kilde, den loeber over (issue #265)', rule_15b),
     Rule('21', 'ButtonAppearance.Secondary', rule_21),
     Rule('22', 'Concurrent med en indbyrdes afhaengighed', rule_22),
     Rule('16', 'Ingen Classic/DropDown', rule_16),
