@@ -170,7 +170,7 @@ def on_visible():
     )
 
 
-def _row_editor(form, panel_content=None):
+def _row_editor(form, panel_content=None, reset=None):
     order = f"Sort({dp.LIST_SCOPE}, RowId, SortOrder.Descending)"
     position = f"CountRows(Filter({order}, RowId > varDomActiveRowId)) + 1"
     record = "LookUp(colDomRows, RowId = varDomActiveRowId)"
@@ -196,14 +196,39 @@ def _row_editor(form, panel_content=None):
                   width=fit_button_width('"Update row"'), height=lay.HIT_TOUCH,
                   display_mode=dp.DM_ROW, icon='If(IsBlank(varDomActiveRowId), "Add", "Save")')
     save.props["AccessibleLabel"] = "Self.Text"
-    left = group("conDomEditorDeleteAction", [delete], direction="Horizontal",
-                 height=lay.HIT_TOUCH, width=fit_button_width('"Delete row"'))
+    if reset is None:
+        reset = button("btnDomNew", '"Reset"', dp.clear_form_fx(),
+                       tooltip='"Clear the form and start a new row"')
+    reset.props["Width"] = str(fit_button_width('"Reset"'))
+    reset.props["Height"] = str(lay.HIT_TOUCH)
+    reset.h = lay.HIT_TOUCH
+    # Bundbjaelken: Delete og Reset til venstre, Cancel og Save til hoejre.
+    # Grupperne er Start-justeret og praecis knaphoeje - med Center tegnede
+    # Studio de indlejrede knapper forskudt nedad og klippede dem. Er
+    # panelet for smalt til begge par paa een linje (mobil), staar parrene
+    # under hinanden.
+    left_w = fit_button_width('"Delete row"') + 8 + fit_button_width('"Reset"')
+    right_w = fit_button_width('"Cancel"') + 8 + fit_button_width('"Update row"')
+    for b in (delete, reset, cancel, save):
+        b.props["AlignInContainer"] = "AlignInContainer.Start"
+        b.props["LayoutMinWidth"] = b.props["Width"]
+    left = group("conDomEditorDeleteAction", [delete, reset], direction="Horizontal",
+                 gap=8, height=lay.HIT_TOUCH, width=left_w, align_items="Start",
+                 align_in_container="Start")
     right = group("conDomEditorSaveActions", [cancel, save], direction="Horizontal",
-                  gap=8, height=lay.HIT_TOUCH,
-                  width=fit_button_width('"Cancel"') + fit_button_width('"Update row"') + 8)
+                  gap=8, height=lay.HIT_TOUCH, width=right_w, align_items="Start",
+                  align_in_container="Start", justify="End")
+    one_line = f"({lay.PANEL_W_AT}) - 2 * 20 >= {left_w + 16 + right_w}"
     footer = group("conDomEditorFooter", [left, right], direction="Horizontal",
-                   height=lay.HIT_TOUCH, width=dp.PANEL_FORM_W,
-                   justify="SpaceBetween", align_items="Center")
+                   gap=8, height=f"If({one_line}, {lay.HIT_TOUCH}, {2 * lay.HIT_TOUCH + 8})",
+                   width="Parent.Width", justify="SpaceBetween", align_items="Start")
+    # Under hinanden (mobil) staar Cancel og Save stadig til hoejre.
+    right.props["AlignInContainer"] = (f"If({one_line}, AlignInContainer.Start, "
+                                       "AlignInContainer.End)")
+    footer.props["LayoutDirection"] = (f"If({one_line}, LayoutDirection.Horizontal, "
+                                       "LayoutDirection.Vertical)")
+    footer.props["LayoutAlignItems"] = (f"If({one_line}, LayoutAlignItems.Start, "
+                                        "LayoutAlignItems.Stretch)")
     content = (list(form.children[:-2]) + [form.children[-1]]
                if panel_content is None else panel_content)
     return row_editor_panel(
@@ -246,7 +271,9 @@ def build_screen(cfg, parts, render):
         else:
             panel_content = None
         shell = request_shell("Dom", bar, None, None, rows,
-                              editor=_row_editor(form, panel_content), footer=footer)
+                              editor=_row_editor(form, panel_content,
+                                                 getattr(parts, "editor_reset", lambda: None)()),
+                              footer=footer)
         root, editor = shell[0], shell[1:]
     else:
         root = app_frame("Dom", bar, [form, rows], footer=footer)

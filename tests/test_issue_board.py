@@ -722,9 +722,12 @@ def test_toolbar_is_built_like_the_rows_that_render():
             if kb["Control"] != "GroupContainer":
                 continue
             kp = kb["Properties"]
-            # Den indlejrede gruppe er fast: vandret, centreret, ingen formel.
+            # Den indlejrede gruppe er fast: vandret, ingen formel. Center
+            # eller Start - Start for dropdown-parrene, som Studio ellers
+            # tegnede forskudt nedad og klippede.
             assert kp["LayoutDirection"].strip() == "=LayoutDirection.Horizontal", kn
-            assert kp["LayoutAlignItems"].strip() == "=LayoutAlignItems.Center", kn
+            assert kp["LayoutAlignItems"].strip() in (
+                "=LayoutAlignItems.Center", "=LayoutAlignItems.Start"), kn
             for g in kb["Children"]:
                 (gn, gb), = g.items()
                 assert gb["Control"] != "GroupContainer", f"{kn} > {gn}: ingen tredje lag"

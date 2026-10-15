@@ -397,6 +397,14 @@ def build_form(panel=False):
     return card("conDomFormCard", _editor_head() + top + rows + dp.form_footer(buttons))
 
 
+def editor_reset():
+    """Reset staar i panelets bundbjaelke (tools/domain_app._row_editor),
+    ikke i den scrollende formular."""
+    return button("btnDomNew", '"Reset"', reset_fx(),
+                  width=fit_button_width('"Reset"'), height=36,
+                  tooltip='"Clear the form and start a new row"')
+
+
 def editor_panel_content(form, extras=()):
     tab = cfg.ROW_EDITOR_TAB_VAR
     open_objects = (f"Set({OBJ_ROW}, varDomActiveRowId);\nSet({PICK}, \"\");\n"
@@ -411,10 +419,7 @@ def editor_panel_content(form, extras=()):
         ("Documents", "Documents", f'{tab} = "Documents"',
          f'Set({tab}, "Documents");\n{dp.open_active_docs_fx()}', None),
     ], label="Row details", fit=True)
-    reset = button("btnDomNew", '"Reset"', reset_fx(),
-                   width=fit_button_width('"Reset"'), height=36,
-                   tooltip='"Clear the form and start a new row"')
-    details = group("conDomEditorDetails", list(form.children[:-2]) + list(extras) + [form.children[-1], reset],
+    details = group("conDomEditorDetails", list(form.children[:-2]) + list(extras) + [form.children[-1]],
                     direction="Vertical", gap=12, visible=f'{tab} = "Details"')
     objects_body = _objects_popup()[1].children[1]
     objects_body.props["Height"] = "App.Height - 250"
