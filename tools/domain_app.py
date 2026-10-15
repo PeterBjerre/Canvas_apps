@@ -19,7 +19,7 @@ import domain_parts as dp
 import permissions as perm
 import display_text as dt
 from build_helpers import (click_outside_overlay, app_frame, sticky_actions, request_shell, row_editor_panel,
-                           button, fit_button_width, group)
+                           button, fit_button_width, group, ICON_W)
 from gen_screen import C_APP_BG
 from side_nav import side_nav
 
@@ -170,6 +170,9 @@ def on_visible():
     )
 
 
+SAVE_W = fit_button_width('"Save"') + ICON_W + 8
+
+
 def _row_editor(form, panel_content=None, reset=None):
     order = f"Sort({dp.LIST_SCOPE}, RowId, SortOrder.Descending)"
     position = f"CountRows(Filter({order}, RowId > varDomActiveRowId)) + 1"
@@ -191,10 +194,12 @@ def _row_editor(form, panel_content=None, reset=None):
         visible="!IsBlank(varDomActiveRowId)")
     cancel = button("btnDomEditorCancel", '"Cancel"', dp.clear_form_fx(),
                     width=fit_button_width('"Cancel"'), height=lay.HIT_TOUCH)
-    # Gem-knappen hedder "Save" - baade for en ny og en hentet raekke.
+    # Gem-knappen hedder "Save" - baade for en ny og en hentet raekke. Den
+    # har et ikon foran teksten, saa bredden skal have plads til ikonet
+    # ogsaa (uden det blev "Save" klippet i hoejre side).
     save = button("btnDomSave", '"Save"',
                   dp.ADD_ROW_FX[0] or "false", primary=True,
-                  width=fit_button_width('"Save"'), height=lay.HIT_TOUCH,
+                  width=SAVE_W, height=lay.HIT_TOUCH,
                   display_mode=dp.DM_ROW, icon='"Save"')
     save.props["AccessibleLabel"] = "Self.Text"
     if reset is None:
@@ -209,7 +214,7 @@ def _row_editor(form, panel_content=None, reset=None):
     # panelet for smalt til begge par paa een linje (mobil), staar parrene
     # under hinanden.
     left_w = fit_button_width('"Delete row"') + 8 + fit_button_width('"Reset"')
-    right_w = fit_button_width('"Cancel"') + 8 + fit_button_width('"Update"')
+    right_w = fit_button_width('"Cancel"') + 8 + SAVE_W
     for b in (delete, reset, cancel, save):
         b.props["AlignInContainer"] = "AlignInContainer.Start"
         b.props["LayoutMinWidth"] = b.props["Width"]
