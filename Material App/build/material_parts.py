@@ -302,9 +302,9 @@ def _cell(key, width=CELL_W):
     return dp.field_grid_cell(key, width=width, **CONDITIONAL.get(key, {}))
 
 
-# UX-review F2: "Add row" gemmer raekken (som kladde, til kravene er
+# UX-review F2: Save gemmer raekken (som kladde, til kravene er
 # opfyldt); dokumenter og funktionspladser laegges paa den gemte raekke.
-EDITOR_HINT = ("Start with the four key fields and choose Add row. Documents and "
+EDITOR_HINT = ("Start with the four key fields and choose Save. Documents and "
                "functional locations are added on the saved row in the list below.")
 
 
@@ -455,7 +455,7 @@ def _po_popup():
     hint = text_ctrl(
         "txtDomPoHint",
         f'If({READ_ONLY}, "Read only - this row cannot be changed.", '
-        '"The text is saved with the row when you choose Add row or Update row.")',
+        '"The text is saved with the row when you choose Save.")',
         size=12, color=C_MUTED, height=if_below("Tablet", "36", "18"), wrap="true")
     box = text_input("inpDomPoText", PO, height="Min(220, App.Height - 220)",
                      display_mode=dp.DM_ROW, ttype="Multiline",

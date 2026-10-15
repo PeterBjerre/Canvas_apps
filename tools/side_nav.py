@@ -146,21 +146,24 @@ def _svg(w, h, body):
             f"height='{h}' viewBox='0 0 {w} {h}'>" + body + "</svg>" + '"')
 
 
-def _icon(path, color, current=False):
+def _icon(path, color, current=False, mirror=False):
     """Ikonet fra shell.js: viewBox 24, tegnet 18 px stort og centreret i
     den lukkede skinne. Stregen er icons.stroke(18); den valgte side faar
-    en kraftigere streg (icons.SELECTED_BOOST) - samme ikon, mere vaegt."""
+    en kraftigere streg (icons.SELECTED_BOOST) - samme ikon, mere vaegt.
+    mirror: spejlet vandret som paa hubbens flise (icons.mirrored)."""
     s = ICON_PX / 24
     x = (lay.NAV_W - ICON_PX) / 2
     y = (ITEM_H - ICON_PX) / 2
     w = icons.stroke(ICON_PX) + (icons.SELECTED_BOOST if current else 0)
     shape = (icons.hub_paths(_hx) if path == icons.HUB else f"<path d='{path}'/>")
+    if mirror:
+        shape = f"<g transform='{icons.MIRROR_X}'>{shape}</g>"
     return (f"<g transform='translate({x:g} {y:g}) scale({s:g})' fill='none' "
             f"stroke='{color}' stroke-width='{w:g}' stroke-linecap='round' "
             f"stroke-linejoin='round'>{shape}</g>")
 
 
-def _item_svg(w, path, label, current, icon_token=None):
+def _item_svg(w, path, label, current, icon_token=None, mirror=False):
     """Et punkt. current = den app, man staar i: baggrund, accentfarve og
     stregen ude ved kanten, som i shell.css. icon_token: ikonets egen
     farve (domaenefarven); uden den foelger ikonet teksten."""
@@ -172,7 +175,7 @@ def _item_svg(w, path, label, current, icon_token=None):
                  f"fill='{_hx('state-info-bg')}'/>"
                  f"<rect x='0' y='{ITEM_H // 2 - 10}' width='3' height='20' rx='1.5' "
                  f"fill='{icon_fg}'/>")
-    body += _icon(path, icon_fg, current)
+    body += _icon(path, icon_fg, current, mirror)
     if label:
         # The label is a STANDALONE string in the expression, so the language
         # selector (tools/i18n.py) can translate it. Valgt: fed tekst;
@@ -350,7 +353,8 @@ def _column(p, suffix, w, current, is_open, help_on, help_action):
         tok = icons.token(key)
         items.append(_image(
             n(f"Nav{key[0].upper()}{key[1:]}"),
-            _item_svg(w, icon, label if is_open else None, cur, tok), w, ITEM_H,
+            _item_svg(w, icon, label if is_open else None, cur, tok,
+                      icons.mirrored(key)), w, ITEM_H,
             CLOSE if cur else _launch(key, current),
             f'"{label}' + (' (current app)"' if cur else '"'),
             tooltip=None if is_open else f'"{label}"', hover=not cur))
@@ -436,12 +440,11 @@ def side_nav(prefix, current, help_on=None, help_action=None):
     keys = [k for k, _, _ in ITEMS]
     # EN APP UDEN PUNKT I SIDEBAREN (issue #210)
     #
-    # Measuring Point bygges, foer den faar sit punkt: et punkt mere
-    # aendrer sidebaren paa ALLE skaermene, og de delte dele laves om i
-    # #204. Appen findes i tools/canvas_apps.json, men staar ikke i
-    # nav_order - saa er sidebaren bare umarkeret, mens man er paa den
-    # skaerm. Et navn, der slet ikke findes som app, er stadig en fejl:
-    # det ville ellers tavst give en sidebar uden markering.
+    # En app, der findes i tools/canvas_apps.json, men ikke staar i
+    # nav_order (Measuring Point gjorde det, foer den fik sit punkt), faar
+    # en umarkeret sidebar, mens man er paa den skaerm. Et navn, der slet
+    # ikke findes som app, er stadig en fejl: det ville ellers tavst give
+    # en sidebar uden markering.
     if current not in keys and current not in env.APPS:
         raise ValueError("side_nav: ukendt app '%s'. Kendte: %s" % (current, ", ".join(keys)))
 

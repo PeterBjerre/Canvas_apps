@@ -233,7 +233,7 @@ PROPER = (
     "Add row", "Update row", "Save draft", "Submit", "New request", "Edit",
     "Documents", "Details", "Objects", "Copy row", "Delete row", "Search",
     "Clear filters", "Valid FL", "Paste rows", "Add item", "Add material", "Add",
-    "Upload", "Reopen", "New issue", "Done", "Manual operation", "Add lines from task list", "Save changes", "None", "ZBOW", "Office 365",
+    "Upload", "Reopen", "New issue", "Done", "Manual operation", "Add lines from task list", "Save changes", "Save", "None", "ZBOW", "Office 365",
     # Kortene, en hjaelpetekst henviser til ved navn.
     "Task list and operations", "Strategy packages", "Plan header", "Row details",
     # SharePoint-kolonner, en hjaelpetekst naevner ved navn.
