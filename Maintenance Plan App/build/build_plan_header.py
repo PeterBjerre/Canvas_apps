@@ -227,7 +227,7 @@ def value_chip(name, label, value_fx, label_w=None, value_chars=None, visible=No
                  pad=(0, CHIP_PAD, 0, CHIP_PAD), visible=visible)
 
 
-FOLD_H = 44
+FOLD_H = 30
 
 
 def plan_fold_row(fold, toggle_set):
@@ -244,7 +244,7 @@ def plan_fold_row(fold, toggle_set):
     grow(summary, 0)
     # Show staar i fodens knaprække, ikke her.
     return group("conVhpPlanFoldRow", [ok, title, summary], direction="Horizontal", gap=10,
-                 height=f"If({narrow}, 64, {FOLD_H})", align_items="Center", visible=fold)
+                 height=f"If({narrow}, 48, {FOLD_H})", align_items="Start", visible=fold)
 
 
 def build_plan_header():
@@ -486,16 +486,26 @@ def build_plan_header():
     hide.props["BorderThickness"] = "0"
     hide.props["Color"] = C_TITLE
     foldRow = plan_fold_row(fold, toggle_set)
-    # Foldet: chips (foldRow) staar i fodens venstre side, i samme raekke som
-    # knapperne - kortet er kun een raekke hoejt. Udfoldet: "Plan created".
-    planMeta.props["Visible"] = f"!({fold})"
-    planMeta.vis = f"!({fold})"
-    info = group("conVhpPlanFooterInfo", [planMeta, foldRow], direction="Vertical", gap=0,
+    hide.props["Visible"] = f"varVhpPlanLocked && !({fold})"
+    hide.vis = hide.props["Visible"]
+    # Foldet: titel og noegletal oeverst i kortet, Show nederst til hoejre.
+    show = button("btnVhpPlanShow", '"Show"', toggle_set,
+                  width=fit_button_width('"Hide"') + ICON_W, height=36,
+                  accessible='"Show the plan header fields"',
+                  icon=f'"{icons.FLUENT["expand"]}"')
+    show.props["LayoutMinWidth"] = show.props["Width"]
+    show.props["Appearance"] = "ButtonAppearance.Subtle"
+    show.props["BorderThickness"] = "0"
+    show.props["Color"] = C_TITLE
+    showRow = group("conVhpPlanShowRow", [show], direction="Horizontal", gap=0, height=36,
+                    align_items="Center", justify="End")
+    foldCard = group("conVhpPlanFoldCard", [foldRow, showRow], direction="Vertical", gap=4,
+                     visible=fold)
+    info = group("conVhpPlanFooterInfo", [planMeta], direction="Vertical", gap=0,
                  justify="Center")
-    btnReset.props["Visible"] = f"!({fold})"
-    btnReset.vis = f"!({fold})"
-    footer = section_footer("conVhpPlanFooter", info, [hide, btnReset, btnSave], PLAN_CW,
-                          keep_inline=fold, drop_in_fold=btnReset)
+    footer = section_footer("conVhpPlanFooter", info, [hide, btnReset, btnSave], PLAN_CW)
+    footer.props["Visible"] = f"!({fold})"
+    footer.vis = footer.props["Visible"]
 
     # Foldet: kun foldRow (check, titel, nogletal som chips, Show). Udfoldet:
     # overskrift, hjaelp, felter og fod som foer.
@@ -504,5 +514,5 @@ def build_plan_header():
         part.props["Visible"] = f"!({fold})" if not v else f"!({fold}) && ({v})"
         part.vis = part.props["Visible"]
 
-    return card("conVhpPlanCard", [header, helpPanel, grid, footer], gap=10,
+    return card("conVhpPlanCard", [header, helpPanel, grid, foldCard, footer], gap=10,
                 pad_y=12)

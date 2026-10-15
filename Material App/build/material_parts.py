@@ -410,7 +410,7 @@ def editor_panel_content(form, extras=()):
          f'Set({tab}, "Objects");\n{open_objects}', None),
         ("Documents", "Documents", f'{tab} = "Documents"',
          f'Set({tab}, "Documents");\n{dp.open_active_docs_fx()}', None),
-    ], label="Row details")
+    ], label="Row details", fit=True)
     reset = button("btnDomNew", '"Reset"', reset_fx(),
                    width=fit_button_width('"Reset"'), height=36,
                    tooltip='"Clear the form and start a new row"')

@@ -762,7 +762,7 @@ def build_filters():
     # raekkens overkant, og toppen blev skaaret af.
     for line in (top, filters):
         _air(line, 8, 4)
-    return [top, search_row, filters]
+    return [top, filters, search_row]
 
 
 def _air(row, top, bottom):
