@@ -1895,11 +1895,17 @@ def _actions():
     archive.props["Tooltip"] = ('"Archive issue - keeps the issue, its comments, activity and '
                                 'files under Archived"')
     show_archive = f"IbCanManage && !{SEL}.Archived"
+    archive.props["BorderColor"] = C_INPUT_BORDER
+    archive.props["BorderStyle"] = "BorderStyle.Solid"
+    archive.props["BorderThickness"] = "1"
     archive.props["Visible"] = show_archive
     archive.vis = show_archive
     restore = icon_button("btnIbRestore", "Restore issue", ARCHIVE, icons.UNDO, idle)
     restore.props["Tooltip"] = '"Restore issue - bring it back to the active lists"'
     show_restore = f"IbCanManage && {SEL}.Archived"
+    restore.props["BorderColor"] = C_INPUT_BORDER
+    restore.props["BorderStyle"] = "BorderStyle.Solid"
+    restore.props["BorderThickness"] = "1"
     restore.props["Visible"] = show_restore
     restore.vis = show_restore
     delete = _icon_action("btnIbDelete", "Delete", "Reset(inpIbDelConfirm);\nSet(varIbDelOn, true)",
@@ -2049,10 +2055,10 @@ def build_detail():
     no.props["LayoutMinWidth"] = str(NO_W)
     # Bladring: raekkefoelgen er listens (filtreret og sorteret) - galIbList.AllItems.
     nav_list = "galIbList.AllItems"
-    pos = (f"Coalesce(First(Filter(ForAll(Sequence(galIbList.AllItemsCount), "
-           f"{{n: Value, id: Index({nav_list}, Value).Id}}), id = varIbSelId)).n, 0)")
+    pos = (f"Coalesce(First(Filter(ForAll(Sequence(CountRows({nav_list})), "
+           f"{{n: Value, id: IfError(Index({nav_list}, Value).Id, Blank())}}), id = varIbSelId)).n, 0)")
     prev_mode = f"If(varIbSelPeek || {pos} <= 1, DisplayMode.Disabled, DisplayMode.Edit)"
-    next_mode = (f"If(varIbSelPeek || {pos} = 0 || {pos} >= galIbList.AllItemsCount, "
+    next_mode = (f"If(varIbSelPeek || {pos} = 0 || {pos} >= CountRows({nav_list}), "
                  f"DisplayMode.Disabled, DisplayMode.Edit)")
     prev_fx = f"With({{r: LookUp(colIbAll, Id = Index({nav_list}, {pos} - 1).Id)}}, {open_ticket('r', 'false')})"
     next_fx = f"With({{r: LookUp(colIbAll, Id = Index({nav_list}, {pos} + 1).Id)}}, {open_ticket('r', 'false')})"
@@ -2074,25 +2080,26 @@ def build_detail():
     pri.props["LayoutMinWidth"] = str(PRI_W)
     badges_w = f"({CHIP_W} + 8 + If(IsBlank({SEL}.Priority), 0, {PRI_W} + 8))"
     badges = group("conIbDetBadges", [chip, pri], direction="Horizontal", gap=8, height=CHIP_H,
-                   width=f"({badges_w} - 8)", align_items="Center")
+                   width=f"({badges_w} - 8)", align_items="Start")
     badges.props["LayoutMinWidth"] = badges.props["Width"]
     where_w = f"If({FACTS_OK}, ({DET_IN}) - {badges_w} - 4, {DET_IN})"
+    where_h = f"If({FACTS_OK}, {CHIP_H}, 20)"
+    mid = {"VerticalAlign": "VerticalAlign.Middle"}
     app = text_ctrl("txtIbDetApp", f"{SEL}.Application", size=lay.SIZE_BODY, weight="Semibold",
-                    height=20, width=f"(({where_w}) - 12) / 2",
-                    accessible='"Application: " & Self.Text')
+                    height=where_h, width=f"Max(0, (({where_w}) - 12) / 2)",
+                    accessible='"Application: " & Self.Text', extra=mid)
     sec = text_ctrl("txtIbDetSection", f"{SEL}.Section", size=lay.SIZE_BODY, color=C_MUTED,
-                    height=20, width=f"(({where_w}) - 12) / 2",
-                    accessible='"Section: " & Self.Text')
-    where = group("conIbDetWhere", [app, sec], direction="Horizontal", gap=12, height=20,
-                  width=where_w, align_items="Center")
+                    height=where_h, width=f"Max(0, (({where_w}) - 12) / 2)",
+                    accessible='"Section: " & Self.Text', extra=mid)
+    where = group("conIbDetWhere", [app, sec], direction="Horizontal", gap=12, height=where_h,
+                  width=where_w, align_items="Start")
     where.props["LayoutMinWidth"] = "0"
     meta = group("conIbDetMeta", [badges, where], direction="Horizontal", gap=12,
-                 height=f"If({FACTS_OK}, {CHIP_H}, {CHIP_H} + 6 + 20)", align_items="Center")
+                 height=f"If({FACTS_OK}, {CHIP_H}, {CHIP_H} + 6 + 20)", align_items="Start")
     meta.props["LayoutDirection"] = (f"If({FACTS_OK}, LayoutDirection.Horizontal, "
                                      "LayoutDirection.Vertical)")
     meta.props["LayoutGap"] = f"If({FACTS_OK}, 12, 6)"
-    meta.props["LayoutAlignItems"] = (f"If({FACTS_OK}, LayoutAlignItems.Center, "
-                                      "LayoutAlignItems.Start)")
+    meta.props["LayoutAlignItems"] = "LayoutAlignItems.Start"
 
     # 3. Metadata.  4. Handlingerne (ikoner).
     facts = _facts()

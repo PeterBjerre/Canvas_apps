@@ -261,7 +261,7 @@ def _seg_cell(col, width=CELL_W):
     seg = segmented(f"conDom{col}Seg", [
         ("No", "No", f"!{on}", _seg_fx(col, False), tip),
         ("Yes", "Yes", on, _seg_fx(col, True), tip),
-    ], display_mode=dp.DM_ROW, label=label)
+    ], display_mode=dp.DM_ROW, label=label, compact=True)
     return dp.grid_cell(f"conDom{col}", label, seg, width=width)
 
 

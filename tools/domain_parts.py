@@ -2154,7 +2154,7 @@ def form_buttons(save_fx, save_text, new_text, new_fx=None, new_tooltip=None,
         tooltip=('If(IsBlank(varDomActiveRowId), "Add the row to the request - it is '
                  'saved as a draft until the required fields are filled in", '
                  '"Save the changes to this row")')), icon=True))
-    add.props["Text"] = 'If(IsBlank(varDomActiveRowId), "Add row", "Update row")'
+    add.props["Text"] = 'If(IsBlank(varDomActiveRowId), "Add row", "Update")'
     add.props["Icon"] = 'If(IsBlank(varDomActiveRowId), "Add", "Save")'
     add.props["AccessibleLabel"] = "Self.Text"
     return [
