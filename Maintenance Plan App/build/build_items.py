@@ -272,7 +272,9 @@ def build_items_rail():
             f"    {RESET_EDITOR_CONTROLS};\n"
             "    Notify(\"Item \" & Text(CountRows(colVhpItems)) & \" added.\", NotificationType.Success)\n"
             ")"
-        ), primary=True, icon=icons.FLUENT["add"], display_mode=VIEW_LOCK)
+        ), primary=True, icon=icons.FLUENT["add"], display_mode=VIEW_LOCK,
+                    visible="!varVhpViewOnly")
+
 
     btnCopy = button(
         "btnVhpCopyItem", "\"\"",
@@ -333,7 +335,7 @@ def build_items_rail():
             "        Notify(\"Item copied. Functional Location cleared on the copied item.\", NotificationType.Success)\n"
             "    )\n"
             ")"
-        ), display_mode=VIEW_LOCK)
+        ), display_mode=VIEW_LOCK, visible="!varVhpViewOnly")
 
     # KORTETS HOVED (mockup): Copy som ikonknap og "+ Add item" som blaa
     # primaerknap staar til hoejre i overskriften, efter trin-badget. Delete
@@ -406,7 +408,7 @@ def build_items_rail():
     DEL_W = fit_button_width("\"Delete\"", size=13, min_w=64)
     btnDelete = button(
         "btnVhpRemoveItem", "\"Delete\"",
-        _delete_item_fx("ThisItem.ItemId"), danger=True, width=DEL_W, height=30, display_mode=VIEW_LOCK,
+        _delete_item_fx("ThisItem.ItemId"), danger=True, width=DEL_W, height=30, display_mode=VIEW_LOCK, visible="!varVhpViewOnly",
         accessible=f"\"Delete item \" & Text({CARD_NO})")
     btnDelete.props["Size"] = "13"
     btnDelete.props["_OnTop"] = "true"
@@ -580,7 +582,8 @@ def build_item_editor():
     del_txt = '"Delete item"'
     btnDelItem = button("btnVhpEditorDelete", del_txt, _delete_item_fx("varVhpActiveItemId"),
                         danger=True, width=fit_button_width(del_txt, size=13), height=30,
-                        display_mode=VIEW_LOCK, visible="!IsBlank(varVhpActiveItemId)",
+                        display_mode=VIEW_LOCK,
+                        visible="(!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)",
                         accessible=f'"Delete item " & Text({no})')
     btnDelItem.props["Size"] = "13"
     btnDelItem.props["LayoutMinWidth"] = btnDelItem.props["Width"]
