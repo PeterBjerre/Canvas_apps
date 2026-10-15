@@ -755,6 +755,11 @@ def cmd_deploy(client, args, cfg):
         out("")
         out("    python tools\\canvas_mcp.py deploy --app %s --clean" % app["key"])
         out("")
+        out("Ligger en skaerms kontroller (fx Mat*) OGSAA paa en anden skaerm,")
+        out("har Studio lagt dem paa den skaerm, der er aaben i Studio-fanen.")
+        out("Genindlaes fanen, vaelg den skaerm, kontrollerne hoerer til")
+        out("(fx ScreenMaterial), og deploy med --clean igen.")
+        out("")
         raise SystemExit(2)
     out("Faerdig. Traeet i Studio er det byggede.")
 
