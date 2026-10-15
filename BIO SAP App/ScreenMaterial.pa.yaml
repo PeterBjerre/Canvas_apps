@@ -7738,7 +7738,7 @@ Screens:
                   LayoutDirection: |-
                       =LayoutDirection.Horizontal
                   LayoutGap: |-
-                      =12
+                      =4
                   LayoutMinWidth: |-
                       =0
                   LayoutOverflowX: |-
@@ -7798,411 +7798,408 @@ Screens:
                                  Plant = drpMatPlantFilter.Selected.Value)
                             ), RowId, SortOrder.Descending))))
                         Width: |-
-                            =Max(0, (((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20)) - ((140) + 12) - 2)
+                            =Max(0, (((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20)) - (If(CountRows(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)) > 1, (44) + 4, 0)) - (If(CountRows(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)) > 1, (44) + 4, 0)) - ((44) + 4) - 2)
                         Wrap: |-
                             =false
-                  - conMatEditorNavigation:
-                      Control: GroupContainer
-                      Variant: AutoLayout
+                  - btnMatEditorPrevious:
+                      Control: Image
                       Properties:
+                        AccessibleLabel: |-
+                            ="Previous row"
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
                         BorderStyle: |-
                             =BorderStyle.None
-                        DropShadow: |-
-                            =DropShadow.None
-                        FillPortions: |-
+                        BorderThickness: |-
                             =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        DisplayMode: |-
+                            =If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
                         Height: |-
                             =44
-                        LayoutAlignItems: |-
-                            =LayoutAlignItems.Center
-                        LayoutDirection: |-
-                            =LayoutDirection.Horizontal
-                        LayoutGap: |-
-                            =4
-                        LayoutJustifyContent: |-
-                            =LayoutJustifyContent.End
+                        HoverFill: |-
+                            =If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M15 6l-6 6 6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M15 6l-6 6 6 6'/></g></svg>"))
+                        ImagePosition: |-
+                            =ImagePosition.Center
                         LayoutMinWidth: |-
-                            =0
-                        LayoutOverflowX: |-
-                            =LayoutOverflow.Hide
-                        LayoutOverflowY: |-
-                            =LayoutOverflow.Hide
+                            =44
+                        OnSelect: |-
+                            =Set(varMatActiveRowId, Index(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), Max(1, CountRows(Filter(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 - 1)).RowId);
+                            Set(varMatActiveRowId, LookUp(colMatRows, RowId = varMatActiveRowId).RowId);
+                            Set(varMatRowStatus, LookUp(colMatRows, RowId = varMatActiveRowId).Status);
+                            Set(varMatValidated, false);
+                            Set(varMatFText, LookUp(colMatRows, RowId = varMatActiveRowId).MaterialDescription);
+                            Set(varMatFPlant, LookUp(colMatRows, RowId = varMatActiveRowId).Plant);
+                            Set(varMatEditorOpen, true);
+                            Set(varMatEditorTab, "Details");
+                            Set(varMatFManufacturer, LookUp(colMatRows, RowId = varMatActiveRowId).Manufacturer);
+                            Set(varMatFModelNumber, LookUp(colMatRows, RowId = varMatActiveRowId).ModelNumber);
+                            Set(varMatFManufacturerPartNo, LookUp(colMatRows, RowId = varMatActiveRowId).ManufacturerPartNo);
+                            Set(varMatFSupplier, LookUp(colMatRows, RowId = varMatActiveRowId).Supplier);
+                            Set(varMatFSupplierPartNo, LookUp(colMatRows, RowId = varMatActiveRowId).SupplierPartNo);
+                            Set(varMatFDeliveringTime, LookUp(colMatRows, RowId = varMatActiveRowId).DeliveringTime);
+                            Set(varMatFPrice, LookUp(colMatRows, RowId = varMatActiveRowId).Price);
+                            Set(varMatFPriceUnit, LookUp(colMatRows, RowId = varMatActiveRowId).PriceUnit);
+                            Set(varMatFStockUnit, LookUp(colMatRows, RowId = varMatActiveRowId).StockUnit);
+                            Set(varMatFIsStockItem, LookUp(colMatRows, RowId = varMatActiveRowId).IsStockItem);
+                            Set(varMatFMinStock, LookUp(colMatRows, RowId = varMatActiveRowId).MinStock);
+                            Set(varMatFMaxStock, LookUp(colMatRows, RowId = varMatActiveRowId).MaxStock);
+                            Set(varMatFStorageBin, LookUp(colMatRows, RowId = varMatActiveRowId).StorageBin);
+                            Set(varMatFStrategicPart, LookUp(colMatRows, RowId = varMatActiveRowId).StrategicPart);
+                            Set(varMatFWearPart, LookUp(colMatRows, RowId = varMatActiveRowId).WearPart);
+                            Set(varMatFRemarks, LookUp(colMatRows, RowId = varMatActiveRowId).Remarks);
+                            Set(varMatFMaintenanceOrderNo, LookUp(colMatRows, RowId = varMatActiveRowId).MaintenanceOrderNo);
+                            Set(varMatFReplacesExisting, LookUp(colMatRows, RowId = varMatActiveRowId).ReplacesExisting);
+                            Set(varMatFReplacedMaterialNo, LookUp(colMatRows, RowId = varMatActiveRowId).ReplacedMaterialNo);
+                            Clear(colMatObjects);
+                            Set(varMatDetCreatedNo, Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).CreatedMaterialNo, ""));
+                            Reset(inpMatDetCreatedNo)
+                        PressedFill: |-
+                            =If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
+                        RadiusBottomLeft: |-
+                            =6
+                        RadiusBottomRight: |-
+                            =6
+                        RadiusTopLeft: |-
+                            =6
+                        RadiusTopRight: |-
+                            =6
+                        TabIndex: |-
+                            =If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
+                        Tooltip: |-
+                            ="Previous row"
+                        Visible: |-
+                            =CountRows(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)) > 1
                         Width: |-
-                            =140
-                      Children:
-                        - btnMatEditorPrevious:
-                            Control: Image
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Previous row"
-                              BorderColor: |-
-                                  =RGBA(0, 0, 0, 0)
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              DisabledFill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              DisplayMode: |-
-                                  =If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colMatRows,
-                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
-                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMatPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Height: |-
-                                  =44
-                              HoverFill: |-
-                                  =If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colMatRows,
-                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
-                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMatPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
-                              Image: |-
-                                  ="data:image/svg+xml;utf8," & EncodeUrl(If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colMatRows,
-                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
-                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMatPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M15 6l-6 6 6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M15 6l-6 6 6 6'/></g></svg>"))
-                              ImagePosition: |-
-                                  =ImagePosition.Center
-                              OnSelect: |-
-                                  =Set(varMatActiveRowId, Index(Sort(Filter(
-                                      colMatRows,
-                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
-                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMatPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), Max(1, CountRows(Filter(Sort(Filter(
-                                      colMatRows,
-                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
-                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMatPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 - 1)).RowId);
-                                  Set(varMatActiveRowId, LookUp(colMatRows, RowId = varMatActiveRowId).RowId);
-                                  Set(varMatRowStatus, LookUp(colMatRows, RowId = varMatActiveRowId).Status);
-                                  Set(varMatValidated, false);
-                                  Set(varMatFText, LookUp(colMatRows, RowId = varMatActiveRowId).MaterialDescription);
-                                  Set(varMatFPlant, LookUp(colMatRows, RowId = varMatActiveRowId).Plant);
-                                  Set(varMatEditorOpen, true);
-                                  Set(varMatEditorTab, "Details");
-                                  Set(varMatFManufacturer, LookUp(colMatRows, RowId = varMatActiveRowId).Manufacturer);
-                                  Set(varMatFModelNumber, LookUp(colMatRows, RowId = varMatActiveRowId).ModelNumber);
-                                  Set(varMatFManufacturerPartNo, LookUp(colMatRows, RowId = varMatActiveRowId).ManufacturerPartNo);
-                                  Set(varMatFSupplier, LookUp(colMatRows, RowId = varMatActiveRowId).Supplier);
-                                  Set(varMatFSupplierPartNo, LookUp(colMatRows, RowId = varMatActiveRowId).SupplierPartNo);
-                                  Set(varMatFDeliveringTime, LookUp(colMatRows, RowId = varMatActiveRowId).DeliveringTime);
-                                  Set(varMatFPrice, LookUp(colMatRows, RowId = varMatActiveRowId).Price);
-                                  Set(varMatFPriceUnit, LookUp(colMatRows, RowId = varMatActiveRowId).PriceUnit);
-                                  Set(varMatFStockUnit, LookUp(colMatRows, RowId = varMatActiveRowId).StockUnit);
-                                  Set(varMatFIsStockItem, LookUp(colMatRows, RowId = varMatActiveRowId).IsStockItem);
-                                  Set(varMatFMinStock, LookUp(colMatRows, RowId = varMatActiveRowId).MinStock);
-                                  Set(varMatFMaxStock, LookUp(colMatRows, RowId = varMatActiveRowId).MaxStock);
-                                  Set(varMatFStorageBin, LookUp(colMatRows, RowId = varMatActiveRowId).StorageBin);
-                                  Set(varMatFStrategicPart, LookUp(colMatRows, RowId = varMatActiveRowId).StrategicPart);
-                                  Set(varMatFWearPart, LookUp(colMatRows, RowId = varMatActiveRowId).WearPart);
-                                  Set(varMatFRemarks, LookUp(colMatRows, RowId = varMatActiveRowId).Remarks);
-                                  Set(varMatFMaintenanceOrderNo, LookUp(colMatRows, RowId = varMatActiveRowId).MaintenanceOrderNo);
-                                  Set(varMatFReplacesExisting, LookUp(colMatRows, RowId = varMatActiveRowId).ReplacesExisting);
-                                  Set(varMatFReplacedMaterialNo, LookUp(colMatRows, RowId = varMatActiveRowId).ReplacedMaterialNo);
-                                  Clear(colMatObjects);
-                                  Set(varMatDetCreatedNo, Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).CreatedMaterialNo, ""));
-                                  Reset(inpMatDetCreatedNo)
-                              PressedFill: |-
-                                  =If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colMatRows,
-                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
-                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMatPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
-                              RadiusBottomLeft: |-
-                                  =6
-                              RadiusBottomRight: |-
-                                  =6
-                              RadiusTopLeft: |-
-                                  =6
-                              RadiusTopRight: |-
-                                  =6
-                              TabIndex: |-
-                                  =If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colMatRows,
-                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
-                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMatPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
-                              Tooltip: |-
-                                  ="Previous row"
-                              Visible: |-
-                                  =CountRows(Sort(Filter(
-                                      colMatRows,
-                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
-                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMatPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)) > 1
-                              Width: |-
-                                  =44
-                        - btnMatEditorNext:
-                            Control: Image
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Next row"
-                              BorderColor: |-
-                                  =RGBA(0, 0, 0, 0)
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              DisabledFill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              DisplayMode: |-
-                                  =If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colMatRows,
-                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
-                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMatPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 >= CountRows(Sort(Filter(
-                                      colMatRows,
-                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
-                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMatPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Height: |-
-                                  =44
-                              HoverFill: |-
-                                  =If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colMatRows,
-                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
-                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMatPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 >= CountRows(Sort(Filter(
-                                      colMatRows,
-                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
-                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMatPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
-                              Image: |-
-                                  ="data:image/svg+xml;utf8," & EncodeUrl(If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colMatRows,
-                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
-                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMatPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 >= CountRows(Sort(Filter(
-                                      colMatRows,
-                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
-                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMatPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6l6 6-6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M9 6l6 6-6 6'/></g></svg>"))
-                              ImagePosition: |-
-                                  =ImagePosition.Center
-                              OnSelect: |-
-                                  =Set(varMatActiveRowId, Index(Sort(Filter(
-                                      colMatRows,
-                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
-                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMatPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), Min(CountRows(Sort(Filter(
-                                      colMatRows,
-                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
-                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMatPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)), CountRows(Filter(Sort(Filter(
-                                      colMatRows,
-                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
-                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMatPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 + 1)).RowId);
-                                  Set(varMatActiveRowId, LookUp(colMatRows, RowId = varMatActiveRowId).RowId);
-                                  Set(varMatRowStatus, LookUp(colMatRows, RowId = varMatActiveRowId).Status);
-                                  Set(varMatValidated, false);
-                                  Set(varMatFText, LookUp(colMatRows, RowId = varMatActiveRowId).MaterialDescription);
-                                  Set(varMatFPlant, LookUp(colMatRows, RowId = varMatActiveRowId).Plant);
-                                  Set(varMatEditorOpen, true);
-                                  Set(varMatEditorTab, "Details");
-                                  Set(varMatFManufacturer, LookUp(colMatRows, RowId = varMatActiveRowId).Manufacturer);
-                                  Set(varMatFModelNumber, LookUp(colMatRows, RowId = varMatActiveRowId).ModelNumber);
-                                  Set(varMatFManufacturerPartNo, LookUp(colMatRows, RowId = varMatActiveRowId).ManufacturerPartNo);
-                                  Set(varMatFSupplier, LookUp(colMatRows, RowId = varMatActiveRowId).Supplier);
-                                  Set(varMatFSupplierPartNo, LookUp(colMatRows, RowId = varMatActiveRowId).SupplierPartNo);
-                                  Set(varMatFDeliveringTime, LookUp(colMatRows, RowId = varMatActiveRowId).DeliveringTime);
-                                  Set(varMatFPrice, LookUp(colMatRows, RowId = varMatActiveRowId).Price);
-                                  Set(varMatFPriceUnit, LookUp(colMatRows, RowId = varMatActiveRowId).PriceUnit);
-                                  Set(varMatFStockUnit, LookUp(colMatRows, RowId = varMatActiveRowId).StockUnit);
-                                  Set(varMatFIsStockItem, LookUp(colMatRows, RowId = varMatActiveRowId).IsStockItem);
-                                  Set(varMatFMinStock, LookUp(colMatRows, RowId = varMatActiveRowId).MinStock);
-                                  Set(varMatFMaxStock, LookUp(colMatRows, RowId = varMatActiveRowId).MaxStock);
-                                  Set(varMatFStorageBin, LookUp(colMatRows, RowId = varMatActiveRowId).StorageBin);
-                                  Set(varMatFStrategicPart, LookUp(colMatRows, RowId = varMatActiveRowId).StrategicPart);
-                                  Set(varMatFWearPart, LookUp(colMatRows, RowId = varMatActiveRowId).WearPart);
-                                  Set(varMatFRemarks, LookUp(colMatRows, RowId = varMatActiveRowId).Remarks);
-                                  Set(varMatFMaintenanceOrderNo, LookUp(colMatRows, RowId = varMatActiveRowId).MaintenanceOrderNo);
-                                  Set(varMatFReplacesExisting, LookUp(colMatRows, RowId = varMatActiveRowId).ReplacesExisting);
-                                  Set(varMatFReplacedMaterialNo, LookUp(colMatRows, RowId = varMatActiveRowId).ReplacedMaterialNo);
-                                  Clear(colMatObjects);
-                                  Set(varMatDetCreatedNo, Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).CreatedMaterialNo, ""));
-                                  Reset(inpMatDetCreatedNo)
-                              PressedFill: |-
-                                  =If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colMatRows,
-                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
-                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMatPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 >= CountRows(Sort(Filter(
-                                      colMatRows,
-                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
-                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMatPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
-                              RadiusBottomLeft: |-
-                                  =6
-                              RadiusBottomRight: |-
-                                  =6
-                              RadiusTopLeft: |-
-                                  =6
-                              RadiusTopRight: |-
-                                  =6
-                              TabIndex: |-
-                                  =If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colMatRows,
-                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
-                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMatPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 >= CountRows(Sort(Filter(
-                                      colMatRows,
-                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
-                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMatPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
-                              Tooltip: |-
-                                  ="Next row"
-                              Visible: |-
-                                  =CountRows(Sort(Filter(
-                                      colMatRows,
-                                      (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
-                                      (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMatStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMatPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)) > 1
-                              Width: |-
-                                  =44
-                        - btnMatEditorClose:
-                            Control: Image
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Close"
-                              BorderColor: |-
-                                  =RGBA(0, 0, 0, 0)
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              DisabledFill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Height: |-
-                                  =44
-                              HoverFill: |-
-                                  =C.'row-hover'
-                              Image: |-
-                                  ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>")
-                              ImagePosition: |-
-                                  =ImagePosition.Center
-                              OnSelect: |-
-                                  =Set(varMatActiveRowId, Blank());
-                                  Set(varMatRowStatus, "valid");
-                                  Set(varMatValidated, false);
-                                  Set(varMatFText, "");
-                                  Set(varMatFPlant, Coalesce(First(colAppPrefs).prefMatNewPlant, ""));
-                                  Set(varMatEditorOpen, false);
-                                  Set(varMatEditorTab, "Details");
-                                  Set(varMatFManufacturer, "");
-                                  Set(varMatFModelNumber, "");
-                                  Set(varMatFManufacturerPartNo, "");
-                                  Set(varMatFSupplier, "");
-                                  Set(varMatFSupplierPartNo, "");
-                                  Set(varMatFDeliveringTime, Blank());
-                                  Set(varMatFPrice, Blank());
-                                  Set(varMatFPriceUnit, "");
-                                  Set(varMatFStockUnit, "");
-                                  Set(varMatFIsStockItem, false);
-                                  Set(varMatFMinStock, Blank());
-                                  Set(varMatFMaxStock, Blank());
-                                  Set(varMatFStorageBin, "X");
-                                  Set(varMatFStrategicPart, "");
-                                  Set(varMatFWearPart, "");
-                                  Set(varMatFRemarks, "");
-                                  Set(varMatFMaintenanceOrderNo, "");
-                                  Set(varMatFReplacesExisting, false);
-                                  Set(varMatFReplacedMaterialNo, "");
-                                  Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
-                                  Clear(colMatObjects);
-                                  Set(varMatObjRowId, Blank());
-                                  Clear(colMatObjPop);
-                                  Set(varMatInfo, "")
-                              PressedFill: |-
-                                  =C.'row-pressed'
-                              RadiusBottomLeft: |-
-                                  =6
-                              RadiusBottomRight: |-
-                                  =6
-                              RadiusTopLeft: |-
-                                  =6
-                              RadiusTopRight: |-
-                                  =6
-                              TabIndex: |-
-                                  =0
-                              Tooltip: |-
-                                  ="Close"
-                              Width: |-
-                                  =44
+                            =44
+                  - btnMatEditorNext:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Next row"
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        DisplayMode: |-
+                            =If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 >= CountRows(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Height: |-
+                            =44
+                        HoverFill: |-
+                            =If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 >= CountRows(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 >= CountRows(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6l6 6-6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M9 6l6 6-6 6'/></g></svg>"))
+                        ImagePosition: |-
+                            =ImagePosition.Center
+                        LayoutMinWidth: |-
+                            =44
+                        OnSelect: |-
+                            =Set(varMatActiveRowId, Index(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), Min(CountRows(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)), CountRows(Filter(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 + 1)).RowId);
+                            Set(varMatActiveRowId, LookUp(colMatRows, RowId = varMatActiveRowId).RowId);
+                            Set(varMatRowStatus, LookUp(colMatRows, RowId = varMatActiveRowId).Status);
+                            Set(varMatValidated, false);
+                            Set(varMatFText, LookUp(colMatRows, RowId = varMatActiveRowId).MaterialDescription);
+                            Set(varMatFPlant, LookUp(colMatRows, RowId = varMatActiveRowId).Plant);
+                            Set(varMatEditorOpen, true);
+                            Set(varMatEditorTab, "Details");
+                            Set(varMatFManufacturer, LookUp(colMatRows, RowId = varMatActiveRowId).Manufacturer);
+                            Set(varMatFModelNumber, LookUp(colMatRows, RowId = varMatActiveRowId).ModelNumber);
+                            Set(varMatFManufacturerPartNo, LookUp(colMatRows, RowId = varMatActiveRowId).ManufacturerPartNo);
+                            Set(varMatFSupplier, LookUp(colMatRows, RowId = varMatActiveRowId).Supplier);
+                            Set(varMatFSupplierPartNo, LookUp(colMatRows, RowId = varMatActiveRowId).SupplierPartNo);
+                            Set(varMatFDeliveringTime, LookUp(colMatRows, RowId = varMatActiveRowId).DeliveringTime);
+                            Set(varMatFPrice, LookUp(colMatRows, RowId = varMatActiveRowId).Price);
+                            Set(varMatFPriceUnit, LookUp(colMatRows, RowId = varMatActiveRowId).PriceUnit);
+                            Set(varMatFStockUnit, LookUp(colMatRows, RowId = varMatActiveRowId).StockUnit);
+                            Set(varMatFIsStockItem, LookUp(colMatRows, RowId = varMatActiveRowId).IsStockItem);
+                            Set(varMatFMinStock, LookUp(colMatRows, RowId = varMatActiveRowId).MinStock);
+                            Set(varMatFMaxStock, LookUp(colMatRows, RowId = varMatActiveRowId).MaxStock);
+                            Set(varMatFStorageBin, LookUp(colMatRows, RowId = varMatActiveRowId).StorageBin);
+                            Set(varMatFStrategicPart, LookUp(colMatRows, RowId = varMatActiveRowId).StrategicPart);
+                            Set(varMatFWearPart, LookUp(colMatRows, RowId = varMatActiveRowId).WearPart);
+                            Set(varMatFRemarks, LookUp(colMatRows, RowId = varMatActiveRowId).Remarks);
+                            Set(varMatFMaintenanceOrderNo, LookUp(colMatRows, RowId = varMatActiveRowId).MaintenanceOrderNo);
+                            Set(varMatFReplacesExisting, LookUp(colMatRows, RowId = varMatActiveRowId).ReplacesExisting);
+                            Set(varMatFReplacedMaterialNo, LookUp(colMatRows, RowId = varMatActiveRowId).ReplacedMaterialNo);
+                            Clear(colMatObjects);
+                            Set(varMatDetCreatedNo, Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).CreatedMaterialNo, ""));
+                            Reset(inpMatDetCreatedNo)
+                        PressedFill: |-
+                            =If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 >= CountRows(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
+                        RadiusBottomLeft: |-
+                            =6
+                        RadiusBottomRight: |-
+                            =6
+                        RadiusTopLeft: |-
+                            =6
+                        RadiusTopRight: |-
+                            =6
+                        TabIndex: |-
+                            =If((If(IsBlank(varMatActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMatActiveRowId)) + 1 >= CountRows(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
+                        Tooltip: |-
+                            ="Next row"
+                        Visible: |-
+                            =CountRows(Sort(Filter(
+                                colMatRows,
+                                (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
+                                (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMatStatusFilter.Selected.Value)),
+                                (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMatPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)) > 1
+                        Width: |-
+                            =44
+                  - btnMatEditorClose:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Height: |-
+                            =44
+                        HoverFill: |-
+                            =C.'row-hover'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Center
+                        LayoutMinWidth: |-
+                            =44
+                        OnSelect: |-
+                            =Set(varMatActiveRowId, Blank());
+                            Set(varMatRowStatus, "valid");
+                            Set(varMatValidated, false);
+                            Set(varMatFText, "");
+                            Set(varMatFPlant, Coalesce(First(colAppPrefs).prefMatNewPlant, ""));
+                            Set(varMatEditorOpen, false);
+                            Set(varMatEditorTab, "Details");
+                            Set(varMatFManufacturer, "");
+                            Set(varMatFModelNumber, "");
+                            Set(varMatFManufacturerPartNo, "");
+                            Set(varMatFSupplier, "");
+                            Set(varMatFSupplierPartNo, "");
+                            Set(varMatFDeliveringTime, Blank());
+                            Set(varMatFPrice, Blank());
+                            Set(varMatFPriceUnit, "");
+                            Set(varMatFStockUnit, "");
+                            Set(varMatFIsStockItem, false);
+                            Set(varMatFMinStock, Blank());
+                            Set(varMatFMaxStock, Blank());
+                            Set(varMatFStorageBin, "X");
+                            Set(varMatFStrategicPart, "");
+                            Set(varMatFWearPart, "");
+                            Set(varMatFRemarks, "");
+                            Set(varMatFMaintenanceOrderNo, "");
+                            Set(varMatFReplacesExisting, false);
+                            Set(varMatFReplacedMaterialNo, "");
+                            Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
+                            Clear(colMatObjects);
+                            Set(varMatObjRowId, Blank());
+                            Clear(colMatObjPop);
+                            Set(varMatInfo, "")
+                        PressedFill: |-
+                            =C.'row-pressed'
+                        RadiusBottomLeft: |-
+                            =6
+                        RadiusBottomRight: |-
+                            =6
+                        RadiusTopLeft: |-
+                            =6
+                        RadiusTopRight: |-
+                            =6
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            ="Close"
+                        Width: |-
+                            =44
             - conMatEditorSections:
                 Control: GroupContainer
                 Variant: AutoLayout
@@ -8214,7 +8211,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =App.Height - (116 + (44))
+                      =App.Height - (140 + (44))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-

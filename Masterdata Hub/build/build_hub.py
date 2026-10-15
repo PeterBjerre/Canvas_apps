@@ -614,14 +614,14 @@ TILE_H = 76
 TILE_H_M = 104
 # New er en ikonknap (+): teksten "New" alene er forbudt (issue #243), og
 # "New request" er for bred til flisen. Klikfladen er H.hit (regel 40).
-TILE_NEW_W = lay.HIT_TOUCH
+TILE_NEW_W = 84
+TILE_NEW_H = 36
 STRIPE_H = 4
 # Flisens kant er 1-2 px: forsiden faar 4 px luft, saa den aldrig bliver
 # skaaleret ned af kanten (det skubbede stregen ned fra flisens top).
-TILE_PAD = 1  # kun forneden: stregen og forsiden/New gaar helt ud til siderne og toppen
 TILE_RADIUS = 6
-TILE_ROW_H = TILE_H - STRIPE_H - TILE_PAD
-TILE_ROW_H_M = TILE_H_M - STRIPE_H - TILE_PAD
+TILE_ROW_H = TILE_H - STRIPE_H - 4
+TILE_ROW_H_M = TILE_H_M - STRIPE_H - 4
 
 
 def _tile_state(d, sel):
@@ -706,8 +706,8 @@ def build_tiles():
         # flisens hoejde og uden mellemrum, saa hover toner hele flisen.
         face_w = if_below("Tablet", f"({TILE_W})",
                           f"({TILE_W}) - {TILE_NEW_W}")
-        row_h = if_below("Tablet", f"{TILE_H_M - STRIPE_H} - 2",
-                         f"{TILE_H - STRIPE_H} - 2")
+        row_h = if_below("Tablet", f"{TILE_H_M - STRIPE_H} - 4",
+                         f"{TILE_H - STRIPE_H} - 4")
         face = _image(f"imgMdTile{n}", _svg_uri(_tile_face(d, count)), face_w, row_h,
                       onselect=f'Set(varMdDomain, If({sel}, "", "{d["key"]}"));\n' + SAVE_HUB,
                       # Uden tallet: det ville vaere endnu en forespoergsel.
@@ -717,9 +717,16 @@ def build_tiles():
         # NEW PAA FLISEN (UX-review M3): den samme handling som menuen
         # "New request" i bjaelken (_new_action).
         act, ready = _new_action(d)
-        plus = _icon_svg("M12 5v14M5 12h14", _hx("text-muted"), size=20,
-                         box=TILE_NEW_W, opacity=None if ready else icons.DISABLED_OPACITY)
-        new = _image(f"imgMdTileNew{n}", _svg_uri(plus), TILE_NEW_W, row_h,
+        new_svg = ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{TILE_NEW_W}' "
+                   f"height='{TILE_NEW_H}' viewBox='0 0 {TILE_NEW_W} {TILE_NEW_H}'"
+                   + ("" if ready else f" opacity='{icons.DISABLED_OPACITY}'") + ">"
+                   f"<rect x='.5' y='.5' width='{TILE_NEW_W - 1}' height='{TILE_NEW_H - 1}' "
+                   f"rx='8' fill='none' stroke='{_hx('border-default')}'/>"
+                   f"<path d='M18 12v12M12 18h12' stroke='{_hx('text-primary')}' "
+                   f"stroke-width='1.8' stroke-linecap='round'/>"
+                   f"<text x='32' y='23' {SVG_FONT} font-size='14' font-weight='500' "
+                   f"fill='{_hx('text-primary')}'>New</text></svg>" + '"')
+        new = _image(f"imgMdTileNew{n}", _svg_uri(new_svg), TILE_NEW_W, TILE_NEW_H,
                      onselect=act if ready else None,
                      label=f'"New {d["name"].lower()} request"', hover=st["hover"])
         new.props["Visible"] = at_least("Tablet")
@@ -728,24 +735,22 @@ def build_tiles():
         new.props["TabIndex"] = "0" if ready else "-1"
         new.props["FocusedBorderColor"] = d["color"]
 
-        # Kanten er IKKE containerens egen (den ville indsaette stregen): flisen er
-        # kantfarven, stregen ligger over hele bredden, og kortet ligger indenfor.
+        # Kortet ER flisen: egen kant og fyld, saa der aldrig kan skinne en graa
+        # kantfarve igennem under indholdet. Stregen ligger inde i kanten.
         row = group(
             f"conMdTileRow{n}", [face, new], direction="Horizontal", gap=0,
-            align_items="Center", height=row_h, fill=st["fill"])
-        body = group(
-            f"conMdTileBody{n}", [row], direction="Vertical", gap=0,
-            height=if_below("Tablet", str(TILE_H_M - STRIPE_H), str(TILE_H - STRIPE_H)),
-            pad=(0, st["thickness"], 2, st["thickness"]))
+            align_items="Center", height=row_h, fill=st["fill"],
+            pad=(0, 8, 0, 0))
         stripe = group(f"conMdTileStripe{n}", [], direction="Vertical", gap=0,
-                       height=str(STRIPE_H), width=f"({TILE_W})", fill=d["color"])
+                       height=str(STRIPE_H), width="Parent.Width", fill=d["color"])
         stripe.props["RadiusTopLeft"] = str(TILE_RADIUS)
         stripe.props["RadiusTopRight"] = str(TILE_RADIUS)
         stripe.props["RadiusBottomLeft"] = "0"
         stripe.props["RadiusBottomRight"] = "0"
         tile = group(
-            f"conMdTile{n}", [stripe, body], direction="Vertical", gap=0,
-            fill=st["border"], radius=TILE_RADIUS, width=TILE_W,
+            f"conMdTile{n}", [stripe, row], direction="Vertical", gap=0,
+            fill=st["fill"], border_color=st["border"], border_thickness=st["thickness"],
+            radius=TILE_RADIUS, width=TILE_W,
             height=if_below("Tablet", str(TILE_H_M), str(TILE_H)))
         tile.props["DropShadow"] = st["shadow"]
         tiles.append(tile)

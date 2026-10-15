@@ -78,7 +78,7 @@ from build_helpers import (empty_state, skeleton_rows, ensure_hit, hit_size, but
                            tap_backdrop,
                            text_ctrl, text_input, text_px, themed_dropdown, top_bar, ICON_W)
 from permissions import IS_ADMIN, ADMIN_LIST, ADMIN_GROUP
-from design_tokens import ref as _t
+from design_tokens import ref as _t, ref_hex
 import icons
 import status_chip as sc
 import display_text as dt
@@ -636,9 +636,9 @@ PAIR_A_W = DD_APP_W + 8 + DD_SEC_W
 PAIR_B_W = DD_STATUS_W + 8 + DD_PRI_W
 PAIR_MIN = max(PAIR_A_W, PAIR_B_W)
 # Linje 1 paa een linje: begge kontakter + soegefeltets mindstebredde.
-TOP_OK = f"{TB_W} >= {SCOPE_ADMIN_W + TB_GAP + STATE_ALL_W + TB_GAP + SEARCH_MIN}"
+TOP_OK = f"{TB_W} >= {SCOPE_ADMIN_W + TB_GAP + STATE_ALL_W + TB_GAP + SORT_W}"
 # Linje 2 paa een linje: to listepar + sorteringen.
-FLT_OK = f"{TB_W} >= {PAIR_A_W + PAIR_B_W + TB_GAP + TB_GAP + SORT_W}"
+FLT_OK = f"{TB_W} >= {PAIR_A_W + PAIR_B_W + TB_GAP}"
 # Hver linjes hoejde, naar den staar vandret.
 TB_LINE_H = 36
 
@@ -687,14 +687,28 @@ def build_filters():
         child.props["LayoutMinWidth"] = "0"
     state.h = SEG_H
 
-    search = text_input("inpIbSearch", '""', placeholder='"Search number, title or description"',
-                        label='"Search issues"')
+    search = text_input("inpIbSearch", '""', placeholder='"Search issues"',
+                        label='"Search issues"', height=TB_LINE_H)
     # Listen filtreres i hukommelsen - et lille ophold, saa den ikke regnes
     # om for hvert tegn.
     search.props["TriggerOutput"] = "TriggerOutput.Delayed"
-    search.props["Width"] = str(SEARCH_MIN)
-    top = flow_row("conIbTbTop", [scope, state, search], TB_W, gap=TB_GAP, flex=search,
-                   flex_min=SEARCH_MIN, ok=TOP_OK)
+    grow(search, 0)
+    col = '" & %s & "' % ref_hex("text-muted")
+    glyph = icons.svg("M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z M20 20l-4-4", col, size=20)
+    ico = Ctrl("imgIbSearchIcon", "Image", props={
+        "AccessibleLabel": '"Search"',
+        "AlignInContainer": "AlignInContainer.Center",
+        "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+        "Height": "20",
+        "Image": f'"data:image/svg+xml;utf8," & EncodeUrl("{glyph}")',
+        "ImagePosition": "ImagePosition.Fit",
+        "LayoutMinWidth": "20",
+        "OnSelect": "false", "TabIndex": "0", "Width": "20",
+    }, h=20)
+    sw = f"If({lay.below('Tablet')}, {TB_W}, Min({TB_W}, 320))"
+    search_row = group("conIbSearchRow", [search, ico], direction="Horizontal", gap=8,
+                       height=TB_LINE_H + 12, pad=(4, 0, 4, 0), align_items="Center",
+                       width=sw, align_in_container="Start")
 
     # Application og den afhaengige Section, status og prioritet - to og
     # to - og sorteringen. Paa een linje deler parrene bredden efter
@@ -737,7 +751,9 @@ def build_filters():
                    height=TB_LINE_H, align_items="Center", width=f"Min({PAIR_A_W}, {TB_W})")
     pair_b = group("conIbFltPairB", [drp_status, drp_pri], direction="Horizontal", gap=8,
                    height=TB_LINE_H, align_items="Center", width=f"Min({PAIR_B_W}, {TB_W})")
-    filters = flow_row("conIbTbFilters", [pair_a, pair_b, drp_sort], TB_W, gap=TB_GAP, ok=FLT_OK)
+    drp_sort.props["LayoutMinWidth"] = drp_sort.props["Width"]
+    top = flow_row("conIbTbTop", [scope, state, drp_sort], TB_W, gap=TB_GAP, ok=TOP_OK)
+    filters = flow_row("conIbTbFilters", [pair_a, pair_b], TB_W, gap=TB_GAP, ok=FLT_OK)
     # Staar listerne under hinanden, holder de deres tekstbredde (Start) i
     # stedet for at strakke sig til hele linjen.
     filters.props["LayoutAlignItems"] = (f"If({FLT_OK}, LayoutAlignItems.Center, "
@@ -746,7 +762,7 @@ def build_filters():
     # raekkens overkant, og toppen blev skaaret af.
     for line in (top, filters):
         _air(line, 8, 4)
-    return [top, filters]
+    return [top, search_row, filters]
 
 
 def _air(row, top, bottom):

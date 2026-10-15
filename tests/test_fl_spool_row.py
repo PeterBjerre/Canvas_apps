@@ -181,25 +181,17 @@ def test_popup_closes_only_with_close():
     assert 'Set(varFlPop, "");' in _prop("btnFlNew", "OnSelect")
 
 
-def test_validation_message_under_the_row():
-    txt = _prop("txtFlRowIssue", "Text")
-    assert '"valid", "Valid"' in txt and "ThisItem.FirstIssue" in txt
-    color = _prop("txtFlRowIssue", "Color")
-    assert "C.'state-error-fg'" in color and "C.'state-ok-fg'" in color
-    assert _prop("txtFlRowIssue", "AccessibleLabel") == '"Row " & ThisItem.Pos & ": " & Self.Text'
-    assert "ThisItem.Hint" in _prop("btnFlRowHint", "OnSelect")
+def test_row_status_lives_in_the_status_button_tooltip():
+    tip = _prop("btnFlRowStatus", "Tooltip")
+    assert '"valid", "Ready for SAP"' in tip and "ThisItem.FirstIssue" in tip
+    assert "txtFlRowIssue" not in open(FL, encoding="utf-8").read()
     # Roede/groenne kanter paa de relevante felter.
     assert "ThisItem.FlBad" in _prop("inpFlRowFl", "BorderColor")
     assert "ThisItem.DescBad" in _prop("inpFlRowDesc", "BorderColor")
     for n, f in (("inpFlRowRoom", "ROOM"), ("inpFlRowSort", "SORT FIELD")):
         bc = _prop(n, "BorderColor")
         assert f'Field = "{f}"' in bc and "C.'border-error'" in bc and "C.'border-ok'" in bc
-    # Raekken er hoejere, naar der er beskeder at vise.
-    # Under Desktop er cellelinjen H.hit hoej (Delete, UX-review F6), og
-    # raekken vokser med forskellen.
-    assert _prop("galFlRows", "TemplateSize") == (
-        'If(IfError(!IsEmpty(Filter(colFlRows, Status <> "draft")), false), 70, 44)'
-        ' + (Max(40, H.hit) - 40)')
+    assert _prop("galFlRows", "TemplateSize") == "44 + (Max(40, H.hit) - 40)"
 
 
 def test_table_scrolls_sideways_instead_of_hiding_columns():

@@ -1759,6 +1759,15 @@ def row_list(prefix, items, row_controls, height, template_size, onselect="false
                 children=row_controls, h=height, vis=visible)
 
 
+def icon_heading(name, title, buttons):
+    """Panelets overskrift: titel til venstre, ikonknapperne til hoejre."""
+    for b in buttons:
+        b.props["AlignInContainer"] = "AlignInContainer.Start"
+        b.props["LayoutMinWidth"] = b.props["Width"]
+    return group(name, [title, *buttons], direction="Horizontal", gap=4,
+                 height=lay.HIT_TOUCH, align_items="Center")
+
+
 def icon_button(name, label, fx, path, mode=None):
     """Et stregikon som klikbar Image UDEN ramme. Svg'en er lige saa stor som
     klikfladen (ikonet tegnet midt i), saa intet bliver klippet."""
@@ -1855,17 +1864,13 @@ def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
     title = text_ctrl(f"txt{prefix}EditorPosition", position, size=lay.SIZE_CARD_TITLE,
                       weight="Semibold", height=28, wrap="false")
     grow(title)
-    navigation_width = 3 * lay.HIT_TOUCH + 8
-    navigation = group(f"con{prefix}EditorNavigation", [prev, next_, close],
-                       direction="Horizontal", gap=4, height=lay.HIT_TOUCH,
-                       width=navigation_width, align_items="Center", justify="End")
-    heading = group(f"con{prefix}EditorHeading", [title, navigation],
-                    direction="Horizontal", gap=12, height=lay.HIT_TOUCH,
-                    align_items="Center")
+    # Knapperne staar direkte i overskriften (som Issue Boards panel): i en
+    # egen indlejret container blev de klippet til en tynd stribe.
+    heading = icon_heading(f"con{prefix}EditorHeading", title, [prev, next_, close])
     # Panelets pad (2 x 16), overskriften, to mellemrum og bundbjaelken
     # traekkes fra, og 16 px luft i bunden sikrer, at bundknapperne aldrig
     # ligger tættere paa skaermkanten end panelets pad.
-    scroll_h = f"App.Height - ({2 * 16 + lay.HIT_TOUCH + 2 * 12 + 16} + ({footer.h}))"
+    scroll_h = f"App.Height - ({2 * 16 + lay.HIT_TOUCH + 2 * 12 + 40} + ({footer.h}))"
     scroll = group(f"con{prefix}EditorSections", sections, direction="Vertical", gap=16,
                    height=scroll_h, overflow_y="Scroll",
                    pad=(16, 20, 16, 20))

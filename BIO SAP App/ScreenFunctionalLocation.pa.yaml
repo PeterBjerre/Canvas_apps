@@ -1005,7 +1005,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =72 + 10 + (29 + 10 + (Min(CountRows(colFlRows), 12) * (If(IfError(!IsEmpty(Filter(colFlRows, Status <> "draft")), false), 70, 44) + (Max(40, H.hit) - 40))) + If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 18 - 40)) < (If(LayoutRank >= 2, 34, 0) + 1258), 18, 0)) + If(!IsBlank(varFlInfo) || CountRows(Filter(colFlRows, Status = "invalid")) > 0, 10 + (18), 0) + If(false, 10 + (36), 0)
+                            =72 + 10 + (29 + 10 + (Min(CountRows(colFlRows), 12) * (44 + (Max(40, H.hit) - 40))) + If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 18 - 40)) < (If(LayoutRank >= 2, 34, 0) + 1258), 18, 0)) + If(!IsBlank(varFlInfo), 10 + (18), 0) + If(false, 10 + (36), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -1250,7 +1250,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =29 + 10 + (Min(CountRows(colFlRows), 12) * (If(IfError(!IsEmpty(Filter(colFlRows, Status <> "draft")), false), 70, 44) + (Max(40, H.hit) - 40))) + If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 18 - 40)) < (If(LayoutRank >= 2, 34, 0) + 1258), 18, 0)
+                                  =29 + 10 + (Min(CountRows(colFlRows), 12) * (44 + (Max(40, H.hit) - 40))) + If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 18 - 40)) < (If(LayoutRank >= 2, 34, 0) + 1258), 18, 0)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Start
                               LayoutDirection: |-
@@ -1840,7 +1840,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =Min(CountRows(colFlRows), 12) * (If(IfError(!IsEmpty(Filter(colFlRows, Status <> "draft")), false), 70, 44) + (Max(40, H.hit) - 40))
+                                        =Min(CountRows(colFlRows), 12) * (44 + (Max(40, H.hit) - 40))
                                     Items: |-
                                         =Sort(colFlRows, RowNo)
                                     LayoutMinWidth: |-
@@ -1856,7 +1856,7 @@ Screens:
                                     TemplatePadding: |-
                                         =0
                                     TemplateSize: |-
-                                        =If(IfError(!IsEmpty(Filter(colFlRows, Status <> "draft")), false), 70, 44) + (Max(40, H.hit) - 40)
+                                        =44 + (Max(40, H.hit) - 40)
                                     Width: |-
                                         =(Max(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 18 - 40), (If(LayoutRank >= 2, 34, 0) + 1258))) + 18 + 40
                                     WrapCount: |-
@@ -2576,7 +2576,7 @@ Screens:
                                           Text: |-
                                               =Switch(ThisItem.Status, "valid", "Ready", "warning", "Warning", "invalid", "Error", "Draft")
                                           Tooltip: |-
-                                              =Coalesce(ThisItem.FirstIssue, ThisItem.FirstWarning, "Row status")
+                                              =Switch(ThisItem.Status, "draft", "Draft", "valid", "Ready for SAP", "warning", "Warning" & If(IsBlank(ThisItem.FirstWarning), "", " - " & ThisItem.FirstWarning), If(IsBlank(ThisItem.FirstIssue), "Error", "Error - " & ThisItem.FirstIssue)) & If(IsBlank(ThisItem.Hint), "", ". " & ThisItem.Hint)
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
@@ -2643,96 +2643,6 @@ Screens:
                                               =0 + 0 + 0 + If(LayoutRank >= 2, (28) + 6, 0) + (140 + (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1258))) * 1 / 10) + 6 + (150 + (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1258))) * 3 / 20) + 6 + (64 + (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1258))) * 3 / 20) + 6 + (96 + (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1258))) * 3 / 20) + 6 + (113) + 6 + (56 + (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1258))) * 3 / 20) + 6 + (88 + (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1258))) * 3 / 20) + 6 + (88 + (Max(0, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 18 - 40)) - (If(LayoutRank >= 2, 34, 0) + 1258))) * 3 / 20) + 6 + (40) + 6 + (127) + 6 + (96) + 6 + (80) + 6
                                           Y: |-
                                               =0 + 0 + (((Max(40, H.hit)) - 0 - 0) - (H.hit)) / 2
-                                    - txtFlRowIssue:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Row " & ThisItem.Pos & ": " & Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =Switch(ThisItem.Status, "invalid", C.'state-error-fg', "warning", C.'state-warn-fg', "valid", C.'state-ok-fg', C.'text-muted')
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.small
-                                          Text: |-
-                                              =Switch(ThisItem.Status, "draft", "", "valid", "Valid", "warning", "Warning" & If(IsBlank(ThisItem.FirstWarning), "", " - " & ThisItem.FirstWarning), If(IsBlank(ThisItem.FirstIssue), "Invalid", ThisItem.FirstIssue))
-                                          Visible: |-
-                                              =ThisItem.Status <> "draft"
-                                          Width: |-
-                                              =(Max(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 18 - 40), (If(LayoutRank >= 2, 34, 0) + 1258))) - If(LayoutRank >= 2, 34, 0) - If(!IsBlank(ThisItem.Hint), 36, 0)
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =If(LayoutRank >= 2, 34, 0)
-                                          Y: |-
-                                              =43 + (Max(40, H.hit) - 40)
-                                    - btnFlRowHint:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="What does this message mean?"
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =C.'border-input'
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =30
-                                          Layout: |-
-                                              =ButtonLayout.TextOnly
-                                          OnSelect: |-
-                                              =Set(gblToast, { Text: ThisItem.Hint, Kind: "Information", At: Now() }); true
-                                          RadiusBottomLeft: |-
-                                              =R.input
-                                          RadiusBottomRight: |-
-                                              =R.input
-                                          RadiusTopLeft: |-
-                                              =R.input
-                                          RadiusTopRight: |-
-                                              =R.input
-                                          Size: |-
-                                              =T.input
-                                          Text: |-
-                                              ="?"
-                                          Tooltip: |-
-                                              =ThisItem.Hint
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Visible: |-
-                                              =(ThisItem.Status <> "draft") && (!IsBlank(ThisItem.Hint))
-                                          Width: |-
-                                              =30
-                                          X: |-
-                                              =If(LayoutRank >= 2, 34, 0) + ((Max(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 18 - 40), (If(LayoutRank >= 2, 34, 0) + 1258))) - If(LayoutRank >= 2, 34, 0) - If(!IsBlank(ThisItem.Hint), 36, 0)) + 6
-                                          Y: |-
-                                              =38 + (Max(40, H.hit) - 40)
                                     - rctFlRowRule:
                                         Control: Rectangle
                                         Properties:
@@ -2755,7 +2665,7 @@ Screens:
                                           X: |-
                                               =0
                                           Y: |-
-                                              =(If(IfError(!IsEmpty(Filter(colFlRows, Status <> "draft")), false), 70, 44) + (Max(40, H.hit) - 40)) - 1
+                                              =(44 + (Max(40, H.hit) - 40)) - 1
                         - txtFlInfo:
                             Control: ModernText
                             Properties:
@@ -2784,9 +2694,9 @@ Screens:
                               Size: |-
                                   =T.small
                               Text: |-
-                                  =Coalesce(varFlInfo, "Submit is blocked: " & With({ _c: CountRows(Filter(colFlRows, Status = "invalid")) }, Text(_c) & If(_c = 1, " row has", " rows have")) & " errors.")
+                                  =varFlInfo
                               Visible: |-
-                                  =!IsBlank(varFlInfo) || CountRows(Filter(colFlRows, Status = "invalid")) > 0
+                                  =!IsBlank(varFlInfo)
                               Wrap: |-
                                   =false
                         - btnFlVerify:
@@ -9589,7 +9499,7 @@ Screens:
                   LayoutDirection: |-
                       =LayoutDirection.Horizontal
                   LayoutGap: |-
-                      =12
+                      =4
                   LayoutMinWidth: |-
                       =0
                   LayoutOverflowX: |-
@@ -9635,221 +9545,204 @@ Screens:
                         Text: |-
                             ="Row " & Text(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos) & " of " & Text(CountRows(colFlRows))
                         Width: |-
-                            =Max(0, (((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20)) - ((140) + 12) - 2)
+                            =Max(0, (((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20)) - (If(CountRows(colFlRows) > 1, (44) + 4, 0)) - (If(CountRows(colFlRows) > 1, (44) + 4, 0)) - ((44) + 4) - 2)
                         Wrap: |-
                             =false
-                  - conFlEditorNavigation:
-                      Control: GroupContainer
-                      Variant: AutoLayout
+                  - btnFlEditorPrevious:
+                      Control: Image
                       Properties:
+                        AccessibleLabel: |-
+                            ="Previous row"
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
                         BorderStyle: |-
                             =BorderStyle.None
-                        DropShadow: |-
-                            =DropShadow.None
-                        FillPortions: |-
+                        BorderThickness: |-
                             =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        DisplayMode: |-
+                            =If(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos <= 1, DisplayMode.Disabled, DisplayMode.Edit)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
                         Height: |-
                             =44
-                        LayoutAlignItems: |-
-                            =LayoutAlignItems.Center
-                        LayoutDirection: |-
-                            =LayoutDirection.Horizontal
-                        LayoutGap: |-
-                            =4
-                        LayoutJustifyContent: |-
-                            =LayoutJustifyContent.End
+                        HoverFill: |-
+                            =If((If(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If((If(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M15 6l-6 6 6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M15 6l-6 6 6 6'/></g></svg>"))
+                        ImagePosition: |-
+                            =ImagePosition.Center
                         LayoutMinWidth: |-
-                            =0
-                        LayoutOverflowX: |-
-                            =LayoutOverflow.Hide
-                        LayoutOverflowY: |-
-                            =LayoutOverflow.Hide
+                            =44
+                        OnSelect: |-
+                            =Set(varFlDetailRow, Index(Sort(colFlRows, RowNo), Max(1, LookUp(colFlRows, RowGuid = varFlDetailRow).Pos - 1)).RowGuid);
+                            ClearCollect(colFlDet, With(
+                                { dr: LookUp(colFlRows, RowGuid = varFlDetailRow) },
+                                With(
+                                    { dc: Coalesce(dr.AssignedClass, "NO CLASS") },
+                                    ForAll(
+                                        Sort(Filter(colFlColumns, Cls = dc && true), Ord) As K,
+                                        {
+                                            Column: K.Column, Field: K.Field, Editable: K.Editable,
+                                            List: K.List, MaxLen: K.MaxLen, Section: K.Section, Kind: K.Kind,
+                                            Value: Switch(K.Field,
+                                "STRINDICATOR", dr.KksType,
+                                "STR. INDICATOR", dr.KksType,
+                                "FUNCTIONAL LOCATION", dr.FL,
+                                "DESCRIPTION", dr.Description,
+                                Coalesce(LookUp(colFlVals, RowGuid = dr.RowGuid && Field = K.Field).Value, "")),
+                                            Issue: Switch(
+                                K.Field,
+                                "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = dr.RowGuid && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),
+                                "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = dr.RowGuid && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),
+                                Coalesce(First(Sort(Filter(colFlIssues, RowGuid = dr.RowGuid && Sev = "Error" && Field = K.Field && Ord >= 100), Ord)).Short, "")
+                            )
+                                        }
+                                    )
+                                )
+                            ));
+                            Set(varFlPanelOpen, true)
+                        PressedFill: |-
+                            =If((If(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
+                        RadiusBottomLeft: |-
+                            =6
+                        RadiusBottomRight: |-
+                            =6
+                        RadiusTopLeft: |-
+                            =6
+                        RadiusTopRight: |-
+                            =6
+                        TabIndex: |-
+                            =If((If(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
+                        Tooltip: |-
+                            ="Previous row"
+                        Visible: |-
+                            =CountRows(colFlRows) > 1
                         Width: |-
-                            =140
-                      Children:
-                        - btnFlEditorPrevious:
-                            Control: Image
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Previous row"
-                              BorderColor: |-
-                                  =RGBA(0, 0, 0, 0)
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              DisabledFill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              DisplayMode: |-
-                                  =If(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos <= 1, DisplayMode.Disabled, DisplayMode.Edit)
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Height: |-
-                                  =44
-                              HoverFill: |-
-                                  =If((If(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
-                              Image: |-
-                                  ="data:image/svg+xml;utf8," & EncodeUrl(If((If(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M15 6l-6 6 6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M15 6l-6 6 6 6'/></g></svg>"))
-                              ImagePosition: |-
-                                  =ImagePosition.Center
-                              OnSelect: |-
-                                  =Set(varFlDetailRow, Index(Sort(colFlRows, RowNo), Max(1, LookUp(colFlRows, RowGuid = varFlDetailRow).Pos - 1)).RowGuid);
-                                  ClearCollect(colFlDet, With(
-                                      { dr: LookUp(colFlRows, RowGuid = varFlDetailRow) },
-                                      With(
-                                          { dc: Coalesce(dr.AssignedClass, "NO CLASS") },
-                                          ForAll(
-                                              Sort(Filter(colFlColumns, Cls = dc && true), Ord) As K,
-                                              {
-                                                  Column: K.Column, Field: K.Field, Editable: K.Editable,
-                                                  List: K.List, MaxLen: K.MaxLen, Section: K.Section, Kind: K.Kind,
-                                                  Value: Switch(K.Field,
-                                      "STRINDICATOR", dr.KksType,
-                                      "STR. INDICATOR", dr.KksType,
-                                      "FUNCTIONAL LOCATION", dr.FL,
-                                      "DESCRIPTION", dr.Description,
-                                      Coalesce(LookUp(colFlVals, RowGuid = dr.RowGuid && Field = K.Field).Value, "")),
-                                                  Issue: Switch(
-                                      K.Field,
-                                      "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = dr.RowGuid && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),
-                                      "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = dr.RowGuid && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),
-                                      Coalesce(First(Sort(Filter(colFlIssues, RowGuid = dr.RowGuid && Sev = "Error" && Field = K.Field && Ord >= 100), Ord)).Short, "")
-                                  )
-                                              }
-                                          )
-                                      )
-                                  ));
-                                  Set(varFlPanelOpen, true)
-                              PressedFill: |-
-                                  =If((If(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
-                              RadiusBottomLeft: |-
-                                  =6
-                              RadiusBottomRight: |-
-                                  =6
-                              RadiusTopLeft: |-
-                                  =6
-                              RadiusTopRight: |-
-                                  =6
-                              TabIndex: |-
-                                  =If((If(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
-                              Tooltip: |-
-                                  ="Previous row"
-                              Visible: |-
-                                  =CountRows(colFlRows) > 1
-                              Width: |-
-                                  =44
-                        - btnFlEditorNext:
-                            Control: Image
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Next row"
-                              BorderColor: |-
-                                  =RGBA(0, 0, 0, 0)
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              DisabledFill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              DisplayMode: |-
-                                  =If(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos >= CountRows(Sort(colFlRows, RowNo)), DisplayMode.Disabled, DisplayMode.Edit)
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Height: |-
-                                  =44
-                              HoverFill: |-
-                                  =If((If(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos >= CountRows(Sort(colFlRows, RowNo)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
-                              Image: |-
-                                  ="data:image/svg+xml;utf8," & EncodeUrl(If((If(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos >= CountRows(Sort(colFlRows, RowNo)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6l6 6-6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M9 6l6 6-6 6'/></g></svg>"))
-                              ImagePosition: |-
-                                  =ImagePosition.Center
-                              OnSelect: |-
-                                  =Set(varFlDetailRow, Index(Sort(colFlRows, RowNo), Min(CountRows(Sort(colFlRows, RowNo)), LookUp(colFlRows, RowGuid = varFlDetailRow).Pos + 1)).RowGuid);
-                                  ClearCollect(colFlDet, With(
-                                      { dr: LookUp(colFlRows, RowGuid = varFlDetailRow) },
-                                      With(
-                                          { dc: Coalesce(dr.AssignedClass, "NO CLASS") },
-                                          ForAll(
-                                              Sort(Filter(colFlColumns, Cls = dc && true), Ord) As K,
-                                              {
-                                                  Column: K.Column, Field: K.Field, Editable: K.Editable,
-                                                  List: K.List, MaxLen: K.MaxLen, Section: K.Section, Kind: K.Kind,
-                                                  Value: Switch(K.Field,
-                                      "STRINDICATOR", dr.KksType,
-                                      "STR. INDICATOR", dr.KksType,
-                                      "FUNCTIONAL LOCATION", dr.FL,
-                                      "DESCRIPTION", dr.Description,
-                                      Coalesce(LookUp(colFlVals, RowGuid = dr.RowGuid && Field = K.Field).Value, "")),
-                                                  Issue: Switch(
-                                      K.Field,
-                                      "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = dr.RowGuid && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),
-                                      "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = dr.RowGuid && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),
-                                      Coalesce(First(Sort(Filter(colFlIssues, RowGuid = dr.RowGuid && Sev = "Error" && Field = K.Field && Ord >= 100), Ord)).Short, "")
-                                  )
-                                              }
-                                          )
-                                      )
-                                  ));
-                                  Set(varFlPanelOpen, true)
-                              PressedFill: |-
-                                  =If((If(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos >= CountRows(Sort(colFlRows, RowNo)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
-                              RadiusBottomLeft: |-
-                                  =6
-                              RadiusBottomRight: |-
-                                  =6
-                              RadiusTopLeft: |-
-                                  =6
-                              RadiusTopRight: |-
-                                  =6
-                              TabIndex: |-
-                                  =If((If(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos >= CountRows(Sort(colFlRows, RowNo)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
-                              Tooltip: |-
-                                  ="Next row"
-                              Visible: |-
-                                  =CountRows(colFlRows) > 1
-                              Width: |-
-                                  =44
-                        - btnFlEditorClose:
-                            Control: Image
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Close"
-                              BorderColor: |-
-                                  =RGBA(0, 0, 0, 0)
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              DisabledFill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Height: |-
-                                  =44
-                              HoverFill: |-
-                                  =C.'row-hover'
-                              Image: |-
-                                  ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>")
-                              ImagePosition: |-
-                                  =ImagePosition.Center
-                              OnSelect: |-
-                                  =Set(varFlPanelOpen, false); Set(varFlDetailRow, ""); Clear(colFlDet)
-                              PressedFill: |-
-                                  =C.'row-pressed'
-                              RadiusBottomLeft: |-
-                                  =6
-                              RadiusBottomRight: |-
-                                  =6
-                              RadiusTopLeft: |-
-                                  =6
-                              RadiusTopRight: |-
-                                  =6
-                              TabIndex: |-
-                                  =0
-                              Tooltip: |-
-                                  ="Close"
-                              Width: |-
-                                  =44
+                            =44
+                  - btnFlEditorNext:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Next row"
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        DisplayMode: |-
+                            =If(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos >= CountRows(Sort(colFlRows, RowNo)), DisplayMode.Disabled, DisplayMode.Edit)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Height: |-
+                            =44
+                        HoverFill: |-
+                            =If((If(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos >= CountRows(Sort(colFlRows, RowNo)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If((If(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos >= CountRows(Sort(colFlRows, RowNo)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6l6 6-6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M9 6l6 6-6 6'/></g></svg>"))
+                        ImagePosition: |-
+                            =ImagePosition.Center
+                        LayoutMinWidth: |-
+                            =44
+                        OnSelect: |-
+                            =Set(varFlDetailRow, Index(Sort(colFlRows, RowNo), Min(CountRows(Sort(colFlRows, RowNo)), LookUp(colFlRows, RowGuid = varFlDetailRow).Pos + 1)).RowGuid);
+                            ClearCollect(colFlDet, With(
+                                { dr: LookUp(colFlRows, RowGuid = varFlDetailRow) },
+                                With(
+                                    { dc: Coalesce(dr.AssignedClass, "NO CLASS") },
+                                    ForAll(
+                                        Sort(Filter(colFlColumns, Cls = dc && true), Ord) As K,
+                                        {
+                                            Column: K.Column, Field: K.Field, Editable: K.Editable,
+                                            List: K.List, MaxLen: K.MaxLen, Section: K.Section, Kind: K.Kind,
+                                            Value: Switch(K.Field,
+                                "STRINDICATOR", dr.KksType,
+                                "STR. INDICATOR", dr.KksType,
+                                "FUNCTIONAL LOCATION", dr.FL,
+                                "DESCRIPTION", dr.Description,
+                                Coalesce(LookUp(colFlVals, RowGuid = dr.RowGuid && Field = K.Field).Value, "")),
+                                            Issue: Switch(
+                                K.Field,
+                                "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = dr.RowGuid && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),
+                                "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = dr.RowGuid && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),
+                                Coalesce(First(Sort(Filter(colFlIssues, RowGuid = dr.RowGuid && Sev = "Error" && Field = K.Field && Ord >= 100), Ord)).Short, "")
+                            )
+                                        }
+                                    )
+                                )
+                            ));
+                            Set(varFlPanelOpen, true)
+                        PressedFill: |-
+                            =If((If(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos >= CountRows(Sort(colFlRows, RowNo)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
+                        RadiusBottomLeft: |-
+                            =6
+                        RadiusBottomRight: |-
+                            =6
+                        RadiusTopLeft: |-
+                            =6
+                        RadiusTopRight: |-
+                            =6
+                        TabIndex: |-
+                            =If((If(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos >= CountRows(Sort(colFlRows, RowNo)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
+                        Tooltip: |-
+                            ="Next row"
+                        Visible: |-
+                            =CountRows(colFlRows) > 1
+                        Width: |-
+                            =44
+                  - btnFlEditorClose:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Height: |-
+                            =44
+                        HoverFill: |-
+                            =C.'row-hover'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Center
+                        LayoutMinWidth: |-
+                            =44
+                        OnSelect: |-
+                            =Set(varFlPanelOpen, false); Set(varFlDetailRow, ""); Clear(colFlDet)
+                        PressedFill: |-
+                            =C.'row-pressed'
+                        RadiusBottomLeft: |-
+                            =6
+                        RadiusBottomRight: |-
+                            =6
+                        RadiusTopLeft: |-
+                            =6
+                        RadiusTopRight: |-
+                            =6
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            ="Close"
+                        Width: |-
+                            =44
             - conFlEditorSections:
                 Control: GroupContainer
                 Variant: AutoLayout
