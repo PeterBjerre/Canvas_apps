@@ -2055,10 +2055,10 @@ def build_detail():
     no.props["LayoutMinWidth"] = str(NO_W)
     # Bladring: raekkefoelgen er listens (filtreret og sorteret) - galIbList.AllItems.
     nav_list = "galIbList.AllItems"
-    pos = (f"Coalesce(First(Filter(ForAll(Sequence(CountRows({nav_list})), "
+    pos = (f"Coalesce(First(Filter(ForAll(Sequence(galIbList.AllItemsCount), "
            f"{{n: Value, id: IfError(Index({nav_list}, Value).Id, Blank())}}), id = varIbSelId)).n, 0)")
     prev_mode = f"If(varIbSelPeek || {pos} <= 1, DisplayMode.Disabled, DisplayMode.Edit)"
-    next_mode = (f"If(varIbSelPeek || {pos} = 0 || {pos} >= CountRows({nav_list}), "
+    next_mode = (f"If(varIbSelPeek || {pos} = 0 || {pos} >= galIbList.AllItemsCount, "
                  f"DisplayMode.Disabled, DisplayMode.Edit)")
     prev_fx = f"With({{r: LookUp(colIbAll, Id = Index({nav_list}, {pos} - 1).Id)}}, {open_ticket('r', 'false')})"
     next_fx = f"With({{r: LookUp(colIbAll, Id = Index({nav_list}, {pos} + 1).Id)}}, {open_ticket('r', 'false')})"

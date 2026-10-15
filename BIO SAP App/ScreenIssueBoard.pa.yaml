@@ -10086,19 +10086,19 @@ Screens:
                         DisabledFill: |-
                             =RGBA(0, 0, 0, 0)
                         DisplayMode: |-
-                            =If(varIbSelPeek || Coalesce(First(Filter(ForAll(Sequence(CountRows(galIbList.AllItems)), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) <= 1, DisplayMode.Disabled, DisplayMode.Edit)
+                            =If(varIbSelPeek || Coalesce(First(Filter(ForAll(Sequence(galIbList.AllItemsCount), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) <= 1, DisplayMode.Disabled, DisplayMode.Edit)
                         Fill: |-
                             =RGBA(0, 0, 0, 0)
                         Height: |-
                             =44
                         HoverFill: |-
-                            =If((If(varIbSelPeek || Coalesce(First(Filter(ForAll(Sequence(CountRows(galIbList.AllItems)), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
+                            =If((If(varIbSelPeek || Coalesce(First(Filter(ForAll(Sequence(galIbList.AllItemsCount), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl(If((If(varIbSelPeek || Coalesce(First(Filter(ForAll(Sequence(CountRows(galIbList.AllItems)), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M15 6l-6 6 6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M15 6l-6 6 6 6'/></g></svg>"))
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If((If(varIbSelPeek || Coalesce(First(Filter(ForAll(Sequence(galIbList.AllItemsCount), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M15 6l-6 6 6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M15 6l-6 6 6 6'/></g></svg>"))
                         ImagePosition: |-
                             =ImagePosition.Center
                         OnSelect: |-
-                            =With({r: LookUp(colIbAll, Id = Index(galIbList.AllItems, Coalesce(First(Filter(ForAll(Sequence(CountRows(galIbList.AllItems)), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) - 1).Id)}, Set(varIbSel, r);
+                            =With({r: LookUp(colIbAll, Id = Index(galIbList.AllItems, Coalesce(First(Filter(ForAll(Sequence(galIbList.AllItemsCount), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) - 1).Id)}, Set(varIbSel, r);
                             Set(varIbSelId, varIbSel.Id);
                             Set(varIbSelPeek, false);
                             Set(varIbTab, "details");
@@ -10141,7 +10141,7 @@ Screens:
                                 UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
                             ))
                         PressedFill: |-
-                            =If((If(varIbSelPeek || Coalesce(First(Filter(ForAll(Sequence(CountRows(galIbList.AllItems)), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
+                            =If((If(varIbSelPeek || Coalesce(First(Filter(ForAll(Sequence(galIbList.AllItemsCount), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
                         RadiusBottomLeft: |-
                             =6
                         RadiusBottomRight: |-
@@ -10151,7 +10151,7 @@ Screens:
                         RadiusTopRight: |-
                             =6
                         TabIndex: |-
-                            =If((If(varIbSelPeek || Coalesce(First(Filter(ForAll(Sequence(CountRows(galIbList.AllItems)), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
+                            =If((If(varIbSelPeek || Coalesce(First(Filter(ForAll(Sequence(galIbList.AllItemsCount), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
                         Tooltip: |-
                             ="Previous issue"
                         Visible: |-
@@ -10172,19 +10172,19 @@ Screens:
                         DisabledFill: |-
                             =RGBA(0, 0, 0, 0)
                         DisplayMode: |-
-                            =If(varIbSelPeek || Coalesce(First(Filter(ForAll(Sequence(CountRows(galIbList.AllItems)), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) = 0 || Coalesce(First(Filter(ForAll(Sequence(CountRows(galIbList.AllItems)), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) >= CountRows(galIbList.AllItems), DisplayMode.Disabled, DisplayMode.Edit)
+                            =If(varIbSelPeek || Coalesce(First(Filter(ForAll(Sequence(galIbList.AllItemsCount), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) = 0 || Coalesce(First(Filter(ForAll(Sequence(galIbList.AllItemsCount), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) >= galIbList.AllItemsCount, DisplayMode.Disabled, DisplayMode.Edit)
                         Fill: |-
                             =RGBA(0, 0, 0, 0)
                         Height: |-
                             =44
                         HoverFill: |-
-                            =If((If(varIbSelPeek || Coalesce(First(Filter(ForAll(Sequence(CountRows(galIbList.AllItems)), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) = 0 || Coalesce(First(Filter(ForAll(Sequence(CountRows(galIbList.AllItems)), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) >= CountRows(galIbList.AllItems), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
+                            =If((If(varIbSelPeek || Coalesce(First(Filter(ForAll(Sequence(galIbList.AllItemsCount), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) = 0 || Coalesce(First(Filter(ForAll(Sequence(galIbList.AllItemsCount), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) >= galIbList.AllItemsCount, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
                         Image: |-
-                            ="data:image/svg+xml;utf8," & EncodeUrl(If((If(varIbSelPeek || Coalesce(First(Filter(ForAll(Sequence(CountRows(galIbList.AllItems)), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) = 0 || Coalesce(First(Filter(ForAll(Sequence(CountRows(galIbList.AllItems)), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) >= CountRows(galIbList.AllItems), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6l6 6-6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M9 6l6 6-6 6'/></g></svg>"))
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If((If(varIbSelPeek || Coalesce(First(Filter(ForAll(Sequence(galIbList.AllItemsCount), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) = 0 || Coalesce(First(Filter(ForAll(Sequence(galIbList.AllItemsCount), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) >= galIbList.AllItemsCount, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6l6 6-6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M9 6l6 6-6 6'/></g></svg>"))
                         ImagePosition: |-
                             =ImagePosition.Center
                         OnSelect: |-
-                            =With({r: LookUp(colIbAll, Id = Index(galIbList.AllItems, Coalesce(First(Filter(ForAll(Sequence(CountRows(galIbList.AllItems)), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) + 1).Id)}, Set(varIbSel, r);
+                            =With({r: LookUp(colIbAll, Id = Index(galIbList.AllItems, Coalesce(First(Filter(ForAll(Sequence(galIbList.AllItemsCount), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) + 1).Id)}, Set(varIbSel, r);
                             Set(varIbSelId, varIbSel.Id);
                             Set(varIbSelPeek, false);
                             Set(varIbTab, "details");
@@ -10227,7 +10227,7 @@ Screens:
                                 UpdateIf(colIbAll, Id = varIbSelId, varIbSel)
                             ))
                         PressedFill: |-
-                            =If((If(varIbSelPeek || Coalesce(First(Filter(ForAll(Sequence(CountRows(galIbList.AllItems)), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) = 0 || Coalesce(First(Filter(ForAll(Sequence(CountRows(galIbList.AllItems)), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) >= CountRows(galIbList.AllItems), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
+                            =If((If(varIbSelPeek || Coalesce(First(Filter(ForAll(Sequence(galIbList.AllItemsCount), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) = 0 || Coalesce(First(Filter(ForAll(Sequence(galIbList.AllItemsCount), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) >= galIbList.AllItemsCount, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
                         RadiusBottomLeft: |-
                             =6
                         RadiusBottomRight: |-
@@ -10237,7 +10237,7 @@ Screens:
                         RadiusTopRight: |-
                             =6
                         TabIndex: |-
-                            =If((If(varIbSelPeek || Coalesce(First(Filter(ForAll(Sequence(CountRows(galIbList.AllItems)), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) = 0 || Coalesce(First(Filter(ForAll(Sequence(CountRows(galIbList.AllItems)), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) >= CountRows(galIbList.AllItems), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
+                            =If((If(varIbSelPeek || Coalesce(First(Filter(ForAll(Sequence(galIbList.AllItemsCount), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) = 0 || Coalesce(First(Filter(ForAll(Sequence(galIbList.AllItemsCount), {n: Value, id: IfError(Index(galIbList.AllItems, Value).Id, Blank())}), id = varIbSelId)).n, 0) >= galIbList.AllItemsCount, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
                         Tooltip: |-
                             ="Next issue"
                         Visible: |-
