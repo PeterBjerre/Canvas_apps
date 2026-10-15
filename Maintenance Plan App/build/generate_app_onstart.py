@@ -123,6 +123,14 @@ Set(varVhpConfirmNew, false);
 // Popupperne for materialer og dokumenter pr. operation (OperationNo, tom = lukket).
 Set(varVhpMatOpNo, "");
 Set(varVhpAttOpNo, "");
+// Leverandoersoegningen paa PM02-operationer (tools/vendor_search.py):
+// operationen i popup'en (tom = lukket) og vaelgerens tilstand.
+Set(varVhpVenOpNo, "");
+Set(varVhpVenBusy, false);
+Set(varVhpVenQuery, "");
+Set(varVhpVenLast, "");
+Set(varVhpVenPick, "");
+Set(varVhpVenMsg, "");
 // Lang tekst: "op" = en operation, "item" = itemets lange tekst.
 Set(varVhpLongTextTarget, "op");
 Set(varVhpTasklistPickerOpen, false);
