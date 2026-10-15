@@ -435,13 +435,19 @@ def build_items_rail():
     btnOpen = row_hit(
         "btnVhpItemOpen",
         ("Set(varVhpActiveItemId, ThisItem.ItemId);\n"
-         "Set(varVhpItemValidated, false);\n"
+         f"Set(varVhpItemValidated, {FIX_N} > 0);\n"
          "Set(varVhpFlMsg, \"\");\n"
          f"{SEED_FL_PICKER};\n"
          f"{RESET_EDITOR_CONTROLS}"),
         f"\"Open item \" & Text({CARD_NO}) & \" \" & ThisItem.ShortText",
         "Parent.TemplateWidth", f"Parent.TemplateHeight - {ITEM_GAP}",
         radius=10, hover_border=True)
+    MISSING = ("Concat(Filter(Table({n: \"Short text\", m: IsBlank(ThisItem.ShortText)}, "
+               "{n: \"Main work center\", m: IsBlank(ThisItem.MainWorkCenter)}, "
+               "{n: \"Activity type\", m: IsBlank(ThisItem.ActivityType)}, "
+               "{n: \"Functional location\", m: IsBlank(ThisItem.FunctionalLocation)}, "
+               "{n: \"Tasklist\", m: IfError(varVhpPlan.PlanType = \"Strategy\", false) && IsBlank(ThisItem.TasklistKey)}), m), n, \", \")")
+    btnOpen.props["Tooltip"] = f'If({ITEM_OK}, "", "To fix: " & {MISSING})'
 
     gallery = Ctrl(
         "galVhpItemsRail", "Gallery", variant="Vertical",

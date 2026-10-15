@@ -1870,7 +1870,7 @@ def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
     # Panelets pad (2 x 16), overskriften, to mellemrum og bundbjaelken
     # traekkes fra, og 16 px luft i bunden sikrer, at bundknapperne aldrig
     # ligger tættere paa skaermkanten end panelets pad.
-    scroll_h = f"App.Height - ({2 * 16 + lay.HIT_TOUCH + 2 * 12 + 40} + ({footer.h}))"
+    scroll_h = f"App.Height - ({2 * 16 + lay.HIT_TOUCH + 2 * 12 + 88} + ({footer.h}))"
     scroll = group(f"con{prefix}EditorSections", sections, direction="Vertical", gap=16,
                    height=scroll_h, overflow_y="Scroll",
                    pad=(16, 20, 16, 20))

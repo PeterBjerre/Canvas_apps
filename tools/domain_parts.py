@@ -53,7 +53,7 @@ from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_INVALID_FG)
 import layout_tokens as lay
 from layout_tokens import fits, if_below, below, at_least
-from build_helpers import (ensure_hit, validation_summary, tap_backdrop, text_ctrl, text_min_height, group, button, text_input,
+from build_helpers import (row_rule, ensure_hit, validation_summary, tap_backdrop, text_ctrl, text_min_height, group, button, text_input,
                            checkbox_theme, date_picker, fit_button_row,
                            fit_button_width, number_field, num_value, themed_dropdown,
                            card, field_cell, pin_widths, badge, top_bar, grow, flow_ok,
@@ -2446,10 +2446,6 @@ def build_list(slots, badge_head, search_placeholder):
     lay_ = ListLayout(slots)
 
     # --- hovedet: titel, soegning og de to filtre ---------------------
-    title_w = text_px("Rows", lay.SIZE_CARD_TITLE) + 4
-    title = text_ctrl("txtDomRowsH", '"Rows"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
-                      height=text_min_height(lay.SIZE_CARD_TITLE), wrap="false",
-                      width=title_w, layout_min_width=title_w)
     # Soegning og filtre huskes i SaveData-lageret (UX-review F8). Feltet
     # hedder prefDom* her og prefEq*/prefMat*/prefMp* i BIO SAP.
     search = text_input("inpDomSearch", tok.pref_get("prefDomSearch"), width="240",
@@ -2467,8 +2463,6 @@ def build_list(slots, badge_head, search_placeholder):
                             onchange=tok.prefs_save({"prefDomPlant": "Self.Selected.Value"}))
     row_add = []
     panel_on = bool(getattr(cfg, "ROW_PANEL_ENABLED", False))
-    count = text_ctrl("txtDomRowsCount", "Text(CountRows(colDomRows))", size=lay.SIZE_BODY,
-                      color=C_MUTED, height=20, width=28, wrap="false")
     if panel_on:
         copy_active = copy_row_fx().replace("ThisItem.", ACTIVE + ".")
         row_add.append(button(
@@ -2485,24 +2479,17 @@ def build_list(slots, badge_head, search_placeholder):
         row_add.append(button("btnDomNewRow", '"Add row"', new_row_fx(), primary=True,
                               width=fit_button_width('"Add row"'), height=36,
                               visible="!varDomViewOnly"))
-    head_title = title
-    head_flex = title_w
-    if panel_on:
-        head_title = group("conDomRowsTitle", [title, count], direction="Horizontal", gap=8,
-                           height=text_min_height(lay.SIZE_CARD_TITLE),
-                           width=head_flex + 8 + 28, align_items="Center")
-        head_flex += 8 + 28
     # Soegning og filtre staar til venstre, Add row/Copy til hoejre: en tom,
     # fleksibel gruppe tager resten af linjen og skubber knapperne ud.
     if row_add:
         gap_ = grow(group("conDomRowsTopGap", [], direction="Horizontal", height=0))
-        kids = [head_title, search, status, plant, gap_] + row_add
+        kids = [search, status, plant, gap_] + row_add
         gap_.vis = flow_ok(kids, FORM_W, gap=8, flex=gap_, flex_min=0)
         gap_.props["Visible"] = gap_.vis
         head = flow_row("conDomRowsTop", kids, FORM_W, gap=8, flex=gap_, flex_min=0)
     else:
         gap_ = grow(group("conDomRowsTopGap", [], direction="Horizontal", height=0))
-        kids = [head_title, search, status, plant, gap_]
+        kids = [search, status, plant, gap_]
         gap_.vis = flow_ok(kids, FORM_W, gap=8, flex=gap_, flex_min=0)
         gap_.props["Visible"] = gap_.vis
         head = flow_row("conDomRowsTop", kids, FORM_W, gap=8, flex=gap_, flex_min=0)
@@ -2552,8 +2539,9 @@ def build_list(slots, badge_head, search_placeholder):
     gal_h = (f"Max(Min(CountRows({LIST_SCOPE}), "
              + if_below("Desktop", str(GAL_ROWS_C), str(GAL_ROWS)) + f"), 1) * "
              + if_below("Desktop", str(ROW_H_C + 2), str(ROW_H + 2)))
+    rule = row_rule("rctDomRowRule", if_below("Desktop", str(ROW_H_C), str(ROW_H)))
     gal = row_list("Dom", f"Sort({LIST_SCOPE}, RowId, SortOrder.Descending)",
-                   [row, row_c], gal_h, if_below("Desktop", str(ROW_H_C), str(ROW_H)),
+                   [row, row_c, rule], gal_h, if_below("Desktop", str(ROW_H_C), str(ROW_H)),
                    onselect=load_row_fx(), width=f"({table_w}) + 4 + {SCROLLBAR_W}",
                    accessible="Saved rows")
     if panel_on:

@@ -387,6 +387,11 @@ _REQ_W = CWF["REQUESTER"]
 CWF["TEXT"] = f"({CWF['TEXT']} + If({MINE}, {_REQ_W}, 0))"
 CWF["REQUESTER"] = f"If({MINE}, 0, {_REQ_W})"
 
+# Sorteringsoverskrifterne er knapper, og en knap har indre luft til
+# venstre. Cellerne under dem faar den samme luft, saa teksten staar lige
+# under overskriften.
+HEAD_PAD = 12
+
 ROW_H = 52
 GAL_ROWS = 14
 ROW_H_C = 112
@@ -620,8 +625,8 @@ STRIPE_H = 4
 # Flisens kant er 1-2 px: forsiden faar 4 px luft, saa den aldrig bliver
 # skaaleret ned af kanten (det skubbede stregen ned fra flisens top).
 TILE_RADIUS = 6
-TILE_ROW_H = TILE_H - STRIPE_H - 4
-TILE_ROW_H_M = TILE_H_M - STRIPE_H - 4
+TILE_ROW_H = TILE_H - STRIPE_H - 2
+TILE_ROW_H_M = TILE_H_M - STRIPE_H - 2
 
 
 def _tile_state(d, sel):
@@ -706,8 +711,8 @@ def build_tiles():
         # flisens hoejde og uden mellemrum, saa hover toner hele flisen.
         face_w = if_below("Tablet", f"({TILE_W})",
                           f"({TILE_W}) - {TILE_NEW_W}")
-        row_h = if_below("Tablet", f"{TILE_H_M - STRIPE_H} - 4",
-                         f"{TILE_H - STRIPE_H} - 4")
+        row_h = if_below("Tablet", f"{TILE_H_M - STRIPE_H} - 2",
+                         f"{TILE_H - STRIPE_H} - 2")
         face = _image(f"imgMdTile{n}", _svg_uri(_tile_face(d, count)), face_w, row_h,
                       onselect=f'Set(varMdDomain, If({sel}, "", "{d["key"]}"));\n' + SAVE_HUB,
                       # Uden tallet: det ville vaere endnu en forespoergsel.
@@ -740,7 +745,7 @@ def build_tiles():
         row = group(
             f"conMdTileRow{n}", [face, new], direction="Horizontal", gap=0,
             align_items="Center", height=row_h, fill=st["fill"],
-            pad=(0, 8, 0, 0))
+            pad=(0, 16, 0, 0))
         stripe = group(f"conMdTileStripe{n}", [], direction="Vertical", gap=0,
                        height=str(STRIPE_H), width="Parent.Width", fill=d["color"])
         stripe.props["RadiusTopLeft"] = str(TILE_RADIUS)
@@ -1322,14 +1327,14 @@ def build_list():
                           lambda d: '"' + _tile_icon_svg(d) + '"', '""')),
                       32, 32, label=DOMAIN_LABEL)
     no_txt = text_ctrl("txtMdRowNo", f"ThisItem.{COL_NO}", size=13, weight="Semibold",
-                       height=20, wrap="false", width=f"{CWF['REQUEST']} - 42")
+                       height=20, wrap="false", width=f"{CWF['REQUEST']} - 42 - {HEAD_PAD}")
     dom_txt = text_ctrl("txtMdRowDomain", _domain_switch(lambda d: f'"{d["name"]}"', '"?"'),
                         size=12, color=C_MUTED, height=18, wrap="false",
-                        width=f"{CWF['REQUEST']} - 42")
+                        width=f"{CWF['REQUEST']} - 42 - {HEAD_PAD}")
     who = group("conMdRowWho", [no_txt, dom_txt], direction="Vertical", gap=0,
-                width=f"{CWF['REQUEST']} - 42")
+                width=f"{CWF['REQUEST']} - 42 - {HEAD_PAD}")
     dom = group("conMdRowDom", [dom_icon, who], direction="Horizontal", gap=10,
-                width=CWF["REQUEST"], align_items="Center")
+                width=CWF["REQUEST"], align_items="Center", pad=(0, 0, 0, HEAD_PAD))
     # Kun titlen, paa een linje; en lang titel afkortes med ellipse (Wrap false).
     main = text_ctrl("txtMdRowText", SHORT_TEXT, size=13, height=20,
                      width=CWF["TEXT"], wrap="false")
@@ -1338,7 +1343,7 @@ def build_list():
                     visible=f"!({MINE})")
 
     plant = text_ctrl("txtMdRowPlant", "ThisItem.Plant", size=13, height=20,
-                      width=CWF["PLANT"], wrap="false")
+                      width=CWF["PLANT"], wrap="false", extra={"PaddingLeft": str(HEAD_PAD)})
 
     approval = _image("imgMdRowApproval", _svg_uri(approval_flow.row_svg()), CW["APPROVAL"], 30,
                       label='"Approval progress"')
@@ -1355,10 +1360,10 @@ def build_list():
                       height=16, width=CWF["STATUS"], wrap="false", visible=STUCK,
                       extra={"PaddingLeft": "4"})
     stat = group("conMdRowStat", [st_top, stuck], direction="Vertical", gap=0,
-                 width=CWF["STATUS"], align_items="Stretch")
+                 width=CWF["STATUS"], align_items="Stretch", pad=(0, 0, 0, HEAD_PAD))
 
     when = text_ctrl("txtMdRowWhen", WHEN_SHORT, size=12, height=20, width=CWF["UPDATED"],
-                     wrap="false", color=C_MUTED,
+                     wrap="false", color=C_MUTED, extra={"PaddingLeft": str(HEAD_PAD)},
                      accessible=f'"Updated " & Self.Text & ", " & Lower({WHEN_FX})')
 
     act = _open_action()
