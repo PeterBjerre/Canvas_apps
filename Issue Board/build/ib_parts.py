@@ -76,7 +76,8 @@ from build_helpers import (empty_state, skeleton_rows, ensure_hit, hit_size, but
                            fit_button_width, group, icon_button, segmented, SEG_GAP, SEG_H, SEG_PAD, SEG_SIZE,
                            flow_row, grow, icon_on_mobile, label_row, loading_overlay, row_hit, row_rule,
                            tap_backdrop,
-                           text_ctrl, text_input, text_px, themed_dropdown, top_bar, ICON_W)
+                           label_px, text_ctrl, text_input, text_min_height, text_px, themed_dropdown, top_bar,
+                           ICON_W)
 from permissions import IS_ADMIN, ADMIN_LIST, ADMIN_GROUP
 from design_tokens import ref as _t, ref_hex
 import icons
@@ -905,6 +906,31 @@ def _no_badge(name, expr, width=NO_W):
                      height=CHIP_H, width=width, align="Center", fill=C_MUTED_BG,
                      accessible='"Ticket " & Self.Text',
                      extra={"VerticalAlign": "VerticalAlign.Middle", **lay.radius(12)})
+
+
+def _text_chip(name, key, table, prefix, visible=None):
+    """Et statusmaerke som tekst: etiketten i tonens farvepar
+    (state-*-fg/bg) paa en pille, saa bred som teksten. Tonen "plain"
+    (Normal/Low-prioritet) er almindelig tekst uden pille."""
+    pad = 10
+
+    def sw(pick, default):
+        return (f"Switch({key}, " + ", ".join(f'"{k}", {pick(lbl, tone)}'
+                                              for k, lbl, _p, tone in table) + f", {default})")
+    width = sw(lambda lbl, tone: label_px(lbl, sc.SIZE + (1 if tone == "plain" else 0))
+               + (2 if tone == "plain" else 2 * pad), label_px("Unknown", sc.SIZE) + 2 * pad)
+    fill = sw(lambda lbl, tone: C_TRANSPARENT if tone == "plain" else _t(f"state-{tone}-bg"),
+              _t("state-neutral-bg"))
+    color = sw(lambda lbl, tone: C_TITLE if tone == "plain" else _t(f"state-{tone}-fg"),
+               _t("state-neutral-fg"))
+    align = sw(lambda lbl, tone: "Align.Left" if tone == "plain" else "Align.Center", "Align.Center")
+    text = sw(lambda lbl, tone: f'"{lbl}"', '"Unknown"')
+    t = text_ctrl(name, text, size=sc.SIZE, weight="Semibold", color=color, height=CHIP_H,
+                  width=width, fill=fill, accessible=f"{prefix} & Self.Text", visible=visible,
+                  extra={"Align": align, "VerticalAlign": "VerticalAlign.Middle",
+                         "PaddingLeft": "0", "PaddingRight": "0", "LayoutMinWidth": width,
+                         **lay.radius(CHIP_H // 2)})
+    return t, f"({width})"
 
 
 # Hvem (issue #212): rapportoeren som kort bruger-id - delen foer @ med
@@ -1868,6 +1894,7 @@ def _icon_action(name, icon, onselect, visible, label, tooltip, display_mode, da
 
 # Handlingsraekken vises, naar mindst een af handlingerne er tilladt.
 CAN_ACT = "IbCanReopen || IbCanEdit || IbCanManage"
+ACT_PAD = 3
 
 
 def _actions():
@@ -1903,8 +1930,13 @@ def _actions():
                           '"Delete issue permanently - you confirm first"',
                           "If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)", danger=True)
     row = group("conIbDetActions", [reopen, edit, archive, restore, delete], direction="Horizontal",
-                gap=4, height=hit_size(ICON_BTN), align_items="Center", justify="End",
-                visible=CAN_ACT)
+                gap=4, height=f"{hit_size(ICON_BTN)} + 2 * {ACT_PAD}", align_items="Center",
+                justify="End", visible=CAN_ACT)
+    # Luft over og under knapperne: kanten og fokusrammen tegnes uden for
+    # knappen, og en raekke paa praecis knappens hoejde skar dem af
+    # (Archive blev skaaret i toppen).
+    row.props["PaddingTop"] = str(ACT_PAD)
+    row.props["PaddingBottom"] = str(ACT_PAD)
     row.props["LayoutJustifyContent"] = (f"If({NARROW}, LayoutJustifyContent.Start, "
                                          "LayoutJustifyContent.End)")
     return row
@@ -1981,51 +2013,64 @@ def _files_panel():
                  visible='varIbTab = "files"')
 
 
-FACT_H = 38
+FACT_VAL_H = 20
+FACT_INNER = 2
+FACT_H = text_min_height(lay.SIZE_MICRO) + FACT_INNER + FACT_VAL_H
 FACT_GAP = 12
 # Fem fakta paa een linje, naar popuppen er bred nok; ellers tre og to.
 FACTS_OK = f"({DET_IN}) >= 540"
 FACT_W = f"If({FACTS_OK}, (({DET_IN}) - 4 * {FACT_GAP}) / 5, (({DET_IN}) - 2 * {FACT_GAP}) / 3)"
 
 
-def _fact(name, label, value_fx, visible=None):
-    """Et faktum: en lille etiket over vaerdien - kompakt, ingen lang streng."""
-    lab = text_ctrl(f"txt{name}Label", f'"{label}"', size=lay.SIZE_MICRO, weight="Semibold",
-                    color=C_MUTED, height=16, width=FACT_W)
-    val = text_ctrl(f"txt{name}", value_fx, size=lay.SIZE_BODY, height=20, width=FACT_W,
-                    accessible=f'"{label}: " & Self.Text')
-    lab.props["LayoutMinWidth"] = "0"
-    val.props["LayoutMinWidth"] = "0"
-    g = group(f"con{name}", [lab, val], direction="Vertical", gap=0, height=FACT_H, width=FACT_W,
-              visible=visible)
-    g.props["LayoutMinWidth"] = "0"
-    return g
-
-
 def _facts():
     """Metadata om sagen som etiket/vaerdi (issue #229): Requester,
     Assigned to, Severity, Reported og Updated. Rapportoeren som kort
     bruger-id (UFFES) - ingen anonymisering (issue #193, #212). Updated
-    kun efter en reel aendring, og sidst, saa der ikke opstaar et hul."""
+    kun efter en reel aendring, og sidst, saa der ikke opstaar et hul.
+
+    Bygget som Application/Section-linjen (conIbDetWhere), der vises i
+    Play: vandrette raekker af tekster med egen bredde og hoejde. De
+    lodrette etiket/vaerdi-grupper med strakte tekster og den dynamiske
+    LayoutDirection viste sig i Studio, men var tomme i Play og preview.
+    Blok 1 (tre fakta) og blok 2 (to) staar paa een linje, naar popuppen
+    er bred nok; ellers brydes blok 2 ned under (LayoutWrap)."""
     def blank_as(expr, text):
         return f'If(IsBlank({expr}), "{text}", {expr})'
-    rep = _fact("IbFactReporter", "Requester", REPORTER_FX.format(r=SEL))
-    asg = _fact("IbFactAssigned", "Assigned to", blank_as(SEL + ".Assigned", "Unassigned"))
-    sev = _fact("IbFactSeverity", "Severity", blank_as(f"{SEL}.Severity", "Not set"))
-    reported = _fact("IbFactReported", "Reported", f"Text({SEL}.CreatedOn, {DATE_FMT})")
-    updated = _fact("IbFactUpdated", "Updated", f"Text(IbSelUpdatedOn, {DATE_FMT})",
-                    visible="!IsBlank(IbSelUpdatedOn)")
-    a = group("conIbFacts1", [rep, asg, sev], direction="Horizontal", gap=FACT_GAP,
-              height=FACT_H, width=f"If({FACTS_OK}, 3 * {FACT_W} + 2 * {FACT_GAP}, {DET_IN})")
-    b = group("conIbFacts2", [reported, updated], direction="Horizontal", gap=FACT_GAP,
-              height=FACT_H, width=f"If({FACTS_OK}, 2 * {FACT_W} + {FACT_GAP}, {DET_IN})")
-    for p in (a, b):
-        p.props["LayoutMinWidth"] = "0"
+    mid = {"VerticalAlign": "VerticalAlign.Middle", "LayoutMinWidth": "0"}
+    lab_h = text_min_height(lay.SIZE_MICRO)
+
+    def fact(name, label, value_fx, visible=None):
+        lab = text_ctrl(f"txt{name}Label", f'"{label}"', size=lay.SIZE_MICRO, weight="Semibold",
+                        color=C_MUTED, height=lab_h, width=FACT_W, visible=visible, extra=dict(mid))
+        val = text_ctrl(f"txt{name}", value_fx, size=lay.SIZE_BODY, height=FACT_VAL_H,
+                        width=FACT_W, accessible=f'"{label}: " & Self.Text', visible=visible,
+                        extra=dict(mid))
+        return lab, val
+
+    def block(name, facts, n):
+        w = f"{n} * {FACT_W} + {n - 1} * {FACT_GAP}"
+        labs = group(f"con{name}Labels", [f[0] for f in facts], direction="Horizontal",
+                     gap=FACT_GAP, height=lab_h, width=w, align_items="Start")
+        vals = group(f"con{name}Values", [f[1] for f in facts], direction="Horizontal",
+                     gap=FACT_GAP, height=FACT_VAL_H, width=w, align_items="Start")
+        g = group(f"con{name}", [labs, vals], direction="Vertical", gap=FACT_INNER, height=FACT_H,
+                  width=w, align_items="Start")
+        for c in (labs, vals, g):
+            c.props["LayoutMinWidth"] = "0"
+        return g
+
+    rep = fact("IbFactReporter", "Requester", REPORTER_FX.format(r=SEL))
+    asg = fact("IbFactAssigned", "Assigned to", blank_as(SEL + ".Assigned", "Unassigned"))
+    sev = fact("IbFactSeverity", "Severity", blank_as(f"{SEL}.Severity", "Not set"))
+    reported = fact("IbFactReported", "Reported", f"Text({SEL}.CreatedOn, {DATE_FMT})")
+    updated = fact("IbFactUpdated", "Updated", f"Text(IbSelUpdatedOn, {DATE_FMT})",
+                   visible="!IsBlank(IbSelUpdatedOn)")
+    a = block("IbFacts1", [rep, asg, sev], 3)
+    b = block("IbFacts2", [reported, updated], 2)
     g = group("conIbDetFacts", [a, b], direction="Horizontal", gap=FACT_GAP,
-              height=f"If({FACTS_OK}, {FACT_H}, 2 * {FACT_H} + 8)")
-    g.props["LayoutDirection"] = (f"If({FACTS_OK}, LayoutDirection.Horizontal, "
-                                  "LayoutDirection.Vertical)")
-    g.props["LayoutGap"] = f"If({FACTS_OK}, {FACT_GAP}, 8)"
+              height=f"If({FACTS_OK}, {FACT_H}, 2 * {FACT_H} + {FACT_GAP})", align_items="Start")
+    g.props["LayoutWrap"] = "true"
+    g.props["LayoutMinWidth"] = "0"
     return g
 
 
@@ -2066,11 +2111,13 @@ def build_detail():
 
     # 2. Status, prioritet, Application og Section - maerker og to korte
     #    vaerdier, ikke en lang streng. Paa en smal popup paa to linjer.
-    chip = _chip("txtIbDetStatus", f"{SEL}.Status", f"{SEL}.Archived")
-    chip.props["LayoutMinWidth"] = str(CHIP_W)
-    pri = _pri_badge("txtIbDetPriority", f"{SEL}.Priority", visible="true")
-    pri.props["LayoutMinWidth"] = str(PRI_W)
-    badges_w = f"({CHIP_W} + 8 + If(IsBlank({SEL}.Priority), 0, {PRI_W} + 8))"
+    # Maerkerne er tekster med statussens farvepar (som sagsnummeret,
+    # _no_badge) - SVG-billederne (sc.status_chip) var tomme i Play her.
+    key = f'If({SEL}.Archived, "Archived", {SEL}.Status)'
+    chip, chip_w = _text_chip("txtIbDetStatus", key, ISSUE_STATUS, '"Status: "')
+    pri, pri_w = _text_chip("txtIbDetPriority", f"{SEL}.Priority", sc.PRIORITY, '"Priority: "',
+                            visible=f"!IsBlank({SEL}.Priority)")
+    badges_w = f"({chip_w} + 8 + If(IsBlank({SEL}.Priority), 0, {pri_w} + 8))"
     badges = group("conIbDetBadges", [chip, pri], direction="Horizontal", gap=8, height=CHIP_H,
                    width=f"({badges_w} - 8)", align_items="Start")
     badges.props["LayoutMinWidth"] = badges.props["Width"]

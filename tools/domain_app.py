@@ -191,10 +191,11 @@ def _row_editor(form, panel_content=None, reset=None):
         visible="!IsBlank(varDomActiveRowId)")
     cancel = button("btnDomEditorCancel", '"Cancel"', dp.clear_form_fx(),
                     width=fit_button_width('"Cancel"'), height=lay.HIT_TOUCH)
-    save = button("btnDomSave", 'If(IsBlank(varDomActiveRowId), "Add row", "Update")',
+    # Gem-knappen hedder "Save" - baade for en ny og en hentet raekke.
+    save = button("btnDomSave", '"Save"',
                   dp.ADD_ROW_FX[0] or "false", primary=True,
-                  width=fit_button_width('"Update"'), height=lay.HIT_TOUCH,
-                  display_mode=dp.DM_ROW, icon='If(IsBlank(varDomActiveRowId), "Add", "Save")')
+                  width=fit_button_width('"Save"'), height=lay.HIT_TOUCH,
+                  display_mode=dp.DM_ROW, icon='"Save"')
     save.props["AccessibleLabel"] = "Self.Text"
     if reset is None:
         reset = button("btnDomNew", '"Reset"', dp.clear_form_fx(),

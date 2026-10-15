@@ -509,7 +509,8 @@ def test_detail_popup_hierarchy_and_single_close():
     assert ctrls["conIbDetActivity"].props["Visible"].startswith("IbSeeActivity")
     assert ctrls["conIbFileAdd"].props["Visible"] == "IbCanAttach"
     # Updated kun efter en reel aendring.
-    assert ctrls["conIbFactUpdated"].props["Visible"] == "!IsBlank(IbSelUpdatedOn)"
+    assert ctrls["txtIbFactUpdated"].props["Visible"] == "!IsBlank(IbSelUpdatedOn)"
+    assert ctrls["txtIbFactUpdatedLabel"].props["Visible"] == "!IsBlank(IbSelUpdatedOn)"
 
 
 def test_activity_shows_role_badges():

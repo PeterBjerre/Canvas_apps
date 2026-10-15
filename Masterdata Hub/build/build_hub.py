@@ -672,8 +672,8 @@ def _tile_face(d, count_expr):
         f"<text x='8' y='{56 + 14 * i}' {SVG_FONT} font-size='11' font-weight='600' "
         f"fill='{_hx('text-primary')}'>{wd}</text>" for i, wd in enumerate(words))
     sub_y = 56 + 14 * len(words) + 4
-    compact = ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{hm}' "
-               f"viewBox='0 0 {w} {hm}'>"
+    compact = ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{hm + STRIPE_H}' "
+               f"viewBox='0 -{STRIPE_H} {w} {hm + STRIPE_H}'>"
                f"<circle cx='24' cy='24' r='14' fill='{c}' fill-opacity='0.12'/>"
                + _dglyph(d, c, x=15, y=15, size=18) +
                f"<text x='{w}' dx='-8' y='34' text-anchor='end' {SVG_FONT} font-size='22' "
@@ -682,8 +682,8 @@ def _tile_face(d, count_expr):
                f"<text x='8' y='{sub_y}' {SVG_FONT} font-size='10' "
                f"fill='{_hx('text-muted')}'>\" & \"filter\" & \"</text></svg>" + '"')
     # Stregen foroven er IKKE med her: den er sin egen kontrol over hele flisens bredde.
-    full = ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h}' "
-            f"viewBox='0 0 {w} {h}'>"
+    full = ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h + STRIPE_H}' "
+            f"viewBox='0 -{STRIPE_H} {w} {h + STRIPE_H}'>"
             f"<circle cx='30' cy='{h // 2}' r='18' fill='{c}' fill-opacity='0.12'/>"
             + _dglyph(d, c, x=21, y=h // 2 - 9, size=18) +
             f"<text x='58' y='{h // 2 - 4}' {SVG_FONT} font-size='14' font-weight='600' "
@@ -741,29 +741,33 @@ def build_tiles():
         for k in ("RadiusTopLeft", "RadiusTopRight", "RadiusBottomLeft", "RadiusBottomRight"):
             new.props[k] = "8"
 
-        # Kortet ER flisen: egen kant og fyld, saa der aldrig kan skinne en graa
-        # kantfarve igennem under indholdet. Stregen ligger inde i kanten.
-        # ManualLayout: forsiden over hele raekken, New oven paa (sidst = oeverst).
+        # HELE FLISEN TONER VED HOVER: forsiden daekker hele flisen - ogsaa
+        # under stregen - og baerer selv kanten, saa HoverFill og
+        # HoverBorderColor rammer hele kortet. Foer laa forsiden i en raekke
+        # under stregen, og kortets egen kant og fyld (conMdTile) reagerede
+        # ikke paa musen - kun billedet toned.
+        # ManualLayout: forsiden nederst, stregen og New oven paa.
+        tile_h = if_below("Tablet", str(TILE_H_M - 2), str(TILE_H - 2))
         face.props.update({"X": "0", "Y": "0", "Width": "Parent.Width",
-                           "Height": "Parent.Height"})
+                           "Height": "Parent.Height",
+                           "BorderColor": st["border"], "BorderThickness": st["thickness"],
+                           "BorderStyle": "BorderStyle.Solid",
+                           "HoverBorderColor": d["color"], "PressedBorderColor": d["color"],
+                           **lay.radius(TILE_RADIUS)})
         new.props.update({"X": f"Parent.Width - {TILE_NEW_W} - 16",
-                          "Y": f"(Parent.Height - {TILE_NEW_H}) / 2"})
-        row = Ctrl(f"conMdTileRow{n}", "GroupContainer", variant="ManualLayout", props={
+                          "Y": f"(Parent.Height + {STRIPE_H} - {TILE_NEW_H}) / 2"})
+        stripe = Ctrl(f"conMdTileStripe{n}", "GroupContainer", variant="ManualLayout", props={
             "BorderStyle": "BorderStyle.None", "DropShadow": "DropShadow.None",
-            "Fill": st["fill"], "FillPortions": "0", "Height": row_h,
-            "LayoutMinWidth": "0", "Width": "Parent.Width",
-        }, children=[face, new], h=row_h)
-        stripe = group(f"conMdTileStripe{n}", [], direction="Vertical", gap=0,
-                       height=str(STRIPE_H), width="Parent.Width", fill=d["color"])
-        stripe.props["RadiusTopLeft"] = str(TILE_RADIUS)
-        stripe.props["RadiusTopRight"] = str(TILE_RADIUS)
-        stripe.props["RadiusBottomLeft"] = "0"
-        stripe.props["RadiusBottomRight"] = "0"
-        tile = group(
-            f"conMdTile{n}", [stripe, row], direction="Vertical", gap=0,
-            fill=st["fill"], border_color=st["border"], border_thickness=st["thickness"],
-            radius=TILE_RADIUS, width=TILE_W,
-            height=if_below("Tablet", str(TILE_H_M - 2), str(TILE_H - 2)))
+            "Fill": d["color"], "FillPortions": "0", "Height": str(STRIPE_H),
+            "LayoutMinWidth": "0", "Width": "Parent.Width", "X": "0", "Y": "0",
+            "RadiusTopLeft": str(TILE_RADIUS), "RadiusTopRight": str(TILE_RADIUS),
+            "RadiusBottomLeft": "0", "RadiusBottomRight": "0",
+        }, h=STRIPE_H)
+        tile = Ctrl(f"conMdTile{n}", "GroupContainer", variant="ManualLayout", props={
+            "BorderStyle": "BorderStyle.None", "Fill": st["fill"], "FillPortions": "0",
+            "Height": tile_h, "LayoutMinWidth": "0", "Width": TILE_W,
+            **lay.radius(TILE_RADIUS),
+        }, children=[face, stripe, new], h=tile_h)
         tile.props["DropShadow"] = st["shadow"]
         tiles.append(tile)
 

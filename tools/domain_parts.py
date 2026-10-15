@@ -2143,8 +2143,8 @@ def form_buttons(save_fx, save_text, new_text, new_fx=None, new_tooltip=None,
     new_fx / new_tooltip / new_icon: appens egen tredje knap (opt-in,
     issue #228 - Materials' Reset spoerger foerst, naar der er noget at
     miste). Standard er den faelles "ryd formularen"."""
-    # EEN gem-knap (UX-review F2/T2): "Add row" for en ny raekke, "Update
-    # row" for en hentet. Den gemmer som faerdig eller som kladde efter
+    # EEN gem-knap (UX-review F2/T2): "Save" - for en ny raekke og for en
+    # hentet. Den gemmer som faerdig eller som kladde efter
     # kravene (save_row_fx("auto")). "Save row draft" er vaek. save_text
     # bruges ikke laengere - teksten er den samme i alle domaener.
     ADD_ROW_FX[0] = with_busy(SAVING_VAR, save_fx("auto"))
@@ -2154,7 +2154,7 @@ def form_buttons(save_fx, save_text, new_text, new_fx=None, new_tooltip=None,
         tooltip=('If(IsBlank(varDomActiveRowId), "Add the row to the request - it is '
                  'saved as a draft until the required fields are filled in", '
                  '"Save the changes to this row")')), icon=True))
-    add.props["Text"] = 'If(IsBlank(varDomActiveRowId), "Add row", "Update")'
+    add.props["Text"] = '"Save"'
     add.props["Icon"] = 'If(IsBlank(varDomActiveRowId), "Add", "Save")'
     add.props["AccessibleLabel"] = "Self.Text"
     return [

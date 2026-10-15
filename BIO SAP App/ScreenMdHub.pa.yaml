@@ -534,12 +534,10 @@ Screens:
                       Children:
                         - conMdTileFL:
                             Control: GroupContainer
-                            Variant: AutoLayout
+                            Variant: ManualLayout
                             Properties:
-                              BorderColor: |-
-                                  =If(varMdDomain = "FunctionalLocation", C.'domain-fl', C.'border-default')
-                              BorderThickness: |-
-                                  =If(varMdDomain = "FunctionalLocation", 2, 1)
+                              BorderStyle: |-
+                                  =BorderStyle.None
                               DropShadow: |-
                                   =If(varMdDomain = "FunctionalLocation", DropShadow.Light, DropShadow.None)
                               Fill: |-
@@ -548,18 +546,8 @@ Screens:
                                   =0
                               Height: |-
                                   =If(LayoutRank < 2, 102, 74)
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
-                              LayoutDirection: |-
-                                  =LayoutDirection.Vertical
-                              LayoutGap: |-
-                                  =0
                               LayoutMinWidth: |-
                                   =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
                               RadiusBottomLeft: |-
                                   =6
                               RadiusBottomRight: |-
@@ -571,9 +559,61 @@ Screens:
                               Width: |-
                                   =If(LayoutRank < 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 24) / 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 48) / 5)
                             Children:
+                              - imgMdTileFL:
+                                  Control: Image
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =If(varMdDomain = "FunctionalLocation", "Show all domains", "Show only functional location")
+                                    BorderColor: |-
+                                        =If(varMdDomain = "FunctionalLocation", C.'domain-fl', C.'border-default')
+                                    BorderStyle: |-
+                                        =BorderStyle.Solid
+                                    BorderThickness: |-
+                                        =If(varMdDomain = "FunctionalLocation", 2, 1)
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    FocusedBorderColor: |-
+                                        =C.'domain-fl'
+                                    FocusedBorderThickness: |-
+                                        =2
+                                    Height: |-
+                                        =Parent.Height
+                                    HoverBorderColor: |-
+                                        =C.'domain-fl'
+                                    HoverFill: |-
+                                        =C.'domain-fl-soft'
+                                    Image: |-
+                                        ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='102' viewBox='0 -4 " & Self.Width & " 102'><circle cx='24' cy='24' r='14' fill='" & C.'hex-domain-fl' & "' fill-opacity='0.12'/><g transform='translate(15 15) scale(0.75)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g><text x='" & Self.Width & "' dx='-8' y='34' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "FunctionalLocation"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='56' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Functional</text><text x='8' y='70' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>location</text><text x='8' y='88' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='74' viewBox='0 -4 " & Self.Width & " 74'><circle cx='30' cy='35' r='18' fill='" & C.'hex-domain-fl' & "' fill-opacity='0.12'/><g transform='translate(21 26) scale(0.75)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g><text x='58' y='31' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Functional location" & "</text><text x='58' y='51' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'><tspan font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "FunctionalLocation"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</tspan> " & Switch(varMdStatusMode, "open", "open", "done", "closed", "in total") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
+                                    ImagePosition: |-
+                                        =ImagePosition.Fit
+                                    OnSelect: |-
+                                        =Set(varMdDomain, If(varMdDomain = "FunctionalLocation", "", "FunctionalLocation"));
+                                        If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
+                                        Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
+                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                    PressedBorderColor: |-
+                                        =C.'domain-fl'
+                                    PressedFill: |-
+                                        =C.'domain-fl-soft'
+                                    RadiusBottomLeft: |-
+                                        =6
+                                    RadiusBottomRight: |-
+                                        =6
+                                    RadiusTopLeft: |-
+                                        =6
+                                    RadiusTopRight: |-
+                                        =6
+                                    TabIndex: |-
+                                        =0
+                                    Width: |-
+                                        =Parent.Width
+                                    X: |-
+                                        =0
+                                    Y: |-
+                                        =0
                               - conMdTileStripeFL:
                                   Control: GroupContainer
-                                  Variant: AutoLayout
+                                  Variant: ManualLayout
                                   Properties:
                                     BorderStyle: |-
                                         =BorderStyle.None
@@ -585,18 +625,8 @@ Screens:
                                         =0
                                     Height: |-
                                         =4
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Stretch
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Vertical
-                                    LayoutGap: |-
-                                        =0
                                     LayoutMinWidth: |-
                                         =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
                                     RadiusBottomLeft: |-
                                         =0
                                     RadiusBottomRight: |-
@@ -607,124 +637,69 @@ Screens:
                                         =6
                                     Width: |-
                                         =Parent.Width
-                              - conMdTileRowFL:
-                                  Control: GroupContainer
-                                  Variant: ManualLayout
+                                    X: |-
+                                        =0
+                                    Y: |-
+                                        =0
+                              - imgMdTileNewFL:
+                                  Control: Image
                                   Properties:
+                                    AccessibleLabel: |-
+                                        ="New functional location request"
                                     BorderStyle: |-
                                         =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
+                                    BorderThickness: |-
+                                        =0
                                     Fill: |-
-                                        =If(varMdDomain = "FunctionalLocation", C.'domain-fl-soft', C.'bg-card')
-                                    FillPortions: |-
-                                        =0
+                                        =RGBA(0, 0, 0, 0)
+                                    FocusedBorderColor: |-
+                                        =C.'domain-fl'
+                                    FocusedBorderThickness: |-
+                                        =2
                                     Height: |-
-                                        =If(LayoutRank < 2, 100 - 2, 72 - 2)
-                                    LayoutMinWidth: |-
+                                        =36
+                                    HoverFill: |-
+                                        =C.'domain-fl-soft'
+                                    Image: |-
+                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='84' height='36' viewBox='0 0 84 36'><rect x='.5' y='.5' width='83' height='35' rx='8' fill='none' stroke='" & C.'hex-border-default' & "'/><path d='M18 12v12M12 18h12' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round'/><text x='32' y='23' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-primary' & "'>New</text></svg>")
+                                    ImagePosition: |-
+                                        =ImagePosition.Fit
+                                    OnSelect: |-
+                                        =If(
+                                            !IfError(gblNavigating, false),
+                                            Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
+                                            Set(gblNavigating, true);
+                                            Set(gblFlWant, "new:" & gblNewSeq);
+                                            Navigate(ScreenFunctionalLocation, ScreenTransition.None)
+                                        )
+                                    PressedFill: |-
+                                        =C.'domain-fl-soft'
+                                    RadiusBottomLeft: |-
+                                        =8
+                                    RadiusBottomRight: |-
+                                        =8
+                                    RadiusTopLeft: |-
+                                        =8
+                                    RadiusTopRight: |-
+                                        =8
+                                    TabIndex: |-
                                         =0
+                                    Tooltip: |-
+                                        ="New functional location request"
+                                    Visible: |-
+                                        =LayoutRank >= 2
                                     Width: |-
-                                        =Parent.Width
-                                  Children:
-                                    - imgMdTileFL:
-                                        Control: Image
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =If(varMdDomain = "FunctionalLocation", "Show all domains", "Show only functional location")
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          FocusedBorderColor: |-
-                                              =C.'domain-fl'
-                                          FocusedBorderThickness: |-
-                                              =2
-                                          Height: |-
-                                              =Parent.Height
-                                          HoverFill: |-
-                                              =C.'domain-fl-soft'
-                                          Image: |-
-                                              ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='98' viewBox='0 0 " & Self.Width & " 98'><circle cx='24' cy='24' r='14' fill='" & C.'hex-domain-fl' & "' fill-opacity='0.12'/><g transform='translate(15 15) scale(0.75)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g><text x='" & Self.Width & "' dx='-8' y='34' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "FunctionalLocation"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='56' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Functional</text><text x='8' y='70' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>location</text><text x='8' y='88' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='70' viewBox='0 0 " & Self.Width & " 70'><circle cx='30' cy='35' r='18' fill='" & C.'hex-domain-fl' & "' fill-opacity='0.12'/><g transform='translate(21 26) scale(0.75)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g><text x='58' y='31' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Functional location" & "</text><text x='58' y='51' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'><tspan font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "FunctionalLocation"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</tspan> " & Switch(varMdStatusMode, "open", "open", "done", "closed", "in total") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
-                                          ImagePosition: |-
-                                              =ImagePosition.Fit
-                                          OnSelect: |-
-                                              =Set(varMdDomain, If(varMdDomain = "FunctionalLocation", "", "FunctionalLocation"));
-                                              If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
-                                              Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
-                                              IfError(SaveData(colAppPrefs, "prefs"), Blank())
-                                          PressedFill: |-
-                                              =C.'domain-fl-soft'
-                                          TabIndex: |-
-                                              =0
-                                          Width: |-
-                                              =Parent.Width
-                                          X: |-
-                                              =0
-                                          Y: |-
-                                              =0
-                                    - imgMdTileNewFL:
-                                        Control: Image
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="New functional location request"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          FocusedBorderColor: |-
-                                              =C.'domain-fl'
-                                          FocusedBorderThickness: |-
-                                              =2
-                                          Height: |-
-                                              =36
-                                          HoverFill: |-
-                                              =C.'domain-fl-soft'
-                                          Image: |-
-                                              ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='84' height='36' viewBox='0 0 84 36'><rect x='.5' y='.5' width='83' height='35' rx='8' fill='none' stroke='" & C.'hex-border-default' & "'/><path d='M18 12v12M12 18h12' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round'/><text x='32' y='23' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-primary' & "'>New</text></svg>")
-                                          ImagePosition: |-
-                                              =ImagePosition.Fit
-                                          OnSelect: |-
-                                              =If(
-                                                  !IfError(gblNavigating, false),
-                                                  Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
-                                                  Set(gblNavigating, true);
-                                                  Set(gblFlWant, "new:" & gblNewSeq);
-                                                  Navigate(ScreenFunctionalLocation, ScreenTransition.None)
-                                              )
-                                          PressedFill: |-
-                                              =C.'domain-fl-soft'
-                                          RadiusBottomLeft: |-
-                                              =8
-                                          RadiusBottomRight: |-
-                                              =8
-                                          RadiusTopLeft: |-
-                                              =8
-                                          RadiusTopRight: |-
-                                              =8
-                                          TabIndex: |-
-                                              =0
-                                          Tooltip: |-
-                                              ="New functional location request"
-                                          Visible: |-
-                                              =LayoutRank >= 2
-                                          Width: |-
-                                              =84
-                                          X: |-
-                                              =Parent.Width - 84 - 16
-                                          Y: |-
-                                              =(Parent.Height - 36) / 2
+                                        =84
+                                    X: |-
+                                        =Parent.Width - 84 - 16
+                                    Y: |-
+                                        =(Parent.Height + 4 - 36) / 2
                         - conMdTileVHP:
                             Control: GroupContainer
-                            Variant: AutoLayout
+                            Variant: ManualLayout
                             Properties:
-                              BorderColor: |-
-                                  =If(varMdDomain = "MaintenancePlan", C.'domain-vhp', C.'border-default')
-                              BorderThickness: |-
-                                  =If(varMdDomain = "MaintenancePlan", 2, 1)
+                              BorderStyle: |-
+                                  =BorderStyle.None
                               DropShadow: |-
                                   =If(varMdDomain = "MaintenancePlan", DropShadow.Light, DropShadow.None)
                               Fill: |-
@@ -733,18 +708,8 @@ Screens:
                                   =0
                               Height: |-
                                   =If(LayoutRank < 2, 102, 74)
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
-                              LayoutDirection: |-
-                                  =LayoutDirection.Vertical
-                              LayoutGap: |-
-                                  =0
                               LayoutMinWidth: |-
                                   =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
                               RadiusBottomLeft: |-
                                   =6
                               RadiusBottomRight: |-
@@ -756,9 +721,61 @@ Screens:
                               Width: |-
                                   =If(LayoutRank < 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 24) / 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 48) / 5)
                             Children:
+                              - imgMdTileVHP:
+                                  Control: Image
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =If(varMdDomain = "MaintenancePlan", "Show all domains", "Show only maintenance plan")
+                                    BorderColor: |-
+                                        =If(varMdDomain = "MaintenancePlan", C.'domain-vhp', C.'border-default')
+                                    BorderStyle: |-
+                                        =BorderStyle.Solid
+                                    BorderThickness: |-
+                                        =If(varMdDomain = "MaintenancePlan", 2, 1)
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    FocusedBorderColor: |-
+                                        =C.'domain-vhp'
+                                    FocusedBorderThickness: |-
+                                        =2
+                                    Height: |-
+                                        =Parent.Height
+                                    HoverBorderColor: |-
+                                        =C.'domain-vhp'
+                                    HoverFill: |-
+                                        =C.'domain-vhp-soft'
+                                    Image: |-
+                                        ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='102' viewBox='0 -4 " & Self.Width & " 102'><circle cx='24' cy='24' r='14' fill='" & C.'hex-domain-vhp' & "' fill-opacity='0.12'/><g transform='translate(15 15) scale(0.75)' fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g><text x='" & Self.Width & "' dx='-8' y='34' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "MaintenancePlan"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='56' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Maintenance</text><text x='8' y='70' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>plan</text><text x='8' y='88' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='74' viewBox='0 -4 " & Self.Width & " 74'><circle cx='30' cy='35' r='18' fill='" & C.'hex-domain-vhp' & "' fill-opacity='0.12'/><g transform='translate(21 26) scale(0.75)' fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g><text x='58' y='31' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Maintenance plan" & "</text><text x='58' y='51' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'><tspan font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "MaintenancePlan"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</tspan> " & Switch(varMdStatusMode, "open", "open", "done", "closed", "in total") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
+                                    ImagePosition: |-
+                                        =ImagePosition.Fit
+                                    OnSelect: |-
+                                        =Set(varMdDomain, If(varMdDomain = "MaintenancePlan", "", "MaintenancePlan"));
+                                        If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
+                                        Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
+                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                    PressedBorderColor: |-
+                                        =C.'domain-vhp'
+                                    PressedFill: |-
+                                        =C.'domain-vhp-soft'
+                                    RadiusBottomLeft: |-
+                                        =6
+                                    RadiusBottomRight: |-
+                                        =6
+                                    RadiusTopLeft: |-
+                                        =6
+                                    RadiusTopRight: |-
+                                        =6
+                                    TabIndex: |-
+                                        =0
+                                    Width: |-
+                                        =Parent.Width
+                                    X: |-
+                                        =0
+                                    Y: |-
+                                        =0
                               - conMdTileStripeVHP:
                                   Control: GroupContainer
-                                  Variant: AutoLayout
+                                  Variant: ManualLayout
                                   Properties:
                                     BorderStyle: |-
                                         =BorderStyle.None
@@ -770,18 +787,8 @@ Screens:
                                         =0
                                     Height: |-
                                         =4
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Stretch
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Vertical
-                                    LayoutGap: |-
-                                        =0
                                     LayoutMinWidth: |-
                                         =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
                                     RadiusBottomLeft: |-
                                         =0
                                     RadiusBottomRight: |-
@@ -792,124 +799,69 @@ Screens:
                                         =6
                                     Width: |-
                                         =Parent.Width
-                              - conMdTileRowVHP:
-                                  Control: GroupContainer
-                                  Variant: ManualLayout
+                                    X: |-
+                                        =0
+                                    Y: |-
+                                        =0
+                              - imgMdTileNewVHP:
+                                  Control: Image
                                   Properties:
+                                    AccessibleLabel: |-
+                                        ="New maintenance plan request"
                                     BorderStyle: |-
                                         =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
+                                    BorderThickness: |-
+                                        =0
                                     Fill: |-
-                                        =If(varMdDomain = "MaintenancePlan", C.'domain-vhp-soft', C.'bg-card')
-                                    FillPortions: |-
-                                        =0
+                                        =RGBA(0, 0, 0, 0)
+                                    FocusedBorderColor: |-
+                                        =C.'domain-vhp'
+                                    FocusedBorderThickness: |-
+                                        =2
                                     Height: |-
-                                        =If(LayoutRank < 2, 100 - 2, 72 - 2)
-                                    LayoutMinWidth: |-
+                                        =36
+                                    HoverFill: |-
+                                        =C.'domain-vhp-soft'
+                                    Image: |-
+                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='84' height='36' viewBox='0 0 84 36'><rect x='.5' y='.5' width='83' height='35' rx='8' fill='none' stroke='" & C.'hex-border-default' & "'/><path d='M18 12v12M12 18h12' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round'/><text x='32' y='23' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-primary' & "'>New</text></svg>")
+                                    ImagePosition: |-
+                                        =ImagePosition.Fit
+                                    OnSelect: |-
+                                        =If(
+                                            !IfError(gblNavigating, false),
+                                            Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
+                                            Set(gblNavigating, true);
+                                            Set(gblVhpWant, "new:" & gblNewSeq);
+                                            Navigate(ScreenVhPlan, ScreenTransition.None)
+                                        )
+                                    PressedFill: |-
+                                        =C.'domain-vhp-soft'
+                                    RadiusBottomLeft: |-
+                                        =8
+                                    RadiusBottomRight: |-
+                                        =8
+                                    RadiusTopLeft: |-
+                                        =8
+                                    RadiusTopRight: |-
+                                        =8
+                                    TabIndex: |-
                                         =0
+                                    Tooltip: |-
+                                        ="New maintenance plan request"
+                                    Visible: |-
+                                        =LayoutRank >= 2
                                     Width: |-
-                                        =Parent.Width
-                                  Children:
-                                    - imgMdTileVHP:
-                                        Control: Image
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =If(varMdDomain = "MaintenancePlan", "Show all domains", "Show only maintenance plan")
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          FocusedBorderColor: |-
-                                              =C.'domain-vhp'
-                                          FocusedBorderThickness: |-
-                                              =2
-                                          Height: |-
-                                              =Parent.Height
-                                          HoverFill: |-
-                                              =C.'domain-vhp-soft'
-                                          Image: |-
-                                              ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='98' viewBox='0 0 " & Self.Width & " 98'><circle cx='24' cy='24' r='14' fill='" & C.'hex-domain-vhp' & "' fill-opacity='0.12'/><g transform='translate(15 15) scale(0.75)' fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g><text x='" & Self.Width & "' dx='-8' y='34' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "MaintenancePlan"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='56' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Maintenance</text><text x='8' y='70' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>plan</text><text x='8' y='88' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='70' viewBox='0 0 " & Self.Width & " 70'><circle cx='30' cy='35' r='18' fill='" & C.'hex-domain-vhp' & "' fill-opacity='0.12'/><g transform='translate(21 26) scale(0.75)' fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g><text x='58' y='31' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Maintenance plan" & "</text><text x='58' y='51' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'><tspan font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "MaintenancePlan"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</tspan> " & Switch(varMdStatusMode, "open", "open", "done", "closed", "in total") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
-                                          ImagePosition: |-
-                                              =ImagePosition.Fit
-                                          OnSelect: |-
-                                              =Set(varMdDomain, If(varMdDomain = "MaintenancePlan", "", "MaintenancePlan"));
-                                              If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
-                                              Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
-                                              IfError(SaveData(colAppPrefs, "prefs"), Blank())
-                                          PressedFill: |-
-                                              =C.'domain-vhp-soft'
-                                          TabIndex: |-
-                                              =0
-                                          Width: |-
-                                              =Parent.Width
-                                          X: |-
-                                              =0
-                                          Y: |-
-                                              =0
-                                    - imgMdTileNewVHP:
-                                        Control: Image
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="New maintenance plan request"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          FocusedBorderColor: |-
-                                              =C.'domain-vhp'
-                                          FocusedBorderThickness: |-
-                                              =2
-                                          Height: |-
-                                              =36
-                                          HoverFill: |-
-                                              =C.'domain-vhp-soft'
-                                          Image: |-
-                                              ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='84' height='36' viewBox='0 0 84 36'><rect x='.5' y='.5' width='83' height='35' rx='8' fill='none' stroke='" & C.'hex-border-default' & "'/><path d='M18 12v12M12 18h12' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round'/><text x='32' y='23' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-primary' & "'>New</text></svg>")
-                                          ImagePosition: |-
-                                              =ImagePosition.Fit
-                                          OnSelect: |-
-                                              =If(
-                                                  !IfError(gblNavigating, false),
-                                                  Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
-                                                  Set(gblNavigating, true);
-                                                  Set(gblVhpWant, "new:" & gblNewSeq);
-                                                  Navigate(ScreenVhPlan, ScreenTransition.None)
-                                              )
-                                          PressedFill: |-
-                                              =C.'domain-vhp-soft'
-                                          RadiusBottomLeft: |-
-                                              =8
-                                          RadiusBottomRight: |-
-                                              =8
-                                          RadiusTopLeft: |-
-                                              =8
-                                          RadiusTopRight: |-
-                                              =8
-                                          TabIndex: |-
-                                              =0
-                                          Tooltip: |-
-                                              ="New maintenance plan request"
-                                          Visible: |-
-                                              =LayoutRank >= 2
-                                          Width: |-
-                                              =84
-                                          X: |-
-                                              =Parent.Width - 84 - 16
-                                          Y: |-
-                                              =(Parent.Height - 36) / 2
+                                        =84
+                                    X: |-
+                                        =Parent.Width - 84 - 16
+                                    Y: |-
+                                        =(Parent.Height + 4 - 36) / 2
                         - conMdTileMAT:
                             Control: GroupContainer
-                            Variant: AutoLayout
+                            Variant: ManualLayout
                             Properties:
-                              BorderColor: |-
-                                  =If(varMdDomain = "Material", C.'domain-mat', C.'border-default')
-                              BorderThickness: |-
-                                  =If(varMdDomain = "Material", 2, 1)
+                              BorderStyle: |-
+                                  =BorderStyle.None
                               DropShadow: |-
                                   =If(varMdDomain = "Material", DropShadow.Light, DropShadow.None)
                               Fill: |-
@@ -918,18 +870,8 @@ Screens:
                                   =0
                               Height: |-
                                   =If(LayoutRank < 2, 102, 74)
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
-                              LayoutDirection: |-
-                                  =LayoutDirection.Vertical
-                              LayoutGap: |-
-                                  =0
                               LayoutMinWidth: |-
                                   =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
                               RadiusBottomLeft: |-
                                   =6
                               RadiusBottomRight: |-
@@ -941,9 +883,61 @@ Screens:
                               Width: |-
                                   =If(LayoutRank < 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 24) / 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 48) / 5)
                             Children:
+                              - imgMdTileMAT:
+                                  Control: Image
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =If(varMdDomain = "Material", "Show all domains", "Show only material")
+                                    BorderColor: |-
+                                        =If(varMdDomain = "Material", C.'domain-mat', C.'border-default')
+                                    BorderStyle: |-
+                                        =BorderStyle.Solid
+                                    BorderThickness: |-
+                                        =If(varMdDomain = "Material", 2, 1)
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    FocusedBorderColor: |-
+                                        =C.'domain-mat'
+                                    FocusedBorderThickness: |-
+                                        =2
+                                    Height: |-
+                                        =Parent.Height
+                                    HoverBorderColor: |-
+                                        =C.'domain-mat'
+                                    HoverFill: |-
+                                        =C.'domain-mat-soft'
+                                    Image: |-
+                                        ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='102' viewBox='0 -4 " & Self.Width & " 102'><circle cx='24' cy='24' r='14' fill='" & C.'hex-domain-mat' & "' fill-opacity='0.12'/><g transform='translate(15 15) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g><text x='" & Self.Width & "' dx='-8' y='34' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "Material"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='56' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Material</text><text x='8' y='74' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='74' viewBox='0 -4 " & Self.Width & " 74'><circle cx='30' cy='35' r='18' fill='" & C.'hex-domain-mat' & "' fill-opacity='0.12'/><g transform='translate(21 26) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g><text x='58' y='31' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Material" & "</text><text x='58' y='51' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'><tspan font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "Material"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</tspan> " & Switch(varMdStatusMode, "open", "open", "done", "closed", "in total") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
+                                    ImagePosition: |-
+                                        =ImagePosition.Fit
+                                    OnSelect: |-
+                                        =Set(varMdDomain, If(varMdDomain = "Material", "", "Material"));
+                                        If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
+                                        Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
+                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                    PressedBorderColor: |-
+                                        =C.'domain-mat'
+                                    PressedFill: |-
+                                        =C.'domain-mat-soft'
+                                    RadiusBottomLeft: |-
+                                        =6
+                                    RadiusBottomRight: |-
+                                        =6
+                                    RadiusTopLeft: |-
+                                        =6
+                                    RadiusTopRight: |-
+                                        =6
+                                    TabIndex: |-
+                                        =0
+                                    Width: |-
+                                        =Parent.Width
+                                    X: |-
+                                        =0
+                                    Y: |-
+                                        =0
                               - conMdTileStripeMAT:
                                   Control: GroupContainer
-                                  Variant: AutoLayout
+                                  Variant: ManualLayout
                                   Properties:
                                     BorderStyle: |-
                                         =BorderStyle.None
@@ -955,18 +949,8 @@ Screens:
                                         =0
                                     Height: |-
                                         =4
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Stretch
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Vertical
-                                    LayoutGap: |-
-                                        =0
                                     LayoutMinWidth: |-
                                         =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
                                     RadiusBottomLeft: |-
                                         =0
                                     RadiusBottomRight: |-
@@ -977,124 +961,69 @@ Screens:
                                         =6
                                     Width: |-
                                         =Parent.Width
-                              - conMdTileRowMAT:
-                                  Control: GroupContainer
-                                  Variant: ManualLayout
+                                    X: |-
+                                        =0
+                                    Y: |-
+                                        =0
+                              - imgMdTileNewMAT:
+                                  Control: Image
                                   Properties:
+                                    AccessibleLabel: |-
+                                        ="New material request"
                                     BorderStyle: |-
                                         =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
+                                    BorderThickness: |-
+                                        =0
                                     Fill: |-
-                                        =If(varMdDomain = "Material", C.'domain-mat-soft', C.'bg-card')
-                                    FillPortions: |-
-                                        =0
+                                        =RGBA(0, 0, 0, 0)
+                                    FocusedBorderColor: |-
+                                        =C.'domain-mat'
+                                    FocusedBorderThickness: |-
+                                        =2
                                     Height: |-
-                                        =If(LayoutRank < 2, 100 - 2, 72 - 2)
-                                    LayoutMinWidth: |-
+                                        =36
+                                    HoverFill: |-
+                                        =C.'domain-mat-soft'
+                                    Image: |-
+                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='84' height='36' viewBox='0 0 84 36'><rect x='.5' y='.5' width='83' height='35' rx='8' fill='none' stroke='" & C.'hex-border-default' & "'/><path d='M18 12v12M12 18h12' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round'/><text x='32' y='23' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-primary' & "'>New</text></svg>")
+                                    ImagePosition: |-
+                                        =ImagePosition.Fit
+                                    OnSelect: |-
+                                        =If(
+                                            !IfError(gblNavigating, false),
+                                            Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
+                                            Set(gblNavigating, true);
+                                            Set(gblMatWant, "new:" & gblNewSeq);
+                                            Navigate(ScreenMaterial, ScreenTransition.None)
+                                        )
+                                    PressedFill: |-
+                                        =C.'domain-mat-soft'
+                                    RadiusBottomLeft: |-
+                                        =8
+                                    RadiusBottomRight: |-
+                                        =8
+                                    RadiusTopLeft: |-
+                                        =8
+                                    RadiusTopRight: |-
+                                        =8
+                                    TabIndex: |-
                                         =0
+                                    Tooltip: |-
+                                        ="New material request"
+                                    Visible: |-
+                                        =LayoutRank >= 2
                                     Width: |-
-                                        =Parent.Width
-                                  Children:
-                                    - imgMdTileMAT:
-                                        Control: Image
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =If(varMdDomain = "Material", "Show all domains", "Show only material")
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          FocusedBorderColor: |-
-                                              =C.'domain-mat'
-                                          FocusedBorderThickness: |-
-                                              =2
-                                          Height: |-
-                                              =Parent.Height
-                                          HoverFill: |-
-                                              =C.'domain-mat-soft'
-                                          Image: |-
-                                              ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='98' viewBox='0 0 " & Self.Width & " 98'><circle cx='24' cy='24' r='14' fill='" & C.'hex-domain-mat' & "' fill-opacity='0.12'/><g transform='translate(15 15) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g><text x='" & Self.Width & "' dx='-8' y='34' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "Material"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='56' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Material</text><text x='8' y='74' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='70' viewBox='0 0 " & Self.Width & " 70'><circle cx='30' cy='35' r='18' fill='" & C.'hex-domain-mat' & "' fill-opacity='0.12'/><g transform='translate(21 26) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g><text x='58' y='31' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Material" & "</text><text x='58' y='51' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'><tspan font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "Material"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</tspan> " & Switch(varMdStatusMode, "open", "open", "done", "closed", "in total") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
-                                          ImagePosition: |-
-                                              =ImagePosition.Fit
-                                          OnSelect: |-
-                                              =Set(varMdDomain, If(varMdDomain = "Material", "", "Material"));
-                                              If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
-                                              Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
-                                              IfError(SaveData(colAppPrefs, "prefs"), Blank())
-                                          PressedFill: |-
-                                              =C.'domain-mat-soft'
-                                          TabIndex: |-
-                                              =0
-                                          Width: |-
-                                              =Parent.Width
-                                          X: |-
-                                              =0
-                                          Y: |-
-                                              =0
-                                    - imgMdTileNewMAT:
-                                        Control: Image
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="New material request"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          FocusedBorderColor: |-
-                                              =C.'domain-mat'
-                                          FocusedBorderThickness: |-
-                                              =2
-                                          Height: |-
-                                              =36
-                                          HoverFill: |-
-                                              =C.'domain-mat-soft'
-                                          Image: |-
-                                              ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='84' height='36' viewBox='0 0 84 36'><rect x='.5' y='.5' width='83' height='35' rx='8' fill='none' stroke='" & C.'hex-border-default' & "'/><path d='M18 12v12M12 18h12' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round'/><text x='32' y='23' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-primary' & "'>New</text></svg>")
-                                          ImagePosition: |-
-                                              =ImagePosition.Fit
-                                          OnSelect: |-
-                                              =If(
-                                                  !IfError(gblNavigating, false),
-                                                  Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
-                                                  Set(gblNavigating, true);
-                                                  Set(gblMatWant, "new:" & gblNewSeq);
-                                                  Navigate(ScreenMaterial, ScreenTransition.None)
-                                              )
-                                          PressedFill: |-
-                                              =C.'domain-mat-soft'
-                                          RadiusBottomLeft: |-
-                                              =8
-                                          RadiusBottomRight: |-
-                                              =8
-                                          RadiusTopLeft: |-
-                                              =8
-                                          RadiusTopRight: |-
-                                              =8
-                                          TabIndex: |-
-                                              =0
-                                          Tooltip: |-
-                                              ="New material request"
-                                          Visible: |-
-                                              =LayoutRank >= 2
-                                          Width: |-
-                                              =84
-                                          X: |-
-                                              =Parent.Width - 84 - 16
-                                          Y: |-
-                                              =(Parent.Height - 36) / 2
+                                        =84
+                                    X: |-
+                                        =Parent.Width - 84 - 16
+                                    Y: |-
+                                        =(Parent.Height + 4 - 36) / 2
                         - conMdTileEQ:
                             Control: GroupContainer
-                            Variant: AutoLayout
+                            Variant: ManualLayout
                             Properties:
-                              BorderColor: |-
-                                  =If(varMdDomain = "Equipment", C.'domain-eq', C.'border-default')
-                              BorderThickness: |-
-                                  =If(varMdDomain = "Equipment", 2, 1)
+                              BorderStyle: |-
+                                  =BorderStyle.None
                               DropShadow: |-
                                   =If(varMdDomain = "Equipment", DropShadow.Light, DropShadow.None)
                               Fill: |-
@@ -1103,18 +1032,8 @@ Screens:
                                   =0
                               Height: |-
                                   =If(LayoutRank < 2, 102, 74)
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
-                              LayoutDirection: |-
-                                  =LayoutDirection.Vertical
-                              LayoutGap: |-
-                                  =0
                               LayoutMinWidth: |-
                                   =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
                               RadiusBottomLeft: |-
                                   =6
                               RadiusBottomRight: |-
@@ -1126,9 +1045,61 @@ Screens:
                               Width: |-
                                   =If(LayoutRank < 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 24) / 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 48) / 5)
                             Children:
+                              - imgMdTileEQ:
+                                  Control: Image
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =If(varMdDomain = "Equipment", "Show all domains", "Show only equipment")
+                                    BorderColor: |-
+                                        =If(varMdDomain = "Equipment", C.'domain-eq', C.'border-default')
+                                    BorderStyle: |-
+                                        =BorderStyle.Solid
+                                    BorderThickness: |-
+                                        =If(varMdDomain = "Equipment", 2, 1)
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    FocusedBorderColor: |-
+                                        =C.'domain-eq'
+                                    FocusedBorderThickness: |-
+                                        =2
+                                    Height: |-
+                                        =Parent.Height
+                                    HoverBorderColor: |-
+                                        =C.'domain-eq'
+                                    HoverFill: |-
+                                        =C.'domain-eq-soft'
+                                    Image: |-
+                                        ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='102' viewBox='0 -4 " & Self.Width & " 102'><circle cx='24' cy='24' r='14' fill='" & C.'hex-domain-eq' & "' fill-opacity='0.12'/><g transform='translate(15 15) scale(0.75)' fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g><text x='" & Self.Width & "' dx='-8' y='34' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "Equipment"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='56' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Equipment</text><text x='8' y='74' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='74' viewBox='0 -4 " & Self.Width & " 74'><circle cx='30' cy='35' r='18' fill='" & C.'hex-domain-eq' & "' fill-opacity='0.12'/><g transform='translate(21 26) scale(0.75)' fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g><text x='58' y='31' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Equipment" & "</text><text x='58' y='51' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'><tspan font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "Equipment"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</tspan> " & Switch(varMdStatusMode, "open", "open", "done", "closed", "in total") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
+                                    ImagePosition: |-
+                                        =ImagePosition.Fit
+                                    OnSelect: |-
+                                        =Set(varMdDomain, If(varMdDomain = "Equipment", "", "Equipment"));
+                                        If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
+                                        Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
+                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                    PressedBorderColor: |-
+                                        =C.'domain-eq'
+                                    PressedFill: |-
+                                        =C.'domain-eq-soft'
+                                    RadiusBottomLeft: |-
+                                        =6
+                                    RadiusBottomRight: |-
+                                        =6
+                                    RadiusTopLeft: |-
+                                        =6
+                                    RadiusTopRight: |-
+                                        =6
+                                    TabIndex: |-
+                                        =0
+                                    Width: |-
+                                        =Parent.Width
+                                    X: |-
+                                        =0
+                                    Y: |-
+                                        =0
                               - conMdTileStripeEQ:
                                   Control: GroupContainer
-                                  Variant: AutoLayout
+                                  Variant: ManualLayout
                                   Properties:
                                     BorderStyle: |-
                                         =BorderStyle.None
@@ -1140,18 +1111,8 @@ Screens:
                                         =0
                                     Height: |-
                                         =4
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Stretch
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Vertical
-                                    LayoutGap: |-
-                                        =0
                                     LayoutMinWidth: |-
                                         =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
                                     RadiusBottomLeft: |-
                                         =0
                                     RadiusBottomRight: |-
@@ -1162,124 +1123,69 @@ Screens:
                                         =6
                                     Width: |-
                                         =Parent.Width
-                              - conMdTileRowEQ:
-                                  Control: GroupContainer
-                                  Variant: ManualLayout
+                                    X: |-
+                                        =0
+                                    Y: |-
+                                        =0
+                              - imgMdTileNewEQ:
+                                  Control: Image
                                   Properties:
+                                    AccessibleLabel: |-
+                                        ="New equipment request"
                                     BorderStyle: |-
                                         =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
+                                    BorderThickness: |-
+                                        =0
                                     Fill: |-
-                                        =If(varMdDomain = "Equipment", C.'domain-eq-soft', C.'bg-card')
-                                    FillPortions: |-
-                                        =0
+                                        =RGBA(0, 0, 0, 0)
+                                    FocusedBorderColor: |-
+                                        =C.'domain-eq'
+                                    FocusedBorderThickness: |-
+                                        =2
                                     Height: |-
-                                        =If(LayoutRank < 2, 100 - 2, 72 - 2)
-                                    LayoutMinWidth: |-
+                                        =36
+                                    HoverFill: |-
+                                        =C.'domain-eq-soft'
+                                    Image: |-
+                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='84' height='36' viewBox='0 0 84 36'><rect x='.5' y='.5' width='83' height='35' rx='8' fill='none' stroke='" & C.'hex-border-default' & "'/><path d='M18 12v12M12 18h12' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round'/><text x='32' y='23' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-primary' & "'>New</text></svg>")
+                                    ImagePosition: |-
+                                        =ImagePosition.Fit
+                                    OnSelect: |-
+                                        =If(
+                                            !IfError(gblNavigating, false),
+                                            Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
+                                            Set(gblNavigating, true);
+                                            Set(gblEqWant, "new:" & gblNewSeq);
+                                            Navigate(ScreenEquipment, ScreenTransition.None)
+                                        )
+                                    PressedFill: |-
+                                        =C.'domain-eq-soft'
+                                    RadiusBottomLeft: |-
+                                        =8
+                                    RadiusBottomRight: |-
+                                        =8
+                                    RadiusTopLeft: |-
+                                        =8
+                                    RadiusTopRight: |-
+                                        =8
+                                    TabIndex: |-
                                         =0
+                                    Tooltip: |-
+                                        ="New equipment request"
+                                    Visible: |-
+                                        =LayoutRank >= 2
                                     Width: |-
-                                        =Parent.Width
-                                  Children:
-                                    - imgMdTileEQ:
-                                        Control: Image
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =If(varMdDomain = "Equipment", "Show all domains", "Show only equipment")
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          FocusedBorderColor: |-
-                                              =C.'domain-eq'
-                                          FocusedBorderThickness: |-
-                                              =2
-                                          Height: |-
-                                              =Parent.Height
-                                          HoverFill: |-
-                                              =C.'domain-eq-soft'
-                                          Image: |-
-                                              ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='98' viewBox='0 0 " & Self.Width & " 98'><circle cx='24' cy='24' r='14' fill='" & C.'hex-domain-eq' & "' fill-opacity='0.12'/><g transform='translate(15 15) scale(0.75)' fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g><text x='" & Self.Width & "' dx='-8' y='34' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "Equipment"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='56' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Equipment</text><text x='8' y='74' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='70' viewBox='0 0 " & Self.Width & " 70'><circle cx='30' cy='35' r='18' fill='" & C.'hex-domain-eq' & "' fill-opacity='0.12'/><g transform='translate(21 26) scale(0.75)' fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g><text x='58' y='31' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Equipment" & "</text><text x='58' y='51' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'><tspan font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "Equipment"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</tspan> " & Switch(varMdStatusMode, "open", "open", "done", "closed", "in total") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
-                                          ImagePosition: |-
-                                              =ImagePosition.Fit
-                                          OnSelect: |-
-                                              =Set(varMdDomain, If(varMdDomain = "Equipment", "", "Equipment"));
-                                              If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
-                                              Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
-                                              IfError(SaveData(colAppPrefs, "prefs"), Blank())
-                                          PressedFill: |-
-                                              =C.'domain-eq-soft'
-                                          TabIndex: |-
-                                              =0
-                                          Width: |-
-                                              =Parent.Width
-                                          X: |-
-                                              =0
-                                          Y: |-
-                                              =0
-                                    - imgMdTileNewEQ:
-                                        Control: Image
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="New equipment request"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          FocusedBorderColor: |-
-                                              =C.'domain-eq'
-                                          FocusedBorderThickness: |-
-                                              =2
-                                          Height: |-
-                                              =36
-                                          HoverFill: |-
-                                              =C.'domain-eq-soft'
-                                          Image: |-
-                                              ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='84' height='36' viewBox='0 0 84 36'><rect x='.5' y='.5' width='83' height='35' rx='8' fill='none' stroke='" & C.'hex-border-default' & "'/><path d='M18 12v12M12 18h12' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round'/><text x='32' y='23' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-primary' & "'>New</text></svg>")
-                                          ImagePosition: |-
-                                              =ImagePosition.Fit
-                                          OnSelect: |-
-                                              =If(
-                                                  !IfError(gblNavigating, false),
-                                                  Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
-                                                  Set(gblNavigating, true);
-                                                  Set(gblEqWant, "new:" & gblNewSeq);
-                                                  Navigate(ScreenEquipment, ScreenTransition.None)
-                                              )
-                                          PressedFill: |-
-                                              =C.'domain-eq-soft'
-                                          RadiusBottomLeft: |-
-                                              =8
-                                          RadiusBottomRight: |-
-                                              =8
-                                          RadiusTopLeft: |-
-                                              =8
-                                          RadiusTopRight: |-
-                                              =8
-                                          TabIndex: |-
-                                              =0
-                                          Tooltip: |-
-                                              ="New equipment request"
-                                          Visible: |-
-                                              =LayoutRank >= 2
-                                          Width: |-
-                                              =84
-                                          X: |-
-                                              =Parent.Width - 84 - 16
-                                          Y: |-
-                                              =(Parent.Height - 36) / 2
+                                        =84
+                                    X: |-
+                                        =Parent.Width - 84 - 16
+                                    Y: |-
+                                        =(Parent.Height + 4 - 36) / 2
                         - conMdTileMP:
                             Control: GroupContainer
-                            Variant: AutoLayout
+                            Variant: ManualLayout
                             Properties:
-                              BorderColor: |-
-                                  =If(varMdDomain = "MeasuringPoint", C.'domain-mp', C.'border-default')
-                              BorderThickness: |-
-                                  =If(varMdDomain = "MeasuringPoint", 2, 1)
+                              BorderStyle: |-
+                                  =BorderStyle.None
                               DropShadow: |-
                                   =If(varMdDomain = "MeasuringPoint", DropShadow.Light, DropShadow.None)
                               Fill: |-
@@ -1288,18 +1194,8 @@ Screens:
                                   =0
                               Height: |-
                                   =If(LayoutRank < 2, 102, 74)
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Stretch
-                              LayoutDirection: |-
-                                  =LayoutDirection.Vertical
-                              LayoutGap: |-
-                                  =0
                               LayoutMinWidth: |-
                                   =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
                               RadiusBottomLeft: |-
                                   =6
                               RadiusBottomRight: |-
@@ -1311,9 +1207,61 @@ Screens:
                               Width: |-
                                   =If(LayoutRank < 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 24) / 3, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 48) / 5)
                             Children:
+                              - imgMdTileMP:
+                                  Control: Image
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =If(varMdDomain = "MeasuringPoint", "Show all domains", "Show only measuring point")
+                                    BorderColor: |-
+                                        =If(varMdDomain = "MeasuringPoint", C.'domain-mp', C.'border-default')
+                                    BorderStyle: |-
+                                        =BorderStyle.Solid
+                                    BorderThickness: |-
+                                        =If(varMdDomain = "MeasuringPoint", 2, 1)
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    FocusedBorderColor: |-
+                                        =C.'domain-mp'
+                                    FocusedBorderThickness: |-
+                                        =2
+                                    Height: |-
+                                        =Parent.Height
+                                    HoverBorderColor: |-
+                                        =C.'domain-mp'
+                                    HoverFill: |-
+                                        =C.'domain-mp-soft'
+                                    Image: |-
+                                        ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='102' viewBox='0 -4 " & Self.Width & " 102'><circle cx='24' cy='24' r='14' fill='" & C.'hex-domain-mp' & "' fill-opacity='0.12'/><g transform='translate(15 15) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g><text x='" & Self.Width & "' dx='-8' y='34' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "MeasuringPoint"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='56' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Measuring</text><text x='8' y='70' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>point</text><text x='8' y='88' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='74' viewBox='0 -4 " & Self.Width & " 74'><circle cx='30' cy='35' r='18' fill='" & C.'hex-domain-mp' & "' fill-opacity='0.12'/><g transform='translate(21 26) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g><text x='58' y='31' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Measuring point" & "</text><text x='58' y='51' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'><tspan font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "MeasuringPoint"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</tspan> " & Switch(varMdStatusMode, "open", "open", "done", "closed", "in total") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
+                                    ImagePosition: |-
+                                        =ImagePosition.Fit
+                                    OnSelect: |-
+                                        =Set(varMdDomain, If(varMdDomain = "MeasuringPoint", "", "MeasuringPoint"));
+                                        If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
+                                        Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
+                                        IfError(SaveData(colAppPrefs, "prefs"), Blank())
+                                    PressedBorderColor: |-
+                                        =C.'domain-mp'
+                                    PressedFill: |-
+                                        =C.'domain-mp-soft'
+                                    RadiusBottomLeft: |-
+                                        =6
+                                    RadiusBottomRight: |-
+                                        =6
+                                    RadiusTopLeft: |-
+                                        =6
+                                    RadiusTopRight: |-
+                                        =6
+                                    TabIndex: |-
+                                        =0
+                                    Width: |-
+                                        =Parent.Width
+                                    X: |-
+                                        =0
+                                    Y: |-
+                                        =0
                               - conMdTileStripeMP:
                                   Control: GroupContainer
-                                  Variant: AutoLayout
+                                  Variant: ManualLayout
                                   Properties:
                                     BorderStyle: |-
                                         =BorderStyle.None
@@ -1325,18 +1273,8 @@ Screens:
                                         =0
                                     Height: |-
                                         =4
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Stretch
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Vertical
-                                    LayoutGap: |-
-                                        =0
                                     LayoutMinWidth: |-
                                         =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
                                     RadiusBottomLeft: |-
                                         =0
                                     RadiusBottomRight: |-
@@ -1347,116 +1285,63 @@ Screens:
                                         =6
                                     Width: |-
                                         =Parent.Width
-                              - conMdTileRowMP:
-                                  Control: GroupContainer
-                                  Variant: ManualLayout
+                                    X: |-
+                                        =0
+                                    Y: |-
+                                        =0
+                              - imgMdTileNewMP:
+                                  Control: Image
                                   Properties:
+                                    AccessibleLabel: |-
+                                        ="New measuring point request"
                                     BorderStyle: |-
                                         =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
+                                    BorderThickness: |-
+                                        =0
                                     Fill: |-
-                                        =If(varMdDomain = "MeasuringPoint", C.'domain-mp-soft', C.'bg-card')
-                                    FillPortions: |-
-                                        =0
+                                        =RGBA(0, 0, 0, 0)
+                                    FocusedBorderColor: |-
+                                        =C.'domain-mp'
+                                    FocusedBorderThickness: |-
+                                        =2
                                     Height: |-
-                                        =If(LayoutRank < 2, 100 - 2, 72 - 2)
-                                    LayoutMinWidth: |-
+                                        =36
+                                    HoverFill: |-
+                                        =C.'domain-mp-soft'
+                                    Image: |-
+                                        ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='84' height='36' viewBox='0 0 84 36'><rect x='.5' y='.5' width='83' height='35' rx='8' fill='none' stroke='" & C.'hex-border-default' & "'/><path d='M18 12v12M12 18h12' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round'/><text x='32' y='23' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-primary' & "'>New</text></svg>")
+                                    ImagePosition: |-
+                                        =ImagePosition.Fit
+                                    OnSelect: |-
+                                        =If(
+                                            !IfError(gblNavigating, false),
+                                            Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
+                                            Set(gblNavigating, true);
+                                            Set(gblMpWant, "new:" & gblNewSeq);
+                                            Navigate(ScreenMeasuringPoint, ScreenTransition.None)
+                                        )
+                                    PressedFill: |-
+                                        =C.'domain-mp-soft'
+                                    RadiusBottomLeft: |-
+                                        =8
+                                    RadiusBottomRight: |-
+                                        =8
+                                    RadiusTopLeft: |-
+                                        =8
+                                    RadiusTopRight: |-
+                                        =8
+                                    TabIndex: |-
                                         =0
+                                    Tooltip: |-
+                                        ="New measuring point request"
+                                    Visible: |-
+                                        =LayoutRank >= 2
                                     Width: |-
-                                        =Parent.Width
-                                  Children:
-                                    - imgMdTileMP:
-                                        Control: Image
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =If(varMdDomain = "MeasuringPoint", "Show all domains", "Show only measuring point")
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          FocusedBorderColor: |-
-                                              =C.'domain-mp'
-                                          FocusedBorderThickness: |-
-                                              =2
-                                          Height: |-
-                                              =Parent.Height
-                                          HoverFill: |-
-                                              =C.'domain-mp-soft'
-                                          Image: |-
-                                              ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='98' viewBox='0 0 " & Self.Width & " 98'><circle cx='24' cy='24' r='14' fill='" & C.'hex-domain-mp' & "' fill-opacity='0.12'/><g transform='translate(15 15) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g><text x='" & Self.Width & "' dx='-8' y='34' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "MeasuringPoint"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='56' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Measuring</text><text x='8' y='70' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>point</text><text x='8' y='88' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='70' viewBox='0 0 " & Self.Width & " 70'><circle cx='30' cy='35' r='18' fill='" & C.'hex-domain-mp' & "' fill-opacity='0.12'/><g transform='translate(21 26) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g><text x='58' y='31' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Measuring point" & "</text><text x='58' y='51' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'><tspan font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "MeasuringPoint"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</tspan> " & Switch(varMdStatusMode, "open", "open", "done", "closed", "in total") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
-                                          ImagePosition: |-
-                                              =ImagePosition.Fit
-                                          OnSelect: |-
-                                              =Set(varMdDomain, If(varMdDomain = "MeasuringPoint", "", "MeasuringPoint"));
-                                              If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
-                                              Patch(colAppPrefs, First(colAppPrefs), { prefMdView: varMdView, prefMdStatus: varMdStatusMode, prefMdFlag: varMdFlag, prefMdDomain: varMdDomain, prefMdSearch: varMdSearch });
-                                              IfError(SaveData(colAppPrefs, "prefs"), Blank())
-                                          PressedFill: |-
-                                              =C.'domain-mp-soft'
-                                          TabIndex: |-
-                                              =0
-                                          Width: |-
-                                              =Parent.Width
-                                          X: |-
-                                              =0
-                                          Y: |-
-                                              =0
-                                    - imgMdTileNewMP:
-                                        Control: Image
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="New measuring point request"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          FocusedBorderColor: |-
-                                              =C.'domain-mp'
-                                          FocusedBorderThickness: |-
-                                              =2
-                                          Height: |-
-                                              =36
-                                          HoverFill: |-
-                                              =C.'domain-mp-soft'
-                                          Image: |-
-                                              ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='84' height='36' viewBox='0 0 84 36'><rect x='.5' y='.5' width='83' height='35' rx='8' fill='none' stroke='" & C.'hex-border-default' & "'/><path d='M18 12v12M12 18h12' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round'/><text x='32' y='23' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-primary' & "'>New</text></svg>")
-                                          ImagePosition: |-
-                                              =ImagePosition.Fit
-                                          OnSelect: |-
-                                              =If(
-                                                  !IfError(gblNavigating, false),
-                                                  Set(gblNewSeq, Coalesce(gblNewSeq, 0) + 1);
-                                                  Set(gblNavigating, true);
-                                                  Set(gblMpWant, "new:" & gblNewSeq);
-                                                  Navigate(ScreenMeasuringPoint, ScreenTransition.None)
-                                              )
-                                          PressedFill: |-
-                                              =C.'domain-mp-soft'
-                                          RadiusBottomLeft: |-
-                                              =8
-                                          RadiusBottomRight: |-
-                                              =8
-                                          RadiusTopLeft: |-
-                                              =8
-                                          RadiusTopRight: |-
-                                              =8
-                                          TabIndex: |-
-                                              =0
-                                          Tooltip: |-
-                                              ="New measuring point request"
-                                          Visible: |-
-                                              =LayoutRank >= 2
-                                          Width: |-
-                                              =84
-                                          X: |-
-                                              =Parent.Width - 84 - 16
-                                          Y: |-
-                                              =(Parent.Height - 36) / 2
+                                        =84
+                                    X: |-
+                                        =Parent.Width - 84 - 16
+                                    Y: |-
+                                        =(Parent.Height + 4 - 36) / 2
                   - conMdResume:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -7142,7 +7027,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =44 + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit))
+                      =44 + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Start
                   LayoutDirection: |-
@@ -7385,6 +7270,39 @@ Screens:
                             =0
                         Tooltip: |-
                             ="Equipments"
+                        Width: |-
+                            =56
+                  - imgMdNavMeasuringpoint:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Measuring Points"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =Max(40, H.hit)
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='56' height='40' viewBox='0 0 56 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Center
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Set(gblNavTo, "Mp"); Navigate(ScreenMeasuringPoint, ScreenTransition.None)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            ="Measuring Points"
                         Width: |-
                             =56
                   - imgMdNavKks:
@@ -10921,7 +10839,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =44 + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit))
+                      =44 + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit)) + 2 + (Max(40, H.hit))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Start
                   LayoutDirection: |-
@@ -11150,6 +11068,37 @@ Screens:
                             =ImagePosition.Center
                         OnSelect: |-
                             =Set(gblNavOpen, false); Set(gblNavTo, "Eq"); Navigate(ScreenEquipment, ScreenTransition.None)
+                        PressedFill: |-
+                            =C.'bg-muted'
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =232
+                  - imgMdNavMeasuringpointOpen:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Measuring Points"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =Max(40, H.hit)
+                        HoverFill: |-
+                            =C.'bg-muted'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='232' height='40' viewBox='0 0 232 40'><g transform='translate(19 11) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g><text x='56' y='25' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-muted' & "'>" & "Measuring Points" & "</text></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Center
+                        OnSelect: |-
+                            =Set(gblNavOpen, false); Set(gblNavTo, "Mp"); Navigate(ScreenMeasuringPoint, ScreenTransition.None)
                         PressedFill: |-
                             =C.'bg-muted'
                         TabIndex: |-
