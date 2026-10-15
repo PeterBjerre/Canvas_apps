@@ -483,8 +483,11 @@ def test_detail_popup_hierarchy_and_single_close():
     assert ctrls["btnIbReopen"].props["Visible"] == "IbCanReopen"
     for n, icon in (("btnIbEdit", '"Edit"'), ("btnIbDelete", '"Delete"')):
         assert ctrls[n].props["Icon"] == icon
+    # ModernButton kender ikke Fluent-navnet "Archive" - arkivet er vores SVG-ikon.
+    assert ctrls["btnIbArchive"].control == "Image"
+    assert ctrls["btnIbArchive"].props["BorderThickness"] == "1"
+    assert ctrls["btnIbRestore"].control == "ModernButton"
     for n in ("btnIbArchive", "btnIbRestore"):
-        assert ctrls[n].control == "ModernButton"
         assert ctrls[n].props["Tooltip"] and ctrls[n].props["AccessibleLabel"]
     for n in ("btnIbEdit", "btnIbDelete"):
         b = ctrls[n]

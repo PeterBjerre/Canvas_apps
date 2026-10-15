@@ -1919,9 +1919,16 @@ def _actions():
                         f"If({ready} && !varIbBusy, DisplayMode.Edit, DisplayMode.Disabled)")
     idle = "If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)"
     show_archive = f"IbCanManage && !{SEL}.Archived"
-    archive = _icon_action("btnIbArchive", "Archive", ARCHIVE, show_archive, '"Archive issue"',
-                           '"Archive issue - keeps the issue, its comments, activity and '
-                           'files under Archived"', idle)
+    # ModernButton kender ikke Fluent-navnet "Archive" (knappen blev tom),
+    # saa arkivkassen er vores eget stregikon - med samme kant som de andre.
+    archive = icon_button("btnIbArchive", "Archive issue", ARCHIVE, icons.ARCHIVE, idle)
+    archive.props["Tooltip"] = ('"Archive issue - keeps the issue, its comments, activity and '
+                                'files under Archived"')
+    archive.props["BorderColor"] = C_INPUT_BORDER
+    archive.props["BorderStyle"] = "BorderStyle.Solid"
+    archive.props["BorderThickness"] = "1"
+    archive.props["Visible"] = show_archive
+    archive.vis = show_archive
     show_restore = f"IbCanManage && {SEL}.Archived"
     restore = _icon_action("btnIbRestore", "ArrowUndo", ARCHIVE, show_restore, '"Restore issue"',
                            '"Restore issue - bring it back to the active lists"', idle)

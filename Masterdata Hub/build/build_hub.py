@@ -609,8 +609,10 @@ TILE_PAD_T = 6
 TILE_PAD_B = 44
 # Fliserne gaar hele vejen ud til listens kanter (ingen sidepolstring).
 TILES_CW = f"({SHELL_W})"
-TILE_W = if_below("Desktop", f"({TILES_CW} - {2 * TILE_GAP}) / 3",
-                  f"({TILES_CW} - {4 * TILE_GAP}) / 5")
+# Hele pixels: med en broekbredde stod nogle fliser paa en halv pixel, og
+# deres venstre/hoejre kant blev ikke tegnet.
+TILE_W = if_below("Desktop", f"RoundDown(({TILES_CW} - {2 * TILE_GAP}) / 3, 0)",
+                  f"RoundDown(({TILES_CW} - {4 * TILE_GAP}) / 5, 0)")
 TILE_LINES = if_below("Desktop", "2", "1")
 # KOMPAKTE FLISER (UX-review M3): 72 px i stedet for 148 - ikon, navn og
 # tal paa to linjer og "New" til hoejre, saa listen staar hoejere paa
@@ -763,8 +765,13 @@ def build_tiles():
             "RadiusTopLeft": str(TILE_RADIUS), "RadiusTopRight": str(TILE_RADIUS),
             "RadiusBottomLeft": "0", "RadiusBottomRight": "0",
         }, h=STRIPE_H)
+        # Flisen baerer OGSAA kanten: en beholders kant tegnes inden for
+        # dens egne graenser, saa venstre/hoejre kant altid ses - billedets
+        # kant alene forsvandt paa nogle fliser. Billedets kant ligger oven
+        # paa og skifter farve ved hover.
         tile = Ctrl(f"conMdTile{n}", "GroupContainer", variant="ManualLayout", props={
-            "BorderStyle": "BorderStyle.None", "Fill": st["fill"], "FillPortions": "0",
+            "BorderColor": st["border"], "BorderThickness": st["thickness"],
+            "BorderStyle": "BorderStyle.Solid", "Fill": st["fill"], "FillPortions": "0",
             "Height": tile_h, "LayoutMinWidth": "0", "Width": TILE_W,
             **lay.radius(TILE_RADIUS),
         }, children=[face, stripe, new], h=tile_h)

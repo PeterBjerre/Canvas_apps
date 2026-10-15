@@ -11423,38 +11423,30 @@ Screens:
                               Width: |-
                                   =44
                         - btnIbArchive:
-                            Control: ModernButton
+                            Control: Image
                             Properties:
                               AccessibleLabel: |-
                                   ="Archive issue"
-                              Align: |-
-                                  =Align.Center
-                              AlignInContainer: |-
-                                  =AlignInContainer.Center
-                              Appearance: |-
-                                  =ButtonAppearance.Outline
                               BorderColor: |-
                                   =C.'border-input'
                               BorderStyle: |-
                                   =BorderStyle.Solid
                               BorderThickness: |-
                                   =1
-                              Color: |-
-                                  =C.'text-primary'
+                              DisabledFill: |-
+                                  =RGBA(0, 0, 0, 0)
                               DisplayMode: |-
                                   =If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
                               Height: |-
                                   =44
-                              Icon: |-
-                                  ="Archive"
-                              Layout: |-
-                                  =ButtonLayout.IconOnly
-                              LayoutMinWidth: |-
-                                  =44
+                              HoverFill: |-
+                                  =If((If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
+                              Image: |-
+                                  ="data:image/svg+xml;utf8," & EncodeUrl(If((If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M4 4.5h16a1 1 0 0 1 1 1V8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1Z M5 9v9.5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9 M10 13h4'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M4 4.5h16a1 1 0 0 1 1 1V8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1Z M5 9v9.5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9 M10 13h4'/></g></svg>"))
+                              ImagePosition: |-
+                                  =ImagePosition.Center
                               OnSelect: |-
                                   =Set(varIbBusy, true);
                                   Set(varIbRes, IfError('BioSap-IssueBoard-Submit'.Run(
@@ -11507,22 +11499,20 @@ Screens:
                                       Set(gblToast, { Text: "The issue could not be changed. " & varIbRes.message, Kind: "Error", At: Now() }); true
                                   );
                                   Set(varIbBusy, false)
+                              PressedFill: |-
+                                  =If((If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
                               RadiusBottomLeft: |-
-                                  =R.input
+                                  =6
                               RadiusBottomRight: |-
-                                  =R.input
+                                  =6
                               RadiusTopLeft: |-
-                                  =R.input
+                                  =6
                               RadiusTopRight: |-
-                                  =R.input
-                              Size: |-
-                                  =T.input
-                              Text: |-
-                                  ="Archive issue"
+                                  =6
+                              TabIndex: |-
+                                  =If((If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
                               Tooltip: |-
                                   ="Archive issue - keeps the issue, its comments, activity and files under Archived"
-                              VerticalAlign: |-
-                                  =VerticalAlign.Middle
                               Visible: |-
                                   =IbCanManage && !varIbSel.Archived
                               Width: |-
