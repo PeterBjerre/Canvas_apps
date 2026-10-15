@@ -7782,7 +7782,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =App.Height - (188 + (44))
+                      =App.Height - (100 + (If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 >= 420, 44, 96)))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -10888,11 +10888,11 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =44
+                      =If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 >= 420, 44, 96)
                   LayoutAlignItems: |-
-                      =LayoutAlignItems.Center
+                      =If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 >= 420, LayoutAlignItems.Start, LayoutAlignItems.Stretch)
                   LayoutDirection: |-
-                      =LayoutDirection.Horizontal
+                      =If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 >= 420, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                   LayoutGap: |-
                       =8
                   LayoutJustifyContent: |-
@@ -10904,12 +10904,14 @@ Screens:
                   LayoutOverflowY: |-
                       =LayoutOverflow.Hide
                   Width: |-
-                      =If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18
+                      =Parent.Width
                 Children:
                   - conEqEditorDeleteAction:
                       Control: GroupContainer
                       Variant: AutoLayout
                       Properties:
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
                         BorderStyle: |-
                             =BorderStyle.None
                         DropShadow: |-
@@ -10919,7 +10921,7 @@ Screens:
                         Height: |-
                             =44
                         LayoutAlignItems: |-
-                            =LayoutAlignItems.Stretch
+                            =LayoutAlignItems.Start
                         LayoutDirection: |-
                             =LayoutDirection.Horizontal
                         LayoutGap: |-
@@ -10931,7 +10933,7 @@ Screens:
                         LayoutOverflowY: |-
                             =LayoutOverflow.Hide
                         Width: |-
-                            =111
+                            =196
                       Children:
                         - btnEqEditorDelete:
                             Control: ModernButton
@@ -10941,7 +10943,7 @@ Screens:
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
-                                  =AlignInContainer.Center
+                                  =AlignInContainer.Start
                               Appearance: |-
                                   =ButtonAppearance.Outline
                               BorderColor: |-
@@ -10960,6 +10962,8 @@ Screens:
                                   =44
                               Layout: |-
                                   =ButtonLayout.TextOnly
+                              LayoutMinWidth: |-
+                                  =111
                               OnSelect: |-
                                   =Set(varEqDeleteId, varEqActiveRowId); Set(varEqConfirmDelete, true)
                               RadiusBottomLeft: |-
@@ -10980,10 +10984,77 @@ Screens:
                                   =!IsBlank(varEqActiveRowId)
                               Width: |-
                                   =111
+                        - btnEqNew:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Reset"
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Start
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-input'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'text-primary'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =44
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
+                              LayoutMinWidth: |-
+                                  =77
+                              OnSelect: |-
+                                  =Set(varEqActiveRowId, Blank());
+                                  Set(varEqRowStatus, "valid");
+                                  Set(varEqValidated, false);
+                                  Set(varEqFText, "");
+                                  Set(varEqFPlant, Coalesce(First(colAppPrefs).prefEqNewPlant, ""));
+                                  Set(varEqEditorOpen, false);
+                                  Set(varEqFRequestType, "");
+                                  Set(varEqFEquipmentCategory, "");
+                                  Set(varEqFManufacturer, "");
+                                  Set(varEqFTypeDesignation, "");
+                                  Set(varEqFSerialNumber, "");
+                                  Set(varEqFFunctionalLocation, "");
+                                  Set(varEqFClassData, "");
+                                  Set(varEqFRoomCoordinates, "");
+                                  Set(varEqFPlacement, "");
+                                  Set(varEqFWarrantyStart, Blank());
+                                  Set(varEqFWarrantyEnd, Blank());
+                                  Set(varEqFlQuery, ""); Set(varEqFlLast, ""); Set(varEqFlMsg, ""); Clear(colEqFl); Reset(cmbEqFl);
+                                  Set(varEqInfo, "")
+                              RadiusBottomLeft: |-
+                                  =R.input
+                              RadiusBottomRight: |-
+                                  =R.input
+                              RadiusTopLeft: |-
+                                  =R.input
+                              RadiusTopRight: |-
+                                  =R.input
+                              Size: |-
+                                  =T.input
+                              Text: |-
+                                  ="Reset"
+                              Tooltip: |-
+                                  ="Clear the form and start a new row"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Width: |-
+                                  =77
                   - conEqEditorSaveActions:
                       Control: GroupContainer
                       Variant: AutoLayout
                       Properties:
+                        AlignInContainer: |-
+                            =If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 >= 420, AlignInContainer.Start, AlignInContainer.End)
                         BorderStyle: |-
                             =BorderStyle.None
                         DropShadow: |-
@@ -10993,11 +11064,13 @@ Screens:
                         Height: |-
                             =44
                         LayoutAlignItems: |-
-                            =LayoutAlignItems.Stretch
+                            =LayoutAlignItems.Start
                         LayoutDirection: |-
                             =LayoutDirection.Horizontal
                         LayoutGap: |-
                             =8
+                        LayoutJustifyContent: |-
+                            =LayoutJustifyContent.End
                         LayoutMinWidth: |-
                             =0
                         LayoutOverflowX: |-
@@ -11015,7 +11088,7 @@ Screens:
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
-                                  =AlignInContainer.Center
+                                  =AlignInContainer.Start
                               Appearance: |-
                                   =ButtonAppearance.Outline
                               BorderColor: |-
@@ -11032,6 +11105,8 @@ Screens:
                                   =44
                               Layout: |-
                                   =ButtonLayout.TextOnly
+                              LayoutMinWidth: |-
+                                  =86
                               OnSelect: |-
                                   =Set(varEqActiveRowId, Blank());
                                   Set(varEqRowStatus, "valid");
@@ -11076,7 +11151,7 @@ Screens:
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
-                                  =AlignInContainer.Center
+                                  =AlignInContainer.Start
                               BasePaletteColor: |-
                                   =C.'color-brand-primary'
                               Color: |-
@@ -11093,6 +11168,8 @@ Screens:
                                   =If(IsBlank(varEqActiveRowId), "Add", "Save")
                               Layout: |-
                                   =ButtonLayout.IconBefore
+                              LayoutMinWidth: |-
+                                  =114
                               OnSelect: |-
                                   =Set(varEqSaving, true);
                                   // Add row / Update row (UX-review F2): faerdig, naar kravene er opfyldt,

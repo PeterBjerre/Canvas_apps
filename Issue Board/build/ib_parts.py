@@ -747,10 +747,18 @@ def build_filters():
                  (drp_pri, DD_PRI_W)):
         c.props["Width"] = f"Min({w}, (({TB_W}) - 8) / 2)"
         c.props["LayoutMinWidth"] = c.props["Width"]
+        # Round 4: listerne blev tegnet ~30 px under parrets overkant og
+        # klippet af raekken (Center i et par, der er lige saa hoejt som
+        # listen). Nu flugter de med parrets top - som kontakterne, der ses.
+        c.props["AlignInContainer"] = "AlignInContainer.Start"
+        c.props["Height"] = str(TB_LINE_H)
+        c.h = TB_LINE_H
     pair_a = group("conIbFltPairA", [drp_app, drp_sec], direction="Horizontal", gap=8,
-                   height=TB_LINE_H, align_items="Center", width=f"Min({PAIR_A_W}, {TB_W})")
+                   height=TB_LINE_H, align_items="Start", width=f"Min({PAIR_A_W}, {TB_W})",
+                   align_in_container="Start")
     pair_b = group("conIbFltPairB", [drp_status, drp_pri], direction="Horizontal", gap=8,
-                   height=TB_LINE_H, align_items="Center", width=f"Min({PAIR_B_W}, {TB_W})")
+                   height=TB_LINE_H, align_items="Start", width=f"Min({PAIR_B_W}, {TB_W})",
+                   align_in_container="Start")
     drp_sort.props["LayoutMinWidth"] = drp_sort.props["Width"]
     top = flow_row("conIbTbTop", [scope, state, drp_sort], TB_W, gap=TB_GAP, ok=TOP_OK)
     filters = flow_row("conIbTbFilters", [pair_a, pair_b], TB_W, gap=TB_GAP, ok=FLT_OK)

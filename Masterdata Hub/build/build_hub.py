@@ -707,13 +707,11 @@ def build_tiles():
         count = scope_count(f'Domain = "{d["key"]}"')
 
         st = _tile_state(d, sel)
-        # Fra Tablet: flisen er [forside | New]; begge er billeder over HELE
-        # flisens hoejde og uden mellemrum, saa hover toner hele flisen.
-        face_w = if_below("Tablet", f"({TILE_W})",
-                          f"({TILE_W}) - {TILE_NEW_W}")
+        # Forsiden fylder HELE flisen (saa hover toner hele flisen paa een
+        # gang), og New ligger oven paa den med 16 px til hoejre kant.
         row_h = if_below("Tablet", f"{TILE_H_M - STRIPE_H} - 2",
                          f"{TILE_H - STRIPE_H} - 2")
-        face = _image(f"imgMdTile{n}", _svg_uri(_tile_face(d, count)), face_w, row_h,
+        face = _image(f"imgMdTile{n}", _svg_uri(_tile_face(d, count)), "Parent.Width", row_h,
                       onselect=f'Set(varMdDomain, If({sel}, "", "{d["key"]}"));\n' + SAVE_HUB,
                       # Uden tallet: det ville vaere endnu en forespoergsel.
                       label=f'If({sel}, "Show all domains", "Show only {d["name"].lower()}")',
@@ -739,13 +737,22 @@ def build_tiles():
                                 else '"Coming soon"')
         new.props["TabIndex"] = "0" if ready else "-1"
         new.props["FocusedBorderColor"] = d["color"]
+        # Hover paa New er selve knappen: samme runding som dens kant.
+        for k in ("RadiusTopLeft", "RadiusTopRight", "RadiusBottomLeft", "RadiusBottomRight"):
+            new.props[k] = "8"
 
         # Kortet ER flisen: egen kant og fyld, saa der aldrig kan skinne en graa
         # kantfarve igennem under indholdet. Stregen ligger inde i kanten.
-        row = group(
-            f"conMdTileRow{n}", [face, new], direction="Horizontal", gap=0,
-            align_items="Center", height=row_h, fill=st["fill"],
-            pad=(0, 16, 0, 0))
+        # ManualLayout: forsiden over hele raekken, New oven paa (sidst = oeverst).
+        face.props.update({"X": "0", "Y": "0", "Width": "Parent.Width",
+                           "Height": "Parent.Height"})
+        new.props.update({"X": f"Parent.Width - {TILE_NEW_W} - 16",
+                          "Y": f"(Parent.Height - {TILE_NEW_H}) / 2"})
+        row = Ctrl(f"conMdTileRow{n}", "GroupContainer", variant="ManualLayout", props={
+            "BorderStyle": "BorderStyle.None", "DropShadow": "DropShadow.None",
+            "Fill": st["fill"], "FillPortions": "0", "Height": row_h,
+            "LayoutMinWidth": "0", "Width": "Parent.Width",
+        }, children=[face, new], h=row_h)
         stripe = group(f"conMdTileStripe{n}", [], direction="Vertical", gap=0,
                        height=str(STRIPE_H), width="Parent.Width", fill=d["color"])
         stripe.props["RadiusTopLeft"] = str(TILE_RADIUS)
@@ -1356,9 +1363,14 @@ def build_list():
     # T4) - samme ikon, farve og tekst som i domaenerne og Issue Board.
     st_top = sc.status_chip("imgMdRowStatus", "ThisItem.Status.Value", sc.REQUEST,
                             default=("", "Unknown", sc.REQUEST[0][2], "neutral"))
-    stuck = text_ctrl("txtMdRowStuck", STUCK_TXT, size=12, color=C_WARN_FG, weight="Semibold",
-                      height=16, width=CWF["STATUS"], wrap="false", visible=STUCK,
-                      extra={"PaddingLeft": "4"})
+    # Chippen starter ved kolonnens start (som overskriften), og "Stuck"
+    # har ALTID sin plads under den - saa staar chippen paa samme linje i
+    # hver raekke, ogsaa naar en raekke er stuck.
+    st_top.props["AlignInContainer"] = "AlignInContainer.Start"
+    stuck = text_ctrl("txtMdRowStuck", f'If({STUCK}, {STUCK_TXT}, "")', size=12,
+                      color=C_WARN_FG, weight="Semibold",
+                      height=16, width=CWF["STATUS"], wrap="false",
+                      extra={"PaddingLeft": "0"})
     stat = group("conMdRowStat", [st_top, stuck], direction="Vertical", gap=0,
                  width=CWF["STATUS"], align_items="Stretch", pad=(0, 0, 0, HEAD_PAD))
 
