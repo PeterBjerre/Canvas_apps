@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import (Ctrl, C_MUTED, C_REQUIRED, C_INFO_BG, SHELL_W, C_DISABLED_BG, C_DIVIDER,
+from gen_screen import (Ctrl, C_MUTED, C_TITLE, C_REQUIRED, C_INFO_BG, SHELL_W, C_DISABLED_BG, C_DIVIDER,
                         C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG, C_NEUTRAL_BG)
 import icons
 from design_tokens import ref_hex
@@ -19,7 +19,7 @@ DM_PLAN = "If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)"
 REQ_PLAN = "varVhpPlanValidated"
 
 
-def section_footer(name, info, buttons, cw, keep_inline=None):
+def section_footer(name, info, buttons, cw, keep_inline=None, drop_in_fold=None):
     """Sektionens fod (issue #192): teksten til venstre og knapperne til
     hoejre i een raekke fra Tablet og op. Paa en telefon ville knapperne
     kun efterlade et par tegn pr. linje til teksten, saa den blev klippet;
@@ -34,6 +34,8 @@ def section_footer(name, info, buttons, cw, keep_inline=None):
     if keep_inline:
         narrow = f"({narrow} && !({keep_inline}))"
     btn_w = " + ".join(f"({b.props['Width']})" for b in buttons) + f" + {8 * (len(buttons) - 1)}"
+    if drop_in_fold is not None:
+        btn_w = f"({btn_w}) - If({keep_inline}, {drop_in_fold.props['Width']} + 8, 0)"
     row = group(f"{name}Btns", buttons, direction="Horizontal", gap=8, height=36,
                 align_items="Center", justify="End", width=btn_w)
     row.props["AlignInContainer"] = f"If({narrow}, AlignInContainer.End, AlignInContainer.Center)"
@@ -235,24 +237,14 @@ def plan_fold_row(fold, toggle_set):
     title = text_ctrl("txtVhpPlanFoldTitle", '"Plan header"', size=lay.SIZE_BODY + 1, weight="Semibold",
                       height=24, width=text_px("Plan header", lay.SIZE_BODY + 1) + 2,
                       accessible='"Plan header"')
-    strat = 'drpVhpPlanType.Selected.Key = "Strategy"'
-    plant = value_chip("conVhpPlanPlantChip", '"Plant"', 'Coalesce(drpVhpPlant.Selected.Value, "-")')
-    ptype = value_chip("conVhpPlanTypeChip", '"Type"', 'Coalesce(drpVhpPlanType.Selected.Value, "-")')
-    cyc_val = (f'If({strat}, Coalesce(drpVhpStrategy.Selected.Value, "-"), '
-               '"Every " & Text(varVhpPlan.Cycle) & " " & Coalesce(drpVhpUnit.Selected.Value, ""))')
-    w_strat, w_cyc = text_px("Strategy", 12, False) + 2, text_px("Cycle", 12, False) + 2
-    cyc = value_chip("conVhpPlanCycleChip", f'If({strat}, "Strategy", "Cycle")', cyc_val,
-                     label_w=f"If({strat}, {w_strat}, {w_cyc})")
-    first = value_chip("conVhpPlanFirstCallChip", '"First call"',
-                       f'If(IsBlank(dteVhpFirstCall.SelectedDate), "-", '
-                       f'Text(dteVhpFirstCall.SelectedDate, "{lay.DATE_FMT}"))',
-                       value_chars=len(lay.DATE_FMT))
-    chips = group("conVhpPlanFoldChips", [plant, ptype, cyc, first], direction="Horizontal", gap=6,
-                  height=CHIP_H, align_items="Center")
-    grow(chips, 0)
-    # Show staar i fodens knaprække (sammen med Reset og Edit), ikke her.
-    return group("conVhpPlanFoldRow", [ok, title, chips], direction="Horizontal", gap=10,
-                 height=FOLD_H, align_items="Center", visible=fold)
+    narrow = lay.below("Tablet")
+    summary = text_ctrl("txtVhpPlanFoldSummary", PLAN_SUMMARY, size=lay.SIZE_BODY, color=C_MUTED,
+                        height=f"If({narrow}, 40, 24)", wrap=f"{narrow}",
+                        extra={"AlignInContainer": "AlignInContainer.Center"})
+    grow(summary, 0)
+    # Show staar i fodens knaprække, ikke her.
+    return group("conVhpPlanFoldRow", [ok, title, summary], direction="Horizontal", gap=10,
+                 height=f"If({narrow}, 64, {FOLD_H})", align_items="Center", visible=fold)
 
 
 def build_plan_header():
@@ -490,6 +482,9 @@ def build_plan_header():
                   visible="varVhpPlanLocked",
                   icon=f'If({fold}, "{icons.FLUENT["expand"]}", "{icons.FLUENT["collapse"]}")')
     hide.props["LayoutMinWidth"] = hide.props["Width"]
+    hide.props["Appearance"] = "ButtonAppearance.Subtle"
+    hide.props["BorderThickness"] = "0"
+    hide.props["Color"] = C_TITLE
     foldRow = plan_fold_row(fold, toggle_set)
     # Foldet: chips (foldRow) staar i fodens venstre side, i samme raekke som
     # knapperne - kortet er kun een raekke hoejt. Udfoldet: "Plan created".
@@ -497,8 +492,10 @@ def build_plan_header():
     planMeta.vis = f"!({fold})"
     info = group("conVhpPlanFooterInfo", [planMeta, foldRow], direction="Vertical", gap=0,
                  justify="Center")
+    btnReset.props["Visible"] = f"!({fold})"
+    btnReset.vis = f"!({fold})"
     footer = section_footer("conVhpPlanFooter", info, [hide, btnReset, btnSave], PLAN_CW,
-                          keep_inline=fold)
+                          keep_inline=fold, drop_in_fold=btnReset)
 
     # Foldet: kun foldRow (check, titel, nogletal som chips, Show). Udfoldet:
     # overskrift, hjaelp, felter og fod som foer.

@@ -7741,7 +7741,7 @@ Screens:
                   LayoutDirection: |-
                       =LayoutDirection.Horizontal
                   LayoutGap: |-
-                      =12
+                      =4
                   LayoutMinWidth: |-
                       =0
                   LayoutOverflowX: |-
@@ -7801,404 +7801,401 @@ Screens:
                                  Plant = drpMpPlantFilter.Selected.Value)
                             ), RowId, SortOrder.Descending))))
                         Width: |-
-                            =Max(0, (((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20)) - ((140) + 12) - 2)
+                            =Max(0, (((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20)) - (If(CountRows(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)) > 1, (44) + 4, 0)) - (If(CountRows(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)) > 1, (44) + 4, 0)) - ((44) + 4) - 2)
                         Wrap: |-
                             =false
-                  - conMpEditorNavigation:
-                      Control: GroupContainer
-                      Variant: AutoLayout
+                  - btnMpEditorPrevious:
+                      Control: Image
                       Properties:
+                        AccessibleLabel: |-
+                            ="Previous row"
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
                         BorderStyle: |-
                             =BorderStyle.None
-                        DropShadow: |-
-                            =DropShadow.None
-                        FillPortions: |-
+                        BorderThickness: |-
                             =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        DisplayMode: |-
+                            =If(IsBlank(varMpActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
                         Height: |-
                             =44
-                        LayoutAlignItems: |-
-                            =LayoutAlignItems.Center
-                        LayoutDirection: |-
-                            =LayoutDirection.Horizontal
-                        LayoutGap: |-
-                            =4
-                        LayoutJustifyContent: |-
-                            =LayoutJustifyContent.End
+                        HoverFill: |-
+                            =If((If(IsBlank(varMpActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If((If(IsBlank(varMpActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M15 6l-6 6 6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M15 6l-6 6 6 6'/></g></svg>"))
+                        ImagePosition: |-
+                            =ImagePosition.Center
                         LayoutMinWidth: |-
-                            =0
-                        LayoutOverflowX: |-
-                            =LayoutOverflow.Hide
-                        LayoutOverflowY: |-
-                            =LayoutOverflow.Hide
+                            =44
+                        OnSelect: |-
+                            =Set(varMpActiveRowId, Index(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), Max(1, CountRows(Filter(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 - 1)).RowId);
+                            Set(varMpActiveRowId, LookUp(colMpRows, RowId = varMpActiveRowId).RowId);
+                            Set(varMpRowStatus, LookUp(colMpRows, RowId = varMpActiveRowId).Status);
+                            Set(varMpValidated, false);
+                            Set(varMpFText, LookUp(colMpRows, RowId = varMpActiveRowId).Description);
+                            Set(varMpFPlant, LookUp(colMpRows, RowId = varMpActiveRowId).Plant);
+                            Set(varMpEditorOpen, true);
+                            Set(varMpFFunctionalLocation, LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation);
+                            Set(varMpFExistsInSap, LookUp(colMpRows, RowId = varMpActiveRowId).ExistsInSap);
+                            Set(varMpFMeasuringPoint, LookUp(colMpRows, RowId = varMpActiveRowId).MeasuringPoint);
+                            Set(varMpFMeasuringPointType, LookUp(colMpRows, RowId = varMpActiveRowId).MeasuringPointType);
+                            Set(varMpFCharacteristic, LookUp(colMpRows, RowId = varMpActiveRowId).Characteristic);
+                            Set(varMpFCharacteristicDescription, LookUp(colMpRows, RowId = varMpActiveRowId).CharacteristicDescription);
+                            Set(varMpFCharacteristicUnit, LookUp(colMpRows, RowId = varMpActiveRowId).CharacteristicUnit);
+                            Set(varMpFCharacteristicUnitDescription, LookUp(colMpRows, RowId = varMpActiveRowId).CharacteristicUnitDescription);
+                            Set(varMpFDecimalPlaces, LookUp(colMpRows, RowId = varMpActiveRowId).DecimalPlaces);
+                            Set(varMpFTargetValue, LookUp(colMpRows, RowId = varMpActiveRowId).TargetValue);
+                            Set(varMpFLowerLimit, LookUp(colMpRows, RowId = varMpActiveRowId).LowerLimit);
+                            Set(varMpFUpperLimit, LookUp(colMpRows, RowId = varMpActiveRowId).UpperLimit);
+                            Set(varMpFExpectedAnnualUsage, LookUp(colMpRows, RowId = varMpActiveRowId).ExpectedAnnualUsage);
+                            Set(varMpFInProdos, LookUp(colMpRows, RowId = varMpActiveRowId).InProdos);
+                            Set(varMpFProdosTag, LookUp(colMpRows, RowId = varMpActiveRowId).ProdosTag);
+                            Set(varMpFProdosCounterExists, LookUp(colMpRows, RowId = varMpActiveRowId).ProdosCounterExists);
+                            Set(varMpFCounterCreateIn, LookUp(colMpRows, RowId = varMpActiveRowId).CounterCreateIn);
+                            Set(varMpFRemarks, LookUp(colMpRows, RowId = varMpActiveRowId).Remarks);
+                            If(
+                                !IsBlank(LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation) && IsBlank(LookUp(colMpFl, Code = LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation)),
+                                Collect(colMpFl, { Code: LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation, Description: "", Display: LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
+                            )
+                        PressedFill: |-
+                            =If((If(IsBlank(varMpActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
+                        RadiusBottomLeft: |-
+                            =6
+                        RadiusBottomRight: |-
+                            =6
+                        RadiusTopLeft: |-
+                            =6
+                        RadiusTopRight: |-
+                            =6
+                        TabIndex: |-
+                            =If((If(IsBlank(varMpActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
+                        Tooltip: |-
+                            ="Previous row"
+                        Visible: |-
+                            =CountRows(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)) > 1
                         Width: |-
-                            =140
-                      Children:
-                        - btnMpEditorPrevious:
-                            Control: Image
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Previous row"
-                              BorderColor: |-
-                                  =RGBA(0, 0, 0, 0)
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              DisabledFill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              DisplayMode: |-
-                                  =If(IsBlank(varMpActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colMpRows,
-                                      (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
-                                      (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMpStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMpPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Height: |-
-                                  =44
-                              HoverFill: |-
-                                  =If((If(IsBlank(varMpActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colMpRows,
-                                      (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
-                                      (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMpStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMpPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
-                              Image: |-
-                                  ="data:image/svg+xml;utf8," & EncodeUrl(If((If(IsBlank(varMpActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colMpRows,
-                                      (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
-                                      (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMpStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMpPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M15 6l-6 6 6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M15 6l-6 6 6 6'/></g></svg>"))
-                              ImagePosition: |-
-                                  =ImagePosition.Center
-                              OnSelect: |-
-                                  =Set(varMpActiveRowId, Index(Sort(Filter(
-                                      colMpRows,
-                                      (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
-                                      (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMpStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMpPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), Max(1, CountRows(Filter(Sort(Filter(
-                                      colMpRows,
-                                      (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
-                                      (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMpStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMpPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 - 1)).RowId);
-                                  Set(varMpActiveRowId, LookUp(colMpRows, RowId = varMpActiveRowId).RowId);
-                                  Set(varMpRowStatus, LookUp(colMpRows, RowId = varMpActiveRowId).Status);
-                                  Set(varMpValidated, false);
-                                  Set(varMpFText, LookUp(colMpRows, RowId = varMpActiveRowId).Description);
-                                  Set(varMpFPlant, LookUp(colMpRows, RowId = varMpActiveRowId).Plant);
-                                  Set(varMpEditorOpen, true);
-                                  Set(varMpFFunctionalLocation, LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation);
-                                  Set(varMpFExistsInSap, LookUp(colMpRows, RowId = varMpActiveRowId).ExistsInSap);
-                                  Set(varMpFMeasuringPoint, LookUp(colMpRows, RowId = varMpActiveRowId).MeasuringPoint);
-                                  Set(varMpFMeasuringPointType, LookUp(colMpRows, RowId = varMpActiveRowId).MeasuringPointType);
-                                  Set(varMpFCharacteristic, LookUp(colMpRows, RowId = varMpActiveRowId).Characteristic);
-                                  Set(varMpFCharacteristicDescription, LookUp(colMpRows, RowId = varMpActiveRowId).CharacteristicDescription);
-                                  Set(varMpFCharacteristicUnit, LookUp(colMpRows, RowId = varMpActiveRowId).CharacteristicUnit);
-                                  Set(varMpFCharacteristicUnitDescription, LookUp(colMpRows, RowId = varMpActiveRowId).CharacteristicUnitDescription);
-                                  Set(varMpFDecimalPlaces, LookUp(colMpRows, RowId = varMpActiveRowId).DecimalPlaces);
-                                  Set(varMpFTargetValue, LookUp(colMpRows, RowId = varMpActiveRowId).TargetValue);
-                                  Set(varMpFLowerLimit, LookUp(colMpRows, RowId = varMpActiveRowId).LowerLimit);
-                                  Set(varMpFUpperLimit, LookUp(colMpRows, RowId = varMpActiveRowId).UpperLimit);
-                                  Set(varMpFExpectedAnnualUsage, LookUp(colMpRows, RowId = varMpActiveRowId).ExpectedAnnualUsage);
-                                  Set(varMpFInProdos, LookUp(colMpRows, RowId = varMpActiveRowId).InProdos);
-                                  Set(varMpFProdosTag, LookUp(colMpRows, RowId = varMpActiveRowId).ProdosTag);
-                                  Set(varMpFProdosCounterExists, LookUp(colMpRows, RowId = varMpActiveRowId).ProdosCounterExists);
-                                  Set(varMpFCounterCreateIn, LookUp(colMpRows, RowId = varMpActiveRowId).CounterCreateIn);
-                                  Set(varMpFRemarks, LookUp(colMpRows, RowId = varMpActiveRowId).Remarks);
-                                  If(
-                                      !IsBlank(LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation) && IsBlank(LookUp(colMpFl, Code = LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation)),
-                                      Collect(colMpFl, { Code: LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation, Description: "", Display: LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
-                                  )
-                              PressedFill: |-
-                                  =If((If(IsBlank(varMpActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colMpRows,
-                                      (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
-                                      (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMpStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMpPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
-                              RadiusBottomLeft: |-
-                                  =6
-                              RadiusBottomRight: |-
-                                  =6
-                              RadiusTopLeft: |-
-                                  =6
-                              RadiusTopRight: |-
-                                  =6
-                              TabIndex: |-
-                                  =If((If(IsBlank(varMpActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colMpRows,
-                                      (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
-                                      (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMpStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMpPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
-                              Tooltip: |-
-                                  ="Previous row"
-                              Visible: |-
-                                  =CountRows(Sort(Filter(
-                                      colMpRows,
-                                      (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
-                                      (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMpStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMpPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)) > 1
-                              Width: |-
-                                  =44
-                        - btnMpEditorNext:
-                            Control: Image
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Next row"
-                              BorderColor: |-
-                                  =RGBA(0, 0, 0, 0)
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              DisabledFill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              DisplayMode: |-
-                                  =If(IsBlank(varMpActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colMpRows,
-                                      (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
-                                      (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMpStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMpPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 >= CountRows(Sort(Filter(
-                                      colMpRows,
-                                      (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
-                                      (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMpStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMpPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Height: |-
-                                  =44
-                              HoverFill: |-
-                                  =If((If(IsBlank(varMpActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colMpRows,
-                                      (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
-                                      (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMpStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMpPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 >= CountRows(Sort(Filter(
-                                      colMpRows,
-                                      (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
-                                      (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMpStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMpPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
-                              Image: |-
-                                  ="data:image/svg+xml;utf8," & EncodeUrl(If((If(IsBlank(varMpActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colMpRows,
-                                      (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
-                                      (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMpStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMpPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 >= CountRows(Sort(Filter(
-                                      colMpRows,
-                                      (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
-                                      (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMpStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMpPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6l6 6-6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M9 6l6 6-6 6'/></g></svg>"))
-                              ImagePosition: |-
-                                  =ImagePosition.Center
-                              OnSelect: |-
-                                  =Set(varMpActiveRowId, Index(Sort(Filter(
-                                      colMpRows,
-                                      (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
-                                      (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMpStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMpPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), Min(CountRows(Sort(Filter(
-                                      colMpRows,
-                                      (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
-                                      (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMpStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMpPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)), CountRows(Filter(Sort(Filter(
-                                      colMpRows,
-                                      (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
-                                      (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMpStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMpPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 + 1)).RowId);
-                                  Set(varMpActiveRowId, LookUp(colMpRows, RowId = varMpActiveRowId).RowId);
-                                  Set(varMpRowStatus, LookUp(colMpRows, RowId = varMpActiveRowId).Status);
-                                  Set(varMpValidated, false);
-                                  Set(varMpFText, LookUp(colMpRows, RowId = varMpActiveRowId).Description);
-                                  Set(varMpFPlant, LookUp(colMpRows, RowId = varMpActiveRowId).Plant);
-                                  Set(varMpEditorOpen, true);
-                                  Set(varMpFFunctionalLocation, LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation);
-                                  Set(varMpFExistsInSap, LookUp(colMpRows, RowId = varMpActiveRowId).ExistsInSap);
-                                  Set(varMpFMeasuringPoint, LookUp(colMpRows, RowId = varMpActiveRowId).MeasuringPoint);
-                                  Set(varMpFMeasuringPointType, LookUp(colMpRows, RowId = varMpActiveRowId).MeasuringPointType);
-                                  Set(varMpFCharacteristic, LookUp(colMpRows, RowId = varMpActiveRowId).Characteristic);
-                                  Set(varMpFCharacteristicDescription, LookUp(colMpRows, RowId = varMpActiveRowId).CharacteristicDescription);
-                                  Set(varMpFCharacteristicUnit, LookUp(colMpRows, RowId = varMpActiveRowId).CharacteristicUnit);
-                                  Set(varMpFCharacteristicUnitDescription, LookUp(colMpRows, RowId = varMpActiveRowId).CharacteristicUnitDescription);
-                                  Set(varMpFDecimalPlaces, LookUp(colMpRows, RowId = varMpActiveRowId).DecimalPlaces);
-                                  Set(varMpFTargetValue, LookUp(colMpRows, RowId = varMpActiveRowId).TargetValue);
-                                  Set(varMpFLowerLimit, LookUp(colMpRows, RowId = varMpActiveRowId).LowerLimit);
-                                  Set(varMpFUpperLimit, LookUp(colMpRows, RowId = varMpActiveRowId).UpperLimit);
-                                  Set(varMpFExpectedAnnualUsage, LookUp(colMpRows, RowId = varMpActiveRowId).ExpectedAnnualUsage);
-                                  Set(varMpFInProdos, LookUp(colMpRows, RowId = varMpActiveRowId).InProdos);
-                                  Set(varMpFProdosTag, LookUp(colMpRows, RowId = varMpActiveRowId).ProdosTag);
-                                  Set(varMpFProdosCounterExists, LookUp(colMpRows, RowId = varMpActiveRowId).ProdosCounterExists);
-                                  Set(varMpFCounterCreateIn, LookUp(colMpRows, RowId = varMpActiveRowId).CounterCreateIn);
-                                  Set(varMpFRemarks, LookUp(colMpRows, RowId = varMpActiveRowId).Remarks);
-                                  If(
-                                      !IsBlank(LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation) && IsBlank(LookUp(colMpFl, Code = LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation)),
-                                      Collect(colMpFl, { Code: LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation, Description: "", Display: LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
-                                  )
-                              PressedFill: |-
-                                  =If((If(IsBlank(varMpActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colMpRows,
-                                      (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
-                                      (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMpStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMpPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 >= CountRows(Sort(Filter(
-                                      colMpRows,
-                                      (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
-                                      (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMpStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMpPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
-                              RadiusBottomLeft: |-
-                                  =6
-                              RadiusBottomRight: |-
-                                  =6
-                              RadiusTopLeft: |-
-                                  =6
-                              RadiusTopRight: |-
-                                  =6
-                              TabIndex: |-
-                                  =If((If(IsBlank(varMpActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colMpRows,
-                                      (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
-                                      (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMpStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMpPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 >= CountRows(Sort(Filter(
-                                      colMpRows,
-                                      (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
-                                      (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMpStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMpPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
-                              Tooltip: |-
-                                  ="Next row"
-                              Visible: |-
-                                  =CountRows(Sort(Filter(
-                                      colMpRows,
-                                      (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
-                                      (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpMpStatusFilter.Selected.Value)),
-                                      (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpMpPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)) > 1
-                              Width: |-
-                                  =44
-                        - btnMpEditorClose:
-                            Control: Image
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Close"
-                              BorderColor: |-
-                                  =RGBA(0, 0, 0, 0)
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              DisabledFill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Height: |-
-                                  =44
-                              HoverFill: |-
-                                  =C.'row-hover'
-                              Image: |-
-                                  ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>")
-                              ImagePosition: |-
-                                  =ImagePosition.Center
-                              OnSelect: |-
-                                  =Set(varMpActiveRowId, Blank());
-                                  Set(varMpRowStatus, "valid");
-                                  Set(varMpValidated, false);
-                                  Set(varMpFText, "");
-                                  Set(varMpFPlant, Coalesce(First(colAppPrefs).prefMpNewPlant, ""));
-                                  Set(varMpEditorOpen, false);
-                                  Set(varMpFFunctionalLocation, "");
-                                  Set(varMpFExistsInSap, "");
-                                  Set(varMpFMeasuringPoint, "");
-                                  Set(varMpFMeasuringPointType, "");
-                                  Set(varMpFCharacteristic, "");
-                                  Set(varMpFCharacteristicDescription, "");
-                                  Set(varMpFCharacteristicUnit, "");
-                                  Set(varMpFCharacteristicUnitDescription, "");
-                                  Set(varMpFDecimalPlaces, Blank());
-                                  Set(varMpFTargetValue, "");
-                                  Set(varMpFLowerLimit, "");
-                                  Set(varMpFUpperLimit, "");
-                                  Set(varMpFExpectedAnnualUsage, "");
-                                  Set(varMpFInProdos, "");
-                                  Set(varMpFProdosTag, "");
-                                  Set(varMpFProdosCounterExists, "");
-                                  Set(varMpFCounterCreateIn, "");
-                                  Set(varMpFRemarks, "");
-                                  Set(varMpFlQuery, ""); Set(varMpFlLast, ""); Set(varMpFlMsg, ""); Clear(colMpFl); Reset(cmbMpFl);
-                                  Set(varMpInfo, "")
-                              PressedFill: |-
-                                  =C.'row-pressed'
-                              RadiusBottomLeft: |-
-                                  =6
-                              RadiusBottomRight: |-
-                                  =6
-                              RadiusTopLeft: |-
-                                  =6
-                              RadiusTopRight: |-
-                                  =6
-                              TabIndex: |-
-                                  =0
-                              Tooltip: |-
-                                  ="Close"
-                              Width: |-
-                                  =44
+                            =44
+                  - btnMpEditorNext:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Next row"
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        DisplayMode: |-
+                            =If(IsBlank(varMpActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 >= CountRows(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Height: |-
+                            =44
+                        HoverFill: |-
+                            =If((If(IsBlank(varMpActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 >= CountRows(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If((If(IsBlank(varMpActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 >= CountRows(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6l6 6-6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M9 6l6 6-6 6'/></g></svg>"))
+                        ImagePosition: |-
+                            =ImagePosition.Center
+                        LayoutMinWidth: |-
+                            =44
+                        OnSelect: |-
+                            =Set(varMpActiveRowId, Index(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), Min(CountRows(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)), CountRows(Filter(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 + 1)).RowId);
+                            Set(varMpActiveRowId, LookUp(colMpRows, RowId = varMpActiveRowId).RowId);
+                            Set(varMpRowStatus, LookUp(colMpRows, RowId = varMpActiveRowId).Status);
+                            Set(varMpValidated, false);
+                            Set(varMpFText, LookUp(colMpRows, RowId = varMpActiveRowId).Description);
+                            Set(varMpFPlant, LookUp(colMpRows, RowId = varMpActiveRowId).Plant);
+                            Set(varMpEditorOpen, true);
+                            Set(varMpFFunctionalLocation, LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation);
+                            Set(varMpFExistsInSap, LookUp(colMpRows, RowId = varMpActiveRowId).ExistsInSap);
+                            Set(varMpFMeasuringPoint, LookUp(colMpRows, RowId = varMpActiveRowId).MeasuringPoint);
+                            Set(varMpFMeasuringPointType, LookUp(colMpRows, RowId = varMpActiveRowId).MeasuringPointType);
+                            Set(varMpFCharacteristic, LookUp(colMpRows, RowId = varMpActiveRowId).Characteristic);
+                            Set(varMpFCharacteristicDescription, LookUp(colMpRows, RowId = varMpActiveRowId).CharacteristicDescription);
+                            Set(varMpFCharacteristicUnit, LookUp(colMpRows, RowId = varMpActiveRowId).CharacteristicUnit);
+                            Set(varMpFCharacteristicUnitDescription, LookUp(colMpRows, RowId = varMpActiveRowId).CharacteristicUnitDescription);
+                            Set(varMpFDecimalPlaces, LookUp(colMpRows, RowId = varMpActiveRowId).DecimalPlaces);
+                            Set(varMpFTargetValue, LookUp(colMpRows, RowId = varMpActiveRowId).TargetValue);
+                            Set(varMpFLowerLimit, LookUp(colMpRows, RowId = varMpActiveRowId).LowerLimit);
+                            Set(varMpFUpperLimit, LookUp(colMpRows, RowId = varMpActiveRowId).UpperLimit);
+                            Set(varMpFExpectedAnnualUsage, LookUp(colMpRows, RowId = varMpActiveRowId).ExpectedAnnualUsage);
+                            Set(varMpFInProdos, LookUp(colMpRows, RowId = varMpActiveRowId).InProdos);
+                            Set(varMpFProdosTag, LookUp(colMpRows, RowId = varMpActiveRowId).ProdosTag);
+                            Set(varMpFProdosCounterExists, LookUp(colMpRows, RowId = varMpActiveRowId).ProdosCounterExists);
+                            Set(varMpFCounterCreateIn, LookUp(colMpRows, RowId = varMpActiveRowId).CounterCreateIn);
+                            Set(varMpFRemarks, LookUp(colMpRows, RowId = varMpActiveRowId).Remarks);
+                            If(
+                                !IsBlank(LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation) && IsBlank(LookUp(colMpFl, Code = LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation)),
+                                Collect(colMpFl, { Code: LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation, Description: "", Display: LookUp(colMpRows, RowId = varMpActiveRowId).FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
+                            )
+                        PressedFill: |-
+                            =If((If(IsBlank(varMpActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 >= CountRows(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
+                        RadiusBottomLeft: |-
+                            =6
+                        RadiusBottomRight: |-
+                            =6
+                        RadiusTopLeft: |-
+                            =6
+                        RadiusTopRight: |-
+                            =6
+                        TabIndex: |-
+                            =If((If(IsBlank(varMpActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varMpActiveRowId)) + 1 >= CountRows(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
+                        Tooltip: |-
+                            ="Next row"
+                        Visible: |-
+                            =CountRows(Sort(Filter(
+                                colMpRows,
+                                (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
+                                (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpMpStatusFilter.Selected.Value)),
+                                (IsBlank(drpMpPlantFilter.Selected.Value) || drpMpPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpMpPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)) > 1
+                        Width: |-
+                            =44
+                  - btnMpEditorClose:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Height: |-
+                            =44
+                        HoverFill: |-
+                            =C.'row-hover'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Center
+                        LayoutMinWidth: |-
+                            =44
+                        OnSelect: |-
+                            =Set(varMpActiveRowId, Blank());
+                            Set(varMpRowStatus, "valid");
+                            Set(varMpValidated, false);
+                            Set(varMpFText, "");
+                            Set(varMpFPlant, Coalesce(First(colAppPrefs).prefMpNewPlant, ""));
+                            Set(varMpEditorOpen, false);
+                            Set(varMpFFunctionalLocation, "");
+                            Set(varMpFExistsInSap, "");
+                            Set(varMpFMeasuringPoint, "");
+                            Set(varMpFMeasuringPointType, "");
+                            Set(varMpFCharacteristic, "");
+                            Set(varMpFCharacteristicDescription, "");
+                            Set(varMpFCharacteristicUnit, "");
+                            Set(varMpFCharacteristicUnitDescription, "");
+                            Set(varMpFDecimalPlaces, Blank());
+                            Set(varMpFTargetValue, "");
+                            Set(varMpFLowerLimit, "");
+                            Set(varMpFUpperLimit, "");
+                            Set(varMpFExpectedAnnualUsage, "");
+                            Set(varMpFInProdos, "");
+                            Set(varMpFProdosTag, "");
+                            Set(varMpFProdosCounterExists, "");
+                            Set(varMpFCounterCreateIn, "");
+                            Set(varMpFRemarks, "");
+                            Set(varMpFlQuery, ""); Set(varMpFlLast, ""); Set(varMpFlMsg, ""); Clear(colMpFl); Reset(cmbMpFl);
+                            Set(varMpInfo, "")
+                        PressedFill: |-
+                            =C.'row-pressed'
+                        RadiusBottomLeft: |-
+                            =6
+                        RadiusBottomRight: |-
+                            =6
+                        RadiusTopLeft: |-
+                            =6
+                        RadiusTopRight: |-
+                            =6
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            ="Close"
+                        Width: |-
+                            =44
             - conMpEditorSections:
                 Control: GroupContainer
                 Variant: AutoLayout
@@ -8210,7 +8207,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =App.Height - (116 + (44))
+                      =App.Height - (140 + (44))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-

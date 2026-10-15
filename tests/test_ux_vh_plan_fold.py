@@ -21,7 +21,7 @@ def test_the_summary_line_shows_only_when_the_plan_is_locked():
     row = _block(y, "conVhpPlanFoldRow", 60000)
     assert "varVhpPlanLocked && !IfError(varVhpPlanShow, false)" in row
     assert y.index("- btnVhpPlanHide:") > y.index("- conVhpPlanFoldRow:")
-    for part in ('"Plant"', "drpVhpPlanType.Selected.Value", '"First call"',
+    for part in ('"Plant "', "drpVhpPlanType.Selected.Value", '"First call "',
                  "dteVhpFirstCall.SelectedDate", '"dd-mm-yyyy"'):
         assert part in row, part
 def test_the_fields_fold_away_and_show_brings_them_back():

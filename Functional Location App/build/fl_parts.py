@@ -36,7 +36,7 @@ import display_text as dt
 from build_helpers import (C_INPUT_BORDER, ensure_hit, checkbox_theme, new_request_label, request_actions, breadcrumb, text_ctrl, group, button, text_input, themed_dropdown, card,
                            pin_widths, top_bar, grow, badge, fit_button_width, row_rule, mark_done,
                            loading_overlay, with_busy, confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
-                           ICON_W, text_px, stable_scrim, icon_button)
+                           ICON_W, text_px, stable_scrim, icon_button, icon_heading)
 
 NARROW = below("Tablet")
 
@@ -386,20 +386,13 @@ V_SPEC = ([("No", "#", 28, V_SHOW_NO),
 V_GAL_W = f"({V_W}) + {SCROLLBAR_W} + {GALLERY_RESERVE}"
 V_WIDE = f"({ROWS_W}) < {V_MIN}"
 
-# Beskedlinjen under cellerne: raekkens status og foerste fejl/advarsel i
-# roed/gul/groen (FL26) - det, Validation-kolonnen viste. Raekkerne er
-# lave, til der er noget at sige.
-# Linjen er 30 hoej, fordi "?" er en knap (check_layout regel 25).
 ROW_TOP = 40
-ROW_H_MSG = 70
-MSG_Y = 38
-HAS_MSG = 'IfError(!IsEmpty(Filter(colFlRows, Status <> "draft")), false)'
 # Delete er en ikonknap med klikfladen H.hit (UX-review F6, regel 40):
 # under Desktop er cellelinjen 44 hoej, og resten af raekken rykker
 # TOUCH_EXTRA (0 fra Desktop, 4 under) ned.
 ROW_TOP_F = f"Max({ROW_TOP}, {lay.HIT})"
 TOUCH_EXTRA = f"({ROW_TOP_F} - {ROW_TOP})"
-V_ROW_H = f"If({HAS_MSG}, {ROW_H_MSG}, {ROW_H}) + {TOUCH_EXTRA}"
+V_ROW_H = f"{ROW_H} + {TOUCH_EXTRA}"
 
 ERRS = 'CountRows(Filter(colFlRows, Status = "invalid"))'
 
@@ -537,7 +530,10 @@ def row_cells():
         'Notify(Coalesce(ThisItem.FirstIssue, ThisItem.FirstWarning, "Row status: " & Self.Text), '
         'NotificationType.Information)',
         width=80, height=30, accessible='"Row status: " & Self.Text',
-        tooltip='Coalesce(ThisItem.FirstIssue, ThisItem.FirstWarning, "Row status")')
+        tooltip=('Switch(ThisItem.Status, "draft", "Draft", "valid", "Ready for SAP", '
+                 '"warning", "Warning" & If(IsBlank(ThisItem.FirstWarning), "", " - " & ThisItem.FirstWarning), '
+                 'If(IsBlank(ThisItem.FirstIssue), "Error", "Error - " & ThisItem.FirstIssue)) '
+                 '& If(IsBlank(ThisItem.Hint), "", ". " & ThisItem.Hint)'))
     status.props["Color"] = _status_color("ThisItem")
     status.props["Size"] = str(lay.SIZE_SMALL)
 
@@ -616,12 +612,7 @@ def build_row_panel():
     close = icon_button("btnFlEditorClose", "Close", close_fx, icons.CLOSE)
     title = grow(text_ctrl("txtFlEditorPosition", position, size=lay.SIZE_CARD_TITLE,
                            weight="Semibold", height=28, wrap="false"))
-    nav_w = 3 * lay.HIT_TOUCH + 8
-    navigation = group("conFlEditorNavigation", [prev, next_, close], direction="Horizontal",
-                       gap=4, height=lay.HIT_TOUCH, width=nav_w, align_items="Center",
-                       justify="End")
-    heading = group("conFlEditorHeading", [title, navigation], direction="Horizontal", gap=12,
-                    height=lay.HIT_TOUCH, align_items="Center")
+    heading = icon_heading("conFlEditorHeading", title, [prev, next_, close])
 
     sections = [
         _panel_section("Master", "Functional location"),
@@ -644,34 +635,6 @@ def build_row_panel():
     return [backdrop, panel]
 
 
-def row_message():
-    """Beskedlinjen under raekkens felter (FL26, renderValidationBadges) -
-    i stedet for Validation-kolonnen (issue #232). Roed = fejl, gul =
-    advarsel, groen = gyldig; kladden siger intet. Teksten afkortes med
-    vilje - hele forklaringen staar bag "?". To blade med egen X/Y (et
-    galleri placerer sine containere i 0,0 - gen_screen._place)."""
-    msg = ('Switch(ThisItem.Status, "draft", "", "valid", "Valid", '
-           '"warning", "Warning" & If(IsBlank(ThisItem.FirstWarning), "", " - " & ThisItem.FirstWarning), '
-           'If(IsBlank(ThisItem.FirstIssue), "Invalid", ThisItem.FirstIssue))')
-    hint_expr = "ThisItem.Hint"
-    has_hint = f"!IsBlank({hint_expr})"
-    shown = 'ThisItem.Status <> "draft"'
-    indent = f"If({V_SHOW_NO}, {28 + VGAP}, 0)"
-    txt_w = f"({V_W}) - {indent} - If({has_hint}, 36, 0)"
-    txt = text_ctrl("txtFlRowIssue", msg, size=12, color=_status_color("ThisItem"), height=20,
-                    wrap="false", width=txt_w, visible=shown,
-                    accessible='"Row " & ThisItem.Pos & ": " & Self.Text')
-    txt.props["X"] = indent
-    txt.props["Y"] = f"{MSG_Y + 5} + {TOUCH_EXTRA}"
-    hint = button("btnFlRowHint", '"?"', f"Notify({hint_expr}, NotificationType.Information)",
-                  width=30, height=30, visible=f"({shown}) && ({has_hint})",
-                  accessible='"What does this message mean?"')
-    hint.props["Tooltip"] = hint_expr
-    hint.props["X"] = f"{indent} + ({txt_w}) + 6"
-    hint.props["Y"] = f"{MSG_Y} + {TOUCH_EXTRA}"
-    return [txt, hint]
-
-
 def build_rows():
     # "Rows" og hvor mange der er gyldige (UX-review F1/T7 og FL Spool):
     # kortet hed "Validation".
@@ -692,8 +655,7 @@ def build_rows():
     head = table_head("conFlRowsHead", V_SPEC, gap=VGAP, width=V_GAL_W)
     gal = table_gallery("galFlRows", '"Functional Location rows"',
                         "Sort(colFlRows, RowNo)", "CountRows(colFlRows)", row_cells(), "conFlRow",
-                        row_h=V_ROW_H, gap=VGAP, width=V_GAL_W, tpl_h=ROW_TOP_F,
-                        extra=row_message())
+                        row_h=V_ROW_H, gap=VGAP, width=V_GAL_W, tpl_h=ROW_TOP_F)
     # Vandret scroll, naar tabellen er bredere end kortet (Equipment/
     # Materials' moenster, domain_parts). Start, ikke Stretch - check_layout
     # regel 14. Den vandrette scrollbar tager hoejde, saa den laegges til.
@@ -705,9 +667,9 @@ def build_rows():
     # Kun noget at sige, naar der ER noget: en fejl ved gem/indsend, eller
     # raekker, der blokerer Submit. Ingen "Ready."/"Done." (issue #77).
     info = text_ctrl("txtFlInfo",
-                     f'Coalesce(varFlInfo, "Submit is blocked: " & {dt.plural(ERRS, "row has", "rows have")} & " errors.")',
+                     "varFlInfo",
                      size=12, color=C_INVALID_FG, height=18, wrap="false",
-                     visible=f"!IsBlank(varFlInfo) || {ERRS} > 0")
+                     visible="!IsBlank(varFlInfo)")
     return card("conFlRowsCard", [head_row, table, info, verify_button()], gap=10)
 
 # ---------------------------------------------------------------------------

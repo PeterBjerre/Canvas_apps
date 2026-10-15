@@ -134,9 +134,9 @@ def test_row_editor_panel_has_responsive_width_navigation_and_fixed_footer():
     assert "LayoutRank >= 3" in panel.props["Width"] and "App.Width * 0.34" in panel.props["Width"]
     heading, scroll, panel_footer = panel.children
     assert heading.children[0].props["Text"] == '"Row 2 of 3"'
-    assert [child.props["OnSelect"] for child in heading.children[1].children] == [
+    assert [child.props["OnSelect"] for child in heading.children[1:]] == [
         "Set(varRow, varRow - 1)", "Set(varRow, varRow + 1)", "Set(varEditorOpen, false)"]
-    assert heading.children[1].children[0].props["DisplayMode"].startswith("If(varRow = 1")
+    assert heading.children[1].props["DisplayMode"].startswith("If(varRow = 1")
     assert scroll.children == [section] and scroll.props["LayoutOverflowY"] == "LayoutOverflow.Scroll"
     assert panel_footer is footer
 

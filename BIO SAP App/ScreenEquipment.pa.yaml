@@ -7411,7 +7411,7 @@ Screens:
                   LayoutDirection: |-
                       =LayoutDirection.Horizontal
                   LayoutGap: |-
-                      =12
+                      =4
                   LayoutMinWidth: |-
                       =0
                   LayoutOverflowX: |-
@@ -7471,383 +7471,380 @@ Screens:
                                  Plant = drpEqPlantFilter.Selected.Value)
                             ), RowId, SortOrder.Descending))))
                         Width: |-
-                            =Max(0, (((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20)) - ((140) + 12) - 2)
+                            =Max(0, (((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20)) - (If(CountRows(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)) > 1, (44) + 4, 0)) - (If(CountRows(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)) > 1, (44) + 4, 0)) - ((44) + 4) - 2)
                         Wrap: |-
                             =false
-                  - conEqEditorNavigation:
-                      Control: GroupContainer
-                      Variant: AutoLayout
+                  - btnEqEditorPrevious:
+                      Control: Image
                       Properties:
+                        AccessibleLabel: |-
+                            ="Previous row"
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
                         BorderStyle: |-
                             =BorderStyle.None
-                        DropShadow: |-
-                            =DropShadow.None
-                        FillPortions: |-
+                        BorderThickness: |-
                             =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        DisplayMode: |-
+                            =If(IsBlank(varEqActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
                         Height: |-
                             =44
-                        LayoutAlignItems: |-
-                            =LayoutAlignItems.Center
-                        LayoutDirection: |-
-                            =LayoutDirection.Horizontal
-                        LayoutGap: |-
-                            =4
-                        LayoutJustifyContent: |-
-                            =LayoutJustifyContent.End
+                        HoverFill: |-
+                            =If((If(IsBlank(varEqActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If((If(IsBlank(varEqActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M15 6l-6 6 6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M15 6l-6 6 6 6'/></g></svg>"))
+                        ImagePosition: |-
+                            =ImagePosition.Center
                         LayoutMinWidth: |-
-                            =0
-                        LayoutOverflowX: |-
-                            =LayoutOverflow.Hide
-                        LayoutOverflowY: |-
-                            =LayoutOverflow.Hide
+                            =44
+                        OnSelect: |-
+                            =Set(varEqActiveRowId, Index(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), Max(1, CountRows(Filter(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 - 1)).RowId);
+                            Set(varEqActiveRowId, LookUp(colEqRows, RowId = varEqActiveRowId).RowId);
+                            Set(varEqRowStatus, LookUp(colEqRows, RowId = varEqActiveRowId).Status);
+                            Set(varEqValidated, false);
+                            Set(varEqFText, LookUp(colEqRows, RowId = varEqActiveRowId).Description);
+                            Set(varEqFPlant, LookUp(colEqRows, RowId = varEqActiveRowId).Plant);
+                            Set(varEqEditorOpen, true);
+                            Set(varEqFRequestType, LookUp(colEqRows, RowId = varEqActiveRowId).RequestType);
+                            Set(varEqFEquipmentCategory, LookUp(colEqRows, RowId = varEqActiveRowId).EquipmentCategory);
+                            Set(varEqFManufacturer, LookUp(colEqRows, RowId = varEqActiveRowId).Manufacturer);
+                            Set(varEqFTypeDesignation, LookUp(colEqRows, RowId = varEqActiveRowId).TypeDesignation);
+                            Set(varEqFSerialNumber, LookUp(colEqRows, RowId = varEqActiveRowId).SerialNumber);
+                            Set(varEqFFunctionalLocation, LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation);
+                            Set(varEqFClassData, LookUp(colEqRows, RowId = varEqActiveRowId).ClassData);
+                            Set(varEqFRoomCoordinates, LookUp(colEqRows, RowId = varEqActiveRowId).RoomCoordinates);
+                            Set(varEqFPlacement, LookUp(colEqRows, RowId = varEqActiveRowId).Placement);
+                            Set(varEqFWarrantyStart, LookUp(colEqRows, RowId = varEqActiveRowId).WarrantyStart);
+                            Set(varEqFWarrantyEnd, LookUp(colEqRows, RowId = varEqActiveRowId).WarrantyEnd);
+                            If(
+                                !IsBlank(LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation) && IsBlank(LookUp(colEqFl, Code = LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation)),
+                                Collect(colEqFl, { Code: LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation, Description: "", Display: LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
+                            )
+                        PressedFill: |-
+                            =If((If(IsBlank(varEqActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
+                        RadiusBottomLeft: |-
+                            =6
+                        RadiusBottomRight: |-
+                            =6
+                        RadiusTopLeft: |-
+                            =6
+                        RadiusTopRight: |-
+                            =6
+                        TabIndex: |-
+                            =If((If(IsBlank(varEqActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
+                        Tooltip: |-
+                            ="Previous row"
+                        Visible: |-
+                            =CountRows(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)) > 1
                         Width: |-
-                            =140
-                      Children:
-                        - btnEqEditorPrevious:
-                            Control: Image
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Previous row"
-                              BorderColor: |-
-                                  =RGBA(0, 0, 0, 0)
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              DisabledFill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              DisplayMode: |-
-                                  =If(IsBlank(varEqActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
-                                      (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Height: |-
-                                  =44
-                              HoverFill: |-
-                                  =If((If(IsBlank(varEqActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
-                                      (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
-                              Image: |-
-                                  ="data:image/svg+xml;utf8," & EncodeUrl(If((If(IsBlank(varEqActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
-                                      (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M15 6l-6 6 6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M15 6l-6 6 6 6'/></g></svg>"))
-                              ImagePosition: |-
-                                  =ImagePosition.Center
-                              OnSelect: |-
-                                  =Set(varEqActiveRowId, Index(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
-                                      (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), Max(1, CountRows(Filter(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
-                                      (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 - 1)).RowId);
-                                  Set(varEqActiveRowId, LookUp(colEqRows, RowId = varEqActiveRowId).RowId);
-                                  Set(varEqRowStatus, LookUp(colEqRows, RowId = varEqActiveRowId).Status);
-                                  Set(varEqValidated, false);
-                                  Set(varEqFText, LookUp(colEqRows, RowId = varEqActiveRowId).Description);
-                                  Set(varEqFPlant, LookUp(colEqRows, RowId = varEqActiveRowId).Plant);
-                                  Set(varEqEditorOpen, true);
-                                  Set(varEqFRequestType, LookUp(colEqRows, RowId = varEqActiveRowId).RequestType);
-                                  Set(varEqFEquipmentCategory, LookUp(colEqRows, RowId = varEqActiveRowId).EquipmentCategory);
-                                  Set(varEqFManufacturer, LookUp(colEqRows, RowId = varEqActiveRowId).Manufacturer);
-                                  Set(varEqFTypeDesignation, LookUp(colEqRows, RowId = varEqActiveRowId).TypeDesignation);
-                                  Set(varEqFSerialNumber, LookUp(colEqRows, RowId = varEqActiveRowId).SerialNumber);
-                                  Set(varEqFFunctionalLocation, LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation);
-                                  Set(varEqFClassData, LookUp(colEqRows, RowId = varEqActiveRowId).ClassData);
-                                  Set(varEqFRoomCoordinates, LookUp(colEqRows, RowId = varEqActiveRowId).RoomCoordinates);
-                                  Set(varEqFPlacement, LookUp(colEqRows, RowId = varEqActiveRowId).Placement);
-                                  Set(varEqFWarrantyStart, LookUp(colEqRows, RowId = varEqActiveRowId).WarrantyStart);
-                                  Set(varEqFWarrantyEnd, LookUp(colEqRows, RowId = varEqActiveRowId).WarrantyEnd);
-                                  If(
-                                      !IsBlank(LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation) && IsBlank(LookUp(colEqFl, Code = LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation)),
-                                      Collect(colEqFl, { Code: LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation, Description: "", Display: LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
-                                  )
-                              PressedFill: |-
-                                  =If((If(IsBlank(varEqActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
-                                      (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
-                              RadiusBottomLeft: |-
-                                  =6
-                              RadiusBottomRight: |-
-                                  =6
-                              RadiusTopLeft: |-
-                                  =6
-                              RadiusTopRight: |-
-                                  =6
-                              TabIndex: |-
-                                  =If((If(IsBlank(varEqActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
-                                      (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
-                              Tooltip: |-
-                                  ="Previous row"
-                              Visible: |-
-                                  =CountRows(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
-                                      (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)) > 1
-                              Width: |-
-                                  =44
-                        - btnEqEditorNext:
-                            Control: Image
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Next row"
-                              BorderColor: |-
-                                  =RGBA(0, 0, 0, 0)
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              DisabledFill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              DisplayMode: |-
-                                  =If(IsBlank(varEqActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
-                                      (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 >= CountRows(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
-                                      (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Height: |-
-                                  =44
-                              HoverFill: |-
-                                  =If((If(IsBlank(varEqActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
-                                      (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 >= CountRows(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
-                                      (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
-                              Image: |-
-                                  ="data:image/svg+xml;utf8," & EncodeUrl(If((If(IsBlank(varEqActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
-                                      (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 >= CountRows(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
-                                      (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6l6 6-6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M9 6l6 6-6 6'/></g></svg>"))
-                              ImagePosition: |-
-                                  =ImagePosition.Center
-                              OnSelect: |-
-                                  =Set(varEqActiveRowId, Index(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
-                                      (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), Min(CountRows(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
-                                      (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)), CountRows(Filter(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
-                                      (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 + 1)).RowId);
-                                  Set(varEqActiveRowId, LookUp(colEqRows, RowId = varEqActiveRowId).RowId);
-                                  Set(varEqRowStatus, LookUp(colEqRows, RowId = varEqActiveRowId).Status);
-                                  Set(varEqValidated, false);
-                                  Set(varEqFText, LookUp(colEqRows, RowId = varEqActiveRowId).Description);
-                                  Set(varEqFPlant, LookUp(colEqRows, RowId = varEqActiveRowId).Plant);
-                                  Set(varEqEditorOpen, true);
-                                  Set(varEqFRequestType, LookUp(colEqRows, RowId = varEqActiveRowId).RequestType);
-                                  Set(varEqFEquipmentCategory, LookUp(colEqRows, RowId = varEqActiveRowId).EquipmentCategory);
-                                  Set(varEqFManufacturer, LookUp(colEqRows, RowId = varEqActiveRowId).Manufacturer);
-                                  Set(varEqFTypeDesignation, LookUp(colEqRows, RowId = varEqActiveRowId).TypeDesignation);
-                                  Set(varEqFSerialNumber, LookUp(colEqRows, RowId = varEqActiveRowId).SerialNumber);
-                                  Set(varEqFFunctionalLocation, LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation);
-                                  Set(varEqFClassData, LookUp(colEqRows, RowId = varEqActiveRowId).ClassData);
-                                  Set(varEqFRoomCoordinates, LookUp(colEqRows, RowId = varEqActiveRowId).RoomCoordinates);
-                                  Set(varEqFPlacement, LookUp(colEqRows, RowId = varEqActiveRowId).Placement);
-                                  Set(varEqFWarrantyStart, LookUp(colEqRows, RowId = varEqActiveRowId).WarrantyStart);
-                                  Set(varEqFWarrantyEnd, LookUp(colEqRows, RowId = varEqActiveRowId).WarrantyEnd);
-                                  If(
-                                      !IsBlank(LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation) && IsBlank(LookUp(colEqFl, Code = LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation)),
-                                      Collect(colEqFl, { Code: LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation, Description: "", Display: LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
-                                  )
-                              PressedFill: |-
-                                  =If((If(IsBlank(varEqActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
-                                      (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 >= CountRows(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
-                                      (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
-                              RadiusBottomLeft: |-
-                                  =6
-                              RadiusBottomRight: |-
-                                  =6
-                              RadiusTopLeft: |-
-                                  =6
-                              RadiusTopRight: |-
-                                  =6
-                              TabIndex: |-
-                                  =If((If(IsBlank(varEqActiveRowId) || CountRows(Filter(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
-                                      (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 >= CountRows(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
-                                      (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
-                              Tooltip: |-
-                                  ="Next row"
-                              Visible: |-
-                                  =CountRows(Sort(Filter(
-                                      colEqRows,
-                                      (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
-                                      (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
-                                       Status = Lower(drpEqStatusFilter.Selected.Value)),
-                                      (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
-                                       Plant = drpEqPlantFilter.Selected.Value)
-                                  ), RowId, SortOrder.Descending)) > 1
-                              Width: |-
-                                  =44
-                        - btnEqEditorClose:
-                            Control: Image
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Close"
-                              BorderColor: |-
-                                  =RGBA(0, 0, 0, 0)
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              DisabledFill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Height: |-
-                                  =44
-                              HoverFill: |-
-                                  =C.'row-hover'
-                              Image: |-
-                                  ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>")
-                              ImagePosition: |-
-                                  =ImagePosition.Center
-                              OnSelect: |-
-                                  =Set(varEqActiveRowId, Blank());
-                                  Set(varEqRowStatus, "valid");
-                                  Set(varEqValidated, false);
-                                  Set(varEqFText, "");
-                                  Set(varEqFPlant, Coalesce(First(colAppPrefs).prefEqNewPlant, ""));
-                                  Set(varEqEditorOpen, false);
-                                  Set(varEqFRequestType, "");
-                                  Set(varEqFEquipmentCategory, "");
-                                  Set(varEqFManufacturer, "");
-                                  Set(varEqFTypeDesignation, "");
-                                  Set(varEqFSerialNumber, "");
-                                  Set(varEqFFunctionalLocation, "");
-                                  Set(varEqFClassData, "");
-                                  Set(varEqFRoomCoordinates, "");
-                                  Set(varEqFPlacement, "");
-                                  Set(varEqFWarrantyStart, Blank());
-                                  Set(varEqFWarrantyEnd, Blank());
-                                  Set(varEqFlQuery, ""); Set(varEqFlLast, ""); Set(varEqFlMsg, ""); Clear(colEqFl); Reset(cmbEqFl);
-                                  Set(varEqInfo, "")
-                              PressedFill: |-
-                                  =C.'row-pressed'
-                              RadiusBottomLeft: |-
-                                  =6
-                              RadiusBottomRight: |-
-                                  =6
-                              RadiusTopLeft: |-
-                                  =6
-                              RadiusTopRight: |-
-                                  =6
-                              TabIndex: |-
-                                  =0
-                              Tooltip: |-
-                                  ="Close"
-                              Width: |-
-                                  =44
+                            =44
+                  - btnEqEditorNext:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Next row"
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        DisplayMode: |-
+                            =If(IsBlank(varEqActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 >= CountRows(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Height: |-
+                            =44
+                        HoverFill: |-
+                            =If((If(IsBlank(varEqActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 >= CountRows(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If((If(IsBlank(varEqActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 >= CountRows(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6l6 6-6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M9 6l6 6-6 6'/></g></svg>"))
+                        ImagePosition: |-
+                            =ImagePosition.Center
+                        LayoutMinWidth: |-
+                            =44
+                        OnSelect: |-
+                            =Set(varEqActiveRowId, Index(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), Min(CountRows(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)), CountRows(Filter(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 + 1)).RowId);
+                            Set(varEqActiveRowId, LookUp(colEqRows, RowId = varEqActiveRowId).RowId);
+                            Set(varEqRowStatus, LookUp(colEqRows, RowId = varEqActiveRowId).Status);
+                            Set(varEqValidated, false);
+                            Set(varEqFText, LookUp(colEqRows, RowId = varEqActiveRowId).Description);
+                            Set(varEqFPlant, LookUp(colEqRows, RowId = varEqActiveRowId).Plant);
+                            Set(varEqEditorOpen, true);
+                            Set(varEqFRequestType, LookUp(colEqRows, RowId = varEqActiveRowId).RequestType);
+                            Set(varEqFEquipmentCategory, LookUp(colEqRows, RowId = varEqActiveRowId).EquipmentCategory);
+                            Set(varEqFManufacturer, LookUp(colEqRows, RowId = varEqActiveRowId).Manufacturer);
+                            Set(varEqFTypeDesignation, LookUp(colEqRows, RowId = varEqActiveRowId).TypeDesignation);
+                            Set(varEqFSerialNumber, LookUp(colEqRows, RowId = varEqActiveRowId).SerialNumber);
+                            Set(varEqFFunctionalLocation, LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation);
+                            Set(varEqFClassData, LookUp(colEqRows, RowId = varEqActiveRowId).ClassData);
+                            Set(varEqFRoomCoordinates, LookUp(colEqRows, RowId = varEqActiveRowId).RoomCoordinates);
+                            Set(varEqFPlacement, LookUp(colEqRows, RowId = varEqActiveRowId).Placement);
+                            Set(varEqFWarrantyStart, LookUp(colEqRows, RowId = varEqActiveRowId).WarrantyStart);
+                            Set(varEqFWarrantyEnd, LookUp(colEqRows, RowId = varEqActiveRowId).WarrantyEnd);
+                            If(
+                                !IsBlank(LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation) && IsBlank(LookUp(colEqFl, Code = LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation)),
+                                Collect(colEqFl, { Code: LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation, Description: "", Display: LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
+                            )
+                        PressedFill: |-
+                            =If((If(IsBlank(varEqActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 >= CountRows(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
+                        RadiusBottomLeft: |-
+                            =6
+                        RadiusBottomRight: |-
+                            =6
+                        RadiusTopLeft: |-
+                            =6
+                        RadiusTopRight: |-
+                            =6
+                        TabIndex: |-
+                            =If((If(IsBlank(varEqActiveRowId) || CountRows(Filter(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending), RowId > varEqActiveRowId)) + 1 >= CountRows(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
+                        Tooltip: |-
+                            ="Next row"
+                        Visible: |-
+                            =CountRows(Sort(Filter(
+                                colEqRows,
+                                (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
+                                (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
+                                 Status = Lower(drpEqStatusFilter.Selected.Value)),
+                                (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
+                                 Plant = drpEqPlantFilter.Selected.Value)
+                            ), RowId, SortOrder.Descending)) > 1
+                        Width: |-
+                            =44
+                  - btnEqEditorClose:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Height: |-
+                            =44
+                        HoverFill: |-
+                            =C.'row-hover'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Center
+                        LayoutMinWidth: |-
+                            =44
+                        OnSelect: |-
+                            =Set(varEqActiveRowId, Blank());
+                            Set(varEqRowStatus, "valid");
+                            Set(varEqValidated, false);
+                            Set(varEqFText, "");
+                            Set(varEqFPlant, Coalesce(First(colAppPrefs).prefEqNewPlant, ""));
+                            Set(varEqEditorOpen, false);
+                            Set(varEqFRequestType, "");
+                            Set(varEqFEquipmentCategory, "");
+                            Set(varEqFManufacturer, "");
+                            Set(varEqFTypeDesignation, "");
+                            Set(varEqFSerialNumber, "");
+                            Set(varEqFFunctionalLocation, "");
+                            Set(varEqFClassData, "");
+                            Set(varEqFRoomCoordinates, "");
+                            Set(varEqFPlacement, "");
+                            Set(varEqFWarrantyStart, Blank());
+                            Set(varEqFWarrantyEnd, Blank());
+                            Set(varEqFlQuery, ""); Set(varEqFlLast, ""); Set(varEqFlMsg, ""); Clear(colEqFl); Reset(cmbEqFl);
+                            Set(varEqInfo, "")
+                        PressedFill: |-
+                            =C.'row-pressed'
+                        RadiusBottomLeft: |-
+                            =6
+                        RadiusBottomRight: |-
+                            =6
+                        RadiusTopLeft: |-
+                            =6
+                        RadiusTopRight: |-
+                            =6
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            ="Close"
+                        Width: |-
+                            =44
             - conEqEditorSections:
                 Control: GroupContainer
                 Variant: AutoLayout
@@ -7859,7 +7856,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =App.Height - (116 + (44))
+                      =App.Height - (140 + (44))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
