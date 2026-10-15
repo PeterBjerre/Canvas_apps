@@ -500,46 +500,91 @@ Screens:
                                               }
                                           )
                                       ),
-                                      ClearCollect(
-                                          colMatRows,
-                                          ForAll(
-                                              SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, (!IsBlank(varMatRequestGuid) && RequestGuid = varMatRequestGuid) || Created >= varMatSessionStart, RequestGuid = varMatRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                              {
-                                                  RowId: R.ID,
-                                                  ItemKey: Coalesce(R.ItemKey, ""),
-                                                  RequestNo: Coalesce(R.RequestNo, ""),
-                                                  Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                  FileCount: Coalesce(R.FileCount, 0),
-                                                  MaterialDescription: Coalesce(R.MaterialDescription, ""),
-                                                  Plant: Coalesce(R.Plant, ""),
-                                                  Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                  ModelNumber: Coalesce(R.ModelNumber, ""),
-                                                  ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
-                                                  Supplier: Coalesce(R.Supplier, ""),
-                                                  SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
-                                                  DeliveringTime: R.DeliveringTime,
-                                                  Price: R.Price,
-                                                  PriceUnit: Coalesce(R.PriceUnit, ""),
-                                                  StockUnit: Coalesce(R.StockUnit, ""),
-                                                  IsStockItem: Coalesce(R.IsStockItem, false),
-                                                  MinStock: R.MinStock,
-                                                  MaxStock: R.MaxStock,
-                                                  StorageBin: Coalesce(R.StorageBin, ""),
-                                                  StrategicPart: Coalesce(R.StrategicPart, ""),
-                                                  WearPart: Coalesce(R.WearPart, ""),
-                                                  Remarks: Coalesce(R.Remarks, ""),
-                                                  MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
-                                                  ReplacesExisting: Coalesce(R.ReplacesExisting, false),
-                                                  ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
-                                                  FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                  ObjectList: Coalesce(R.ObjectList, ""),
-                                                  ObjectListJson: Coalesce(R.ObjectListJson, ""),
-                                                  ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                                  CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
-                                                  RequesterName: Coalesce(R.RequesterName, ""),
-                                                  RequesterEmail: Coalesce(R.RequesterEmail, ""),
-                                                  SubmittedOn: R.SubmittedOn
-                                              }
+                                      If(
+                                          !IsBlank(varMatRequestGuid),
+                                          ClearCollect(
+                                              colMatRows,
+                                              ForAll(
+                                                  SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, RequestGuid = varMatRequestGuid), "Created", SortOrder.Descending) As R,
+                                                  {
+                                                      RowId: R.ID,
+                                                      ItemKey: Coalesce(R.ItemKey, ""),
+                                                      RequestNo: Coalesce(R.RequestNo, ""),
+                                                      Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                      FileCount: Coalesce(R.FileCount, 0),
+                                                      MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                      Plant: Coalesce(R.Plant, ""),
+                                                      Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                      ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                      ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                      Supplier: Coalesce(R.Supplier, ""),
+                                                      SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                      DeliveringTime: R.DeliveringTime,
+                                                      Price: R.Price,
+                                                      PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                      StockUnit: Coalesce(R.StockUnit, ""),
+                                                      IsStockItem: Coalesce(R.IsStockItem, false),
+                                                      MinStock: R.MinStock,
+                                                      MaxStock: R.MaxStock,
+                                                      StorageBin: Coalesce(R.StorageBin, ""),
+                                                      StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                      WearPart: Coalesce(R.WearPart, ""),
+                                                      Remarks: Coalesce(R.Remarks, ""),
+                                                      MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                                      ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                                      ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                                      FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                      ObjectList: Coalesce(R.ObjectList, ""),
+                                                      ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                                      ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                      CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                                      RequesterName: Coalesce(R.RequesterName, ""),
+                                                      RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                                      SubmittedOn: R.SubmittedOn
+                                                  }
+                                              )
+                                          ),
+                                          ClearCollect(
+                                              colMatRows,
+                                              ForAll(
+                                                  SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, Created >= varMatSessionStart), "Created", SortOrder.Descending) As R,
+                                                  {
+                                                      RowId: R.ID,
+                                                      ItemKey: Coalesce(R.ItemKey, ""),
+                                                      RequestNo: Coalesce(R.RequestNo, ""),
+                                                      Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                      FileCount: Coalesce(R.FileCount, 0),
+                                                      MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                      Plant: Coalesce(R.Plant, ""),
+                                                      Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                      ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                      ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                      Supplier: Coalesce(R.Supplier, ""),
+                                                      SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                      DeliveringTime: R.DeliveringTime,
+                                                      Price: R.Price,
+                                                      PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                      StockUnit: Coalesce(R.StockUnit, ""),
+                                                      IsStockItem: Coalesce(R.IsStockItem, false),
+                                                      MinStock: R.MinStock,
+                                                      MaxStock: R.MaxStock,
+                                                      StorageBin: Coalesce(R.StorageBin, ""),
+                                                      StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                      WearPart: Coalesce(R.WearPart, ""),
+                                                      Remarks: Coalesce(R.Remarks, ""),
+                                                      MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                                      ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                                      ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                                      FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                      ObjectList: Coalesce(R.ObjectList, ""),
+                                                      ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                                      ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                      CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                                      RequesterName: Coalesce(R.RequesterName, ""),
+                                                      RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                                      SubmittedOn: R.SubmittedOn
+                                                  }
+                                              )
                                           )
                                       )
                                   );
@@ -830,46 +875,91 @@ Screens:
                                                       }
                                                   )
                                               ),
-                                              ClearCollect(
-                                                  colMatRows,
-                                                  ForAll(
-                                                      SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, (!IsBlank(varMatRequestGuid) && RequestGuid = varMatRequestGuid) || Created >= varMatSessionStart, RequestGuid = varMatRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                      {
-                                                          RowId: R.ID,
-                                                          ItemKey: Coalesce(R.ItemKey, ""),
-                                                          RequestNo: Coalesce(R.RequestNo, ""),
-                                                          Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                          FileCount: Coalesce(R.FileCount, 0),
-                                                          MaterialDescription: Coalesce(R.MaterialDescription, ""),
-                                                          Plant: Coalesce(R.Plant, ""),
-                                                          Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                          ModelNumber: Coalesce(R.ModelNumber, ""),
-                                                          ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
-                                                          Supplier: Coalesce(R.Supplier, ""),
-                                                          SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
-                                                          DeliveringTime: R.DeliveringTime,
-                                                          Price: R.Price,
-                                                          PriceUnit: Coalesce(R.PriceUnit, ""),
-                                                          StockUnit: Coalesce(R.StockUnit, ""),
-                                                          IsStockItem: Coalesce(R.IsStockItem, false),
-                                                          MinStock: R.MinStock,
-                                                          MaxStock: R.MaxStock,
-                                                          StorageBin: Coalesce(R.StorageBin, ""),
-                                                          StrategicPart: Coalesce(R.StrategicPart, ""),
-                                                          WearPart: Coalesce(R.WearPart, ""),
-                                                          Remarks: Coalesce(R.Remarks, ""),
-                                                          MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
-                                                          ReplacesExisting: Coalesce(R.ReplacesExisting, false),
-                                                          ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
-                                                          FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                          ObjectList: Coalesce(R.ObjectList, ""),
-                                                          ObjectListJson: Coalesce(R.ObjectListJson, ""),
-                                                          ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                                          CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
-                                                          RequesterName: Coalesce(R.RequesterName, ""),
-                                                          RequesterEmail: Coalesce(R.RequesterEmail, ""),
-                                                          SubmittedOn: R.SubmittedOn
-                                                      }
+                                              If(
+                                                  !IsBlank(varMatRequestGuid),
+                                                  ClearCollect(
+                                                      colMatRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, RequestGuid = varMatRequestGuid), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                              ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                              ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                              Supplier: Coalesce(R.Supplier, ""),
+                                                              SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                              DeliveringTime: R.DeliveringTime,
+                                                              Price: R.Price,
+                                                              PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                              StockUnit: Coalesce(R.StockUnit, ""),
+                                                              IsStockItem: Coalesce(R.IsStockItem, false),
+                                                              MinStock: R.MinStock,
+                                                              MaxStock: R.MaxStock,
+                                                              StorageBin: Coalesce(R.StorageBin, ""),
+                                                              StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                              WearPart: Coalesce(R.WearPart, ""),
+                                                              Remarks: Coalesce(R.Remarks, ""),
+                                                              MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                                              ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                                              ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ObjectList: Coalesce(R.ObjectList, ""),
+                                                              ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                                              ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                              CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                                              RequesterName: Coalesce(R.RequesterName, ""),
+                                                              RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                                              SubmittedOn: R.SubmittedOn
+                                                          }
+                                                      )
+                                                  ),
+                                                  ClearCollect(
+                                                      colMatRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, Created >= varMatSessionStart), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                              ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                              ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                              Supplier: Coalesce(R.Supplier, ""),
+                                                              SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                              DeliveringTime: R.DeliveringTime,
+                                                              Price: R.Price,
+                                                              PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                              StockUnit: Coalesce(R.StockUnit, ""),
+                                                              IsStockItem: Coalesce(R.IsStockItem, false),
+                                                              MinStock: R.MinStock,
+                                                              MaxStock: R.MaxStock,
+                                                              StorageBin: Coalesce(R.StorageBin, ""),
+                                                              StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                              WearPart: Coalesce(R.WearPart, ""),
+                                                              Remarks: Coalesce(R.Remarks, ""),
+                                                              MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                                              ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                                              ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ObjectList: Coalesce(R.ObjectList, ""),
+                                                              ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                                              ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                              CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                                              RequesterName: Coalesce(R.RequesterName, ""),
+                                                              RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                                              SubmittedOn: R.SubmittedOn
+                                                          }
+                                                      )
                                                   )
                                               )
                                           );
@@ -1037,46 +1127,91 @@ Screens:
                                                       }
                                                   )
                                               ),
-                                              ClearCollect(
-                                                  colMatRows,
-                                                  ForAll(
-                                                      SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, (!IsBlank(varMatRequestGuid) && RequestGuid = varMatRequestGuid) || Created >= varMatSessionStart, RequestGuid = varMatRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                      {
-                                                          RowId: R.ID,
-                                                          ItemKey: Coalesce(R.ItemKey, ""),
-                                                          RequestNo: Coalesce(R.RequestNo, ""),
-                                                          Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                          FileCount: Coalesce(R.FileCount, 0),
-                                                          MaterialDescription: Coalesce(R.MaterialDescription, ""),
-                                                          Plant: Coalesce(R.Plant, ""),
-                                                          Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                          ModelNumber: Coalesce(R.ModelNumber, ""),
-                                                          ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
-                                                          Supplier: Coalesce(R.Supplier, ""),
-                                                          SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
-                                                          DeliveringTime: R.DeliveringTime,
-                                                          Price: R.Price,
-                                                          PriceUnit: Coalesce(R.PriceUnit, ""),
-                                                          StockUnit: Coalesce(R.StockUnit, ""),
-                                                          IsStockItem: Coalesce(R.IsStockItem, false),
-                                                          MinStock: R.MinStock,
-                                                          MaxStock: R.MaxStock,
-                                                          StorageBin: Coalesce(R.StorageBin, ""),
-                                                          StrategicPart: Coalesce(R.StrategicPart, ""),
-                                                          WearPart: Coalesce(R.WearPart, ""),
-                                                          Remarks: Coalesce(R.Remarks, ""),
-                                                          MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
-                                                          ReplacesExisting: Coalesce(R.ReplacesExisting, false),
-                                                          ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
-                                                          FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                          ObjectList: Coalesce(R.ObjectList, ""),
-                                                          ObjectListJson: Coalesce(R.ObjectListJson, ""),
-                                                          ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                                          CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
-                                                          RequesterName: Coalesce(R.RequesterName, ""),
-                                                          RequesterEmail: Coalesce(R.RequesterEmail, ""),
-                                                          SubmittedOn: R.SubmittedOn
-                                                      }
+                                              If(
+                                                  !IsBlank(varMatRequestGuid),
+                                                  ClearCollect(
+                                                      colMatRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, RequestGuid = varMatRequestGuid), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                              ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                              ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                              Supplier: Coalesce(R.Supplier, ""),
+                                                              SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                              DeliveringTime: R.DeliveringTime,
+                                                              Price: R.Price,
+                                                              PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                              StockUnit: Coalesce(R.StockUnit, ""),
+                                                              IsStockItem: Coalesce(R.IsStockItem, false),
+                                                              MinStock: R.MinStock,
+                                                              MaxStock: R.MaxStock,
+                                                              StorageBin: Coalesce(R.StorageBin, ""),
+                                                              StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                              WearPart: Coalesce(R.WearPart, ""),
+                                                              Remarks: Coalesce(R.Remarks, ""),
+                                                              MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                                              ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                                              ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ObjectList: Coalesce(R.ObjectList, ""),
+                                                              ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                                              ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                              CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                                              RequesterName: Coalesce(R.RequesterName, ""),
+                                                              RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                                              SubmittedOn: R.SubmittedOn
+                                                          }
+                                                      )
+                                                  ),
+                                                  ClearCollect(
+                                                      colMatRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, Created >= varMatSessionStart), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                              ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                              ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                              Supplier: Coalesce(R.Supplier, ""),
+                                                              SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                              DeliveringTime: R.DeliveringTime,
+                                                              Price: R.Price,
+                                                              PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                              StockUnit: Coalesce(R.StockUnit, ""),
+                                                              IsStockItem: Coalesce(R.IsStockItem, false),
+                                                              MinStock: R.MinStock,
+                                                              MaxStock: R.MaxStock,
+                                                              StorageBin: Coalesce(R.StorageBin, ""),
+                                                              StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                              WearPart: Coalesce(R.WearPart, ""),
+                                                              Remarks: Coalesce(R.Remarks, ""),
+                                                              MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                                              ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                                              ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ObjectList: Coalesce(R.ObjectList, ""),
+                                                              ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                                              ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                              CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                                              RequesterName: Coalesce(R.RequesterName, ""),
+                                                              RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                                              SubmittedOn: R.SubmittedOn
+                                                          }
+                                                      )
                                                   )
                                               )
                                           );
@@ -4189,46 +4324,91 @@ Screens:
                                                       }
                                                   )
                                               ),
-                                              ClearCollect(
-                                                  colMatRows,
-                                                  ForAll(
-                                                      SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, (!IsBlank(varMatRequestGuid) && RequestGuid = varMatRequestGuid) || Created >= varMatSessionStart, RequestGuid = varMatRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                      {
-                                                          RowId: R.ID,
-                                                          ItemKey: Coalesce(R.ItemKey, ""),
-                                                          RequestNo: Coalesce(R.RequestNo, ""),
-                                                          Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                          FileCount: Coalesce(R.FileCount, 0),
-                                                          MaterialDescription: Coalesce(R.MaterialDescription, ""),
-                                                          Plant: Coalesce(R.Plant, ""),
-                                                          Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                          ModelNumber: Coalesce(R.ModelNumber, ""),
-                                                          ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
-                                                          Supplier: Coalesce(R.Supplier, ""),
-                                                          SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
-                                                          DeliveringTime: R.DeliveringTime,
-                                                          Price: R.Price,
-                                                          PriceUnit: Coalesce(R.PriceUnit, ""),
-                                                          StockUnit: Coalesce(R.StockUnit, ""),
-                                                          IsStockItem: Coalesce(R.IsStockItem, false),
-                                                          MinStock: R.MinStock,
-                                                          MaxStock: R.MaxStock,
-                                                          StorageBin: Coalesce(R.StorageBin, ""),
-                                                          StrategicPart: Coalesce(R.StrategicPart, ""),
-                                                          WearPart: Coalesce(R.WearPart, ""),
-                                                          Remarks: Coalesce(R.Remarks, ""),
-                                                          MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
-                                                          ReplacesExisting: Coalesce(R.ReplacesExisting, false),
-                                                          ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
-                                                          FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                          ObjectList: Coalesce(R.ObjectList, ""),
-                                                          ObjectListJson: Coalesce(R.ObjectListJson, ""),
-                                                          ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                                          CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
-                                                          RequesterName: Coalesce(R.RequesterName, ""),
-                                                          RequesterEmail: Coalesce(R.RequesterEmail, ""),
-                                                          SubmittedOn: R.SubmittedOn
-                                                      }
+                                              If(
+                                                  !IsBlank(varMatRequestGuid),
+                                                  ClearCollect(
+                                                      colMatRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, RequestGuid = varMatRequestGuid), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                              ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                              ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                              Supplier: Coalesce(R.Supplier, ""),
+                                                              SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                              DeliveringTime: R.DeliveringTime,
+                                                              Price: R.Price,
+                                                              PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                              StockUnit: Coalesce(R.StockUnit, ""),
+                                                              IsStockItem: Coalesce(R.IsStockItem, false),
+                                                              MinStock: R.MinStock,
+                                                              MaxStock: R.MaxStock,
+                                                              StorageBin: Coalesce(R.StorageBin, ""),
+                                                              StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                              WearPart: Coalesce(R.WearPart, ""),
+                                                              Remarks: Coalesce(R.Remarks, ""),
+                                                              MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                                              ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                                              ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ObjectList: Coalesce(R.ObjectList, ""),
+                                                              ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                                              ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                              CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                                              RequesterName: Coalesce(R.RequesterName, ""),
+                                                              RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                                              SubmittedOn: R.SubmittedOn
+                                                          }
+                                                      )
+                                                  ),
+                                                  ClearCollect(
+                                                      colMatRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, Created >= varMatSessionStart), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                              ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                              ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                              Supplier: Coalesce(R.Supplier, ""),
+                                                              SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                              DeliveringTime: R.DeliveringTime,
+                                                              Price: R.Price,
+                                                              PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                              StockUnit: Coalesce(R.StockUnit, ""),
+                                                              IsStockItem: Coalesce(R.IsStockItem, false),
+                                                              MinStock: R.MinStock,
+                                                              MaxStock: R.MaxStock,
+                                                              StorageBin: Coalesce(R.StorageBin, ""),
+                                                              StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                              WearPart: Coalesce(R.WearPart, ""),
+                                                              Remarks: Coalesce(R.Remarks, ""),
+                                                              MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                                              ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                                              ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ObjectList: Coalesce(R.ObjectList, ""),
+                                                              ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                                              ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                              CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                                              RequesterName: Coalesce(R.RequesterName, ""),
+                                                              RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                                              SubmittedOn: R.SubmittedOn
+                                                          }
+                                                      )
                                                   )
                                               )
                                           );
@@ -5003,8 +5183,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -5039,8 +5221,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -5316,8 +5500,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -7487,8 +7673,10 @@ Screens:
                 =0
             Fill: |-
                 =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -7550,8 +7738,10 @@ Screens:
                 =0
             Fill: |-
                 =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -12845,46 +13035,91 @@ Screens:
                                                                     }
                                                                 )
                                                             ),
-                                                            ClearCollect(
-                                                                colMatRows,
-                                                                ForAll(
-                                                                    SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, (!IsBlank(varMatRequestGuid) && RequestGuid = varMatRequestGuid) || Created >= varMatSessionStart, RequestGuid = varMatRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                                    {
-                                                                        RowId: R.ID,
-                                                                        ItemKey: Coalesce(R.ItemKey, ""),
-                                                                        RequestNo: Coalesce(R.RequestNo, ""),
-                                                                        Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                                        FileCount: Coalesce(R.FileCount, 0),
-                                                                        MaterialDescription: Coalesce(R.MaterialDescription, ""),
-                                                                        Plant: Coalesce(R.Plant, ""),
-                                                                        Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                                        ModelNumber: Coalesce(R.ModelNumber, ""),
-                                                                        ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
-                                                                        Supplier: Coalesce(R.Supplier, ""),
-                                                                        SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
-                                                                        DeliveringTime: R.DeliveringTime,
-                                                                        Price: R.Price,
-                                                                        PriceUnit: Coalesce(R.PriceUnit, ""),
-                                                                        StockUnit: Coalesce(R.StockUnit, ""),
-                                                                        IsStockItem: Coalesce(R.IsStockItem, false),
-                                                                        MinStock: R.MinStock,
-                                                                        MaxStock: R.MaxStock,
-                                                                        StorageBin: Coalesce(R.StorageBin, ""),
-                                                                        StrategicPart: Coalesce(R.StrategicPart, ""),
-                                                                        WearPart: Coalesce(R.WearPart, ""),
-                                                                        Remarks: Coalesce(R.Remarks, ""),
-                                                                        MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
-                                                                        ReplacesExisting: Coalesce(R.ReplacesExisting, false),
-                                                                        ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
-                                                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                                        ObjectList: Coalesce(R.ObjectList, ""),
-                                                                        ObjectListJson: Coalesce(R.ObjectListJson, ""),
-                                                                        ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                                                        CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
-                                                                        RequesterName: Coalesce(R.RequesterName, ""),
-                                                                        RequesterEmail: Coalesce(R.RequesterEmail, ""),
-                                                                        SubmittedOn: R.SubmittedOn
-                                                                    }
+                                                            If(
+                                                                !IsBlank(varMatRequestGuid),
+                                                                ClearCollect(
+                                                                    colMatRows,
+                                                                    ForAll(
+                                                                        SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, RequestGuid = varMatRequestGuid), "Created", SortOrder.Descending) As R,
+                                                                        {
+                                                                            RowId: R.ID,
+                                                                            ItemKey: Coalesce(R.ItemKey, ""),
+                                                                            RequestNo: Coalesce(R.RequestNo, ""),
+                                                                            Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                                            FileCount: Coalesce(R.FileCount, 0),
+                                                                            MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                                            Plant: Coalesce(R.Plant, ""),
+                                                                            Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                                            ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                                            ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                                            Supplier: Coalesce(R.Supplier, ""),
+                                                                            SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                                            DeliveringTime: R.DeliveringTime,
+                                                                            Price: R.Price,
+                                                                            PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                                            StockUnit: Coalesce(R.StockUnit, ""),
+                                                                            IsStockItem: Coalesce(R.IsStockItem, false),
+                                                                            MinStock: R.MinStock,
+                                                                            MaxStock: R.MaxStock,
+                                                                            StorageBin: Coalesce(R.StorageBin, ""),
+                                                                            StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                                            WearPart: Coalesce(R.WearPart, ""),
+                                                                            Remarks: Coalesce(R.Remarks, ""),
+                                                                            MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                                                            ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                                                            ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                                                            FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                                            ObjectList: Coalesce(R.ObjectList, ""),
+                                                                            ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                                                            ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                                            CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                                                            RequesterName: Coalesce(R.RequesterName, ""),
+                                                                            RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                                                            SubmittedOn: R.SubmittedOn
+                                                                        }
+                                                                    )
+                                                                ),
+                                                                ClearCollect(
+                                                                    colMatRows,
+                                                                    ForAll(
+                                                                        SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, Created >= varMatSessionStart), "Created", SortOrder.Descending) As R,
+                                                                        {
+                                                                            RowId: R.ID,
+                                                                            ItemKey: Coalesce(R.ItemKey, ""),
+                                                                            RequestNo: Coalesce(R.RequestNo, ""),
+                                                                            Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                                            FileCount: Coalesce(R.FileCount, 0),
+                                                                            MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                                            Plant: Coalesce(R.Plant, ""),
+                                                                            Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                                            ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                                            ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                                            Supplier: Coalesce(R.Supplier, ""),
+                                                                            SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                                            DeliveringTime: R.DeliveringTime,
+                                                                            Price: R.Price,
+                                                                            PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                                            StockUnit: Coalesce(R.StockUnit, ""),
+                                                                            IsStockItem: Coalesce(R.IsStockItem, false),
+                                                                            MinStock: R.MinStock,
+                                                                            MaxStock: R.MaxStock,
+                                                                            StorageBin: Coalesce(R.StorageBin, ""),
+                                                                            StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                                            WearPart: Coalesce(R.WearPart, ""),
+                                                                            Remarks: Coalesce(R.Remarks, ""),
+                                                                            MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                                                            ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                                                            ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                                                            FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                                            ObjectList: Coalesce(R.ObjectList, ""),
+                                                                            ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                                                            ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                                            CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                                                            RequesterName: Coalesce(R.RequesterName, ""),
+                                                                            RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                                                            SubmittedOn: R.SubmittedOn
+                                                                        }
+                                                                    )
                                                                 )
                                                             )
                                                         );
@@ -15461,46 +15696,91 @@ Screens:
                                                       }
                                                   )
                                               ),
-                                              ClearCollect(
-                                                  colMatRows,
-                                                  ForAll(
-                                                      SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, (!IsBlank(varMatRequestGuid) && RequestGuid = varMatRequestGuid) || Created >= varMatSessionStart, RequestGuid = varMatRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                      {
-                                                          RowId: R.ID,
-                                                          ItemKey: Coalesce(R.ItemKey, ""),
-                                                          RequestNo: Coalesce(R.RequestNo, ""),
-                                                          Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                          FileCount: Coalesce(R.FileCount, 0),
-                                                          MaterialDescription: Coalesce(R.MaterialDescription, ""),
-                                                          Plant: Coalesce(R.Plant, ""),
-                                                          Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                          ModelNumber: Coalesce(R.ModelNumber, ""),
-                                                          ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
-                                                          Supplier: Coalesce(R.Supplier, ""),
-                                                          SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
-                                                          DeliveringTime: R.DeliveringTime,
-                                                          Price: R.Price,
-                                                          PriceUnit: Coalesce(R.PriceUnit, ""),
-                                                          StockUnit: Coalesce(R.StockUnit, ""),
-                                                          IsStockItem: Coalesce(R.IsStockItem, false),
-                                                          MinStock: R.MinStock,
-                                                          MaxStock: R.MaxStock,
-                                                          StorageBin: Coalesce(R.StorageBin, ""),
-                                                          StrategicPart: Coalesce(R.StrategicPart, ""),
-                                                          WearPart: Coalesce(R.WearPart, ""),
-                                                          Remarks: Coalesce(R.Remarks, ""),
-                                                          MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
-                                                          ReplacesExisting: Coalesce(R.ReplacesExisting, false),
-                                                          ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
-                                                          FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                          ObjectList: Coalesce(R.ObjectList, ""),
-                                                          ObjectListJson: Coalesce(R.ObjectListJson, ""),
-                                                          ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                                          CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
-                                                          RequesterName: Coalesce(R.RequesterName, ""),
-                                                          RequesterEmail: Coalesce(R.RequesterEmail, ""),
-                                                          SubmittedOn: R.SubmittedOn
-                                                      }
+                                              If(
+                                                  !IsBlank(varMatRequestGuid),
+                                                  ClearCollect(
+                                                      colMatRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, RequestGuid = varMatRequestGuid), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                              ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                              ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                              Supplier: Coalesce(R.Supplier, ""),
+                                                              SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                              DeliveringTime: R.DeliveringTime,
+                                                              Price: R.Price,
+                                                              PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                              StockUnit: Coalesce(R.StockUnit, ""),
+                                                              IsStockItem: Coalesce(R.IsStockItem, false),
+                                                              MinStock: R.MinStock,
+                                                              MaxStock: R.MaxStock,
+                                                              StorageBin: Coalesce(R.StorageBin, ""),
+                                                              StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                              WearPart: Coalesce(R.WearPart, ""),
+                                                              Remarks: Coalesce(R.Remarks, ""),
+                                                              MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                                              ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                                              ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ObjectList: Coalesce(R.ObjectList, ""),
+                                                              ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                                              ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                              CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                                              RequesterName: Coalesce(R.RequesterName, ""),
+                                                              RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                                              SubmittedOn: R.SubmittedOn
+                                                          }
+                                                      )
+                                                  ),
+                                                  ClearCollect(
+                                                      colMatRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, Created >= varMatSessionStart), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                              ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                              ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                              Supplier: Coalesce(R.Supplier, ""),
+                                                              SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                              DeliveringTime: R.DeliveringTime,
+                                                              Price: R.Price,
+                                                              PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                              StockUnit: Coalesce(R.StockUnit, ""),
+                                                              IsStockItem: Coalesce(R.IsStockItem, false),
+                                                              MinStock: R.MinStock,
+                                                              MaxStock: R.MaxStock,
+                                                              StorageBin: Coalesce(R.StorageBin, ""),
+                                                              StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                              WearPart: Coalesce(R.WearPart, ""),
+                                                              Remarks: Coalesce(R.Remarks, ""),
+                                                              MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                                              ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                                              ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ObjectList: Coalesce(R.ObjectList, ""),
+                                                              ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                                              ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                              CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                                              RequesterName: Coalesce(R.RequesterName, ""),
+                                                              RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                                              SubmittedOn: R.SubmittedOn
+                                                          }
+                                                      )
                                                   )
                                               )
                                           );
@@ -15689,46 +15969,91 @@ Screens:
                                                       }
                                                   )
                                               ),
-                                              ClearCollect(
-                                                  colMatRows,
-                                                  ForAll(
-                                                      SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, (!IsBlank(varMatRequestGuid) && RequestGuid = varMatRequestGuid) || Created >= varMatSessionStart, RequestGuid = varMatRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                      {
-                                                          RowId: R.ID,
-                                                          ItemKey: Coalesce(R.ItemKey, ""),
-                                                          RequestNo: Coalesce(R.RequestNo, ""),
-                                                          Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                          FileCount: Coalesce(R.FileCount, 0),
-                                                          MaterialDescription: Coalesce(R.MaterialDescription, ""),
-                                                          Plant: Coalesce(R.Plant, ""),
-                                                          Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                          ModelNumber: Coalesce(R.ModelNumber, ""),
-                                                          ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
-                                                          Supplier: Coalesce(R.Supplier, ""),
-                                                          SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
-                                                          DeliveringTime: R.DeliveringTime,
-                                                          Price: R.Price,
-                                                          PriceUnit: Coalesce(R.PriceUnit, ""),
-                                                          StockUnit: Coalesce(R.StockUnit, ""),
-                                                          IsStockItem: Coalesce(R.IsStockItem, false),
-                                                          MinStock: R.MinStock,
-                                                          MaxStock: R.MaxStock,
-                                                          StorageBin: Coalesce(R.StorageBin, ""),
-                                                          StrategicPart: Coalesce(R.StrategicPart, ""),
-                                                          WearPart: Coalesce(R.WearPart, ""),
-                                                          Remarks: Coalesce(R.Remarks, ""),
-                                                          MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
-                                                          ReplacesExisting: Coalesce(R.ReplacesExisting, false),
-                                                          ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
-                                                          FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                          ObjectList: Coalesce(R.ObjectList, ""),
-                                                          ObjectListJson: Coalesce(R.ObjectListJson, ""),
-                                                          ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                                          CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
-                                                          RequesterName: Coalesce(R.RequesterName, ""),
-                                                          RequesterEmail: Coalesce(R.RequesterEmail, ""),
-                                                          SubmittedOn: R.SubmittedOn
-                                                      }
+                                              If(
+                                                  !IsBlank(varMatRequestGuid),
+                                                  ClearCollect(
+                                                      colMatRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, RequestGuid = varMatRequestGuid), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                              ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                              ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                              Supplier: Coalesce(R.Supplier, ""),
+                                                              SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                              DeliveringTime: R.DeliveringTime,
+                                                              Price: R.Price,
+                                                              PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                              StockUnit: Coalesce(R.StockUnit, ""),
+                                                              IsStockItem: Coalesce(R.IsStockItem, false),
+                                                              MinStock: R.MinStock,
+                                                              MaxStock: R.MaxStock,
+                                                              StorageBin: Coalesce(R.StorageBin, ""),
+                                                              StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                              WearPart: Coalesce(R.WearPart, ""),
+                                                              Remarks: Coalesce(R.Remarks, ""),
+                                                              MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                                              ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                                              ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ObjectList: Coalesce(R.ObjectList, ""),
+                                                              ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                                              ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                              CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                                              RequesterName: Coalesce(R.RequesterName, ""),
+                                                              RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                                              SubmittedOn: R.SubmittedOn
+                                                          }
+                                                      )
+                                                  ),
+                                                  ClearCollect(
+                                                      colMatRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, Created >= varMatSessionStart), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                              ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                              ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                              Supplier: Coalesce(R.Supplier, ""),
+                                                              SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                              DeliveringTime: R.DeliveringTime,
+                                                              Price: R.Price,
+                                                              PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                              StockUnit: Coalesce(R.StockUnit, ""),
+                                                              IsStockItem: Coalesce(R.IsStockItem, false),
+                                                              MinStock: R.MinStock,
+                                                              MaxStock: R.MaxStock,
+                                                              StorageBin: Coalesce(R.StorageBin, ""),
+                                                              StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                              WearPart: Coalesce(R.WearPart, ""),
+                                                              Remarks: Coalesce(R.Remarks, ""),
+                                                              MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                                              ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                                              ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ObjectList: Coalesce(R.ObjectList, ""),
+                                                              ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                                              ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                              CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                                              RequesterName: Coalesce(R.RequesterName, ""),
+                                                              RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                                              SubmittedOn: R.SubmittedOn
+                                                          }
+                                                      )
                                                   )
                                               )
                                           );
@@ -15770,8 +16095,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -16344,46 +16671,91 @@ Screens:
                                             }
                                         )
                                     ),
-                                    ClearCollect(
-                                        colMatRows,
-                                        ForAll(
-                                            SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, (!IsBlank(varMatRequestGuid) && RequestGuid = varMatRequestGuid) || Created >= varMatSessionStart, RequestGuid = varMatRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                            {
-                                                RowId: R.ID,
-                                                ItemKey: Coalesce(R.ItemKey, ""),
-                                                RequestNo: Coalesce(R.RequestNo, ""),
-                                                Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                FileCount: Coalesce(R.FileCount, 0),
-                                                MaterialDescription: Coalesce(R.MaterialDescription, ""),
-                                                Plant: Coalesce(R.Plant, ""),
-                                                Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                ModelNumber: Coalesce(R.ModelNumber, ""),
-                                                ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
-                                                Supplier: Coalesce(R.Supplier, ""),
-                                                SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
-                                                DeliveringTime: R.DeliveringTime,
-                                                Price: R.Price,
-                                                PriceUnit: Coalesce(R.PriceUnit, ""),
-                                                StockUnit: Coalesce(R.StockUnit, ""),
-                                                IsStockItem: Coalesce(R.IsStockItem, false),
-                                                MinStock: R.MinStock,
-                                                MaxStock: R.MaxStock,
-                                                StorageBin: Coalesce(R.StorageBin, ""),
-                                                StrategicPart: Coalesce(R.StrategicPart, ""),
-                                                WearPart: Coalesce(R.WearPart, ""),
-                                                Remarks: Coalesce(R.Remarks, ""),
-                                                MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
-                                                ReplacesExisting: Coalesce(R.ReplacesExisting, false),
-                                                ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
-                                                FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                ObjectList: Coalesce(R.ObjectList, ""),
-                                                ObjectListJson: Coalesce(R.ObjectListJson, ""),
-                                                ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                                CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
-                                                RequesterName: Coalesce(R.RequesterName, ""),
-                                                RequesterEmail: Coalesce(R.RequesterEmail, ""),
-                                                SubmittedOn: R.SubmittedOn
-                                            }
+                                    If(
+                                        !IsBlank(varMatRequestGuid),
+                                        ClearCollect(
+                                            colMatRows,
+                                            ForAll(
+                                                SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, RequestGuid = varMatRequestGuid), "Created", SortOrder.Descending) As R,
+                                                {
+                                                    RowId: R.ID,
+                                                    ItemKey: Coalesce(R.ItemKey, ""),
+                                                    RequestNo: Coalesce(R.RequestNo, ""),
+                                                    Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                    FileCount: Coalesce(R.FileCount, 0),
+                                                    MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                    Plant: Coalesce(R.Plant, ""),
+                                                    Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                    ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                    ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                    Supplier: Coalesce(R.Supplier, ""),
+                                                    SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                    DeliveringTime: R.DeliveringTime,
+                                                    Price: R.Price,
+                                                    PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                    StockUnit: Coalesce(R.StockUnit, ""),
+                                                    IsStockItem: Coalesce(R.IsStockItem, false),
+                                                    MinStock: R.MinStock,
+                                                    MaxStock: R.MaxStock,
+                                                    StorageBin: Coalesce(R.StorageBin, ""),
+                                                    StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                    WearPart: Coalesce(R.WearPart, ""),
+                                                    Remarks: Coalesce(R.Remarks, ""),
+                                                    MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                                    ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                                    ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                                    FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                    ObjectList: Coalesce(R.ObjectList, ""),
+                                                    ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                                    ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                    CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                                    RequesterName: Coalesce(R.RequesterName, ""),
+                                                    RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                                    SubmittedOn: R.SubmittedOn
+                                                }
+                                            )
+                                        ),
+                                        ClearCollect(
+                                            colMatRows,
+                                            ForAll(
+                                                SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, Created >= varMatSessionStart), "Created", SortOrder.Descending) As R,
+                                                {
+                                                    RowId: R.ID,
+                                                    ItemKey: Coalesce(R.ItemKey, ""),
+                                                    RequestNo: Coalesce(R.RequestNo, ""),
+                                                    Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                    FileCount: Coalesce(R.FileCount, 0),
+                                                    MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                    Plant: Coalesce(R.Plant, ""),
+                                                    Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                    ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                    ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                    Supplier: Coalesce(R.Supplier, ""),
+                                                    SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                    DeliveringTime: R.DeliveringTime,
+                                                    Price: R.Price,
+                                                    PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                    StockUnit: Coalesce(R.StockUnit, ""),
+                                                    IsStockItem: Coalesce(R.IsStockItem, false),
+                                                    MinStock: R.MinStock,
+                                                    MaxStock: R.MaxStock,
+                                                    StorageBin: Coalesce(R.StorageBin, ""),
+                                                    StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                    WearPart: Coalesce(R.WearPart, ""),
+                                                    Remarks: Coalesce(R.Remarks, ""),
+                                                    MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                                    ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                                    ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                                    FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                    ObjectList: Coalesce(R.ObjectList, ""),
+                                                    ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                                    ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                    CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                                    RequesterName: Coalesce(R.RequesterName, ""),
+                                                    RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                                    SubmittedOn: R.SubmittedOn
+                                                }
+                                            )
                                         )
                                     )
                                 );
@@ -16421,8 +16793,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -16773,46 +17147,91 @@ Screens:
                                                 }
                                             )
                                         ),
-                                        ClearCollect(
-                                            colMatRows,
-                                            ForAll(
-                                                SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, (!IsBlank(varMatRequestGuid) && RequestGuid = varMatRequestGuid) || Created >= varMatSessionStart, RequestGuid = varMatRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                {
-                                                    RowId: R.ID,
-                                                    ItemKey: Coalesce(R.ItemKey, ""),
-                                                    RequestNo: Coalesce(R.RequestNo, ""),
-                                                    Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                    FileCount: Coalesce(R.FileCount, 0),
-                                                    MaterialDescription: Coalesce(R.MaterialDescription, ""),
-                                                    Plant: Coalesce(R.Plant, ""),
-                                                    Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                    ModelNumber: Coalesce(R.ModelNumber, ""),
-                                                    ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
-                                                    Supplier: Coalesce(R.Supplier, ""),
-                                                    SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
-                                                    DeliveringTime: R.DeliveringTime,
-                                                    Price: R.Price,
-                                                    PriceUnit: Coalesce(R.PriceUnit, ""),
-                                                    StockUnit: Coalesce(R.StockUnit, ""),
-                                                    IsStockItem: Coalesce(R.IsStockItem, false),
-                                                    MinStock: R.MinStock,
-                                                    MaxStock: R.MaxStock,
-                                                    StorageBin: Coalesce(R.StorageBin, ""),
-                                                    StrategicPart: Coalesce(R.StrategicPart, ""),
-                                                    WearPart: Coalesce(R.WearPart, ""),
-                                                    Remarks: Coalesce(R.Remarks, ""),
-                                                    MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
-                                                    ReplacesExisting: Coalesce(R.ReplacesExisting, false),
-                                                    ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
-                                                    FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                    ObjectList: Coalesce(R.ObjectList, ""),
-                                                    ObjectListJson: Coalesce(R.ObjectListJson, ""),
-                                                    ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                                    CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
-                                                    RequesterName: Coalesce(R.RequesterName, ""),
-                                                    RequesterEmail: Coalesce(R.RequesterEmail, ""),
-                                                    SubmittedOn: R.SubmittedOn
-                                                }
+                                        If(
+                                            !IsBlank(varMatRequestGuid),
+                                            ClearCollect(
+                                                colMatRows,
+                                                ForAll(
+                                                    SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, RequestGuid = varMatRequestGuid), "Created", SortOrder.Descending) As R,
+                                                    {
+                                                        RowId: R.ID,
+                                                        ItemKey: Coalesce(R.ItemKey, ""),
+                                                        RequestNo: Coalesce(R.RequestNo, ""),
+                                                        Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                        FileCount: Coalesce(R.FileCount, 0),
+                                                        MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                        Plant: Coalesce(R.Plant, ""),
+                                                        Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                        ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                        ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                        Supplier: Coalesce(R.Supplier, ""),
+                                                        SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                        DeliveringTime: R.DeliveringTime,
+                                                        Price: R.Price,
+                                                        PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                        StockUnit: Coalesce(R.StockUnit, ""),
+                                                        IsStockItem: Coalesce(R.IsStockItem, false),
+                                                        MinStock: R.MinStock,
+                                                        MaxStock: R.MaxStock,
+                                                        StorageBin: Coalesce(R.StorageBin, ""),
+                                                        StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                        WearPart: Coalesce(R.WearPart, ""),
+                                                        Remarks: Coalesce(R.Remarks, ""),
+                                                        MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                                        ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                                        ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                        ObjectList: Coalesce(R.ObjectList, ""),
+                                                        ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                                        ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                        CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                                        RequesterName: Coalesce(R.RequesterName, ""),
+                                                        RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                                        SubmittedOn: R.SubmittedOn
+                                                    }
+                                                )
+                                            ),
+                                            ClearCollect(
+                                                colMatRows,
+                                                ForAll(
+                                                    SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, Created >= varMatSessionStart), "Created", SortOrder.Descending) As R,
+                                                    {
+                                                        RowId: R.ID,
+                                                        ItemKey: Coalesce(R.ItemKey, ""),
+                                                        RequestNo: Coalesce(R.RequestNo, ""),
+                                                        Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                        FileCount: Coalesce(R.FileCount, 0),
+                                                        MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                        Plant: Coalesce(R.Plant, ""),
+                                                        Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                        ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                        ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                        Supplier: Coalesce(R.Supplier, ""),
+                                                        SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                        DeliveringTime: R.DeliveringTime,
+                                                        Price: R.Price,
+                                                        PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                        StockUnit: Coalesce(R.StockUnit, ""),
+                                                        IsStockItem: Coalesce(R.IsStockItem, false),
+                                                        MinStock: R.MinStock,
+                                                        MaxStock: R.MaxStock,
+                                                        StorageBin: Coalesce(R.StorageBin, ""),
+                                                        StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                        WearPart: Coalesce(R.WearPart, ""),
+                                                        Remarks: Coalesce(R.Remarks, ""),
+                                                        MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                                        ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                                        ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                        ObjectList: Coalesce(R.ObjectList, ""),
+                                                        ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                                        ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                        CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                                        RequesterName: Coalesce(R.RequesterName, ""),
+                                                        RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                                        SubmittedOn: R.SubmittedOn
+                                                    }
+                                                )
                                             )
                                         )
                                     );
@@ -16849,8 +17268,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -17194,46 +17615,91 @@ Screens:
                                                 }
                                             )
                                         ),
-                                        ClearCollect(
-                                            colMatRows,
-                                            ForAll(
-                                                SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, (!IsBlank(varMatRequestGuid) && RequestGuid = varMatRequestGuid) || Created >= varMatSessionStart, RequestGuid = varMatRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                {
-                                                    RowId: R.ID,
-                                                    ItemKey: Coalesce(R.ItemKey, ""),
-                                                    RequestNo: Coalesce(R.RequestNo, ""),
-                                                    Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                    FileCount: Coalesce(R.FileCount, 0),
-                                                    MaterialDescription: Coalesce(R.MaterialDescription, ""),
-                                                    Plant: Coalesce(R.Plant, ""),
-                                                    Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                    ModelNumber: Coalesce(R.ModelNumber, ""),
-                                                    ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
-                                                    Supplier: Coalesce(R.Supplier, ""),
-                                                    SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
-                                                    DeliveringTime: R.DeliveringTime,
-                                                    Price: R.Price,
-                                                    PriceUnit: Coalesce(R.PriceUnit, ""),
-                                                    StockUnit: Coalesce(R.StockUnit, ""),
-                                                    IsStockItem: Coalesce(R.IsStockItem, false),
-                                                    MinStock: R.MinStock,
-                                                    MaxStock: R.MaxStock,
-                                                    StorageBin: Coalesce(R.StorageBin, ""),
-                                                    StrategicPart: Coalesce(R.StrategicPart, ""),
-                                                    WearPart: Coalesce(R.WearPart, ""),
-                                                    Remarks: Coalesce(R.Remarks, ""),
-                                                    MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
-                                                    ReplacesExisting: Coalesce(R.ReplacesExisting, false),
-                                                    ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
-                                                    FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                    ObjectList: Coalesce(R.ObjectList, ""),
-                                                    ObjectListJson: Coalesce(R.ObjectListJson, ""),
-                                                    ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                                    CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
-                                                    RequesterName: Coalesce(R.RequesterName, ""),
-                                                    RequesterEmail: Coalesce(R.RequesterEmail, ""),
-                                                    SubmittedOn: R.SubmittedOn
-                                                }
+                                        If(
+                                            !IsBlank(varMatRequestGuid),
+                                            ClearCollect(
+                                                colMatRows,
+                                                ForAll(
+                                                    SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, RequestGuid = varMatRequestGuid), "Created", SortOrder.Descending) As R,
+                                                    {
+                                                        RowId: R.ID,
+                                                        ItemKey: Coalesce(R.ItemKey, ""),
+                                                        RequestNo: Coalesce(R.RequestNo, ""),
+                                                        Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                        FileCount: Coalesce(R.FileCount, 0),
+                                                        MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                        Plant: Coalesce(R.Plant, ""),
+                                                        Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                        ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                        ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                        Supplier: Coalesce(R.Supplier, ""),
+                                                        SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                        DeliveringTime: R.DeliveringTime,
+                                                        Price: R.Price,
+                                                        PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                        StockUnit: Coalesce(R.StockUnit, ""),
+                                                        IsStockItem: Coalesce(R.IsStockItem, false),
+                                                        MinStock: R.MinStock,
+                                                        MaxStock: R.MaxStock,
+                                                        StorageBin: Coalesce(R.StorageBin, ""),
+                                                        StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                        WearPart: Coalesce(R.WearPart, ""),
+                                                        Remarks: Coalesce(R.Remarks, ""),
+                                                        MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                                        ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                                        ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                        ObjectList: Coalesce(R.ObjectList, ""),
+                                                        ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                                        ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                        CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                                        RequesterName: Coalesce(R.RequesterName, ""),
+                                                        RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                                        SubmittedOn: R.SubmittedOn
+                                                    }
+                                                )
+                                            ),
+                                            ClearCollect(
+                                                colMatRows,
+                                                ForAll(
+                                                    SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, Created >= varMatSessionStart), "Created", SortOrder.Descending) As R,
+                                                    {
+                                                        RowId: R.ID,
+                                                        ItemKey: Coalesce(R.ItemKey, ""),
+                                                        RequestNo: Coalesce(R.RequestNo, ""),
+                                                        Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                        FileCount: Coalesce(R.FileCount, 0),
+                                                        MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                        Plant: Coalesce(R.Plant, ""),
+                                                        Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                        ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                        ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                        Supplier: Coalesce(R.Supplier, ""),
+                                                        SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                        DeliveringTime: R.DeliveringTime,
+                                                        Price: R.Price,
+                                                        PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                        StockUnit: Coalesce(R.StockUnit, ""),
+                                                        IsStockItem: Coalesce(R.IsStockItem, false),
+                                                        MinStock: R.MinStock,
+                                                        MaxStock: R.MaxStock,
+                                                        StorageBin: Coalesce(R.StorageBin, ""),
+                                                        StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                        WearPart: Coalesce(R.WearPart, ""),
+                                                        Remarks: Coalesce(R.Remarks, ""),
+                                                        MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                                        ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                                        ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                        ObjectList: Coalesce(R.ObjectList, ""),
+                                                        ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                                        ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                        CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                                        RequesterName: Coalesce(R.RequesterName, ""),
+                                                        RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                                        SubmittedOn: R.SubmittedOn
+                                                    }
+                                                )
                                             )
                                         )
                                     );
@@ -17295,8 +17761,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -17605,8 +18073,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -17821,46 +18291,91 @@ Screens:
                                         }
                                     )
                                 ),
-                                ClearCollect(
-                                    colMatRows,
-                                    ForAll(
-                                        SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, (!IsBlank(varMatRequestGuid) && RequestGuid = varMatRequestGuid) || Created >= varMatSessionStart, RequestGuid = varMatRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                        {
-                                            RowId: R.ID,
-                                            ItemKey: Coalesce(R.ItemKey, ""),
-                                            RequestNo: Coalesce(R.RequestNo, ""),
-                                            Status: Coalesce(R.RowStatus.Value, "valid"),
-                                            FileCount: Coalesce(R.FileCount, 0),
-                                            MaterialDescription: Coalesce(R.MaterialDescription, ""),
-                                            Plant: Coalesce(R.Plant, ""),
-                                            Manufacturer: Coalesce(R.Manufacturer, ""),
-                                            ModelNumber: Coalesce(R.ModelNumber, ""),
-                                            ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
-                                            Supplier: Coalesce(R.Supplier, ""),
-                                            SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
-                                            DeliveringTime: R.DeliveringTime,
-                                            Price: R.Price,
-                                            PriceUnit: Coalesce(R.PriceUnit, ""),
-                                            StockUnit: Coalesce(R.StockUnit, ""),
-                                            IsStockItem: Coalesce(R.IsStockItem, false),
-                                            MinStock: R.MinStock,
-                                            MaxStock: R.MaxStock,
-                                            StorageBin: Coalesce(R.StorageBin, ""),
-                                            StrategicPart: Coalesce(R.StrategicPart, ""),
-                                            WearPart: Coalesce(R.WearPart, ""),
-                                            Remarks: Coalesce(R.Remarks, ""),
-                                            MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
-                                            ReplacesExisting: Coalesce(R.ReplacesExisting, false),
-                                            ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
-                                            FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                            ObjectList: Coalesce(R.ObjectList, ""),
-                                            ObjectListJson: Coalesce(R.ObjectListJson, ""),
-                                            ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                            CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
-                                            RequesterName: Coalesce(R.RequesterName, ""),
-                                            RequesterEmail: Coalesce(R.RequesterEmail, ""),
-                                            SubmittedOn: R.SubmittedOn
-                                        }
+                                If(
+                                    !IsBlank(varMatRequestGuid),
+                                    ClearCollect(
+                                        colMatRows,
+                                        ForAll(
+                                            SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, RequestGuid = varMatRequestGuid), "Created", SortOrder.Descending) As R,
+                                            {
+                                                RowId: R.ID,
+                                                ItemKey: Coalesce(R.ItemKey, ""),
+                                                RequestNo: Coalesce(R.RequestNo, ""),
+                                                Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                FileCount: Coalesce(R.FileCount, 0),
+                                                MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                Plant: Coalesce(R.Plant, ""),
+                                                Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                Supplier: Coalesce(R.Supplier, ""),
+                                                SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                DeliveringTime: R.DeliveringTime,
+                                                Price: R.Price,
+                                                PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                StockUnit: Coalesce(R.StockUnit, ""),
+                                                IsStockItem: Coalesce(R.IsStockItem, false),
+                                                MinStock: R.MinStock,
+                                                MaxStock: R.MaxStock,
+                                                StorageBin: Coalesce(R.StorageBin, ""),
+                                                StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                WearPart: Coalesce(R.WearPart, ""),
+                                                Remarks: Coalesce(R.Remarks, ""),
+                                                MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                                ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                                ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                                FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                ObjectList: Coalesce(R.ObjectList, ""),
+                                                ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                                ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                                RequesterName: Coalesce(R.RequesterName, ""),
+                                                RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                                SubmittedOn: R.SubmittedOn
+                                            }
+                                        )
+                                    ),
+                                    ClearCollect(
+                                        colMatRows,
+                                        ForAll(
+                                            SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, Created >= varMatSessionStart), "Created", SortOrder.Descending) As R,
+                                            {
+                                                RowId: R.ID,
+                                                ItemKey: Coalesce(R.ItemKey, ""),
+                                                RequestNo: Coalesce(R.RequestNo, ""),
+                                                Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                FileCount: Coalesce(R.FileCount, 0),
+                                                MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                                Plant: Coalesce(R.Plant, ""),
+                                                Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                ModelNumber: Coalesce(R.ModelNumber, ""),
+                                                ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                                Supplier: Coalesce(R.Supplier, ""),
+                                                SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                                DeliveringTime: R.DeliveringTime,
+                                                Price: R.Price,
+                                                PriceUnit: Coalesce(R.PriceUnit, ""),
+                                                StockUnit: Coalesce(R.StockUnit, ""),
+                                                IsStockItem: Coalesce(R.IsStockItem, false),
+                                                MinStock: R.MinStock,
+                                                MaxStock: R.MaxStock,
+                                                StorageBin: Coalesce(R.StorageBin, ""),
+                                                StrategicPart: Coalesce(R.StrategicPart, ""),
+                                                WearPart: Coalesce(R.WearPart, ""),
+                                                Remarks: Coalesce(R.Remarks, ""),
+                                                MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                                ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                                ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                                FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                ObjectList: Coalesce(R.ObjectList, ""),
+                                                ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                                ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                                RequesterName: Coalesce(R.RequesterName, ""),
+                                                RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                                SubmittedOn: R.SubmittedOn
+                                            }
+                                        )
                                     )
                                 )
                             )
@@ -17913,46 +18428,91 @@ Screens:
                                     }
                                 )
                             ),
-                            ClearCollect(
-                                colMatRows,
-                                ForAll(
-                                    SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, (!IsBlank(varMatRequestGuid) && RequestGuid = varMatRequestGuid) || Created >= varMatSessionStart, RequestGuid = varMatRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                    {
-                                        RowId: R.ID,
-                                        ItemKey: Coalesce(R.ItemKey, ""),
-                                        RequestNo: Coalesce(R.RequestNo, ""),
-                                        Status: Coalesce(R.RowStatus.Value, "valid"),
-                                        FileCount: Coalesce(R.FileCount, 0),
-                                        MaterialDescription: Coalesce(R.MaterialDescription, ""),
-                                        Plant: Coalesce(R.Plant, ""),
-                                        Manufacturer: Coalesce(R.Manufacturer, ""),
-                                        ModelNumber: Coalesce(R.ModelNumber, ""),
-                                        ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
-                                        Supplier: Coalesce(R.Supplier, ""),
-                                        SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
-                                        DeliveringTime: R.DeliveringTime,
-                                        Price: R.Price,
-                                        PriceUnit: Coalesce(R.PriceUnit, ""),
-                                        StockUnit: Coalesce(R.StockUnit, ""),
-                                        IsStockItem: Coalesce(R.IsStockItem, false),
-                                        MinStock: R.MinStock,
-                                        MaxStock: R.MaxStock,
-                                        StorageBin: Coalesce(R.StorageBin, ""),
-                                        StrategicPart: Coalesce(R.StrategicPart, ""),
-                                        WearPart: Coalesce(R.WearPart, ""),
-                                        Remarks: Coalesce(R.Remarks, ""),
-                                        MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
-                                        ReplacesExisting: Coalesce(R.ReplacesExisting, false),
-                                        ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
-                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                        ObjectList: Coalesce(R.ObjectList, ""),
-                                        ObjectListJson: Coalesce(R.ObjectListJson, ""),
-                                        ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                        CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
-                                        RequesterName: Coalesce(R.RequesterName, ""),
-                                        RequesterEmail: Coalesce(R.RequesterEmail, ""),
-                                        SubmittedOn: R.SubmittedOn
-                                    }
+                            If(
+                                !IsBlank(varMatRequestGuid),
+                                ClearCollect(
+                                    colMatRows,
+                                    ForAll(
+                                        SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, RequestGuid = varMatRequestGuid), "Created", SortOrder.Descending) As R,
+                                        {
+                                            RowId: R.ID,
+                                            ItemKey: Coalesce(R.ItemKey, ""),
+                                            RequestNo: Coalesce(R.RequestNo, ""),
+                                            Status: Coalesce(R.RowStatus.Value, "valid"),
+                                            FileCount: Coalesce(R.FileCount, 0),
+                                            MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                            Plant: Coalesce(R.Plant, ""),
+                                            Manufacturer: Coalesce(R.Manufacturer, ""),
+                                            ModelNumber: Coalesce(R.ModelNumber, ""),
+                                            ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                            Supplier: Coalesce(R.Supplier, ""),
+                                            SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                            DeliveringTime: R.DeliveringTime,
+                                            Price: R.Price,
+                                            PriceUnit: Coalesce(R.PriceUnit, ""),
+                                            StockUnit: Coalesce(R.StockUnit, ""),
+                                            IsStockItem: Coalesce(R.IsStockItem, false),
+                                            MinStock: R.MinStock,
+                                            MaxStock: R.MaxStock,
+                                            StorageBin: Coalesce(R.StorageBin, ""),
+                                            StrategicPart: Coalesce(R.StrategicPart, ""),
+                                            WearPart: Coalesce(R.WearPart, ""),
+                                            Remarks: Coalesce(R.Remarks, ""),
+                                            MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                            ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                            ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                            FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                            ObjectList: Coalesce(R.ObjectList, ""),
+                                            ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                            ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                            CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                            RequesterName: Coalesce(R.RequesterName, ""),
+                                            RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                            SubmittedOn: R.SubmittedOn
+                                        }
+                                    )
+                                ),
+                                ClearCollect(
+                                    colMatRows,
+                                    ForAll(
+                                        SortByColumns(Filter(MaterialItems, RequesterEmail = varMatMe, Created >= varMatSessionStart), "Created", SortOrder.Descending) As R,
+                                        {
+                                            RowId: R.ID,
+                                            ItemKey: Coalesce(R.ItemKey, ""),
+                                            RequestNo: Coalesce(R.RequestNo, ""),
+                                            Status: Coalesce(R.RowStatus.Value, "valid"),
+                                            FileCount: Coalesce(R.FileCount, 0),
+                                            MaterialDescription: Coalesce(R.MaterialDescription, ""),
+                                            Plant: Coalesce(R.Plant, ""),
+                                            Manufacturer: Coalesce(R.Manufacturer, ""),
+                                            ModelNumber: Coalesce(R.ModelNumber, ""),
+                                            ManufacturerPartNo: Coalesce(R.ManufacturerPartNo, ""),
+                                            Supplier: Coalesce(R.Supplier, ""),
+                                            SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
+                                            DeliveringTime: R.DeliveringTime,
+                                            Price: R.Price,
+                                            PriceUnit: Coalesce(R.PriceUnit, ""),
+                                            StockUnit: Coalesce(R.StockUnit, ""),
+                                            IsStockItem: Coalesce(R.IsStockItem, false),
+                                            MinStock: R.MinStock,
+                                            MaxStock: R.MaxStock,
+                                            StorageBin: Coalesce(R.StorageBin, ""),
+                                            StrategicPart: Coalesce(R.StrategicPart, ""),
+                                            WearPart: Coalesce(R.WearPart, ""),
+                                            Remarks: Coalesce(R.Remarks, ""),
+                                            MaintenanceOrderNo: Coalesce(R.MaintenanceOrderNo, ""),
+                                            ReplacesExisting: Coalesce(R.ReplacesExisting, false),
+                                            ReplacedMaterialNo: Coalesce(R.ReplacedMaterialNo, ""),
+                                            FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                            ObjectList: Coalesce(R.ObjectList, ""),
+                                            ObjectListJson: Coalesce(R.ObjectListJson, ""),
+                                            ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                            CreatedMaterialNo: Coalesce(R.CreatedMaterialNo, ""),
+                                            RequesterName: Coalesce(R.RequesterName, ""),
+                                            RequesterEmail: Coalesce(R.RequesterEmail, ""),
+                                            SubmittedOn: R.SubmittedOn
+                                        }
+                                    )
                                 )
                             )
                         )
@@ -18000,8 +18560,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-

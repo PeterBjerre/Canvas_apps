@@ -485,31 +485,61 @@ Screens:
                                               }
                                           )
                                       ),
-                                      ClearCollect(
-                                          colEqRows,
-                                          ForAll(
-                                              SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, (!IsBlank(varEqRequestGuid) && RequestGuid = varEqRequestGuid) || Created >= varEqSessionStart, RequestGuid = varEqRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                              {
-                                                  RowId: R.ID,
-                                                  ItemKey: Coalesce(R.ItemKey, ""),
-                                                  RequestNo: Coalesce(R.RequestNo, ""),
-                                                  Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                  FileCount: Coalesce(R.FileCount, 0),
-                                                  Description: Coalesce(R.Description, ""),
-                                                  Plant: Coalesce(R.Plant, ""),
-                                                  RequestType: Coalesce(R.RequestType, ""),
-                                                  EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                                  Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                  TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                                  SerialNumber: Coalesce(R.SerialNumber, ""),
-                                                  FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                  ClassData: Coalesce(R.ClassData, ""),
-                                                  RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                                  Placement: Coalesce(R.Placement, ""),
-                                                  WarrantyStart: R.WarrantyStart,
-                                                  WarrantyEnd: R.WarrantyEnd,
-                                                  EquipmentNumber: Coalesce(R.EquipmentNumber, "")
-                                              }
+                                      If(
+                                          !IsBlank(varEqRequestGuid),
+                                          ClearCollect(
+                                              colEqRows,
+                                              ForAll(
+                                                  SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
+                                                  {
+                                                      RowId: R.ID,
+                                                      ItemKey: Coalesce(R.ItemKey, ""),
+                                                      RequestNo: Coalesce(R.RequestNo, ""),
+                                                      Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                      FileCount: Coalesce(R.FileCount, 0),
+                                                      Description: Coalesce(R.Description, ""),
+                                                      Plant: Coalesce(R.Plant, ""),
+                                                      RequestType: Coalesce(R.RequestType, ""),
+                                                      EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                      Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                      TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                      SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                      FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                      ClassData: Coalesce(R.ClassData, ""),
+                                                      RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                      Placement: Coalesce(R.Placement, ""),
+                                                      WarrantyStart: R.WarrantyStart,
+                                                      WarrantyEnd: R.WarrantyEnd,
+                                                      EquipmentNumber: Coalesce(R.EquipmentNumber, "")
+                                                  }
+                                              )
+                                          ),
+                                          ClearCollect(
+                                              colEqRows,
+                                              ForAll(
+                                                  SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, Created >= varEqSessionStart), "Created", SortOrder.Descending) As R,
+                                                  {
+                                                      RowId: R.ID,
+                                                      ItemKey: Coalesce(R.ItemKey, ""),
+                                                      RequestNo: Coalesce(R.RequestNo, ""),
+                                                      Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                      FileCount: Coalesce(R.FileCount, 0),
+                                                      Description: Coalesce(R.Description, ""),
+                                                      Plant: Coalesce(R.Plant, ""),
+                                                      RequestType: Coalesce(R.RequestType, ""),
+                                                      EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                      Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                      TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                      SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                      FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                      ClassData: Coalesce(R.ClassData, ""),
+                                                      RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                      Placement: Coalesce(R.Placement, ""),
+                                                      WarrantyStart: R.WarrantyStart,
+                                                      WarrantyEnd: R.WarrantyEnd,
+                                                      EquipmentNumber: Coalesce(R.EquipmentNumber, "")
+                                                  }
+                                              )
                                           )
                                       )
                                   );
@@ -749,31 +779,61 @@ Screens:
                                                       }
                                                   )
                                               ),
-                                              ClearCollect(
-                                                  colEqRows,
-                                                  ForAll(
-                                                      SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, (!IsBlank(varEqRequestGuid) && RequestGuid = varEqRequestGuid) || Created >= varEqSessionStart, RequestGuid = varEqRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                      {
-                                                          RowId: R.ID,
-                                                          ItemKey: Coalesce(R.ItemKey, ""),
-                                                          RequestNo: Coalesce(R.RequestNo, ""),
-                                                          Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                          FileCount: Coalesce(R.FileCount, 0),
-                                                          Description: Coalesce(R.Description, ""),
-                                                          Plant: Coalesce(R.Plant, ""),
-                                                          RequestType: Coalesce(R.RequestType, ""),
-                                                          EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                                          Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                          TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                                          SerialNumber: Coalesce(R.SerialNumber, ""),
-                                                          FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                          ClassData: Coalesce(R.ClassData, ""),
-                                                          RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                                          Placement: Coalesce(R.Placement, ""),
-                                                          WarrantyStart: R.WarrantyStart,
-                                                          WarrantyEnd: R.WarrantyEnd,
-                                                          EquipmentNumber: Coalesce(R.EquipmentNumber, "")
-                                                      }
+                                              If(
+                                                  !IsBlank(varEqRequestGuid),
+                                                  ClearCollect(
+                                                      colEqRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              Description: Coalesce(R.Description, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              RequestType: Coalesce(R.RequestType, ""),
+                                                              EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                              Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                              TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                              SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ClassData: Coalesce(R.ClassData, ""),
+                                                              RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                              Placement: Coalesce(R.Placement, ""),
+                                                              WarrantyStart: R.WarrantyStart,
+                                                              WarrantyEnd: R.WarrantyEnd,
+                                                              EquipmentNumber: Coalesce(R.EquipmentNumber, "")
+                                                          }
+                                                      )
+                                                  ),
+                                                  ClearCollect(
+                                                      colEqRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, Created >= varEqSessionStart), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              Description: Coalesce(R.Description, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              RequestType: Coalesce(R.RequestType, ""),
+                                                              EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                              Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                              TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                              SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ClassData: Coalesce(R.ClassData, ""),
+                                                              RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                              Placement: Coalesce(R.Placement, ""),
+                                                              WarrantyStart: R.WarrantyStart,
+                                                              WarrantyEnd: R.WarrantyEnd,
+                                                              EquipmentNumber: Coalesce(R.EquipmentNumber, "")
+                                                          }
+                                                      )
                                                   )
                                               )
                                           );
@@ -926,31 +986,61 @@ Screens:
                                                       }
                                                   )
                                               ),
-                                              ClearCollect(
-                                                  colEqRows,
-                                                  ForAll(
-                                                      SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, (!IsBlank(varEqRequestGuid) && RequestGuid = varEqRequestGuid) || Created >= varEqSessionStart, RequestGuid = varEqRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                      {
-                                                          RowId: R.ID,
-                                                          ItemKey: Coalesce(R.ItemKey, ""),
-                                                          RequestNo: Coalesce(R.RequestNo, ""),
-                                                          Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                          FileCount: Coalesce(R.FileCount, 0),
-                                                          Description: Coalesce(R.Description, ""),
-                                                          Plant: Coalesce(R.Plant, ""),
-                                                          RequestType: Coalesce(R.RequestType, ""),
-                                                          EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                                          Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                          TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                                          SerialNumber: Coalesce(R.SerialNumber, ""),
-                                                          FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                          ClassData: Coalesce(R.ClassData, ""),
-                                                          RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                                          Placement: Coalesce(R.Placement, ""),
-                                                          WarrantyStart: R.WarrantyStart,
-                                                          WarrantyEnd: R.WarrantyEnd,
-                                                          EquipmentNumber: Coalesce(R.EquipmentNumber, "")
-                                                      }
+                                              If(
+                                                  !IsBlank(varEqRequestGuid),
+                                                  ClearCollect(
+                                                      colEqRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              Description: Coalesce(R.Description, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              RequestType: Coalesce(R.RequestType, ""),
+                                                              EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                              Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                              TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                              SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ClassData: Coalesce(R.ClassData, ""),
+                                                              RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                              Placement: Coalesce(R.Placement, ""),
+                                                              WarrantyStart: R.WarrantyStart,
+                                                              WarrantyEnd: R.WarrantyEnd,
+                                                              EquipmentNumber: Coalesce(R.EquipmentNumber, "")
+                                                          }
+                                                      )
+                                                  ),
+                                                  ClearCollect(
+                                                      colEqRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, Created >= varEqSessionStart), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              Description: Coalesce(R.Description, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              RequestType: Coalesce(R.RequestType, ""),
+                                                              EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                              Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                              TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                              SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ClassData: Coalesce(R.ClassData, ""),
+                                                              RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                              Placement: Coalesce(R.Placement, ""),
+                                                              WarrantyStart: R.WarrantyStart,
+                                                              WarrantyEnd: R.WarrantyEnd,
+                                                              EquipmentNumber: Coalesce(R.EquipmentNumber, "")
+                                                          }
+                                                      )
                                                   )
                                               )
                                           );
@@ -3428,31 +3518,61 @@ Screens:
                                                       }
                                                   )
                                               ),
-                                              ClearCollect(
-                                                  colEqRows,
-                                                  ForAll(
-                                                      SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, (!IsBlank(varEqRequestGuid) && RequestGuid = varEqRequestGuid) || Created >= varEqSessionStart, RequestGuid = varEqRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                      {
-                                                          RowId: R.ID,
-                                                          ItemKey: Coalesce(R.ItemKey, ""),
-                                                          RequestNo: Coalesce(R.RequestNo, ""),
-                                                          Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                          FileCount: Coalesce(R.FileCount, 0),
-                                                          Description: Coalesce(R.Description, ""),
-                                                          Plant: Coalesce(R.Plant, ""),
-                                                          RequestType: Coalesce(R.RequestType, ""),
-                                                          EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                                          Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                          TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                                          SerialNumber: Coalesce(R.SerialNumber, ""),
-                                                          FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                          ClassData: Coalesce(R.ClassData, ""),
-                                                          RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                                          Placement: Coalesce(R.Placement, ""),
-                                                          WarrantyStart: R.WarrantyStart,
-                                                          WarrantyEnd: R.WarrantyEnd,
-                                                          EquipmentNumber: Coalesce(R.EquipmentNumber, "")
-                                                      }
+                                              If(
+                                                  !IsBlank(varEqRequestGuid),
+                                                  ClearCollect(
+                                                      colEqRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              Description: Coalesce(R.Description, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              RequestType: Coalesce(R.RequestType, ""),
+                                                              EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                              Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                              TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                              SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ClassData: Coalesce(R.ClassData, ""),
+                                                              RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                              Placement: Coalesce(R.Placement, ""),
+                                                              WarrantyStart: R.WarrantyStart,
+                                                              WarrantyEnd: R.WarrantyEnd,
+                                                              EquipmentNumber: Coalesce(R.EquipmentNumber, "")
+                                                          }
+                                                      )
+                                                  ),
+                                                  ClearCollect(
+                                                      colEqRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, Created >= varEqSessionStart), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              Description: Coalesce(R.Description, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              RequestType: Coalesce(R.RequestType, ""),
+                                                              EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                              Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                              TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                              SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ClassData: Coalesce(R.ClassData, ""),
+                                                              RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                              Placement: Coalesce(R.Placement, ""),
+                                                              WarrantyStart: R.WarrantyStart,
+                                                              WarrantyEnd: R.WarrantyEnd,
+                                                              EquipmentNumber: Coalesce(R.EquipmentNumber, "")
+                                                          }
+                                                      )
                                                   )
                                               )
                                           );
@@ -4223,8 +4343,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -7184,8 +7306,10 @@ Screens:
                 =0
             Fill: |-
                 =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -7235,8 +7359,10 @@ Screens:
                 =0
             Fill: |-
                 =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -11315,31 +11441,61 @@ Screens:
                                                       }
                                                   )
                                               ),
-                                              ClearCollect(
-                                                  colEqRows,
-                                                  ForAll(
-                                                      SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, (!IsBlank(varEqRequestGuid) && RequestGuid = varEqRequestGuid) || Created >= varEqSessionStart, RequestGuid = varEqRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                      {
-                                                          RowId: R.ID,
-                                                          ItemKey: Coalesce(R.ItemKey, ""),
-                                                          RequestNo: Coalesce(R.RequestNo, ""),
-                                                          Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                          FileCount: Coalesce(R.FileCount, 0),
-                                                          Description: Coalesce(R.Description, ""),
-                                                          Plant: Coalesce(R.Plant, ""),
-                                                          RequestType: Coalesce(R.RequestType, ""),
-                                                          EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                                          Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                          TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                                          SerialNumber: Coalesce(R.SerialNumber, ""),
-                                                          FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                          ClassData: Coalesce(R.ClassData, ""),
-                                                          RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                                          Placement: Coalesce(R.Placement, ""),
-                                                          WarrantyStart: R.WarrantyStart,
-                                                          WarrantyEnd: R.WarrantyEnd,
-                                                          EquipmentNumber: Coalesce(R.EquipmentNumber, "")
-                                                      }
+                                              If(
+                                                  !IsBlank(varEqRequestGuid),
+                                                  ClearCollect(
+                                                      colEqRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              Description: Coalesce(R.Description, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              RequestType: Coalesce(R.RequestType, ""),
+                                                              EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                              Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                              TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                              SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ClassData: Coalesce(R.ClassData, ""),
+                                                              RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                              Placement: Coalesce(R.Placement, ""),
+                                                              WarrantyStart: R.WarrantyStart,
+                                                              WarrantyEnd: R.WarrantyEnd,
+                                                              EquipmentNumber: Coalesce(R.EquipmentNumber, "")
+                                                          }
+                                                      )
+                                                  ),
+                                                  ClearCollect(
+                                                      colEqRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, Created >= varEqSessionStart), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              Description: Coalesce(R.Description, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              RequestType: Coalesce(R.RequestType, ""),
+                                                              EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                              Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                              TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                              SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ClassData: Coalesce(R.ClassData, ""),
+                                                              RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                              Placement: Coalesce(R.Placement, ""),
+                                                              WarrantyStart: R.WarrantyStart,
+                                                              WarrantyEnd: R.WarrantyEnd,
+                                                              EquipmentNumber: Coalesce(R.EquipmentNumber, "")
+                                                          }
+                                                      )
                                                   )
                                               )
                                           );
@@ -11491,31 +11647,61 @@ Screens:
                                                       }
                                                   )
                                               ),
-                                              ClearCollect(
-                                                  colEqRows,
-                                                  ForAll(
-                                                      SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, (!IsBlank(varEqRequestGuid) && RequestGuid = varEqRequestGuid) || Created >= varEqSessionStart, RequestGuid = varEqRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                      {
-                                                          RowId: R.ID,
-                                                          ItemKey: Coalesce(R.ItemKey, ""),
-                                                          RequestNo: Coalesce(R.RequestNo, ""),
-                                                          Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                          FileCount: Coalesce(R.FileCount, 0),
-                                                          Description: Coalesce(R.Description, ""),
-                                                          Plant: Coalesce(R.Plant, ""),
-                                                          RequestType: Coalesce(R.RequestType, ""),
-                                                          EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                                          Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                          TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                                          SerialNumber: Coalesce(R.SerialNumber, ""),
-                                                          FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                          ClassData: Coalesce(R.ClassData, ""),
-                                                          RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                                          Placement: Coalesce(R.Placement, ""),
-                                                          WarrantyStart: R.WarrantyStart,
-                                                          WarrantyEnd: R.WarrantyEnd,
-                                                          EquipmentNumber: Coalesce(R.EquipmentNumber, "")
-                                                      }
+                                              If(
+                                                  !IsBlank(varEqRequestGuid),
+                                                  ClearCollect(
+                                                      colEqRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              Description: Coalesce(R.Description, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              RequestType: Coalesce(R.RequestType, ""),
+                                                              EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                              Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                              TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                              SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ClassData: Coalesce(R.ClassData, ""),
+                                                              RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                              Placement: Coalesce(R.Placement, ""),
+                                                              WarrantyStart: R.WarrantyStart,
+                                                              WarrantyEnd: R.WarrantyEnd,
+                                                              EquipmentNumber: Coalesce(R.EquipmentNumber, "")
+                                                          }
+                                                      )
+                                                  ),
+                                                  ClearCollect(
+                                                      colEqRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, Created >= varEqSessionStart), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              Description: Coalesce(R.Description, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              RequestType: Coalesce(R.RequestType, ""),
+                                                              EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                              Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                              TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                              SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ClassData: Coalesce(R.ClassData, ""),
+                                                              RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                              Placement: Coalesce(R.Placement, ""),
+                                                              WarrantyStart: R.WarrantyStart,
+                                                              WarrantyEnd: R.WarrantyEnd,
+                                                              EquipmentNumber: Coalesce(R.EquipmentNumber, "")
+                                                          }
+                                                      )
                                                   )
                                               )
                                           );
@@ -11557,8 +11743,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -11757,8 +11945,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -12308,31 +12498,61 @@ Screens:
                                             }
                                         )
                                     ),
-                                    ClearCollect(
-                                        colEqRows,
-                                        ForAll(
-                                            SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, (!IsBlank(varEqRequestGuid) && RequestGuid = varEqRequestGuid) || Created >= varEqSessionStart, RequestGuid = varEqRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                            {
-                                                RowId: R.ID,
-                                                ItemKey: Coalesce(R.ItemKey, ""),
-                                                RequestNo: Coalesce(R.RequestNo, ""),
-                                                Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                FileCount: Coalesce(R.FileCount, 0),
-                                                Description: Coalesce(R.Description, ""),
-                                                Plant: Coalesce(R.Plant, ""),
-                                                RequestType: Coalesce(R.RequestType, ""),
-                                                EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                                Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                                SerialNumber: Coalesce(R.SerialNumber, ""),
-                                                FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                ClassData: Coalesce(R.ClassData, ""),
-                                                RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                                Placement: Coalesce(R.Placement, ""),
-                                                WarrantyStart: R.WarrantyStart,
-                                                WarrantyEnd: R.WarrantyEnd,
-                                                EquipmentNumber: Coalesce(R.EquipmentNumber, "")
-                                            }
+                                    If(
+                                        !IsBlank(varEqRequestGuid),
+                                        ClearCollect(
+                                            colEqRows,
+                                            ForAll(
+                                                SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
+                                                {
+                                                    RowId: R.ID,
+                                                    ItemKey: Coalesce(R.ItemKey, ""),
+                                                    RequestNo: Coalesce(R.RequestNo, ""),
+                                                    Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                    FileCount: Coalesce(R.FileCount, 0),
+                                                    Description: Coalesce(R.Description, ""),
+                                                    Plant: Coalesce(R.Plant, ""),
+                                                    RequestType: Coalesce(R.RequestType, ""),
+                                                    EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                    Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                    TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                    SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                    FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                    ClassData: Coalesce(R.ClassData, ""),
+                                                    RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                    Placement: Coalesce(R.Placement, ""),
+                                                    WarrantyStart: R.WarrantyStart,
+                                                    WarrantyEnd: R.WarrantyEnd,
+                                                    EquipmentNumber: Coalesce(R.EquipmentNumber, "")
+                                                }
+                                            )
+                                        ),
+                                        ClearCollect(
+                                            colEqRows,
+                                            ForAll(
+                                                SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, Created >= varEqSessionStart), "Created", SortOrder.Descending) As R,
+                                                {
+                                                    RowId: R.ID,
+                                                    ItemKey: Coalesce(R.ItemKey, ""),
+                                                    RequestNo: Coalesce(R.RequestNo, ""),
+                                                    Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                    FileCount: Coalesce(R.FileCount, 0),
+                                                    Description: Coalesce(R.Description, ""),
+                                                    Plant: Coalesce(R.Plant, ""),
+                                                    RequestType: Coalesce(R.RequestType, ""),
+                                                    EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                    Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                    TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                    SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                    FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                    ClassData: Coalesce(R.ClassData, ""),
+                                                    RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                    Placement: Coalesce(R.Placement, ""),
+                                                    WarrantyStart: R.WarrantyStart,
+                                                    WarrantyEnd: R.WarrantyEnd,
+                                                    EquipmentNumber: Coalesce(R.EquipmentNumber, "")
+                                                }
+                                            )
                                         )
                                     )
                                 );
@@ -12370,8 +12590,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -12695,31 +12917,61 @@ Screens:
                                                 }
                                             )
                                         ),
-                                        ClearCollect(
-                                            colEqRows,
-                                            ForAll(
-                                                SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, (!IsBlank(varEqRequestGuid) && RequestGuid = varEqRequestGuid) || Created >= varEqSessionStart, RequestGuid = varEqRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                {
-                                                    RowId: R.ID,
-                                                    ItemKey: Coalesce(R.ItemKey, ""),
-                                                    RequestNo: Coalesce(R.RequestNo, ""),
-                                                    Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                    FileCount: Coalesce(R.FileCount, 0),
-                                                    Description: Coalesce(R.Description, ""),
-                                                    Plant: Coalesce(R.Plant, ""),
-                                                    RequestType: Coalesce(R.RequestType, ""),
-                                                    EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                                    Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                    TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                                    SerialNumber: Coalesce(R.SerialNumber, ""),
-                                                    FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                    ClassData: Coalesce(R.ClassData, ""),
-                                                    RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                                    Placement: Coalesce(R.Placement, ""),
-                                                    WarrantyStart: R.WarrantyStart,
-                                                    WarrantyEnd: R.WarrantyEnd,
-                                                    EquipmentNumber: Coalesce(R.EquipmentNumber, "")
-                                                }
+                                        If(
+                                            !IsBlank(varEqRequestGuid),
+                                            ClearCollect(
+                                                colEqRows,
+                                                ForAll(
+                                                    SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
+                                                    {
+                                                        RowId: R.ID,
+                                                        ItemKey: Coalesce(R.ItemKey, ""),
+                                                        RequestNo: Coalesce(R.RequestNo, ""),
+                                                        Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                        FileCount: Coalesce(R.FileCount, 0),
+                                                        Description: Coalesce(R.Description, ""),
+                                                        Plant: Coalesce(R.Plant, ""),
+                                                        RequestType: Coalesce(R.RequestType, ""),
+                                                        EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                        Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                        TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                        SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                        ClassData: Coalesce(R.ClassData, ""),
+                                                        RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                        Placement: Coalesce(R.Placement, ""),
+                                                        WarrantyStart: R.WarrantyStart,
+                                                        WarrantyEnd: R.WarrantyEnd,
+                                                        EquipmentNumber: Coalesce(R.EquipmentNumber, "")
+                                                    }
+                                                )
+                                            ),
+                                            ClearCollect(
+                                                colEqRows,
+                                                ForAll(
+                                                    SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, Created >= varEqSessionStart), "Created", SortOrder.Descending) As R,
+                                                    {
+                                                        RowId: R.ID,
+                                                        ItemKey: Coalesce(R.ItemKey, ""),
+                                                        RequestNo: Coalesce(R.RequestNo, ""),
+                                                        Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                        FileCount: Coalesce(R.FileCount, 0),
+                                                        Description: Coalesce(R.Description, ""),
+                                                        Plant: Coalesce(R.Plant, ""),
+                                                        RequestType: Coalesce(R.RequestType, ""),
+                                                        EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                        Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                        TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                        SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                        ClassData: Coalesce(R.ClassData, ""),
+                                                        RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                        Placement: Coalesce(R.Placement, ""),
+                                                        WarrantyStart: R.WarrantyStart,
+                                                        WarrantyEnd: R.WarrantyEnd,
+                                                        EquipmentNumber: Coalesce(R.EquipmentNumber, "")
+                                                    }
+                                                )
                                             )
                                         )
                                     );
@@ -12756,8 +13008,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -13086,31 +13340,61 @@ Screens:
                                                 }
                                             )
                                         ),
-                                        ClearCollect(
-                                            colEqRows,
-                                            ForAll(
-                                                SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, (!IsBlank(varEqRequestGuid) && RequestGuid = varEqRequestGuid) || Created >= varEqSessionStart, RequestGuid = varEqRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                {
-                                                    RowId: R.ID,
-                                                    ItemKey: Coalesce(R.ItemKey, ""),
-                                                    RequestNo: Coalesce(R.RequestNo, ""),
-                                                    Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                    FileCount: Coalesce(R.FileCount, 0),
-                                                    Description: Coalesce(R.Description, ""),
-                                                    Plant: Coalesce(R.Plant, ""),
-                                                    RequestType: Coalesce(R.RequestType, ""),
-                                                    EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                                    Manufacturer: Coalesce(R.Manufacturer, ""),
-                                                    TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                                    SerialNumber: Coalesce(R.SerialNumber, ""),
-                                                    FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                    ClassData: Coalesce(R.ClassData, ""),
-                                                    RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                                    Placement: Coalesce(R.Placement, ""),
-                                                    WarrantyStart: R.WarrantyStart,
-                                                    WarrantyEnd: R.WarrantyEnd,
-                                                    EquipmentNumber: Coalesce(R.EquipmentNumber, "")
-                                                }
+                                        If(
+                                            !IsBlank(varEqRequestGuid),
+                                            ClearCollect(
+                                                colEqRows,
+                                                ForAll(
+                                                    SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
+                                                    {
+                                                        RowId: R.ID,
+                                                        ItemKey: Coalesce(R.ItemKey, ""),
+                                                        RequestNo: Coalesce(R.RequestNo, ""),
+                                                        Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                        FileCount: Coalesce(R.FileCount, 0),
+                                                        Description: Coalesce(R.Description, ""),
+                                                        Plant: Coalesce(R.Plant, ""),
+                                                        RequestType: Coalesce(R.RequestType, ""),
+                                                        EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                        Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                        TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                        SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                        ClassData: Coalesce(R.ClassData, ""),
+                                                        RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                        Placement: Coalesce(R.Placement, ""),
+                                                        WarrantyStart: R.WarrantyStart,
+                                                        WarrantyEnd: R.WarrantyEnd,
+                                                        EquipmentNumber: Coalesce(R.EquipmentNumber, "")
+                                                    }
+                                                )
+                                            ),
+                                            ClearCollect(
+                                                colEqRows,
+                                                ForAll(
+                                                    SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, Created >= varEqSessionStart), "Created", SortOrder.Descending) As R,
+                                                    {
+                                                        RowId: R.ID,
+                                                        ItemKey: Coalesce(R.ItemKey, ""),
+                                                        RequestNo: Coalesce(R.RequestNo, ""),
+                                                        Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                        FileCount: Coalesce(R.FileCount, 0),
+                                                        Description: Coalesce(R.Description, ""),
+                                                        Plant: Coalesce(R.Plant, ""),
+                                                        RequestType: Coalesce(R.RequestType, ""),
+                                                        EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                        Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                        TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                        SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                        ClassData: Coalesce(R.ClassData, ""),
+                                                        RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                        Placement: Coalesce(R.Placement, ""),
+                                                        WarrantyStart: R.WarrantyStart,
+                                                        WarrantyEnd: R.WarrantyEnd,
+                                                        EquipmentNumber: Coalesce(R.EquipmentNumber, "")
+                                                    }
+                                                )
                                             )
                                         )
                                     );
@@ -13172,8 +13456,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -13482,8 +13768,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -13663,31 +13951,61 @@ Screens:
                                         }
                                     )
                                 ),
-                                ClearCollect(
-                                    colEqRows,
-                                    ForAll(
-                                        SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, (!IsBlank(varEqRequestGuid) && RequestGuid = varEqRequestGuid) || Created >= varEqSessionStart, RequestGuid = varEqRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                        {
-                                            RowId: R.ID,
-                                            ItemKey: Coalesce(R.ItemKey, ""),
-                                            RequestNo: Coalesce(R.RequestNo, ""),
-                                            Status: Coalesce(R.RowStatus.Value, "valid"),
-                                            FileCount: Coalesce(R.FileCount, 0),
-                                            Description: Coalesce(R.Description, ""),
-                                            Plant: Coalesce(R.Plant, ""),
-                                            RequestType: Coalesce(R.RequestType, ""),
-                                            EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                            Manufacturer: Coalesce(R.Manufacturer, ""),
-                                            TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                            SerialNumber: Coalesce(R.SerialNumber, ""),
-                                            FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                            ClassData: Coalesce(R.ClassData, ""),
-                                            RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                            Placement: Coalesce(R.Placement, ""),
-                                            WarrantyStart: R.WarrantyStart,
-                                            WarrantyEnd: R.WarrantyEnd,
-                                            EquipmentNumber: Coalesce(R.EquipmentNumber, "")
-                                        }
+                                If(
+                                    !IsBlank(varEqRequestGuid),
+                                    ClearCollect(
+                                        colEqRows,
+                                        ForAll(
+                                            SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
+                                            {
+                                                RowId: R.ID,
+                                                ItemKey: Coalesce(R.ItemKey, ""),
+                                                RequestNo: Coalesce(R.RequestNo, ""),
+                                                Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                FileCount: Coalesce(R.FileCount, 0),
+                                                Description: Coalesce(R.Description, ""),
+                                                Plant: Coalesce(R.Plant, ""),
+                                                RequestType: Coalesce(R.RequestType, ""),
+                                                EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                ClassData: Coalesce(R.ClassData, ""),
+                                                RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                Placement: Coalesce(R.Placement, ""),
+                                                WarrantyStart: R.WarrantyStart,
+                                                WarrantyEnd: R.WarrantyEnd,
+                                                EquipmentNumber: Coalesce(R.EquipmentNumber, "")
+                                            }
+                                        )
+                                    ),
+                                    ClearCollect(
+                                        colEqRows,
+                                        ForAll(
+                                            SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, Created >= varEqSessionStart), "Created", SortOrder.Descending) As R,
+                                            {
+                                                RowId: R.ID,
+                                                ItemKey: Coalesce(R.ItemKey, ""),
+                                                RequestNo: Coalesce(R.RequestNo, ""),
+                                                Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                FileCount: Coalesce(R.FileCount, 0),
+                                                Description: Coalesce(R.Description, ""),
+                                                Plant: Coalesce(R.Plant, ""),
+                                                RequestType: Coalesce(R.RequestType, ""),
+                                                EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                                Manufacturer: Coalesce(R.Manufacturer, ""),
+                                                TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                                SerialNumber: Coalesce(R.SerialNumber, ""),
+                                                FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                ClassData: Coalesce(R.ClassData, ""),
+                                                RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                                Placement: Coalesce(R.Placement, ""),
+                                                WarrantyStart: R.WarrantyStart,
+                                                WarrantyEnd: R.WarrantyEnd,
+                                                EquipmentNumber: Coalesce(R.EquipmentNumber, "")
+                                            }
+                                        )
                                     )
                                 )
                             )
@@ -13725,31 +14043,61 @@ Screens:
                                     }
                                 )
                             ),
-                            ClearCollect(
-                                colEqRows,
-                                ForAll(
-                                    SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, (!IsBlank(varEqRequestGuid) && RequestGuid = varEqRequestGuid) || Created >= varEqSessionStart, RequestGuid = varEqRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                    {
-                                        RowId: R.ID,
-                                        ItemKey: Coalesce(R.ItemKey, ""),
-                                        RequestNo: Coalesce(R.RequestNo, ""),
-                                        Status: Coalesce(R.RowStatus.Value, "valid"),
-                                        FileCount: Coalesce(R.FileCount, 0),
-                                        Description: Coalesce(R.Description, ""),
-                                        Plant: Coalesce(R.Plant, ""),
-                                        RequestType: Coalesce(R.RequestType, ""),
-                                        EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
-                                        Manufacturer: Coalesce(R.Manufacturer, ""),
-                                        TypeDesignation: Coalesce(R.TypeDesignation, ""),
-                                        SerialNumber: Coalesce(R.SerialNumber, ""),
-                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                        ClassData: Coalesce(R.ClassData, ""),
-                                        RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
-                                        Placement: Coalesce(R.Placement, ""),
-                                        WarrantyStart: R.WarrantyStart,
-                                        WarrantyEnd: R.WarrantyEnd,
-                                        EquipmentNumber: Coalesce(R.EquipmentNumber, "")
-                                    }
+                            If(
+                                !IsBlank(varEqRequestGuid),
+                                ClearCollect(
+                                    colEqRows,
+                                    ForAll(
+                                        SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, RequestGuid = varEqRequestGuid), "Created", SortOrder.Descending) As R,
+                                        {
+                                            RowId: R.ID,
+                                            ItemKey: Coalesce(R.ItemKey, ""),
+                                            RequestNo: Coalesce(R.RequestNo, ""),
+                                            Status: Coalesce(R.RowStatus.Value, "valid"),
+                                            FileCount: Coalesce(R.FileCount, 0),
+                                            Description: Coalesce(R.Description, ""),
+                                            Plant: Coalesce(R.Plant, ""),
+                                            RequestType: Coalesce(R.RequestType, ""),
+                                            EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                            Manufacturer: Coalesce(R.Manufacturer, ""),
+                                            TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                            SerialNumber: Coalesce(R.SerialNumber, ""),
+                                            FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                            ClassData: Coalesce(R.ClassData, ""),
+                                            RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                            Placement: Coalesce(R.Placement, ""),
+                                            WarrantyStart: R.WarrantyStart,
+                                            WarrantyEnd: R.WarrantyEnd,
+                                            EquipmentNumber: Coalesce(R.EquipmentNumber, "")
+                                        }
+                                    )
+                                ),
+                                ClearCollect(
+                                    colEqRows,
+                                    ForAll(
+                                        SortByColumns(Filter(EquipmentItems, RequesterEmail = varEqMe, Created >= varEqSessionStart), "Created", SortOrder.Descending) As R,
+                                        {
+                                            RowId: R.ID,
+                                            ItemKey: Coalesce(R.ItemKey, ""),
+                                            RequestNo: Coalesce(R.RequestNo, ""),
+                                            Status: Coalesce(R.RowStatus.Value, "valid"),
+                                            FileCount: Coalesce(R.FileCount, 0),
+                                            Description: Coalesce(R.Description, ""),
+                                            Plant: Coalesce(R.Plant, ""),
+                                            RequestType: Coalesce(R.RequestType, ""),
+                                            EquipmentCategory: Coalesce(R.EquipmentCategory, ""),
+                                            Manufacturer: Coalesce(R.Manufacturer, ""),
+                                            TypeDesignation: Coalesce(R.TypeDesignation, ""),
+                                            SerialNumber: Coalesce(R.SerialNumber, ""),
+                                            FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                            ClassData: Coalesce(R.ClassData, ""),
+                                            RoomCoordinates: Coalesce(R.RoomCoordinates, ""),
+                                            Placement: Coalesce(R.Placement, ""),
+                                            WarrantyStart: R.WarrantyStart,
+                                            WarrantyEnd: R.WarrantyEnd,
+                                            EquipmentNumber: Coalesce(R.EquipmentNumber, "")
+                                        }
+                                    )
                                 )
                             )
                         )
@@ -13797,8 +14145,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-

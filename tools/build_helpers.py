@@ -617,14 +617,15 @@ def stable_scrim(fill=C_OVERLAY):
     (sloeret er "hovered" udenfor popuppen, ikke inde i den), og igen ved
     et tryk. Fokusrammen tegnede en kant rundt om hele skaermen, naar
     sloeret fik fokus ved et klik. Alle tre er nu den samme fyldfarve og
-    ingen ramme, saa siden under er daempet ens, til popuppen lukker.
+    en gennemsigtig fokusramme (App checker kraever tykkelse > 0), saa siden under er daempet ens, til popuppen lukker.
 
     Bruges af ALLE sloer med C_OVERLAY (tap_backdrop, loading_overlay,
     open_overlay). Popupper, hvis sloer er en container med popuppen
     indeni, har ingen hover-tilstand og er allerede stabile."""
     return {
         "Fill": fill,
-        "FocusedBorderThickness": "0",
+        "FocusedBorderColor": C_TRANSPARENT,
+        "FocusedBorderThickness": "2",
         "HoverFill": fill,
         "PressedFill": fill,
     }

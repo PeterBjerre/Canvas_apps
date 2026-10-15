@@ -497,43 +497,85 @@ Screens:
                                               }
                                           )
                                       ),
-                                      ClearCollect(
-                                          colMpRows,
-                                          ForAll(
-                                              SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, (!IsBlank(varMpRequestGuid) && RequestGuid = varMpRequestGuid) || Created >= varMpSessionStart, RequestGuid = varMpRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                              {
-                                                  RowId: R.ID,
-                                                  ItemKey: Coalesce(R.ItemKey, ""),
-                                                  RequestNo: Coalesce(R.RequestNo, ""),
-                                                  Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                  FileCount: Coalesce(R.FileCount, 0),
-                                                  Description: Coalesce(R.Description, ""),
-                                                  Plant: Coalesce(R.Plant, ""),
-                                                  FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                  ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
-                                                  MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
-                                                  MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
-                                                  Characteristic: Coalesce(R.Characteristic, ""),
-                                                  CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
-                                                  CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
-                                                  CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
-                                                  DecimalPlaces: R.DecimalPlaces,
-                                                  TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                  LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                  UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                  ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
-                                                  InProdos: Coalesce(R.InProdos.Value, ""),
-                                                  ProdosTag: Coalesce(R.ProdosTag, ""),
-                                                  ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
-                                                  CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
-                                                  Remarks: Coalesce(R.Remarks, ""),
-                                                  IsCounter: Coalesce(R.IsCounter, false),
-                                                  ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                                  CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
-                                                  CounterCreatedOn: R.CounterCreatedOn,
-                                                  CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
-                                                  SapResult: Coalesce(R.SapResult, "")
-                                              }
+                                      If(
+                                          !IsBlank(varMpRequestGuid),
+                                          ClearCollect(
+                                              colMpRows,
+                                              ForAll(
+                                                  SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, RequestGuid = varMpRequestGuid), "Created", SortOrder.Descending) As R,
+                                                  {
+                                                      RowId: R.ID,
+                                                      ItemKey: Coalesce(R.ItemKey, ""),
+                                                      RequestNo: Coalesce(R.RequestNo, ""),
+                                                      Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                      FileCount: Coalesce(R.FileCount, 0),
+                                                      Description: Coalesce(R.Description, ""),
+                                                      Plant: Coalesce(R.Plant, ""),
+                                                      FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                      ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                                      MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                      MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                                      Characteristic: Coalesce(R.Characteristic, ""),
+                                                      CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                      CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                      CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                      DecimalPlaces: R.DecimalPlaces,
+                                                      TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                      LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                      UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                      ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                      InProdos: Coalesce(R.InProdos.Value, ""),
+                                                      ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                      ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                                      CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                                      Remarks: Coalesce(R.Remarks, ""),
+                                                      IsCounter: Coalesce(R.IsCounter, false),
+                                                      ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                      CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                      CounterCreatedOn: R.CounterCreatedOn,
+                                                      CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                      SapResult: Coalesce(R.SapResult, "")
+                                                  }
+                                              )
+                                          ),
+                                          ClearCollect(
+                                              colMpRows,
+                                              ForAll(
+                                                  SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, Created >= varMpSessionStart), "Created", SortOrder.Descending) As R,
+                                                  {
+                                                      RowId: R.ID,
+                                                      ItemKey: Coalesce(R.ItemKey, ""),
+                                                      RequestNo: Coalesce(R.RequestNo, ""),
+                                                      Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                      FileCount: Coalesce(R.FileCount, 0),
+                                                      Description: Coalesce(R.Description, ""),
+                                                      Plant: Coalesce(R.Plant, ""),
+                                                      FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                      ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                                      MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                      MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                                      Characteristic: Coalesce(R.Characteristic, ""),
+                                                      CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                      CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                      CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                      DecimalPlaces: R.DecimalPlaces,
+                                                      TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                      LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                      UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                      ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                      InProdos: Coalesce(R.InProdos.Value, ""),
+                                                      ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                      ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                                      CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                                      Remarks: Coalesce(R.Remarks, ""),
+                                                      IsCounter: Coalesce(R.IsCounter, false),
+                                                      ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                      CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                      CounterCreatedOn: R.CounterCreatedOn,
+                                                      CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                      SapResult: Coalesce(R.SapResult, "")
+                                                  }
+                                              )
                                           )
                                       )
                                   );
@@ -808,43 +850,85 @@ Screens:
                                                       }
                                                   )
                                               ),
-                                              ClearCollect(
-                                                  colMpRows,
-                                                  ForAll(
-                                                      SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, (!IsBlank(varMpRequestGuid) && RequestGuid = varMpRequestGuid) || Created >= varMpSessionStart, RequestGuid = varMpRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                      {
-                                                          RowId: R.ID,
-                                                          ItemKey: Coalesce(R.ItemKey, ""),
-                                                          RequestNo: Coalesce(R.RequestNo, ""),
-                                                          Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                          FileCount: Coalesce(R.FileCount, 0),
-                                                          Description: Coalesce(R.Description, ""),
-                                                          Plant: Coalesce(R.Plant, ""),
-                                                          FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                          ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
-                                                          MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
-                                                          MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
-                                                          Characteristic: Coalesce(R.Characteristic, ""),
-                                                          CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
-                                                          CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
-                                                          CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
-                                                          DecimalPlaces: R.DecimalPlaces,
-                                                          TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                          LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                          UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                          ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
-                                                          InProdos: Coalesce(R.InProdos.Value, ""),
-                                                          ProdosTag: Coalesce(R.ProdosTag, ""),
-                                                          ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
-                                                          CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
-                                                          Remarks: Coalesce(R.Remarks, ""),
-                                                          IsCounter: Coalesce(R.IsCounter, false),
-                                                          ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                                          CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
-                                                          CounterCreatedOn: R.CounterCreatedOn,
-                                                          CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
-                                                          SapResult: Coalesce(R.SapResult, "")
-                                                      }
+                                              If(
+                                                  !IsBlank(varMpRequestGuid),
+                                                  ClearCollect(
+                                                      colMpRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, RequestGuid = varMpRequestGuid), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              Description: Coalesce(R.Description, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                                              MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                              MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                                              Characteristic: Coalesce(R.Characteristic, ""),
+                                                              CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                              CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                              CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                              DecimalPlaces: R.DecimalPlaces,
+                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                              InProdos: Coalesce(R.InProdos.Value, ""),
+                                                              ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                              ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                                              CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                                              Remarks: Coalesce(R.Remarks, ""),
+                                                              IsCounter: Coalesce(R.IsCounter, false),
+                                                              ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                              CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                              CounterCreatedOn: R.CounterCreatedOn,
+                                                              CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                              SapResult: Coalesce(R.SapResult, "")
+                                                          }
+                                                      )
+                                                  ),
+                                                  ClearCollect(
+                                                      colMpRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, Created >= varMpSessionStart), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              Description: Coalesce(R.Description, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                                              MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                              MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                                              Characteristic: Coalesce(R.Characteristic, ""),
+                                                              CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                              CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                              CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                              DecimalPlaces: R.DecimalPlaces,
+                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                              InProdos: Coalesce(R.InProdos.Value, ""),
+                                                              ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                              ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                                              CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                                              Remarks: Coalesce(R.Remarks, ""),
+                                                              IsCounter: Coalesce(R.IsCounter, false),
+                                                              ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                              CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                              CounterCreatedOn: R.CounterCreatedOn,
+                                                              CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                              SapResult: Coalesce(R.SapResult, "")
+                                                          }
+                                                      )
                                                   )
                                               )
                                           );
@@ -1009,43 +1093,85 @@ Screens:
                                                       }
                                                   )
                                               ),
-                                              ClearCollect(
-                                                  colMpRows,
-                                                  ForAll(
-                                                      SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, (!IsBlank(varMpRequestGuid) && RequestGuid = varMpRequestGuid) || Created >= varMpSessionStart, RequestGuid = varMpRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                      {
-                                                          RowId: R.ID,
-                                                          ItemKey: Coalesce(R.ItemKey, ""),
-                                                          RequestNo: Coalesce(R.RequestNo, ""),
-                                                          Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                          FileCount: Coalesce(R.FileCount, 0),
-                                                          Description: Coalesce(R.Description, ""),
-                                                          Plant: Coalesce(R.Plant, ""),
-                                                          FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                          ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
-                                                          MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
-                                                          MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
-                                                          Characteristic: Coalesce(R.Characteristic, ""),
-                                                          CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
-                                                          CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
-                                                          CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
-                                                          DecimalPlaces: R.DecimalPlaces,
-                                                          TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                          LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                          UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                          ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
-                                                          InProdos: Coalesce(R.InProdos.Value, ""),
-                                                          ProdosTag: Coalesce(R.ProdosTag, ""),
-                                                          ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
-                                                          CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
-                                                          Remarks: Coalesce(R.Remarks, ""),
-                                                          IsCounter: Coalesce(R.IsCounter, false),
-                                                          ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                                          CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
-                                                          CounterCreatedOn: R.CounterCreatedOn,
-                                                          CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
-                                                          SapResult: Coalesce(R.SapResult, "")
-                                                      }
+                                              If(
+                                                  !IsBlank(varMpRequestGuid),
+                                                  ClearCollect(
+                                                      colMpRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, RequestGuid = varMpRequestGuid), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              Description: Coalesce(R.Description, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                                              MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                              MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                                              Characteristic: Coalesce(R.Characteristic, ""),
+                                                              CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                              CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                              CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                              DecimalPlaces: R.DecimalPlaces,
+                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                              InProdos: Coalesce(R.InProdos.Value, ""),
+                                                              ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                              ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                                              CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                                              Remarks: Coalesce(R.Remarks, ""),
+                                                              IsCounter: Coalesce(R.IsCounter, false),
+                                                              ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                              CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                              CounterCreatedOn: R.CounterCreatedOn,
+                                                              CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                              SapResult: Coalesce(R.SapResult, "")
+                                                          }
+                                                      )
+                                                  ),
+                                                  ClearCollect(
+                                                      colMpRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, Created >= varMpSessionStart), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              Description: Coalesce(R.Description, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                                              MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                              MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                                              Characteristic: Coalesce(R.Characteristic, ""),
+                                                              CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                              CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                              CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                              DecimalPlaces: R.DecimalPlaces,
+                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                              InProdos: Coalesce(R.InProdos.Value, ""),
+                                                              ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                              ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                                              CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                                              Remarks: Coalesce(R.Remarks, ""),
+                                                              IsCounter: Coalesce(R.IsCounter, false),
+                                                              ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                              CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                              CounterCreatedOn: R.CounterCreatedOn,
+                                                              CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                              SapResult: Coalesce(R.SapResult, "")
+                                                          }
+                                                      )
                                                   )
                                               )
                                           );
@@ -3732,43 +3858,85 @@ Screens:
                                                       }
                                                   )
                                               ),
-                                              ClearCollect(
-                                                  colMpRows,
-                                                  ForAll(
-                                                      SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, (!IsBlank(varMpRequestGuid) && RequestGuid = varMpRequestGuid) || Created >= varMpSessionStart, RequestGuid = varMpRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                      {
-                                                          RowId: R.ID,
-                                                          ItemKey: Coalesce(R.ItemKey, ""),
-                                                          RequestNo: Coalesce(R.RequestNo, ""),
-                                                          Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                          FileCount: Coalesce(R.FileCount, 0),
-                                                          Description: Coalesce(R.Description, ""),
-                                                          Plant: Coalesce(R.Plant, ""),
-                                                          FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                          ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
-                                                          MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
-                                                          MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
-                                                          Characteristic: Coalesce(R.Characteristic, ""),
-                                                          CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
-                                                          CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
-                                                          CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
-                                                          DecimalPlaces: R.DecimalPlaces,
-                                                          TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                          LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                          UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                          ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
-                                                          InProdos: Coalesce(R.InProdos.Value, ""),
-                                                          ProdosTag: Coalesce(R.ProdosTag, ""),
-                                                          ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
-                                                          CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
-                                                          Remarks: Coalesce(R.Remarks, ""),
-                                                          IsCounter: Coalesce(R.IsCounter, false),
-                                                          ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                                          CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
-                                                          CounterCreatedOn: R.CounterCreatedOn,
-                                                          CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
-                                                          SapResult: Coalesce(R.SapResult, "")
-                                                      }
+                                              If(
+                                                  !IsBlank(varMpRequestGuid),
+                                                  ClearCollect(
+                                                      colMpRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, RequestGuid = varMpRequestGuid), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              Description: Coalesce(R.Description, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                                              MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                              MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                                              Characteristic: Coalesce(R.Characteristic, ""),
+                                                              CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                              CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                              CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                              DecimalPlaces: R.DecimalPlaces,
+                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                              InProdos: Coalesce(R.InProdos.Value, ""),
+                                                              ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                              ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                                              CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                                              Remarks: Coalesce(R.Remarks, ""),
+                                                              IsCounter: Coalesce(R.IsCounter, false),
+                                                              ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                              CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                              CounterCreatedOn: R.CounterCreatedOn,
+                                                              CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                              SapResult: Coalesce(R.SapResult, "")
+                                                          }
+                                                      )
+                                                  ),
+                                                  ClearCollect(
+                                                      colMpRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, Created >= varMpSessionStart), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              Description: Coalesce(R.Description, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                                              MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                              MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                                              Characteristic: Coalesce(R.Characteristic, ""),
+                                                              CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                              CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                              CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                              DecimalPlaces: R.DecimalPlaces,
+                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                              InProdos: Coalesce(R.InProdos.Value, ""),
+                                                              ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                              ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                                              CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                                              Remarks: Coalesce(R.Remarks, ""),
+                                                              IsCounter: Coalesce(R.IsCounter, false),
+                                                              ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                              CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                              CounterCreatedOn: R.CounterCreatedOn,
+                                                              CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                              SapResult: Coalesce(R.SapResult, "")
+                                                          }
+                                                      )
                                                   )
                                               )
                                           );
@@ -4539,8 +4707,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -7500,8 +7670,10 @@ Screens:
                 =0
             Fill: |-
                 =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -7558,8 +7730,10 @@ Screens:
                 =0
             Fill: |-
                 =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -13591,43 +13765,85 @@ Screens:
                                                         }
                                                     )
                                                 ),
-                                                ClearCollect(
-                                                    colMpRows,
-                                                    ForAll(
-                                                        SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, (!IsBlank(varMpRequestGuid) && RequestGuid = varMpRequestGuid) || Created >= varMpSessionStart, RequestGuid = varMpRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                        {
-                                                            RowId: R.ID,
-                                                            ItemKey: Coalesce(R.ItemKey, ""),
-                                                            RequestNo: Coalesce(R.RequestNo, ""),
-                                                            Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                            FileCount: Coalesce(R.FileCount, 0),
-                                                            Description: Coalesce(R.Description, ""),
-                                                            Plant: Coalesce(R.Plant, ""),
-                                                            FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                            ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
-                                                            MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
-                                                            MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
-                                                            Characteristic: Coalesce(R.Characteristic, ""),
-                                                            CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
-                                                            CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
-                                                            CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
-                                                            DecimalPlaces: R.DecimalPlaces,
-                                                            TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                            LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                            UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                            ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
-                                                            InProdos: Coalesce(R.InProdos.Value, ""),
-                                                            ProdosTag: Coalesce(R.ProdosTag, ""),
-                                                            ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
-                                                            CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
-                                                            Remarks: Coalesce(R.Remarks, ""),
-                                                            IsCounter: Coalesce(R.IsCounter, false),
-                                                            ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                                            CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
-                                                            CounterCreatedOn: R.CounterCreatedOn,
-                                                            CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
-                                                            SapResult: Coalesce(R.SapResult, "")
-                                                        }
+                                                If(
+                                                    !IsBlank(varMpRequestGuid),
+                                                    ClearCollect(
+                                                        colMpRows,
+                                                        ForAll(
+                                                            SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, RequestGuid = varMpRequestGuid), "Created", SortOrder.Descending) As R,
+                                                            {
+                                                                RowId: R.ID,
+                                                                ItemKey: Coalesce(R.ItemKey, ""),
+                                                                RequestNo: Coalesce(R.RequestNo, ""),
+                                                                Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                                FileCount: Coalesce(R.FileCount, 0),
+                                                                Description: Coalesce(R.Description, ""),
+                                                                Plant: Coalesce(R.Plant, ""),
+                                                                FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                                ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                                                MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                                MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                                                Characteristic: Coalesce(R.Characteristic, ""),
+                                                                CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                                CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                                CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                                DecimalPlaces: R.DecimalPlaces,
+                                                                TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                                LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                                UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                                ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                                InProdos: Coalesce(R.InProdos.Value, ""),
+                                                                ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                                ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                                                CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                                                Remarks: Coalesce(R.Remarks, ""),
+                                                                IsCounter: Coalesce(R.IsCounter, false),
+                                                                ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                                CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                                CounterCreatedOn: R.CounterCreatedOn,
+                                                                CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                                SapResult: Coalesce(R.SapResult, "")
+                                                            }
+                                                        )
+                                                    ),
+                                                    ClearCollect(
+                                                        colMpRows,
+                                                        ForAll(
+                                                            SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, Created >= varMpSessionStart), "Created", SortOrder.Descending) As R,
+                                                            {
+                                                                RowId: R.ID,
+                                                                ItemKey: Coalesce(R.ItemKey, ""),
+                                                                RequestNo: Coalesce(R.RequestNo, ""),
+                                                                Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                                FileCount: Coalesce(R.FileCount, 0),
+                                                                Description: Coalesce(R.Description, ""),
+                                                                Plant: Coalesce(R.Plant, ""),
+                                                                FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                                ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                                                MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                                MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                                                Characteristic: Coalesce(R.Characteristic, ""),
+                                                                CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                                CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                                CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                                DecimalPlaces: R.DecimalPlaces,
+                                                                TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                                LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                                UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                                ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                                InProdos: Coalesce(R.InProdos.Value, ""),
+                                                                ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                                ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                                                CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                                                Remarks: Coalesce(R.Remarks, ""),
+                                                                IsCounter: Coalesce(R.IsCounter, false),
+                                                                ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                                CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                                CounterCreatedOn: R.CounterCreatedOn,
+                                                                CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                                SapResult: Coalesce(R.SapResult, "")
+                                                            }
+                                                        )
                                                     )
                                                 )
                                             );
@@ -14167,43 +14383,85 @@ Screens:
                                                       }
                                                   )
                                               ),
-                                              ClearCollect(
-                                                  colMpRows,
-                                                  ForAll(
-                                                      SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, (!IsBlank(varMpRequestGuid) && RequestGuid = varMpRequestGuid) || Created >= varMpSessionStart, RequestGuid = varMpRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                      {
-                                                          RowId: R.ID,
-                                                          ItemKey: Coalesce(R.ItemKey, ""),
-                                                          RequestNo: Coalesce(R.RequestNo, ""),
-                                                          Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                          FileCount: Coalesce(R.FileCount, 0),
-                                                          Description: Coalesce(R.Description, ""),
-                                                          Plant: Coalesce(R.Plant, ""),
-                                                          FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                          ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
-                                                          MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
-                                                          MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
-                                                          Characteristic: Coalesce(R.Characteristic, ""),
-                                                          CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
-                                                          CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
-                                                          CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
-                                                          DecimalPlaces: R.DecimalPlaces,
-                                                          TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                          LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                          UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                          ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
-                                                          InProdos: Coalesce(R.InProdos.Value, ""),
-                                                          ProdosTag: Coalesce(R.ProdosTag, ""),
-                                                          ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
-                                                          CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
-                                                          Remarks: Coalesce(R.Remarks, ""),
-                                                          IsCounter: Coalesce(R.IsCounter, false),
-                                                          ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                                          CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
-                                                          CounterCreatedOn: R.CounterCreatedOn,
-                                                          CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
-                                                          SapResult: Coalesce(R.SapResult, "")
-                                                      }
+                                              If(
+                                                  !IsBlank(varMpRequestGuid),
+                                                  ClearCollect(
+                                                      colMpRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, RequestGuid = varMpRequestGuid), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              Description: Coalesce(R.Description, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                                              MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                              MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                                              Characteristic: Coalesce(R.Characteristic, ""),
+                                                              CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                              CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                              CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                              DecimalPlaces: R.DecimalPlaces,
+                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                              InProdos: Coalesce(R.InProdos.Value, ""),
+                                                              ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                              ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                                              CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                                              Remarks: Coalesce(R.Remarks, ""),
+                                                              IsCounter: Coalesce(R.IsCounter, false),
+                                                              ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                              CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                              CounterCreatedOn: R.CounterCreatedOn,
+                                                              CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                              SapResult: Coalesce(R.SapResult, "")
+                                                          }
+                                                      )
+                                                  ),
+                                                  ClearCollect(
+                                                      colMpRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, Created >= varMpSessionStart), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              Description: Coalesce(R.Description, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                                              MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                              MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                                              Characteristic: Coalesce(R.Characteristic, ""),
+                                                              CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                              CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                              CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                              DecimalPlaces: R.DecimalPlaces,
+                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                              InProdos: Coalesce(R.InProdos.Value, ""),
+                                                              ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                              ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                                              CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                                              Remarks: Coalesce(R.Remarks, ""),
+                                                              IsCounter: Coalesce(R.IsCounter, false),
+                                                              ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                              CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                              CounterCreatedOn: R.CounterCreatedOn,
+                                                              CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                              SapResult: Coalesce(R.SapResult, "")
+                                                          }
+                                                      )
                                                   )
                                               )
                                           );
@@ -14383,43 +14641,85 @@ Screens:
                                                       }
                                                   )
                                               ),
-                                              ClearCollect(
-                                                  colMpRows,
-                                                  ForAll(
-                                                      SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, (!IsBlank(varMpRequestGuid) && RequestGuid = varMpRequestGuid) || Created >= varMpSessionStart, RequestGuid = varMpRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                      {
-                                                          RowId: R.ID,
-                                                          ItemKey: Coalesce(R.ItemKey, ""),
-                                                          RequestNo: Coalesce(R.RequestNo, ""),
-                                                          Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                          FileCount: Coalesce(R.FileCount, 0),
-                                                          Description: Coalesce(R.Description, ""),
-                                                          Plant: Coalesce(R.Plant, ""),
-                                                          FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                          ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
-                                                          MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
-                                                          MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
-                                                          Characteristic: Coalesce(R.Characteristic, ""),
-                                                          CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
-                                                          CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
-                                                          CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
-                                                          DecimalPlaces: R.DecimalPlaces,
-                                                          TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                          LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                          UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                          ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
-                                                          InProdos: Coalesce(R.InProdos.Value, ""),
-                                                          ProdosTag: Coalesce(R.ProdosTag, ""),
-                                                          ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
-                                                          CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
-                                                          Remarks: Coalesce(R.Remarks, ""),
-                                                          IsCounter: Coalesce(R.IsCounter, false),
-                                                          ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                                          CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
-                                                          CounterCreatedOn: R.CounterCreatedOn,
-                                                          CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
-                                                          SapResult: Coalesce(R.SapResult, "")
-                                                      }
+                                              If(
+                                                  !IsBlank(varMpRequestGuid),
+                                                  ClearCollect(
+                                                      colMpRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, RequestGuid = varMpRequestGuid), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              Description: Coalesce(R.Description, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                                              MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                              MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                                              Characteristic: Coalesce(R.Characteristic, ""),
+                                                              CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                              CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                              CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                              DecimalPlaces: R.DecimalPlaces,
+                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                              InProdos: Coalesce(R.InProdos.Value, ""),
+                                                              ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                              ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                                              CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                                              Remarks: Coalesce(R.Remarks, ""),
+                                                              IsCounter: Coalesce(R.IsCounter, false),
+                                                              ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                              CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                              CounterCreatedOn: R.CounterCreatedOn,
+                                                              CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                              SapResult: Coalesce(R.SapResult, "")
+                                                          }
+                                                      )
+                                                  ),
+                                                  ClearCollect(
+                                                      colMpRows,
+                                                      ForAll(
+                                                          SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, Created >= varMpSessionStart), "Created", SortOrder.Descending) As R,
+                                                          {
+                                                              RowId: R.ID,
+                                                              ItemKey: Coalesce(R.ItemKey, ""),
+                                                              RequestNo: Coalesce(R.RequestNo, ""),
+                                                              Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                              FileCount: Coalesce(R.FileCount, 0),
+                                                              Description: Coalesce(R.Description, ""),
+                                                              Plant: Coalesce(R.Plant, ""),
+                                                              FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                              ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                                              MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                              MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                                              Characteristic: Coalesce(R.Characteristic, ""),
+                                                              CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                              CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                              CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                              DecimalPlaces: R.DecimalPlaces,
+                                                              TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                              LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                              UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                              ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                              InProdos: Coalesce(R.InProdos.Value, ""),
+                                                              ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                              ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                                              CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                                              Remarks: Coalesce(R.Remarks, ""),
+                                                              IsCounter: Coalesce(R.IsCounter, false),
+                                                              ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                              CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                              CounterCreatedOn: R.CounterCreatedOn,
+                                                              CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                              SapResult: Coalesce(R.SapResult, "")
+                                                          }
+                                                      )
                                                   )
                                               )
                                           );
@@ -14461,8 +14761,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -14668,8 +14970,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -15239,43 +15543,85 @@ Screens:
                                             }
                                         )
                                     ),
-                                    ClearCollect(
-                                        colMpRows,
-                                        ForAll(
-                                            SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, (!IsBlank(varMpRequestGuid) && RequestGuid = varMpRequestGuid) || Created >= varMpSessionStart, RequestGuid = varMpRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                            {
-                                                RowId: R.ID,
-                                                ItemKey: Coalesce(R.ItemKey, ""),
-                                                RequestNo: Coalesce(R.RequestNo, ""),
-                                                Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                FileCount: Coalesce(R.FileCount, 0),
-                                                Description: Coalesce(R.Description, ""),
-                                                Plant: Coalesce(R.Plant, ""),
-                                                FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
-                                                MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
-                                                MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
-                                                Characteristic: Coalesce(R.Characteristic, ""),
-                                                CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
-                                                CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
-                                                CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
-                                                DecimalPlaces: R.DecimalPlaces,
-                                                TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
-                                                InProdos: Coalesce(R.InProdos.Value, ""),
-                                                ProdosTag: Coalesce(R.ProdosTag, ""),
-                                                ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
-                                                CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
-                                                Remarks: Coalesce(R.Remarks, ""),
-                                                IsCounter: Coalesce(R.IsCounter, false),
-                                                ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                                CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
-                                                CounterCreatedOn: R.CounterCreatedOn,
-                                                CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
-                                                SapResult: Coalesce(R.SapResult, "")
-                                            }
+                                    If(
+                                        !IsBlank(varMpRequestGuid),
+                                        ClearCollect(
+                                            colMpRows,
+                                            ForAll(
+                                                SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, RequestGuid = varMpRequestGuid), "Created", SortOrder.Descending) As R,
+                                                {
+                                                    RowId: R.ID,
+                                                    ItemKey: Coalesce(R.ItemKey, ""),
+                                                    RequestNo: Coalesce(R.RequestNo, ""),
+                                                    Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                    FileCount: Coalesce(R.FileCount, 0),
+                                                    Description: Coalesce(R.Description, ""),
+                                                    Plant: Coalesce(R.Plant, ""),
+                                                    FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                    ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                                    MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                    MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                                    Characteristic: Coalesce(R.Characteristic, ""),
+                                                    CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                    CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                    CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                    DecimalPlaces: R.DecimalPlaces,
+                                                    TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                    LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                    UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                    ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                    InProdos: Coalesce(R.InProdos.Value, ""),
+                                                    ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                    ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                                    CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                                    Remarks: Coalesce(R.Remarks, ""),
+                                                    IsCounter: Coalesce(R.IsCounter, false),
+                                                    ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                    CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                    CounterCreatedOn: R.CounterCreatedOn,
+                                                    CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                    SapResult: Coalesce(R.SapResult, "")
+                                                }
+                                            )
+                                        ),
+                                        ClearCollect(
+                                            colMpRows,
+                                            ForAll(
+                                                SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, Created >= varMpSessionStart), "Created", SortOrder.Descending) As R,
+                                                {
+                                                    RowId: R.ID,
+                                                    ItemKey: Coalesce(R.ItemKey, ""),
+                                                    RequestNo: Coalesce(R.RequestNo, ""),
+                                                    Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                    FileCount: Coalesce(R.FileCount, 0),
+                                                    Description: Coalesce(R.Description, ""),
+                                                    Plant: Coalesce(R.Plant, ""),
+                                                    FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                    ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                                    MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                    MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                                    Characteristic: Coalesce(R.Characteristic, ""),
+                                                    CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                    CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                    CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                    DecimalPlaces: R.DecimalPlaces,
+                                                    TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                    LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                    UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                    ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                    InProdos: Coalesce(R.InProdos.Value, ""),
+                                                    ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                    ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                                    CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                                    Remarks: Coalesce(R.Remarks, ""),
+                                                    IsCounter: Coalesce(R.IsCounter, false),
+                                                    ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                    CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                    CounterCreatedOn: R.CounterCreatedOn,
+                                                    CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                    SapResult: Coalesce(R.SapResult, "")
+                                                }
+                                            )
                                         )
                                     )
                                 );
@@ -15313,8 +15659,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -15657,43 +16005,85 @@ Screens:
                                                 }
                                             )
                                         ),
-                                        ClearCollect(
-                                            colMpRows,
-                                            ForAll(
-                                                SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, (!IsBlank(varMpRequestGuid) && RequestGuid = varMpRequestGuid) || Created >= varMpSessionStart, RequestGuid = varMpRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                {
-                                                    RowId: R.ID,
-                                                    ItemKey: Coalesce(R.ItemKey, ""),
-                                                    RequestNo: Coalesce(R.RequestNo, ""),
-                                                    Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                    FileCount: Coalesce(R.FileCount, 0),
-                                                    Description: Coalesce(R.Description, ""),
-                                                    Plant: Coalesce(R.Plant, ""),
-                                                    FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                    ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
-                                                    MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
-                                                    MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
-                                                    Characteristic: Coalesce(R.Characteristic, ""),
-                                                    CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
-                                                    CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
-                                                    CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
-                                                    DecimalPlaces: R.DecimalPlaces,
-                                                    TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                    LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                    UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                    ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
-                                                    InProdos: Coalesce(R.InProdos.Value, ""),
-                                                    ProdosTag: Coalesce(R.ProdosTag, ""),
-                                                    ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
-                                                    CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
-                                                    Remarks: Coalesce(R.Remarks, ""),
-                                                    IsCounter: Coalesce(R.IsCounter, false),
-                                                    ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                                    CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
-                                                    CounterCreatedOn: R.CounterCreatedOn,
-                                                    CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
-                                                    SapResult: Coalesce(R.SapResult, "")
-                                                }
+                                        If(
+                                            !IsBlank(varMpRequestGuid),
+                                            ClearCollect(
+                                                colMpRows,
+                                                ForAll(
+                                                    SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, RequestGuid = varMpRequestGuid), "Created", SortOrder.Descending) As R,
+                                                    {
+                                                        RowId: R.ID,
+                                                        ItemKey: Coalesce(R.ItemKey, ""),
+                                                        RequestNo: Coalesce(R.RequestNo, ""),
+                                                        Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                        FileCount: Coalesce(R.FileCount, 0),
+                                                        Description: Coalesce(R.Description, ""),
+                                                        Plant: Coalesce(R.Plant, ""),
+                                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                        ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                                        MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                        MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                                        Characteristic: Coalesce(R.Characteristic, ""),
+                                                        CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                        CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                        CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                        DecimalPlaces: R.DecimalPlaces,
+                                                        TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                        LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                        UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                        ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                        InProdos: Coalesce(R.InProdos.Value, ""),
+                                                        ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                        ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                                        CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                                        Remarks: Coalesce(R.Remarks, ""),
+                                                        IsCounter: Coalesce(R.IsCounter, false),
+                                                        ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                        CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                        CounterCreatedOn: R.CounterCreatedOn,
+                                                        CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                        SapResult: Coalesce(R.SapResult, "")
+                                                    }
+                                                )
+                                            ),
+                                            ClearCollect(
+                                                colMpRows,
+                                                ForAll(
+                                                    SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, Created >= varMpSessionStart), "Created", SortOrder.Descending) As R,
+                                                    {
+                                                        RowId: R.ID,
+                                                        ItemKey: Coalesce(R.ItemKey, ""),
+                                                        RequestNo: Coalesce(R.RequestNo, ""),
+                                                        Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                        FileCount: Coalesce(R.FileCount, 0),
+                                                        Description: Coalesce(R.Description, ""),
+                                                        Plant: Coalesce(R.Plant, ""),
+                                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                        ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                                        MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                        MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                                        Characteristic: Coalesce(R.Characteristic, ""),
+                                                        CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                        CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                        CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                        DecimalPlaces: R.DecimalPlaces,
+                                                        TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                        LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                        UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                        ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                        InProdos: Coalesce(R.InProdos.Value, ""),
+                                                        ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                        ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                                        CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                                        Remarks: Coalesce(R.Remarks, ""),
+                                                        IsCounter: Coalesce(R.IsCounter, false),
+                                                        ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                        CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                        CounterCreatedOn: R.CounterCreatedOn,
+                                                        CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                        SapResult: Coalesce(R.SapResult, "")
+                                                    }
+                                                )
                                             )
                                         )
                                     );
@@ -15730,8 +16120,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -16072,43 +16464,85 @@ Screens:
                                                 }
                                             )
                                         ),
-                                        ClearCollect(
-                                            colMpRows,
-                                            ForAll(
-                                                SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, (!IsBlank(varMpRequestGuid) && RequestGuid = varMpRequestGuid) || Created >= varMpSessionStart, RequestGuid = varMpRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                                {
-                                                    RowId: R.ID,
-                                                    ItemKey: Coalesce(R.ItemKey, ""),
-                                                    RequestNo: Coalesce(R.RequestNo, ""),
-                                                    Status: Coalesce(R.RowStatus.Value, "valid"),
-                                                    FileCount: Coalesce(R.FileCount, 0),
-                                                    Description: Coalesce(R.Description, ""),
-                                                    Plant: Coalesce(R.Plant, ""),
-                                                    FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                                    ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
-                                                    MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
-                                                    MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
-                                                    Characteristic: Coalesce(R.Characteristic, ""),
-                                                    CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
-                                                    CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
-                                                    CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
-                                                    DecimalPlaces: R.DecimalPlaces,
-                                                    TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                                    LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                                    UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                                    ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
-                                                    InProdos: Coalesce(R.InProdos.Value, ""),
-                                                    ProdosTag: Coalesce(R.ProdosTag, ""),
-                                                    ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
-                                                    CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
-                                                    Remarks: Coalesce(R.Remarks, ""),
-                                                    IsCounter: Coalesce(R.IsCounter, false),
-                                                    ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                                    CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
-                                                    CounterCreatedOn: R.CounterCreatedOn,
-                                                    CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
-                                                    SapResult: Coalesce(R.SapResult, "")
-                                                }
+                                        If(
+                                            !IsBlank(varMpRequestGuid),
+                                            ClearCollect(
+                                                colMpRows,
+                                                ForAll(
+                                                    SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, RequestGuid = varMpRequestGuid), "Created", SortOrder.Descending) As R,
+                                                    {
+                                                        RowId: R.ID,
+                                                        ItemKey: Coalesce(R.ItemKey, ""),
+                                                        RequestNo: Coalesce(R.RequestNo, ""),
+                                                        Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                        FileCount: Coalesce(R.FileCount, 0),
+                                                        Description: Coalesce(R.Description, ""),
+                                                        Plant: Coalesce(R.Plant, ""),
+                                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                        ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                                        MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                        MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                                        Characteristic: Coalesce(R.Characteristic, ""),
+                                                        CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                        CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                        CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                        DecimalPlaces: R.DecimalPlaces,
+                                                        TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                        LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                        UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                        ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                        InProdos: Coalesce(R.InProdos.Value, ""),
+                                                        ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                        ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                                        CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                                        Remarks: Coalesce(R.Remarks, ""),
+                                                        IsCounter: Coalesce(R.IsCounter, false),
+                                                        ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                        CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                        CounterCreatedOn: R.CounterCreatedOn,
+                                                        CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                        SapResult: Coalesce(R.SapResult, "")
+                                                    }
+                                                )
+                                            ),
+                                            ClearCollect(
+                                                colMpRows,
+                                                ForAll(
+                                                    SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, Created >= varMpSessionStart), "Created", SortOrder.Descending) As R,
+                                                    {
+                                                        RowId: R.ID,
+                                                        ItemKey: Coalesce(R.ItemKey, ""),
+                                                        RequestNo: Coalesce(R.RequestNo, ""),
+                                                        Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                        FileCount: Coalesce(R.FileCount, 0),
+                                                        Description: Coalesce(R.Description, ""),
+                                                        Plant: Coalesce(R.Plant, ""),
+                                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                        ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                                        MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                        MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                                        Characteristic: Coalesce(R.Characteristic, ""),
+                                                        CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                        CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                        CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                        DecimalPlaces: R.DecimalPlaces,
+                                                        TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                        LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                        UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                        ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                        InProdos: Coalesce(R.InProdos.Value, ""),
+                                                        ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                        ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                                        CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                                        Remarks: Coalesce(R.Remarks, ""),
+                                                        IsCounter: Coalesce(R.IsCounter, false),
+                                                        ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                        CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                        CounterCreatedOn: R.CounterCreatedOn,
+                                                        CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                        SapResult: Coalesce(R.SapResult, "")
+                                                    }
+                                                )
                                             )
                                         )
                                     );
@@ -16170,8 +16604,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -16480,8 +16916,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
@@ -16682,43 +17120,85 @@ Screens:
                                         }
                                     )
                                 ),
-                                ClearCollect(
-                                    colMpRows,
-                                    ForAll(
-                                        SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, (!IsBlank(varMpRequestGuid) && RequestGuid = varMpRequestGuid) || Created >= varMpSessionStart, RequestGuid = varMpRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                        {
-                                            RowId: R.ID,
-                                            ItemKey: Coalesce(R.ItemKey, ""),
-                                            RequestNo: Coalesce(R.RequestNo, ""),
-                                            Status: Coalesce(R.RowStatus.Value, "valid"),
-                                            FileCount: Coalesce(R.FileCount, 0),
-                                            Description: Coalesce(R.Description, ""),
-                                            Plant: Coalesce(R.Plant, ""),
-                                            FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                            ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
-                                            MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
-                                            MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
-                                            Characteristic: Coalesce(R.Characteristic, ""),
-                                            CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
-                                            CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
-                                            CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
-                                            DecimalPlaces: R.DecimalPlaces,
-                                            TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                            LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                            UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                            ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
-                                            InProdos: Coalesce(R.InProdos.Value, ""),
-                                            ProdosTag: Coalesce(R.ProdosTag, ""),
-                                            ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
-                                            CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
-                                            Remarks: Coalesce(R.Remarks, ""),
-                                            IsCounter: Coalesce(R.IsCounter, false),
-                                            ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                            CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
-                                            CounterCreatedOn: R.CounterCreatedOn,
-                                            CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
-                                            SapResult: Coalesce(R.SapResult, "")
-                                        }
+                                If(
+                                    !IsBlank(varMpRequestGuid),
+                                    ClearCollect(
+                                        colMpRows,
+                                        ForAll(
+                                            SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, RequestGuid = varMpRequestGuid), "Created", SortOrder.Descending) As R,
+                                            {
+                                                RowId: R.ID,
+                                                ItemKey: Coalesce(R.ItemKey, ""),
+                                                RequestNo: Coalesce(R.RequestNo, ""),
+                                                Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                FileCount: Coalesce(R.FileCount, 0),
+                                                Description: Coalesce(R.Description, ""),
+                                                Plant: Coalesce(R.Plant, ""),
+                                                FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                                MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                                Characteristic: Coalesce(R.Characteristic, ""),
+                                                CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                DecimalPlaces: R.DecimalPlaces,
+                                                TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                InProdos: Coalesce(R.InProdos.Value, ""),
+                                                ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                                CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                                Remarks: Coalesce(R.Remarks, ""),
+                                                IsCounter: Coalesce(R.IsCounter, false),
+                                                ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                CounterCreatedOn: R.CounterCreatedOn,
+                                                CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                SapResult: Coalesce(R.SapResult, "")
+                                            }
+                                        )
+                                    ),
+                                    ClearCollect(
+                                        colMpRows,
+                                        ForAll(
+                                            SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, Created >= varMpSessionStart), "Created", SortOrder.Descending) As R,
+                                            {
+                                                RowId: R.ID,
+                                                ItemKey: Coalesce(R.ItemKey, ""),
+                                                RequestNo: Coalesce(R.RequestNo, ""),
+                                                Status: Coalesce(R.RowStatus.Value, "valid"),
+                                                FileCount: Coalesce(R.FileCount, 0),
+                                                Description: Coalesce(R.Description, ""),
+                                                Plant: Coalesce(R.Plant, ""),
+                                                FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                                ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                                MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                                MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                                Characteristic: Coalesce(R.Characteristic, ""),
+                                                CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                                CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                                CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                                DecimalPlaces: R.DecimalPlaces,
+                                                TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                                LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                                UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                                ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                                InProdos: Coalesce(R.InProdos.Value, ""),
+                                                ProdosTag: Coalesce(R.ProdosTag, ""),
+                                                ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                                CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                                Remarks: Coalesce(R.Remarks, ""),
+                                                IsCounter: Coalesce(R.IsCounter, false),
+                                                ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                                CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                                CounterCreatedOn: R.CounterCreatedOn,
+                                                CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                                SapResult: Coalesce(R.SapResult, "")
+                                            }
+                                        )
                                     )
                                 )
                             )
@@ -16768,43 +17248,85 @@ Screens:
                                     }
                                 )
                             ),
-                            ClearCollect(
-                                colMpRows,
-                                ForAll(
-                                    SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, (!IsBlank(varMpRequestGuid) && RequestGuid = varMpRequestGuid) || Created >= varMpSessionStart, RequestGuid = varMpRequestGuid || IsBlank(RequestGuid)), "Created", SortOrder.Descending) As R,
-                                    {
-                                        RowId: R.ID,
-                                        ItemKey: Coalesce(R.ItemKey, ""),
-                                        RequestNo: Coalesce(R.RequestNo, ""),
-                                        Status: Coalesce(R.RowStatus.Value, "valid"),
-                                        FileCount: Coalesce(R.FileCount, 0),
-                                        Description: Coalesce(R.Description, ""),
-                                        Plant: Coalesce(R.Plant, ""),
-                                        FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
-                                        ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
-                                        MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
-                                        MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
-                                        Characteristic: Coalesce(R.Characteristic, ""),
-                                        CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
-                                        CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
-                                        CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
-                                        DecimalPlaces: R.DecimalPlaces,
-                                        TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
-                                        LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
-                                        UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
-                                        ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
-                                        InProdos: Coalesce(R.InProdos.Value, ""),
-                                        ProdosTag: Coalesce(R.ProdosTag, ""),
-                                        ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
-                                        CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
-                                        Remarks: Coalesce(R.Remarks, ""),
-                                        IsCounter: Coalesce(R.IsCounter, false),
-                                        ApprovalRequired: Coalesce(R.ApprovalRequired, false),
-                                        CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
-                                        CounterCreatedOn: R.CounterCreatedOn,
-                                        CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
-                                        SapResult: Coalesce(R.SapResult, "")
-                                    }
+                            If(
+                                !IsBlank(varMpRequestGuid),
+                                ClearCollect(
+                                    colMpRows,
+                                    ForAll(
+                                        SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, RequestGuid = varMpRequestGuid), "Created", SortOrder.Descending) As R,
+                                        {
+                                            RowId: R.ID,
+                                            ItemKey: Coalesce(R.ItemKey, ""),
+                                            RequestNo: Coalesce(R.RequestNo, ""),
+                                            Status: Coalesce(R.RowStatus.Value, "valid"),
+                                            FileCount: Coalesce(R.FileCount, 0),
+                                            Description: Coalesce(R.Description, ""),
+                                            Plant: Coalesce(R.Plant, ""),
+                                            FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                            ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                            MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                            MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                            Characteristic: Coalesce(R.Characteristic, ""),
+                                            CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                            CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                            CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                            DecimalPlaces: R.DecimalPlaces,
+                                            TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                            LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                            UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                            ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                            InProdos: Coalesce(R.InProdos.Value, ""),
+                                            ProdosTag: Coalesce(R.ProdosTag, ""),
+                                            ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                            CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                            Remarks: Coalesce(R.Remarks, ""),
+                                            IsCounter: Coalesce(R.IsCounter, false),
+                                            ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                            CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                            CounterCreatedOn: R.CounterCreatedOn,
+                                            CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                            SapResult: Coalesce(R.SapResult, "")
+                                        }
+                                    )
+                                ),
+                                ClearCollect(
+                                    colMpRows,
+                                    ForAll(
+                                        SortByColumns(Filter(MeasuringPointItems, RequesterEmail = varMpMe, Created >= varMpSessionStart), "Created", SortOrder.Descending) As R,
+                                        {
+                                            RowId: R.ID,
+                                            ItemKey: Coalesce(R.ItemKey, ""),
+                                            RequestNo: Coalesce(R.RequestNo, ""),
+                                            Status: Coalesce(R.RowStatus.Value, "valid"),
+                                            FileCount: Coalesce(R.FileCount, 0),
+                                            Description: Coalesce(R.Description, ""),
+                                            Plant: Coalesce(R.Plant, ""),
+                                            FunctionalLocation: Coalesce(R.FunctionalLocation, ""),
+                                            ExistsInSap: Coalesce(R.ExistsInSap.Value, ""),
+                                            MeasuringPoint: Coalesce(R.MeasuringPoint, ""),
+                                            MeasuringPointType: Coalesce(R.MeasuringPointType.Value, ""),
+                                            Characteristic: Coalesce(R.Characteristic, ""),
+                                            CharacteristicDescription: Coalesce(R.CharacteristicDescription, ""),
+                                            CharacteristicUnit: Coalesce(R.CharacteristicUnit, ""),
+                                            CharacteristicUnitDescription: Coalesce(R.CharacteristicUnitDescription, ""),
+                                            DecimalPlaces: R.DecimalPlaces,
+                                            TargetValue: If(IsBlank(R.TargetValue), "", Text(R.TargetValue)),
+                                            LowerLimit: If(IsBlank(R.LowerLimit), "", Text(R.LowerLimit)),
+                                            UpperLimit: If(IsBlank(R.UpperLimit), "", Text(R.UpperLimit)),
+                                            ExpectedAnnualUsage: If(IsBlank(R.ExpectedAnnualUsage), "", Text(R.ExpectedAnnualUsage)),
+                                            InProdos: Coalesce(R.InProdos.Value, ""),
+                                            ProdosTag: Coalesce(R.ProdosTag, ""),
+                                            ProdosCounterExists: Coalesce(R.ProdosCounterExists.Value, ""),
+                                            CounterCreateIn: Coalesce(R.CounterCreateIn.Value, ""),
+                                            Remarks: Coalesce(R.Remarks, ""),
+                                            IsCounter: Coalesce(R.IsCounter, false),
+                                            ApprovalRequired: Coalesce(R.ApprovalRequired, false),
+                                            CreatedMeasuringPointNo: Coalesce(R.CreatedMeasuringPointNo, ""),
+                                            CounterCreatedOn: R.CounterCreatedOn,
+                                            CounterCreatedBy: Coalesce(R.CounterCreatedBy, ""),
+                                            SapResult: Coalesce(R.SapResult, "")
+                                        }
+                                    )
                                 )
                             )
                         )
@@ -16852,8 +17374,10 @@ Screens:
                 =0
             Fill: |-
                 =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: |-
-                =0
+                =2
             Height: |-
                 =App.Height
             HoverFill: |-
