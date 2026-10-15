@@ -702,13 +702,17 @@ def refresh_rows_fx(indent=0):
     # (varDomSessionStart). Tidligere indsendte/gemte anmodninger staar ikke
     # i listen, naar man kommer ind direkte eller starter en ny - kun
     # hubbens Open henter en eksisterende (varDomRequestGuid).
-    mine = _collect_rows(
-        f"Filter({cfg.L_ROWS}, RequesterEmail = varDomMe, "
-        f"(!IsBlank(varDomRequestGuid) && RequestGuid = varDomRequestGuid) || "
-        f"Created >= varDomSessionStart, "
-        f"RequestGuid = varDomRequestGuid || IsBlank(RequestGuid))")
+    # IsBlank(RequestGuid) og en OR paa tvaers af kolonner kan SharePoint
+    # ikke delegere. Uden GUID er en raekke oprettet siden session-start
+    # allerede denne sessions (efter Save/Submit nulstilles baade GUID og
+    # session-start), saa blank-testen er overfloedig og udelades.
+    mine_guid = _collect_rows(
+        f"Filter({cfg.L_ROWS}, RequesterEmail = varDomMe, RequestGuid = varDomRequestGuid)")
+    mine_new = _collect_rows(
+        f"Filter({cfg.L_ROWS}, RequesterEmail = varDomMe, Created >= varDomSessionStart)")
     theirs = _collect_rows(f"Filter({cfg.L_ROWS}, RequestGuid = varDomRequestGuid)")
     ind = lambda t: "\n".join("    " + l for l in t.split("\n"))
+    mine = f"If(\n    !IsBlank(varDomRequestGuid),\n{ind(mine_guid)},\n{ind(mine_new)}\n)"
     body = f"If(\n    {AS_ADMIN},\n{ind(theirs)},\n{ind(mine)}\n)"
     return "\n".join(pad + l for l in body.split("\n"))
 
