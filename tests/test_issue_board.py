@@ -484,7 +484,7 @@ def test_detail_popup_hierarchy_and_single_close():
     for n, icon in (("btnIbEdit", '"Edit"'), ("btnIbDelete", '"Delete"')):
         assert ctrls[n].props["Icon"] == icon
     for n in ("btnIbArchive", "btnIbRestore"):
-        assert ctrls[n].control == "Image"
+        assert ctrls[n].control == "ModernButton"
         assert ctrls[n].props["Tooltip"] and ctrls[n].props["AccessibleLabel"]
     for n in ("btnIbEdit", "btnIbDelete"):
         b = ctrls[n]

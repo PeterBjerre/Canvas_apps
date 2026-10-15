@@ -227,10 +227,10 @@ def value_chip(name, label, value_fx, label_w=None, value_chars=None, visible=No
                  pad=(0, CHIP_PAD, 0, CHIP_PAD), visible=visible)
 
 
-FOLD_H = 30
+FOLD_H = 36
 
 
-def plan_fold_row(fold, toggle_set):
+def plan_fold_row(fold, toggle_set, show):
     """Den foldede planhoved-linje (UX-review M5): flueben, titel, nogletallene
     som piller og Show til hoejre. Vises kun, naar planen er gemt og foldet."""
     ok = status_icon("imgVhpPlanFoldStatus", "VhpPlanValid", d_ok=icons.STATUS_READY)
@@ -242,9 +242,8 @@ def plan_fold_row(fold, toggle_set):
                         height=f"If({narrow}, 40, 24)", wrap=f"{narrow}",
                         extra={"AlignInContainer": "AlignInContainer.Center"})
     grow(summary, 0)
-    # Show staar i fodens knaprække, ikke her.
-    return group("conVhpPlanFoldRow", [ok, title, summary], direction="Horizontal", gap=10,
-                 height=f"If({narrow}, 48, {FOLD_H})", align_items="Start", visible=fold)
+    return group("conVhpPlanFoldRow", [ok, title, summary, show], direction="Horizontal", gap=10,
+                 height=f"If({narrow}, 48, {FOLD_H})", align_items="Center", visible=fold)
 
 
 def build_plan_header():
@@ -465,7 +464,8 @@ def build_plan_header():
         "Set(varVhpPlanValidated, false);\n"
         "If(varVhpPlanCommitted, Set(varVhpPlanLocked, true))",
         width=fit_button_width("\"Reset\""), height=36,
-        display_mode="If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)")
+        display_mode="If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)",
+        visible="!varVhpViewOnly")
     btnSave.props["Width"] = str(PLAN_SAVE_W)
 
     fold = f"varVhpPlanLocked && !IfError({SHOW_VAR}, false)"
@@ -485,7 +485,6 @@ def build_plan_header():
     hide.props["Appearance"] = "ButtonAppearance.Subtle"
     hide.props["BorderThickness"] = "0"
     hide.props["Color"] = C_TITLE
-    foldRow = plan_fold_row(fold, toggle_set)
     hide.props["Visible"] = f"varVhpPlanLocked && !({fold})"
     hide.vis = hide.props["Visible"]
     # Foldet: titel og noegletal oeverst i kortet, Show nederst til hoejre.
@@ -497,10 +496,7 @@ def build_plan_header():
     show.props["Appearance"] = "ButtonAppearance.Subtle"
     show.props["BorderThickness"] = "0"
     show.props["Color"] = C_TITLE
-    showRow = group("conVhpPlanShowRow", [show], direction="Horizontal", gap=0, height=36,
-                    align_items="Center", justify="End")
-    foldCard = group("conVhpPlanFoldCard", [foldRow, showRow], direction="Vertical", gap=4,
-                     visible=fold)
+    foldCard = plan_fold_row(fold, toggle_set, show)
     info = group("conVhpPlanFooterInfo", [planMeta], direction="Vertical", gap=0,
                  justify="Center")
     footer = section_footer("conVhpPlanFooter", info, [hide, btnReset, btnSave], PLAN_CW)

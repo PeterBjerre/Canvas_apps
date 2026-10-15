@@ -1891,23 +1891,13 @@ def _actions():
                         f'If({ready}, "Edit issue", "Edit issue - loading the issue...")',
                         f"If({ready} && !varIbBusy, DisplayMode.Edit, DisplayMode.Disabled)")
     idle = "If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)"
-    archive = icon_button("btnIbArchive", "Archive issue", ARCHIVE, icons.ARCHIVE, idle)
-    archive.props["Tooltip"] = ('"Archive issue - keeps the issue, its comments, activity and '
-                                'files under Archived"')
     show_archive = f"IbCanManage && !{SEL}.Archived"
-    archive.props["BorderColor"] = C_INPUT_BORDER
-    archive.props["BorderStyle"] = "BorderStyle.Solid"
-    archive.props["BorderThickness"] = "1"
-    archive.props["Visible"] = show_archive
-    archive.vis = show_archive
-    restore = icon_button("btnIbRestore", "Restore issue", ARCHIVE, icons.UNDO, idle)
-    restore.props["Tooltip"] = '"Restore issue - bring it back to the active lists"'
+    archive = _icon_action("btnIbArchive", "Archive", ARCHIVE, show_archive, '"Archive issue"',
+                           '"Archive issue - keeps the issue, its comments, activity and '
+                           'files under Archived"', idle)
     show_restore = f"IbCanManage && {SEL}.Archived"
-    restore.props["BorderColor"] = C_INPUT_BORDER
-    restore.props["BorderStyle"] = "BorderStyle.Solid"
-    restore.props["BorderThickness"] = "1"
-    restore.props["Visible"] = show_restore
-    restore.vis = show_restore
+    restore = _icon_action("btnIbRestore", "ArrowUndo", ARCHIVE, show_restore, '"Restore issue"',
+                           '"Restore issue - bring it back to the active lists"', idle)
     delete = _icon_action("btnIbDelete", "Delete", "Reset(inpIbDelConfirm);\nSet(varIbDelOn, true)",
                           "IbCanManage", '"Delete issue"',
                           '"Delete issue permanently - you confirm first"',
@@ -2001,9 +1991,11 @@ FACT_W = f"If({FACTS_OK}, (({DET_IN}) - 4 * {FACT_GAP}) / 5, (({DET_IN}) - 2 * {
 def _fact(name, label, value_fx, visible=None):
     """Et faktum: en lille etiket over vaerdien - kompakt, ingen lang streng."""
     lab = text_ctrl(f"txt{name}Label", f'"{label}"', size=lay.SIZE_MICRO, weight="Semibold",
-                    color=C_MUTED, height=16)
-    val = text_ctrl(f"txt{name}", value_fx, size=lay.SIZE_BODY, height=20,
+                    color=C_MUTED, height=16, width=FACT_W)
+    val = text_ctrl(f"txt{name}", value_fx, size=lay.SIZE_BODY, height=20, width=FACT_W,
                     accessible=f'"{label}: " & Self.Text')
+    lab.props["LayoutMinWidth"] = "0"
+    val.props["LayoutMinWidth"] = "0"
     g = group(f"con{name}", [lab, val], direction="Vertical", gap=0, height=FACT_H, width=FACT_W,
               visible=visible)
     g.props["LayoutMinWidth"] = "0"
