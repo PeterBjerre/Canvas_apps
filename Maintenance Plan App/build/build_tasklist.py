@@ -28,6 +28,8 @@ BG_HEX = ref_hex("bg-muted")
 PRI_HEX = ref_hex("text-primary")
 import build_attflows
 import doc_upload as du
+from fl_picker import fl_picker
+import vendor_search as vs
 
 # Flowkontrakten staar i tools/attflows.py; kun rudens egne navne
 # og dens refresh_fx() staar i build_attflows.py.
@@ -592,6 +594,101 @@ def _attachments_modal():
     return modal
 
 
+# ---------------------------------------------------------------------------
+# LEVERANDOERSOEGNING PAA PM02-OPERATIONER
+# ---------------------------------------------------------------------------
+# Leverandoeren SOEGES frem med flowet BioSap-Integration-VendorsAll i en
+# popup - samme vaelger som Functional Location paa items (tools/fl_picker.py,
+# tools/vendor_search.py). Cellen i tabellen er en knap med den valgte
+# leverandoer; et tryk aabner popup'en. Kun PM02-linjer kan aendres (reglen
+# DM_PURCHASE ovenfor); paa de andre linjer staar standardplanens vaerdi.
+VEN_OPEN = "!IsBlank(varVhpVenOpNo)"
+VEN_OP = "LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpVenOpNo)"
+VEN_COMBO = "cmbVhpVendor"
+VEN_RESULTS = "colVhpVendors"
+VEN_BUSY = "varVhpVenBusy"
+VEN_QUERY = "varVhpVenQuery"
+VEN_LAST = "varVhpVenLast"
+VEN_PICK = "varVhpVenPick"
+VEN_MSG = "varVhpVenMsg"
+VEN_RAW = "varVhpVenRaw"
+# Popup'en lukkes - ogsaa fra sloeret (build_modal.build_modal_backdrop).
+VEN_CLOSE = 'Set(varVhpVenOpNo, "")'
+
+
+def _ven_open_fx(op, op_no):
+    """Aabn popup'en for operationen op (record-udtryk) med nummeret op_no.
+    Den gemte leverandoer laegges i listen og staar valgt, saa man kan se,
+    hvad der er nu; en ny soegning rydder den."""
+    return (
+        f"With(\n"
+        f"    {{ v: Trim(Coalesce({op}.Vendor, \"\")) }},\n"
+        f"    Set(varVhpVenOpNo, {op_no});\n"
+        f"    Set({VEN_QUERY}, \"\"); Set({VEN_LAST}, \"\"); Set({VEN_MSG}, \"\");\n"
+        f"    Clear({VEN_RESULTS});\n"
+        f"    If(!IsBlank(v), Collect({VEN_RESULTS}, {{ Code: v, Description: v, Display: v, "
+        f"Maintainable: true, Level: \"\" }}));\n"
+        f"    Set({VEN_PICK}, v);\n"
+        f"    Reset({VEN_COMBO})\n"
+        f")"
+    )
+
+
+def vendor_button(name, op, op_no, width, chars=12):
+    """Leverandoerens felt: en knap med den valgte leverandoer. Paa en
+    PM02-linje aabner den soegningen; ellers er den deaktiveret og viser
+    standardplanens vaerdi."""
+    pm02 = f'Upper(Coalesce({op}.ControlKey, "")) = "PM02"'
+    v = f'Trim(Coalesce({op}.Vendor, ""))'
+    btn = button(
+        name,
+        (f'If(IsBlank({v}), If({pm02}, "Search...", "-"), '
+         f'Left({v}, {chars}) & If(Len({v}) > {chars}, "..."))'),
+        _ven_open_fx(op, op_no), width=width, height=32,
+        display_mode=(f"If({pm02} && !varVhpViewOnly, DisplayMode.Edit, DisplayMode.Disabled)"),
+        accessible=f'"Vendor for operation " & {op_no} & ": " & Coalesce({v}, "none")',
+        tooltip=f'If(IsBlank({v}), "Search for a vendor", {v})')
+    btn.props["Size"] = "12"
+    mark_done(btn, f"!IsBlank({v})")
+    return btn
+
+
+def _vendor_modal():
+    """Popup'en med leverandoersoegningen. "Use vendor" skriver det valgte
+    paa operationen; Close fortryder. "Remove vendor" toemmer feltet."""
+    edit = "If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)"
+    cur = text_ctrl(
+        "txtVhpVenCurrent",
+        f'"Current vendor: " & Coalesce(Trim(Coalesce({VEN_OP}.Vendor, "")), "(none)")',
+        size=12, color=C_MUTED, height=18, wrap="false")
+    picker = fl_picker(
+        "Vhp", combo=VEN_COMBO, results=VEN_RESULTS, raw_var=VEN_RAW,
+        msg_var=VEN_MSG, busy_var=VEN_BUSY, query_var=VEN_QUERY,
+        last_var=VEN_LAST, pick_var=VEN_PICK,
+        default_items=f"Filter({VEN_RESULTS}, Code = {VEN_PICK})",
+        display_mode=edit, label="Vendor", width=MODAL_CW,
+        min_len=vs.MIN_SEARCH_LEN, kind="Ven", searcher=vs.search_action,
+        placeholder=vs.PLACEHOLDER, search_accessible='"Search vendor"')
+    msg = text_ctrl("txtVhpVenMsg", VEN_MSG, size=12, color=C_MUTED, height=32,
+                    wrap="true", visible=f"!IsBlank({VEN_MSG})")
+    sel = f"{VEN_COMBO}.Selected.Code"
+    use = button(
+        "btnVhpVenUse", '"Use vendor"',
+        f"Patch(colVhpOperations, {VEN_OP}, {{ Vendor: {sel} }});\n{VEN_CLOSE}",
+        primary=True, width=fit_button_width('"Use vendor"'), height=32,
+        display_mode=(f'If(varVhpViewOnly || {VEN_BUSY} || IsBlank({sel}) || '
+                      f'{sel} = "?search", DisplayMode.Disabled, DisplayMode.Edit)'))
+    remove = button(
+        "btnVhpVenRemove", '"Remove vendor"',
+        f'Patch(colVhpOperations, {VEN_OP}, {{ Vendor: \"\" }});\n{VEN_CLOSE}',
+        danger=True, width=fit_button_width('"Remove vendor"'), height=32,
+        display_mode=(f'If(varVhpViewOnly || {VEN_BUSY} || IsBlank(Trim(Coalesce({VEN_OP}.Vendor, ""))), '
+                      'DisplayMode.Disabled, DisplayMode.Edit)'))
+    actions = flow_row("conVhpVenActions", [use, remove], MODAL_CW, gap=8)
+    return _modal("VhpVen", '"Vendor · Operation " & varVhpVenOpNo', VEN_OPEN,
+                  VEN_CLOSE, [cur, picker, msg, actions])
+
+
 OPM_OPEN = "!IsBlank(varVhpOpMNo)"
 OPM = "LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo)"
 
@@ -643,10 +740,7 @@ def _op_detail_modal():
                            label='"Control key"')
     ctrl.props["OnChange"] = (f"Patch(colVhpOperations, {OPM}, "
                               "{ ControlKey: Self.Selected.Value })")
-    vendor = text_input("inpVhpOpMVendor", f"{OPM}.Vendor", width=MODAL_CW, height=32,
-                        display_mode=on_op(DM_PURCHASE),
-                        onchange=f"Patch(colVhpOperations, {OPM}, {{ Vendor: Self.Text }})",
-                        label='"Supplier"')
+    vendor = vendor_button("btnVhpOpMVendor", OPM, "varVhpOpMNo", MODAL_CW, chars=40)
     price = number_field("inpVhpOpMCost", f"{OPM}.Cost", width=MODAL_CW, height=32,
                          display_mode=on_op(DM_PURCHASE), label='"Price"',
                          onchange=f"Patch(colVhpOperations, {OPM}, {{ Cost: {NV} }})")
@@ -717,7 +811,9 @@ def _ops_list_mobile():
 
 def build_ops_modals():
     """Popupperne fra operationsraekkens Materials- og Docs-knapper."""
-    return [_op_detail_modal(), _materials_modal(), _attachments_modal()]
+    # Leverandoerpopup'en SIDST: den kan aabnes fra operationspopup'en
+    # (smalle skaerme) og skal ligge oven paa den.
+    return [_op_detail_modal(), _materials_modal(), _attachments_modal(), _vendor_modal()]
 
 
 # Tasklisterne til det valgte vaerk - Plant i Plan Header er den faelles
@@ -1033,9 +1129,8 @@ def build_tasklist_section():
     drpOpCtrl.props["OnChange"] = ("Patch(colVhpOperations, ThisItem, "
                                    "{ ControlKey: Self.Selected.Value })")
 
-    txtOpVendor = text_input("inpVhpOpVendor", "ThisItem.Vendor", width=w["VENDOR"], height=32,
-                             display_mode=DM_PURCHASE,
-                             onchange="Patch(colVhpOperations, ThisItem, { Vendor: Self.Text })", label="\"Supplier\"")
+    # Leverandoeren soeges frem i en popup (vendor_button, _vendor_modal).
+    txtOpVendor = vendor_button("btnVhpOpVendor", "ThisItem", "ThisItem.OperationNo", w["VENDOR"])
     numOpCost = number_field("inpVhpOpCost", "ThisItem.Cost", width=w["COST"], height=32,
                              display_mode=DM_PURCHASE, label="\"Price\"",
                              onchange=f"Patch(colVhpOperations, ThisItem, {{ Cost: {NV} }})")
