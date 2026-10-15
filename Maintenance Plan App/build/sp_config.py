@@ -46,6 +46,9 @@ L_WORKCENTERS = "MainWorkCenters"
 L_STRATEGY    = "MD_Strategy"
 L_PACKAGES    = "MD_StrategyPackage"
 L_STDOPS      = "MD_StandardTaskOperations"
+# Varegrupperne til PM02-operationer (issue #267). Title hedder
+# MaterialGroup. Se sharepoint/provision/Provision-MaterialGroups.ps1.
+L_MATGROUPS   = "MD_MaterialGroup"
 L_PLANS       = "MaintenancePlans"
 L_ITEMS       = "MaintenanceItems"
 L_TASKS       = "TaskListMain"
@@ -338,6 +341,20 @@ def named_formulas():
                              ("CycleUnit", "R.CycleUnit.Value"),
                              ("Hierarchy", "R.Hierarchy"),
                              ("PackageText", "R.PackageText")]))
+
+    # --- varegrupper (issue #267) ---
+    # Valgene i dropdownen Material group paa en PM02-operation. 53 raekker,
+    # saa ForAll'en er eet kald under datagraensen. Dovent: listen hentes
+    # foerst, naar en operationslinje vises. Display er popup'ens tekst;
+    # tabellens smalle celle viser kun koden.
+    add("colVhpMaterialGroups",
+        "Sort(" + _forall(
+            L_MATGROUPS,
+            [("Value", "Trim(R.MaterialGroup)"),
+             ("Display", "Trim(R.MaterialGroup) & \" - \" & "
+                         "Coalesce(R.Description2, R.MaterialGroupDescription, \"\")")])
+        + ", Value)",
+        "Varegrupperne fra MD_MaterialGroup, sorteret efter kode.")
 
     # --- standardarbejdsplaner ---
     # Een arbejdsplan pr. vaerk. Operationerne ligger fladt i listen med et
