@@ -496,7 +496,7 @@ def seg_button_width():
     return max(fit_button_width('"%s"' % t, size=SEG_SIZE, min_w=0) for t in SEG_TEXTS) + ICON_W
 
 
-def segmented(name, options, display_mode=None, label=None, fit=False):
+def segmented(name, options, display_mode=None, label=None, fit=False, compact=False):
     """Segmenteret kontrol: en pilleformet skinne med een knap pr. valg.
 
     options: liste af (suffix, tekst, on, onselect, tooltip) - tekst er en
@@ -514,6 +514,8 @@ def segmented(name, options, display_mode=None, label=None, fit=False):
     fit=True: hvert segment er lige bredt som sin tekst (+ flueben) - til
     lange valg som "My requests" og "Department"."""
     w_uni = seg_button_width()
+    if compact:
+        w_uni = max(fit_button_width('"%s"' % o[1], size=SEG_SIZE, min_w=0) for o in options) + ICON_W - 6
     kids = []
     widths = []
     for suffix, text, on, onselect, tooltip in options:
@@ -534,8 +536,9 @@ def segmented(name, options, display_mode=None, label=None, fit=False):
         b.props["LayoutMinWidth"] = str(w)
         b.props.update(lay.radius(SEG_BTN_H // 2))
         kids.append(b)
-    track_w = sum(widths) + (len(kids) - 1) * SEG_GAP + 2 * SEG_PAD
-    return group(name, kids, direction="Horizontal", gap=SEG_GAP, width=track_w,
+    gap = 0 if compact else SEG_GAP
+    track_w = sum(widths) + (len(kids) - 1) * gap + 2 * SEG_PAD
+    return group(name, kids, direction="Horizontal", gap=gap, width=track_w,
                  align_items="Center", fill=C_NEUTRAL_BG, border_color=C_CARD_BORDER,
                  radius=SEG_H // 2, pad=SEG_PAD, align_in_container="Start")
 

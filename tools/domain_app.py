@@ -191,9 +191,9 @@ def _row_editor(form, panel_content=None, reset=None):
         visible="!IsBlank(varDomActiveRowId)")
     cancel = button("btnDomEditorCancel", '"Cancel"', dp.clear_form_fx(),
                     width=fit_button_width('"Cancel"'), height=lay.HIT_TOUCH)
-    save = button("btnDomSave", 'If(IsBlank(varDomActiveRowId), "Add row", "Update row")',
+    save = button("btnDomSave", 'If(IsBlank(varDomActiveRowId), "Add row", "Update")',
                   dp.ADD_ROW_FX[0] or "false", primary=True,
-                  width=fit_button_width('"Update row"'), height=lay.HIT_TOUCH,
+                  width=fit_button_width('"Update"'), height=lay.HIT_TOUCH,
                   display_mode=dp.DM_ROW, icon='If(IsBlank(varDomActiveRowId), "Add", "Save")')
     save.props["AccessibleLabel"] = "Self.Text"
     if reset is None:
@@ -208,7 +208,7 @@ def _row_editor(form, panel_content=None, reset=None):
     # panelet for smalt til begge par paa een linje (mobil), staar parrene
     # under hinanden.
     left_w = fit_button_width('"Delete row"') + 8 + fit_button_width('"Reset"')
-    right_w = fit_button_width('"Cancel"') + 8 + fit_button_width('"Update row"')
+    right_w = fit_button_width('"Cancel"') + 8 + fit_button_width('"Update"')
     for b in (delete, reset, cancel, save):
         b.props["AlignInContainer"] = "AlignInContainer.Start"
         b.props["LayoutMinWidth"] = b.props["Width"]

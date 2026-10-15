@@ -763,7 +763,7 @@ def build_tiles():
             f"conMdTile{n}", [stripe, row], direction="Vertical", gap=0,
             fill=st["fill"], border_color=st["border"], border_thickness=st["thickness"],
             radius=TILE_RADIUS, width=TILE_W,
-            height=if_below("Tablet", str(TILE_H_M), str(TILE_H)))
+            height=if_below("Tablet", str(TILE_H_M - 2), str(TILE_H - 2)))
         tile.props["DropShadow"] = st["shadow"]
         tiles.append(tile)
 
