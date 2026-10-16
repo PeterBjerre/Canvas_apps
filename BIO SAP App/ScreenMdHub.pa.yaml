@@ -542,7 +542,7 @@ Screens:
                               BorderThickness: |-
                                   =If(varMdDomain = "FunctionalLocation", 2, 1)
                               DropShadow: |-
-                                  =If(varMdDomain = "FunctionalLocation", DropShadow.Light, DropShadow.None)
+                                  =DropShadow.Light
                               Fill: |-
                                   =If(varMdDomain = "FunctionalLocation", C.'domain-fl-soft', C.'bg-card')
                               FillPortions: |-
@@ -552,13 +552,13 @@ Screens:
                               LayoutMinWidth: |-
                                   =0
                               RadiusBottomLeft: |-
-                                  =6
+                                  =8
                               RadiusBottomRight: |-
-                                  =6
+                                  =8
                               RadiusTopLeft: |-
-                                  =6
+                                  =8
                               RadiusTopRight: |-
-                                  =6
+                                  =8
                               Width: |-
                                   =If(LayoutRank < 3, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 24) / 3, 0), RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 48) / 5, 0))
                             Children:
@@ -584,7 +584,7 @@ Screens:
                                     HoverBorderColor: |-
                                         =C.'domain-fl'
                                     HoverFill: |-
-                                        =C.'domain-fl-soft'
+                                        =If(varMdDomain = "FunctionalLocation", C.'bg-card', C.'domain-fl-soft')
                                     Image: |-
                                         ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='102' viewBox='0 -4 " & Self.Width & " 102'><circle cx='24' cy='24' r='14' fill='" & C.'hex-domain-fl' & "' fill-opacity='0.12'/><g transform='translate(15 15) scale(0.75)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g><text x='" & Self.Width & "' dx='-8' y='34' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "FunctionalLocation"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='56' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Functional</text><text x='8' y='70' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>location</text><text x='8' y='88' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='74' viewBox='0 -4 " & Self.Width & " 74'><circle cx='30' cy='35' r='18' fill='" & C.'hex-domain-fl' & "' fill-opacity='0.12'/><g transform='translate(21 26) scale(0.75)' fill='none' stroke='" & C.'hex-domain-fl' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.5 20.5h19 M4 20.5v-8l4 2.5v-2.5l4 2.5v-2.5l4 2.5V5h3v15.5 M7 17.5h2M11 17.5h2 M16.4 3c.7-.9 1.8-.9 2.5 0'/></g><text x='58' y='31' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Functional location" & "</text><text x='58' y='51' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'><tspan font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "FunctionalLocation"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</tspan> " & Switch(varMdStatusMode, "open", "open", "done", "closed", "in total") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
                                     ImagePosition: |-
@@ -597,15 +597,15 @@ Screens:
                                     PressedBorderColor: |-
                                         =C.'domain-fl'
                                     PressedFill: |-
-                                        =C.'domain-fl-soft'
+                                        =If(varMdDomain = "FunctionalLocation", C.'bg-card', C.'domain-fl-soft')
                                     RadiusBottomLeft: |-
-                                        =6
+                                        =8
                                     RadiusBottomRight: |-
-                                        =6
+                                        =8
                                     RadiusTopLeft: |-
-                                        =6
+                                        =8
                                     RadiusTopRight: |-
-                                        =6
+                                        =8
                                     TabIndex: |-
                                         =0
                                     Width: |-
@@ -635,9 +635,9 @@ Screens:
                                     RadiusBottomRight: |-
                                         =0
                                     RadiusTopLeft: |-
-                                        =6
+                                        =8
                                     RadiusTopRight: |-
-                                        =6
+                                        =8
                                     Width: |-
                                         =Parent.Width
                                     X: |-
@@ -662,7 +662,7 @@ Screens:
                                     Height: |-
                                         =36
                                     HoverFill: |-
-                                        =C.'domain-fl-soft'
+                                        =If(varMdDomain = "FunctionalLocation", C.'bg-card', C.'domain-fl-soft')
                                     Image: |-
                                         ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='84' height='36' viewBox='0 0 84 36'><rect x='.5' y='.5' width='83' height='35' rx='8' fill='none' stroke='" & C.'hex-border-default' & "'/><path d='M18 12v12M12 18h12' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round'/><text x='32' y='23' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-primary' & "'>New</text></svg>")
                                     ImagePosition: |-
@@ -676,7 +676,7 @@ Screens:
                                             Navigate(ScreenFunctionalLocation, ScreenTransition.None)
                                         )
                                     PressedFill: |-
-                                        =C.'domain-fl-soft'
+                                        =If(varMdDomain = "FunctionalLocation", C.'bg-card', C.'domain-fl-soft')
                                     RadiusBottomLeft: |-
                                         =8
                                     RadiusBottomRight: |-
@@ -708,7 +708,7 @@ Screens:
                               BorderThickness: |-
                                   =If(varMdDomain = "MaintenancePlan", 2, 1)
                               DropShadow: |-
-                                  =If(varMdDomain = "MaintenancePlan", DropShadow.Light, DropShadow.None)
+                                  =DropShadow.Light
                               Fill: |-
                                   =If(varMdDomain = "MaintenancePlan", C.'domain-vhp-soft', C.'bg-card')
                               FillPortions: |-
@@ -718,13 +718,13 @@ Screens:
                               LayoutMinWidth: |-
                                   =0
                               RadiusBottomLeft: |-
-                                  =6
+                                  =8
                               RadiusBottomRight: |-
-                                  =6
+                                  =8
                               RadiusTopLeft: |-
-                                  =6
+                                  =8
                               RadiusTopRight: |-
-                                  =6
+                                  =8
                               Width: |-
                                   =If(LayoutRank < 3, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 24) / 3, 0), RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 48) / 5, 0))
                             Children:
@@ -750,7 +750,7 @@ Screens:
                                     HoverBorderColor: |-
                                         =C.'domain-vhp'
                                     HoverFill: |-
-                                        =C.'domain-vhp-soft'
+                                        =If(varMdDomain = "MaintenancePlan", C.'bg-card', C.'domain-vhp-soft')
                                     Image: |-
                                         ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='102' viewBox='0 -4 " & Self.Width & " 102'><circle cx='24' cy='24' r='14' fill='" & C.'hex-domain-vhp' & "' fill-opacity='0.12'/><g transform='translate(15 15) scale(0.75)' fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g><text x='" & Self.Width & "' dx='-8' y='34' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "MaintenancePlan"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='56' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Maintenance</text><text x='8' y='70' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>plan</text><text x='8' y='88' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='74' viewBox='0 -4 " & Self.Width & " 74'><circle cx='30' cy='35' r='18' fill='" & C.'hex-domain-vhp' & "' fill-opacity='0.12'/><g transform='translate(21 26) scale(0.75)' fill='none' stroke='" & C.'hex-domain-vhp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4.5h14a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2Z M8 2.5v4M16 2.5v4M3 10h18'/></g><text x='58' y='31' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Maintenance plan" & "</text><text x='58' y='51' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'><tspan font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "MaintenancePlan"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</tspan> " & Switch(varMdStatusMode, "open", "open", "done", "closed", "in total") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
                                     ImagePosition: |-
@@ -763,15 +763,15 @@ Screens:
                                     PressedBorderColor: |-
                                         =C.'domain-vhp'
                                     PressedFill: |-
-                                        =C.'domain-vhp-soft'
+                                        =If(varMdDomain = "MaintenancePlan", C.'bg-card', C.'domain-vhp-soft')
                                     RadiusBottomLeft: |-
-                                        =6
+                                        =8
                                     RadiusBottomRight: |-
-                                        =6
+                                        =8
                                     RadiusTopLeft: |-
-                                        =6
+                                        =8
                                     RadiusTopRight: |-
-                                        =6
+                                        =8
                                     TabIndex: |-
                                         =0
                                     Width: |-
@@ -801,9 +801,9 @@ Screens:
                                     RadiusBottomRight: |-
                                         =0
                                     RadiusTopLeft: |-
-                                        =6
+                                        =8
                                     RadiusTopRight: |-
-                                        =6
+                                        =8
                                     Width: |-
                                         =Parent.Width
                                     X: |-
@@ -828,7 +828,7 @@ Screens:
                                     Height: |-
                                         =36
                                     HoverFill: |-
-                                        =C.'domain-vhp-soft'
+                                        =If(varMdDomain = "MaintenancePlan", C.'bg-card', C.'domain-vhp-soft')
                                     Image: |-
                                         ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='84' height='36' viewBox='0 0 84 36'><rect x='.5' y='.5' width='83' height='35' rx='8' fill='none' stroke='" & C.'hex-border-default' & "'/><path d='M18 12v12M12 18h12' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round'/><text x='32' y='23' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-primary' & "'>New</text></svg>")
                                     ImagePosition: |-
@@ -842,7 +842,7 @@ Screens:
                                             Navigate(ScreenVhPlan, ScreenTransition.None)
                                         )
                                     PressedFill: |-
-                                        =C.'domain-vhp-soft'
+                                        =If(varMdDomain = "MaintenancePlan", C.'bg-card', C.'domain-vhp-soft')
                                     RadiusBottomLeft: |-
                                         =8
                                     RadiusBottomRight: |-
@@ -874,7 +874,7 @@ Screens:
                               BorderThickness: |-
                                   =If(varMdDomain = "Material", 2, 1)
                               DropShadow: |-
-                                  =If(varMdDomain = "Material", DropShadow.Light, DropShadow.None)
+                                  =DropShadow.Light
                               Fill: |-
                                   =If(varMdDomain = "Material", C.'domain-mat-soft', C.'bg-card')
                               FillPortions: |-
@@ -884,13 +884,13 @@ Screens:
                               LayoutMinWidth: |-
                                   =0
                               RadiusBottomLeft: |-
-                                  =6
+                                  =8
                               RadiusBottomRight: |-
-                                  =6
+                                  =8
                               RadiusTopLeft: |-
-                                  =6
+                                  =8
                               RadiusTopRight: |-
-                                  =6
+                                  =8
                               Width: |-
                                   =If(LayoutRank < 3, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 24) / 3, 0), RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 48) / 5, 0))
                             Children:
@@ -916,7 +916,7 @@ Screens:
                                     HoverBorderColor: |-
                                         =C.'domain-mat'
                                     HoverFill: |-
-                                        =C.'domain-mat-soft'
+                                        =If(varMdDomain = "Material", C.'bg-card', C.'domain-mat-soft')
                                     Image: |-
                                         ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='102' viewBox='0 -4 " & Self.Width & " 102'><circle cx='24' cy='24' r='14' fill='" & C.'hex-domain-mat' & "' fill-opacity='0.12'/><g transform='translate(15 15) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g><text x='" & Self.Width & "' dx='-8' y='34' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "Material"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='56' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Material</text><text x='8' y='74' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='74' viewBox='0 -4 " & Self.Width & " 74'><circle cx='30' cy='35' r='18' fill='" & C.'hex-domain-mat' & "' fill-opacity='0.12'/><g transform='translate(21 26) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mat' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2.5 8l9.5 5 9.5-5L12 3Z M2.5 12.5 12 17.5l9.5-5 M2.5 17 12 22l9.5-5'/></g><text x='58' y='31' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Material" & "</text><text x='58' y='51' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'><tspan font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "Material"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</tspan> " & Switch(varMdStatusMode, "open", "open", "done", "closed", "in total") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
                                     ImagePosition: |-
@@ -929,15 +929,15 @@ Screens:
                                     PressedBorderColor: |-
                                         =C.'domain-mat'
                                     PressedFill: |-
-                                        =C.'domain-mat-soft'
+                                        =If(varMdDomain = "Material", C.'bg-card', C.'domain-mat-soft')
                                     RadiusBottomLeft: |-
-                                        =6
+                                        =8
                                     RadiusBottomRight: |-
-                                        =6
+                                        =8
                                     RadiusTopLeft: |-
-                                        =6
+                                        =8
                                     RadiusTopRight: |-
-                                        =6
+                                        =8
                                     TabIndex: |-
                                         =0
                                     Width: |-
@@ -967,9 +967,9 @@ Screens:
                                     RadiusBottomRight: |-
                                         =0
                                     RadiusTopLeft: |-
-                                        =6
+                                        =8
                                     RadiusTopRight: |-
-                                        =6
+                                        =8
                                     Width: |-
                                         =Parent.Width
                                     X: |-
@@ -994,7 +994,7 @@ Screens:
                                     Height: |-
                                         =36
                                     HoverFill: |-
-                                        =C.'domain-mat-soft'
+                                        =If(varMdDomain = "Material", C.'bg-card', C.'domain-mat-soft')
                                     Image: |-
                                         ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='84' height='36' viewBox='0 0 84 36'><rect x='.5' y='.5' width='83' height='35' rx='8' fill='none' stroke='" & C.'hex-border-default' & "'/><path d='M18 12v12M12 18h12' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round'/><text x='32' y='23' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-primary' & "'>New</text></svg>")
                                     ImagePosition: |-
@@ -1008,7 +1008,7 @@ Screens:
                                             Navigate(ScreenMaterial, ScreenTransition.None)
                                         )
                                     PressedFill: |-
-                                        =C.'domain-mat-soft'
+                                        =If(varMdDomain = "Material", C.'bg-card', C.'domain-mat-soft')
                                     RadiusBottomLeft: |-
                                         =8
                                     RadiusBottomRight: |-
@@ -1040,7 +1040,7 @@ Screens:
                               BorderThickness: |-
                                   =If(varMdDomain = "Equipment", 2, 1)
                               DropShadow: |-
-                                  =If(varMdDomain = "Equipment", DropShadow.Light, DropShadow.None)
+                                  =DropShadow.Light
                               Fill: |-
                                   =If(varMdDomain = "Equipment", C.'domain-eq-soft', C.'bg-card')
                               FillPortions: |-
@@ -1050,13 +1050,13 @@ Screens:
                               LayoutMinWidth: |-
                                   =0
                               RadiusBottomLeft: |-
-                                  =6
+                                  =8
                               RadiusBottomRight: |-
-                                  =6
+                                  =8
                               RadiusTopLeft: |-
-                                  =6
+                                  =8
                               RadiusTopRight: |-
-                                  =6
+                                  =8
                               Width: |-
                                   =If(LayoutRank < 3, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 24) / 3, 0), RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 48) / 5, 0))
                             Children:
@@ -1082,7 +1082,7 @@ Screens:
                                     HoverBorderColor: |-
                                         =C.'domain-eq'
                                     HoverFill: |-
-                                        =C.'domain-eq-soft'
+                                        =If(varMdDomain = "Equipment", C.'bg-card', C.'domain-eq-soft')
                                     Image: |-
                                         ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='102' viewBox='0 -4 " & Self.Width & " 102'><circle cx='24' cy='24' r='14' fill='" & C.'hex-domain-eq' & "' fill-opacity='0.12'/><g transform='translate(15 15) scale(0.75)' fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g><text x='" & Self.Width & "' dx='-8' y='34' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "Equipment"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='56' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Equipment</text><text x='8' y='74' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='74' viewBox='0 -4 " & Self.Width & " 74'><circle cx='30' cy='35' r='18' fill='" & C.'hex-domain-eq' & "' fill-opacity='0.12'/><g transform='translate(21 26) scale(0.75)' fill='none' stroke='" & C.'hex-domain-eq' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'/></g><text x='58' y='31' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Equipment" & "</text><text x='58' y='51' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'><tspan font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "Equipment"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</tspan> " & Switch(varMdStatusMode, "open", "open", "done", "closed", "in total") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
                                     ImagePosition: |-
@@ -1095,15 +1095,15 @@ Screens:
                                     PressedBorderColor: |-
                                         =C.'domain-eq'
                                     PressedFill: |-
-                                        =C.'domain-eq-soft'
+                                        =If(varMdDomain = "Equipment", C.'bg-card', C.'domain-eq-soft')
                                     RadiusBottomLeft: |-
-                                        =6
+                                        =8
                                     RadiusBottomRight: |-
-                                        =6
+                                        =8
                                     RadiusTopLeft: |-
-                                        =6
+                                        =8
                                     RadiusTopRight: |-
-                                        =6
+                                        =8
                                     TabIndex: |-
                                         =0
                                     Width: |-
@@ -1133,9 +1133,9 @@ Screens:
                                     RadiusBottomRight: |-
                                         =0
                                     RadiusTopLeft: |-
-                                        =6
+                                        =8
                                     RadiusTopRight: |-
-                                        =6
+                                        =8
                                     Width: |-
                                         =Parent.Width
                                     X: |-
@@ -1160,7 +1160,7 @@ Screens:
                                     Height: |-
                                         =36
                                     HoverFill: |-
-                                        =C.'domain-eq-soft'
+                                        =If(varMdDomain = "Equipment", C.'bg-card', C.'domain-eq-soft')
                                     Image: |-
                                         ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='84' height='36' viewBox='0 0 84 36'><rect x='.5' y='.5' width='83' height='35' rx='8' fill='none' stroke='" & C.'hex-border-default' & "'/><path d='M18 12v12M12 18h12' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round'/><text x='32' y='23' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-primary' & "'>New</text></svg>")
                                     ImagePosition: |-
@@ -1174,7 +1174,7 @@ Screens:
                                             Navigate(ScreenEquipment, ScreenTransition.None)
                                         )
                                     PressedFill: |-
-                                        =C.'domain-eq-soft'
+                                        =If(varMdDomain = "Equipment", C.'bg-card', C.'domain-eq-soft')
                                     RadiusBottomLeft: |-
                                         =8
                                     RadiusBottomRight: |-
@@ -1206,7 +1206,7 @@ Screens:
                               BorderThickness: |-
                                   =If(varMdDomain = "MeasuringPoint", 2, 1)
                               DropShadow: |-
-                                  =If(varMdDomain = "MeasuringPoint", DropShadow.Light, DropShadow.None)
+                                  =DropShadow.Light
                               Fill: |-
                                   =If(varMdDomain = "MeasuringPoint", C.'domain-mp-soft', C.'bg-card')
                               FillPortions: |-
@@ -1216,13 +1216,13 @@ Screens:
                               LayoutMinWidth: |-
                                   =0
                               RadiusBottomLeft: |-
-                                  =6
+                                  =8
                               RadiusBottomRight: |-
-                                  =6
+                                  =8
                               RadiusTopLeft: |-
-                                  =6
+                                  =8
                               RadiusTopRight: |-
-                                  =6
+                                  =8
                               Width: |-
                                   =If(LayoutRank < 3, RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 24) / 3, 0), RoundDown((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 48) / 5, 0))
                             Children:
@@ -1248,7 +1248,7 @@ Screens:
                                     HoverBorderColor: |-
                                         =C.'domain-mp'
                                     HoverFill: |-
-                                        =C.'domain-mp-soft'
+                                        =If(varMdDomain = "MeasuringPoint", C.'bg-card', C.'domain-mp-soft')
                                     Image: |-
                                         ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='102' viewBox='0 -4 " & Self.Width & " 102'><circle cx='24' cy='24' r='14' fill='" & C.'hex-domain-mp' & "' fill-opacity='0.12'/><g transform='translate(15 15) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g><text x='" & Self.Width & "' dx='-8' y='34' text-anchor='end' font-family='Segoe UI, sans-serif' font-size='22' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "MeasuringPoint"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</text><text x='8' y='56' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>Measuring</text><text x='8' y='70' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-text-primary' & "'>point</text><text x='8' y='88' font-family='Segoe UI, sans-serif' font-size='10' fill='" & C.'hex-text-muted' & "'>" & "filter" & "</text></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='" & Self.Width & "' height='74' viewBox='0 -4 " & Self.Width & " 74'><circle cx='30' cy='35' r='18' fill='" & C.'hex-domain-mp' & "' fill-opacity='0.12'/><g transform='translate(21 26) scale(0.75)' fill='none' stroke='" & C.'hex-domain-mp' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><g transform='matrix(-1 0 0 1 24 0)'><path d='M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z M14.5 12.5l2-2 M11.5 9.5l2-2 M8.5 6.5l2-2 M17.5 15.5l2-2'/></g></g><text x='58' y='31' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Measuring point" & "</text><text x='58' y='51' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'><tspan font-weight='600' fill='" & C.'hex-text-primary' & "'>" & Text(CountRows(Filter(colMdScope, Domain = "MeasuringPoint"))) & If(CountRows(colMdScope) >= 500, "+", "") & "</tspan> " & Switch(varMdStatusMode, "open", "open", "done", "closed", "in total") & If(varMdView = "mine", " - my requests", " - whole department") & "</text></svg>"))
                                     ImagePosition: |-
@@ -1261,15 +1261,15 @@ Screens:
                                     PressedBorderColor: |-
                                         =C.'domain-mp'
                                     PressedFill: |-
-                                        =C.'domain-mp-soft'
+                                        =If(varMdDomain = "MeasuringPoint", C.'bg-card', C.'domain-mp-soft')
                                     RadiusBottomLeft: |-
-                                        =6
+                                        =8
                                     RadiusBottomRight: |-
-                                        =6
+                                        =8
                                     RadiusTopLeft: |-
-                                        =6
+                                        =8
                                     RadiusTopRight: |-
-                                        =6
+                                        =8
                                     TabIndex: |-
                                         =0
                                     Width: |-
@@ -1299,9 +1299,9 @@ Screens:
                                     RadiusBottomRight: |-
                                         =0
                                     RadiusTopLeft: |-
-                                        =6
+                                        =8
                                     RadiusTopRight: |-
-                                        =6
+                                        =8
                                     Width: |-
                                         =Parent.Width
                                     X: |-
@@ -1326,7 +1326,7 @@ Screens:
                                     Height: |-
                                         =36
                                     HoverFill: |-
-                                        =C.'domain-mp-soft'
+                                        =If(varMdDomain = "MeasuringPoint", C.'bg-card', C.'domain-mp-soft')
                                     Image: |-
                                         ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='84' height='36' viewBox='0 0 84 36'><rect x='.5' y='.5' width='83' height='35' rx='8' fill='none' stroke='" & C.'hex-border-default' & "'/><path d='M18 12v12M12 18h12' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round'/><text x='32' y='23' font-family='Segoe UI, sans-serif' font-size='14' font-weight='500' fill='" & C.'hex-text-primary' & "'>New</text></svg>")
                                     ImagePosition: |-
@@ -1340,7 +1340,7 @@ Screens:
                                             Navigate(ScreenMeasuringPoint, ScreenTransition.None)
                                         )
                                     PressedFill: |-
-                                        =C.'domain-mp-soft'
+                                        =If(varMdDomain = "MeasuringPoint", C.'bg-card', C.'domain-mp-soft')
                                     RadiusBottomLeft: |-
                                         =8
                                     RadiusBottomRight: |-
