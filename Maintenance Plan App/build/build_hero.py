@@ -4,6 +4,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, SHELL_W, C_PRIMARY, C_CARD_BORDER, C_VALID_FG, C_MUTED,
                         C_DIVIDER, C_MODAL_BG, C_PRIMARY_SOFT, stack_height)
 import layout_tokens as lay
+import permissions as perm
 from build_helpers import (ensure_hit, group, fit_button_width, popup_head, text_ctrl, text_px,
                            flow_row, page_icon, PAGE_ICON, ICON_W, top_bar, grow,
                            button, confirm_modal, edit_button, delete_modal, tap_backdrop,
@@ -618,7 +619,10 @@ COMPACT = f"({below('Tablet')} || {LINE_REST} - {FULL_W} < {TITLE_MIN})"
 EDIT_VIS = "IfError(varVhpViewOnly && varVhpCanEdit, false)"
 DRAFT_VIS = "(!IfError(varVhpViewOnly, true) && !VhpSubmitted)"
 SUBMIT_VIS = "(!VhpSubmitted && (!IfError(varVhpViewOnly, true) || IfError(varVhpCanEdit, false)))"
-DELETE_VIS = "(!IfError(varVhpViewOnly, true) && !IsBlank(varVhpRequestGuid))"
+# En plan, der er sendt retur, kan ejeren rette og indsende igen, men ikke
+# slette - det maa kun en admin (tools/permissions.py).
+DELETE_VIS = ("(!IfError(varVhpViewOnly, true) && !IsBlank(varVhpRequestGuid) && "
+              "(varVhpFlow.Status <> \"Returned\" || " + perm.IS_ADMIN + "))")
 
 
 def _compact(btn, full_w):
