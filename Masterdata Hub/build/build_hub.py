@@ -341,6 +341,10 @@ DOM_TEXT = 156
 COLS = [("REQUEST", 176), ("TEXT", 150), ("PLANT", 72), ("REQUESTER", 72),
         ("APPROVAL", 270), ("STATUS", 140), ("UPDATED", 84), ("ACTIONS", 156)]
 CW = dict(COLS)
+# Godkendelsespillen er kolonnens mindstebredde; striben i den regnes af
+# pillens bredde (approval_flow.PILL_W, issue #318).
+if CW["APPROVAL"] != approval_flow.PILL_W:
+    raise SystemExit("build_hub: APPROVAL-kolonnen skal vaere approval_flow.PILL_W bred")
 # Et ikons klikflade i raekken. 32 = H.hit fra Desktop (UX-review F6,
 # check_layout regel 40); under Desktop er ikonerne H.hit (44) - se HIT_W.
 TL_W = 32
@@ -1276,7 +1280,9 @@ def build_list():
     plant = text_ctrl("txtMdRowPlant", "ThisItem.Plant", size=13, height=20,
                       width=CWF["PLANT"], wrap="false", extra={"PaddingLeft": str(HEAD_PAD)})
 
-    approval = _image("imgMdRowApproval", _svg_uri(approval_flow.row_svg()), CW["APPROVAL"],
+    # Pillen (btnMdRowApproval) er CW["APPROVAL"] bred; billedet er pillen
+    # minus pilens plads, og knuderne regnes af den bredde (issue #318).
+    approval = _image("imgMdRowApproval", _svg_uri(approval_flow.row_svg()), approval_flow.STRIP_W,
                       approval_flow.STRIP_H, label='"Approval progress"')
     approval.props["Tooltip"] = APPROVAL_TIP
     # Striben har en fast tegning; kolonnen kan vaere bredere (issue #178).
@@ -1536,12 +1542,14 @@ def _compact_row(act):
                 height="Parent.TemplateHeight - 1", align_items="Stretch",
                 width=f"Parent.Width - {SCROLLBAR_W}", fill=C_CARD_BG, pad=(8, ROW_PAD, 0, ROW_PAD),
                 visible=below("Wide"))
-    strip = _image("imgMdRowApprovalC", _svg_uri(approval_flow.row_svg()), 0,
+    # Kompakt (tablet) er pillen hele raekkens bredde (strip_hits, zone * 4).
+    # Striben er pillen minus pilens plads, og knuderne fordeles over den
+    # bredde - centreret mellem pillens venstre kant og pilen (issue #318).
+    # Tegningen laeser billedets egen bredde (Self.Width): Parent.Template*
+    # i Image regner gen_screen ikke om (check_layout regel 26).
+    strip = _image("imgMdRowApprovalC", _svg_uri(approval_flow.row_svg("Round(Self.Width, 0)")), 0,
                    approval_flow.STRIP_H, label='"Approval progress"')
-    # Kompakt (tablet) staar striben ogsaa til venstre (issue #290), under
-    # raekkens tekst: tegningens egen bredde fra ROW_PAD i stedet for en
-    # strakt flade, hvor tegningen blev centreret.
-    strip.props["Width"] = str(approval_flow.STRIP_W)
+    strip.props["Width"] = f"Parent.TemplateWidth - {2 * ROW_PAD} - {approval_flow.ARROW_W}"
     strip.props["X"] = str(ROW_PAD)
     strip.props["Y"] = str(STRIP_Y_C)
     strip.props["Visible"] = f"{below('Wide')} && {at_least('Tablet')}"
