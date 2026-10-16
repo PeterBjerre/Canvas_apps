@@ -97,9 +97,10 @@ DM_PURCHASE = f'If({IS_PM02}, DisplayMode.Edit, DisplayMode.View)'
 # PM03 er eksternt arbejde, og prisen i standardarbejdsplanen er en TIMESATS
 # (Work staar som 1 paa hver linje, og Price er satsen: SSVXSTIL 494,
 # SSVXISOL 420). Beloebet er derfor timer gange sats, og det skal foelge med,
-# naar timerne rettes. Ved PM02 taster man selv beloebet; ved PM01 og ZB01 er
-# der ingen.
-IS_PM03 = 'Upper(Coalesce(ThisItem.ControlKey, "")) = "PM03"'
+# naar timerne rettes. De interne timer (PM01 og ZB01) har nu ogsaa en
+# timesats i standardarbejdsplanen og regnes paa samme maade. Kun ved PM02
+# taster man selv beloebet, saa det roeres ikke.
+HOURLY_RATE = 'Upper(Trim(Coalesce(ThisItem.ControlKey, ""))) in ["PM01", "ZB01", "PM03"]'
 
 
 # VAREGRUPPEN ER EN DROPDOWN (issue #267)
@@ -143,7 +144,7 @@ def matgrp_display(cur):
 
 def cost_expr(work):
     return (f'If(\n'
-            f'            {IS_PM03},\n'
+            f'            {HOURLY_RATE},\n'
             f'            {work} * Coalesce(ThisItem.UnitCost, 0),\n'
             f'            ThisItem.Cost\n'
             f'        )')
