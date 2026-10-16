@@ -36,8 +36,9 @@ def test_permission_default_is_unchanged():
 def test_vh_owner_may_edit_and_save_returned_plan():
     text = _vh()
     # Indlaesning (Edit) og rettigheden i selve gemningen.
+    st = 'If(pl.Status.Value = "Returned", "AfventerInfo", idx.Status.Value)'
     assert ('Set(varVhpCanEdit, ((Lower(Coalesce(idx.RequesterEmail, "")) = varVhpMe && '
-            '(idx.Status.Value = "Kladde" || idx.Status.Value = "AfventerInfo"))') in text
+            '(%s = "Kladde" || %s = "AfventerInfo"))' % (st, st)) in text
     assert OWNER_BACK in text
 
 
@@ -89,3 +90,22 @@ def test_flows_reuse_earlier_approvals():
         assert "'Prev'" in a["Path"]["inputs"], name
         assert "ItemGuid" in a["Filter_prev_rows"]["inputs"]["where"], name
         assert a["Log_skipped_previous"]["inputs"]["parameters"]["item/Decision"] == "Skipped"
+
+
+def test_system_flow_sets_index_status():
+    """Systemflowet satte ikke Status i MD_RequestIndex, saa en returneret
+    plan stod som Indsendt i hubben (Peter 2026-10-16, MP0131)."""
+    a = _flow("BioSap-VhPlan-SystemApproval")
+    for name, status in (("Patch_index_returned", "AfventerInfo"),
+                         ("Patch_index_progress", "UnderBehandling")):
+        p = a[name]["inputs"]["parameters"]
+        assert p["item/Status"] == {"Value": status}, name
+        assert p["item/Domain"] == {"Value": "MaintenancePlan"}, name
+
+
+def test_load_trusts_plan_status_and_heals_index():
+    text = _vh()
+    assert ('pl.Status.Value = "Returned" && !IsBlank(idx.ID) && '
+            'idx.Status.Value <> "AfventerInfo"') in text
+    assert 'Patch(MD_RequestIndex, idx, { Status: { Value: "AfventerInfo" }, StatusStep: 3 })' in text
+    assert 'If(pl.Status.Value = "Returned", "AfventerInfo", idx.Status.Value) = "AfventerInfo"' in text

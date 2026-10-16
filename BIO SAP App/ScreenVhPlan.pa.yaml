@@ -26281,7 +26281,15 @@ Screens:
                                             Set(varVhpRequestGuid, idx.RequestGuid);
                                             Set(varVhpPlanCommitted, true);
                                             Set(varVhpPlanLocked, true);
-                                            Set(varVhpCanEdit, ((Lower(Coalesce(idx.RequesterEmail, "")) = varVhpMe && (idx.Status.Value = "Kladde" || idx.Status.Value = "AfventerInfo")) || (IsAdmin && (idx.Status.Value = "Kladde" || idx.Status.Value = "AfventerInfo"))));
+                                            If(
+                                                pl.Status.Value = "Returned" && !IsBlank(idx.ID) && idx.Status.Value <> "AfventerInfo",
+                                                IfError(
+                                                    Patch(MD_RequestIndex, idx, { Status: { Value: "AfventerInfo" }, StatusStep: 3 });
+                                                    true,
+                                                    false
+                                                )
+                                            );
+                                            Set(varVhpCanEdit, ((Lower(Coalesce(idx.RequesterEmail, "")) = varVhpMe && (If(pl.Status.Value = "Returned", "AfventerInfo", idx.Status.Value) = "Kladde" || If(pl.Status.Value = "Returned", "AfventerInfo", idx.Status.Value) = "AfventerInfo")) || (IsAdmin && (If(pl.Status.Value = "Returned", "AfventerInfo", idx.Status.Value) = "Kladde" || If(pl.Status.Value = "Returned", "AfventerInfo", idx.Status.Value) = "AfventerInfo"))));
                                             Set(varVhpViewOnly, !(Lower(Coalesce(gblVhpMode, "")) = "edit" && varVhpCanEdit));
                 
                                             // --- de fem hentninger, PAA EEN GANG -------------
