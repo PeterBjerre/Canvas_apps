@@ -110,7 +110,7 @@ def test_functional_location_has_status_column_and_row_panel():
     assert "conFlEditorPanel" in props
     assert props["conFlEditorPanel"]["Width"] == "=" + lay.PANEL_W_AT
     assert all(f"conFlPanel{section}" in props
-               for section in ("Main", "Class", "Loc", "Mfr", "War", "TRM", "Ext"))
+               for section in ("Main", "Class", "Loc", "Mfr", "War", "TRM"))
     assert "conFlPanelStatus" not in props and "conFlPanelMaster" not in props
 
 

@@ -51,8 +51,12 @@ def test_panel_follows_the_row_order_and_labels():
             panel.append(title)
         else:
             panel += [l for _f, k, l in cfg.PANEL_FIELDS if k == key]
+            # KKS type og Assigned class: sektionens sidste linje (#308).
+            panel += [l for _f, k, l in cfg.PANEL_FIELDS if k == cfg.PANEL_SUB.get(key)]
     assert panel[:len(row)] == row
-    assert [k for k, _t in cfg.PANEL_SECTIONS][-2:] == ["TRM", "Ext"]
+    # GIV_EXT/WCM er ikke med i panelet (issue #308).
+    assert [k for k, _t in cfg.PANEL_SECTIONS][-1] == "TRM"
+    assert "Ext" not in [k for k, _t in cfg.PANEL_SECTIONS]
     # Hele Manufacturer- og Warranty-gruppen staar samlet.
     assert [f for f, k, _l in cfg.PANEL_FIELDS if k == "Mfr"] == p.MFR_FIELDS
     assert [f for f, k, _l in cfg.PANEL_FIELDS if k == "War"] == p.WAR_FIELDS
@@ -71,7 +75,7 @@ def test_generated_panel_sections_and_no_status():
     # Plads og etiket staar i colFlPane i den samlede app.
     app = open(BIO_APP, encoding="utf-8").read()
     assert "colFlPane = Table(" in app
-    assert '{ Field: "STRINDICATOR", Pane: "Main", Ord: 3, Label: "KKS type" }' in app
+    assert '{ Field: "STRINDICATOR", Pane: "Kks", Ord: 3, Label: "KKS type" }' in app
 
 
 def test_editing_does_not_rebuild_or_close_the_panel():
