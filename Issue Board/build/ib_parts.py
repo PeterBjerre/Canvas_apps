@@ -6,9 +6,9 @@ hentningen.
     [ikon] Issue Board                              [Refresh] [+ New issue]
            Report what you find while testing ...
     +------------------------------------------------------------------+
-    | [All issues|My issues|Assigned to me] [Open|Closed|Arch.] [Search...] |
-    | [Application v][Section v] [Status v][Priority v]          [Sort v] |
-    | 12 open issues                                   [Clear filters] |
+    | [All issues|My issues|Assigned to me] [Open|Closed|Arch.]  [Sort v] |
+    | [Search.........] [Application v][Section v][Status v][Priority v] |
+    | 12 issues                                        [Clear filters] |
     | TICKET ID  REQUESTER TITLE        APPLICATION ... STATUS  UPDATED  |
     | ISS-000142 UFFES     Save does... VH-plan     ... [New]   09 Oct [@]|
     +------------------------------------------------------------------+
@@ -574,7 +574,6 @@ def _filter_dd(name, all_text, values, var, label, display_mode=None):
 
 # Scopet "All issues": alle sager, med navn (issue #193).
 SCOPE_ALL = 'varIbScope = "all"'
-ADMIN_BOARD = f'{IS_ADMIN} && varIbScope in ["all", "assigned"]'
 FILTERED = ("!IsBlank(varIbApp) || !IsBlank(varIbSection) || !IsBlank(varIbStatusF) || "
             "!IsBlank(varIbPriF) || !IsBlank(Trim(inpIbSearch.Text))")
 CLEAR_FILTERS = ('Set(varIbApp, "");\nSet(varIbSection, "");\nSet(varIbStatusF, "");\n'
@@ -583,8 +582,13 @@ CLEAR_FILTERS = ('Set(varIbApp, "");\nSet(varIbSection, "");\nSet(varIbStatusF, 
 
 # VAERKTOEJSLINJEN (issue #244) - to raekker direkte i listekortet.
 #
-#   [All issues|My issues|Assigned to me] [Open|Closed|Archived] [Search......]
-#   [Application v][Section v] [Status v][Priority v]            [Sort v]
+#   [All issues|My issues|Assigned to me] [Open|Closed|Archived]     [Sort v]
+#   [Search..........] [Application v][Section v] [Status v][Priority v]
+#
+# Issue #291: soegefeltet staar nu forrest i filterlinjen (ikke paa sin egen
+# linje), sorteringen staar alene yderst til hoejre i linje 1 - skilt fra
+# kontakterne af et usynligt fyld (rctIbTbSpacer) - og kontakterne er
+# smallere (kun den luft, teksten og fluebenet skal bruge).
 #
 # HVORFOR KNAPPERNE IKKE KUNNE SES (issue #229 -> #244)
 # -----------------------------------------------------
@@ -613,20 +617,35 @@ CLEAR_FILTERS = ('Set(varIbApp, "");\nSet(varIbSection, "");\nSet(varIbStatusF, 
 # og listeparrene) blev stadig tegnet som tomme rammer. Nu staar hver knap
 # og hver liste DIREKTE i sin flow_row, som i hubbens filterlinje.
 TB_W = CARD_W
+# Et segments bredde (issue #291, kompakt): teksten (text_px er med vilje
+# ~10 % for bred) + 2 x 12 px polstring + fluebenet (16) og dets afstand (6).
+SEG_EXTRA = 46
+
+
+def _seg_w(text):
+    return text_px(text, SEG_SIZE) + SEG_EXTRA
+
+
 def _track_w(*texts):
-    w = sum(fit_button_width('"%s"' % t, size=SEG_SIZE, min_w=0) + ICON_W + 8 for t in texts)
+    w = sum(_seg_w(t) for t in texts)
     return w + (len(texts) - 1) * SEG_GAP + 2 * SEG_PAD
 
 
 SCOPE_ADMIN_W = _track_w("All issues", "My issues", "Assigned to me")
 SCOPE_USER_W = _track_w("All issues", "My issues")
 STATE_ALL_W = _track_w("Open", "Closed", "Archived")
-TB_GAP = 12          # mellem grupperne i en linje
-SEARCH_MIN = 240
-SORT_W = 150
+TB_GAP = 8           # mellem grupperne i en linje
+SEARCH_MIN = 176     # soegefeltet + luppen, naar linje 2 staar vandret
+SORT_OPTIONS = ("Last updated", "Newest", "Oldest", "Priority", "Status")
+
+
 def _dd_w(*texts):
     """En filterlistes bredde: den laengste tekst + polstring og pil."""
     return max(text_px(t, lay.SIZE_INPUT) for t in texts) + 56
+
+
+# 150 px som foer: "Last updated" staar helt i den (set i den udgivne app).
+SORT_W = min(150, _dd_w(*SORT_OPTIONS))
 
 
 DD_APP_W = _dd_w("All applications")
@@ -636,10 +655,14 @@ DD_PRI_W = _dd_w("All priorities", *[x for x, _r in cfg.PRIORITY])
 PAIR_A_W = DD_APP_W + 8 + DD_SEC_W
 PAIR_B_W = DD_STATUS_W + 8 + DD_PRI_W
 PAIR_MIN = max(PAIR_A_W, PAIR_B_W)
-# Linje 1 paa een linje: begge kontakter + soegefeltets mindstebredde.
-TOP_OK = f"{TB_W} >= {SCOPE_ADMIN_W + TB_GAP + STATE_ALL_W + TB_GAP + SORT_W}"
-# Linje 2 paa een linje: to listepar + sorteringen.
-FLT_OK = f"{TB_W} >= {PAIR_A_W + PAIR_B_W + TB_GAP}"
+# Linje 1 paa een linje: begge kontakter, fyldet (mindst 0) og sorteringen
+# - tre mellemrum. Regnet med adminens tre scope-knapper, saa graensen er
+# den samme for alle (og passer ved Desktop-graensen, 1024 px).
+TOP_NEED = SCOPE_ADMIN_W + STATE_ALL_W + SORT_W + 3 * TB_GAP
+TOP_OK = f"{TB_W} >= {TOP_NEED}"
+# Linje 2 paa een linje: soegefeltets mindstebredde + de to listepar.
+FLT_NEED = SEARCH_MIN + PAIR_A_W + PAIR_B_W + 2 * TB_GAP
+FLT_OK = f"{TB_W} >= {FLT_NEED}"
 # Hver linjes hoejde, naar den staar vandret.
 TB_LINE_H = 36
 
@@ -665,8 +688,8 @@ def build_filters():
     scope.props["Width"] = f"If({TOP_OK}, {wide}, {TB_W})"
     n_btn = f"If({IS_ADMIN}, 3, 2)"
     share = f"(({TB_W}) - 2 * {SEG_PAD} - ({n_btn} - 1) * {SEG_GAP}) / {n_btn}"
-    for child in scope.children:
-        w0 = child.props["Width"]
+    for child, text in zip(scope.children, ("All issues", "My issues", "Assigned to me")):
+        w0 = _seg_w(text)
         child.props["Width"] = f"If({TOP_OK}, {w0}, {share})"
         child.props["LayoutMinWidth"] = "0"
     scope.h = SEG_H
@@ -682,8 +705,8 @@ def build_filters():
         child.name = nm
     state.props["Width"] = f"If({TOP_OK}, {STATE_ALL_W}, {TB_W})"
     share3 = f"(({TB_W}) - 2 * {SEG_PAD} - 2 * {SEG_GAP}) / 3"
-    for child in state.children:
-        w0 = child.props["Width"]
+    for child, text in zip(state.children, ("Open", "Closed", "Archived")):
+        w0 = _seg_w(text)
         child.props["Width"] = f"If({TOP_OK}, {w0}, {share3})"
         child.props["LayoutMinWidth"] = "0"
     state.h = SEG_H
@@ -706,9 +729,12 @@ def build_filters():
         "LayoutMinWidth": "20",
         "OnSelect": "false", "TabIndex": "0", "Width": "20",
     }, h=20)
-    sw = f"If({lay.below('Tablet')}, {TB_W}, Min({TB_W}, 320))"
+    # Vandret tager soegefeltet resten af linje 2 (efter de to listepar);
+    # under hinanden hele linjen. Bredden er en formel af TB_W (en nedre
+    # graense), saa feltet inden i kan regne sin egen bredde ud af den.
+    sw = f"If({FLT_OK}, ({TB_W}) - {PAIR_A_W + PAIR_B_W + 2 * TB_GAP + 2}, {TB_W})"
     search_row = group("conIbSearchRow", [search, ico], direction="Horizontal", gap=8,
-                       height=TB_LINE_H + 12, pad=(4, 0, 4, 0), align_items="Center",
+                       height=TB_LINE_H, align_items="Center",
                        width=sw, align_in_container="Start")
 
     # Application og den afhaengige Section, status og prioritet - to og
@@ -738,7 +764,7 @@ def build_filters():
                             display_mode='If(varIbState = "closed", DisplayMode.Disabled, DisplayMode.Edit)')
     drp_pri = _filter_dd("drpIbFltPriority", "All priorities", [p for p, _r in cfg.PRIORITY],
                          "varIbPriF", '"Filter by priority"')
-    drp_sort = themed_dropdown("drpIbSort", '["Last updated", "Newest", "Oldest", "Priority", "Status"]',
+    drp_sort = themed_dropdown("drpIbSort", "[" + ", ".join(f'"{o}"' for o in SORT_OPTIONS) + "]",
                                "varIbSort", label='"Sort issues"',
                                onchange="Set(varIbSort, Self.Selected.Value)")
     drp_sort.props["Width"] = f"Min({SORT_W}, {TB_W})"
@@ -761,17 +787,30 @@ def build_filters():
                    height=TB_LINE_H, align_items="Start", width=f"Min({PAIR_B_W}, {TB_W})",
                    align_in_container="Start")
     drp_sort.props["LayoutMinWidth"] = drp_sort.props["Width"]
-    top = flow_row("conIbTbTop", [scope, state, drp_sort], TB_W, gap=TB_GAP, ok=TOP_OK)
-    filters = flow_row("conIbTbFilters", [pair_a, pair_b], TB_W, gap=TB_GAP, ok=FLT_OK)
+    # Issue #291: sorteringen staar for sig selv yderst til hoejre - et
+    # usynligt fyld tager pladsen mellem kontakterne og den. Under
+    # hinanden er fyldet skjult (det ville kun give en tom linje).
+    spacer = Ctrl("rctIbTbSpacer", "Rectangle", props={
+        "AccessibleLabel": '"Space between the switches and the sort order"',
+        "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
+        "Fill": C_TRANSPARENT, "Height": "1", "OnSelect": "false", "TabIndex": "0",
+        "Visible": TOP_OK,
+    }, h=1, vis=TOP_OK)
+    top = flow_row("conIbTbTop", [scope, state, spacer, drp_sort], TB_W, gap=TB_GAP,
+                   flex=spacer, ok=TOP_OK)
+    filters = flow_row("conIbTbFilters", [search_row, pair_a, pair_b], TB_W, gap=TB_GAP,
+                       ok=FLT_OK)
     # Staar listerne under hinanden, holder de deres tekstbredde (Start) i
     # stedet for at strakke sig til hele linjen.
     filters.props["LayoutAlignItems"] = (f"If({FLT_OK}, LayoutAlignItems.Center, "
                                          "LayoutAlignItems.Start)")
     # Luft over og under linjerne: Studio tegnede kontrollerne helt op i
     # raekkens overkant, og toppen blev skaaret af.
-    for line in (top, filters):
-        _air(line, 8, 4)
-    return [top, filters, search_row]
+    # Issue #291: lidt mindre luft end foer - kun saa meget, at Studio ikke
+    # tegner kontrollerne helt oppe i raekkens overkant.
+    _air(top, 6, 2)
+    _air(filters, 4, 2)
+    return [top, filters]
 
 
 def _air(row, top, bottom):
@@ -1062,11 +1101,11 @@ def build_list():
     att_c.props.pop("_OnTop")
 
     row_h = if_below("Desktop", str(CMP_ROW_H), str(TBL_ROW_H))
-    state_word = 'Switch(varIbState, "closed", " closed", "archived", " archived", " open")'
+    # Issue #291: EEN taeller - antallet i listen, som den staar efter
+    # visningen, soegningen og filtrene ("3 issues").
     count = grow(text_ctrl(
         "txtIbCount",
-        f'With({{ n: galIbList.AllItemsCount }}, n & {state_word} & If(n = 1, " issue", " issues") & '
-        f'If({FILTERED}, If(n = 1, " matches", " match") & " the filters", ""))',
+        'With({ n: galIbList.AllItemsCount }, n & If(n = 1, " issue", " issues"))',
         size=lay.SIZE_BODY, weight="Semibold", color=C_MUTED, height=20))
     clear = button("btnIbClearFlt", '"Clear filters"', CLEAR_FILTERS,
                    width=fit_button_width('"Clear filters"', size=lay.SIZE_SMALL), height=30,
@@ -1075,16 +1114,6 @@ def build_list():
     clear.props["LayoutMinWidth"] = clear.props["Width"]
     count_row = group("conIbCountRow", [count, clear], direction="Horizontal", gap=8, height=30,
                       align_items="Center")
-    # Admin-boardets taellere: det, der venter paa en admin.
-    open_all = f'!Archived && Status <> "{cfg.STATUS_CLOSED}"'
-    counts = text_ctrl(
-        "txtIbAdminCounts",
-        f'CountIf(colIbAll, {open_all}) & " open  ·  " & '
-        f'CountIf(colIbAll, !Archived && Status = "{cfg.STATUS_NEW}") & " new  ·  " & '
-        f'CountIf(colIbAll, {open_all} && IsBlank(AssignedEmail)) & " unassigned  ·  " & '
-        f'CountIf(colIbAll, {open_all} && AssignedEmail = varIbMe) & " assigned to you  ·  " & '
-        'CountIf(colIbAll, Archived) & " archived"',
-        size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true", visible=ADMIN_BOARD)
     head = _list_head()
     head_rule = group("conIbListRule", [], direction="Horizontal", height=1, fill=C_DIVIDER,
                       visible=TABLE_ON)
@@ -1113,7 +1142,7 @@ def build_list():
 
     # Pladsen, galleriet har: skaermen minus mobilbjaelken, sidens bjaelke,
     # kroppens luft, kortets polstring og kant og kortets andre linjer.
-    before = [*toolbar, count_row, counts, head, head_rule]
+    before = [*toolbar, count_row, head, head_rule]
     bar = build_bar()
     header_h = f"{lay.HEADER_PAD_T} + ({bar.h}) + {lay.HEADER_PAD_B} + 1"
     room = (f"App.Height - {lay.BAR_OFFSET} - ({header_h}) - {lay.BODY_PAD_T} - {lay.BODY_PAD_B} - "
