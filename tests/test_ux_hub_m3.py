@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Hubben (UX-review 2026-10, M3): kompakte fliser med New, "Continue where
-you left off" og sorterbare kolonner."""
+"""Hubben (UX-review 2026-10, M3): kompakte fliser med New og sorterbare
+kolonner. ("Continue where you left off" er fjernet igen, issue #273.)"""
 import os
 import sys
 
@@ -32,17 +32,20 @@ def test_tiles_are_72_px_with_a_new_icon_button():
         assert f'"New {d["name"].lower()} request"' in b
 
 
-def test_continue_where_you_left_off_lists_up_to_three_drafts_and_returned():
-    assert "Status.Value = \"Kladde\"" in bh.RESUME_REFRESH
-    assert "SortOrder.Descending" in bh.RESUME_REFRESH
-    assert ", 3))" in bh.RESUME_REFRESH
-    assert 'Status.Value = "AfventerInfo"' in bh.RESUME_REFRESH
-    assert bh.RESUME_REFRESH in bh.HUB_ON_VISIBLE
+def test_continue_where_you_left_off_is_gone():
+    """Issue #273: sektionen er fjernet helt - UI, hentning og variabel.
+    Filtrene ligger lige under fliserne (kun banneren om returnerede
+    anmodninger, naar den vises, kan staa imellem)."""
+    for name in ("RESUME_REFRESH", "RESUME_N", "build_resume"):
+        assert not hasattr(bh, name), name
+    assert "varMdResumeList" not in bh.HUB_ON_VISIBLE
     y = _yaml()
-    for i in (1, 2, 3):
-        go = _block(y, f"btnMdResumeGo{i}", 4000)
-        assert f'Index(varMdResumeList, {i})).RequestGuid' in go
-        assert "ThisItem" not in go
+    for bad in ("MdResume", "varMdResumeList", "Continue where you left off",
+                "Your latest drafts and requests that need information"):
+        assert bad not in y, bad
+    body = y[y.index("- conMdBody:"):]
+    order = [body.index(f"- {n}:") for n in ("conMdTiles", "conMdRetBanner", "conMdFlt", "conMdListCard")]
+    assert order == sorted(order)
 
 
 def test_every_sort_branch_names_its_column_as_a_constant():
