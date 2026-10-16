@@ -375,6 +375,29 @@ Den kan ikke slås sammen med `MD_FLKey`'s `Function`-rækker: de er de 6.441
 gyldige nøgler uden tekst, vejledningen er 2.913 rækker med tekst, dubletter,
 noter og O-grupper, der ikke er nøgler.
 
+### `MD_MaterialGroup` – varegrupper til PM02-operationer
+
+Issue #267. Valgene i VH-plan appens dropdown *Material group* på en
+taskliste-operation med kontrolnøgle PM02 (tabellen og popup'en på smalle
+skærme). Appen læser listen én gang, dovent, i den navngivne formel
+`colVhpMaterialGroups`.
+
+| Kolonne | Type | Bemærkning |
+|---|---|---|
+| `Title` → `MaterialGroup` | Text Ⓘ, unik | SAP-varegruppen (`B04.10`). Det er den, der gemmes på operationen |
+| `MaterialGroupDescription` | Text | Overgruppen (`Transmission systems`) |
+| `Description2` | Text | Varegruppens tekst (`High/low voltage service`). Vises i popup'en efter koden |
+| `CategoryDescription` | Note (plain) | Den lange beskrivelse |
+| `SearchWords` | Text | `Bio`, `Bio / Offshore / Onshore` |
+
+Seedet fra `sharepoint/seed/MD_MaterialGroup.csv` (53 rækker) af
+`Provision-MaterialGroups.ps1`. Varegrupper, der findes i forvejen, røres
+ikke; `-Force` skriver CSV'ens tekster over dem.
+
+En operation, hvis varegruppe ikke står i listen (fx `B09.03` fra
+standardoperationen `XELEK`), beholder den og viser den stadig i
+dropdownen.
+
 ### Landingssiden
 
 Hvert gem skriver én række i `MD_RequestIndex` med `Domain =

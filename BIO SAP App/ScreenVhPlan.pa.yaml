@@ -11809,8 +11809,8 @@ Screens:
                                                     =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14))
                                                 Y: |-
                                                     =0 + 0 + ((((44) - 2) - 0 - 0) - (32)) / 2
-                                          - inpVhpOpMatGrp:
-                                              Control: ModernTextInput
+                                          - drpVhpOpMatGrp:
+                                              Control: ModernDropdown
                                               Properties:
                                                 AccessibleLabel: |-
                                                     ="Material group"
@@ -11827,7 +11827,23 @@ Screens:
                                                 Color: |-
                                                     =If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                                 Default: |-
-                                                    =ThisItem.MaterialGroup
+                                                    =LookUp(With(
+                                                        { cur: Trim(Coalesce(ThisItem.MaterialGroup, "")) },
+                                                        With(
+                                                            { known: IsBlank(cur) || cur in colVhpMaterialGroups.Value },
+                                                            Filter(
+                                                                ForAll(
+                                                                    Sequence(CountRows(colVhpMaterialGroups) + 1),
+                                                                    If(
+                                                                        Value = 1,
+                                                                        { Value: If(known, "", cur), Display: cur },
+                                                                        Index(colVhpMaterialGroups, Value - 1)
+                                                                    )
+                                                                ),
+                                                                !IsBlank(Value)
+                                                            )
+                                                        )
+                                                    ) As _dd, _dd.Value = (ThisItem.MaterialGroup))
                                                 DisplayMode: |-
                                                     =If((If(varVhpViewOnly, DisplayMode.View, If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
@@ -11836,10 +11852,28 @@ Screens:
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =32
+                                                ItemDisplayText: |-
+                                                    =ThisItem.Value
+                                                Items: |-
+                                                    =With(
+                                                        { cur: Trim(Coalesce(ThisItem.MaterialGroup, "")) },
+                                                        With(
+                                                            { known: IsBlank(cur) || cur in colVhpMaterialGroups.Value },
+                                                            Filter(
+                                                                ForAll(
+                                                                    Sequence(CountRows(colVhpMaterialGroups) + 1),
+                                                                    If(
+                                                                        Value = 1,
+                                                                        { Value: If(known, "", cur), Display: cur },
+                                                                        Index(colVhpMaterialGroups, Value - 1)
+                                                                    )
+                                                                ),
+                                                                !IsBlank(Value)
+                                                            )
+                                                        )
+                                                    )
                                                 OnChange: |-
-                                                    =Patch(colVhpOperations, ThisItem, { MaterialGroup: Self.Text })
-                                                Placeholder: |-
-                                                    =""
+                                                    =Patch(colVhpOperations, ThisItem, { MaterialGroup: Self.Selected.Value })
                                                 RadiusBottomLeft: |-
                                                     =R.input
                                                 RadiusBottomRight: |-
@@ -11851,7 +11885,7 @@ Screens:
                                                 Size: |-
                                                     =If(LayoutRank < 2, 16, 14)
                                                 ValidationState: |-
-                                                    =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                                    =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =90
                                                 X: |-
@@ -16308,8 +16342,8 @@ Screens:
                             ="Material group"
                         Wrap: |-
                             =false
-                  - inpVhpOpMMatGrp:
-                      Control: ModernTextInput
+                  - drpVhpOpMMatGrp:
+                      Control: ModernDropdown
                       Properties:
                         AccessibleLabel: |-
                             ="Material group"
@@ -16326,7 +16360,23 @@ Screens:
                         Color: |-
                             =If((If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                         Default: |-
-                            =LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MaterialGroup
+                            =LookUp(With(
+                                { cur: Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MaterialGroup, "")) },
+                                With(
+                                    { known: IsBlank(cur) || cur in colVhpMaterialGroups.Value },
+                                    Filter(
+                                        ForAll(
+                                            Sequence(CountRows(colVhpMaterialGroups) + 1),
+                                            If(
+                                                Value = 1,
+                                                { Value: If(known, "", cur), Display: cur },
+                                                Index(colVhpMaterialGroups, Value - 1)
+                                            )
+                                        ),
+                                        !IsBlank(Value)
+                                    )
+                                )
+                            ) As _dd, _dd.Display = (Coalesce(LookUp(colVhpMaterialGroups, Value = LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MaterialGroup).Display, LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MaterialGroup)))
                         DisplayMode: |-
                             =If((If(varVhpViewOnly, DisplayMode.View, If((If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                         Fill: |-
@@ -16335,12 +16385,30 @@ Screens:
                             =Font.'Segoe UI'
                         Height: |-
                             =32
+                        ItemDisplayText: |-
+                            =ThisItem.Display
+                        Items: |-
+                            =With(
+                                { cur: Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MaterialGroup, "")) },
+                                With(
+                                    { known: IsBlank(cur) || cur in colVhpMaterialGroups.Value },
+                                    Filter(
+                                        ForAll(
+                                            Sequence(CountRows(colVhpMaterialGroups) + 1),
+                                            If(
+                                                Value = 1,
+                                                { Value: If(known, "", cur), Display: cur },
+                                                Index(colVhpMaterialGroups, Value - 1)
+                                            )
+                                        ),
+                                        !IsBlank(Value)
+                                    )
+                                )
+                            )
                         LayoutMinWidth: |-
                             =0
                         OnChange: |-
-                            =Patch(colVhpOperations, LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo), { MaterialGroup: Self.Text })
-                        Placeholder: |-
-                            =""
+                            =Patch(colVhpOperations, LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo), { MaterialGroup: Self.Selected.Value })
                         RadiusBottomLeft: |-
                             =R.input
                         RadiusBottomRight: |-
@@ -16352,7 +16420,7 @@ Screens:
                         Size: |-
                             =If(LayoutRank < 2, 16, 14)
                         ValidationState: |-
-                            =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                            =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                         Width: |-
                             =(Min(620, App.Width - 40) - 36)
                   - txtVhpOpML8:
