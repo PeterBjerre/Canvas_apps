@@ -144,8 +144,9 @@ def build_bar():
                                      f'DisplayMode.Disabled, DisplayMode.Edit)')), icon=True)
     save.props["Tooltip"] = ('"Puts the request on the landing page as Draft - '
                              'it can still be edited."')
-    # Submit spoerger foerst (build_submit_confirm, issue #54).
-    submit = _fit(button("btnFlSubmit", '"Submit"', "Set(varFlConfirmSubmit, true)",
+    # Submit spoerger foerst (build_submit_confirm, issue #54) - eller siger,
+    # hvorfor den er blokeret (S.submit_click_fx, issue #277).
+    submit = _fit(button("btnFlSubmit", '"Submit"', S.submit_click_fx(),
                          primary=True, icon=ICON_SUBMIT, display_mode=S.SUBMIT_DM),
                   icon=bool(ICON_SUBMIT))
     submit.props["Tooltip"] = S.SUBMIT_WHY
@@ -418,7 +419,8 @@ def verify_button():
     """HELE valideringen - skjult. Alle aendringer kalder den med
     Select(btnFlVerify) (REVERIFY, docs/31 PX7). Select virker paa en
     skjult knap; den skal bare staa paa samme skaerm."""
-    b = button("btnFlVerify", '"Verify"', V.verify_fx(DET_ITEMS, after=CLS_AFTER_VERIFY),
+    b = button("btnFlVerify", '"Verify"',
+               V.verify_fx(DET_ITEMS, after=CLS_AFTER_VERIFY + ";\n" + S.submit_after_verify()),
                width=100, visible="false", accessible='"Validate the rows"')
     return b
 
@@ -1210,6 +1212,7 @@ Set(varFlDetailRow, "");
 Set(varFlPop, "");
 Set(varFlClsOpen, false);
 Set(varFlClsCheck, false);
+Set(varFlSubmitAsk, false);
 Set(varFlClsRow, "");
 Clear(colFlClsDet);
 Set(varFlStale, false);

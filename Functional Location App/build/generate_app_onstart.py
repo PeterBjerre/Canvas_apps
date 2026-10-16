@@ -237,6 +237,8 @@ Set(varFlClsRow, "");
 Set(varFlClsCheck, false);
 // Er der aendret noget siden sidste validering? Submit kraever false (FL68).
 Set(varFlStale, false);
+// Submit bad om en frisk validering og svarer, naar den er faerdig (#277).
+Set(varFlSubmitAsk, false);
 // Kun fejl ved gem/indsend - vist under Validation-tabellen (issue #77).
 Set(varFlInfo, "");
 Set(varFlPayload, "");
