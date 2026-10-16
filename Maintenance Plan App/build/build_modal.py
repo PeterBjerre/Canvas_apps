@@ -35,6 +35,12 @@ PICKER_COLS = [
 ]
 PICKER_GAP = 10
 
+# Det hoejeste operationsnummer paa itemet, rundet ned til et tital. Nye
+# linjer faar base + 10, base + 20 ... (Peter 2026-10-16). Delt af
+# "Add selected lines" og "Add manual operation".
+NEXT_OP_BASE = ("RoundDown(Coalesce(Max(Filter(colVhpOperations, ItemId = varVhpActiveItemId), "
+                "Value(OperationNo)), 0) / 10, 0) * 10")
+
 
 def _picker_header_html(cols_def=PICKER_COLS):
     cols = " ".join(f"{w}px" for _, w in cols_def)
@@ -264,33 +270,51 @@ def build_tasklist_picker_modal():
             "If(\n"
             "    CountRows(colVhpPickerSelected) = 0,\n"
             "    Notify(\"Select one or more lines first.\", NotificationType.Warning),\n"
+            # NUMRENE (Peter 2026-10-16): en linje fra standardtasklisten
+            # faar IKKE standardens operationsnummer, men det naeste i trin
+            # af 10 efter det hoejeste paa itemet (0010, 0020 ...), i
+            # standardens raekkefoelge. Den samme standardlinje kan derfor
+            # tilfoejes flere gange - hver gang med sit eget nummer, saa
+            # OperationNo stadig er unik pr. item (pakkematricen,
+            # materialerne og dokumenterne kobler paa den).
             "    With(\n"
-            "        { tl: LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey) },\n"
+            "        {\n"
+            "            tl: LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey),\n"
+            f"            base: {NEXT_OP_BASE}\n"
+            "        },\n"
+            "        With(\n"
+            "            {\n"
+            "                picked: Sort(\n"
+            "                    Filter(\n"
+            "                        tl.Operations As TLOP,\n"
+            "                        CountRows(Filter(colVhpPickerSelected As SEL, "
+            "SEL.OperationNo = TLOP.OperationNo)) > 0\n"
+            "                    ),\n"
+            "                    Value(OperationNo)\n"
+            "                )\n"
+            "            },\n"
             # Collect UDEN OM ForAll - eet kald i stedet for eet pr. linje.
-            "        Collect(\n"
-            "            colVhpOperations,\n"
-            "            ForAll(\n"
-            "                Filter(\n"
-            "                    tl.Operations As TLOP,\n"
-            "                    CountRows(Filter(colVhpPickerSelected As SEL, "
-            "SEL.OperationNo = TLOP.OperationNo)) > 0 &&\n"
-            # En linje, itemet allerede har, tilfoejes ikke igen. OperationNo
-            # antages unik pr. item i pakkematricen og materialekoblingen.
-            "                    !(TLOP.OperationNo in "
-            "Filter(colVhpOperations, ItemId = varVhpActiveItemId).OperationNo)\n"
-            "                ) As TLOP,\n"
-            "                {\n"
-            "                    ItemId: varVhpActiveItemId, OperationNo: TLOP.OperationNo,\n"
-            "                    OperationShortText: TLOP.OperationShortText, WorkHours: TLOP.WorkHours,\n"
-            "                    Persons: TLOP.Persons,\n"
-            "                    DurationHours: TLOP.DurationHours, MainWorkCenter: TLOP.MainWorkCenter,\n"
-            "                    Vendor: TLOP.Vendor, LongText: TLOP.LongText,\n"
-            "                    ControlKey: TLOP.ControlKey, Cost: TLOP.Cost,\n"
-            "                    UnitCost: TLOP.UnitCost,\n"
-            "                    Currency: TLOP.Currency, CostElement: TLOP.CostElement,\n"
-            "                    MaterialGroup: TLOP.MaterialGroup, ServiceNo: TLOP.ServiceNo,\n"
-            "                    PackagesKey: \";\", Selected: false\n"
-            "                }\n"
+            "            Collect(\n"
+            "                colVhpOperations,\n"
+            "                ForAll(\n"
+            "                    Sequence(CountRows(picked)) As N,\n"
+            "                    With(\n"
+            "                        { TLOP: Index(picked, N.Value) },\n"
+            "                        {\n"
+            "                            ItemId: varVhpActiveItemId,\n"
+            "                            OperationNo: Text(base + 10 * N.Value, \"0000\"),\n"
+            "                            OperationShortText: TLOP.OperationShortText, WorkHours: TLOP.WorkHours,\n"
+            "                            Persons: TLOP.Persons,\n"
+            "                            DurationHours: TLOP.DurationHours, MainWorkCenter: TLOP.MainWorkCenter,\n"
+            "                            Vendor: TLOP.Vendor, LongText: TLOP.LongText,\n"
+            "                            ControlKey: TLOP.ControlKey, Cost: TLOP.Cost,\n"
+            "                            UnitCost: TLOP.UnitCost,\n"
+            "                            Currency: TLOP.Currency, CostElement: TLOP.CostElement,\n"
+            "                            MaterialGroup: TLOP.MaterialGroup, ServiceNo: TLOP.ServiceNo,\n"
+            "                            PackagesKey: \";\", Selected: false\n"
+            "                        }\n"
+            "                    )\n"
+            "                )\n"
             "            )\n"
             "        )\n"
             "    );\n"

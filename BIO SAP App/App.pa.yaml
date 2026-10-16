@@ -2078,6 +2078,23 @@ App:
                               ": fill in the material group - control key PM02 requires one."
                       ),
                       Char(10)
+                  ) },
+                  { m: Concat(
+                      Filter(
+                          colVhpOperations,
+                          Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" &&
+                          Coalesce(Cost, 0) <= 0
+                      ),
+                      With(
+                          { rid: ItemId },
+                          With(
+                              { ir: LookUp(colVhpItems, ItemId = rid) },
+                              "Item " & Text(CountRows(Filter(colVhpItems, ItemId <= rid))) &
+                                  If(IsBlank(Trim(ir.ShortText)), "", " (" & Trim(ir.ShortText) & ")")
+                          ) & ", operation " & OperationNo &
+                              ": fill in the cost - control key PM02 requires an amount above 0."
+                      ),
+                      Char(10)
                   ) }
               ),
               !IsBlank(m)
