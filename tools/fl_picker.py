@@ -224,7 +224,8 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
               last_var, pick_var, default_items, display_mode, on_select=None,
               on_clear=None, required_formula="false", width="Parent.Width",
               label="Functional location", trail=(), stack_search=False, col_w=None, stack_cond=None,
-              lock=None, min_len=None):
+              lock=None, min_len=None, kind="Fl", searcher=None, placeholder=None,
+              search_accessible='"Search functional location"'):
     """Raekken [combobox][Search][spinner] og dens timer - som EEN container.
 
     prefix     navnepraefikset (Vhp, Dom) - knap, spinner og timer faar det
@@ -241,10 +242,16 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
                Search og med soegeraekken (Enter). Standard er
                build_flsearch.MIN_SEARCH_LEN; kun VH-planens Item Editor
                saetter sin egen (8, issue #144)
+    kind       navnets midterled (btn<prefix><kind>Search ...). "Fl" for
+               FL-vaelgerne; leverandoervaelgeren bruger "Ven"
+    searcher   soegningen - samme signatur som build_flsearch.search_action.
+               Standard er FL-flowet; tools/vendor_search.py giver sin egen
+    placeholder  comboboksens pladsholder; standard er FL-eksemplet
     """
     n_min = min_len or fl.MIN_SEARCH_LEN
     query = f"Coalesce({combo}.SearchText, {query_var})"
-    search = fl.search_action(
+    searcher = searcher or fl.search_action
+    search = searcher(
         combo, results, msg_var, raw_var=raw_var, busy_var=busy_var,
         query_expr=query, last_var=last_var, min_len=n_min,
         # Det gamle valg er vaek, i samme oejeblik en ny soegning starter -
@@ -264,7 +271,7 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
               f"    {select}\n)")
     # Enter vaelger soegeraekken; OnChange koerer da soegningen paa den tekst,
     # raekken bar, i stedet for at gemme et valg.
-    search_enter = fl.search_action(
+    search_enter = searcher(
         combo, results, msg_var, raw_var=raw_var, busy_var=busy_var,
         query_expr=query_var, last_var=last_var, min_len=n_min,
         on_start=f'Set({pick_var}, ""); Reset({combo})' + (f"; {on_clear}" if on_clear else ""),
@@ -295,8 +302,9 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
         "DefaultSelectedItems": default_items,
         "DelayOutput": "false",
         "Height": str(HEIGHT),
-        "InputTextPlaceholder": (PLACEHOLDER if n_min == fl.MIN_SEARCH_LEN
-                                 else f'"At least {n_min} characters, e.g. SSV13 HFC10"'),
+        "InputTextPlaceholder": placeholder or (
+            PLACEHOLDER if n_min == fl.MIN_SEARCH_LEN
+            else f'"At least {n_min} characters, e.g. SSV13 HFC10"'),
         "IsSearchable": "true",
         "ItemDisplayText": "ThisItem.Display",
         "Items": items_fx(results, busy_var, last_var, n_min),
@@ -316,11 +324,11 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
     too_short = f"Len(Trim({query})) < {n_min}"
     if lock:
         too_short = f"{lock} || {too_short}"
-    btn = button(f"btn{prefix}FlSearch", '"Search"', search,
+    btn = button(f"btn{prefix}{kind}Search", '"Search"', search,
                  width=SEARCH_W, height=HEIGHT,
                  display_mode=(f"If({too_short}, DisplayMode.Disabled, "
                                f"{display_mode})"),
-                 accessible='"Search functional location"',
+                 accessible=search_accessible,
                  visible=f"!{busy_var}")
     btn.props["LayoutMinWidth"] = str(SEARCH_W)
     stk = stack_cond or lay.below('Tablet')
@@ -330,14 +338,14 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
     # Mens soegningen koerer, er knappen skiftet ud med et billede af samme
     # stoerrelse og form: en drejende spinner og "Searching...". Kun een af
     # dem er synlig, saa intet i raekken flytter sig.
-    busy = busy_box(f"img{prefix}FlBusy", busy_var)
+    busy = busy_box(f"img{prefix}{kind}Busy", busy_var)
 
     row_kids = [cmb, btn, busy, *trail]
     if stack_search and trail:
         narrow = stk
         sum_w = " + ".join([str(SEARCH_W)] + [f"({t.props['Width']})" for t in trail]) \
             + f" + {8 * len(trail)}"
-        actions = group(f"con{prefix}FlActions", [btn, busy, *trail], direction="Horizontal",
+        actions = group(f"con{prefix}{kind}Actions", [btn, busy, *trail], direction="Horizontal",
                         gap=8, height=HEIGHT, align_items="Center", justify="Start",
                         width=f"If({narrow}, {width}, {sum_w})")
         actions.props["LayoutMinWidth"] = f"If({narrow}, 0, {sum_w})"
@@ -345,7 +353,7 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
         cmb.props["AlignInContainer"] = "AlignInContainer.Start"
         row_kids = [cmb, actions]
 
-    row = group(f"con{prefix}FlInput", row_kids, direction="Horizontal",
+    row = group(f"con{prefix}{kind}Input", row_kids, direction="Horizontal",
                 gap=8, height=HEIGHT + 2 * ROW_PAD, pad=(ROW_PAD, 0, ROW_PAD, 0),
                 align_items="Center", width=width)
     if stack_search:
@@ -365,9 +373,9 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
                                          "LayoutAlignItems.Center)")
         row.h = row.props["Height"]
     capture = _timer(
-        f"tmr{prefix}FlCapture", f"!IsBlank({combo}.SearchText)", 300,
+        f"tmr{prefix}{kind}Capture", f"!IsBlank({combo}.SearchText)", 300,
         f"If(!IsBlank({combo}.SearchText), Set({query_var}, {combo}.SearchText))")
-    return group(f"con{prefix}FlWrap", [row, capture], direction="Vertical", gap=0,
+    return group(f"con{prefix}{kind}Wrap", [row, capture], direction="Vertical", gap=0,
                  width=width)
 
 

@@ -120,7 +120,8 @@ def collect_results(target_collection, *, raw_var):
 def search_action(query_ctrl, target_collection, msg_var, *, raw_var,
                   label="Functional Locations",
                   busy_var=None, query_expr=None, last_var=None, on_start=None,
-                  on_found=None, min_len=None):
+                  on_found=None, min_len=None, flow_name=FLOW_NAME,
+                  flow_output=FLOW_OUTPUT, collect_fx=None, run_arg="q"):
     """Soegningen, som den ser ud bag en SOEGEKNAP.
 
     Hvem der kalder den: Search-knappen i FL-vaelgeren
@@ -148,6 +149,11 @@ def search_action(query_ctrl, target_collection, msg_var, *, raw_var,
     min_len: mindste antal tegn (trimmet) foer der soeges. Standard er
     MIN_SEARCH_LEN; VH-planens Item Editor kraever 8 (issue #144).
 
+    flow_name, flow_output, collect_fx, run_arg: et ANDET flow bag den
+    samme soegning - leverandoersoegningen (tools/vendor_search.py) bruger
+    dem. collect_fx(target, raw_var) giver ClearCollect-udtrykket; run_arg
+    er argumentet til .Run(). Standard er FL-flowet, uaendret.
+
     GAMLE RESULTATER RYDDES, NAAR EN NY SOEGNING STARTER (issue #63)
     ----------------------------------------------------------------
     Ellers kunne man vaelge en raekke fra den forrige soegning, mens den
@@ -155,6 +161,8 @@ def search_action(query_ctrl, target_collection, msg_var, *, raw_var,
     Notify det - beskeden under feltet findes ikke i alle apps.
     """
     q_src = query_expr if query_expr else f"{query_ctrl}.Text"
+    collect = (collect_fx or (lambda t, raw_var: collect_results(t, raw_var=raw_var)))(
+        target_collection, raw_var=raw_var)
     n_min = min_len or MIN_SEARCH_LEN
     busy_on = f"        Set({busy_var}, true);\n" if busy_var else ""
     busy_off = f";\n        Set({busy_var}, false)" if busy_var else ""
@@ -174,11 +182,11 @@ def search_action(query_ctrl, target_collection, msg_var, *, raw_var,
         + (f"        {on_start};\n" if on_start else "")
         + f"        Set({msg_var}, \"Searching for \" & Upper(q) & \" ...\");\n"
         f"        IfError(\n"
-        f"            Set({raw_var}, {FLOW_NAME}.Run(q));\n"
+        f"            Set({raw_var}, {flow_name}.Run({run_arg}));\n"
         f"            If(\n"
-        f"                IsBlank({raw_var}) || IsBlank({raw_var}.{FLOW_OUTPUT}),\n"
+        f"                IsBlank({raw_var}) || IsBlank({raw_var}.{flow_output}),\n"
         f"                Clear({target_collection}),\n"
-        f"                {collect_results(target_collection, raw_var=raw_var)}\n"
+        f"                {collect}\n"
         f"            );\n"
         f"            If(\n"
         f"                CountRows({target_collection}) = 0,\n"
