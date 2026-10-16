@@ -11007,7 +11007,7 @@ Screens:
                                                       colVhpOperations,
                                                       {
                                                           ItemId: varVhpActiveItemId,
-                                                          OperationNo: Text(Coalesce(Max(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Value(OperationNo)), 0) + 10, "0000"),
+                                                          OperationNo: Text(RoundDown(Coalesce(Max(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Value(OperationNo)), 0) / 10, 0) * 10 + 10, "0000"),
                                                           OperationShortText: "",
                                                           WorkHours: 1,
                                                           Persons: 1,
@@ -11103,7 +11103,7 @@ Screens:
                                                       colVhpOperations,
                                                       {
                                                           ItemId: varVhpActiveItemId,
-                                                          OperationNo: Text(Coalesce(Max(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Value(OperationNo)), 0) + 10, "0000"),
+                                                          OperationNo: Text(RoundDown(Coalesce(Max(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Value(OperationNo)), 0) / 10, 0) * 10 + 10, "0000"),
                                                           OperationShortText: "",
                                                           WorkHours: 1,
                                                           Persons: 1,
@@ -11340,39 +11340,79 @@ Screens:
                                           WrapCount: |-
                                               =1
                                         Children:
-                                          - txtVhpOpNo:
-                                              Control: ModernText
+                                          - inpVhpOpNo:
+                                              Control: ModernTextInput
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    =Self.Text
+                                                    ="Operation number " & ThisItem.OperationNo
+                                                Appearance: |-
+                                                    =Appearance.FilledDarker
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
+                                                BorderColor: |-
+                                                    =If(varVhpViewOnly, C.'border-default', C.'border-input')
                                                 BorderStyle: |-
-                                                    =BorderStyle.None
+                                                    =BorderStyle.Solid
                                                 BorderThickness: |-
-                                                    =0
+                                                    =1
                                                 Color: |-
-                                                    =C.'text-primary'
+                                                    =C.'input-fg'
+                                                Default: |-
+                                                    =ThisItem.OperationNo
+                                                DisplayMode: |-
+                                                    =If((If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
-                                                    =RGBA(0, 0, 0, 0)
+                                                    =C.'input-bg'
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =32
-                                                PaddingBottom: |-
-                                                    =0
-                                                PaddingLeft: |-
-                                                    =0
-                                                PaddingRight: |-
-                                                    =0
-                                                PaddingTop: |-
-                                                    =0
+                                                MaxLength: |-
+                                                    =4
+                                                OnChange: |-
+                                                    =With(
+                                                        { oldNo: ThisItem.OperationNo, raw: Trim(Self.Text) },
+                                                        With(
+                                                            { n: If(IsMatch(raw, "\d{1,4}"), Value(raw), 0) },
+                                                            If(
+                                                                n < 1,
+                                                                Set(gblToast, { Text: "Operation number must be a whole number from 1 to 9999.", Kind: "Warning", At: Now() });
+                                                                Reset(Self),
+                                                                Text(n, "0000") = oldNo,
+                                                                Reset(Self),
+                                                                CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = Text(n, "0000"))) > 0,
+                                                                Set(gblToast, { Text: "Operation " & Text(n, "0000") & " already exists on this item.", Kind: "Warning", At: Now() });
+                                                                Reset(Self),
+                                                                UpdateIf(
+                                                                    colVhpMaterials,
+                                                                    ItemId = varVhpActiveItemId && OperationNo = oldNo,
+                                                                    { OperationNo: Text(n, "0000") }
+                                                                );
+                                                                UpdateIf(
+                                                                    colVhpAttachments,
+                                                                    ItemId = varVhpActiveItemId && ";" & oldNo & ";" in Coalesce(OperationsKey, ";"),
+                                                                    { OperationsKey: Substitute(OperationsKey, ";" & oldNo & ";", ";" & Text(n, "0000") & ";") }
+                                                                );
+                                                                Patch(colVhpOperations, ThisItem, { OperationNo: Text(n, "0000") })
+                                                            )
+                                                        )
+                                                    )
+                                                Placeholder: |-
+                                                    =""
+                                                RadiusBottomLeft: |-
+                                                    =R.input
+                                                RadiusBottomRight: |-
+                                                    =R.input
+                                                RadiusTopLeft: |-
+                                                    =R.input
+                                                RadiusTopRight: |-
+                                                    =R.input
                                                 Size: |-
-                                                    =T.body
-                                                Text: |-
-                                                    =ThisItem.OperationNo
+                                                    =If(LayoutRank < 2, 16, 14)
+                                                ValidationState: |-
+                                                    =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =60
-                                                Wrap: |-
-                                                    =false
                                                 X: |-
                                                     =0 + 0 + 0
                                                 Y: |-
@@ -11783,7 +11823,11 @@ Screens:
                                                 BasePaletteColor: |-
                                                     =C.'color-brand-primary'
                                                 BorderColor: |-
-                                                    =If(varVhpViewOnly, C.'border-default', If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'border-input', C.'border-default'))
+                                                    =If(varVhpViewOnly, C.'border-default', If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, If(
+                                                        Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02" && IsBlank(Trim(Self.Text)),
+                                                        C.'border-error',
+                                                        If(IsBlank(Trim(Self.Text)), C.'border-input', C.'border-ok')
+                                                    ), C.'border-default'))
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
@@ -11791,7 +11835,7 @@ Screens:
                                                 Color: |-
                                                     =If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                                 Default: |-
-                                                    =If(IsBlank(ThisItem.Cost), "", Text(ThisItem.Cost))
+                                                    =If(IsBlank(If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02" && Coalesce(ThisItem.Cost, 0) = 0, Blank(), ThisItem.Cost)), "", Text(If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02" && Coalesce(ThisItem.Cost, 0) = 0, Blank(), ThisItem.Cost)))
                                                 DisplayMode: |-
                                                     =If((If(varVhpViewOnly, DisplayMode.View, If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
@@ -11815,7 +11859,7 @@ Screens:
                                                 Size: |-
                                                     =If(LayoutRank < 2, 16, 14)
                                                 ValidationState: |-
-                                                    =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                                    =If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02" && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                                 Width: |-
                                                     =80
                                                 X: |-
@@ -15651,6 +15695,113 @@ Screens:
                   Width: |-
                       =Parent.Width
                 Children:
+                  - txtVhpOpML0:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Operation no."
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-muted'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =18
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.small
+                        Text: |-
+                            ="Operation no."
+                        Wrap: |-
+                            =false
+                  - inpVhpOpMNo:
+                      Control: ModernTextInput
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Operation number"
+                        Appearance: |-
+                            =Appearance.FilledDarker
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        BorderColor: |-
+                            =If(varVhpViewOnly, C.'border-default', C.'border-input')
+                        BorderStyle: |-
+                            =BorderStyle.Solid
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'input-fg'
+                        Default: |-
+                            =LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).OperationNo
+                        DisplayMode: |-
+                            =If((If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                        Fill: |-
+                            =C.'input-bg'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =32
+                        LayoutMinWidth: |-
+                            =0
+                        MaxLength: |-
+                            =4
+                        OnChange: |-
+                            =With(
+                                { oldNo: LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).OperationNo, raw: Trim(Self.Text) },
+                                With(
+                                    { n: If(IsMatch(raw, "\d{1,4}"), Value(raw), 0) },
+                                    If(
+                                        n < 1,
+                                        Set(gblToast, { Text: "Operation number must be a whole number from 1 to 9999.", Kind: "Warning", At: Now() });
+                                        Reset(Self),
+                                        Text(n, "0000") = oldNo,
+                                        Reset(Self),
+                                        CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = Text(n, "0000"))) > 0,
+                                        Set(gblToast, { Text: "Operation " & Text(n, "0000") & " already exists on this item.", Kind: "Warning", At: Now() });
+                                        Reset(Self),
+                                        UpdateIf(
+                                            colVhpMaterials,
+                                            ItemId = varVhpActiveItemId && OperationNo = oldNo,
+                                            { OperationNo: Text(n, "0000") }
+                                        );
+                                        UpdateIf(
+                                            colVhpAttachments,
+                                            ItemId = varVhpActiveItemId && ";" & oldNo & ";" in Coalesce(OperationsKey, ";"),
+                                            { OperationsKey: Substitute(OperationsKey, ";" & oldNo & ";", ";" & Text(n, "0000") & ";") }
+                                        );
+                                        Patch(colVhpOperations, LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo), { OperationNo: Text(n, "0000") });
+                                        Set(varVhpOpMNo, Text(n, "0000"))
+                                    )
+                                )
+                            )
+                        Placeholder: |-
+                            =""
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =If(LayoutRank < 2, 16, 14)
+                        ValidationState: |-
+                            =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                        Width: |-
+                            =(Min(620, App.Width - 40) - 36)
                   - txtVhpOpML1:
                       Control: ModernText
                       Properties:
@@ -16266,7 +16417,11 @@ Screens:
                         BasePaletteColor: |-
                             =C.'color-brand-primary'
                         BorderColor: |-
-                            =If(varVhpViewOnly, C.'border-default', If((If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'border-input', C.'border-default'))
+                            =If(varVhpViewOnly, C.'border-default', If((If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, If(
+                                Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02" && IsBlank(Trim(Self.Text)),
+                                C.'border-error',
+                                If(IsBlank(Trim(Self.Text)), C.'border-input', C.'border-ok')
+                            ), C.'border-default'))
                         BorderStyle: |-
                             =BorderStyle.Solid
                         BorderThickness: |-
@@ -16274,7 +16429,7 @@ Screens:
                         Color: |-
                             =If((If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                         Default: |-
-                            =If(IsBlank(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Cost), "", Text(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Cost))
+                            =If(IsBlank(If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02" && Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Cost, 0) = 0, Blank(), LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Cost)), "", Text(If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02" && Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Cost, 0) = 0, Blank(), LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Cost)))
                         DisplayMode: |-
                             =If((If(varVhpViewOnly, DisplayMode.View, If((If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                         Fill: |-
@@ -16300,7 +16455,7 @@ Screens:
                         Size: |-
                             =If(LayoutRank < 2, 16, 14)
                         ValidationState: |-
-                            =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                            =If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02" && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                         Width: |-
                             =(Min(620, App.Width - 40) - 36)
                   - txtVhpOpML7:
@@ -20753,27 +20908,41 @@ Screens:
                                 CountRows(colVhpPickerSelected) = 0,
                                 Set(gblToast, { Text: "Select one or more lines first.", Kind: "Warning", At: Now() }); true,
                                 With(
-                                    { tl: LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey) },
-                                    Collect(
-                                        colVhpOperations,
-                                        ForAll(
-                                            Filter(
-                                                tl.Operations As TLOP,
-                                                CountRows(Filter(colVhpPickerSelected As SEL, SEL.OperationNo = TLOP.OperationNo)) > 0 &&
-                                                !(TLOP.OperationNo in Filter(colVhpOperations, ItemId = varVhpActiveItemId).OperationNo)
-                                            ) As TLOP,
-                                            {
-                                                ItemId: varVhpActiveItemId, OperationNo: TLOP.OperationNo,
-                                                OperationShortText: TLOP.OperationShortText, WorkHours: TLOP.WorkHours,
-                                                Persons: TLOP.Persons,
-                                                DurationHours: TLOP.DurationHours, MainWorkCenter: TLOP.MainWorkCenter,
-                                                Vendor: TLOP.Vendor, LongText: TLOP.LongText,
-                                                ControlKey: TLOP.ControlKey, Cost: TLOP.Cost,
-                                                UnitCost: TLOP.UnitCost,
-                                                Currency: TLOP.Currency, CostElement: TLOP.CostElement,
-                                                MaterialGroup: TLOP.MaterialGroup, ServiceNo: TLOP.ServiceNo,
-                                                PackagesKey: ";", Selected: false
-                                            }
+                                    {
+                                        tl: LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey),
+                                        base: RoundDown(Coalesce(Max(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Value(OperationNo)), 0) / 10, 0) * 10
+                                    },
+                                    With(
+                                        {
+                                            picked: Sort(
+                                                Filter(
+                                                    tl.Operations As TLOP,
+                                                    CountRows(Filter(colVhpPickerSelected As SEL, SEL.OperationNo = TLOP.OperationNo)) > 0
+                                                ),
+                                                Value(OperationNo)
+                                            )
+                                        },
+                                        Collect(
+                                            colVhpOperations,
+                                            ForAll(
+                                                Sequence(CountRows(picked)) As N,
+                                                With(
+                                                    { TLOP: Index(picked, N.Value) },
+                                                    {
+                                                        ItemId: varVhpActiveItemId,
+                                                        OperationNo: Text(base + 10 * N.Value, "0000"),
+                                                        OperationShortText: TLOP.OperationShortText, WorkHours: TLOP.WorkHours,
+                                                        Persons: TLOP.Persons,
+                                                        DurationHours: TLOP.DurationHours, MainWorkCenter: TLOP.MainWorkCenter,
+                                                        Vendor: TLOP.Vendor, LongText: TLOP.LongText,
+                                                        ControlKey: TLOP.ControlKey, Cost: TLOP.Cost,
+                                                        UnitCost: TLOP.UnitCost,
+                                                        Currency: TLOP.Currency, CostElement: TLOP.CostElement,
+                                                        MaterialGroup: TLOP.MaterialGroup, ServiceNo: TLOP.ServiceNo,
+                                                        PackagesKey: ";", Selected: false
+                                                    }
+                                                )
+                                            )
                                         )
                                     )
                                 );
