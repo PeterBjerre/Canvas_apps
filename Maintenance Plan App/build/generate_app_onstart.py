@@ -126,6 +126,8 @@ Set(varVhpAttOpNo, "");
 // Leverandoersoegningen paa PM02-operationer (tools/vendor_search.py):
 // operationen i popup'en (tom = lukket) og vaelgerens tilstand.
 Set(varVhpVenOpNo, "");
+// Varegruppens popup paa PM02-operationer: operationen (tom = lukket).
+Set(varVhpMgOpNo, "");
 Set(varVhpVenBusy, false);
 Set(varVhpVenQuery, "");
 Set(varVhpVenLast, "");

@@ -106,6 +106,11 @@ SAVEABLE_ITEMS = ('Filter(colVhpItems, '
                   '!IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))')
 SAVEABLE_COUNT = f"CountRows({SAVEABLE_ITEMS})"
 
+# Items, der ville blive gemt uden arbejdscenter. MainWorkCenter er
+# paakraevet i MaintenanceItems, saa SharePoint afviser hele Patch'et.
+NO_MWC = (f"Filter({SAVEABLE_ITEMS} As IT, "
+          "IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id))")
+
 # Opslaget fra en operation til dens item. colVhpSavedItems har ALLE
 # gemte items - de opdaterede og de nye - naar operationerne skrives.
 M_LOOKUP = "LookUp(colVhpSavedItems, LocalId = OP.ItemId)"
@@ -287,7 +292,7 @@ def item_fields(key=None):
         "                    If(IsBlank(a.Id), Blank(), { Id: a.Id, Value: a.Value })\n"
         "                ),\n"
         "                MainWorkCenter: With(\n"
-        "                    { w: LookUp(colVhpMainWorkCenters, Value = IT.MainWorkCenter) },\n"
+        "                    { w: LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)) },\n"
         "                    If(IsBlank(w.Id), Blank(), { Id: w.Id, Value: w.Value })\n"
         "                )\n"
         "            }"
@@ -839,6 +844,18 @@ def save_action():
         f"    !varVhpPlanCommitted || {SAVEABLE_COUNT} = 0,\n"
         "    Set(varVhpSubmitting, false);\n"
         "    Notify(\"Create the plan and at least one item first.\", NotificationType.Warning),\n"
+        "\n"
+        # MainWorkCenter er en PAAKRAEVET opslagskolonne i MaintenanceItems.
+        # Et item uden et gyldigt arbejdscenter kan ikke gemmes - heller
+        # ikke som kladde - saa det siges her, foer noget skrives, i stedet
+        # for som SharePoints netvaerksfejl midt i gemningen.
+        f"    CountRows({NO_MWC}) > 0,\n"
+        "    Set(varVhpSubmitting, false);\n"
+        "    Notify(\n"
+        "        \"Select a main work center on every item before saving: \" &\n"
+        f"        Concat({NO_MWC}, Coalesce(Trim(ShortText), FunctionalLocation), \", \"),\n"
+        "        NotificationType.Warning\n"
+        "    ),\n"
         "\n"
         + body + "\n)"
     )

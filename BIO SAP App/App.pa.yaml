@@ -1846,7 +1846,7 @@ App:
       colVhpStrategyPackages = ForAll(MD_StrategyPackage As R, { StrategyKey: R.StrategyKey, PackageNo: R.PackageNo, ShortCode: R.ShortCode, CycleLength: R.CycleLength, CycleUnit: R.CycleUnit.Value, Hierarchy: R.Hierarchy, PackageText: R.PackageText });
 
       // Varegrupperne fra MD_MaterialGroup, sorteret efter kode.
-      colVhpMaterialGroups = Sort(ForAll(MD_MaterialGroup As R, { Value: Trim(R.MaterialGroup), Display: Trim(R.MaterialGroup) & " - " & Coalesce(R.Description2, R.MaterialGroupDescription, "") }), Value);
+      colVhpMaterialGroups = Sort(ForAll(MD_MaterialGroup As R, { Value: Trim(R.MaterialGroup), Display: If(IsBlank(Trim(R.MaterialGroupDescription)), Trim(R.MaterialGroup), Trim(R.MaterialGroup) & " - " & Trim(R.MaterialGroupDescription)) }), Value);
 
       // Standardoperationerne, hentet een gang. colVhpTasklists deler dem op pr. vaerk i hukommelsen.
       colVhpStdOps = ForAll(MD_StandardTaskOperations As O, { Plant: O.Plant.Value, OperationNo: O.OperationNo, OperationShortText: O.OperationShortText, Work: O.Work, NumberOfCapacities: O.NumberOfCapacities, WorkCenter: O.WorkCenter, VendorNo: O.VendorNo, ControlKey: O.ControlKey, Price: O.Price, Currency: O.Currency, CostElement: O.CostElement, MaterialGroup: O.MaterialGroup, ServiceNo: O.ServiceNo, SapPlant: O.SapPlant });

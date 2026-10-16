@@ -55,3 +55,12 @@ def test_fl_picker_names_unchanged():
         y = f.read()
     for n in ("btnVhpFlSearch:", "imgVhpFlBusy:", "conVhpFlWrap:", "tmrVhpFlCapture:"):
         assert n in y
+
+
+def test_vendor_field_shows_only_the_number():
+    """Peter 2026-10-16: feltet viser kun leverandoernummeret; der gemmes
+    stadig "nummer - navn", som SAP-opretteren laeser."""
+    import os
+    from conftest import ROOT
+    text = open(os.path.join(ROOT, "BIO SAP App", "ScreenVhPlan.pa.yaml"), encoding="utf-8").read()
+    assert text.count('Trim(First(Split(Trim(Coalesce(') >= 2
