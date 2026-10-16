@@ -1689,7 +1689,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Visible: |-
-                                              =!(LayoutRank < 2) && (IfError(varVhpViewOnly && varVhpCanEdit, false) || (!IfError(varVhpViewOnly, true) && !VhpSubmitted) || (!VhpSubmitted && (!IfError(varVhpViewOnly, true) || IfError(varVhpCanEdit, false))) || ((!IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)) || (!IfError(varVhpViewOnly, true) && !IsBlank(varVhpRequestGuid))))
+                                              =!(LayoutRank < 2) && (IfError(varVhpViewOnly && varVhpCanEdit, false) || (!IfError(varVhpViewOnly, true) && !VhpSubmitted) || (!VhpSubmitted && (!IfError(varVhpViewOnly, true) || IfError(varVhpCanEdit, false))) || ((!IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)) || (!IfError(varVhpViewOnly, true) && !IsBlank(varVhpRequestGuid) && (varVhpFlow.Status <> "Returned" || IsAdmin))))
                                           Width: |-
                                               =1
                                     - btnVhpEdit:
@@ -1824,7 +1824,7 @@ Screens:
                                                   );
                                                   If(
                                                       !IsBlank(varVhpIdxNow) &&
-                                                      !((Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe && (varVhpIdxNow.Status.Value = "Kladde")) || (IsAdmin && (varVhpIdxNow.Status.Value = "Kladde" || varVhpIdxNow.Status.Value = "AfventerInfo"))),
+                                                      !((Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe && (varVhpIdxNow.Status.Value = "Kladde" || varVhpIdxNow.Status.Value = "AfventerInfo")) || (IsAdmin && (varVhpIdxNow.Status.Value = "Kladde" || varVhpIdxNow.Status.Value = "AfventerInfo"))),
                                                       Collect(colVhpSaveErrors, {
                                                           Where: "Request",
                                                           Msg: "This request can no longer be changed."
@@ -1874,7 +1874,7 @@ Screens:
                                                           If(varVhpPlanSpId > 0, varVhpPlanNow, Defaults(MaintenancePlans)),
                                                           {
                                                           Title: varVhpPlan.PlanText,
-                                                          Status: If((!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)) && !IsBlank(varVhpPlanNow), varVhpPlanNow.Status, { Value: "Draft" }),
+                                                          Status: If(!IsBlank(varVhpPlanNow) && ((!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)) || varVhpPlanNow.Status.Value = "Returned"), varVhpPlanNow.Status, { Value: "Draft" }),
                                                           PlantsInitial: { Value: varVhpPlan.Plant },
                                                           Cycle: varVhpPlan.Cycle,
                                                           Unit: { Value: varVhpPlan.Unit },
@@ -2619,7 +2619,7 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
-                                              =(!IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)) && !(LayoutRank < 2 && (!IfError(varVhpViewOnly, true) && !IsBlank(varVhpRequestGuid)))
+                                              =(!IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf)) && !(LayoutRank < 2 && (!IfError(varVhpViewOnly, true) && !IsBlank(varVhpRequestGuid) && (varVhpFlow.Status <> "Returned" || IsAdmin)))
                                           Width: |-
                                               =Max(40, H.hit)
                                     - btnVhpDeleteRequest:
@@ -2672,7 +2672,7 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
-                                              =(!IfError(varVhpViewOnly, true) && !IsBlank(varVhpRequestGuid))
+                                              =(!IfError(varVhpViewOnly, true) && !IsBlank(varVhpRequestGuid) && (varVhpFlow.Status <> "Returned" || IsAdmin))
                                           Width: |-
                                               =Max(40, H.hit)
                         - conVhpReadyRow:
@@ -14035,7 +14035,7 @@ Screens:
                                       );
                                       If(
                                           !IsBlank(varVhpIdxNow) &&
-                                          !((Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe && (varVhpIdxNow.Status.Value = "Kladde")) || (IsAdmin && (varVhpIdxNow.Status.Value = "Kladde" || varVhpIdxNow.Status.Value = "AfventerInfo"))),
+                                          !((Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe && (varVhpIdxNow.Status.Value = "Kladde" || varVhpIdxNow.Status.Value = "AfventerInfo")) || (IsAdmin && (varVhpIdxNow.Status.Value = "Kladde" || varVhpIdxNow.Status.Value = "AfventerInfo"))),
                                           Collect(colVhpSaveErrors, {
                                               Where: "Request",
                                               Msg: "This request can no longer be changed."
@@ -14085,7 +14085,7 @@ Screens:
                                               If(varVhpPlanSpId > 0, varVhpPlanNow, Defaults(MaintenancePlans)),
                                               {
                                               Title: varVhpPlan.PlanText,
-                                              Status: If((!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)) && !IsBlank(varVhpPlanNow), varVhpPlanNow.Status, { Value: "Draft" }),
+                                              Status: If(!IsBlank(varVhpPlanNow) && ((!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)) || varVhpPlanNow.Status.Value = "Returned"), varVhpPlanNow.Status, { Value: "Draft" }),
                                               PlantsInitial: { Value: varVhpPlan.Plant },
                                               Cycle: varVhpPlan.Cycle,
                                               Unit: { Value: varVhpPlan.Unit },
@@ -26225,7 +26225,7 @@ Screens:
                                             Set(varVhpRequestGuid, idx.RequestGuid);
                                             Set(varVhpPlanCommitted, true);
                                             Set(varVhpPlanLocked, true);
-                                            Set(varVhpCanEdit, ((Lower(Coalesce(idx.RequesterEmail, "")) = varVhpMe && (idx.Status.Value = "Kladde")) || (IsAdmin && (idx.Status.Value = "Kladde" || idx.Status.Value = "AfventerInfo"))));
+                                            Set(varVhpCanEdit, ((Lower(Coalesce(idx.RequesterEmail, "")) = varVhpMe && (idx.Status.Value = "Kladde" || idx.Status.Value = "AfventerInfo")) || (IsAdmin && (idx.Status.Value = "Kladde" || idx.Status.Value = "AfventerInfo"))));
                                             Set(varVhpViewOnly, !(Lower(Coalesce(gblVhpMode, "")) = "edit" && varVhpCanEdit));
                 
                                             // --- de fem hentninger, PAA EEN GANG -------------
