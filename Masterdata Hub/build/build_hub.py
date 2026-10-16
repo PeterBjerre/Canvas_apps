@@ -611,7 +611,13 @@ TILE_NEW_H = 36
 STRIPE_H = 4
 # Flisens kant er 1-2 px: forsiden faar 4 px luft, saa den aldrig bliver
 # skaaleret ned af kanten (det skubbede stregen ned fra flisens top).
-TILE_RADIUS = 6
+# Issue #314: 8 px (var 6) - samme runding som New-knappen paa flisen, saa
+# kortet ser mere afrundet og moderne ud uden at blive en "pille".
+TILE_RADIUS = 8
+# Issue #314: ALLE fliser har en let skygge, saa kortene loefter sig en
+# anelse fra siden. DropShadow.Light er den svageste klassiske skygge (den
+# samme, som den valgte flise havde foer) - ikke en svaevende kraftig skygge.
+TILE_SHADOW = "DropShadow.Light"
 TILE_ROW_H = TILE_H - STRIPE_H - 2
 TILE_ROW_H_M = TILE_H_M - STRIPE_H - 2
 
@@ -619,12 +625,18 @@ TILE_ROW_H_M = TILE_H_M - STRIPE_H - 2
 def _tile_state(d, sel):
     """Flisens tilstande - de SAMME for alle fem, kun farven er domaenets.
 
-        standard   kortets fyld, 1 px graa kant, ingen skygge
-        hover      HELE flisen toner i domaenets bloede farve
+        standard   kortets fyld, 1 px graa kant, let skygge (issue #314)
+        hover      HELE flisen toner i domaenets bloede farve, og kanten
+                   skifter til domaenets farve
         trykket    samme toning
         fokus      2 px kant i domaenets farve (tastatur)
         valgt      2 px kant i domaenets farve, bloed toning af hele
-                   flisen og en let skygge - ikke en kraftig baggrund
+                   flisen og den samme lette skygge - ikke en kraftig
+                   baggrund
+        valgt+hover  toningen forsvinder (kortets fyld): et klik viser alle
+                   domaener igen, og hover viser det. Foer var hover paa
+                   den valgte flise usynlig - toningen var den samme
+                   (issue #314).
 
     Hover daekker hele flisen: forsiden og New er to billeder uden mellemrum,
     der sammen fylder flisen lige ind til kanten (TILE_PAD) under stregen.
@@ -637,8 +649,8 @@ def _tile_state(d, sel):
         "fill": f"If({sel}, {soft}, {C_CARD_BG})",
         "border": f"If({sel}, {d['color']}, {C_CARD_BORDER})",
         "thickness": f"If({sel}, 2, 1)",
-        "shadow": f"If({sel}, DropShadow.Light, DropShadow.None)",
-        "hover": soft,
+        "shadow": TILE_SHADOW,
+        "hover": f"If({sel}, {C_CARD_BG}, {soft})",
     }
 
 
