@@ -199,13 +199,24 @@ PLAN_SUMMARY = " & ".join([
 # Hoejden regnes af tekstens laengde og bredden - som build_hero._lines_h.
 # 7.5 px pr. tegn er rummeligt for 13 px Segoe UI, saa der hellere er en
 # linje luft for meget, end at den sidste vaerdi bliver klippet.
+#
+# SHOW STAAR VED RESUMEET (issue #292): Show-knappen (med chevron) staar
+# hoejrestillet i SAMME raekke som resumeet, lodret centreret paa det - ikke
+# oppe i titelraekken. Resumeet faar derfor kortets bredde minus knappen og
+# raekkens gap, og hoejden regnes af den smallere bredde. Ingen ekstra
+# raekke: er resumeet een linje, er raekken knappens hoejde (36).
+# Under Tablet (telefon) bliver knappen i raekken; resumeet mister i stedet
+# indrykningen under titlen, saa teksten faar de 30 px tilbage.
 SUMMARY_INDENT = 30          # statusikonet (20) + raekkens gap (10)
 SUMMARY_LINE_H = 20          # 13 px * 1.5
-SUMMARY_W = PLAN_CW
+SHOW_W = fit_button_width('"Hide"') + ICON_W
+SHOW_GAP = 8
+SUMMARY_W = f"({PLAN_CW} - {SHOW_W} - {SHOW_GAP})"
+SUMMARY_PAD = f"If({lay.below('Tablet')}, 0, {SUMMARY_INDENT})"
 
 
 def summary_height(text_ref):
-    cpl = f"Max(12, RoundDown(({SUMMARY_W} - {SUMMARY_INDENT}) / 7.5, 0))"
+    cpl = f"Max(12, RoundDown(({SUMMARY_W} - {SUMMARY_PAD}) / 7.5, 0))"
     return (f"Max(1, RoundUp(Len({text_ref}) / {cpl}, 0)) * {SUMMARY_LINE_H} + 2")
 
 
@@ -258,30 +269,34 @@ def value_chip(name, label, value_fx, label_w=None, value_chars=None, visible=No
                  pad=(0, CHIP_PAD, 0, CHIP_PAD), visible=visible)
 
 
-FOLD_H = 36
+FOLD_H = 24                  # titelraekken: ikon og titel (Show staar nu ved resumeet)
 
 
 def plan_fold_row(fold, toggle_set, show):
-    """Det foldede planhoved (UX-review M5): flueben, titel og Show i den
+    """Det foldede planhoved (UX-review M5): flueben og titel i den
     oeverste linje, og under den alle otte vaerdier som een ombrudt tekst
-    (issue #287). Vises kun, naar planen er gemt og foldet."""
+    (issue #287) med Show hoejrestillet i samme raekke, lodret centreret
+    paa teksten (issue #292). Vises kun, naar planen er gemt og foldet."""
     ok = status_icon("imgVhpPlanFoldStatus", "VhpPlanValid", d_ok=icons.STATUS_READY)
     title_w = text_px("Plan header", lay.SIZE_BODY + 1) + 2
     title = text_ctrl("txtVhpPlanFoldTitle", '"Plan header"', size=lay.SIZE_BODY + 1, weight="Semibold",
                       height=24, width=title_w, accessible='"Plan header"')
     grow(title, title_w)
-    top = group("conVhpPlanFoldTop", [ok, title, show], direction="Horizontal", gap=10,
+    top = group("conVhpPlanFoldTop", [ok, title], direction="Horizontal", gap=10,
                 height=FOLD_H, align_items="Center")
-    # Alle otte vaerdier (issue #287): fuld bredde under titlen, rykket ind
-    # under titlen, ombrudt og med den hoejde, teksten skal bruge - paa
-    # desktop, tablet og telefon. Kortets hoejde foelger med (stack_height),
-    # saa det, der staar under kortet, flytter sig.
+    # Alle otte vaerdier (issue #287): rykket ind under titlen, ombrudt og
+    # med den hoejde, teksten skal bruge - paa desktop, tablet og telefon.
+    # Bredden er kortets minus Show (issue #292). Kortets hoejde foelger med
+    # (stack_height), saa det, der staar under kortet, flytter sig.
     summary = text_ctrl("txtVhpPlanFoldSummary", PLAN_SUMMARY, size=lay.SIZE_BODY, color=C_MUTED,
                         height=summary_height("Self.Text"), width=SUMMARY_W, wrap="true",
                         accessible='"Plan header summary: " & Self.Text',
-                        extra={"PaddingLeft": str(SUMMARY_INDENT), "LayoutMinWidth": "0"})
+                        extra={"PaddingLeft": SUMMARY_PAD, "LayoutMinWidth": "0"})
     summary.h = summary_height("txtVhpPlanFoldSummary.Text")
-    return group("conVhpPlanFoldRow", [top, summary], direction="Vertical", gap=2,
+    show.props["AlignInContainer"] = "AlignInContainer.Center"
+    body = group("conVhpPlanFoldBody", [summary, show], direction="Horizontal", gap=SHOW_GAP,
+                 align_items="Center", justify="SpaceBetween")
+    return group("conVhpPlanFoldRow", [top, body], direction="Vertical", gap=2,
                  align_items="Stretch", visible=fold)
 
 
@@ -526,9 +541,9 @@ def build_plan_header():
     hide.props["Color"] = C_TITLE
     hide.props["Visible"] = f"varVhpPlanLocked && !({fold})"
     hide.vis = hide.props["Visible"]
-    # Foldet: titel og noegletal oeverst i kortet, Show nederst til hoejre.
+    # Foldet: titel oeverst, resumeet under den og Show til hoejre for resumeet.
     show = button("btnVhpPlanShow", '"Show"', toggle_set,
-                  width=fit_button_width('"Hide"') + ICON_W, height=36,
+                  width=SHOW_W, height=36,
                   accessible='"Show the plan header fields"',
                   icon=f'"{icons.FLUENT["expand"]}"')
     show.props["LayoutMinWidth"] = show.props["Width"]
