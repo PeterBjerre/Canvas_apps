@@ -6,8 +6,8 @@ hentningen.
     [ikon] Issue Board                              [Refresh] [+ New issue]
            Report what you find while testing ...
     +------------------------------------------------------------------+
-    | [All issues|My issues|Assigned to me] [Open|Closed|Arch.]  [Sort v] |
-    | [Search.........] [Application v][Section v][Status v][Priority v] |
+    | [All issues|My issues|Assigned to me] [Open|Closed|Arch.]  [Sort v]     |
+    | [Search......] [Application v] [Section v] [Status v] [Priority v]     |
     | 12 issues                                        [Clear filters] |
     | TICKET ID  REQUESTER TITLE        APPLICATION ... STATUS  UPDATED  |
     | ISS-000142 UFFES     Save does... VH-plan     ... [New]   09 Oct [@]|
@@ -582,12 +582,20 @@ CLEAR_FILTERS = ('Set(varIbApp, "");\nSet(varIbSection, "");\nSet(varIbStatusF, 
 
 # VAERKTOEJSLINJEN (issue #244) - to raekker direkte i listekortet.
 #
-#   [All issues|My issues|Assigned to me] [Open|Closed|Archived]     [Sort v]
-#   [Search..........] [Application v][Section v] [Status v][Priority v]
+#   [All issues|My issues|Assigned to me] [Open|Closed|Archived]   [Sort v]      (luft)
+#   [Search......] [Application v] [Section v] [Status v] [Priority v]       (luft)
+#
+# Issue #301: linjerne er kompakte grupper til venstre - ingen kontrol
+# straekkes for at fylde kortet, og den ubrugte plads bliver til hoejre.
+# Sorteringen ("Last updated") staar kort efter kontakterne med en tydelig
+# afstand (rctIbTbSortGap), ikke yderst til hoejre. Soegefeltet har en
+# moderat bredde (SEARCH_W), og listerne staar lige efter det med samme
+# afstand. Er der plads nok (FLT_ROOMY), er listerne lidt bredere, saa
+# vaerdier som "Functional Location" kan laeses.
 #
 # Issue #291: soegefeltet staar nu forrest i filterlinjen (ikke paa sin egen
-# linje), sorteringen staar alene yderst til hoejre i linje 1 - skilt fra
-# kontakterne af et usynligt fyld (rctIbTbSpacer) - og kontakterne er
+# linje), sorteringen stod alene yderst til hoejre i linje 1 (det fyld er
+# fjernet igen i issue #301 - se ovenfor) - og kontakterne er
 # smallere (kun den luft, teksten og fluebenet skal bruge).
 #
 # HVORFOR KNAPPERNE IKKE KUNNE SES (issue #229 -> #244)
@@ -636,6 +644,8 @@ SCOPE_USER_W = _track_w("All issues", "My issues")
 STATE_ALL_W = _track_w("Open", "Closed", "Archived")
 TB_GAP = 8           # mellem grupperne i en linje
 SEARCH_MIN = 176     # soegefeltet + luppen, naar linje 2 staar vandret
+SEARCH_W = 240       # soegefeltet + luppen, naar der er plads (issue #301)
+SORT_GAP = 16        # ekstra luft foer sorteringen (issue #301)
 SORT_OPTIONS = ("Last updated", "Newest", "Oldest", "Priority", "Status")
 
 
@@ -655,7 +665,13 @@ DD_PRI_W = _dd_w("All priorities", *[x for x, _r in cfg.PRIORITY])
 PAIR_A_W = DD_APP_W + 8 + DD_SEC_W
 PAIR_B_W = DD_STATUS_W + 8 + DD_PRI_W
 PAIR_MIN = max(PAIR_A_W, PAIR_B_W)
-# Linje 1 paa een linje: begge kontakter, fyldet (mindst 0) og sorteringen
+# Issue #301: med god plads er Application og Section bredere, saa de
+# typiske vaerdier ("Functional Location", "Issue list and filters") kan
+# laeses. Status og Priority er allerede brede nok til deres vaerdier.
+DD_APP_ROOMY = _dd_w("All applications", "Functional Location", "Maintenance Plan")
+DD_SEC_ROOMY = _dd_w("All sections", "Issue list and filters")
+PAIR_A_ROOMY = DD_APP_ROOMY + 8 + DD_SEC_ROOMY
+# Linje 1 paa een linje: begge kontakter, luften (mindst 0) og sorteringen
 # - tre mellemrum. Regnet med adminens tre scope-knapper, saa graensen er
 # den samme for alle (og passer ved Desktop-graensen, 1024 px).
 TOP_NEED = SCOPE_ADMIN_W + STATE_ALL_W + SORT_W + 3 * TB_GAP
@@ -663,6 +679,9 @@ TOP_OK = f"{TB_W} >= {TOP_NEED}"
 # Linje 2 paa een linje: soegefeltets mindstebredde + de to listepar.
 FLT_NEED = SEARCH_MIN + PAIR_A_W + PAIR_B_W + 2 * TB_GAP
 FLT_OK = f"{TB_W} >= {FLT_NEED}"
+# Linje 2 med fuld soegebredde og de brede lister (issue #301).
+FLT_ROOMY_NEED = SEARCH_W + PAIR_A_ROOMY + PAIR_B_W + 2 * TB_GAP + 2
+FLT_ROOMY = f"{TB_W} >= {FLT_ROOMY_NEED}"
 # Hver linjes hoejde, naar den staar vandret.
 TB_LINE_H = 36
 
@@ -729,10 +748,13 @@ def build_filters():
         "LayoutMinWidth": "20",
         "OnSelect": "false", "TabIndex": "0", "Width": "20",
     }, h=20)
-    # Vandret tager soegefeltet resten af linje 2 (efter de to listepar);
-    # under hinanden hele linjen. Bredden er en formel af TB_W (en nedre
-    # graense), saa feltet inden i kan regne sin egen bredde ud af den.
-    sw = f"If({FLT_OK}, ({TB_W}) - {PAIR_A_W + PAIR_B_W + 2 * TB_GAP + 2}, {TB_W})"
+    # Issue #301: vandret er soegefeltet hoejst SEARCH_W bredt - kun paa en
+    # smal Desktop giver det efter (ned til SEARCH_MIN), saa listerne kan
+    # staa paa samme linje. Under hinanden faar det hele linjen. Bredden er
+    # en formel af TB_W (en nedre graense), saa feltet inden i kan regne sin
+    # egen bredde ud af den.
+    sw = (f"If({FLT_ROOMY}, {SEARCH_W}, {FLT_OK}, "
+          f"Min({SEARCH_W}, ({TB_W}) - {PAIR_A_W + PAIR_B_W + 2 * TB_GAP + 2}), {TB_W})")
     search_row = group("conIbSearchRow", [search, ico], direction="Horizontal", gap=8,
                        height=TB_LINE_H, align_items="Center",
                        width=sw, align_in_container="Start")
@@ -769,10 +791,11 @@ def build_filters():
                                onchange="Set(varIbSort, Self.Selected.Value)")
     drp_sort.props["Width"] = f"Min({SORT_W}, {TB_W})"
     # Listerne er saa brede som deres tekst; under hinanden deler et par
-    # linjen.
-    for c, w in ((drp_app, DD_APP_W), (drp_sec, DD_SEC_W), (drp_status, DD_STATUS_W),
-                 (drp_pri, DD_PRI_W)):
-        c.props["Width"] = f"Min({w}, (({TB_W}) - 8) / 2)"
+    # linjen. Issue #301: med god plads er Application og Section bredere.
+    for c, w, roomy in ((drp_app, DD_APP_W, DD_APP_ROOMY), (drp_sec, DD_SEC_W, DD_SEC_ROOMY),
+                        (drp_status, DD_STATUS_W, DD_STATUS_W), (drp_pri, DD_PRI_W, DD_PRI_W)):
+        ww = str(w) if roomy == w else f"If({FLT_ROOMY}, {roomy}, {w})"
+        c.props["Width"] = f"Min({ww}, (({TB_W}) - 8) / 2)"
         c.props["LayoutMinWidth"] = c.props["Width"]
         # Round 4: listerne blev tegnet ~30 px under parrets overkant og
         # klippet af raekken (Center i et par, der er lige saa hoejt som
@@ -781,23 +804,27 @@ def build_filters():
         c.props["Height"] = str(TB_LINE_H)
         c.h = TB_LINE_H
     pair_a = group("conIbFltPairA", [drp_app, drp_sec], direction="Horizontal", gap=8,
-                   height=TB_LINE_H, align_items="Start", width=f"Min({PAIR_A_W}, {TB_W})",
+                   height=TB_LINE_H, align_items="Start",
+                   width=f"Min(If({FLT_ROOMY}, {PAIR_A_ROOMY}, {PAIR_A_W}), {TB_W})",
                    align_in_container="Start")
     pair_b = group("conIbFltPairB", [drp_status, drp_pri], direction="Horizontal", gap=8,
                    height=TB_LINE_H, align_items="Start", width=f"Min({PAIR_B_W}, {TB_W})",
                    align_in_container="Start")
     drp_sort.props["LayoutMinWidth"] = drp_sort.props["Width"]
-    # Issue #291: sorteringen staar for sig selv yderst til hoejre - et
-    # usynligt fyld tager pladsen mellem kontakterne og den. Under
-    # hinanden er fyldet skjult (det ville kun give en tom linje).
-    spacer = Ctrl("rctIbTbSpacer", "Rectangle", props={
+    # Issue #301: sorteringen staar kort efter kontakterne - en fast,
+    # usynlig luft (SORT_GAP) skiller dem, og resten af linjen er tom til
+    # hoejre. Luften giver efter paa en smal Desktop, saa graensen for een
+    # linje er den samme som foer. Under hinanden er den skjult (den ville
+    # kun give en tom linje).
+    gap_w = f"Max(0, Min({SORT_GAP}, ({TB_W}) - {TOP_NEED}))"
+    sort_gap = Ctrl("rctIbTbSortGap", "Rectangle", props={
         "AccessibleLabel": '"Space between the switches and the sort order"',
         "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
         "Fill": C_TRANSPARENT, "Height": "1", "OnSelect": "false", "TabIndex": "0",
-        "Visible": TOP_OK,
+        "Visible": TOP_OK, "Width": gap_w,
     }, h=1, vis=TOP_OK)
-    top = flow_row("conIbTbTop", [scope, state, spacer, drp_sort], TB_W, gap=TB_GAP,
-                   flex=spacer, ok=TOP_OK)
+    top = flow_row("conIbTbTop", [scope, state, sort_gap, drp_sort], TB_W, gap=TB_GAP,
+                   ok=TOP_OK)
     filters = flow_row("conIbTbFilters", [search_row, pair_a, pair_b], TB_W, gap=TB_GAP,
                        ok=FLT_OK)
     # Staar listerne under hinanden, holder de deres tekstbredde (Start) i
