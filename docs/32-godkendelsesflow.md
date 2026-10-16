@@ -570,6 +570,31 @@ i `sp_config.py`, som alle andre.
 | Skrivebeskyttelse | Alle felter låses, når `Status` ikke er `Draft` eller `Returned` |
 | Knapperne | *Save draft* og *Submit* er deaktiveret i samme tilfælde |
 
+### Rette og indsende en returneret plan
+
+En plan i `Returned` står i indekset som `AfventerInfo`. **Ejeren** må
+rette og indsende den igen (`tools/permissions.py`, `RESUBMIT_DOMAINS`),
+ikke kun en admin. Det gælder kun VH-planen. Ejeren kan ikke slette en
+returneret plan; det kan en admin stadig.
+
+- *Save draft* beholder `Status = Returned` på planen og `AfventerInfo` i
+  indekset, så banneret med kommentaren bliver stående, til planen indsendes.
+- *Submit* gør det samme som første gang: `In Progress`, `ApprovalStage =
+  System`, nyt `SubmittedOn`.
+
+**Godkendelsen fortsætter fra det trin, den nåede.** Flowene starter altid
+ved `System`, men de spørger ikke igen om det, der allerede er godkendt:
+
+| Trin | Spørges igen, når |
+|---|---|
+| System | itemet er nyt, eller dets FL eller systemnummer er ændret. Ellers logges `Skipped` "Approved earlier" (§7.1) |
+| Cost | itemet er nyt, eller dets total er **højere** end det godkendte beløb (§7.2) |
+| Quality | altid – det er ét svar for hele planen og er aldrig givet, når planen er sendt retur |
+
+Så går en plan, der blev sendt retur i Quality, direkte videre til Quality,
+når intet item er ændret, og en plan, der blev sendt retur i System, sender
+kun det returnerede item (og nye eller ændrede items) til godkendelse igen.
+
 ## 10. Hubben
 
 *Til behandling* filtrerer i forvejen på `AssignedToEmail`. Et felt kan kun
