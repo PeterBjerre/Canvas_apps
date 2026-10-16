@@ -51,9 +51,8 @@ def load_part():
 
 
 def ensure_row_part():
-    """En tom anmodning har altid een raekke at skrive i (issue #166).
-    Valideringen vaelger den foerste, naar popuppens raekke ikke findes,
-    og regner dens felter."""
+    """En tom anmodning har altid een raekke at skrive i (issue #166), og
+    raekkerne er valideret, naar skaermen vises."""
     return ("If(\n"
             "    CountRows(colFlRows) = 0,\n"
             "    " + P.add_row_fx().replace("\n", " ") + ";\n"
@@ -70,23 +69,26 @@ def on_visible():
 def build_screen(render=render_screen):
     """render: gen_screen.render_screen - eller BIO SAP App's opsamler."""
     # EEN spalte: Validation (raekkerne, issue #232), Classes og
-    # strukturen. Class data, Manufacturer og Warranty er popupper
-    # (build_class_modal, build_field_modal). Save
+    # strukturen. Raekkens Class data, Manufacturer og Warranty aabner
+    # sidepanelet (build_row_panel, issue #278); Classes' Edit aabner Class
+    # data-popuppen (build_class_modal). Save
     # draft, Submit og New request staar i bjaelken (issue #77).
     bar = P.build_bar()
     # Save draft og Submit i en fast bjaelke nederst under Desktop (UX-review M8).
     root, = request_shell("Fl", bar, None, None,
                           [P.build_rows(), P.build_classes(), P.build_structure()],
                           footer=sticky_actions("Fl", P.BAR_ACTIONS))
-    # Sidebaren: skinnen efter rammen, det aabne panel efter popupperne
-    # (tools/side_nav.py, SKILL.md: [root, rail, popups..., *overlay]) - som
-    # paa de andre skaerme. Hver popup er sit eget sloer med popuppen
-    # indeni (fl_parts.scrim_with_popup, issue #242).
+    # Sidebaren: skinnen efter rammen, det aabne panel efter den (tools/
+    # side_nav.py). LAGENE ER RAEKKEFOELGEN - senere ligger oeverst:
+    # raekkens sidepanel, saa Class data-popuppen (issue #278: den laa under
+    # sidepanelet, som daekkede dens Apply), Paste rows og til sidst
+    # Submit-bekraeftelsen og ventespinneren. Popuppen er sit eget sloer
+    # med popuppen indeni (fl_parts.scrim_with_popup, issue #242).
     nav, overlay = side_nav("Fl", "functionallocation")
     return render(cfg.SCREEN, {"Fill": C_APP_BG, "OnVisible": on_visible(),
                                "OnHidden": "Set(varFlPanelOpen, false)"},
-                         [root, *nav, *P.build_class_modal(), *P.build_field_modal(),
-                          *overlay, *P.build_row_panel(), *P.build_paste(),
+                         [root, *nav, *overlay, *P.build_row_panel(),
+                          *P.build_class_modal(), *P.build_paste(),
                           *P.build_submit_confirm()])
 
 

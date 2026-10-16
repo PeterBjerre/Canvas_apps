@@ -105,6 +105,22 @@ def editor_kind(col):
     return "text"
 
 
+def _panel_fields():
+    """cfg.PANEL_FIELDS som tabel. Hvert Master-felt i reglerne SKAL have
+    en plads i panelet - ellers faldt det ud af panelet uden et ord."""
+    known = {f for f, _p, _l in cfg.PANEL_FIELDS}
+    keys = {k for k, _t in cfg.PANEL_SECTIONS}
+    missing = sorted({c["Field"] for c in R["columns"] if c["Section"] == "Master"} - known)
+    if missing:
+        raise SystemExit("Master-felter uden plads i sidepanelet (fl_config.PANEL_FIELDS): %s"
+                         % missing)
+    bad = [p for _f, p, _l in cfg.PANEL_FIELDS if p not in keys]
+    if bad:
+        raise SystemExit("Ukendt sektion i fl_config.PANEL_FIELDS: %s" % bad)
+    return [{"Field": f, "Pane": p, "Ord": i + 1, "Label": l}
+            for i, (f, p, l) in enumerate(cfg.PANEL_FIELDS)]
+
+
 def formulas_block():
     parts = [tok.formula(), lay.formula("varFlPanelOpen"), perm.formula(), dt.formula()]
     parts.append(_table(
@@ -120,6 +136,9 @@ def formulas_block():
         ["Cls", "Ord", "Column", "Field", "Editable", "List", "MaxLen", "Section", "Kind"],
         "Kolonnerne pr. klasse, deres sektion paa skaermen og deres editor "
         "(FL58-FL61, FL_SPOOL_COLUMNS)."))
+    parts.append(_table("colFlPane", _panel_fields(), ["Field", "Pane", "Ord", "Label"],
+                        "Sidepanelets Master-felter: sektion, plads og etiket - samme "
+                        "raekkefoelge og etiketter som raekken (issue #278)."))
     parts.append(_table("colFlAggregate", R["aggregate"], ["Key", "Cls"],
                         "ClassDeterminationAggregateKey (FL17, FL18)."))
     parts.append(_table("colFlComponent", R["component"], ["Key", "Cls"],
@@ -154,6 +173,8 @@ ISSUE = {"RowGuid": '""', "Ord": "0", "Sev": '""', "Code": '""', "Field": '""',
 
 DET = {"Column": '""', "Field": '""', "Editable": "false", "List": '""',
        "MaxLen": "0", "Section": '""', "Kind": '""', "Value": '""', "Issue": '""'}
+# Sidepanelets felter har ogsaa deres sektion og plads i panelet (#278).
+PANEL_DET = dict(DET, Pane='""', PaneOrd="0")
 
 COLLECTIONS = [
     # Raekkerne - Validation-tabellen (functional-location.html:59-74).
@@ -170,9 +191,9 @@ COLLECTIONS = [
     ("colFlTrm", {"RowGuid": '""', "AnyTrm": "false", "Ue": "false"}),
     # FL5: de FL'er, der staar paa mere end een raekke (fl_validation.DUPS).
     ("colFlDupFl", {"FL": '""'}),
-    # Manufacturer/Warranty-popuppens felter (issue #232) - regnet, naar
-    # popuppen aabnes, og efter hver validering (fl_parts.DET_ITEMS).
-    ("colFlDet", DET),
+    # Sidepanelets felter for raekken varFlDetailRow (issue #278) - regnet,
+    # naar panelet aabnes, og naar raekken skifter klasse (fl_parts.PANEL_FILL).
+    ("colFlDet", PANEL_DET),
     # Class data-popuppens KOPI af raekkens klassefelter (issue #184) -
     # Apply skriver den tilbage, Close kasserer den (fl_parts.OPEN_CLS_FX).
     ("colFlClsDet", DET),
@@ -224,12 +245,13 @@ Set(varFlPasteOpen, false);
 Set(varFlPasteText, "");
 // Aktiv klassefane. ALL som i renderClassTabs.
 Set(varFlTab, "ALL");
-// Raekken bag Manufacturer/Warranty-popuppen (issue #232). Valideringen
-// vaelger den foerste, naar den er tom. varFlPop: navnet paa den aabne
-// popup - Manufacturer, Warranty - og tom, naar ingen er aaben.
+// Sidepanelets raekke (issue #278). varFlPanelJump: sektionen, panelet
+// blev aabnet ved (Mfr, War - raekkens Manufacturer/Warranty-knap), ellers
+// tom. varFlDetCls: klassen, panelets felter er regnet for.
 Set(varFlDetailRow, "");
 Set(varFlPanelOpen, false);
-Set(varFlPop, "");
+Set(varFlPanelJump, "");
+Set(varFlDetCls, "");
 // Class data-popuppen (issue #184): aaben, for hvilken raekke, og skal
 // valideringen lukke den efter Apply?
 Set(varFlClsOpen, false);
