@@ -1448,7 +1448,8 @@ def _owner_buttons(act, suffix):
     """Edit and Delete: shown for the creator's own requests (and an admin's).
     Edit is enabled only while the request app would open it in Edit."""
     own = perm.may_change_ui("ThisItem", "varMdMe")
-    can_edit = perm.may_change("ThisItem.RequesterEmail", "ThisItem.Status.Value", "varMdMe")
+    # En VH-plan, der er sendt retur, kan ejeren rette og indsende igen.
+    can_edit = perm.may_change_row("ThisItem", "varMdMe")
     edit = _image("btnMdRowEdit" + suffix,
                   _svg_uri(f"If(\n    {can_edit},\n    "
                            + _icon_svg(EDIT_ICON, _hx("text-muted"), size=ACTION_GLYPH, box=TL_W)

@@ -261,10 +261,11 @@ def load_block():
         # Laast som efter Save i Plan Header: den indlaeste plan ER den
         # gemte, og trin 1 er faerdigt. Edit laaser op (issue #54).
         "                Set(varVhpPlanLocked, true);\n"
-        # Edit for the owner of a draft, and for an admin (tools/permissions.py);
+        # Edit for the owner of a draft or of a plan returned in the approval
+        # (AfventerInfo), and for an admin (tools/permissions.py);
         # everyone else stays in View.
         "                Set(varVhpCanEdit, "
-        + perm.may_change("idx.RequesterEmail", "idx.Status.Value", "varVhpMe") + ");\n"
+        + perm.may_change("idx.RequesterEmail", "idx.Status.Value", "varVhpMe", resubmit=True) + ");\n"
         "                Set(varVhpViewOnly, !(Lower(Coalesce(Param(\"mode\"), \"\")) = \"edit\" && varVhpCanEdit));\n"
         "\n"
         "                // --- de fem hentninger, PAA EEN GANG -------------\n"
