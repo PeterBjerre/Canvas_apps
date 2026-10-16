@@ -62,20 +62,25 @@ Ingen moderne figurkontrol findes. En ModernText uden tekst kan stå for en
 flade (som `txtMdAprCard`), men at bytte 22 rene streger giver ingen
 gevinst og flere kontroller at teste; de bliver.
 
-### Gallery — 41 · Timer — 9 · HtmlViewer — 8 · Attachments@2.3.0 — 5
+### Gallery — 41 · Timer — 9 · HtmlViewer — 8
 
 | Kontrol | Antal | Brug | Grund |
 |---|---|---|---|
 | Gallery | 41 (Eq 3, FL 5, IB 5, KKS 6, Mat 3, Hub 4, VHP 15) | lister, tabeller, faner, hjælp | Ingen GA-erstatning. ModernTable er preview og kan ikke det, galleriernes skabeloner gør (knapper, input og egne celler pr. række). |
 | Timer | 9 (Eq 2, FL 1, KKS 2, Mat 2, VHP 2) | forsinket søgning, "loader langsomt"-besked | Ingen moderne Timer. |
 | HtmlViewer | 8 (FL 1, VHP 7) | tabeloverskrifter, summer, FL-struktur | Ingen moderne erstatning. |
-| Attachments@2.3.0 | 5 (Eq, IB 2, Mat, VHP) | vedhæftninger | ModernAttachments er preview og ukendt i Peters Studio (#165); byggeriet afviser den (regel 16b). |
+
+### Attachments — byttet til ModernAttachments@1.3.0 (#161)
+
+| Kontrol | Antal | Brug | Status |
+|---|---|---|---|
+| ModernAttachments@1.3.0 | 5 (`attEqPicker`, `attMatPicker`, `attMpPicker`, `attVhpAttPicker`, `attIbFiles`) | vælg filer til upload | Byttet fra `Attachments@2.3.0`. Peters Studio (authoring 3.26101.10) kender typen og skriver `@1.3.0`. Stadig preview på Learn. Upload går uændret gennem flowene: `BioSap-TaskListAttachment` til biblioteket `TaskListDocuments` og `BioSap-IssueBoard-Submit` ("attach") til `IB_Tickets`. Regel 16b afviser den klassiske og enhver anden version. |
 
 ## Versioner og egenskaber
 
-- Kun `Attachments@2.3.0` har en eksplicit version i YAML'en. De moderne
-  kontroller står uden `@`-version (Studio vælger sin egen); intet er
-  ændret her.
+- Kun `ModernAttachments@1.3.0` har en eksplicit version i YAML'en (indtil
+  #161 var det `Attachments@2.3.0`). De øvrige moderne kontroller står
+  uden `@`-version (Studio vælger sin egen).
 - Ingen af de omdøbte/fjernede egenskaber fra Microsoft Learn's
   *Recent updates to modern controls* findes i appen: ingen `FontColor`,
   `FontSize`, `FontItalic`, `BorderRadius`, `Weight`, `AcceptsFocus` eller
@@ -100,7 +105,6 @@ Modern controls**, at typen findes og deployer, før den tages i brug.
 | ModernLink | evt. links, der i dag er knapper | |
 | ModernToggle, ModernRadio | par af Primary/Outline-knapper som vælgere | |
 | ModernTable (preview) | simple læselister | Preview: ikke til kritiske lister. |
-| ModernAttachments (preview) | Attachments@2.3.0 | Gav "Unknown control type" (#165). |
 | Opdateret ModernButton med `Padding*` og `BorderStyle` | `btn*FbSubject`, `btnVhpPickerHeadPartial` | Dokumenteret på Learn, men ikke brugt i appen; afprøv i Studio først. Rækkelagene kræver stadig `HoverFill`/`PressedFill`. |
 
 ## Resterende arbejde

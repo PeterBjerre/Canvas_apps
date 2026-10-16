@@ -509,7 +509,7 @@ layoutfejl bor:
 | 21 | ButtonAppearance.Secondary |
 | 22 | Concurrent med en indbyrdes afhaengighed |
 | 16 | Ingen Classic/DropDown |
-| 16b | Ingen ModernAttachments-kontrol (issue #165) |
+| 16b | Kun ModernAttachments@1.3.0 til filer (issue #161) |
 | 33 | Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4) |
 | 18 | Enhver Gallery skal have TabIndex |
 | 19 | AccessibleLabel maa ikke vaere kontrollens navn |
