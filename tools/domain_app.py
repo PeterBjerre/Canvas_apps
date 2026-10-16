@@ -287,8 +287,12 @@ def build_screen(cfg, parts, render):
     # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
     nav, overlay = side_nav("Dom", cfg.APP_KEY)
     # Appens EGNE popupper ([sloer, popup], fx en popup, kun den ene app har).
-    # De staar efter de faelles og foer sidebarens aabne panel.
+    # Uden sidepanel staar de efter de faelles og foer sidebarens aabne panel.
+    # MED sidepanel aabnes de fra panelet (fx Materials Purchase order text
+    # og Reset's spoergsmaal), saa de skal ligge EFTER panelet og dets
+    # sloer/klik-udenfor-lag - ellers tegnes de bagved (issue #279).
     own = parts.build_popups() if hasattr(parts, "build_popups") else []
+    below, above = ([], own) if panel_enabled else (own, [])
     # Appens egne linjer nederst i detaljeruden (opt-in, issue #210).
     extra = parts.details_extra if hasattr(parts, "details_extra") else ()
     # Sloeret FOER popupperne: kontrollerne tegnes i den raekkefoelge, de
@@ -304,7 +308,8 @@ def build_screen(cfg, parts, render):
                                     [root, *nav, dp.build_backdrop(),
                                      *([] if panel_enabled else [dp.build_details(extra=extra)]),
                                      *([] if panel_enabled and hasattr(parts, "editor_panel_content")
-                                         else [dp.build_attachments()]), *own, *overlay, *outside, *editor,
+                                         else [dp.build_attachments()]), *below, *overlay, *outside, *editor,
+                                     *above,
                                      *dp.build_row_menu(), *dp.build_paste(),
                    # Bekraeftelserne og ventespinneren - oeverst.
                    *dp.build_delete_confirm(), *dp.build_submit_confirm()])

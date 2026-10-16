@@ -16,7 +16,7 @@ FORMULAREN (issue #228)
     [ Min stock * ][ Max stock *  ][ Storage bin ]                 <- kun lagervare
     [ Replaced material no. * ]                                    <- kun ved Replace
     [ Manufacturer][ Model number ][ Manuf. part no. ]
-    [ Supplier    ][ Supp. part no][ Delivery time   ][ Purchase order text [Add text] ]
+    [ Supplier    ][ Supp. part no][ Delivery time   ][ [Add text] ]
     [ Price       ][ Price unit   ][ Stock unit      ]
     [ Strategic   ][ Wear part    ][ Maintenance order no. ]
     (Plant: X) (Row status: ...)  [Save row draft][Save row][Reset]
@@ -39,9 +39,11 @@ det er No. Min <= max tjekkes ved BAADE kladde og faerdig raekke.
 
 PURCHASE ORDER TEXT
 -------------------
-Kolonnen Remarks. Feltet er en knap, der aabner en popup med teksten -
-Close er den eneste vej ud, og teksten bliver staaende i formularen, til
-raekken gemmes.
+Kolonnen Remarks. Feltet er kun en knap (Add/Edit/View text), der aabner
+en popup med teksten - Close er den eneste vej ud, og teksten bliver
+staaende i formularen, til raekken gemmes (issue #279). Popuppen ligger
+OVER sidepanelet: domain_app.build_screen laegger appens egne popupper
+efter panelet.
 
 DOKUMENTER OG FUNKTIONSPLADSER HOERER TIL DEN GEMTE RAEKKE
 ---------------------------------------------------------
@@ -267,27 +269,34 @@ def _seg_cell(col, width=CELL_W):
 
 PO_TEXTS = ("Add text", "Edit text", "View text")
 HAS_PO = f'!IsBlank(Trim(Coalesce({PO}, "")))'
+# Knappen er saa hoej som et input, og cellen som et felt med etiket
+# (etiketten 20 + mellemrum 6 + input 36), saa raekken flugter.
+PO_BTN_H = 36
+PO_CELL_H = 20 + 6 + PO_BTN_H
 
 
 def _po_cell(width=CELL_W):
-    """Purchase order text: de foerste ord af teksten og en knap til
-    popuppen. Knappen er udfyldt, naar der ER en tekst."""
-    info = grow(text_input(
-        "inpDomPoInfo",
-        f'If({HAS_PO}, Substitute(Trim({PO}), Char(10), " "), "No text yet")',
-        display_mode="DisplayMode.View", label='"Purchase order text"'))
+    """Purchase order text: kun knappen til popuppen (issue #279). Feltet
+    med "No text yet" og den separate etiket er fjernet. Knappen er
+    udfyldt, naar der ER en tekst.
+
+    Cellen er lige saa hoej som et felt med etiket over, og knappen staar
+    nederst, saa den flugter med inputtet i cellen ved siden af."""
     w = max(fit_button_width(f'"{t}"', size=13) for t in PO_TEXTS)
     btn = button("btnDomPoText",
                  f'If({READ_ONLY}, "View text", If({HAS_PO}, "Edit text", "Add text"))',
-                 f"Set({PO_OPEN}, true)", width=w, height=32,
-                 accessible='"Open the purchase order text"',
+                 f"Set({PO_OPEN}, true)", width=w, height=PO_BTN_H,
+                 accessible=('If(' + READ_ONLY + ', "View the purchase order text", '
+                             'If(' + HAS_PO + ', "Edit the purchase order text", '
+                             '"Add a purchase order text"))'),
                  tooltip='"Text for the purchase order"')
     btn.props["Size"] = "13"
     btn.props["LayoutMinWidth"] = str(w)
+    btn.props["AlignInContainer"] = "AlignInContainer.Start"
     dp.pill(btn, HAS_PO)
-    row = group("conDomPoRow", [info, btn], direction="Horizontal", gap=8,
-                height=36, align_items="Center", width=width)
-    return dp.grid_cell("conDomPo", "Purchase order text", row, width=width)
+    return group("conDomPo", [btn], direction="Vertical", gap=0, height=PO_CELL_H,
+                 width=width, align_items="Start", justify="End",
+                 fill_portions="0", align_in_container="Start")
 
 
 def _cell(key, width=CELL_W):
@@ -447,7 +456,11 @@ def _po_popup():
     title = grow(text_ctrl("txtDomPoH", '"Purchase order text"',
                            size=lay.SIZE_CARD_TITLE, weight="Semibold",
                            height=text_min_height(lay.SIZE_CARD_TITLE), wrap="false"))
-    close = button("btnDomPoClose", '"Close"', f"Set({PO_OPEN}, false)",
+    # Close tager teksten med, ogsaa hvis OnChange ikke naaede at koere
+    # (feltet havde stadig fokus), saa intet skrevet gaar tabt.
+    close = button("btnDomPoClose", '"Close"',
+                   f"If(!{READ_ONLY}, Set({PO}, inpDomPoText.Text));\n"
+                   f"Set({PO_OPEN}, false)",
                    width=84, height=32, accessible='"Close the purchase order text"')
     close.props["LayoutMinWidth"] = "84"
     head = group("conDomPoHead", [title, close], direction="Horizontal", gap=12,
