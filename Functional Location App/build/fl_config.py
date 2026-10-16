@@ -61,9 +61,11 @@ def rules():
 #   Functional Location | Description | KKS type | Assigned class |
 #   Class data | Room | Sort field | ABC indicator | ATEX |
 #   Manufacturer | Warranty
-# og derefter TRM og GIV_EXT/WCM. Class, TRM og Ext er reglernes Section;
-# de andre deler Master-felterne op. Status-sektionen (SAP status, Info,
-# User status, System status) vises ikke i panelet.
+# og derefter TRM. Class og TRM er reglernes Section; de andre deler
+# Master-felterne op. Status-sektionen (SAP status, Info, User status,
+# System status) vises ikke i panelet, og GIV_EXT/WCM (Section "Ext") vises
+# ingen steder i appen (issue #308) - vaerdierne bliver i colFlVals og i
+# SharePoint, de kan bare ikke ses eller rettes her.
 PANEL_SECTIONS = [
     ("Main", "Functional location"),
     ("Class", "Class characteristics"),
@@ -71,8 +73,13 @@ PANEL_SECTIONS = [
     ("Mfr", "Manufacturer"),
     ("War", "Warranty"),
     ("TRM", "TRM"),
-    ("Ext", "GIV_EXT and WCM"),
 ]
+# Reglernes sektioner, som hverken panelet eller Class data-popuppen viser.
+HIDDEN_SECTIONS = ("Status", "Ext")
+# KKS type og Assigned class staar paa EEN linje sidst i Functional
+# location-sektionen, lige foer Class data (issue #308) - et eget gitter
+# med to kolonner (een paa smalle skaerme), uden egen overskrift.
+PANEL_SUB = {"Main": "Kks"}
 # Master-felterne: (felt, sektion, etiket). Etiketten er raekkens
 # kolonneoverskrift, hvor feltet har sin egen kolonne (fl_parts.V_FIXED -
 # tests/test_fl_panel_order.py holder dem ens). Raekkefoelgen her ER
@@ -81,8 +88,8 @@ PANEL_SECTIONS = [
 PANEL_FIELDS = [
     ("FUNCTIONAL LOCATION", "Main", "Functional Location"),
     ("DESCRIPTION", "Main", "Description"),
-    ("STRINDICATOR", "Main", "KKS type"),
-    ("ASSIGNED CLASS", "Main", "Assigned class"),
+    ("STRINDICATOR", "Kks", "KKS type"),
+    ("ASSIGNED CLASS", "Kks", "Assigned class"),
     ("ROOM", "Loc", "Room"),
     ("SORT FIELD", "Loc", "Sort field"),
     ("ABC INDIC.", "Loc", "ABC indicator"),
