@@ -952,9 +952,13 @@ def _set_copy(value):
 
 def _live(ctrl):
     """Panelets felter: vaerdi og besked laeses direkte (PANEL_VALUE,
-    PANEL_ISSUE) i stedet for fra samlingens kopi (issue #278)."""
+    PANEL_ISSUE) i stedet for fra samlingens kopi (issue #278).
+
+    ItemDisplayText springes over: dens ThisItem er dropdownens EGEN
+    listepost, og egenskaben maa kun bruge den (ingen LookUp, samlinger
+    eller variabler) - ellers afviser compile den (issue #300)."""
     for k, v in list(ctrl.props.items()):
-        if isinstance(v, str) and not k.startswith("On"):
+        if isinstance(v, str) and not k.startswith("On") and k != "ItemDisplayText":
             ctrl.props[k] = (v.replace("ThisItem.Value", f"({PANEL_VALUE})")
                              .replace("ThisItem.Issue", f"({PANEL_ISSUE})"))
     for c in ctrl.children:
