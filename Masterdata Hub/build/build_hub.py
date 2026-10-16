@@ -516,7 +516,7 @@ def _view_switch():
     size = 12
     for name, key, wide, short, tight in (
             ("btnMdViewMine", "mine", "My requests", "My", "Mine"),
-            ("btnMdViewAll", "queue", "Department", "All", "Dept.")):
+            ("btnMdViewAll", "queue", "All requests", "All", "All")):
         w = fit_button_width(f'"{short}"', size=size, min_w=0) + 20
         b = button(name + "M", f'"{short}"',
                    f'Set(varMdView, "{key}"); Set(varMdDomain, "");\n'
@@ -801,7 +801,7 @@ def build_tiles():
 #
 #   full     Window-size: som foer (ikoner, 14 pt, 10 px mellemrum).
 #   compact  Samme tekster uden ikoner, 12 pt, 6 px mellemrum.
-#   short    Korte tekster (Mine, Dept.), flagene som ikon + tal, 4 px.
+#   short    Korte tekster (Mine, All), flagene som ikon + tal, 4 px.
 #
 # Et trin gaelder, saa snart ALLE dets kontroller plus soegefeltets
 # mindstebredde kan staa i SHELL_W. Graensen regnes af bredderne nedenfor
@@ -944,9 +944,9 @@ def build_filters():
     """Vaerktoejslinjen (issue #74, omlagt til segmenterede kontakter):
 
         [Search...] [Open|Closed|All] | Waiting for me | Stuck > 5 d | Clear
-                                         [My requests|Department]  3 of 23
+                                         [My requests|All requests]  3 of 23
 
-    Open/Closed/All og My requests/Department er segmenterede kontakter
+    Open/Closed/All og My requests/All requests er segmenterede kontakter
     (build_helpers.segmented): en graa bane med en blaa valgt pille. Taelleren
     staar yderst til hoejre og flugter med listens hoejre kant.
 
@@ -980,12 +980,14 @@ def build_filters():
         [(sfx, txt, f'varMdView = "{key}"',
           f'Set(varMdView, "{key}"); Set(varMdDomain, "")' + tail, None)
          for sfx, txt, key in (("Mine", "My requests", "mine"),
-                               ("Dept", "Department", "queue"))],
+                               ("Dept", "All requests", "queue"))],
         label="View", fit=True)
     # Skinnerne krymper med de andre knapper: fuld (13 pt, flueben), kompakt
-    # (12 pt) og kort (12 pt uden flueben, "Mine" | "Dept."). Knapperne faar
+    # (12 pt) og kort (12 pt uden flueben, "Mine" | "All"). Knapperne faar
     # deres formler, naar lvl() kendes (nedenfor).
-    seg_short = {"My requests": "Mine", "Department": "Dept."}
+    # Issue #276: "Department" hedder nu "All requests" (kun teksten;
+    # vaerdien er stadig varMdView = "queue"), og den korte form er "All".
+    seg_short = {"My requests": "Mine", "All requests": "All"}
     seg_w = {}                                   # knapnavn -> {trin: bredde}
     for t in (status_track, view_track):
         per = {k: 0 for k in FLT_LEVELS}
@@ -1001,7 +1003,7 @@ def build_filters():
         extra = (n - 1) * 2 + 2 * 2             # SEG_GAP og SEG_PAD
         _FLT_LV[t.name] = {k: (per[k] + extra, None, None) for k in FLT_LEVELS}
     # GRUPPERET (som Hub-mockuppen): Open/Closed/All-skinnen og info-knappen |
-    # de to flag | - og til hoejre My requests/Department-skinnen og antallet.
+    # de to flag | - og til hoejre My requests/All requests-skinnen og antallet.
     sep = group("conMdFltSep", [], direction="Horizontal", height=24, width="1",
                 fill=C_DIVIDER, layout_min_width=1)
     sep.props["AlignInContainer"] = "AlignInContainer.Center"
@@ -1010,7 +1012,7 @@ def build_filters():
     chips = [status_track, peek, sep,
              _flag_pill("btnMdFltMe", "me", "Waiting for me", "Mine", "Person"),
              _flag_pill("btnMdFltStuck", "stuck", STUCK_LABEL, "Stuck", "Clock")]
-    # Soegefelt og knapper staar til venstre; My requests | Department og
+    # Soegefelt og knapper staar til venstre; My requests | All requests og
     # tallet til hoejre. Under Tablet erstattes knapperne af EN dropdown
     # (+ info-knappen), og raekken er kun soegefeltet i fuld bredde.
     for c in chips + [view_track, count]:
@@ -1056,7 +1058,7 @@ def build_filters():
         if c.name in _FLT_TIP:
             c.props["Tooltip"] = f'If({is_short}, {_FLT_TIP[c.name]}, "")'
     # Segmenterne foelger skinnen: smallere og 12 pt paa de smalle trin, og
-    # uden flueben paa det korteste ("Mine" | "Dept.").
+    # uden flueben paa det korteste ("Mine" | "All").
     for t in (status_track, view_track):
         for b in t.children:
             ws = seg_w[b.name]
@@ -1070,7 +1072,7 @@ def build_filters():
             on_layout = b.props["Layout"]
             b.props["Layout"] = f"If({is_short}, ButtonLayout.TextOnly, {on_layout})"
     # Kort trin: kun tallet. "requests" er der ikke plads til paa en smal
-    # tablet, og tallet staar lige efter "Dept.".
+    # tablet, og tallet staar lige efter "All".
     count.props["Text"] = f'{shown} & If({is_short}, "", " requests")'
 
     # Soegefeltet tager det, de andre efterlader - mellem SEARCH_MIN og
