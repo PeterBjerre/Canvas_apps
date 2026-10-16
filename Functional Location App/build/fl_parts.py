@@ -36,7 +36,7 @@ import display_text as dt
 from build_helpers import (C_INPUT_BORDER, ensure_hit, checkbox_theme, new_request_label, request_actions, breadcrumb, text_ctrl, group, button, text_input, themed_dropdown, card,
                            pin_widths, top_bar, grow, badge, fit_button_width, row_rule, mark_done,
                            loading_overlay, with_busy, confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
-                           ICON_W, text_px, stable_scrim, icon_button, icon_heading)
+                           ICON_W, text_px, stable_scrim, icon_button, icon_heading, editor_footer)
 
 NARROW = below("Tablet")
 
@@ -67,6 +67,17 @@ def add_row_fx():
 # kalder den. Den er lokal Power Fx mod de navngivne formler (nf*), saa
 # den koster ingen kald til SharePoint eller flows.
 REVERIFY = "Set(varFlStale, true);\nSelect(btnFlVerify)"
+
+
+def delete_row_fx(guid):
+    """Raekken guid fjernes lokalt; Save draft sletter den i SharePoint
+    (colFlDeleted, fl_save trin 3). Den sidste raekke afloeses af en tom."""
+    return f"""Collect(colFlDeleted, {{ RowGuid: {guid} }});
+Remove(colFlRows, LookUp(colFlRows, RowGuid = {guid}));
+RemoveIf(colFlVals, RowGuid = {guid});
+RemoveIf(colFlIssues, RowGuid = {guid});
+If(CountRows(colFlRows) = 0, {add_row_fx()});
+{REVERIFY}"""
 
 
 def set_row_fx(guid, field, value):
@@ -132,6 +143,9 @@ def _bar_btn(btn):
 
 
 BAR_ACTIONS = []
+# Save draft - og panelets Save, som er det samme gem (issue #308).
+SAVE_DM = (f'If(varFlViewOnly || varFlStatus = "Indsendt" || CountRows({S.LIVE}) = 0, '
+           f'DisplayMode.Disabled, DisplayMode.Edit)')
 
 def build_bar():
     """Save draft, Submit og New request staar dér, hvor Verify og Export
@@ -139,9 +153,7 @@ def build_bar():
     eksporten er vaek - snapshottet fryses stadig ved Submit (payload_fx).
     Tallene er renderMetrics (FL66)."""
     save = _fit(button("btnFlSaveDraft", '"Save draft"', with_busy("varFlSaving", S.save_fx()),
-                       icon=ICON_SAVE,
-                       display_mode=(f'If(varFlViewOnly || varFlStatus = "Indsendt" || CountRows({S.LIVE}) = 0, '
-                                     f'DisplayMode.Disabled, DisplayMode.Edit)')), icon=True)
+                       icon=ICON_SAVE, display_mode=SAVE_DM), icon=True)
     save.props["Tooltip"] = ('"Puts the request on the landing page as Draft - '
                              'it can still be edited."')
     # Submit spoerger foerst (build_submit_confirm, issue #54) - eller siger,
@@ -509,7 +521,7 @@ def row_cells():
             "ThisItem.RowGuid",
             f"Filter(colFlColumns, Cls = ThisItem.AssignedClass && {CLS_TEST}).Field"),
         '"Class data of row " & ThisItem.Pos',
-        (f'If({has_cls}, "Edit the class characteristics, TRM and GIV_EXT / WCM fields of this row", '
+        (f'If({has_cls}, "Edit the class characteristics and TRM fields of this row", '
          '"Valid FL first - the class is determined by the KKS code of a valid Functional Location.")'),
         f"If({has_cls}, DisplayMode.Edit, DisplayMode.Disabled)")
     pops = [cls_data]
@@ -539,12 +551,7 @@ def row_cells():
     status.props["Color"] = _status_color("ThisItem")
     status.props["Size"] = str(lay.SIZE_SMALL)
 
-    delete = button("btnFlRowDelete", '"Delete"', f"""Collect(colFlDeleted, {{ RowGuid: ThisItem.RowGuid }});
-Remove(colFlRows, LookUp(colFlRows, RowGuid = ThisItem.RowGuid));
-RemoveIf(colFlVals, RowGuid = ThisItem.RowGuid);
-RemoveIf(colFlIssues, RowGuid = ThisItem.RowGuid);
-If(CountRows(colFlRows) = 0, {add_row_fx()});
-{REVERIFY}""", danger=True, width=48, height=30, display_mode=DM_EDIT, icon="Delete",
+    delete = button("btnFlRowDelete", '"Delete"', delete_row_fx("ThisItem.RowGuid"), danger=True, width=48, height=30, display_mode=DM_EDIT, icon="Delete",
                     accessible='"Delete row " & ThisItem.Pos', tooltip='"Delete row " & ThisItem.Pos')
     delete.props["Layout"] = "ButtonLayout.IconOnly"
     ensure_hit(delete, square=False)
@@ -582,12 +589,15 @@ def _panel_row_only():
 
 # Status-sektionen (SAP status, Info, User status, System status) er ikke
 # med i panelet (issue #278) - status vises stadig i raekken og i Classes.
-# Master-felterne faar sektion, plads og etiket fra colFlPane; Class, TRM og
-# Ext beholder reglernes sektion og raekkefoelge.
+# GIV_EXT/WCM (Ext) er fjernet fra panelet (issue #308); deres vaerdier
+# bliver i colFlVals og gemmes uaendret. Master-felterne faar sektion,
+# plads og etiket fra colFlPane; Class og TRM beholder reglernes sektion og
+# raekkefoelge.
+PANEL_HIDE = " && ".join(f'Section <> "{x}"' for x in cfg.HIDDEN_SECTIONS)
 PANEL_ITEMS = f"""With(
     {{ dc: {PANEL_CLS} }},
     ForAll(
-        Filter(colFlColumns, Cls = dc && Section <> "Status") As K,
+        Filter(colFlColumns, Cls = dc && {PANEL_HIDE}) As K,
         With(
             {{ pm: LookUp(colFlPane, Field = K.Field) }},
             {{
@@ -617,6 +627,41 @@ PANEL_VALUE = (f"With({{ dr: {PANEL_DR} }}, Switch(ThisItem.Field, "
 PANEL_ISSUE = V.field_issue("varFlDetailRow", "ThisItem.Field").replace("\n", " ")
 
 
+# --- Bundbjaelken (issue #308): Delete row | Reset ... Cancel | Save ------
+# Som Materials' panel (build_helpers.editor_footer). Felterne skriver
+# stadig direkte i raekken (de skal valideres, mens man skriver), saa
+# panelet tager et AFTRYK af raekken, naar det aabnes paa den (PANEL_SNAP):
+#   Reset   raekken tilbage til aftrykket - spoerger foerst, hvis der er
+#           aendret noget (Materials' "Discard unsaved changes?").
+#   Cancel  raekken tilbage til aftrykket, og panelet lukker.
+#   Save    anmodningen gemmes (samme gem som Save draft), og panelet
+#           lukker, naar gemmet lykkedes.
+#   Delete row  bekraeftelse, saa raekken fjernes (som raekkens ikon).
+# Close (X), et klik ved siden af og Previous/Next beholder aendringerne,
+# som foer.
+PANEL_SNAP = ("ClearCollect(colFlPanelSnap, LookUp(colFlRows, RowGuid = varFlDetailRow));\n"
+              "ClearCollect(colFlPanelSnapVals, Filter(colFlVals, RowGuid = varFlDetailRow))")
+PANEL_DIRTY = ("With({ s: First(colFlPanelSnap), r: LookUp(colFlRows, RowGuid = varFlDetailRow) }, "
+               "!IsBlank(s.RowGuid) && ("
+               "Coalesce(r.FL, \"\") <> Coalesce(s.FL, \"\") || "
+               "Coalesce(r.Description, \"\") <> Coalesce(s.Description, \"\") || "
+               "CountRows(Filter(colFlVals, RowGuid = s.RowGuid)) <> CountRows(colFlPanelSnapVals) || "
+               "CountRows(Filter(colFlPanelSnapVals As o, "
+               "Coalesce(LookUp(colFlVals, RowGuid = o.RowGuid && Field = o.Field).Value, \"\") <> o.Value)) > 0))")
+PANEL_RESTORE = f"""With(
+    {{ s: First(colFlPanelSnap) }},
+    If(
+        !IsBlank(s.RowGuid) && !IsBlank(LookUp(colFlRows, RowGuid = s.RowGuid)),
+        Patch(colFlRows, LookUp(colFlRows, RowGuid = s.RowGuid), s);
+        RemoveIf(colFlVals, RowGuid = s.RowGuid);
+        Collect(colFlVals, colFlPanelSnapVals)
+    )
+);
+{REVERIFY}"""
+PANEL_LOCKED = 'varFlViewOnly || varFlStatus = "Indsendt"'
+PANEL_DM = f"If({PANEL_LOCKED}, DisplayMode.Disabled, DisplayMode.Edit)"
+
+
 def open_row_panel_fx(guid, jump='""'):
     """Aabn panelet for raekken guid. jump: sektionen, panelet skal vise
     (Manufacturer/Warranty-knappen) - sektionerne foer den er foldet sammen
@@ -624,13 +669,21 @@ def open_row_panel_fx(guid, jump='""'):
     return (f"Set(varFlDetailRow, {guid});\n"
             f"Set(varFlPanelJump, {jump});\n"
             f"{PANEL_FILL};\n"
+            f"{PANEL_SNAP};\n"
             "Set(varFlPanelOpen, true)")
 
 
-def _panel_section(key, title):
+def _panel_grid(key, label, cols):
     items = f'Sort(Filter(colFlDet, Pane = "{key}"), PaneOrd)'
-    fields = field_grid(f"Panel{key}", f'Pane = "{key}"', f'"{title}"', cols=PANEL_COLS,
-                        items=items, live=True)
+    return field_grid(f"Panel{key}", f'Pane = "{key}"', label, cols=cols, items=items, live=True)
+
+
+def _panel_section(key, title):
+    fields = [_panel_grid(key, f'"{title}"', PANEL_COLS)]
+    sub = cfg.PANEL_SUB.get(key)
+    if sub:
+        # KKS type og Assigned class paa een linje (issue #308).
+        fields.append(_panel_grid(sub, f'"{title} - KKS type and assigned class"', PANEL_SUB_COLS))
     has = f'CountRows(Filter(colFlDet, Pane = "{key}")) > 0'
     # Aabnet fra Manufacturer/Warranty: sektionerne FOER den er foldet sammen.
     later = [k for k in PANEL_JUMP.values() if PANEL_KEYS.index(k) > PANEL_KEYS.index(key)]
@@ -640,7 +693,7 @@ def _panel_section(key, title):
         vis = f'{has} && !(IfError(varFlPanelJump, "") in [{keys}])'
     heading = text_ctrl(f"txtFlPanel{key}Title", f'"{title}"', size=lay.SIZE_BODY,
                         weight="Semibold", height=22, wrap="false", visible=vis)
-    return group(f"conFlPanel{key}", [heading, fields], direction="Vertical", gap=8,
+    return group(f"conFlPanel{key}", [heading] + fields, direction="Vertical", gap=8,
                  visible=vis)
 
 
@@ -651,8 +704,12 @@ PANEL_COL_MIN = 200
 # 3 kolonner naar de kan faa PANEL_COL_MIN hver, ellers 2, ellers 1.
 PANEL_COLS = (f"If(({PANEL_FORM_W}) >= 3 * {PANEL_COL_MIN}, 3, "
               f"If(({PANEL_FORM_W}) >= 2 * {PANEL_COL_MIN}, 2, 1))")
+# KKS type + Assigned class: side om side, og under hinanden (KKS type
+# foerst), naar to kolonner ikke kan faa PANEL_COL_MIN hver.
+PANEL_SUB_COLS = f"If(({PANEL_FORM_W}) >= 2 * {PANEL_COL_MIN}, 2, 1)"
 CLOSE_PANEL_FX = ('Set(varFlPanelOpen, false); Set(varFlPanelJump, ""); '
-                  'Set(varFlDetailRow, ""); Clear(colFlDet)')
+                  'Set(varFlDetailRow, ""); Clear(colFlDet); '
+                  'Clear(colFlPanelSnap); Clear(colFlPanelSnapVals)')
 
 
 def build_row_panel():
@@ -711,18 +768,62 @@ def build_row_panel():
     show_all.props["BorderThickness"] = "1"
     show_all.props["AlignInContainer"] = "AlignInContainer.Start"
     sections = [show_all] + [_panel_section(k, t) for k, t in cfg.PANEL_SECTIONS]
-    # Pad (2 x 16), overskrift og mellemrum: bunden klippes aldrig.
-    scroll_h = f"App.Height - ({2 * 16 + lay.HIT_TOUCH + 12})"
+    footer = _panel_footer()
+    # Pad (2 x 16), overskrift, bundbjaelken og to mellemrum: bunden
+    # klippes aldrig, og bundbjaelken staar fast under det, der scroller.
+    scroll_h = f"App.Height - ({2 * 16 + lay.HIT_TOUCH + 2 * 12} + ({footer.h}))"
     scroll = group("conFlEditorSections", sections, direction="Vertical", gap=16,
                    height=scroll_h, overflow_y="Scroll",
                    pad=(16, PANEL_PAD, 16, PANEL_PAD))
-    panel = group("conFlEditorPanel", [heading, scroll], direction="Vertical", gap=12,
+    panel = group("conFlEditorPanel", [heading, scroll, footer], direction="Vertical", gap=12,
                   height="App.Height", width=lay.PANEL_W_AT, fill=C_CARD_BG,
                   border_color=C_CARD_BORDER, pad=(16, PANEL_PAD, 16, PANEL_PAD),
                   visible=vis, drop_shadow="Bold")
     panel.props["X"] = f"If({at_least('Desktop')}, App.Width - Self.Width, 0)"
     panel.props["Y"] = "0"
-    return [backdrop, panel]
+    # Bekraeftelserne ligger OVER panelet.
+    return [backdrop, panel] + _panel_confirms()
+
+
+PANEL_SAVE_W = fit_button_width('"Save"') + ICON_W + 8
+
+
+def _panel_footer():
+    """Delete row og Reset til venstre, Cancel og Save til hoejre - samme
+    knapper, maal og raekkefoelge som Materials (issue #308)."""
+    delete = button("btnFlEditorDelete", '"Delete row"', "Set(varFlPanelDelAsk, true)",
+                    danger=True, width=fit_button_width('"Delete row"'), height=lay.HIT_TOUCH,
+                    display_mode=PANEL_DM, visible="!IsBlank(varFlDetailRow)")
+    reset = button("btnFlEditorReset", '"Reset"', f"If({PANEL_DIRTY}, Set(varFlPanelResetAsk, true))",
+                   width=fit_button_width('"Reset"'), height=lay.HIT_TOUCH, display_mode=PANEL_DM,
+                   tooltip='"Undo the changes made to this row since it was opened"')
+    cancel = button("btnFlEditorCancel", '"Cancel"',
+                    f"If(\n    {PANEL_DIRTY},\n    {PANEL_RESTORE.replace(chr(10), chr(10) + '    ')}\n);\n"
+                    f"{CLOSE_PANEL_FX}",
+                    width=fit_button_width('"Cancel"'), height=lay.HIT_TOUCH)
+    save = button("btnFlEditorSave", '"Save"',
+                  with_busy("varFlSaving", S.save_fx()) + ";\n"
+                  f"If(CountRows(colFlSaveErrors) = 0, {CLOSE_PANEL_FX})",
+                  primary=True, width=PANEL_SAVE_W, height=lay.HIT_TOUCH,
+                  display_mode=SAVE_DM, icon='"Save"',
+                  tooltip='"Save the request with this row and close the panel"')
+    save.props["AccessibleLabel"] = "Self.Text"
+    return editor_footer("Fl", delete, reset, cancel, save)
+
+
+def _panel_confirms():
+    """Delete row og Reset spoerger foerst - som Materials."""
+    pos = 'Text(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos)'
+    delete = confirm_modal(
+        "FlRowDel", "varFlPanelDelAsk", "Delete row?",
+        f'"Row " & {pos} & " is removed from the request. Save the request to delete it in SharePoint too."',
+        "Delete", delete_row_fx("varFlDetailRow") + ";\n" + CLOSE_PANEL_FX,
+        "btnFlRowDelConfirm", icon="Delete")
+    reset = confirm_modal(
+        "FlRowReset", "varFlPanelResetAsk", "Discard unsaved changes?",
+        '"The row returns to how it was when you opened it. Other rows and the request are not changed."',
+        "Reset", PANEL_RESTORE, "btnFlRowResetConfirm", icon=None, danger=True)
+    return delete + reset
 
 
 def build_rows():
@@ -867,7 +968,7 @@ def build_classes():
 #
 #   Manufacturer og Warranty - aabner sidepanelet for raekken ved den
 #              sektion (issue #278); der er ingen egen popup laengere.
-#   Class data - klassens karakteristikker, TRM og GIV_EXT/WCM for netop
+#   Class data - klassens karakteristikker og TRM for netop
 #              den raekke. Den redigerer en KOPI (colFlClsDet); Apply
 #              skriver kopien tilbage og validerer, Close (eneste luk,
 #              #237) kasserer den.
@@ -928,10 +1029,9 @@ FORM_COLS = lay.if_below("Tablet", "1", "2")
 TILE_H = 86
 TILE_GAP = 16
 
-# En kort hjaelp under feltet, naar det ikke har en besked.
+# En kort hjaelp under feltet, naar det ikke har en besked. KKS type og
+# Assigned class har ingen (issue #308) - de regnes stadig af KKS-koden.
 FIELD_HELP = ('Switch(ThisItem.Field, '
-              '"STRINDICATOR", "Derived from the KKS code.", '
-              '"ASSIGNED CLASS", "Determined by the KKS code.", '
               '"ABC INDIC.", "Set automatically from the TRM fields.", '
               '"TRM ASSIGNMENT", "Set automatically from the TRM fields.", '
               '"WARRANTY START", "Format DD.MM.YYYY", '
@@ -991,7 +1091,7 @@ def field_grid(tag, section_test, label, source="colFlDet", set_fx=_set_detail, 
     dd.props["OnChange"] = set_fx("Coalesce(Self.Selected.Value, \"\")")
     dd.props["BorderColor"] = _field_border("!IsBlank(ThisItem.Issue)", "!IsBlank(ThisItem.Value)")
     dd.vis = 'ThisItem.Kind = "list"'
-    # X-felterne (Atex, TRM assignment, GIV_EXT assignment): afkrydsning,
+    # X-felterne (Atex, TRM assignment): afkrydsning,
     # der gemmer X eller intet. Samme ModernCheckbox som Equipment/Material.
     chk = Ctrl(f"chkFl{tag}Val", "ModernCheckbox", props=checkbox_theme({
         "AccessibleLabel": "ThisItem.Column",
@@ -1068,7 +1168,7 @@ def scrim_with_popup(name, modal, vis):
 
 # --- Class data-popuppen ----------------------------------------------------
 CR = "LookUp(colFlRows, RowGuid = varFlClsRow)"
-CLS_TEST = 'Section in ["Class", "TRM", "Ext"]'
+CLS_TEST = 'Section in ["Class", "TRM"]'
 CLS_ITEMS = det_items("varFlClsRow", CLS_TEST)
 CLS_LOCKED = 'varFlViewOnly || varFlStatus = "Indsendt"'
 CLS_OPEN = "IfError(varFlClsOpen, false)"
@@ -1129,8 +1229,7 @@ def build_class_modal():
     groups = []
     for tag, test, head_txt, label in (
             ("C", 'Section = "Class"', '"Class characteristics"', '"Characteristics of the class"'),
-            ("T", 'Section = "TRM"', '"TRM"', '"TRM fields"'),
-            ("X", 'Section = "Ext"', '"GIV_EXT / WCM"', '"GIV_EXT and WCM fields"')):
+            ("T", 'Section = "TRM"', '"TRM"', '"TRM fields"')):
         grid = field_grid(tag, test, label, source="colFlClsDet", set_fx=_set_copy)
         groups.append(_group_title(f"txtFl{tag}GroupH", head_txt, grid.props["Visible"]))
         groups.append(grid)
