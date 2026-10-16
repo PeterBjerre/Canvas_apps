@@ -385,10 +385,11 @@ def build_longtext_modal():
 def build_modal_backdrop():
     vis = ("varVhpTasklistPickerOpen || varVhpLongTextOpen || varVhpObjListOpen || "
            "!IsBlank(varVhpMatOpNo) || !IsBlank(varVhpAttOpNo) || !IsBlank(varVhpOpMNo) || "
-           "!IsBlank(varVhpVenOpNo)")
+           "!IsBlank(varVhpVenOpNo) || !IsBlank(varVhpMgOpNo)")
     # Leverandoerpopup'en lukkes ikke, mens soegningen koerer.
     inner = ("varVhpTasklistPickerOpen || varVhpLongTextOpen || varVhpObjListOpen || "
-             "!IsBlank(varVhpMatOpNo) || !IsBlank(varVhpAttOpNo) || !IsBlank(varVhpVenOpNo)")
+             "!IsBlank(varVhpMatOpNo) || !IsBlank(varVhpAttOpNo) || !IsBlank(varVhpVenOpNo) || "
+             "!IsBlank(varVhpMgOpNo)")
     # Dokumentpopuppen lukker ikke midt i en upload, og den glemmer de
     # valgte filer, naar den lukker (issue #134, tools/doc_upload.py).
     import build_attflows
@@ -397,6 +398,6 @@ def build_modal_backdrop():
                         f"If(!{att.busy} && !varVhpVenBusy, If({inner}, Set(varVhpTasklistPickerOpen, false); "
                         "Set(varVhpLongTextOpen, false); "
                         "Set(varVhpObjListOpen, false); Set(varVhpMatOpNo, \"\"); Set(varVhpAttOpNo, \"\"); "
-                        "Set(varVhpVenOpNo, \"\"); "
+                        "Set(varVhpVenOpNo, \"\"); Set(varVhpMgOpNo, \"\"); "
                         + att.close_fx().replace("\n", " ") + ", "
                         "Set(varVhpOpMNo, \"\")))")

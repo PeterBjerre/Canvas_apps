@@ -1784,6 +1784,11 @@ Screens:
                                                   Set(varVhpSubmitting, false);
                                                   Set(gblToast, { Text: "Create the plan and at least one item first.", Kind: "Warning", At: Now() }); true,
                                               
+                                                  CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id))) > 0,
+                                                  Set(varVhpSubmitting, false);
+                                                  Set(gblToast, { Text: "Select a main work center on every item before saving: " &
+                                                      Concat(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id)), Coalesce(Trim(ShortText), FunctionalLocation), ", "), Kind: "Warning", At: Now() }); true,
+                                              
                                               Set(varVhpSaving, true);
                                               Clear(colVhpSaveErrors);
                                               IfError(
@@ -1976,7 +1981,7 @@ Screens:
                                                                   If(IsBlank(a.Id), Blank(), { Id: a.Id, Value: a.Value })
                                                               ),
                                                               MainWorkCenter: With(
-                                                                  { w: LookUp(colVhpMainWorkCenters, Value = IT.MainWorkCenter) },
+                                                                  { w: LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)) },
                                                                   If(IsBlank(w.Id), Blank(), { Id: w.Id, Value: w.Value })
                                                               )
                                                           })
@@ -2027,7 +2032,7 @@ Screens:
                                                                   If(IsBlank(a.Id), Blank(), { Id: a.Id, Value: a.Value })
                                                               ),
                                                               MainWorkCenter: With(
-                                                                  { w: LookUp(colVhpMainWorkCenters, Value = IT.MainWorkCenter) },
+                                                                  { w: LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)) },
                                                                   If(IsBlank(w.Id), Blank(), { Id: w.Id, Value: w.Value })
                                                               )
                                                           })
@@ -11757,7 +11762,7 @@ Screens:
                                                 Size: |-
                                                     =T.small
                                                 Text: |-
-                                                    =If(IsBlank(Trim(Coalesce(ThisItem.Vendor, ""))), If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", "Search...", "-"), Left(Trim(Coalesce(ThisItem.Vendor, "")), 12) & If(Len(Trim(Coalesce(ThisItem.Vendor, ""))) > 12, "..."))
+                                                    =If(IsBlank(Trim(Coalesce(ThisItem.Vendor, ""))), If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", "Search...", "-"), With({ n: Trim(First(Split(Trim(Coalesce(ThisItem.Vendor, "")), " - ")).Value) }, Left(n, 12) & If(Len(n) > 12, "...")))
                                                 Tooltip: |-
                                                     =If(IsBlank(Trim(Coalesce(ThisItem.Vendor, ""))), "Search for a vendor", Trim(Coalesce(ThisItem.Vendor, "")))
                                                 VerticalAlign: |-
@@ -11817,71 +11822,33 @@ Screens:
                                                     =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14))
                                                 Y: |-
                                                     =0 + 0 + ((((44) - 2) - 0 - 0) - (32)) / 2
-                                          - drpVhpOpMatGrp:
-                                              Control: ModernDropdown
+                                          - btnVhpOpMatGrp:
+                                              Control: ModernButton
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Material group"
+                                                    ="Material group for operation " & ThisItem.OperationNo & ": " & Coalesce(Trim(Coalesce(ThisItem.MaterialGroup, "")), "none")
+                                                Align: |-
+                                                    =Align.Center
                                                 Appearance: |-
-                                                    =If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                                BasePaletteColor: |-
-                                                    =C.'color-brand-primary'
+                                                    =ButtonAppearance.Outline
                                                 BorderColor: |-
-                                                    =If(varVhpViewOnly, C.'border-default', If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'border-input', C.'border-default'))
-                                                BorderStyle: |-
-                                                    =BorderStyle.Solid
+                                                    =If(!IsBlank(Trim(Coalesce(ThisItem.MaterialGroup, ""))), C.'border-ok', C.'border-default')
                                                 BorderThickness: |-
                                                     =1
                                                 Color: |-
-                                                    =If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                                Default: |-
-                                                    =LookUp(With(
-                                                        { cur: Trim(Coalesce(ThisItem.MaterialGroup, "")) },
-                                                        With(
-                                                            { known: IsBlank(cur) || cur in colVhpMaterialGroups.Value },
-                                                            Filter(
-                                                                ForAll(
-                                                                    Sequence(CountRows(colVhpMaterialGroups) + 1),
-                                                                    If(
-                                                                        Value = 1,
-                                                                        { Value: If(known, "", cur), Display: cur },
-                                                                        Index(colVhpMaterialGroups, Value - 1)
-                                                                    )
-                                                                ),
-                                                                !IsBlank(Value)
-                                                            )
-                                                        )
-                                                    ) As _dd, _dd.Value = (ThisItem.MaterialGroup))
+                                                    =If(!IsBlank(Trim(Coalesce(ThisItem.MaterialGroup, ""))), C.'state-ok-fg', C.'text-primary')
                                                 DisplayMode: |-
-                                                    =If((If(varVhpViewOnly, DisplayMode.View, If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                                                Fill: |-
-                                                    =If(If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                    =If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02" && !varVhpViewOnly, DisplayMode.Edit, DisplayMode.Disabled)
                                                 Font: |-
                                                     =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
                                                 Height: |-
                                                     =32
-                                                ItemDisplayText: |-
-                                                    =ThisItem.Value
-                                                Items: |-
-                                                    =With(
-                                                        { cur: Trim(Coalesce(ThisItem.MaterialGroup, "")) },
-                                                        With(
-                                                            { known: IsBlank(cur) || cur in colVhpMaterialGroups.Value },
-                                                            Filter(
-                                                                ForAll(
-                                                                    Sequence(CountRows(colVhpMaterialGroups) + 1),
-                                                                    If(
-                                                                        Value = 1,
-                                                                        { Value: If(known, "", cur), Display: cur },
-                                                                        Index(colVhpMaterialGroups, Value - 1)
-                                                                    )
-                                                                ),
-                                                                !IsBlank(Value)
-                                                            )
-                                                        )
-                                                    )
-                                                OnChange: |-
-                                                    =Patch(colVhpOperations, ThisItem, { MaterialGroup: Self.Selected.Value })
+                                                Layout: |-
+                                                    =ButtonLayout.TextOnly
+                                                OnSelect: |-
+                                                    =Set(varVhpMgOpNo, ThisItem.OperationNo)
                                                 RadiusBottomLeft: |-
                                                     =R.input
                                                 RadiusBottomRight: |-
@@ -11891,9 +11858,13 @@ Screens:
                                                 RadiusTopRight: |-
                                                     =R.input
                                                 Size: |-
-                                                    =If(LayoutRank < 2, 16, 14)
-                                                ValidationState: |-
-                                                    =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
+                                                    =T.small
+                                                Text: |-
+                                                    =If(IsBlank(Trim(Coalesce(ThisItem.MaterialGroup, ""))), If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", "Select...", "-"), Trim(Coalesce(ThisItem.MaterialGroup, "")))
+                                                Tooltip: |-
+                                                    =If(IsBlank(Trim(Coalesce(ThisItem.MaterialGroup, ""))), "Select a material group", Coalesce(LookUp(colVhpMaterialGroups, Value = Trim(Coalesce(ThisItem.MaterialGroup, ""))).Display, Trim(Coalesce(ThisItem.MaterialGroup, ""))))
+                                                VerticalAlign: |-
+                                                    =VerticalAlign.Middle
                                                 Width: |-
                                                     =90
                                                 X: |-
@@ -13924,6 +13895,11 @@ Screens:
                                       Set(varVhpSubmitting, false);
                                       Set(gblToast, { Text: "Create the plan and at least one item first.", Kind: "Warning", At: Now() }); true,
                                   
+                                      CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id))) > 0,
+                                      Set(varVhpSubmitting, false);
+                                      Set(gblToast, { Text: "Select a main work center on every item before saving: " &
+                                          Concat(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id)), Coalesce(Trim(ShortText), FunctionalLocation), ", "), Kind: "Warning", At: Now() }); true,
+                                  
                                   Set(varVhpSaving, true);
                                   Clear(colVhpSaveErrors);
                                   IfError(
@@ -14116,7 +14092,7 @@ Screens:
                                                       If(IsBlank(a.Id), Blank(), { Id: a.Id, Value: a.Value })
                                                   ),
                                                   MainWorkCenter: With(
-                                                      { w: LookUp(colVhpMainWorkCenters, Value = IT.MainWorkCenter) },
+                                                      { w: LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)) },
                                                       If(IsBlank(w.Id), Blank(), { Id: w.Id, Value: w.Value })
                                                   )
                                               })
@@ -14167,7 +14143,7 @@ Screens:
                                                       If(IsBlank(a.Id), Blank(), { Id: a.Id, Value: a.Value })
                                                   ),
                                                   MainWorkCenter: With(
-                                                      { w: LookUp(colVhpMainWorkCenters, Value = IT.MainWorkCenter) },
+                                                      { w: LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)) },
                                                       If(IsBlank(w.Id), Blank(), { Id: w.Id, Value: w.Value })
                                                   )
                                               })
@@ -15473,13 +15449,13 @@ Screens:
             Image: |-
                 =""
             OnSelect: |-
-                =If(LayoutRank < 2, If(!IfError(Coalesce(varVhpAttBusy, false), false) && !varVhpVenBusy, If(varVhpTasklistPickerOpen || varVhpLongTextOpen || varVhpObjListOpen || !IsBlank(varVhpMatOpNo) || !IsBlank(varVhpAttOpNo) || !IsBlank(varVhpVenOpNo), Set(varVhpTasklistPickerOpen, false); Set(varVhpLongTextOpen, false); Set(varVhpObjListOpen, false); Set(varVhpMatOpNo, ""); Set(varVhpAttOpNo, ""); Set(varVhpVenOpNo, ""); Reset(attVhpAttPicker); Clear(colVhpAttUp); Set(varVhpAttRemove, Blank()), Set(varVhpOpMNo, ""))))
+                =If(LayoutRank < 2, If(!IfError(Coalesce(varVhpAttBusy, false), false) && !varVhpVenBusy, If(varVhpTasklistPickerOpen || varVhpLongTextOpen || varVhpObjListOpen || !IsBlank(varVhpMatOpNo) || !IsBlank(varVhpAttOpNo) || !IsBlank(varVhpVenOpNo) || !IsBlank(varVhpMgOpNo), Set(varVhpTasklistPickerOpen, false); Set(varVhpLongTextOpen, false); Set(varVhpObjListOpen, false); Set(varVhpMatOpNo, ""); Set(varVhpAttOpNo, ""); Set(varVhpVenOpNo, ""); Set(varVhpMgOpNo, ""); Reset(attVhpAttPicker); Clear(colVhpAttUp); Set(varVhpAttRemove, Blank()), Set(varVhpOpMNo, ""))))
             PressedFill: |-
                 =C.'overlay'
             TabIndex: |-
                 =If(LayoutRank < 2, 0, -1)
             Visible: |-
-                =varVhpTasklistPickerOpen || varVhpLongTextOpen || varVhpObjListOpen || !IsBlank(varVhpMatOpNo) || !IsBlank(varVhpAttOpNo) || !IsBlank(varVhpOpMNo) || !IsBlank(varVhpVenOpNo)
+                =varVhpTasklistPickerOpen || varVhpLongTextOpen || varVhpObjListOpen || !IsBlank(varVhpMatOpNo) || !IsBlank(varVhpAttOpNo) || !IsBlank(varVhpOpMNo) || !IsBlank(varVhpVenOpNo) || !IsBlank(varVhpMgOpNo)
             Width: |-
                 =App.Width
             X: |-
@@ -16242,7 +16218,7 @@ Screens:
                         Size: |-
                             =T.small
                         Text: |-
-                            =If(IsBlank(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Vendor, ""))), If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", "Search...", "-"), Left(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Vendor, "")), 40) & If(Len(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Vendor, ""))) > 40, "..."))
+                            =If(IsBlank(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Vendor, ""))), If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", "Search...", "-"), With({ n: Trim(First(Split(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Vendor, "")), " - ")).Value) }, Left(n, 40) & If(Len(n) > 40, "...")))
                         Tooltip: |-
                             =If(IsBlank(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Vendor, ""))), "Search for a vendor", Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Vendor, "")))
                         VerticalAlign: |-
@@ -16358,73 +16334,35 @@ Screens:
                             ="Material group"
                         Wrap: |-
                             =false
-                  - drpVhpOpMMatGrp:
-                      Control: ModernDropdown
+                  - btnVhpOpMMatGrp:
+                      Control: ModernButton
                       Properties:
                         AccessibleLabel: |-
-                            ="Material group"
+                            ="Material group for operation " & varVhpOpMNo & ": " & Coalesce(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MaterialGroup, "")), "none")
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
                         Appearance: |-
-                            =If((If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                        BasePaletteColor: |-
-                            =C.'color-brand-primary'
+                            =ButtonAppearance.Outline
                         BorderColor: |-
-                            =If(varVhpViewOnly, C.'border-default', If((If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'border-input', C.'border-default'))
-                        BorderStyle: |-
-                            =BorderStyle.Solid
+                            =If(!IsBlank(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MaterialGroup, ""))), C.'border-ok', C.'border-default')
                         BorderThickness: |-
                             =1
                         Color: |-
-                            =If((If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                        Default: |-
-                            =LookUp(With(
-                                { cur: Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MaterialGroup, "")) },
-                                With(
-                                    { known: IsBlank(cur) || cur in colVhpMaterialGroups.Value },
-                                    Filter(
-                                        ForAll(
-                                            Sequence(CountRows(colVhpMaterialGroups) + 1),
-                                            If(
-                                                Value = 1,
-                                                { Value: If(known, "", cur), Display: cur },
-                                                Index(colVhpMaterialGroups, Value - 1)
-                                            )
-                                        ),
-                                        !IsBlank(Value)
-                                    )
-                                )
-                            ) As _dd, _dd.Display = (Coalesce(LookUp(colVhpMaterialGroups, Value = LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MaterialGroup).Display, LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MaterialGroup)))
+                            =If(!IsBlank(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MaterialGroup, ""))), C.'state-ok-fg', C.'text-primary')
                         DisplayMode: |-
-                            =If((If(varVhpViewOnly, DisplayMode.View, If((If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                        Fill: |-
-                            =If(If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                            =If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02" && !varVhpViewOnly, DisplayMode.Edit, DisplayMode.Disabled)
                         Font: |-
                             =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
                         Height: |-
                             =32
-                        ItemDisplayText: |-
-                            =ThisItem.Display
-                        Items: |-
-                            =With(
-                                { cur: Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MaterialGroup, "")) },
-                                With(
-                                    { known: IsBlank(cur) || cur in colVhpMaterialGroups.Value },
-                                    Filter(
-                                        ForAll(
-                                            Sequence(CountRows(colVhpMaterialGroups) + 1),
-                                            If(
-                                                Value = 1,
-                                                { Value: If(known, "", cur), Display: cur },
-                                                Index(colVhpMaterialGroups, Value - 1)
-                                            )
-                                        ),
-                                        !IsBlank(Value)
-                                    )
-                                )
-                            )
-                        LayoutMinWidth: |-
-                            =0
-                        OnChange: |-
-                            =Patch(colVhpOperations, LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo), { MaterialGroup: Self.Selected.Value })
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varVhpMgOpNo, varVhpOpMNo)
                         RadiusBottomLeft: |-
                             =R.input
                         RadiusBottomRight: |-
@@ -16434,9 +16372,13 @@ Screens:
                         RadiusTopRight: |-
                             =R.input
                         Size: |-
-                            =If(LayoutRank < 2, 16, 14)
-                        ValidationState: |-
-                            =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
+                            =T.small
+                        Text: |-
+                            =If(IsBlank(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MaterialGroup, ""))), If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", "Select...", "-"), Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MaterialGroup, "")))
+                        Tooltip: |-
+                            =If(IsBlank(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MaterialGroup, ""))), "Select a material group", Coalesce(LookUp(colVhpMaterialGroups, Value = Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MaterialGroup, ""))).Display, Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MaterialGroup, ""))))
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
                         Width: |-
                             =(Min(620, App.Width - 40) - 36)
                   - txtVhpOpML8:
@@ -19453,6 +19395,354 @@ Screens:
                             =VerticalAlign.Middle
                         Width: |-
                             =145
+      - conVhpMgModal:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'color-brand-primary-soft'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.ExtraBold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =98 + 12 + (Min(CountRows(colVhpMaterialGroups) * 36, Max(160, App.Height - 220)))
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =18
+            PaddingRight: |-
+                =18
+            PaddingTop: |-
+                =18
+            RadiusBottomLeft: |-
+                =R.modal
+            RadiusBottomRight: |-
+                =R.modal
+            RadiusTopLeft: |-
+                =R.modal
+            RadiusTopRight: |-
+                =R.modal
+            Visible: |-
+                =IfError(!IsBlank(varVhpMgOpNo), false)
+            Width: |-
+                =Min(620, App.Width - 40)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =Max(20, (App.Height - Self.Height) / 3)
+          Children:
+            - conVhpMgHeadRow:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =32
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =12
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - txtVhpMgTitle:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            =Self.Text
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =26
+                        LayoutMinWidth: |-
+                            =0
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.cardTitle
+                        Text: |-
+                            ="Material group · Operation " & varVhpMgOpNo
+                        Width: |-
+                            =Max(0, (((Min(620, App.Width - 40)) - 18 - 18)) - ((77) + 12) - 2)
+                        Wrap: |-
+                            =false
+                  - btnVhpMgClose:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-input'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =32
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varVhpMgOpNo, "")
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Close"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =77
+            - txtVhpMgCurrent:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =18
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =T.small
+                  Text: |-
+                      ="Current material group: " & If(IsBlank(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpMgOpNo).MaterialGroup, ""))), "(none)", Coalesce(LookUp(colVhpMaterialGroups, Value = Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpMgOpNo).MaterialGroup, ""))).Display, Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpMgOpNo).MaterialGroup, ""))))
+                  Wrap: |-
+                      =false
+            - galVhpMatGroups:
+                Control: Gallery
+                Variant: Vertical
+                Properties:
+                  AccessibleLabel: |-
+                      ="Material groups - select one to use it"
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  Fill: |-
+                      =C.'bg-card'
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =Min(CountRows(colVhpMaterialGroups) * 36, Max(160, App.Height - 220))
+                  Items: |-
+                      =colVhpMaterialGroups
+                  LayoutMinWidth: |-
+                      =0
+                  LoadingSpinner: |-
+                      =LoadingSpinner.None
+                  Selectable: |-
+                      =false
+                  ShowScrollbar: |-
+                      =true
+                  TabIndex: |-
+                      =0
+                  TemplatePadding: |-
+                      =2
+                  TemplateSize: |-
+                      =34
+                  Width: |-
+                      =(Min(620, App.Width - 40) - 36)
+                  WrapCount: |-
+                      =1
+                Children:
+                  - rctVhpMgRowBg:
+                      Control: Rectangle
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Background"
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Fill: |-
+                            =If(ThisItem.Value = Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpMgOpNo).MaterialGroup, "")), C.'color-brand-primary-soft', C.'bg-card')
+                        Height: |-
+                            =(34) - 2
+                        OnSelect: |-
+                            =false
+                        TabIndex: |-
+                            =0
+                        Width: |-
+                            =((Min(620, App.Width - 40)) - 18 - 18) - 2 * 2 - 18 - 40
+                        X: |-
+                            =0
+                        Y: |-
+                            =0
+                  - txtVhpMgRow:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            =Self.Text
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        Height: |-
+                            =24
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.body
+                        Text: |-
+                            =ThisItem.Display
+                        Width: |-
+                            =Max(0, ((((Min(620, App.Width - 40)) - 18 - 18) - 2 * 2 - 18 - 40) - 8 - 8) - 2)
+                        Wrap: |-
+                            =false
+                        X: |-
+                            =0 + 8 + 0
+                        Y: |-
+                            =0 + 0 + ((((34) - 2) - 0 - 0) - (24)) / 2
+                  - btnVhpMgHit:
+                      Control: Classic/Button
+                      Properties:
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.Solid
+                        BorderThickness: |-
+                            =2
+                        Color: |-
+                            =RGBA(0, 0, 0, 0)
+                        DisabledBorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        DisabledColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        DisabledFill: |-
+                            =C.'row-pressed'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FocusedBorderColor: |-
+                            =C.'color-brand-primary'
+                        FocusedBorderThickness: |-
+                            =2
+                        Height: |-
+                            =(34) - 2
+                        HoverBorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        HoverColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        HoverFill: |-
+                            =C.'row-hover'
+                        OnSelect: |-
+                            =Patch(colVhpOperations, LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpMgOpNo), { MaterialGroup: ThisItem.Value });
+                            Set(varVhpMgOpNo, "")
+                        PressedBorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        PressedColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        PressedFill: |-
+                            =C.'row-pressed'
+                        RadiusBottomLeft: |-
+                            =0
+                        RadiusBottomRight: |-
+                            =0
+                        RadiusTopLeft: |-
+                            =0
+                        RadiusTopRight: |-
+                            =0
+                        TabIndex: |-
+                            =0
+                        Text: |-
+                            ="Use material group " & ThisItem.Display
+                        Width: |-
+                            =(((Min(620, App.Width - 40)) - 18 - 18) - 2 * 2 - 18 - 40)
+                        X: |-
+                            =0
+                        Y: |-
+                            =0
       - conVhpPickerModal:
           Control: GroupContainer
           Variant: AutoLayout
@@ -25591,6 +25881,8 @@ Screens:
                             // Leverandoersoegningen paa PM02-operationer (tools/vendor_search.py):
                             // operationen i popup'en (tom = lukket) og vaelgerens tilstand.
                             Set(varVhpVenOpNo, "");
+                            // Varegruppens popup paa PM02-operationer: operationen (tom = lukket).
+                            Set(varVhpMgOpNo, "");
                             Set(varVhpVenBusy, false);
                             Set(varVhpVenQuery, "");
                             Set(varVhpVenLast, "");
@@ -25743,7 +26035,7 @@ Screens:
                                                             ShortText: IT.Title,
                                                             FunctionalLocation: IT.FunctionalLocation,
                                                             FlDescription: "",
-                                                            MainWorkCenter: IT.MainWorkCenter.Value,
+                                                            MainWorkCenter: Trim(IT.MainWorkCenter.Value),
                                                             ActivityType: IT.MaintenanceActivityType.Value,
                                                             ObjectList: IT.ObjectList,
                                                             Revision: If(IT.Revision, Coalesce(IT.RevisionMark.Value, First(colVhpRevisionOptions).Value), Coalesce(IT.RevisionMark.Value, "")),

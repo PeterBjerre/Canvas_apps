@@ -345,14 +345,16 @@ def named_formulas():
     # --- varegrupper (issue #267) ---
     # Valgene i dropdownen Material group paa en PM02-operation. 53 raekker,
     # saa ForAll'en er eet kald under datagraensen. Dovent: listen hentes
-    # foerst, naar en operationslinje vises. Display er popup'ens tekst;
-    # tabellens smalle celle viser kun koden.
+    # foerst, naar en operationslinje vises. Display er listens tekst i
+    # varegruppe-popup'en: koden og Material Group Description, fx
+    # "B07.01 - Heating,Ventilation" (Peter, 2026-10-16). Feltet viser kun
+    # koden, og der gemmes kun koden (Value).
     add("colVhpMaterialGroups",
         "Sort(" + _forall(
             L_MATGROUPS,
             [("Value", "Trim(R.MaterialGroup)"),
-             ("Display", "Trim(R.MaterialGroup) & \" - \" & "
-                         "Coalesce(R.Description2, R.MaterialGroupDescription, \"\")")])
+             ("Display", "If(IsBlank(Trim(R.MaterialGroupDescription)), Trim(R.MaterialGroup), "
+                         "Trim(R.MaterialGroup) & \" - \" & Trim(R.MaterialGroupDescription))")])
         + ", Value)",
         "Varegrupperne fra MD_MaterialGroup, sorteret efter kode.")
 
