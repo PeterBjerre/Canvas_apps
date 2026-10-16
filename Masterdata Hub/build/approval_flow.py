@@ -208,13 +208,21 @@ STRIP_W, STRIP_H = 270, 36
 LABEL_Y = 12      # etikettens grundlinje
 LABEL_SIZE = 11
 NODE_Y = 25       # knudens midte: top 19, bund 31 - 7 px under grundlinjen
+# VENSTRESTILLET I KOLONNEN (issue #290). Striben staar nu ved kolonnens
+# venstre kant, under overskriften "Approval" (der har 0 px venstre luft),
+# i stedet for midt i kolonnen. Det foerste trin er altid "System"; dens
+# etiket er ca. 36 px bred ved 11 px semibold, saa den foerste knude staar
+# 19 px inde - etikettens venstre kant flugter med overskriften og
+# klippes ikke af billedets kant. Alle knuder flyttes lige meget, saa
+# afstandene og etiketterne over knuderne er uaendrede.
+STRIP_X0 = 19
 
 
 NOT_STARTED = (
     '"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'%d\' height=\'%d\' viewBox=\'0 0 %d %d\'>'
-    '<text x=\'%d\' y=\'%d\' text-anchor=\'middle\' %s font-size=\'12\' '
+    '<text x=\'%d\' y=\'%d\' text-anchor=\'start\' %s font-size=\'12\' '
     'fill=\'" & %s & "\'>Not required</text></svg>"'
-    % (STRIP_W, STRIP_H, STRIP_W, STRIP_H, STRIP_W // 2, STRIP_H // 2 + 4, SVG_FONT,
+    % (STRIP_W, STRIP_H, STRIP_W, STRIP_H, 0, STRIP_H // 2 + 4, SVG_FONT,
        ref_hex("text-muted")))
 
 
@@ -261,7 +269,10 @@ def _strip_body(xs, names, var):
     """Striben selv: en knude pr. trin paa en linje, farvet af tilstanden.
 
     xs, names og var er lige lange - saa kan baade VH-planens fire trin og
-    Materials to tegnes af den samme kode (issue #204)."""
+    Materials to tegnes af den samme kode (issue #204). Alle xs flyttes,
+    saa det foerste trin staar ved STRIP_X0 (issue #290) - afstandene er
+    de samme som foer."""
+    xs = [x - xs[0] + STRIP_X0 for x in xs]
     parts = ['"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'%d\' height=\'%d\' '
              'viewBox=\'0 0 %d %d\'>"' % (STRIP_W, STRIP_H, STRIP_W, STRIP_H)]
     # Trinnets navn staar centreret over sin knude (issue #274), i
