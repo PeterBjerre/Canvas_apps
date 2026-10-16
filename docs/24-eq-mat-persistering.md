@@ -249,7 +249,7 @@ den findes først efter Gem.
 
 | Navn | Type |
 |---|---|
-| `attEqPicker` | Attachments (`Attachments@2.3.0`) |
+| `attEqPicker` | Attachments (`ModernAttachments@1.3.0`, #161) |
 | `btnEqAttUpload` | Button, "Upload to SharePoint" |
 | `btnEqAttRefresh` | Button, "Refresh" |
 | `btnEqAttRemove` | Button, "Remove document" |

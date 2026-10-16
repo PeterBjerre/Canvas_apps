@@ -1529,8 +1529,9 @@ SEL_REF = "varIbSel"
 
 def _attachments(name, label):
     """Vaelg filer - den faelles moderne Attachments-kontrol
-    (tools/doc_upload.py, issue #134). Filerne sendes foerst, naar man
-    trykker; flowkaldet (_upload) laeser Name og Value som foer."""
+    (tools/doc_upload.py, issue #134/#161). Filerne sendes foerst, naar man
+    trykker; flowkaldet (_upload) laeser Name og Value som foer og gaar
+    stadig gennem flowet - ingen Patch paa IB_Tickets (Peter, #161)."""
     return du.picker(name, label, cfg.MAX_FILES, cfg.MAX_FILE_MB,
                      display_mode="If(varIbUploading, DisplayMode.Disabled, DisplayMode.Edit)")
 
@@ -2036,7 +2037,7 @@ def _files_panel():
     up = button("btnIbUpload", '"Upload"', UPLOAD_FILES, primary=True,
                 width=fit_button_width('"Upload"') + ICON_W, height=36, icon="ArrowUpload",
                 accessible='"Upload the chosen files to this issue"',
-                display_mode=("If(CountRows(attIbFiles.Attachments) = 0 || "
+                display_mode=("If(attIbFiles.AttachmentsCount = 0 || attIbFiles.IsUploading || "
                               "varIbUploading, DisplayMode.Disabled, DisplayMode.Edit)"))
     up.props["AlignInContainer"] = "AlignInContainer.End"
     hint = text_ctrl("txtIbFilesHint",
