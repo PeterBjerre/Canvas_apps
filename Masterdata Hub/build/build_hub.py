@@ -1311,8 +1311,8 @@ def _open_action(mode="view"):
         ")")
 
 
-# Trinnenes navne staar i stribens tooltip, ikke som smaa etiketter i
-# raekken (UX-review, hub). approval_flow.DOM_STAGES er domaenernes trin.
+# Trinnenes navne staar over knuderne (issue #274) og i stribens tooltip.
+# approval_flow.DOM_STAGES er domaenernes trin.
 APPROVAL_TIP = ("Switch(ThisItem.Domain.Value, " + ", ".join(
     '"%s", "%s"' % (dom, "Approval: " + " \u2192 ".join(
         [lab for _s, lab, _c in stages] + [approval_flow.FINAL[dom][0]]))
@@ -1363,12 +1363,14 @@ def build_list():
     plant = text_ctrl("txtMdRowPlant", "ThisItem.Plant", size=13, height=20,
                       width=CWF["PLANT"], wrap="false", extra={"PaddingLeft": str(HEAD_PAD)})
 
-    approval = _image("imgMdRowApproval", _svg_uri(approval_flow.row_svg()), CW["APPROVAL"], 30,
-                      label='"Approval progress"')
+    approval = _image("imgMdRowApproval", _svg_uri(approval_flow.row_svg()), CW["APPROVAL"],
+                      approval_flow.STRIP_H, label='"Approval progress"')
     approval.props["Tooltip"] = APPROVAL_TIP
     # Striben har en fast tegning; kolonnen kan vaere bredere (issue #178).
+    # Den staar midt i kolonnen (issue #274) - klikfladen flyttes med.
     approval = group("conMdRowApr", [approval], direction="Horizontal", gap=0,
-                     width=CWF["APPROVAL"], height=30, align_items="Center")
+                     width=CWF["APPROVAL"], height=approval_flow.STRIP_H, align_items="Center",
+                     justify="Center")
 
     # Statussen er den faelles statuschip (tools/status_chip.py, UX-review
     # T4) - samme ikon, farve og tekst som i domaenerne og Issue Board.
@@ -1427,8 +1429,9 @@ def build_list():
         b.props["Y"] = "(Parent.TemplateHeight - 1 - Self.Height) / 2"
         b.props["Visible"] = f"{at_least('Wide')} && ({b.props['Visible']})"
     strip = approval_flow.strip_hits(
-        CW["APPROVAL"], strip_x,
-        compact={"x": str(ROW_PAD), "y": str(STRIP_Y_C - 5), "zone": "(Parent.TemplateWidth - 24) / 4"})
+        CW["APPROVAL"], f"{strip_x} + ({CWF['APPROVAL']} - {CW['APPROVAL']}) / 2",
+        compact={"x": str(ROW_PAD), "y": str(STRIP_Y_C + approval_flow.STRIP_H // 2 - 20),
+                 "zone": "(Parent.TemplateWidth - 24) / 4"})
     compact_row, compact_strip = _compact_row(act)
     c_edit, c_del = _owner_buttons(_open_action("edit"), "C")
     c_actions = [c_edit, c_del]
@@ -1617,8 +1620,8 @@ def _compact_row(act):
                 height="Parent.TemplateHeight - 1", align_items="Stretch",
                 width=f"Parent.Width - {SCROLLBAR_W}", fill=C_CARD_BG, pad=(8, ROW_PAD, 0, ROW_PAD),
                 visible=below("Wide"))
-    strip = _image("imgMdRowApprovalC", _svg_uri(approval_flow.row_svg()), 0, 30,
-                   label='"Approval progress"')
+    strip = _image("imgMdRowApprovalC", _svg_uri(approval_flow.row_svg()), 0,
+                   approval_flow.STRIP_H, label='"Approval progress"')
     strip.props["Width"] = "Parent.TemplateWidth - 24"
     strip.props["X"] = str(ROW_PAD)
     strip.props["Y"] = str(STRIP_Y_C)
