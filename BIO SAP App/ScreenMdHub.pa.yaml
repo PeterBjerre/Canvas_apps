@@ -4069,13 +4069,13 @@ Screens:
                                         =36
                                     Image: |-
                                         ="data:image/svg+xml;utf8," & EncodeUrl(If(
-                                            !((ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "Material") && ThisItem.Status.Value <> "Kladde"), "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='36' viewBox='0 0 270 36'><text x='135' y='22' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
+                                            !((ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "Material") && ThisItem.Status.Value <> "Kladde"), "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='36' viewBox='0 0 270 36'><text x='0' y='22' text-anchor='start' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
                                             With(
                                                 { L: With({ c: Filter(varMdAprAll, RequestGuid = ThisItem.RequestGuid) }, If(IsEmpty(c) && CountRows(varMdAprAll) >= 500, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c)) },
                                                 If(
                                                 ThisItem.Domain.Value = "Material",
                                                 If(
-                                            CountRows(Filter(L, Stage = "System")) = 0, "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='36' viewBox='0 0 270 36'><text x='135' y='22' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
+                                            CountRows(Filter(L, Stage = "System")) = 0, "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='36' viewBox='0 0 270 36'><text x='0' y='22' text-anchor='start' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
                                             With({a: With({T: Filter(If(IsBlank(Filter(L, Stage = "System")) || IsEmpty(Filter(L, Stage = "System")), Blank(), ForAll(GroupBy(Filter(L, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))), Decision <> "Requested")}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
                                             n > 0 && n >= Max(1, CountRows(Distinct(Filter(L, Stage = "System" && Decision = "Requested"), ItemGuid))) && k = n, "Skipped",
@@ -4086,8 +4086,8 @@ Screens:
                                         )))},
                                             With({d: Switch(ThisItem.Status.Value, "OprettetISAP", "Done", "KlarTilSAP", "In progress", "Pending")},
                                         "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='36' viewBox='0 0 270 36'>" &
-                                        "<line x1='69' y1='25' x2='201' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((a = "Approved" || a = "Skipped" || a = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
-                                        "<circle cx='69' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        "<line x1='19' y1='25' x2='151' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((a = "Approved" || a = "Skipped" || a = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
+                                        "<circle cx='19' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             a,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4110,8 +4110,8 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(a = "Pending", "", "<g transform='translate(63 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(a, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
-                                        "<text x='69' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                        If(a = "Pending", "", "<g transform='translate(13 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(a, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='19' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
                                             a,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4123,7 +4123,7 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "'>System</text>" &
-                                        "<circle cx='201' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        "<circle cx='151' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             d,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4146,8 +4146,8 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(d = "Pending", "", "<g transform='translate(195 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(d, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
-                                        "<text x='201' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                        If(d = "Pending", "", "<g transform='translate(145 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(d, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='151' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
                                             d,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4187,10 +4187,10 @@ Screens:
                                         )))},
                                         With({d: Switch(ThisItem.Status.Value, "OprettetISAP", "Done", "KlarTilSAP", "In progress", "Pending")},
                                         "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='36' viewBox='0 0 270 36'>" &
-                                        "<line x1='36' y1='25' x2='102' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((a = "Approved" || a = "Skipped" || a = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
-                                        "<line x1='102' y1='25' x2='168' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((b = "Approved" || b = "Skipped" || b = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
-                                        "<line x1='168' y1='25' x2='234' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((c = "Approved" || c = "Skipped" || c = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
-                                        "<circle cx='36' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        "<line x1='19' y1='25' x2='85' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((a = "Approved" || a = "Skipped" || a = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
+                                        "<line x1='85' y1='25' x2='151' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((b = "Approved" || b = "Skipped" || b = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
+                                        "<line x1='151' y1='25' x2='217' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((c = "Approved" || c = "Skipped" || c = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
+                                        "<circle cx='19' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             a,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4213,8 +4213,8 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(a = "Pending", "", "<g transform='translate(30 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(a, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
-                                        "<text x='36' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                        If(a = "Pending", "", "<g transform='translate(13 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(a, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='19' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
                                             a,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4226,7 +4226,7 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "'>System</text>" &
-                                        "<circle cx='102' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        "<circle cx='85' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             b,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4249,8 +4249,8 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(b = "Pending", "", "<g transform='translate(96 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(b, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
-                                        "<text x='102' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                        If(b = "Pending", "", "<g transform='translate(79 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(b, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='85' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
                                             b,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4262,7 +4262,7 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "'>Cost</text>" &
-                                        "<circle cx='168' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        "<circle cx='151' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             c,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4285,8 +4285,8 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(c = "Pending", "", "<g transform='translate(162 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(c, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
-                                        "<text x='168' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                        If(c = "Pending", "", "<g transform='translate(145 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(c, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='151' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
                                             c,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4298,7 +4298,7 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "'>Quality</text>" &
-                                        "<circle cx='234' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        "<circle cx='217' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             d,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4321,8 +4321,8 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(d = "Pending", "", "<g transform='translate(228 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(d, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
-                                        "<text x='234' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                        If(d = "Pending", "", "<g transform='translate(211 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(d, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='217' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
                                             d,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4351,7 +4351,7 @@ Screens:
                                     Width: |-
                                         =270
                                     X: |-
-                                        =0 + 12 + 0 + ((176 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14))) + 16 + (((150 + 5 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + If(varMdView = "mine", (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)), 0))) + 16 + ((72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14))) + 16 + If(!(varMdView = "mine"), (If(varMdView = "mine", 0, (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)))) + 16, 0) + 0 + (((((270 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14))) - 0 - 0) - ((270) + 0 - 0)) / 2)
+                                        =0 + 12 + 0 + ((176 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14))) + 16 + (((150 + 5 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + If(varMdView = "mine", (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)), 0))) + 16 + ((72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14))) + 16 + If(!(varMdView = "mine"), (If(varMdView = "mine", 0, (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)))) + 16, 0) + 0 + 0
                                     Y: |-
                                         =0 + 0 + ((((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1) - 0 - 0) - (36)) / 2 + 0 + (((36) - 0 - 0) - (36)) / 2
                               - imgMdRowStatus:
@@ -4735,13 +4735,13 @@ Screens:
                                         =36
                                     Image: |-
                                         ="data:image/svg+xml;utf8," & EncodeUrl(If(
-                                            !((ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "Material") && ThisItem.Status.Value <> "Kladde"), "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='36' viewBox='0 0 270 36'><text x='135' y='22' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
+                                            !((ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "Material") && ThisItem.Status.Value <> "Kladde"), "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='36' viewBox='0 0 270 36'><text x='0' y='22' text-anchor='start' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
                                             With(
                                                 { L: With({ c: Filter(varMdAprAll, RequestGuid = ThisItem.RequestGuid) }, If(IsEmpty(c) && CountRows(varMdAprAll) >= 500, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c)) },
                                                 If(
                                                 ThisItem.Domain.Value = "Material",
                                                 If(
-                                            CountRows(Filter(L, Stage = "System")) = 0, "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='36' viewBox='0 0 270 36'><text x='135' y='22' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
+                                            CountRows(Filter(L, Stage = "System")) = 0, "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='36' viewBox='0 0 270 36'><text x='0' y='22' text-anchor='start' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
                                             With({a: With({T: Filter(If(IsBlank(Filter(L, Stage = "System")) || IsEmpty(Filter(L, Stage = "System")), Blank(), ForAll(GroupBy(Filter(L, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))), Decision <> "Requested")}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
                                             n > 0 && n >= Max(1, CountRows(Distinct(Filter(L, Stage = "System" && Decision = "Requested"), ItemGuid))) && k = n, "Skipped",
@@ -4752,8 +4752,8 @@ Screens:
                                         )))},
                                             With({d: Switch(ThisItem.Status.Value, "OprettetISAP", "Done", "KlarTilSAP", "In progress", "Pending")},
                                         "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='36' viewBox='0 0 270 36'>" &
-                                        "<line x1='69' y1='25' x2='201' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((a = "Approved" || a = "Skipped" || a = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
-                                        "<circle cx='69' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        "<line x1='19' y1='25' x2='151' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((a = "Approved" || a = "Skipped" || a = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
+                                        "<circle cx='19' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             a,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4776,8 +4776,8 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(a = "Pending", "", "<g transform='translate(63 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(a, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
-                                        "<text x='69' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                        If(a = "Pending", "", "<g transform='translate(13 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(a, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='19' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
                                             a,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4789,7 +4789,7 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "'>System</text>" &
-                                        "<circle cx='201' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        "<circle cx='151' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             d,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4812,8 +4812,8 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(d = "Pending", "", "<g transform='translate(195 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(d, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
-                                        "<text x='201' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                        If(d = "Pending", "", "<g transform='translate(145 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(d, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='151' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
                                             d,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4853,10 +4853,10 @@ Screens:
                                         )))},
                                         With({d: Switch(ThisItem.Status.Value, "OprettetISAP", "Done", "KlarTilSAP", "In progress", "Pending")},
                                         "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='36' viewBox='0 0 270 36'>" &
-                                        "<line x1='36' y1='25' x2='102' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((a = "Approved" || a = "Skipped" || a = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
-                                        "<line x1='102' y1='25' x2='168' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((b = "Approved" || b = "Skipped" || b = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
-                                        "<line x1='168' y1='25' x2='234' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((c = "Approved" || c = "Skipped" || c = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
-                                        "<circle cx='36' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        "<line x1='19' y1='25' x2='85' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((a = "Approved" || a = "Skipped" || a = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
+                                        "<line x1='85' y1='25' x2='151' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((b = "Approved" || b = "Skipped" || b = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
+                                        "<line x1='151' y1='25' x2='217' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((c = "Approved" || c = "Skipped" || c = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
+                                        "<circle cx='19' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             a,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4879,8 +4879,8 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(a = "Pending", "", "<g transform='translate(30 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(a, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
-                                        "<text x='36' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                        If(a = "Pending", "", "<g transform='translate(13 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(a, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='19' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
                                             a,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4892,7 +4892,7 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "'>System</text>" &
-                                        "<circle cx='102' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        "<circle cx='85' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             b,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4915,8 +4915,8 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(b = "Pending", "", "<g transform='translate(96 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(b, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
-                                        "<text x='102' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                        If(b = "Pending", "", "<g transform='translate(79 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(b, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='85' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
                                             b,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4928,7 +4928,7 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "'>Cost</text>" &
-                                        "<circle cx='168' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        "<circle cx='151' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             c,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4951,8 +4951,8 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(c = "Pending", "", "<g transform='translate(162 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(c, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
-                                        "<text x='168' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                        If(c = "Pending", "", "<g transform='translate(145 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(c, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='151' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
                                             c,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4964,7 +4964,7 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         ) & "'>Quality</text>" &
-                                        "<circle cx='234' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        "<circle cx='217' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             d,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -4987,8 +4987,8 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(d = "Pending", "", "<g transform='translate(228 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(d, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
-                                        "<text x='234' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                        If(d = "Pending", "", "<g transform='translate(211 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(d, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='217' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
                                             d,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -5005,7 +5005,7 @@ Screens:
                                             )
                                         ))
                                     ImagePosition: |-
-                                        =ImagePosition.Stretch
+                                        =ImagePosition.Fit
                                     OnSelect: |-
                                         =false
                                     TabIndex: |-
@@ -5013,7 +5013,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank < 4 && LayoutRank >= 2
                                     Width: |-
-                                        =((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 24
+                                        =270
                                     X: |-
                                         =12
                                     Y: |-
@@ -5278,7 +5278,7 @@ Screens:
                                     Width: |-
                                         =If(LayoutRank < 4, ((((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 24) / 4) * 4, 270)
                                     X: |-
-                                        =If(LayoutRank < 4, 12, 12 + (176 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + 16 + ((150 + 5 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + If(varMdView = "mine", (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)), 0)) + 16 + (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + 16 + If(varMdView = "mine", 0, (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14))) + 16 + ((270 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) - 270) / 2)
+                                        =If(LayoutRank < 4, 12, 12 + (176 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + 16 + ((150 + 5 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + If(varMdView = "mine", (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)), 0)) + 16 + (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + 16 + If(varMdView = "mine", 0, (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14))) + 16)
                                     Y: |-
                                         =If(LayoutRank < 4, 68, ((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1 - 40) / 2)
                               - imgMdRowActionsZone:
