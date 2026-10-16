@@ -1784,6 +1784,11 @@ Screens:
                                                   Set(varVhpSubmitting, false);
                                                   Set(gblToast, { Text: "Create the plan and at least one item first.", Kind: "Warning", At: Now() }); true,
                                               
+                                                  CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id))) > 0,
+                                                  Set(varVhpSubmitting, false);
+                                                  Set(gblToast, { Text: "Select a main work center on every item before saving: " &
+                                                      Concat(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id)), Coalesce(Trim(ShortText), FunctionalLocation), ", "), Kind: "Warning", At: Now() }); true,
+                                              
                                               Set(varVhpSaving, true);
                                               Clear(colVhpSaveErrors);
                                               IfError(
@@ -1976,7 +1981,7 @@ Screens:
                                                                   If(IsBlank(a.Id), Blank(), { Id: a.Id, Value: a.Value })
                                                               ),
                                                               MainWorkCenter: With(
-                                                                  { w: LookUp(colVhpMainWorkCenters, Value = IT.MainWorkCenter) },
+                                                                  { w: LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)) },
                                                                   If(IsBlank(w.Id), Blank(), { Id: w.Id, Value: w.Value })
                                                               )
                                                           })
@@ -2027,7 +2032,7 @@ Screens:
                                                                   If(IsBlank(a.Id), Blank(), { Id: a.Id, Value: a.Value })
                                                               ),
                                                               MainWorkCenter: With(
-                                                                  { w: LookUp(colVhpMainWorkCenters, Value = IT.MainWorkCenter) },
+                                                                  { w: LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)) },
                                                                   If(IsBlank(w.Id), Blank(), { Id: w.Id, Value: w.Value })
                                                               )
                                                           })
@@ -11259,7 +11264,7 @@ Screens:
                                           Height: |-
                                               =34
                                           HtmlText: |-
-                                              ="<style>html,body{margin:0;padding:0;overflow:hidden}span{padding-left:8px;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis}</style><div style='display:grid;grid-template-columns:60px 200px 64px 50px 64px 110px 90px 110px 80px 90px 170px 110px 110px 90px 64px;column-gap:" & Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) & "px;align-items:center;height:30px;line-height:30px;overflow:hidden;border-radius:8px;background:" & C.'hex-bg-muted' & ";color:" & C.'hex-text-muted' & ";font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'><span>OP NO.</span><span>OPERATION SHORT TEXT</span><span>WORK (H)</span><span>NO.</span><span>DUR. (H)</span><span>MAIN WORK CENTER</span><span>CTRL</span><span>VENDOR</span><span>COST</span><span>MAT.GRP</span><span>LONG TEXT</span><span>PACKAGES</span><span>MATERIALS</span><span>DOCS</span><span>ACTION</span></div>"
+                                              ="<style>html,body{margin:0;padding:0;overflow:hidden}span{padding-left:8px;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis}</style><div style='display:grid;grid-template-columns:60px 200px 64px 50px 64px 110px 90px 110px 80px 220px 170px 110px 110px 90px 64px;column-gap:" & Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) & "px;align-items:center;height:30px;line-height:30px;overflow:hidden;border-radius:8px;background:" & C.'hex-bg-muted' & ";color:" & C.'hex-text-muted' & ";font-family:Segoe UI;font-size:11px;font-weight:600;white-space:nowrap;'><span>OP NO.</span><span>OPERATION SHORT TEXT</span><span>WORK (H)</span><span>NO.</span><span>DUR. (H)</span><span>MAIN WORK CENTER</span><span>CTRL</span><span>VENDOR</span><span>COST</span><span>MAT.GRP</span><span>LONG TEXT</span><span>PACKAGES</span><span>MATERIALS</span><span>DOCS</span><span>ACTION</span></div>"
                                           PaddingBottom: |-
                                               =0
                                           PaddingLeft: |-
@@ -11269,7 +11274,7 @@ Screens:
                                           PaddingTop: |-
                                               =0
                                           Width: |-
-                                              =(1462 + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) * 14)
+                                              =(1592 + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) * 14)
                                     - conVhpOpsDivider:
                                         Control: GroupContainer
                                         Variant: AutoLayout
@@ -11297,7 +11302,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =(1462 + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) * 14)
+                                              =(1592 + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) * 14)
                                     - galVhpOps:
                                         Control: Gallery
                                         Variant: Vertical
@@ -11331,7 +11336,7 @@ Screens:
                                           Visible: |-
                                               =IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false)
                                           Width: |-
-                                              =(1462 + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) * 14) + 4
+                                              =(1592 + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) * 14) + 4
                                           WrapCount: |-
                                               =1
                                         Children:
@@ -11418,7 +11423,7 @@ Screens:
                                                 Width: |-
                                                     =200
                                                 X: |-
-                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14))
+                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14))
                                                 Y: |-
                                                     =0 + 0 + ((((44) - 2) - 0 - 0) - (32)) / 2
                                           - inpVhpOpWork:
@@ -11478,7 +11483,7 @@ Screens:
                                                 Width: |-
                                                     =64
                                                 X: |-
-                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14))
+                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14))
                                                 Y: |-
                                                     =0 + 0 + ((((44) - 2) - 0 - 0) - (32)) / 2
                                           - inpVhpOpPersons:
@@ -11533,7 +11538,7 @@ Screens:
                                                 Width: |-
                                                     =50
                                                 X: |-
-                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14))
+                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14))
                                                 Y: |-
                                                     =0 + 0 + ((((44) - 2) - 0 - 0) - (32)) / 2
                                           - inpVhpOpDur:
@@ -11580,7 +11585,7 @@ Screens:
                                                 Width: |-
                                                     =64
                                                 X: |-
-                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14))
+                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14))
                                                 Y: |-
                                                     =0 + 0 + ((((44) - 2) - 0 - 0) - (32)) / 2
                                           - inpVhpOpMwc:
@@ -11627,7 +11632,7 @@ Screens:
                                                 Width: |-
                                                     =110
                                                 X: |-
-                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14))
+                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14))
                                                 Y: |-
                                                     =0 + 0 + ((((44) - 2) - 0 - 0) - (32)) / 2
                                           - drpVhpOpCtrl:
@@ -11708,7 +11713,7 @@ Screens:
                                                 Width: |-
                                                     =90
                                                 X: |-
-                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14))
+                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14))
                                                 Y: |-
                                                     =0 + 0 + ((((44) - 2) - 0 - 0) - (32)) / 2
                                           - btnVhpOpVendor:
@@ -11765,7 +11770,7 @@ Screens:
                                                 Width: |-
                                                     =110
                                                 X: |-
-                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14))
+                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14))
                                                 Y: |-
                                                     =0 + 0 + ((((44) - 2) - 0 - 0) - (32)) / 2
                                           - inpVhpOpCost:
@@ -11814,7 +11819,7 @@ Screens:
                                                 Width: |-
                                                     =80
                                                 X: |-
-                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14))
+                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14))
                                                 Y: |-
                                                     =0 + 0 + ((((44) - 2) - 0 - 0) - (32)) / 2
                                           - drpVhpOpMatGrp:
@@ -11851,7 +11856,7 @@ Screens:
                                                                 !IsBlank(Value)
                                                             )
                                                         )
-                                                    ) As _dd, _dd.Value = (ThisItem.MaterialGroup))
+                                                    ) As _dd, _dd.Display = (Coalesce(LookUp(colVhpMaterialGroups, Value = ThisItem.MaterialGroup).Display, ThisItem.MaterialGroup)))
                                                 DisplayMode: |-
                                                     =If((If(varVhpViewOnly, DisplayMode.View, If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
@@ -11861,7 +11866,7 @@ Screens:
                                                 Height: |-
                                                     =32
                                                 ItemDisplayText: |-
-                                                    =ThisItem.Value
+                                                    =ThisItem.Display
                                                 Items: |-
                                                     =With(
                                                         { cur: Trim(Coalesce(ThisItem.MaterialGroup, "")) },
@@ -11895,9 +11900,9 @@ Screens:
                                                 ValidationState: |-
                                                     =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
                                                 Width: |-
-                                                    =90
+                                                    =220
                                                 X: |-
-                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (80) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14))
+                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (80) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14))
                                                 Y: |-
                                                     =0 + 0 + ((((44) - 2) - 0 - 0) - (32)) / 2
                                           - btnVhpOpLongText:
@@ -11955,7 +11960,7 @@ Screens:
                                                 Width: |-
                                                     =170
                                                 X: |-
-                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (80) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14))
+                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (80) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (220) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14))
                                                 Y: |-
                                                     =0 + 0 + ((((44) - 2) - 0 - 0) - (32)) / 2
                                           - txtVhpOpPackages:
@@ -11998,7 +12003,7 @@ Screens:
                                                 Wrap: |-
                                                     =false
                                                 X: |-
-                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (80) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (170) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14))
+                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (80) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (220) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (170) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14))
                                                 Y: |-
                                                     =0 + 0 + ((((44) - 2) - 0 - 0) - (32)) / 2
                                           - btnVhpOpMaterials:
@@ -12043,7 +12048,7 @@ Screens:
                                                 Width: |-
                                                     =110
                                                 X: |-
-                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (80) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (170) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14))
+                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (80) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (220) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (170) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14))
                                                 Y: |-
                                                     =0 + 0 + ((((44) - 2) - 0 - 0) - (32)) / 2
                                           - btnVhpOpDocs:
@@ -12088,7 +12093,7 @@ Screens:
                                                 Width: |-
                                                     =90
                                                 X: |-
-                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (80) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (170) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14))
+                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (80) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (220) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (170) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14))
                                                 Y: |-
                                                     =0 + 0 + ((((44) - 2) - 0 - 0) - (32)) / 2
                                           - btnVhpOpDelete:
@@ -12141,7 +12146,7 @@ Screens:
                                                 Width: |-
                                                     =Max(40, H.hit)
                                                 X: |-
-                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (80) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (170) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14))
+                                                    =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (80) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (220) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (170) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) + (90) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14))
                                                 Y: |-
                                                     =0 + 0 + ((((44) - 2) - 0 - 0) - (H.hit)) / 2
                                     - conVhpOpsTotalsDivider:
@@ -12173,7 +12178,7 @@ Screens:
                                           Visible: |-
                                               =IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false)
                                           Width: |-
-                                              =(1462 + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) * 14)
+                                              =(1592 + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) * 14)
                                     - htmVhpOpsTotals:
                                         Control: HtmlViewer
                                         Properties:
@@ -12182,7 +12187,7 @@ Screens:
                                           Height: |-
                                               =24
                                           HtmlText: |-
-                                              ="<style>html,body{margin:0;padding:0;overflow:hidden}span{overflow:hidden;text-overflow:ellipsis}</style><div style='display:grid;grid-template-columns:60px 200px 64px 50px 64px 110px 90px 110px 80px 90px 170px 110px 110px 90px 64px;column-gap:" & Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) & "px;align-items:center;height:23px;line-height:23px;overflow:hidden;color:" & C.'hex-text-primary' & ";font-family:Segoe UI;font-size:12px;font-weight:700;white-space:nowrap;'>" &
+                                              ="<style>html,body{margin:0;padding:0;overflow:hidden}span{overflow:hidden;text-overflow:ellipsis}</style><div style='display:grid;grid-template-columns:60px 200px 64px 50px 64px 110px 90px 110px 80px 220px 170px 110px 110px 90px 64px;column-gap:" & Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) & "px;align-items:center;height:23px;line-height:23px;overflow:hidden;color:" & C.'hex-text-primary' & ";font-family:Segoe UI;font-size:12px;font-weight:700;white-space:nowrap;'>" &
                                               "<span></span>" &
                                               "<span style='color:" & C.'hex-text-muted' & ";font-weight:600'>Total for this item</span>" &
                                               "<span>" & With({ _n: Sum(Filter(colVhpOperations, ItemId = varVhpActiveItemId), WorkHours) }, If(IsBlank(_n), "", Text(_n, If(Mod(_n, 1) = 0, "#,##0", "#,##0.##"), "en-US"))) & "</span>" &
@@ -12210,7 +12215,7 @@ Screens:
                                           Visible: |-
                                               =IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false)
                                           Width: |-
-                                              =(1462 + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) * 14)
+                                              =(1592 + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) * 14)
                                     - conVhpOpsEmpty:
                                         Control: GroupContainer
                                         Variant: AutoLayout
@@ -12246,7 +12251,7 @@ Screens:
                                           Visible: |-
                                               =!IfError(!IsBlank(varVhpActiveItemId) && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0, false)
                                           Width: |-
-                                              =(1462 + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) * 14)
+                                              =(1592 + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1592) / 14)) * 14)
                                         Children:
                                           - imgVhpOpsEmptyIcon:
                                               Control: Image
@@ -13924,6 +13929,11 @@ Screens:
                                       Set(varVhpSubmitting, false);
                                       Set(gblToast, { Text: "Create the plan and at least one item first.", Kind: "Warning", At: Now() }); true,
                                   
+                                      CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id))) > 0,
+                                      Set(varVhpSubmitting, false);
+                                      Set(gblToast, { Text: "Select a main work center on every item before saving: " &
+                                          Concat(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id)), Coalesce(Trim(ShortText), FunctionalLocation), ", "), Kind: "Warning", At: Now() }); true,
+                                  
                                   Set(varVhpSaving, true);
                                   Clear(colVhpSaveErrors);
                                   IfError(
@@ -14116,7 +14126,7 @@ Screens:
                                                       If(IsBlank(a.Id), Blank(), { Id: a.Id, Value: a.Value })
                                                   ),
                                                   MainWorkCenter: With(
-                                                      { w: LookUp(colVhpMainWorkCenters, Value = IT.MainWorkCenter) },
+                                                      { w: LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)) },
                                                       If(IsBlank(w.Id), Blank(), { Id: w.Id, Value: w.Value })
                                                   )
                                               })
@@ -14167,7 +14177,7 @@ Screens:
                                                       If(IsBlank(a.Id), Blank(), { Id: a.Id, Value: a.Value })
                                                   ),
                                                   MainWorkCenter: With(
-                                                      { w: LookUp(colVhpMainWorkCenters, Value = IT.MainWorkCenter) },
+                                                      { w: LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)) },
                                                       If(IsBlank(w.Id), Blank(), { Id: w.Id, Value: w.Value })
                                                   )
                                               })
@@ -25743,7 +25753,7 @@ Screens:
                                                             ShortText: IT.Title,
                                                             FunctionalLocation: IT.FunctionalLocation,
                                                             FlDescription: "",
-                                                            MainWorkCenter: IT.MainWorkCenter.Value,
+                                                            MainWorkCenter: Trim(IT.MainWorkCenter.Value),
                                                             ActivityType: IT.MaintenanceActivityType.Value,
                                                             ObjectList: IT.ObjectList,
                                                             Revision: If(IT.Revision, Coalesce(IT.RevisionMark.Value, First(colVhpRevisionOptions).Value), Coalesce(IT.RevisionMark.Value, "")),
