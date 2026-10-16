@@ -56,8 +56,7 @@ OPS_COLS = [
     ("CTRL", 90),
     ("VENDOR", 110),
     ("COST", 80),
-    # Koden og beskrivelsen, fx "B10.13 - Onsite/Marine Maint." (29 tegn).
-    ("MAT.GRP", 220),
+    ("MAT.GRP", 90),
     ("LONG TEXT", 170),
     ("PACKAGES", 110),
     # Knapper, som Details og Docs i Equipments liste (issue #54). De
@@ -103,43 +102,76 @@ DM_PURCHASE = f'If({IS_PM02}, DisplayMode.Edit, DisplayMode.View)'
 IS_PM03 = 'Upper(Coalesce(ThisItem.ControlKey, "")) = "PM03"'
 
 
-# VAREGRUPPEN ER EN DROPDOWN (issue #267)
+# VAREGRUPPEN VAELGES I EN LISTE (issue #267, Peter 2026-10-16)
 #
-# Varegruppen paa en PM02-operation var et frit tekstfelt. Nu vaelges den
-# blandt varegrupperne i MD_MaterialGroup (colVhpMaterialGroups).
+# Varegruppen paa en PM02-operation var et frit tekstfelt; saa en dropdown
+# fra MD_MaterialGroup (colVhpMaterialGroups). Peter vil have, at FELTET
+# kun viser koden og beholder sin bredde, mens LISTEN viser koden og
+# beskrivelsen. ModernDropdown viser den samme tekst i feltet og i listen,
+# saa feltet er nu en knap med koden (som leverandoeren), og den aabner en
+# popup med alle varegrupperne som "kode - beskrivelse". Et klik paa en
+# raekke vaelger den og lukker popup'en. Der gemmes stadig kun koden.
 #
-# Listen skal ogsaa kunne VISE en varegruppe, der ikke staar i den - fx
-# B09.03, som standardoperationen XELEK har med. Ellers stod cellen tom paa
-# de skrivebeskyttede PM03-linjer, og varegruppen saa ud til at vaere vaek,
-# selvom den bliver gemt. Samme greb som kontrolnoeglen: linjens egen vaerdi
-# laegges foerst i listen, naar den ikke findes der i forvejen.
-#
-# Sequence/Index og ikke Table(tabel, record): den form kender ikke alle
-# Power Fx-versioner (se colVhpNonFlowStatusOptions i sp_config.py).
-def matgrp_items(cur):
-    return ("With(\n"
-            f"    {{ cur: Trim(Coalesce({cur}, \"\")) }},\n"
-            "    With(\n"
-            "        { known: IsBlank(cur) || cur in colVhpMaterialGroups.Value },\n"
-            "        Filter(\n"
-            "            ForAll(\n"
-            "                Sequence(CountRows(colVhpMaterialGroups) + 1),\n"
-            "                If(\n"
-            "                    Value = 1,\n"
-            "                    { Value: If(known, \"\", cur), Display: cur },\n"
-            "                    Index(colVhpMaterialGroups, Value - 1)\n"
-            "                )\n"
-            "            ),\n"
-            "            !IsBlank(Value)\n"
-            "        )\n"
-            "    )\n"
-            ")")
+# En kode, der ikke staar i listen (fx B09.03 fra XELEK paa en PM03-linje),
+# vises bare som koden i knappen.
+MG_OPEN = "!IsBlank(varVhpMgOpNo)"
+MG_OP = "LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpMgOpNo)"
+# Popup'en lukkes - ogsaa fra sloeret (build_modal.build_modal_backdrop).
+MG_CLOSE = 'Set(varVhpMgOpNo, "")'
 
 
 def matgrp_display(cur):
-    """Popup'ens tekst for den varegruppe, linjen har: koden og teksten,
-    eller koden alene, naar den ikke staar i listen."""
+    """Koden og teksten for den varegruppe, linjen har, eller koden alene,
+    naar den ikke staar i listen."""
     return f"Coalesce(LookUp(colVhpMaterialGroups, Value = {cur}).Display, {cur})"
+
+
+def matgrp_button(name, op, op_no, width):
+    """Varegruppens felt: en knap med koden. Paa en PM02-linje aabner den
+    listen; ellers er den deaktiveret og viser standardplanens vaerdi."""
+    pm02 = f'Upper(Coalesce({op}.ControlKey, "")) = "PM02"'
+    v = f'Trim(Coalesce({op}.MaterialGroup, ""))'
+    btn = button(
+        name,
+        f'If(IsBlank({v}), If({pm02}, "Select...", "-"), {v})',
+        f"Set(varVhpMgOpNo, {op_no})", width=width, height=32,
+        display_mode=(f"If({pm02} && !varVhpViewOnly, DisplayMode.Edit, DisplayMode.Disabled)"),
+        accessible=f'"Material group for operation " & {op_no} & ": " & Coalesce({v}, "none")',
+        tooltip=f'If(IsBlank({v}), "Select a material group", {matgrp_display(v)})')
+    btn.props["Size"] = "12"
+    mark_done(btn, f"!IsBlank({v})")
+    return btn
+
+
+def _matgrp_modal():
+    """Popup'en med varegrupperne. Et klik paa en raekke skriver koden paa
+    operationen og lukker; Close fortryder."""
+    cur_v = f'Trim(Coalesce({MG_OP}.MaterialGroup, ""))'
+    cur = text_ctrl(
+        "txtVhpMgCurrent",
+        f'"Current material group: " & If(IsBlank({cur_v}), "(none)", {matgrp_display(cur_v)})',
+        size=12, color=C_MUTED, height=18, wrap="false")
+    row_h = 36
+    line = grow(text_ctrl("txtVhpMgRow", "ThisItem.Display", size=13, height=24, wrap="false"))
+    row = group("conVhpMgRow", [line], direction="Horizontal", height="Parent.TemplateHeight - 2",
+                align_items="Center", width="Parent.TemplateWidth",
+                fill=f"If(ThisItem.Value = {cur_v}, {C_PRIMARY_SOFT}, {C_CARD_BG})",
+                pad=(0, 8, 0, 8))
+    hit = row_hit("btnVhpMgHit",
+                  f"Patch(colVhpOperations, {MG_OP}, {{ MaterialGroup: ThisItem.Value }});\n{MG_CLOSE}",
+                  '"Use material group " & ThisItem.Display', "Parent.TemplateWidth",
+                  "Parent.TemplateHeight - 2")
+    gal_h = f"Min(CountRows(colVhpMaterialGroups) * {row_h}, Max(160, App.Height - 220))"
+    gal = Ctrl("galVhpMatGroups", "Gallery", variant="Vertical", props={
+        "AccessibleLabel": '"Material groups - select one to use it"',
+        "BorderStyle": "BorderStyle.None", "Fill": C_CARD_BG, "FillPortions": "0",
+        "Height": gal_h, "Items": "colVhpMaterialGroups",
+        "LayoutMinWidth": "0", "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
+        "ShowScrollbar": "true", "TabIndex": "0", "TemplatePadding": "2",
+        "TemplateSize": str(row_h - 2), "Width": MODAL_CW, "WrapCount": "1",
+    }, children=[row, hit], h=gal_h)
+    return _modal("VhpMg", '"Material group · Operation " & varVhpMgOpNo', MG_OPEN,
+                  MG_CLOSE, [cur, gal])
 
 
 def cost_expr(work):
@@ -682,8 +714,11 @@ def vendor_button(name, op, op_no, width, chars=12):
     v = f'Trim(Coalesce({op}.Vendor, ""))'
     btn = button(
         name,
+        # Feltet viser kun nummeret (Peter 2026-10-16); navnet staar i
+        # tooltip'en og i popup'ens liste. Der gemmes stadig "nummer - navn".
         (f'If(IsBlank({v}), If({pm02}, "Search...", "-"), '
-         f'Left({v}, {chars}) & If(Len({v}) > {chars}, "..."))'),
+         f'With({{ n: Trim(First(Split({v}, " - ")).Value) }}, '
+         f'Left(n, {chars}) & If(Len(n) > {chars}, "...")))'),
         _ven_open_fx(op, op_no), width=width, height=32,
         display_mode=(f"If({pm02} && !varVhpViewOnly, DisplayMode.Edit, DisplayMode.Disabled)"),
         accessible=f'"Vendor for operation " & {op_no} & ": " & Coalesce({v}, "none")',
@@ -784,12 +819,7 @@ def _op_detail_modal():
     price = number_field("inpVhpOpMCost", f"{OPM}.Cost", width=MODAL_CW, height=32,
                          display_mode=on_op(DM_PURCHASE), label='"Price"',
                          onchange=f"Patch(colVhpOperations, {OPM}, {{ Cost: {NV} }})")
-    matgrp = themed_dropdown("drpVhpOpMMatGrp", matgrp_items(f"{OPM}.MaterialGroup"),
-                             matgrp_display(f"{OPM}.MaterialGroup"),
-                             display_col="Display", width=MODAL_CW, height=32,
-                             display_mode=on_op(DM_PURCHASE), label='"Material group"',
-                             onchange=(f"Patch(colVhpOperations, {OPM}, "
-                                       "{ MaterialGroup: Self.Selected.Value })"))
+    matgrp = matgrp_button("btnVhpOpMMatGrp", OPM, "varVhpOpMNo", MODAL_CW)
     longtext = button(
         "btnVhpOpMLongText",
         (f'If(IsBlank(Trim(Coalesce({OPM}.LongText, ""))), "Add text...", '
@@ -854,8 +884,9 @@ def _ops_list_mobile():
 def build_ops_modals():
     """Popupperne fra operationsraekkens Materials- og Docs-knapper."""
     # Leverandoerpopup'en SIDST: den kan aabnes fra operationspopup'en
-    # (smalle skaerme) og skal ligge oven paa den.
-    return [_op_detail_modal(), _materials_modal(), _attachments_modal(), _vendor_modal()]
+    # (smalle skaerme) og skal ligge oven paa den. Det samme for varegruppens.
+    return [_op_detail_modal(), _materials_modal(), _attachments_modal(), _vendor_modal(),
+            _matgrp_modal()]
 
 
 # Tasklisterne til det valgte vaerk - Plant i Plan Header er den faelles
@@ -1176,13 +1207,8 @@ def build_tasklist_section():
     numOpCost = number_field("inpVhpOpCost", "ThisItem.Cost", width=w["COST"], height=32,
                              display_mode=DM_PURCHASE, label="\"Price\"",
                              onchange=f"Patch(colVhpOperations, ThisItem, {{ Cost: {NV} }})")
-    # Cellen viser koden og beskrivelsen, som popup'en paa smalle skaerme.
-    # Der gemmes kun koden (Value). Se matgrp_items.
-    txtOpMatGrp = themed_dropdown(
-        "drpVhpOpMatGrp", matgrp_items("ThisItem.MaterialGroup"),
-        matgrp_display("ThisItem.MaterialGroup"), display_col="Display",
-        width=w["MAT.GRP"], height=32, display_mode=DM_PURCHASE, label="\"Material group\"",
-        onchange="Patch(colVhpOperations, ThisItem, { MaterialGroup: Self.Selected.Value })")
+    # Cellen viser kun koden; listen i popup'en viser ogsaa teksten.
+    txtOpMatGrp = matgrp_button("btnVhpOpMatGrp", "ThisItem", "ThisItem.OperationNo", w["MAT.GRP"])
     # Cellen viser begyndelsen af teksten; skrivningen sker i popup'en, hvor
     # der er plads til en instruktion. Reset FOER popup'en aabnes, saa feltet
     # viser den linje, man klikkede paa, og ikke den forrige.

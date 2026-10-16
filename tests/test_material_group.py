@@ -28,22 +28,29 @@ def test_seed_codes_are_unique_sap_material_groups():
         assert "  " not in r["CategoryDescription"], r["MaterialGroup"]
 
 
-def test_material_group_is_a_dropdown_in_table_and_popup():
+def test_material_group_field_shows_code_and_opens_list():
+    """Peter 2026-10-16: feltet viser kun koden og beholder sin bredde;
+    listen viser koden og beskrivelsen. Der gemmes kun koden."""
     text = open(SCREEN, encoding="utf-8").read()
-    assert "inpVhpOpMatGrp" not in text
-    assert "inpVhpOpMMatGrp" not in text
-    for name in ("drpVhpOpMatGrp", "drpVhpOpMMatGrp"):
+    for name in ("inpVhpOpMatGrp", "inpVhpOpMMatGrp", "drpVhpOpMatGrp", "drpVhpOpMMatGrp"):
+        assert "- %s:" % name not in text, name
+    for name in ("btnVhpOpMatGrp", "btnVhpOpMMatGrp"):
         m = re.search(r"- %s:\n\s+Control: (\w+)" % name, text)
         assert m, name + " mangler"
-        assert m.group(1) == "ModernDropdown"
-    assert text.count("{ MaterialGroup: Self.Selected.Value }") == 2
+        assert m.group(1) == "ModernButton"
+    assert "Set(varVhpMgOpNo, ThisItem.OperationNo)" in text
+    assert "Set(varVhpMgOpNo, varVhpOpMNo)" in text
+    assert "{ MaterialGroup: ThisItem.Value }" in text
+    assert re.search(r"- galVhpMatGroups:\n\s+Control: Gallery", text)
 
 
-def test_dropdown_keeps_a_material_group_not_in_the_list():
-    """B09.03 fra XELEK staar ikke i listen. Linjens egen vaerdi laegges
-    foerst i valgene, ellers stod cellen tom paa PM03-linjerne."""
-    text = open(SCREEN, encoding="utf-8").read()
-    assert text.count("{ Value: If(known, \"\", cur), Display: cur }") >= 2
+def test_table_column_keeps_its_width():
+    import importlib.util, sys
+    build = os.path.join(ROOT, "Maintenance Plan App", "build")
+    sys.path.insert(0, build)
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    import build_tasklist
+    assert dict(build_tasklist.OPS_COLS)["MAT.GRP"] == 90
 
 
 def test_named_formula_reads_md_material_group():
@@ -51,12 +58,9 @@ def test_named_formula_reads_md_material_group():
     assert re.search(r"colVhpMaterialGroups = Sort\(ForAll\(MD_MaterialGroup As R,", text)
 
 
-def test_both_dropdowns_show_code_and_material_group_description():
-    """Peter 2026-10-16: koden sammen med Material Group Description, i
-    tabellens celle som i popup'en. Der gemmes stadig kun koden."""
+def test_list_shows_code_and_material_group_description():
     app = open(APP, encoding="utf-8").read()
     assert "Trim(R.MaterialGroup) & \" - \" & Trim(R.MaterialGroupDescription)" in app
     text = open(SCREEN, encoding="utf-8").read()
-    for name in ("drpVhpOpMatGrp", "drpVhpOpMMatGrp"):
-        m = re.search(r"- %s:\n(?:.*\n){0,120}?\s+ItemDisplayText: (.*\n.*)" % name, text)
-        assert m and "ThisItem.Display" in m.group(1), name
+    n = text.index("- galVhpMatGroups:")
+    assert "=ThisItem.Display" in text[n:n + 6000]
