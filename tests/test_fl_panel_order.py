@@ -84,7 +84,10 @@ def test_editing_does_not_rebuild_or_close_the_panel():
     # Felterne laeser vaerdi og besked selv - ikke samlingens kopi.
     for n in ("inpFlPanelClassVal", "drpFlPanelClassVal", "chkFlPanelTRMVal", "txtFlPanelMainRo"):
         props = T._ctrl(n)["Properties"]
-        assert not any("ThisItem.Value" in str(v) for v in props.values()), n
+        # ItemDisplayText er undtaget: den maa kun bruge dropdownens egen
+        # ThisItem (issue #300).
+        assert not any("ThisItem.Value" in str(v) for k, v in props.items()
+                       if k != "ItemDisplayText"), n
     assert "LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field)" in \
         T._prop("inpFlPanelClassVal", "Default")
     # Sloeret bag panelet daekker kun siden VED SIDEN AF panelet.
