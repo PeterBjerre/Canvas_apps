@@ -73,8 +73,6 @@ Efter skærmbilledet `image.png` (nu kun i git-historikken), med to afvigelser:
 - Fliserne er 72 px høje: ikon, navn og "12 open requests" på to linjer.
   Til højre en (+)-knap, der starter en ny anmodning i domænet (samme
   handling som menuen). Flisen selv filtrerer stadig listen.
-- "Continue where you left off" viser din senest ændrede kladde med
-  *Continue* (åbner i Edit).
 - REQUEST, PLANT, STATUS og UPDATED sorterer ved klik; et klik mere vender
   rækkefølgen. Standard er UPDATED, nyeste først.
 

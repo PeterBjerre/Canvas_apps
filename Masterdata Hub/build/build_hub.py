@@ -251,24 +251,6 @@ SCOPE_REFRESH = (
     'Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))')
 SCOPE_FULL = f"CountRows(colMdScope) >= {ROW_LIMIT}"
 
-# "CONTINUE WHERE YOU LEFT OFF" (UX-review M3, L4): brugerens op til tre
-# senest aendrede kladder OG anmodninger, der venter paa info fra brugeren
-# (mockuppens kort). To delegerbare forespoergsler - een status hver, da
-# OR'ede statusvaerdier ikke delegeres - lagt sammen med Table(a, b) og
-# sorteret i hukommelsen (hoejst seks poster).
-RESUME_N = 3
-RESUME_AWAITING = "AfventerInfo"
-
-
-def _resume_q(status):
-    return (f"FirstN(Sort(Filter('{LIST}', RequesterEmail = varMdMe && "
-            f'Status.Value = "{status}"), LastActionOn, SortOrder.Descending), {RESUME_N})')
-
-
-RESUME_REFRESH = (
-    f"Set(varMdResumeList, FirstN(Sort(Table({_resume_q(ri.DRAFT)}, {_resume_q(RESUME_AWAITING)}), "
-    f"LastActionOn, SortOrder.Descending), {RESUME_N}))")
-
 # SKAERMENS OnVisible - IKKE AFHAENGIG AF App.OnStart
 #
 # App.OnStart koerer SAMTIDIG med foerste skaerms OnVisible (non-blocking
@@ -302,7 +284,6 @@ HUB_ON_VISIBLE = (
     # varMdLoading: pladsholder-raekkerne under hentningen (UX-review M7).
     "Set(varMdLoading, true);\n"
     "Concurrent(\n    " + SCOPE_REFRESH + ",\n    " + approval_flow.LOG_REFRESH + ",\n    " +
-    RESUME_REFRESH + ",\n    " +
     # Note to self-raekkerne, brugeren maa se - kun RequestGuid (issue #115).
     sn.hub_self_refresh("varMdMe") + "\n);\n"
     "Set(varMdLoading, false)"
@@ -852,76 +833,6 @@ def _flag_pill(name, flag, label, field, icon):
              "compact": (_tight(f"{label} (99)"), "ButtonLayout.TextOnly", None),
              "short": (_tight("99", icon=True), "ButtonLayout.IconBefore", n)}
     return _selected_style(b, f'varMdFlag = "{flag}"', idle_color=C_MUTED)
-
-
-RESUME_CARD_H = 60
-RESUME_GAP = 12
-
-
-def _resume_card(i, wide):
-    """Kort nr. i (1-3) som i mockuppen: domaenets farvestribe, nummer og
-    statuschip, domaene og tekst, og Continue. If-vagten giver en tom post -
-    ikke en Index-fejl - naar der er faerre poster."""
-    rec = f"If(CountRows(varMdResumeList) >= {i}, Index(varMdResumeList, {i}))"
-    stripe = Ctrl(f"rctMdResumeStripe{i}", "Rectangle", props={
-        "AccessibleLabel": DOMAIN_LABEL.replace("ThisItem", rec),
-        "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
-        "Fill": _domain_switch(lambda d: d["color"], C_MUTED).replace("ThisItem", rec),
-        "Height": "36", "OnSelect": "false", "TabIndex": "0", "Width": "4",
-        "LayoutMinWidth": "4"}, h=36)
-    no = text_ctrl(f"txtMdResumeNo{i}", f"{rec}.{COL_NO}", size=13, weight="Semibold",
-                   height=22, wrap="false")
-    no.props["Width"] = f"Min(140, Len({rec}.{COL_NO}) * 9 + 8)"
-    no.props["LayoutMinWidth"] = no.props["Width"]
-    chip = sc.status_chip(f"imgMdResumeStatus{i}", f"{rec}.Status.Value", sc.REQUEST)
-    top = group(f"conMdResumeTop{i}", [no, chip], direction="Horizontal", gap=8, height=22,
-                align_items="Center")
-    line = text_ctrl(f"txtMdResumeLine{i}",
-                     f'{DOMAIN_LABEL.replace("ThisItem", rec)} & "  \u00b7  " & '
-                     f'{SHORT_TEXT.replace("ThisItem", rec)}',
-                     size=12, color=C_MUTED, height=18, wrap="false")
-    words = grow(group(f"conMdResumeWords{i}", [top, line], direction="Vertical", gap=2, height=42))
-    can_edit = perm.may_change(f"{rec}.RequesterEmail", f"{rec}.Status.Value", "varMdMe")
-    act = (f"If(\n    {can_edit},\n    " + _open_action("edit").replace("ThisItem", rec) +
-           ",\n    " + _open_action().replace("ThisItem", rec) + "\n)")
-    go_txt = '"Continue"'
-    go = button(f"btnMdResumeGo{i}", go_txt, act, width=fit_button_width(go_txt) + ICON_W,
-                height=32, icon="ChevronRight", accessible=f'"Continue " & {rec}.{COL_NO}')
-    go.props["LayoutMinWidth"] = go.props["Width"]
-    card_ = group(f"conMdResumeCard{i}", [stripe, words, go], direction="Horizontal", gap=12,
-                  height=RESUME_CARD_H, align_items="Center", fill=C_CARD_BG,
-                  border_color=C_CARD_BORDER, radius=lay.RADIUS_INPUT, pad=(8, 12, 8, 12),
-                  visible=f"CountRows(varMdResumeList) >= {i}")
-    # Tre ens kort paa een linje fra Tablet; under hinanden paa en telefon.
-    card_.props["Width"] = (f"If({wide}, (({SHELL_W}) - {(RESUME_N - 1) * RESUME_GAP}) / {RESUME_N}, "
-                            f"{SHELL_W})")
-    card_.props["LayoutMinWidth"] = "0"
-    return card_
-
-
-def build_resume():
-    """"Continue where you left off": op til tre kort, nyeste foerst - egne
-    kladder og anmodninger, der venter paa info (UX-review M3, L4).
-    Continue aabner i Edit, naar brugeren maa rette, ellers i View."""
-    wide = at_least("Tablet")
-    vis = "!IsEmpty(varMdResumeList) && !IfError(varMdLoading, false)"
-    title = text_ctrl("txtMdResumeTitle", '"Continue where you left off"', size=13,
-                      weight="Semibold", height=20, wrap="false")
-    title.props["Width"] = str(fit_button_width(title.props["Text"], size=13, min_w=0))
-    title.props["LayoutMinWidth"] = title.props["Width"]
-    sub = grow(text_ctrl("txtMdResumeSub", '"Your latest drafts and requests that need information"',
-                         size=12, color=C_MUTED, height=20, wrap="false"))
-    head = group("conMdResumeHead", [title, sub], direction="Horizontal", gap=8, height=20,
-                 align_items="Center")
-    cards = [_resume_card(i, wide) for i in range(1, RESUME_N + 1)]
-    n = f"Min(CountRows(varMdResumeList), {RESUME_N})"
-    row_h = (f"If({wide}, {RESUME_CARD_H}, {n} * {RESUME_CARD_H} + Max({n} - 1, 0) * {RESUME_GAP})")
-    row = group("conMdResumeCards", cards, direction="Horizontal", gap=RESUME_GAP, height=row_h,
-                align_items="Start")
-    row.props["LayoutDirection"] = f"If({wide}, LayoutDirection.Horizontal, LayoutDirection.Vertical)"
-    sec = group("conMdResume", [head, row], direction="Vertical", gap=8, visible=vis)
-    sec.props["Height"] = f"20 + 8 + {row_h}"
-    return sec
 
 
 def build_banner():
