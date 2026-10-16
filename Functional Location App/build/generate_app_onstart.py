@@ -109,7 +109,7 @@ def _panel_fields():
     """cfg.PANEL_FIELDS som tabel. Hvert Master-felt i reglerne SKAL have
     en plads i panelet - ellers faldt det ud af panelet uden et ord."""
     known = {f for f, _p, _l in cfg.PANEL_FIELDS}
-    keys = {k for k, _t in cfg.PANEL_SECTIONS}
+    keys = {k for k, _t in cfg.PANEL_SECTIONS} | set(cfg.PANEL_SUB.values())
     missing = sorted({c["Field"] for c in R["columns"] if c["Section"] == "Master"} - known)
     if missing:
         raise SystemExit("Master-felter uden plads i sidepanelet (fl_config.PANEL_FIELDS): %s"
@@ -197,6 +197,10 @@ COLLECTIONS = [
     # Class data-popuppens KOPI af raekkens klassefelter (issue #184) -
     # Apply skriver den tilbage, Close kasserer den (fl_parts.OPEN_CLS_FX).
     ("colFlClsDet", DET),
+    # Sidepanelets aftryk af raekken, da det blev aabnet paa den - Reset og
+    # Cancel saetter raekken tilbage til det (fl_parts.PANEL_SNAP, #308).
+    ("colFlPanelSnap", ROW),
+    ("colFlPanelSnapVals", {"RowGuid": '""', "Field": '""', "Value": '""'}),
     # Raekker, brugeren har slettet. Gem fjerner KUN dem (og tomme
     # raekker) fra listen - ikke raekker, en anden har tilfoejet (D24).
     ("colFlDeleted", {"RowGuid": '""'}),
@@ -252,6 +256,9 @@ Set(varFlDetailRow, "");
 Set(varFlPanelOpen, false);
 Set(varFlPanelJump, "");
 Set(varFlDetCls, "");
+// Bundbjaelkens bekraeftelser: Delete row og Reset (issue #308).
+Set(varFlPanelDelAsk, false);
+Set(varFlPanelResetAsk, false);
 // Class data-popuppen (issue #184): aaben, for hvilken raekke, og skal
 // valideringen lukke den efter Apply?
 Set(varFlClsOpen, false);
