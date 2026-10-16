@@ -228,7 +228,10 @@ def test_purchase_order_text_is_remarks_in_a_popup_with_close_only():
     assert _prop("inpMatPoText", "OnChange") == "Set(varMatFRemarks, Self.Text)"
     assert _prop("btnMatPoText", "OnSelect") == "Set(varMatPoOpen, true)"
     # Close er den eneste vej ud - et tryk paa sloeret lukker ikke.
-    assert _prop("btnMatPoClose", "OnSelect") == "Set(varMatPoOpen, false)"
+    # Close tager teksten med, saa intet skrevet gaar tabt (issue #279).
+    close = _prop("btnMatPoClose", "OnSelect")
+    assert close.endswith("Set(varMatPoOpen, false)")
+    assert "Set(varMatFRemarks, inpMatPoText.Text)" in close
     assert "varMatPoOpen" not in _prop("conMatPoBackdrop", "OnSelect")
 
 
