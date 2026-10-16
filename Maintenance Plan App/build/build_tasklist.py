@@ -30,6 +30,7 @@ import build_attflows
 import doc_upload as du
 from fl_picker import fl_picker
 import vendor_search as vs
+from build_modal import NEXT_OP_BASE
 
 # Flowkontrakten staar i tools/attflows.py; kun rudens egne navne
 # og dens refresh_fx() staar i build_attflows.py.
@@ -93,6 +94,10 @@ WC_INTERNAL = 'EndsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "SUP")'
 DM_CTRL = f'If({WC_INTERNAL}, DisplayMode.Edit, DisplayMode.View)'
 IS_PM02 = 'Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02"'
 DM_PURCHASE = f'If({IS_PM02}, DisplayMode.Edit, DisplayMode.View)'
+# PM02 UDEN BELOEB STAAR TOMT (Peter 2026-10-16): 0 vistes som et tal, man
+# havde tastet. Et tomt felt med roed kant siger, at beloebet mangler; reglen
+# pm02_cost i build_status holder Submit tilbage, til det er over 0.
+PM02_COST = f'If({IS_PM02} && Coalesce(ThisItem.Cost, 0) = 0, Blank(), ThisItem.Cost)'
 
 # PM03 er eksternt arbejde, og prisen i standardarbejdsplanen er en TIMESATS
 # (Work staar som 1 paa hver linje, og Price er satsen: SSVXSTIL 494,
@@ -119,6 +124,49 @@ MG_OPEN = "!IsBlank(varVhpMgOpNo)"
 MG_OP = "LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpMgOpNo)"
 # Popup'en lukkes - ogsaa fra sloeret (build_modal.build_modal_backdrop).
 MG_CLOSE = 'Set(varVhpMgOpNo, "")'
+
+
+# OP NO. KAN RETTES (Peter 2026-10-16). Operationerne staar sorteret efter
+# nummeret, saa et nyt nummer flytter linjen. Nummeret er noeglen, som
+# materialerne (OperationNo) og dokumenterne (OperationsKey ";0010;") kobler
+# paa, saa de flyttes med. Gem finder raekken i TaskListMain paa SpId, ikke
+# paa nummeret, saa en gemt operation opdateres og oprettes ikke igen.
+# Nummeret skal vaere unikt pr. item: et nummer, der allerede findes, eller
+# noget, der ikke er et heltal fra 1 til 9999, afvises, og feltet viser
+# igen det gamle. "10" gemmes som "0010". OnChange koerer foerst, naar
+# feltet forlades, ikke ved hvert tastetryk.
+def op_no_change(row, after=""):
+    new_no = 'Text(n, "0000")'
+    return (
+        "With(\n"
+        f"    {{ oldNo: {row}.OperationNo, raw: Trim(Self.Text) }},\n"
+        "    With(\n"
+        '        { n: If(IsMatch(raw, "\\d{1,4}"), Value(raw), 0) },\n'
+        "        If(\n"
+        "            n < 1,\n"
+        '            Notify("Operation number must be a whole number from 1 to 9999.", NotificationType.Warning);\n'
+        "            Reset(Self),\n"
+        f"            {new_no} = oldNo,\n"
+        "            Reset(Self),\n"
+        f"            CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = {new_no})) > 0,\n"
+        f'            Notify("Operation " & {new_no} & " already exists on this item.", NotificationType.Warning);\n'
+        "            Reset(Self),\n"
+        "            UpdateIf(\n"
+        "                colVhpMaterials,\n"
+        "                ItemId = varVhpActiveItemId && OperationNo = oldNo,\n"
+        f"                {{ OperationNo: {new_no} }}\n"
+        "            );\n"
+        "            UpdateIf(\n"
+        "                colVhpAttachments,\n"
+        '                ItemId = varVhpActiveItemId && ";" & oldNo & ";" in Coalesce(OperationsKey, ";"),\n'
+        f'                {{ OperationsKey: Substitute(OperationsKey, ";" & oldNo & ";", ";" & {new_no} & ";") }}\n'
+        "            );\n"
+        f"            Patch(colVhpOperations, {row}, {{ OperationNo: {new_no} }})"
+        + (f";\n            {after}" if after else "") + "\n"
+        "        )\n"
+        "    )\n"
+        ")"
+    )
 
 
 def matgrp_display(cur):
@@ -777,6 +825,9 @@ def _op_detail_modal():
         return text_ctrl(f"txtVhpOpM{name}", f'"{text}"', size=12, color=C_MUTED,
                          height=18, wrap="false")
 
+    opno = text_input("inpVhpOpMNo", f"{OPM}.OperationNo", width=MODAL_CW, height=32, max_length=4,
+                      onchange=op_no_change(OPM, 'Set(varVhpOpMNo, Text(n, "0000"))'),
+                      label='"Operation number"')
     short = text_input("inpVhpOpMText", f"{OPM}.OperationShortText", width=MODAL_CW, height=32,
                        onchange=f"Patch(colVhpOperations, {OPM}, {{ OperationShortText: Self.Text }})",
                        label='"Operation text"')
@@ -817,7 +868,8 @@ def _op_detail_modal():
     ctrl.props["OnChange"] = (f"Patch(colVhpOperations, {OPM}, "
                               "{ ControlKey: Self.Selected.Value })")
     vendor = vendor_button("btnVhpOpMVendor", OPM, "varVhpOpMNo", MODAL_CW, chars=40)
-    price = number_field("inpVhpOpMCost", f"{OPM}.Cost", width=MODAL_CW, height=32,
+    price = number_field("inpVhpOpMCost", on_op(PM02_COST), width=MODAL_CW, height=32,
+                         required_formula=on_op(IS_PM02),
                          display_mode=on_op(DM_PURCHASE), label='"Price"',
                          onchange=f"Patch(colVhpOperations, {OPM}, {{ Cost: {NV} }})")
     matgrp = matgrp_button("btnVhpOpMMatGrp", OPM, "varVhpOpMNo", MODAL_CW)
@@ -841,7 +893,7 @@ def _op_detail_modal():
          'Concat(Sort(sel, PackageNo), ShortCode, ", "))))'),
         size=13, height=20, wrap="false")
     return _modal("VhpOpM", '"Operation " & varVhpOpMNo', OPM_OPEN, 'Set(varVhpOpMNo, "")',
-                  [label("L1", "Short text"), short, label("L2", "Work (h)"), work,
+                  [label("L0", "Operation no."), opno, label("L1", "Short text"), short, label("L2", "Work (h)"), work,
                    label("L3", "Number of people"), persons, dur,
                    label("L4", "Control key"), ctrl, label("L5", "Supplier"), vendor,
                    label("L6", "Price"), price, label("L7", "Material group"), matgrp,
@@ -1004,7 +1056,7 @@ def build_tasklist_section():
             "        colVhpOperations,\n"
             "        {\n"
             "            ItemId: varVhpActiveItemId,\n"
-            "            OperationNo: Text(Coalesce(Max(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Value(OperationNo)), 0) + 10, \"0000\"),\n"
+            f"            OperationNo: Text({NEXT_OP_BASE} + 10, \"0000\"),\n"
             "            OperationShortText: \"\",\n"
             "            WorkHours: 1,\n"
             "            Persons: 1,\n"
@@ -1140,7 +1192,9 @@ def build_tasklist_section():
     btnOpDel.props["Layout"] = "ButtonLayout.IconOnly"
     btnOpDel.props["Tooltip"] = '"Delete operation line"'
     ensure_hit(btnOpDel)               # H.hit (UX-review F6, regel 40)
-    txtOpNo = text_ctrl("txtVhpOpNo", "ThisItem.OperationNo", size=13, height=32, width=w["OP NO."], wrap="false")
+    txtOpNo = text_input("inpVhpOpNo", "ThisItem.OperationNo", width=w["OP NO."], height=32,
+                         max_length=4, onchange=op_no_change("ThisItem"),
+                         label='"Operation number " & ThisItem.OperationNo')
     txtOpShort = text_input("inpVhpOpShortText", "ThisItem.OperationShortText", width=w["OPERATION SHORT TEXT"],
                             height=32,
                             onchange="Patch(colVhpOperations, ThisItem, { OperationShortText: Self.Text })", label="\"Operation text\"")
@@ -1205,7 +1259,8 @@ def build_tasklist_section():
 
     # Leverandoeren soeges frem i en popup (vendor_button, _vendor_modal).
     txtOpVendor = vendor_button("btnVhpOpVendor", "ThisItem", "ThisItem.OperationNo", w["VENDOR"])
-    numOpCost = number_field("inpVhpOpCost", "ThisItem.Cost", width=w["COST"], height=32,
+    numOpCost = number_field("inpVhpOpCost", PM02_COST, width=w["COST"], height=32,
+                             required_formula=IS_PM02,
                              display_mode=DM_PURCHASE, label="\"Price\"",
                              onchange=f"Patch(colVhpOperations, ThisItem, {{ Cost: {NV} }})")
     # Cellen viser kun koden; listen i popup'en viser ogsaa teksten.

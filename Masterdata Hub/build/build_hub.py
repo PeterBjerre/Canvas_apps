@@ -251,24 +251,6 @@ SCOPE_REFRESH = (
     'Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe }))')
 SCOPE_FULL = f"CountRows(colMdScope) >= {ROW_LIMIT}"
 
-# "CONTINUE WHERE YOU LEFT OFF" (UX-review M3, L4): brugerens op til tre
-# senest aendrede kladder OG anmodninger, der venter paa info fra brugeren
-# (mockuppens kort). To delegerbare forespoergsler - een status hver, da
-# OR'ede statusvaerdier ikke delegeres - lagt sammen med Table(a, b) og
-# sorteret i hukommelsen (hoejst seks poster).
-RESUME_N = 3
-RESUME_AWAITING = "AfventerInfo"
-
-
-def _resume_q(status):
-    return (f"FirstN(Sort(Filter('{LIST}', RequesterEmail = varMdMe && "
-            f'Status.Value = "{status}"), LastActionOn, SortOrder.Descending), {RESUME_N})')
-
-
-RESUME_REFRESH = (
-    f"Set(varMdResumeList, FirstN(Sort(Table({_resume_q(ri.DRAFT)}, {_resume_q(RESUME_AWAITING)}), "
-    f"LastActionOn, SortOrder.Descending), {RESUME_N}))")
-
 # SKAERMENS OnVisible - IKKE AFHAENGIG AF App.OnStart
 #
 # App.OnStart koerer SAMTIDIG med foerste skaerms OnVisible (non-blocking
@@ -302,7 +284,6 @@ HUB_ON_VISIBLE = (
     # varMdLoading: pladsholder-raekkerne under hentningen (UX-review M7).
     "Set(varMdLoading, true);\n"
     "Concurrent(\n    " + SCOPE_REFRESH + ",\n    " + approval_flow.LOG_REFRESH + ",\n    " +
-    RESUME_REFRESH + ",\n    " +
     # Note to self-raekkerne, brugeren maa se - kun RequestGuid (issue #115).
     sn.hub_self_refresh("varMdMe") + "\n);\n"
     "Set(varMdLoading, false)"
@@ -516,7 +497,7 @@ def _view_switch():
     size = 12
     for name, key, wide, short, tight in (
             ("btnMdViewMine", "mine", "My requests", "My", "Mine"),
-            ("btnMdViewAll", "queue", "Department", "All", "Dept.")):
+            ("btnMdViewAll", "queue", "All requests", "All", "All")):
         w = fit_button_width(f'"{short}"', size=size, min_w=0) + 20
         b = button(name + "M", f'"{short}"',
                    f'Set(varMdView, "{key}"); Set(varMdDomain, "");\n'
@@ -801,7 +782,7 @@ def build_tiles():
 #
 #   full     Window-size: som foer (ikoner, 14 pt, 10 px mellemrum).
 #   compact  Samme tekster uden ikoner, 12 pt, 6 px mellemrum.
-#   short    Korte tekster (Mine, Dept.), flagene som ikon + tal, 4 px.
+#   short    Korte tekster (Mine, All), flagene som ikon + tal, 4 px.
 #
 # Et trin gaelder, saa snart ALLE dets kontroller plus soegefeltets
 # mindstebredde kan staa i SHELL_W. Graensen regnes af bredderne nedenfor
@@ -854,76 +835,6 @@ def _flag_pill(name, flag, label, field, icon):
     return _selected_style(b, f'varMdFlag = "{flag}"', idle_color=C_MUTED)
 
 
-RESUME_CARD_H = 60
-RESUME_GAP = 12
-
-
-def _resume_card(i, wide):
-    """Kort nr. i (1-3) som i mockuppen: domaenets farvestribe, nummer og
-    statuschip, domaene og tekst, og Continue. If-vagten giver en tom post -
-    ikke en Index-fejl - naar der er faerre poster."""
-    rec = f"If(CountRows(varMdResumeList) >= {i}, Index(varMdResumeList, {i}))"
-    stripe = Ctrl(f"rctMdResumeStripe{i}", "Rectangle", props={
-        "AccessibleLabel": DOMAIN_LABEL.replace("ThisItem", rec),
-        "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
-        "Fill": _domain_switch(lambda d: d["color"], C_MUTED).replace("ThisItem", rec),
-        "Height": "36", "OnSelect": "false", "TabIndex": "0", "Width": "4",
-        "LayoutMinWidth": "4"}, h=36)
-    no = text_ctrl(f"txtMdResumeNo{i}", f"{rec}.{COL_NO}", size=13, weight="Semibold",
-                   height=22, wrap="false")
-    no.props["Width"] = f"Min(140, Len({rec}.{COL_NO}) * 9 + 8)"
-    no.props["LayoutMinWidth"] = no.props["Width"]
-    chip = sc.status_chip(f"imgMdResumeStatus{i}", f"{rec}.Status.Value", sc.REQUEST)
-    top = group(f"conMdResumeTop{i}", [no, chip], direction="Horizontal", gap=8, height=22,
-                align_items="Center")
-    line = text_ctrl(f"txtMdResumeLine{i}",
-                     f'{DOMAIN_LABEL.replace("ThisItem", rec)} & "  \u00b7  " & '
-                     f'{SHORT_TEXT.replace("ThisItem", rec)}',
-                     size=12, color=C_MUTED, height=18, wrap="false")
-    words = grow(group(f"conMdResumeWords{i}", [top, line], direction="Vertical", gap=2, height=42))
-    can_edit = perm.may_change(f"{rec}.RequesterEmail", f"{rec}.Status.Value", "varMdMe")
-    act = (f"If(\n    {can_edit},\n    " + _open_action("edit").replace("ThisItem", rec) +
-           ",\n    " + _open_action().replace("ThisItem", rec) + "\n)")
-    go_txt = '"Continue"'
-    go = button(f"btnMdResumeGo{i}", go_txt, act, width=fit_button_width(go_txt) + ICON_W,
-                height=32, icon="ChevronRight", accessible=f'"Continue " & {rec}.{COL_NO}')
-    go.props["LayoutMinWidth"] = go.props["Width"]
-    card_ = group(f"conMdResumeCard{i}", [stripe, words, go], direction="Horizontal", gap=12,
-                  height=RESUME_CARD_H, align_items="Center", fill=C_CARD_BG,
-                  border_color=C_CARD_BORDER, radius=lay.RADIUS_INPUT, pad=(8, 12, 8, 12),
-                  visible=f"CountRows(varMdResumeList) >= {i}")
-    # Tre ens kort paa een linje fra Tablet; under hinanden paa en telefon.
-    card_.props["Width"] = (f"If({wide}, (({SHELL_W}) - {(RESUME_N - 1) * RESUME_GAP}) / {RESUME_N}, "
-                            f"{SHELL_W})")
-    card_.props["LayoutMinWidth"] = "0"
-    return card_
-
-
-def build_resume():
-    """"Continue where you left off": op til tre kort, nyeste foerst - egne
-    kladder og anmodninger, der venter paa info (UX-review M3, L4).
-    Continue aabner i Edit, naar brugeren maa rette, ellers i View."""
-    wide = at_least("Tablet")
-    vis = "!IsEmpty(varMdResumeList) && !IfError(varMdLoading, false)"
-    title = text_ctrl("txtMdResumeTitle", '"Continue where you left off"', size=13,
-                      weight="Semibold", height=20, wrap="false")
-    title.props["Width"] = str(fit_button_width(title.props["Text"], size=13, min_w=0))
-    title.props["LayoutMinWidth"] = title.props["Width"]
-    sub = grow(text_ctrl("txtMdResumeSub", '"Your latest drafts and requests that need information"',
-                         size=12, color=C_MUTED, height=20, wrap="false"))
-    head = group("conMdResumeHead", [title, sub], direction="Horizontal", gap=8, height=20,
-                 align_items="Center")
-    cards = [_resume_card(i, wide) for i in range(1, RESUME_N + 1)]
-    n = f"Min(CountRows(varMdResumeList), {RESUME_N})"
-    row_h = (f"If({wide}, {RESUME_CARD_H}, {n} * {RESUME_CARD_H} + Max({n} - 1, 0) * {RESUME_GAP})")
-    row = group("conMdResumeCards", cards, direction="Horizontal", gap=RESUME_GAP, height=row_h,
-                align_items="Start")
-    row.props["LayoutDirection"] = f"If({wide}, LayoutDirection.Horizontal, LayoutDirection.Vertical)"
-    sec = group("conMdResume", [head, row], direction="Vertical", gap=8, visible=vis)
-    sec.props["Height"] = f"20 + 8 + {row_h}"
-    return sec
-
-
 def build_banner():
     """Returned requests of mine: counted in colMdScope, no extra query."""
     n = "CountRows(Filter(colMdScope, Ret))"
@@ -944,9 +855,9 @@ def build_filters():
     """Vaerktoejslinjen (issue #74, omlagt til segmenterede kontakter):
 
         [Search...] [Open|Closed|All] | Waiting for me | Stuck > 5 d | Clear
-                                         [My requests|Department]  3 of 23
+                                         [My requests|All requests]  3 of 23
 
-    Open/Closed/All og My requests/Department er segmenterede kontakter
+    Open/Closed/All og My requests/All requests er segmenterede kontakter
     (build_helpers.segmented): en graa bane med en blaa valgt pille. Taelleren
     staar yderst til hoejre og flugter med listens hoejre kant.
 
@@ -980,12 +891,14 @@ def build_filters():
         [(sfx, txt, f'varMdView = "{key}"',
           f'Set(varMdView, "{key}"); Set(varMdDomain, "")' + tail, None)
          for sfx, txt, key in (("Mine", "My requests", "mine"),
-                               ("Dept", "Department", "queue"))],
+                               ("Dept", "All requests", "queue"))],
         label="View", fit=True)
     # Skinnerne krymper med de andre knapper: fuld (13 pt, flueben), kompakt
-    # (12 pt) og kort (12 pt uden flueben, "Mine" | "Dept."). Knapperne faar
+    # (12 pt) og kort (12 pt uden flueben, "Mine" | "All"). Knapperne faar
     # deres formler, naar lvl() kendes (nedenfor).
-    seg_short = {"My requests": "Mine", "Department": "Dept."}
+    # Issue #276: "Department" hedder nu "All requests" (kun teksten;
+    # vaerdien er stadig varMdView = "queue"), og den korte form er "All".
+    seg_short = {"My requests": "Mine", "All requests": "All"}
     seg_w = {}                                   # knapnavn -> {trin: bredde}
     for t in (status_track, view_track):
         per = {k: 0 for k in FLT_LEVELS}
@@ -1001,7 +914,7 @@ def build_filters():
         extra = (n - 1) * 2 + 2 * 2             # SEG_GAP og SEG_PAD
         _FLT_LV[t.name] = {k: (per[k] + extra, None, None) for k in FLT_LEVELS}
     # GRUPPERET (som Hub-mockuppen): Open/Closed/All-skinnen og info-knappen |
-    # de to flag | - og til hoejre My requests/Department-skinnen og antallet.
+    # de to flag | - og til hoejre My requests/All requests-skinnen og antallet.
     sep = group("conMdFltSep", [], direction="Horizontal", height=24, width="1",
                 fill=C_DIVIDER, layout_min_width=1)
     sep.props["AlignInContainer"] = "AlignInContainer.Center"
@@ -1010,7 +923,7 @@ def build_filters():
     chips = [status_track, peek, sep,
              _flag_pill("btnMdFltMe", "me", "Waiting for me", "Mine", "Person"),
              _flag_pill("btnMdFltStuck", "stuck", STUCK_LABEL, "Stuck", "Clock")]
-    # Soegefelt og knapper staar til venstre; My requests | Department og
+    # Soegefelt og knapper staar til venstre; My requests | All requests og
     # tallet til hoejre. Under Tablet erstattes knapperne af EN dropdown
     # (+ info-knappen), og raekken er kun soegefeltet i fuld bredde.
     for c in chips + [view_track, count]:
@@ -1056,7 +969,7 @@ def build_filters():
         if c.name in _FLT_TIP:
             c.props["Tooltip"] = f'If({is_short}, {_FLT_TIP[c.name]}, "")'
     # Segmenterne foelger skinnen: smallere og 12 pt paa de smalle trin, og
-    # uden flueben paa det korteste ("Mine" | "Dept.").
+    # uden flueben paa det korteste ("Mine" | "All").
     for t in (status_track, view_track):
         for b in t.children:
             ws = seg_w[b.name]
@@ -1070,7 +983,7 @@ def build_filters():
             on_layout = b.props["Layout"]
             b.props["Layout"] = f"If({is_short}, ButtonLayout.TextOnly, {on_layout})"
     # Kort trin: kun tallet. "requests" er der ikke plads til paa en smal
-    # tablet, og tallet staar lige efter "Dept.".
+    # tablet, og tallet staar lige efter "All".
     count.props["Text"] = f'{shown} & If({is_short}, "", " requests")'
 
     # Soegefeltet tager det, de andre efterlader - mellem SEARCH_MIN og
@@ -1311,8 +1224,8 @@ def _open_action(mode="view"):
         ")")
 
 
-# Trinnenes navne staar i stribens tooltip, ikke som smaa etiketter i
-# raekken (UX-review, hub). approval_flow.DOM_STAGES er domaenernes trin.
+# Trinnenes navne staar over knuderne (issue #274) og i stribens tooltip.
+# approval_flow.DOM_STAGES er domaenernes trin.
 APPROVAL_TIP = ("Switch(ThisItem.Domain.Value, " + ", ".join(
     '"%s", "%s"' % (dom, "Approval: " + " \u2192 ".join(
         [lab for _s, lab, _c in stages] + [approval_flow.FINAL[dom][0]]))
@@ -1363,12 +1276,14 @@ def build_list():
     plant = text_ctrl("txtMdRowPlant", "ThisItem.Plant", size=13, height=20,
                       width=CWF["PLANT"], wrap="false", extra={"PaddingLeft": str(HEAD_PAD)})
 
-    approval = _image("imgMdRowApproval", _svg_uri(approval_flow.row_svg()), CW["APPROVAL"], 30,
-                      label='"Approval progress"')
+    approval = _image("imgMdRowApproval", _svg_uri(approval_flow.row_svg()), CW["APPROVAL"],
+                      approval_flow.STRIP_H, label='"Approval progress"')
     approval.props["Tooltip"] = APPROVAL_TIP
     # Striben har en fast tegning; kolonnen kan vaere bredere (issue #178).
+    # Den staar midt i kolonnen (issue #274) - klikfladen flyttes med.
     approval = group("conMdRowApr", [approval], direction="Horizontal", gap=0,
-                     width=CWF["APPROVAL"], height=30, align_items="Center")
+                     width=CWF["APPROVAL"], height=approval_flow.STRIP_H, align_items="Center",
+                     justify="Center")
 
     # Statussen er den faelles statuschip (tools/status_chip.py, UX-review
     # T4) - samme ikon, farve og tekst som i domaenerne og Issue Board.
@@ -1427,8 +1342,9 @@ def build_list():
         b.props["Y"] = "(Parent.TemplateHeight - 1 - Self.Height) / 2"
         b.props["Visible"] = f"{at_least('Wide')} && ({b.props['Visible']})"
     strip = approval_flow.strip_hits(
-        CW["APPROVAL"], strip_x,
-        compact={"x": str(ROW_PAD), "y": str(STRIP_Y_C - 5), "zone": "(Parent.TemplateWidth - 24) / 4"})
+        CW["APPROVAL"], f"{strip_x} + ({CWF['APPROVAL']} - {CW['APPROVAL']}) / 2",
+        compact={"x": str(ROW_PAD), "y": str(STRIP_Y_C + approval_flow.STRIP_H // 2 - 20),
+                 "zone": "(Parent.TemplateWidth - 24) / 4"})
     compact_row, compact_strip = _compact_row(act)
     c_edit, c_del = _owner_buttons(_open_action("edit"), "C")
     c_actions = [c_edit, c_del]
@@ -1617,8 +1533,8 @@ def _compact_row(act):
                 height="Parent.TemplateHeight - 1", align_items="Stretch",
                 width=f"Parent.Width - {SCROLLBAR_W}", fill=C_CARD_BG, pad=(8, ROW_PAD, 0, ROW_PAD),
                 visible=below("Wide"))
-    strip = _image("imgMdRowApprovalC", _svg_uri(approval_flow.row_svg()), 0, 30,
-                   label='"Approval progress"')
+    strip = _image("imgMdRowApprovalC", _svg_uri(approval_flow.row_svg()), 0,
+                   approval_flow.STRIP_H, label='"Approval progress"')
     strip.props["Width"] = "Parent.TemplateWidth - 24"
     strip.props["X"] = str(ROW_PAD)
     strip.props["Y"] = str(STRIP_Y_C)
