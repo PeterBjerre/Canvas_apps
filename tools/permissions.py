@@ -20,6 +20,9 @@ REGLEN
   Ejer:   maa aendre og slette sin egen anmodning, mens den er en kladde.
   Admin:  maa aendre og slette ALLE anmodninger i Kladde og AfventerInfo,
           uanset hvem der ejer dem.
+  VH-plan: ejeren maa ogsaa aendre (ikke slette) sin plan i AfventerInfo -
+          den er sendt retur i godkendelsen og skal rettes og indsendes
+          igen. Kun VH-planen har det forloeb i appen (docs/32 §3).
 
 Reglen staar baade i UI'et (Visible/DisplayMode) og i selve handlingen
 (gem, indsend, slet), som slaar raekken op igen foer den skriver. En
@@ -39,6 +42,10 @@ IS_APPROVER = "IsApprover"
 
 OWNER_STATUSES = (ri.DRAFT,)
 ADMIN_STATUSES = (ri.DRAFT, "AfventerInfo")
+# Domaener, hvor ejeren retter og genindsender en anmodning, der er sendt
+# retur (AfventerInfo). Domaenenoeglen fra request_index.DOMAINS.
+RESUBMIT_DOMAINS = ("MaintenancePlan",)
+RESUBMIT_STATUSES = (ri.DRAFT, "AfventerInfo")
 
 
 def formula():
@@ -78,11 +85,24 @@ def is_owner(email, me):
     return f'Lower(Coalesce({email}, "")) = {me}'
 
 
-def may_change(email, status, me):
+def may_change(email, status, me, resubmit=False):
     """Maa brugeren aendre/slette? status er et tekstudtryk (fx
-    R.Status.Value)."""
-    return (f"(({is_owner(email, me)} && {_in(status, OWNER_STATUSES)}) || "
+    R.Status.Value). resubmit=True: domaenet er i RESUBMIT_DOMAINS, saa
+    ejeren maa ogsaa aendre en anmodning, der er sendt retur. Sletning
+    kalder altid uden (request_delete.may_delete)."""
+    own = RESUBMIT_STATUSES if resubmit else OWNER_STATUSES
+    return (f"(({is_owner(email, me)} && {_in(status, own)}) || "
             f"({IS_ADMIN} && {_in(status, ADMIN_STATUSES)}))")
+
+
+def may_change_row(item, me):
+    """may_change for en raekke i MD_RequestIndex, hvor domaenet staar paa
+    raekken (hubben): ejerens AfventerInfo gaelder kun RESUBMIT_DOMAINS."""
+    email, status = item + ".RequesterEmail", item + ".Status.Value"
+    back = [s for s in RESUBMIT_STATUSES if s not in OWNER_STATUSES]
+    return (f"({may_change(email, status, me)} || "
+            f"({is_owner(email, me)} && {_in(status, back)} && "
+            f"{_in(item + '.Domain.Value', RESUBMIT_DOMAINS)}))")
 
 
 def as_admin(email, me):
