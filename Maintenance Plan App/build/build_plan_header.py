@@ -165,17 +165,48 @@ PLAN_CONTROLS = ("drpVhpPlanType", "drpVhpStrategy", "drpVhpPlant", "drpVhpStatu
 
 
 # Den foldede linje (UX-review M5) - laest af felterne.
+# ALLE OTTE FELTER (issue #287): Plan type, Status, Plant, Plan text, Sort
+# field, Cycle, Unit og First call - i felternes raekkefoelge. Foer stod
+# kun Plant, Plan type, cyklus og First call. Hvert felt har sin label foran
+# vaerdien, saa linjen kan laeses uden at folde ud. Et tomt felt vises som
+# "-" (som foer), saa de otte altid staar - og staar samme sted.
+# Strategien staar efter Plan type paa en strategiplan (som foer); Cycle og
+# Unit er da tomme (planen tager cyklussen fra strategien) og vises som "-".
 SHOW_VAR = "varVhpPlanShow"
 _SEP = '"  \u00b7  "'
-PLAN_SUMMARY = (
-    '"Plant " & Coalesce(drpVhpPlant.Selected.Value, "-") & ' + _SEP + ' & '
-    'Coalesce(drpVhpPlanType.Selected.Value, "-") & '
-    'If(drpVhpPlanType.Selected.Key = "Strategy", '
-    + _SEP + ' & Coalesce(drpVhpStrategy.Selected.Value, "-"), '
-    + _SEP + ' & "Every " & Text(varVhpPlan.Cycle) & " " & Coalesce(drpVhpUnit.Selected.Value, "")) & '
-    + _SEP + ' & "First call " & If(IsBlank(dteVhpFirstCall.SelectedDate), "-", '
-    f'Text(dteVhpFirstCall.SelectedDate, "{lay.DATE_FMT}"))'
-)
+
+
+def _part(label, value_fx, first=False):
+    sep = "" if first else _SEP + " & "
+    return f'{sep}"{label} " & {value_fx}'
+
+
+PLAN_SUMMARY = " & ".join([
+    _part("Plan type", 'Coalesce(drpVhpPlanType.Selected.Value, "-")', first=True)
+    + ' & If(drpVhpPlanType.Selected.Key = "Strategy", '
+    + _SEP + ' & "Strategy " & Coalesce(drpVhpStrategy.Selected.Value, "-"), "")',
+    _part("Status", 'Coalesce(drpVhpStatus.Selected.Value, "-")'),
+    _part("Plant", 'Coalesce(drpVhpPlant.Selected.Value, "-")'),
+    _part("Plan text", 'Coalesce(Trim(inpVhpPlanText.Text), "-")'),
+    _part("Sort field", 'Coalesce(drpVhpSortField.Selected.Value, "-")'),
+    _part("Cycle", 'If(IsBlank(varVhpPlan.Cycle) || varVhpPlan.Cycle <= 0, "-", Text(varVhpPlan.Cycle))'),
+    _part("Unit", 'Coalesce(drpVhpUnit.Selected.Value, "-")'),
+    _part("First call", 'If(IsBlank(dteVhpFirstCall.SelectedDate), "-", '
+          f'Text(dteVhpFirstCall.SelectedDate, "{lay.DATE_FMT}"))'),
+])
+
+# Resumeet staar paa sin egen linje under titlen og ombrydes (issue #287).
+# Hoejden regnes af tekstens laengde og bredden - som build_hero._lines_h.
+# 7.5 px pr. tegn er rummeligt for 13 px Segoe UI, saa der hellere er en
+# linje luft for meget, end at den sidste vaerdi bliver klippet.
+SUMMARY_INDENT = 30          # statusikonet (20) + raekkens gap (10)
+SUMMARY_LINE_H = 20          # 13 px * 1.5
+SUMMARY_W = PLAN_CW
+
+
+def summary_height(text_ref):
+    cpl = f"Max(12, RoundDown(({SUMMARY_W} - {SUMMARY_INDENT}) / 7.5, 0))"
+    return (f"Max(1, RoundUp(Len({text_ref}) / {cpl}, 0)) * {SUMMARY_LINE_H} + 2")
 
 
 CHIP_H = 24
@@ -231,19 +262,27 @@ FOLD_H = 36
 
 
 def plan_fold_row(fold, toggle_set, show):
-    """Den foldede planhoved-linje (UX-review M5): flueben, titel, nogletallene
-    som piller og Show til hoejre. Vises kun, naar planen er gemt og foldet."""
+    """Det foldede planhoved (UX-review M5): flueben, titel og Show i den
+    oeverste linje, og under den alle otte vaerdier som een ombrudt tekst
+    (issue #287). Vises kun, naar planen er gemt og foldet."""
     ok = status_icon("imgVhpPlanFoldStatus", "VhpPlanValid", d_ok=icons.STATUS_READY)
+    title_w = text_px("Plan header", lay.SIZE_BODY + 1) + 2
     title = text_ctrl("txtVhpPlanFoldTitle", '"Plan header"', size=lay.SIZE_BODY + 1, weight="Semibold",
-                      height=24, width=text_px("Plan header", lay.SIZE_BODY + 1) + 2,
-                      accessible='"Plan header"')
-    narrow = lay.below("Tablet")
+                      height=24, width=title_w, accessible='"Plan header"')
+    grow(title, title_w)
+    top = group("conVhpPlanFoldTop", [ok, title, show], direction="Horizontal", gap=10,
+                height=FOLD_H, align_items="Center")
+    # Alle otte vaerdier (issue #287): fuld bredde under titlen, rykket ind
+    # under titlen, ombrudt og med den hoejde, teksten skal bruge - paa
+    # desktop, tablet og telefon. Kortets hoejde foelger med (stack_height),
+    # saa det, der staar under kortet, flytter sig.
     summary = text_ctrl("txtVhpPlanFoldSummary", PLAN_SUMMARY, size=lay.SIZE_BODY, color=C_MUTED,
-                        height=f"If({narrow}, 40, 24)", wrap=f"{narrow}",
-                        extra={"AlignInContainer": "AlignInContainer.Center"})
-    grow(summary, 0)
-    return group("conVhpPlanFoldRow", [ok, title, summary, show], direction="Horizontal", gap=10,
-                 height=f"If({narrow}, 48, {FOLD_H})", align_items="Center", visible=fold)
+                        height=summary_height("Self.Text"), width=SUMMARY_W, wrap="true",
+                        accessible='"Plan header summary: " & Self.Text',
+                        extra={"PaddingLeft": str(SUMMARY_INDENT), "LayoutMinWidth": "0"})
+    summary.h = summary_height("txtVhpPlanFoldSummary.Text")
+    return group("conVhpPlanFoldRow", [top, summary], direction="Vertical", gap=2,
+                 align_items="Stretch", visible=fold)
 
 
 def build_plan_header():
