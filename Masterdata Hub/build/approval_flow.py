@@ -199,13 +199,23 @@ def decided(table):
 # ---------------------------------------------------------------------------
 # The strip in the list row: four nodes on a line, coloured by state.
 # ---------------------------------------------------------------------------
-STRIP_W, STRIP_H = 270, 30
+# ETIKETTERNE ER TILBAGE (issue #274). UX-reviewet fjernede de smaa
+# trinnavne over knuderne; brugerne savnede dem. Striben er nu 36 hoej:
+# etiketten (11 px) oeverst, knuden under med luft imellem, og knuderne
+# staar symmetrisk om midten af de 270, saa striben kan centreres i
+# kolonnen. Tilstandene og deres farver er uaendrede.
+STRIP_W, STRIP_H = 270, 36
+LABEL_Y = 12      # etikettens grundlinje
+LABEL_SIZE = 11
+NODE_Y = 25       # knudens midte: top 19, bund 31 - 7 px under grundlinjen
 
 
 NOT_STARTED = (
     '"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'%d\' height=\'%d\' viewBox=\'0 0 %d %d\'>'
-    '<text x=\'4\' y=\'19\' %s font-size=\'12\' fill=\'" & %s & "\'>-</text></svg>"'
-    % (STRIP_W, STRIP_H, STRIP_W, STRIP_H, SVG_FONT, ref_hex("text-muted")))
+    '<text x=\'%d\' y=\'%d\' text-anchor=\'middle\' %s font-size=\'12\' '
+    'fill=\'" & %s & "\'>Not required</text></svg>"'
+    % (STRIP_W, STRIP_H, STRIP_W, STRIP_H, STRIP_W // 2, STRIP_H // 2 + 4, SVG_FONT,
+       ref_hex("text-muted")))
 
 
 # GODKENDELSESLOGGEN HENTES EEN GANG (2026-10-05)
@@ -254,10 +264,10 @@ def _strip_body(xs, names, var):
     Materials to tegnes af den samme kode (issue #204)."""
     parts = ['"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'%d\' height=\'%d\' '
              'viewBox=\'0 0 %d %d\'>"' % (STRIP_W, STRIP_H, STRIP_W, STRIP_H)]
-    # Knuderne midt i striben UDEN de smaa etiketter over (UX-review, hub):
-    # fire mikrolabels pr. raekke var stoej. Trinnenes navne staar i
-    # billedets tooltip (build_hub, imgMdRowApproval) og i popuppen.
-    y = STRIP_H // 2
+    # Trinnets navn staar centreret over sin knude (issue #274), i
+    # knudens farve som foer UX-reviewet. Navnene staar ogsaa i billedets
+    # tooltip (build_hub, imgMdRowApproval) og i popuppen.
+    y = NODE_Y
     for i in range(len(names) - 1):
         parts.append(
             f'"<line x1=\'{xs[i]}\' y1=\'{y}\' x2=\'{xs[i + 1]}\' y2=\'{y}\' stroke-width=\'2\' '
@@ -276,12 +286,15 @@ def _strip_body(xs, names, var):
             f'scale({NODE_R / 12:g})\' fill=\'none\' stroke=\'" & {ref_hex("text-on-primary")} & '
             f'"\' stroke-width=\'{NODE_STROKE:g}\' stroke-linecap=\'round\' stroke-linejoin=\'round\'>'
             f'<path d=\'" & {_strip_glyph(var[i])} & "\'/></g>")')
+        parts.append(
+            f'"<text x=\'{xs[i]}\' y=\'{LABEL_Y}\' text-anchor=\'middle\' {SVG_FONT} '
+            f'font-size=\'{LABEL_SIZE}\' font-weight=\'600\' fill=\'" & {col} & "\'>{nm}</text>"')
     parts.append('"</svg>"')
     return " &\n".join(parts)
 
 
 def _vh_strip(req):
-    body = _strip_body([33, 99, 165, 231],
+    body = _strip_body([36, 102, 168, 234],
                        ["System", "Cost", "Quality", "SAP"], ["a", "b", "c", "d"])
     return (
         f"With({{a: {stage_state(latest('L', 'System'), expected('System', req), 'true')}}},\n"
@@ -296,7 +309,7 @@ def _mat_strip(req):
     En indmelding UDEN strategiske raekker har ingen "Requested"-raekker i
     loggen, og saa er der intet forloeb at vise - den staar som "Not
     required", praecis som et domaene uden godkendelse."""
-    body = _strip_body([66, 198], ["System", "Handover"], ["a", "d"])
+    body = _strip_body([69, 201], ["System", "Handover"], ["a", "d"])
     state = stage_state(decided(latest("L", "System")), mat_expected("L"), "true")
     return (f'If(\n    CountRows(Filter(L, Stage = "System")) = 0, {NOT_STARTED},\n'
             f"    With({{a: {state}}},\n"

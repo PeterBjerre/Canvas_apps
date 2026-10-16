@@ -356,16 +356,16 @@ def test_the_hub_shows_a_flow_for_plans_and_materials():
 
 
 def _nodes(svg):
-    """Knuderne i striben. Etiketterne over knuderne er vaek (UX-review,
-    hub) - navnene staar i billedets tooltip (build_hub.APPROVAL_TIP)."""
+    """Knuderne i striben. Etiketterne staar igen over knuderne (issue
+    #274) og i billedets tooltip (build_hub.APPROVAL_TIP)."""
     return svg.count("<circle")
 
 
 def test_materials_strip_has_the_system_step_and_the_handover():
     svg = apf._mat_strip("ThisItem")
-    # System og overdragelsen: to knuder, ingen etiketter.
+    # System og overdragelsen: to knuder, hver med sin etiket (issue #274).
     assert _nodes(svg) == 2 and 'Stage = "System"' in svg
-    assert ">System<" not in svg
+    assert ">System<" in svg and ">Handover<" in svg
     # Og ikke VH-planens trin.
     assert "Cost" not in svg and "Quality" not in svg
 
