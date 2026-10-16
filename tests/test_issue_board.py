@@ -600,7 +600,7 @@ def test_row_has_an_attach_button_after_creation():
     text = open(os.path.join(ROOT, "BIO SAP App", "ScreenIssueBoard.pa.yaml"), encoding="utf-8").read()
     # Knapperne ligger efter klikfladen - oeverst.
     assert text.index("- btnIbRowOpen:") < text.index("- btnIbRowAttachC:") < text.index("- btnIbRowAttach:")
-    assert "Control: Attachments@2.3.0" in text and "ModernAttachments" not in text
+    assert "Control: ModernAttachments@1.3.0" in text and "Attachments@2.3.0" not in text
     assert f'"{cfg.ACT_ATTACH}"' in P.UPLOAD_FILES
 
 
