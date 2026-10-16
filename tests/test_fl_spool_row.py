@@ -149,36 +149,49 @@ def test_disabled_states_and_permissions():
         assert dm.startswith('If((varFlViewOnly || varFlStatus = "Indsendt") && !(')
         assert "DisplayMode.Disabled, DisplayMode.Edit" in dm
     # Felterne i popuppen og i raekken foelger View/Edit.
-    for name in ("inpFlPopVal", "chkFlRowAtex", "inpFlRowRoom", "inpFlRowSort"):
+    for name in ("inpFlPanelMfrVal", "chkFlRowAtex", "inpFlRowRoom", "inpFlRowSort"):
         assert "varFlViewOnly" in _prop(name, "DisplayMode"), name
 
 
-def test_manufacturer_and_warranty_popup():
+def test_manufacturer_and_warranty_open_the_side_panel():
+    """Issue #278: Manufacturer og Warranty aabner raekkens sidepanel ved
+    deres sektion - der er ingen egen popup."""
     p = _parts()
-    assert p.POP_KINDS == {
-        "Manufacturer": ["MANUFACTURER", "MODEL NUMBER", "MANUFACTURER PART NUMBER",
-                         "MANUFACTURER SERIAL NUMBER"],
-        "Warranty": ["WARRANTY START", "WARRANTY END"]}
-    # Gendannes ved hver aabning: felterne regnes af raekkens gemte vaerdier.
-    for name, kind in (("btnFlRowMfr", "Manufacturer"), ("btnFlRowWar", "Warranty")):
+    assert p.MFR_FIELDS == ["MANUFACTURER", "MODEL NUMBER", "MANUFACTURER PART NUMBER",
+                            "MANUFACTURER SERIAL NUMBER"]
+    assert p.WAR_FIELDS == ["WARRANTY START", "WARRANTY END"]
+    for name, jump in (("btnFlRowMfr", "Mfr"), ("btnFlRowWar", "War")):
         on = _prop(name, "OnSelect")
-        assert on.startswith("Set(varFlDetailRow, ThisItem.RowGuid);\nClearCollect(colFlDet, ")
-        assert on.endswith(f'Set(varFlPop, "{kind}")')
+        assert on.startswith("Set(varFlDetailRow, ThisItem.RowGuid);\n"
+                             f'Set(varFlPanelJump, "{jump}");')
+        assert "ClearCollect(colFlDet, " in on
+        assert on.endswith("Set(varFlPanelOpen, true)")
+    # Class data aabner panelet med alle sektioner.
+    on = _prop("btnFlRowClassData", "OnSelect")
+    assert 'Set(varFlPanelJump, "");' in on and on.endswith("Set(varFlPanelOpen, true)")
     # Felterne skriver i raekken og validerer (roed/groen kant + besked).
-    assert "Select(btnFlVerify)" in _prop("inpFlPopVal", "OnChange")
-    assert "ThisItem.Issue" in _prop("inpFlPopVal", "BorderColor")
-    assert "ThisItem.Issue" in _prop("txtFlPopIssue", "Text")
-    assert "DD.MM.YYYY" in _prop("inpFlPopVal", "Placeholder")
+    assert "Select(btnFlVerify)" in _prop("inpFlPanelMfrVal", "OnChange")
+    assert "colFlIssues" in _prop("inpFlPanelMfrVal", "BorderColor")
+    assert "colFlIssues" in _prop("txtFlPanelWarIssue", "Text")
+    assert "DD.MM.YYYY" in _prop("inpFlPanelWarVal", "Placeholder")
+    for gone in ("conFlPopModal", "conFlPopBackdrop", "btnFlPopClose"):
+        assert _ctrl(gone) is None, gone
+    assert "varFlPop" not in _text()
 
 
-def test_popup_closes_only_with_close():
-    assert _prop("btnFlPopClose", "OnSelect") == 'Set(varFlPop, "")'
-    assert _prop("btnFlPopClose", "Text") == '"Close"'
-    # Sloeret har ingen OnSelect - et tryk paa det lukker ikke.
-    assert "OnSelect" not in _ctrl("conFlPopBackdrop")["Properties"]
-    assert _prop("conFlPopModal", "Visible") == "IfError(!IsBlank(varFlPop), false)"
-    # Ny anmodning lukker den.
-    assert 'Set(varFlPop, "");' in _prop("btnFlNew", "OnSelect")
+def test_jump_folds_the_sections_before_it():
+    """Aabnet fra Manufacturer: sektionerne foer er foldet sammen bag
+    "Show all fields"; fra Warranty ogsaa Manufacturer."""
+    for key in ("Main", "Class", "Loc"):
+        assert '!(IfError(varFlPanelJump, "") in ["Mfr", "War"])' in _prop(f"conFlPanel{key}", "Visible")
+    assert '!(IfError(varFlPanelJump, "") in ["War"])' in _prop("conFlPanelMfr", "Visible")
+    for key in ("War", "TRM", "Ext"):
+        assert "varFlPanelJump" not in _prop(f"conFlPanel{key}", "Visible")
+    assert _prop("btnFlPanelShowAll", "OnSelect") == 'Set(varFlPanelJump, "")'
+    assert _children("conFlEditorSections")[0] == "btnFlPanelShowAll"
+    # Ny anmodning lukker panelet.
+    new = _prop("btnFlNew", "OnSelect")
+    assert "Set(varFlPanelOpen, false);" in new and 'Set(varFlPanelJump, "");' in new
 
 
 def test_row_status_lives_in_the_status_button_tooltip():
@@ -222,8 +235,7 @@ def test_popups_sit_inside_their_backdrop():
     sloeret daemper kun siden under."""
     top = _screen_children()
     for scrim, modal, vis in (
-            ("conFlClsBackdrop", "conFlClsModal", "IfError(varFlClsOpen, false)"),
-            ("conFlPopBackdrop", "conFlPopModal", "IfError(!IsBlank(varFlPop), false)")):
+            ("conFlClsBackdrop", "conFlClsModal", "IfError(varFlClsOpen, false)"),):
         assert scrim in top, scrim
         assert modal not in top, modal
         assert _children(scrim) == [modal], scrim
@@ -237,8 +249,10 @@ def test_popups_sit_inside_their_backdrop():
         props = _ctrl(modal)["Properties"]
         assert "X" not in props and "Y" not in props, modal
         assert _prop(modal, "Fill") == "C.'bg-modal'"
-    # Som paa de andre skaerme: popupperne under sidebarens aabne panel.
-    assert top.index("conFlPopBackdrop") < top.index("conFlNavOpen")
+    # Issue #278: Class data-popuppen og dens sloer ligger OVER raekkens
+    # sidepanel (og sidebaren), saa panelet ikke daekker popuppen og Apply.
+    assert top.index("conFlClsBackdrop") > top.index("conFlEditorPanel")
+    assert top.index("conFlClsBackdrop") > top.index("conFlNavOpen")
     assert top.index("conFlClsBackdrop") > top.index("conFlRoot")
 
 

@@ -52,7 +52,14 @@ WARNS = 'CountRows(Filter(colFlRows, Status = "warning"))'
 # FL68: Submit kun med en frisk, fejlfri validering og mindst een klar raekke.
 SUBMIT_OK = (f'!varFlStale && {ERRS} = 0 && {READY} > 0 && '
              f'varFlStatus <> "Indsendt" && !varFlViewOnly')
-SUBMIT_DM = f"If({SUBMIT_OK}, DisplayMode.Edit, DisplayMode.Disabled)"
+# SUBMIT KAN ALTID TRYKKES, NAAR ANMODNINGEN KAN AENDRES (issue #277/#278).
+# Foer var knappen deaktiveret, saa snart SUBMIT_OK var falsk - en fejl i
+# en raekke, ingen klar raekke, eller en validering, der ikke var faerdig
+# (varFlStale). Et tryk gjorde saa ingenting, og forklaringen stod kun i
+# tooltippen, som en touch-skaerm aldrig viser. Nu siger et tryk altid
+# noget: bekraeftelsen, eller hvorfor den er blokeret (submit_click_fx).
+SUBMIT_DM = ('If(varFlViewOnly || varFlStatus = "Indsendt", '
+             'DisplayMode.Disabled, DisplayMode.Edit)')
 SUBMIT_WHY = (f'If(varFlStatus = "Indsendt", "Request " & varFlRequestNo & " is submitted and locked.",\n'
               f'   varFlStale, "The rows are being checked - try again in a moment.",\n'
               f'   {ERRS} > 0, "Submit is blocked: " & {dt.plural(ERRS, "row has", "rows have")} & " errors.",\n'
@@ -345,19 +352,60 @@ def payload_fx():
 )"""
 
 
+def submit_block_fx():
+    """Blokeret: beskeden som advarsel OG under raekkerne (varFlInfo)."""
+    return (f"Set(varFlInfo, {SUBMIT_WHY});\n"
+            "Notify(varFlInfo, NotificationType.Warning)")
+
+
+def submit_click_fx():
+    """Submit-knappen (bjaelken og bundbjaelken). Er valideringen ikke
+    faerdig (varFlStale), koeres den foerst, og svaret gives bagefter
+    (submit_after_verify) - Select koerer efter denne formel."""
+    return (f"If(\n"
+            f"    {SUBMIT_OK},\n"
+            f"    Set(varFlInfo, \"\");\n"
+            f"    Set(varFlConfirmSubmit, true),\n"
+            f"    varFlStale && !varFlViewOnly && varFlStatus <> \"Indsendt\",\n"
+            f"    Set(varFlSubmitAsk, true);\n"
+            f"    Select(btnFlVerify),\n"
+            f"    {submit_block_fx()}\n"
+            f")")
+
+
+def submit_after_verify():
+    """Sidst i valideringen (fl_validation.verify_fx, after): blev den
+    startet af Submit, svarer Submit nu - med en frisk validering."""
+    return (f"If(IfError(varFlSubmitAsk, false),\n"
+            f"    Set(varFlSubmitAsk, false);\n"
+            f"    If({SUBMIT_OK}, Set(varFlInfo, \"\"); Set(varFlConfirmSubmit, true), "
+            f"{submit_block_fx()})\n"
+            f")")
+
+
 def submit_fx():
     """Indsend: gem, snapshot, status Indsendt - i den raekkefoelge."""
     return f"""If(
     !({SUBMIT_OK}),
-    Notify({SUBMIT_WHY}, NotificationType.Warning),
+    {submit_block_fx().replace(chr(10), chr(10) + "    ")},
 
     {save_fx(notify=False).replace(chr(10), chr(10) + "    ")};
 
     If(
         CountRows(colFlSaveErrors) = 0,
-        Set(varFlPayload, {payload_fx().replace(chr(10), chr(10) + "        ")});
+        // Kan snapshottet ikke dannes, siges det - ellers stoppede
+        // indsendelsen her uden et ord (issue #277).
+        IfError(
+            Set(varFlPayload, {payload_fx().replace(chr(10), chr(10) + "            ")});
+            true,
+            Set(varFlPayload, "");
+            false
+        );
         // PayloadJson er en Note-kolonne - samme loft som i 04-submit-patch.fx.
         If(
+            IsBlank(varFlPayload),
+            Set(varFlInfo, "Submit failed: the JSON snapshot could not be built.");
+            Notify(varFlInfo, NotificationType.Error),
             Len(varFlPayload) > 60000,
             Notify("The request is too large to submit in one piece. Split it into more requests.", NotificationType.Error),
             IfError(

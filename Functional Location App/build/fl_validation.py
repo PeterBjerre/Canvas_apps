@@ -427,14 +427,18 @@ TABS = f"""ClearCollect(
 If(varFlTab <> "ALL" && IsBlank(LookUp(colFlTabs, Key = varFlTab)), Set(varFlTab, "ALL"))"""
 
 
-def verify_fx(det_items, after=None):
+def verify_fx(panel_fx, after=None):
     """btnFlVerify.OnSelect - HELE valideringen. Knappen er skjult; hver
     aendring kalder den med Select(btnFlVerify) (docs/31 PX7, issue #77).
 
-    det_items er Manufacturer/Warranty-popuppens felter for dens raekke
-    (fl_parts.DET_ITEMS, issue #232). De regnes om her, fordi vaerdierne og beskederne
-    lige er aendret. after koerer til sidst - Class data-popuppens Apply
-    (fl_parts.CLS_AFTER_VERIFY, issue #184) laeser resultatet dér."""
+    panel_fx holder sidepanelet i trit med raekken (fl_parts.PANEL_REFRESH,
+    issue #278). Panelets felter laeser vaerdier og beskeder direkte, saa
+    det goer kun noget, naar raekkens klasse er skiftet (felterne er nogle
+    andre). Foer regnede afsnit H panelets samling om med Manufacturer/
+    Warranty-felterne efter HVER aendring - saa forsvandt alle andre felter
+    fra panelet, mens man skrev. after koerer til sidst - Class data-
+    popuppens Apply (fl_parts.CLS_AFTER_VERIFY, issue #184) og Submit
+    (fl_save.submit_after_verify) laeser resultatet dér."""
     return ";\n\n".join([
         "// A. Dubletterne een gang (FL5)\n" + DUPS,
         "// B. Syntaks, klasse og raekkebeskeder (FL4-FL24)\n" + calc_rows(),
@@ -443,12 +447,7 @@ def verify_fx(det_items, after=None):
         "// E. Status, foerste besked og galleriets kolonner (FL25, FL26)\n" + status_fx(),
         "// F. TRM og ABC (FL48, FL49)\n" + TRM_SET,
         "// G. Klassefanerne (FL28)\n" + TABS,
-        "// H. Popuppens felter (issue #232): dens raekke - eller den foerste,\n"
-        "// naar den valgte ikke findes (slettet, ny anmodning, indlaest) -\n"
-        "// med vaerdier og beskeder, der lige er regnet om (fl_parts.DET_ITEMS).\n"
-        "If(IsBlank(LookUp(colFlRows, RowGuid = varFlDetailRow)),\n"
-        "    Set(varFlDetailRow, First(Sort(colFlRows, RowNo)).RowGuid));\n"
-        "ClearCollect(colFlDet, " + det_items + ")",
+        "// H. Sidepanelet (issue #278): nye felter KUN ved en ny klasse.\n" + panel_fx,
         "// I. Faerdig. varFlStale styrer Submit (FL68).\n"
         "Set(varFlStale, false)",
     ] + ([after] if after else []))
