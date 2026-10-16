@@ -98,7 +98,11 @@ ITEM_FIELDS = [
     ("ShortText", "IT.Title"),
     ("FunctionalLocation", "IT.FunctionalLocation"),
     ("FlDescription", '""'),
-    ("MainWorkCenter", "IT.MainWorkCenter.Value"),
+    # Titlen i MainWorkCenters er polstret med mellemrum ("AVVAP   "), og
+    # colVhpMainWorkCenters er trimmet. Uden Trim fandt dropdownen og
+    # gemningen ikke arbejdscentret, saa et genaabnet item stod tomt og
+    # Save draft fejlede paa den paakraevede kolonne.
+    ("MainWorkCenter", 'Trim(IT.MainWorkCenter.Value)'),
     ("ActivityType", "IT.MaintenanceActivityType.Value"),
     ("ObjectList", "IT.ObjectList"),
     # Den gamle app gemte maerket i den boolske Revision, ikke i
