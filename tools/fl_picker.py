@@ -45,8 +45,8 @@ laegger derfor teksten i query_var, saa laenge der staar noget.
 KNAPPEN MENS FLOWET KOERER
 --------------------------
 Knappen staar STILLE: samme bredde, hoejde og plads i alle tilstande. Mens
-flowet koerer, er den deaktiveret og uden tekst, og EEN ModernSpinner
-drejer i en fast plads lige til hoejre for den. Pladsen er der altid, saa
+flowet koerer, er den skjult, og EEN ModernSpinner med "Searching..."
+drejer i dens faste plads (issue #302). Pladsen er der altid, saa
 intet i raekken flytter sig, naar spinneren kommer og gaar. Ingen prikker,
 ingen fuldskaerms-spinner, ingen spinner inde i knappen.
 
@@ -61,10 +61,9 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from gen_screen import Ctrl, C_CARD_BORDER, C_DISABLED_BG, C_MUTED
-from design_tokens import ref_hex
 import layout_tokens as lay
 from build_helpers import (button, group, grow, border_rule, input_theme,
-                           fit_button_width, text_ctrl, label_px)
+                           fit_button_width, text_ctrl, spinner)
 import build_flsearch as fl
 
 PLACEHOLDER = f'"At least {fl.MIN_SEARCH_LEN} characters, e.g. SSV13 HFC"'
@@ -72,7 +71,7 @@ SEARCH_W = fit_button_width('"Search"', min_w=0) - 12
 HEIGHT = 36
 # Luft over og under raekken, saa knappens fokusring ikke klippes.
 ROW_PAD = 2
-# Spinnerens stoerrelse i den optagede knap.
+# Plads til hjulet ved siden af "Searching..." (Spinnerens eget hjul).
 SPIN = 20
 # Knappen og den optagede knap har SAMME bredde, saa intet flytter sig.
 BUSY_W = fit_button_width('"Searching..."') + SPIN + 8
@@ -123,43 +122,20 @@ def items_fx(results, busy_var, last_var, min_len=None):
 
 
 def busy_box(name, visible, label="Searching..."):
-    """Knappens afloeser mens soegningen koerer: EET billede med boksen, en
-    drejende spinner og teksten. Et billede, fordi en ModernSpinner i en
-    container ikke blev tegnet i Studio. Teksten staar som en streng for
-    sig selv, saa sprogvaelgeren (tools/i18n.py) kan oversaette den."""
-    w, h, r = BUSY_W, HEIGHT, lay.RADIUS_INPUT
-    cy, ring, gap = h // 2, 8, 8
-    # Spinner og tekst som en gruppe, centreret i boksen - som knappens tekst.
-    text_w = label_px(label, lay.SIZE_INPUT)
-    cx = (w - (2 * ring + gap + text_w)) / 2 + ring
-    hx = lambda t: '" & %s & "' % ref_hex(t)
-    svg = (f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h}' "
-           f"viewBox='0 0 {w} {h}'>"
-           f"<rect x='0.5' y='0.5' width='{w - 1}' height='{h - 1}' rx='{r}' "
-           f"fill='{hx('state-neutral-bg')}' stroke='{hx('border-default')}'/>"
-           f"<circle cx='{cx}' cy='{cy}' r='{ring}' fill='none' stroke='{hx('border-default')}' "
-           f"stroke-width='2.5'/>"
-           f"<circle cx='{cx}' cy='{cy}' r='{ring}' fill='none' stroke='{hx('state-info-fg')}' "
-           f"stroke-width='2.5' stroke-linecap='round' stroke-dasharray='14 40'>"
-           f"<animateTransform attributeName='transform' type='rotate' "
-           f"from='0 {cx} {cy}' to='360 {cx} {cy}' dur='0.8s' repeatCount='indefinite'/>"
-           f"</circle>"
-           f"<text x='{cx + ring + gap}' y='{cy + 5}' font-family='Segoe UI, sans-serif' "
-           f"font-size='{lay.SIZE_INPUT}' font-weight='600' fill='{hx('text-primary')}'>"
-           f'" & "{label}" & "</text></svg>')
-    return Ctrl(name, "Image", props={
-        "AccessibleLabel": '"Searching"',
-        "BorderStyle": "BorderStyle.None",
-        "BorderThickness": "0",
-        "Height": str(h),
-        "Image": f'"data:image/svg+xml;utf8," & EncodeUrl("{svg}")',
-        "ImagePosition": "ImagePosition.Fit",
-        "LayoutMinWidth": str(w),
-        "OnSelect": "false",
-        "TabIndex": "0",
-        "Visible": visible,
-        "Width": str(w),
-    }, h=h, vis=visible)
+    """Knappens afloeser mens soegningen koerer: den moderne Spinner med
+    teksten til hoejre (issue #302), i knappens faste plads (BUSY_W x
+    HEIGHT), saa intet i raekken flytter sig.
+
+    Foer var det EET billede med en knapformet boks, et drejende SVG-hjul
+    og teksten, fordi en tidlig ModernSpinner (20 x 20, uden tekst) i en
+    container ikke blev tegnet i Studio. Nu er hjul og tekst EN kontrol med
+    plads til begge; boksen er vaek - Spinneren har ingen fyld eller kant.
+    Teksten staar stadig som en streng for sig selv, saa den kan
+    oversaettes."""
+    spin = spinner(name, visible, '"Searching"', width=BUSY_W, height=HEIGHT,
+                   label=f'"{label}"', size=lay.SIZE_INPUT, weight="Semibold")
+    spin.props["LayoutMinWidth"] = str(BUSY_W)
+    return spin
 
 
 def _timer(name, start, duration, on_end):
@@ -335,10 +311,10 @@ def fl_picker(prefix, *, combo, results, raw_var, msg_var, busy_var, query_var,
     if stack_search:
         btn.props["AlignInContainer"] = f"If({stk}, AlignInContainer.Start, AlignInContainer.Center)"
 
-    # Mens soegningen koerer, er knappen skiftet ud med et billede af samme
-    # stoerrelse og form: en drejende spinner og "Searching...". Kun een af
-    # dem er synlig, saa intet i raekken flytter sig.
-    busy = busy_box(f"img{prefix}{kind}Busy", busy_var)
+    # Mens soegningen koerer, er knappen skiftet ud med en Spinner i samme
+    # plads: hjulet og "Searching...". Kun een af dem er synlig, saa intet i
+    # raekken flytter sig.
+    busy = busy_box(f"spn{prefix}{kind}Busy", busy_var)
 
     row_kids = [cmb, btn, busy, *trail]
     if stack_search and trail:

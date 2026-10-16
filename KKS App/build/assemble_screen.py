@@ -33,7 +33,7 @@ def build_screen(render=render_screen):
     nav, overlay = side_nav("Kks", cfg.APP_KEY)
     # Ventespinneren ligger oeverst, mens noeglerne hentes.
     return render(cfg.SCREEN, {"Fill": C_APP_BG, "OnVisible": P.on_visible()},
-                  [root, *nav, *overlay, *P.build_picker(), *P.build_detail(), P.build_loading()])
+                  [root, *nav, *overlay, *P.build_picker(), *P.build_detail(), *P.build_loading()])
 
 
 def main():
