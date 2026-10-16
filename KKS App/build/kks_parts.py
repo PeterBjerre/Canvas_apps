@@ -124,6 +124,18 @@ def row_h(ref):
 CLEAR_LEVELS = 'Set(varKksL1, "ALL");\nSet(varKksL2, "");\nSet(varKksL3, "")'
 CLEAR_QUERY = 'Set(varKksQuery, "");\nReset(inpKksFind)'
 
+# FL-soegningens popup (issue #295) - dens EGNE variabler, saa aabning og
+# lukning aldrig roerer KKS-filtrene, den valgte kode eller resultaterne.
+FL_OPEN = "varKksFlOn"
+FL_INIT = (
+    'Set(varKksFlOn, false);\n'
+    'Set(varKksFlBusy, false);\n'
+    'Set(varKksFlQuery, "");\n'
+    'Set(varKksFlLast, "");\n'
+    'Set(varKksFlMsg, "");\n'
+    'Set(varKksFlPick, "")'
+)
+
 # Foerste besoeg: tilstanden saettes, hvis den ikke findes. Staar i
 # skaermens OnVisible og ikke i App.OnStart, saa den ogsaa gaelder i BIO
 # SAP, hvor App.OnStart ikke kender domaenerne.
@@ -136,7 +148,8 @@ INIT_STATE = (
     '    Set(varKksDetailCode, "");\n'
     '    Set(varKksDetailText, "");\n'
     '    Set(varKksDetailOn, false);\n'
-    '    Set(varKksPick, 0)\n'
+    '    Set(varKksPick, 0);\n'
+    "    " + FL_INIT.replace("\n", "\n    ") + "\n"
     ")"
 )
 
@@ -215,11 +228,15 @@ def on_visible():
 ROW = {"L1": '""', "Code": '""', "Description": '""', "P2": '""', "P3": '""'}
 RAW = {"Code": '""', "Description": '""'}
 FN = {"Ord": "0", "Section": '""', "Code": '""', "Description": '""'}
+# FL-soegningens resultat - samme skema som colDomFl (tools/build_flsearch.py).
+FL = {"Code": '""', "Description": '""', "Display": '""', "Maintainable": "false",
+      "Level": '""'}
 
 
 def collections():
     out = [("colKksFunction", ROW), ("colKksAggregate", ROW), ("colKksComponent", ROW),
-           ("colKksAggregateRaw", RAW), ("colKksComponentRaw", RAW), ("colKksFnAll", FN)]
+           ("colKksAggregateRaw", RAW), ("colKksComponentRaw", RAW), ("colKksFnAll", FN),
+           ("colKksFl", FL)]
     out += [(f"colKksFn{i + 1}", FN) for i in range(cfg.chunk_count())]
     return out
 
@@ -340,7 +357,33 @@ def _key_tabs():
         b.props["Width"] = f"If({lay.below('Tablet')}, ({CARD_W} - 16) / 3, {TAB_W})"
         b.props["LayoutMinWidth"] = b.props["Width"]
         tabs.append(_selected(b, f'varKksKey = "{key}"', radius=14))
-    return flow_row("conKksKeys", tabs, CARD_W, gap=8)
+    keys = flow_row("conKksKeys", tabs, CARD_W, gap=8)
+    # Saa bred som fanerne - saa kan FL-knappen staa til hoejre for dem.
+    keys.props["Width"] = (f"If({lay.below('Tablet')}, {CARD_W}, "
+                           f"{len(tabs)} * {TAB_W} + {8 * (len(tabs) - 1)})")
+    return keys
+
+
+FL_BTN_TEXT = '"Search Functional Locations"'
+FL_BTN_W = fit_button_width(FL_BTN_TEXT, size=lay.SIZE_SMALL) + 24     # + Search-ikonet
+
+
+def _fl_button():
+    """Knappen, der aabner FL-soegningen (issue #295). Den roerer intet af
+    KKS-opslagets tilstand."""
+    b = button("btnKksFlOpen", FL_BTN_TEXT, f"Set({FL_OPEN}, true)",
+               width=FL_BTN_W, height=32, icon="Search",
+               accessible='"Search Functional Locations in SAP"')
+    b.props["Size"] = str(lay.SIZE_SMALL)
+    return _soft(b)
+
+
+def _top_row():
+    """Function / Aggregate / Component til venstre og FL-soegningen yderst
+    til hoejre. Er der ikke plads paa een linje (telefon og smal tablet),
+    staar knappen i fuld bredde under fanerne (flow_row)."""
+    return flow_row("conKksTopRow", [_key_tabs(), _fl_button()], CARD_W, gap=8,
+                    justify="SpaceBetween")
 
 
 SEARCH_MIN = 2
@@ -557,7 +600,7 @@ def build_browse():
     for m in (m1, m2):
         m.props["Visible"] = below("Tablet")
         m.vis = m.props["Visible"]
-    return card("conKksBrowseCard", [_key_tabs(), l1, l2, l3, m1, m2, m3, _search_row()], gap=12)
+    return card("conKksBrowseCard", [_top_row(), l1, l2, l3, m1, m2, m3, _search_row()], gap=12)
 
 
 # Et klik paa en raekke gaar til dens plads i hierarkiet og rydder
@@ -691,3 +734,74 @@ def build_detail():
 
 def build_loading():
     return loading_overlay("imgKksLoading", "varKksLoading", "Loading KKS keys, please wait")
+
+
+# ---------------------------------------------------------------------------
+# FL-soegningen (issue #295)
+# ---------------------------------------------------------------------------
+# DEN SAMME live-soegning som i VH-plan, Equipments og Materials:
+# tools/fl_picker.py (comboboks + Search + spinner, minimumslaengde og
+# beskeder) og flowet i tools/build_flsearch.py. Intet er skrevet om - kun
+# navnene er KKS-opslagets egne (Kks-praefikset), saa en soegning her aldrig
+# roerer en anden skaerms vaelger. KKS-filtrene, den valgte kode og
+# resultaterne staar uroert, naar popuppen aabnes og lukkes.
+FL_W = "Min(560, App.Width - 24)"
+FL_IN_W = f"({FL_W} - 36)"
+FL_PICK = "varKksFlPick"
+FL_SEL = f"LookUp(colKksFl, Code = {FL_PICK})"
+
+
+def build_fl_search():
+    """[sloer, popup]. Ligger efter sidebarens panel og de andre popups i
+    skaermens boern - altsaa oven paa dem; kun ventespinneren ligger hoejere."""
+    from build_helpers import tap_backdrop, popup_head
+    from fl_picker import fl_picker
+    vis = f"IfError({FL_OPEN}, false)"
+    close = f"Set({FL_OPEN}, false)"
+    backdrop = tap_backdrop("conKksFlBackdrop", vis, close)
+    title = text_ctrl("txtKksFlTitle", '"Search Functional Locations"',
+                      size=lay.SIZE_CARD_TITLE, weight="Semibold", height=26, wrap="false")
+    head = popup_head("conKksFlHead", title, "btnKksFlClose", close,
+                      accessible='"Close the Functional Location search"')
+    intro = text_ctrl("txtKksFlIntro",
+                      '"Live search in SAP, independent of the KKS selection."',
+                      size=lay.SIZE_SMALL, color=C_MUTED, height=36, wrap="true")
+    picker = fl_picker(
+        "Kks", combo="cmbKksFl", results="colKksFl", raw_var="varKksFlRaw",
+        msg_var="varKksFlMsg", busy_var="varKksFlBusy", query_var="varKksFlQuery",
+        last_var="varKksFlLast", pick_var=FL_PICK,
+        default_items=f"Filter(colKksFl, Code = {FL_PICK})",
+        display_mode="DisplayMode.Edit", width=FL_IN_W, stack_search=True)
+    # Beskeden under feltet - som i domaeneapperne, men ombrudt: popuppen er
+    # smal paa en telefon.
+    per_line = f"Max(20, RoundDown({FL_IN_W} / 7, 0))"
+    msg_h = f"Max(1, RoundUp(Len(varKksFlMsg) / {per_line}, 0)) * 18"
+    msg = text_ctrl("txtKksFlMsg", "varKksFlMsg", size=12, color=C_MUTED,
+                    height=msg_h, wrap="true", visible="!IsBlank(varKksFlMsg)")
+    # Det valgte resultat med en kopier-knap - som KKS-tabellens raekker.
+    sel_text = (f'{FL_PICK} & With({{d: {FL_SEL}}}, If(IsBlank(d.Description), "", '
+                f'" - " & d.Description) & If(!IsBlank(d.Code) && !d.Maintainable, '
+                f'"   (not maintainable)", ""))')
+    copy_w = hit_size(COPY_W)
+    sel_w = f"({FL_IN_W} - 2 * {ROW_PAD} - {copy_w} - {ROW_GAP})"
+    sel_lines = f"Max(1, RoundUp(Len({sel_text}) / Max(14, RoundDown({sel_w} / 7.5, 0)), 0))"
+    sel = text_ctrl("txtKksFlSelected", sel_text, size=lay.SIZE_BODY, weight="Semibold",
+                    wrap="true", height=f"{sel_lines} * {LINE_H} + 1", width=sel_w)
+    copy = button("btnKksFlCopy", '""',
+                  f'Copy({FL_PICK});\nNotify("Copied " & {FL_PICK} & " to the clipboard.", '
+                  'NotificationType.Success)',
+                  width=COPY_W, height=COPY_W, icon="Copy",
+                  accessible=f'"Copy " & {FL_PICK}', tooltip=f'"Copy " & {FL_PICK}')
+    copy.props["Layout"] = "ButtonLayout.IconOnly"
+    copy.props["BorderColor"] = C_TRANSPARENT
+    ensure_hit(copy)
+    selected = group("conKksFlSelected", [sel, copy], direction="Horizontal", gap=ROW_GAP,
+                     align_items="Start", fill=C_MUTED_BG, border_color=C_DIVIDER, radius=10,
+                     pad=(6, ROW_PAD, 6, ROW_PAD), visible=f"!IsBlank({FL_PICK})")
+    modal = group("conKksFlModal", [head, intro, picker, msg, selected], direction="Vertical",
+                  gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT,
+                  radius=lay.RADIUS_MODAL, pad=(18, 18, 18, 18), width=FL_W,
+                  drop_shadow="ExtraBold", visible=vis)
+    modal.props["X"] = "(App.Width - Self.Width) / 2"
+    modal.props["Y"] = "Max(12, (App.Height - Self.Height) / 4)"
+    return [backdrop, modal]

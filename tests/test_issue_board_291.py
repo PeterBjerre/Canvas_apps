@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """Issue #291: Issue Boardets vaerktoejslinje paa to raekker.
 
-Linje 1: kontakterne (scope og tilstand) og sorteringen alene til hoejre.
+Linje 1: kontakterne (scope og tilstand) og sorteringen (issue #301: kort
+efter kontakterne, ikke yderst til hoejre).
 Linje 2: soegefeltet, Application, Section, Status og Priority.
 Kun een taeller under filtrene - admin-statistiklinjen er vaek."""
 import os
@@ -22,16 +23,16 @@ def _names(ctrls):
 def test_toolbar_rows_have_the_requested_order():
     import ib_parts as P
     top, filters = P.build_filters()
-    assert _names(top.children) == ["conIbScope", "conIbState", "rctIbTbSpacer", "drpIbSort"]
+    assert _names(top.children) == ["conIbScope", "conIbState", "rctIbTbSortGap", "drpIbSort"]
     assert _names(filters.children) == ["conIbSearchRow", "conIbFltPairA", "conIbFltPairB"]
     pairs = [c for p in filters.children[1:] for c in p.children]
     assert _names(pairs) == ["drpIbFltApp", "drpIbFltSection", "drpIbFltStatus", "drpIbFltPriority"]
     # Section er altid synlig (kun laast, til en Application er valgt).
     assert "Visible" not in pairs[1].props
-    # Sorteringen skilles fra kontakterne af fyldet, der tager resten -
-    # kun naar linjen staar vandret.
-    spacer = top.children[2]
-    assert spacer._grow is not None and spacer.props["Visible"] == P.TOP_OK
+    # Sorteringen skilles fra kontakterne af en fast luft - kun naar linjen
+    # staar vandret (issue #301: intet fyld, der skubber den til hoejre).
+    gap = top.children[2]
+    assert gap._grow is None and gap.props["Visible"] == P.TOP_OK
 
 
 def test_both_rows_fit_on_one_line_from_desktop():
