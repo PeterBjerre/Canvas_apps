@@ -42,8 +42,56 @@ def test_the_summary_wraps_and_its_height_follows_the_text():
 
 def test_show_stays_in_the_folded_header():
     y, _ = _summary()
-    top = _block(y, "conVhpPlanFoldTop", 20000)
-    assert "- btnVhpPlanShow:" in top
     show = _block(y, "btnVhpPlanShow", 3000)
     assert '"Show the plan header fields"' in show
     assert "Set(varVhpPlanShow, !IfError(varVhpPlanShow, false))" in show
+
+
+def _children(block):
+    """Navnene paa de direkte boern i en container-blok."""
+    lines = block[block.index("Children:"):].splitlines()[1:]
+    ind = len(lines[0]) - len(lines[0].lstrip())
+    out = []
+    for ln in lines:
+        if not ln.strip():
+            continue
+        cur = len(ln) - len(ln.lstrip())
+        if cur < ind:
+            break
+        if cur == ind and ln.lstrip().startswith("- "):
+            out.append(ln.strip()[2:].rstrip(":"))
+    return out
+
+
+def test_show_sits_right_of_the_summary_not_in_the_title_row():
+    """Issue #292: Show (med chevron) staar hoejrestillet i samme raekke som
+    resumeet, lodret centreret - titelraekken er kun ikon og titel."""
+    y, _ = _summary()
+    top = _block(y, "conVhpPlanFoldTop", 20000)
+    assert _children(top) == ["imgVhpPlanFoldStatus", "txtVhpPlanFoldTitle"]
+    body = _block(y, "conVhpPlanFoldBody", 40000)
+    assert _children(body) == ["txtVhpPlanFoldSummary", "btnVhpPlanShow"]
+    head = body[:body.index("Children:")]
+    assert "LayoutDirection.Horizontal" in head
+    assert "LayoutAlignItems.Center" in head
+    assert "LayoutJustifyContent.SpaceBetween" in head
+    row = _block(y, "conVhpPlanFoldRow", 40000)
+    assert _children(row) == ["conVhpPlanFoldTop", "conVhpPlanFoldBody"]
+    show = _block(y, "btnVhpPlanShow", 3000)
+    assert "AlignInContainer.Center" in show
+
+
+def test_summary_width_and_height_leave_room_for_show():
+    """Resumeet er kortets bredde minus Show (96) og gap (8), og hoejden
+    regnes af den smallere bredde. Raekken er mindst knappens hoejde - ingen
+    ekstra raekke. Paa en telefon falder indrykningen bort."""
+    y, s = _summary()
+    w = s[s.index(" Width:"):s.index(" Width:") + 200]
+    assert "- 96 - 8)" in w
+    h = s[s.index("Height:"):s.index("Height:") + 300]
+    assert "- 96 - 8) - If(LayoutRank < 2, 0, 30))" in h
+    pad = s[s.index("PaddingLeft:"):s.index("PaddingLeft:") + 160]
+    assert "If(LayoutRank < 2, 0, 30)" in pad
+    body = _block(y, "conVhpPlanFoldBody", 2000)
+    bh = body[body.index("Height:"):body.index("Height:") + 400]
+    assert "(36))" in bh and "Len(txtVhpPlanFoldSummary.Text)" in bh
