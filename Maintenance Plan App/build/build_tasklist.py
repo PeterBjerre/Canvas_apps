@@ -188,7 +188,9 @@ def matgrp_button(name, op, op_no, width):
         accessible=f'"Material group for operation " & {op_no} & ": " & Coalesce({v}, "none")',
         tooltip=f'If(IsBlank({v}), "Select a material group", {matgrp_display(v)})')
     btn.props["Size"] = "12"
-    mark_done(btn, f"!IsBlank({v})")
+    # Issue #293: et almindeligt valgfelt, ikke en long text-knap - derfor
+    # ingen groen "udfyldt"-kant (mark_done). Den neutrale outline-kant fra
+    # button() bruges, uanset om der er valgt noget.
     return btn
 
 
@@ -773,7 +775,7 @@ def vendor_button(name, op, op_no, width, chars=12):
         accessible=f'"Vendor for operation " & {op_no} & ": " & Coalesce({v}, "none")',
         tooltip=f'If(IsBlank({v}), "Search for a vendor", {v})')
     btn.props["Size"] = "12"
-    mark_done(btn, f"!IsBlank({v})")
+    # Issue #293: neutral kant som et almindeligt valgfelt (ingen mark_done).
     return btn
 
 
