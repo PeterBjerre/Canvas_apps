@@ -9486,27 +9486,27 @@ Screens:
                                                           =!varEqFlBusy
                                                       Width: |-
                                                           =154
-                                                - imgEqFlBusy:
-                                                    Control: Image
+                                                - spnEqFlBusy:
+                                                    Control: ModernSpinner@1.1.0
                                                     Properties:
                                                       AccessibleLabel: |-
                                                           ="Searching"
-                                                      BorderStyle: |-
-                                                          =BorderStyle.None
-                                                      BorderThickness: |-
-                                                          =0
+                                                      BasePaletteColor: |-
+                                                          =C.'color-brand-primary'
+                                                      Color: |-
+                                                          =C.'text-primary'
+                                                      Font: |-
+                                                          =Font.'Segoe UI'
+                                                      FontWeight: |-
+                                                          =FontWeight.Semibold
                                                       Height: |-
                                                           =36
-                                                      Image: |-
-                                                          ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='154' height='36' viewBox='0 0 154 36'><rect x='0.5' y='0.5' width='153' height='35' rx='10' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='34.0' cy='18' r='8' fill='none' stroke='" & C.'hex-border-default' & "' stroke-width='2.5'/><circle cx='34.0' cy='18' r='8' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2.5' stroke-linecap='round' stroke-dasharray='14 40'><animateTransform attributeName='transform' type='rotate' from='0 34.0 18' to='360 34.0 18' dur='0.8s' repeatCount='indefinite'/></circle><text x='50.0' y='23' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Searching..." & "</text></svg>")
-                                                      ImagePosition: |-
-                                                          =ImagePosition.Fit
+                                                      Label: |-
+                                                          ="Searching..."
                                                       LayoutMinWidth: |-
                                                           =154
-                                                      OnSelect: |-
-                                                          =false
-                                                      TabIndex: |-
-                                                          =0
+                                                      Size: |-
+                                                          =T.input
                                                       Visible: |-
                                                           =varEqFlBusy
                                                       Width: |-
@@ -13831,9 +13831,7 @@ Screens:
             HoverFill: |-
                 =C.'overlay'
             Image: |-
-                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><style>.f{opacity:0;animation:f .2s ease-out 0.15s forwards}.s{transform-origin:32px 32px;animation:s .9s linear infinite}@keyframes f{to{opacity:1}}@keyframes s{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.s{animation:none}}</style><g class='f' transform='translate(0 0)'><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path class='s' d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'/></g></svg>")
-            ImagePosition: |-
-                =ImagePosition.Center
+                =""
             PressedFill: |-
                 =C.'overlay'
             TabIndex: |-
@@ -13846,6 +13844,29 @@ Screens:
                 =0
             Y: |-
                 =0
+      - spnEqSaving:
+          Control: ModernSpinner@1.1.0
+          Properties:
+            AccessibleLabel: |-
+                ="Saving, please wait"
+            BasePaletteColor: |-
+                =C.'color-brand-primary'
+            Color: |-
+                =C.'text-primary'
+            Font: |-
+                =Font.'Segoe UI'
+            Height: |-
+                =64
+            Label: |-
+                =""
+            Visible: |-
+                =IfError(varEqSaving, false)
+            Width: |-
+                =64
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =(App.Height - Self.Height) / 2
       - btnEqOpen:
           Control: ModernButton
           Properties:
@@ -14236,7 +14257,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =178 + If(IfError(varEqLoadFailed, false), 6 + (36), 0)
+                =138 + If(!IfError(varEqLoadFailed, false), 0 + (40), 0) + If(IfError(varEqLoadFailed, false), 6 + (40), 0) + If(IfError(varEqLoadFailed, false), 6 + (36), 0)
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -14274,11 +14295,32 @@ Screens:
             Y: |-
                 =(App.Height - Self.Height) / 2
           Children:
+            - spnEqLoadIcon:
+                Control: ModernSpinner@1.1.0
+                Properties:
+                  AccessibleLabel: |-
+                      ="Loading"
+                  AlignInContainer: |-
+                      =AlignInContainer.Center
+                  BasePaletteColor: |-
+                      =C.'color-brand-primary'
+                  Color: |-
+                      =C.'text-primary'
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =40
+                  Label: |-
+                      =""
+                  Visible: |-
+                      =!IfError(varEqLoadFailed, false)
+                  Width: |-
+                      =40
             - imgEqLoadIcon:
                 Control: Image
                 Properties:
                   AccessibleLabel: |-
-                      =If(IfError(varEqLoadFailed, false), "Error", "Loading")
+                      ="Error"
                   AlignInContainer: |-
                       =AlignInContainer.Center
                   BorderStyle: |-
@@ -14288,11 +14330,13 @@ Screens:
                   Height: |-
                       =40
                   Image: |-
-                      =If(IfError(varEqLoadFailed, false), "data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><circle cx='20' cy='20' r='16' fill='none' stroke-width='3' stroke='" & C.'hex-state-error-fg' & "'/><path d='M20 12 V22' stroke='" & C.'hex-state-error-fg' & "' stroke-width='4' stroke-linecap='round'/><circle cx='20' cy='29' r='3' fill='" & C.'hex-state-error-fg' & "'/></svg>"), "data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><style>.f{opacity:0;animation:f .2s ease-out 0.15s forwards}.s{transform-origin:20px 20px;animation:s .9s linear infinite}@keyframes f{to{opacity:1}}@keyframes s{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.s{animation:none}}</style><g class='f' transform='translate(0 0)'><circle cx='20' cy='20' r='12' fill='none' stroke-width='4' stroke='" & C.'hex-state-neutral-bg' & "'/><path class='s' d='M20 8 a12 12 0 0 1 12 12' fill='none' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'/></g></svg>"))
+                      ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><circle cx='20' cy='20' r='16' fill='none' stroke-width='3' stroke='" & C.'hex-state-error-fg' & "'/><path d='M20 12 V22' stroke='" & C.'hex-state-error-fg' & "' stroke-width='4' stroke-linecap='round'/><circle cx='20' cy='29' r='3' fill='" & C.'hex-state-error-fg' & "'/></svg>")
                   ImagePosition: |-
                       =ImagePosition.Fit
                   TabIndex: |-
                       =0
+                  Visible: |-
+                      =IfError(varEqLoadFailed, false)
                   Width: |-
                       =40
             - txtEqLoadTitle:
