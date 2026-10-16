@@ -100,6 +100,45 @@ DM_PURCHASE = f'If({IS_PM02}, DisplayMode.Edit, DisplayMode.View)'
 IS_PM03 = 'Upper(Coalesce(ThisItem.ControlKey, "")) = "PM03"'
 
 
+# VAREGRUPPEN ER EN DROPDOWN (issue #267)
+#
+# Varegruppen paa en PM02-operation var et frit tekstfelt. Nu vaelges den
+# blandt varegrupperne i MD_MaterialGroup (colVhpMaterialGroups).
+#
+# Listen skal ogsaa kunne VISE en varegruppe, der ikke staar i den - fx
+# B09.03, som standardoperationen XELEK har med. Ellers stod cellen tom paa
+# de skrivebeskyttede PM03-linjer, og varegruppen saa ud til at vaere vaek,
+# selvom den bliver gemt. Samme greb som kontrolnoeglen: linjens egen vaerdi
+# laegges foerst i listen, naar den ikke findes der i forvejen.
+#
+# Sequence/Index og ikke Table(tabel, record): den form kender ikke alle
+# Power Fx-versioner (se colVhpNonFlowStatusOptions i sp_config.py).
+def matgrp_items(cur):
+    return ("With(\n"
+            f"    {{ cur: Trim(Coalesce({cur}, \"\")) }},\n"
+            "    With(\n"
+            "        { known: IsBlank(cur) || cur in colVhpMaterialGroups.Value },\n"
+            "        Filter(\n"
+            "            ForAll(\n"
+            "                Sequence(CountRows(colVhpMaterialGroups) + 1),\n"
+            "                If(\n"
+            "                    Value = 1,\n"
+            "                    { Value: If(known, \"\", cur), Display: cur },\n"
+            "                    Index(colVhpMaterialGroups, Value - 1)\n"
+            "                )\n"
+            "            ),\n"
+            "            !IsBlank(Value)\n"
+            "        )\n"
+            "    )\n"
+            ")")
+
+
+def matgrp_display(cur):
+    """Popup'ens tekst for den varegruppe, linjen har: koden og teksten,
+    eller koden alene, naar den ikke staar i listen."""
+    return f"Coalesce(LookUp(colVhpMaterialGroups, Value = {cur}).Display, {cur})"
+
+
 def cost_expr(work):
     return (f'If(\n'
             f'            {IS_PM03},\n'
@@ -650,10 +689,12 @@ def _op_detail_modal():
     price = number_field("inpVhpOpMCost", f"{OPM}.Cost", width=MODAL_CW, height=32,
                          display_mode=on_op(DM_PURCHASE), label='"Price"',
                          onchange=f"Patch(colVhpOperations, {OPM}, {{ Cost: {NV} }})")
-    matgrp = text_input("inpVhpOpMMatGrp", f"{OPM}.MaterialGroup", width=MODAL_CW, height=32,
-                        display_mode=on_op(DM_PURCHASE),
-                        onchange=f"Patch(colVhpOperations, {OPM}, {{ MaterialGroup: Self.Text }})",
-                        label='"Material group"')
+    matgrp = themed_dropdown("drpVhpOpMMatGrp", matgrp_items(f"{OPM}.MaterialGroup"),
+                             matgrp_display(f"{OPM}.MaterialGroup"),
+                             display_col="Display", width=MODAL_CW, height=32,
+                             display_mode=on_op(DM_PURCHASE), label='"Material group"',
+                             onchange=(f"Patch(colVhpOperations, {OPM}, "
+                                       "{ MaterialGroup: Self.Selected.Value })"))
     longtext = button(
         "btnVhpOpMLongText",
         (f'If(IsBlank(Trim(Coalesce({OPM}.LongText, ""))), "Add text...", '
@@ -1039,9 +1080,12 @@ def build_tasklist_section():
     numOpCost = number_field("inpVhpOpCost", "ThisItem.Cost", width=w["COST"], height=32,
                              display_mode=DM_PURCHASE, label="\"Price\"",
                              onchange=f"Patch(colVhpOperations, ThisItem, {{ Cost: {NV} }})")
-    txtOpMatGrp = text_input("inpVhpOpMatGrp", "ThisItem.MaterialGroup", width=w["MAT.GRP"],
-                             height=32, display_mode=DM_PURCHASE,
-                             onchange="Patch(colVhpOperations, ThisItem, { MaterialGroup: Self.Text })", label="\"Material group\"")
+    # Cellen er 90 px og viser koden alene; popup'en paa smalle skaerme
+    # viser ogsaa teksten. Se matgrp_items.
+    txtOpMatGrp = themed_dropdown(
+        "drpVhpOpMatGrp", matgrp_items("ThisItem.MaterialGroup"), "ThisItem.MaterialGroup",
+        width=w["MAT.GRP"], height=32, display_mode=DM_PURCHASE, label="\"Material group\"",
+        onchange="Patch(colVhpOperations, ThisItem, { MaterialGroup: Self.Selected.Value })")
     # Cellen viser begyndelsen af teksten; skrivningen sker i popup'en, hvor
     # der er plads til en instruktion. Reset FOER popup'en aabnes, saa feltet
     # viser den linje, man klikkede paa, og ikke den forrige.
