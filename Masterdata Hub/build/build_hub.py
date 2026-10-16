@@ -1280,10 +1280,12 @@ def build_list():
                       approval_flow.STRIP_H, label='"Approval progress"')
     approval.props["Tooltip"] = APPROVAL_TIP
     # Striben har en fast tegning; kolonnen kan vaere bredere (issue #178).
-    # Den staar midt i kolonnen (issue #274) - klikfladen flyttes med.
+    # Den staar ved kolonnens venstre kant, under overskriften (issue
+    # #290; foer midt i kolonnen, #274) - klikfladen flyttes med. Lodret
+    # er den stadig centreret i raekken.
     approval = group("conMdRowApr", [approval], direction="Horizontal", gap=0,
                      width=CWF["APPROVAL"], height=approval_flow.STRIP_H, align_items="Center",
-                     justify="Center")
+                     justify="Start")
 
     # Statussen er den faelles statuschip (tools/status_chip.py, UX-review
     # T4) - samme ikon, farve og tekst som i domaenerne og Issue Board.
@@ -1342,7 +1344,7 @@ def build_list():
         b.props["Y"] = "(Parent.TemplateHeight - 1 - Self.Height) / 2"
         b.props["Visible"] = f"{at_least('Wide')} && ({b.props['Visible']})"
     strip = approval_flow.strip_hits(
-        CW["APPROVAL"], f"{strip_x} + ({CWF['APPROVAL']} - {CW['APPROVAL']}) / 2",
+        CW["APPROVAL"], strip_x,
         compact={"x": str(ROW_PAD), "y": str(STRIP_Y_C + approval_flow.STRIP_H // 2 - 20),
                  "zone": "(Parent.TemplateWidth - 24) / 4"})
     compact_row, compact_strip = _compact_row(act)
@@ -1535,10 +1537,12 @@ def _compact_row(act):
                 visible=below("Wide"))
     strip = _image("imgMdRowApprovalC", _svg_uri(approval_flow.row_svg()), 0,
                    approval_flow.STRIP_H, label='"Approval progress"')
-    strip.props["Width"] = "Parent.TemplateWidth - 24"
+    # Kompakt (tablet) staar striben ogsaa til venstre (issue #290), under
+    # raekkens tekst: tegningens egen bredde fra ROW_PAD i stedet for en
+    # strakt flade, hvor tegningen blev centreret.
+    strip.props["Width"] = str(approval_flow.STRIP_W)
     strip.props["X"] = str(ROW_PAD)
     strip.props["Y"] = str(STRIP_Y_C)
-    strip.props["ImagePosition"] = "ImagePosition.Stretch"
     strip.props["Visible"] = f"{below('Wide')} && {at_least('Tablet')}"
     strip.vis = strip.props["Visible"]
     return row, strip
