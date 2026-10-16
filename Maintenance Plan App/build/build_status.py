@@ -190,6 +190,18 @@ RULES = [
          ")",
          REF + " & \", operation \" & OperationNo &\n"
          "    \": fill in the material group - control key PM02 requires one.\"")),
+    # PM02-BELOEBET (Peter 2026-10-16): en ny PM02-linje stod med 0, og 0
+    # er et tal, saa intet holdt Submit tilbage. Beloebet skal vaere
+    # stoerre end 0 - det er rekvisitionens pris.
+    ("Ops", "pm02_cost",
+     _per_row(
+         "Filter(\n"
+         "    colVhpOperations,\n"
+         "    Upper(Trim(Coalesce(ControlKey, \"\"))) = \"PM02\" &&\n"
+         "    Coalesce(Cost, 0) <= 0\n"
+         ")",
+         REF + " & \", operation \" & OperationNo &\n"
+         "    \": fill in the cost - control key PM02 requires an amount above 0.\"")),
 ]
 SECTIONS = ("Plan", "Item", "Ops")
 
