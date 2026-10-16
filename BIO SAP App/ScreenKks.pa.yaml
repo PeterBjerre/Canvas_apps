@@ -10,6 +10,7 @@ Screens:
           If(false, ClearCollect(colKksAggregateRaw, { Code: "", Description: "" }));
           If(false, ClearCollect(colKksComponentRaw, { Code: "", Description: "" }));
           If(false, ClearCollect(colKksFnAll, { Ord: 0, Section: "", Code: "", Description: "" }));
+          If(false, ClearCollect(colKksFl, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" }));
           If(false, ClearCollect(colKksFn1, { Ord: 0, Section: "", Code: "", Description: "" }));
           If(false, ClearCollect(colKksFn2, { Ord: 0, Section: "", Code: "", Description: "" }));
           If(false, ClearCollect(colKksFn3, { Ord: 0, Section: "", Code: "", Description: "" }));
@@ -28,7 +29,13 @@ Screens:
               Set(varKksDetailCode, "");
               Set(varKksDetailText, "");
               Set(varKksDetailOn, false);
-              Set(varKksPick, 0)
+              Set(varKksPick, 0);
+              Set(varKksFlOn, false);
+              Set(varKksFlBusy, false);
+              Set(varKksFlQuery, "");
+              Set(varKksFlLast, "");
+              Set(varKksFlMsg, "");
+              Set(varKksFlPick, "")
           );
           // Noeglerne hentes EEN gang - se KKS App/build/kks_parts.py, load_fx().
           If(
@@ -388,7 +395,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =36 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + 16, 32, (32) + 8 + (32) + 8 + (32))) + If(LayoutRank >= 2, 12 + (12 + (RoundUp((CountRows(colKksL1Keys) + 1) / Max(1, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 20 - 34) + 8) / 58, 0)), 0) * 40)), 0) + If(LayoutRank >= 2 && varKksL1 <> "ALL", 12 + (12 + If(KksNote2 <> "", 0 + (28), 0) + If(KksNote2 = "", 0 + (RoundUp((CountRows(colKksL2Keys) + 1) / Max(1, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 20 - 34) + 8) / 64, 0)), 0) * 40), 0)), 0) + If(KksHasL3 && LayoutRank >= 2 && !IsBlank(varKksL2), 12 + (12 + If(KksNote3 <> "", 0 + (28), 0) + If(KksNote3 = "", 0 + (RoundUp((CountRows(colKksL3Keys) + 1) / Max(1, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 20 - 34) + 8) / 64, 0)), 0) * 40), 0)), 0) + If(LayoutRank < 2, 12 + (40), 0) + If(LayoutRank < 2, 12 + (40), 0) + If(KksHasL3 && LayoutRank < 2, 12 + (40), 0) + 12 + (0 + (Max(36, H.hit) + 4) + If(false, 0 + (1), 0))
+                            =36 + (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18), 3 * 116 + 16)) + (247) + 8, Max((If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + 16, 32, (32) + 8 + (32) + 8 + (32))), (32)), (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + 16, 32, (32) + 8 + (32) + 8 + (32))) + 8 + (32))) + If(LayoutRank >= 2, 12 + (12 + (RoundUp((CountRows(colKksL1Keys) + 1) / Max(1, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 20 - 34) + 8) / 58, 0)), 0) * 40)), 0) + If(LayoutRank >= 2 && varKksL1 <> "ALL", 12 + (12 + If(KksNote2 <> "", 0 + (28), 0) + If(KksNote2 = "", 0 + (RoundUp((CountRows(colKksL2Keys) + 1) / Max(1, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 20 - 34) + 8) / 64, 0)), 0) * 40), 0)), 0) + If(KksHasL3 && LayoutRank >= 2 && !IsBlank(varKksL2), 12 + (12 + If(KksNote3 <> "", 0 + (28), 0) + If(KksNote3 = "", 0 + (RoundUp((CountRows(colKksL3Keys) + 1) / Max(1, RoundDown(((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 20 - 34) + 8) / 64, 0)), 0) * 40), 0)), 0) + If(LayoutRank < 2, 12 + (40), 0) + If(LayoutRank < 2, 12 + (40), 0) + If(KksHasL3 && LayoutRank < 2, 12 + (40), 0) + 12 + (0 + (Max(36, H.hit) + 4) + If(false, 0 + (1), 0))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -420,7 +427,7 @@ Screens:
                         Width: |-
                             =Parent.Width
                       Children:
-                        - conKksKeys:
+                        - conKksTopRow:
                             Control: GroupContainer
                             Variant: AutoLayout
                             Properties:
@@ -431,13 +438,15 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + 16, 32, (32) + 8 + (32) + 8 + (32))
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18), 3 * 116 + 16)) + (247) + 8, Max((If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + 16, 32, (32) + 8 + (32) + 8 + (32))), (32)), (If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + 16, 32, (32) + 8 + (32) + 8 + (32))) + 8 + (32))
                               LayoutAlignItems: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + 16, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18), 3 * 116 + 16)) + (247) + 8, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
-                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + 16, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                  =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18), 3 * 116 + 16)) + (247) + 8, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
                                   =8
+                              LayoutJustifyContent: |-
+                                  =LayoutJustifyContent.SpaceBetween
                               LayoutMinWidth: |-
                                   =0
                               LayoutOverflowX: |-
@@ -447,162 +456,236 @@ Screens:
                               Width: |-
                                   =Parent.Width
                             Children:
-                              - btnKksKeyFunction:
+                              - conKksKeys:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
+                                        =0
+                                    Height: |-
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + 16, 32, (32) + 8 + (32) + 8 + (32))
+                                    LayoutAlignItems: |-
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + 16, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                                    LayoutDirection: |-
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + 16, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                                    LayoutGap: |-
+                                        =8
+                                    LayoutMinWidth: |-
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18), 3 * 116 + 16)) + (247) + 8, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18), 3 * 116 + 16), 0)
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
+                                    Width: |-
+                                        =If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18), 3 * 116 + 16)
+                                  Children:
+                                    - btnKksKeyFunction:
+                                        Control: ModernButton
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Show functions"
+                                          Align: |-
+                                              =Align.Center
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          Appearance: |-
+                                              =If(varKksKey = "function", ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
+                                          BorderColor: |-
+                                              =If(varKksKey = "function", C.'color-brand-primary', C.'color-brand-primary-soft')
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =If(varKksKey = "function", C.'text-on-primary', C.'state-info-fg')
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =32
+                                          Layout: |-
+                                              =ButtonLayout.TextOnly
+                                          LayoutMinWidth: |-
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + 16, If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116), 0)
+                                          OnSelect: |-
+                                              =Set(varKksKey, "function");
+                                              Set(varKksL1, "ALL");
+                                              Set(varKksL2, "");
+                                              Set(varKksL3, "");
+                                              Set(varKksQuery, "");
+                                              Reset(inpKksFind)
+                                          RadiusBottomLeft: |-
+                                              =R.card
+                                          RadiusBottomRight: |-
+                                              =R.card
+                                          RadiusTopLeft: |-
+                                              =R.card
+                                          RadiusTopRight: |-
+                                              =R.card
+                                          Size: |-
+                                              =If(LayoutRank < 2, 11, 12)
+                                          Text: |-
+                                              ="Function"
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Width: |-
+                                              =If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)
+                                    - btnKksKeyAggregate:
+                                        Control: ModernButton
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Show aggregates"
+                                          Align: |-
+                                              =Align.Center
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          Appearance: |-
+                                              =If(varKksKey = "aggregate", ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
+                                          BorderColor: |-
+                                              =If(varKksKey = "aggregate", C.'color-brand-primary', C.'color-brand-primary-soft')
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =If(varKksKey = "aggregate", C.'text-on-primary', C.'state-info-fg')
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =32
+                                          Layout: |-
+                                              =ButtonLayout.TextOnly
+                                          LayoutMinWidth: |-
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + 16, If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116), 0)
+                                          OnSelect: |-
+                                              =Set(varKksKey, "aggregate");
+                                              Set(varKksL1, "ALL");
+                                              Set(varKksL2, "");
+                                              Set(varKksL3, "");
+                                              Set(varKksQuery, "");
+                                              Reset(inpKksFind)
+                                          RadiusBottomLeft: |-
+                                              =R.card
+                                          RadiusBottomRight: |-
+                                              =R.card
+                                          RadiusTopLeft: |-
+                                              =R.card
+                                          RadiusTopRight: |-
+                                              =R.card
+                                          Size: |-
+                                              =If(LayoutRank < 2, 11, 12)
+                                          Text: |-
+                                              ="Aggregate"
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Width: |-
+                                              =If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)
+                                    - btnKksKeyComponent:
+                                        Control: ModernButton
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Show components"
+                                          Align: |-
+                                              =Align.Center
+                                          AlignInContainer: |-
+                                              =AlignInContainer.Center
+                                          Appearance: |-
+                                              =If(varKksKey = "component", ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
+                                          BorderColor: |-
+                                              =If(varKksKey = "component", C.'color-brand-primary', C.'color-brand-primary-soft')
+                                          BorderThickness: |-
+                                              =1
+                                          Color: |-
+                                              =If(varKksKey = "component", C.'text-on-primary', C.'state-info-fg')
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =32
+                                          Layout: |-
+                                              =ButtonLayout.TextOnly
+                                          LayoutMinWidth: |-
+                                              =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + 16, If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116), 0)
+                                          OnSelect: |-
+                                              =Set(varKksKey, "component");
+                                              Set(varKksL1, "ALL");
+                                              Set(varKksL2, "");
+                                              Set(varKksL3, "");
+                                              Set(varKksQuery, "");
+                                              Reset(inpKksFind)
+                                          RadiusBottomLeft: |-
+                                              =R.card
+                                          RadiusBottomRight: |-
+                                              =R.card
+                                          RadiusTopLeft: |-
+                                              =R.card
+                                          RadiusTopRight: |-
+                                              =R.card
+                                          Size: |-
+                                              =If(LayoutRank < 2, 11, 12)
+                                          Text: |-
+                                              ="Component"
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Width: |-
+                                              =If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)
+                              - btnKksFlOpen:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Show functions"
+                                        ="Search Functional Locations in SAP"
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
                                         =AlignInContainer.Center
                                     Appearance: |-
-                                        =If(varKksKey = "function", ButtonAppearance.Primary, ButtonAppearance.Outline)
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
+                                        =ButtonAppearance.Outline
                                     BorderColor: |-
-                                        =If(varKksKey = "function", C.'color-brand-primary', C.'color-brand-primary-soft')
+                                        =C.'color-brand-primary-soft'
                                     BorderThickness: |-
                                         =1
                                     Color: |-
-                                        =If(varKksKey = "function", C.'text-on-primary', C.'state-info-fg')
+                                        =C.'state-info-fg'
                                     Font: |-
                                         =Font.'Segoe UI'
                                     FontWeight: |-
                                         =FontWeight.Semibold
                                     Height: |-
                                         =32
+                                    Icon: |-
+                                        ="Search"
                                     Layout: |-
-                                        =ButtonLayout.TextOnly
+                                        =ButtonLayout.IconBefore
                                     LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + 16, If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116), 0)
+                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18), 3 * 116 + 16)) + (247) + 8, 247, 0)
                                     OnSelect: |-
-                                        =Set(varKksKey, "function");
-                                        Set(varKksL1, "ALL");
-                                        Set(varKksL2, "");
-                                        Set(varKksL3, "");
-                                        Set(varKksQuery, "");
-                                        Reset(inpKksFind)
+                                        =Set(varKksFlOn, true)
                                     RadiusBottomLeft: |-
-                                        =R.card
+                                        =R.input
                                     RadiusBottomRight: |-
-                                        =R.card
+                                        =R.input
                                     RadiusTopLeft: |-
-                                        =R.card
+                                        =R.input
                                     RadiusTopRight: |-
-                                        =R.card
+                                        =R.input
                                     Size: |-
-                                        =If(LayoutRank < 2, 11, 12)
+                                        =T.small
                                     Text: |-
-                                        ="Function"
+                                        ="Search Functional Locations"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)
-                              - btnKksKeyAggregate:
-                                  Control: ModernButton
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Show aggregates"
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    Appearance: |-
-                                        =If(varKksKey = "aggregate", ButtonAppearance.Primary, ButtonAppearance.Outline)
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =If(varKksKey = "aggregate", C.'color-brand-primary', C.'color-brand-primary-soft')
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =If(varKksKey = "aggregate", C.'text-on-primary', C.'state-info-fg')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =32
-                                    Layout: |-
-                                        =ButtonLayout.TextOnly
-                                    LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + 16, If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116), 0)
-                                    OnSelect: |-
-                                        =Set(varKksKey, "aggregate");
-                                        Set(varKksL1, "ALL");
-                                        Set(varKksL2, "");
-                                        Set(varKksL3, "");
-                                        Set(varKksQuery, "");
-                                        Reset(inpKksFind)
-                                    RadiusBottomLeft: |-
-                                        =R.card
-                                    RadiusBottomRight: |-
-                                        =R.card
-                                    RadiusTopLeft: |-
-                                        =R.card
-                                    RadiusTopRight: |-
-                                        =R.card
-                                    Size: |-
-                                        =If(LayoutRank < 2, 11, 12)
-                                    Text: |-
-                                        ="Aggregate"
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Width: |-
-                                        =If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)
-                              - btnKksKeyComponent:
-                                  Control: ModernButton
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Show components"
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    Appearance: |-
-                                        =If(varKksKey = "component", ButtonAppearance.Primary, ButtonAppearance.Outline)
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =If(varKksKey = "component", C.'color-brand-primary', C.'color-brand-primary-soft')
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =If(varKksKey = "component", C.'text-on-primary', C.'state-info-fg')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =32
-                                    Layout: |-
-                                        =ButtonLayout.TextOnly
-                                    LayoutMinWidth: |-
-                                        =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + (If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)) + 16, If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116), 0)
-                                    OnSelect: |-
-                                        =Set(varKksKey, "component");
-                                        Set(varKksL1, "ALL");
-                                        Set(varKksL2, "");
-                                        Set(varKksL3, "");
-                                        Set(varKksQuery, "");
-                                        Reset(inpKksFind)
-                                    RadiusBottomLeft: |-
-                                        =R.card
-                                    RadiusBottomRight: |-
-                                        =R.card
-                                    RadiusTopLeft: |-
-                                        =R.card
-                                    RadiusTopRight: |-
-                                        =R.card
-                                    Size: |-
-                                        =If(LayoutRank < 2, 11, 12)
-                                    Text: |-
-                                        ="Component"
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Width: |-
-                                        =If(LayoutRank < 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) - 16) / 3, 116)
+                                        =247
                         - conKksLane1:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -9201,6 +9284,765 @@ Screens:
                       =varKksDetailText
                   Wrap: |-
                       =true
+      - conKksFlBackdrop:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Close the dialog"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
+            FocusedBorderThickness: |-
+                =2
+            Height: |-
+                =App.Height
+            HoverFill: |-
+                =C.'overlay'
+            Image: |-
+                =""
+            OnSelect: |-
+                =If(LayoutRank < 2, Set(varKksFlOn, false))
+            PressedFill: |-
+                =C.'overlay'
+            TabIndex: |-
+                =If(LayoutRank < 2, 0, -1)
+            Visible: |-
+                =IfError(varKksFlOn, false)
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conKksFlModal:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'color-brand-primary-soft'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.ExtraBold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =116 + 12 + (0 + (If(LayoutRank < 2, 84, 40)) + If(false, 0 + (1), 0)) + If(!IsBlank(varKksFlMsg), 12 + (Max(1, RoundUp(Len(varKksFlMsg) / Max(20, RoundDown((Min(560, App.Width - 24) - 36) / 7, 0)), 0)) * 18), 0) + If(!IsBlank(varKksFlPick), 12 + (12 + (Max((Max(1, RoundUp(Len(varKksFlPick & With({d: LookUp(colKksFl, Code = varKksFlPick)}, If(IsBlank(d.Description), "", " - " & d.Description) & If(!IsBlank(d.Code) && !d.Maintainable, "   (not maintainable)", ""))) / Max(14, RoundDown(((Min(560, App.Width - 24) - 36) - 2 * 8 - H.hit - 8) / 7.5, 0)), 0)) * 19 + 1), (H.hit))) * 1 + 0), 0)
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =18
+            PaddingRight: |-
+                =18
+            PaddingTop: |-
+                =18
+            RadiusBottomLeft: |-
+                =R.modal
+            RadiusBottomRight: |-
+                =R.modal
+            RadiusTopLeft: |-
+                =R.modal
+            RadiusTopRight: |-
+                =R.modal
+            Visible: |-
+                =IfError(varKksFlOn, false)
+            Width: |-
+                =Min(560, App.Width - 24)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =Max(12, (App.Height - Self.Height) / 4)
+          Children:
+            - conKksFlHead:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =32
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =12
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - txtKksFlTitle:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Search Functional Locations"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =26
+                        LayoutMinWidth: |-
+                            =0
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.cardTitle
+                        Text: |-
+                            ="Search Functional Locations"
+                        Width: |-
+                            =Max(0, (((Min(560, App.Width - 24)) - 18 - 18)) - ((90) + 12) - 2)
+                        Wrap: |-
+                            =false
+                  - btnKksFlClose:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close the Functional Location search"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-input'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =32
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varKksFlOn, false)
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Close"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =90
+            - txtKksFlIntro:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="Live search in SAP, independent of the KKS selection."
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =36
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =T.small
+                  Text: |-
+                      ="Live search in SAP, independent of the KKS selection."
+                  Wrap: |-
+                      =true
+            - conKksFlWrap:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =0 + (If(LayoutRank < 2, 84, 40)) + If(false, 0 + (1), 0)
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Stretch
+                  LayoutDirection: |-
+                      =LayoutDirection.Vertical
+                  LayoutGap: |-
+                      =0
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =(Min(560, App.Width - 24) - 36)
+                Children:
+                  - conKksFlInput:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =If(LayoutRank < 2, 84, 40)
+                        LayoutAlignItems: |-
+                            =If(LayoutRank < 2, LayoutAlignItems.Stretch, LayoutAlignItems.Center)
+                        LayoutDirection: |-
+                            =If(LayoutRank < 2, LayoutDirection.Vertical, LayoutDirection.Horizontal)
+                        LayoutGap: |-
+                            =8
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        PaddingBottom: |-
+                            =2
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =2
+                        Width: |-
+                            =(Min(560, App.Width - 24) - 36)
+                      Children:
+                        - cmbKksFl:
+                            Control: ModernCombobox
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Functional location - type at least 7 characters, then Search or Enter"
+                              Appearance: |-
+                                  =If((DisplayMode.Edit) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              BorderColor: |-
+                                  =If((DisplayMode.Edit) = DisplayMode.Edit, C.'border-input', C.'border-default')
+                              BorderStyle: |-
+                                  =BorderStyle.Solid
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =If((DisplayMode.Edit) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                              DefaultSelectedItems: |-
+                                  =Filter(colKksFl, Code = varKksFlPick)
+                              DelayOutput: |-
+                                  =false
+                              DisplayMode: |-
+                                  =If((DisplayMode.Edit) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                              Fill: |-
+                                  =If(DisplayMode.Edit = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                              FillPortions: |-
+                                  =0
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =36
+                              InputTextPlaceholder: |-
+                                  ="At least 7 characters, e.g. SSV13 HFC"
+                              IsSearchable: |-
+                                  =true
+                              ItemDisplayText: |-
+                                  =ThisItem.Display
+                              Items: |-
+                                  =With(
+                                      { q: Trim(Self.SearchText) },
+                                      With(
+                                          {
+                                              s: { Code: "?search", Description: q,
+                                                    Display: q & "  -  press Enter to search",
+                                                    Maintainable: true, Level: "" },
+                                              n: CountRows(colKksFl),
+                                              ask: Len(q) >= 7 && !varKksFlBusy &&
+                                                   Upper(q) <> Upper(Coalesce(varKksFlLast, "")),
+                                              narrow: CountRows(colKksFl) > 0 && !IsBlank(varKksFlLast) &&
+                                                      StartsWith(Upper(q), Upper(varKksFlLast))
+                                          },
+                                          If(
+                                              !ask, colKksFl,
+                                              ForAll(
+                                                  Sequence(n + 1),
+                                                  If(narrow, If(Value <= n, Index(colKksFl, Value), s),
+                                                      If(Value = 1, s, Index(colKksFl, Value - 1)))
+                                              )
+                                          )
+                                      )
+                                  )
+                              LayoutMinWidth: |-
+                                  =0
+                              OnChange: |-
+                                  =If(
+                                      Self.Selected.Code = "?search",
+                                      Set(varKksFlQuery, Self.Selected.Description);
+                                      With(
+                                      { q: Upper(Trim(varKksFlQuery)) },
+                                      If(
+                                          Len(q) < 7,
+                                          Set(gblToast, { Text: "Type at least 7 characters before searching.", Kind: "Warning", At: Now() }); true,
+                                  
+                                          Set(varKksFlBusy, true);
+                                          Set(varKksFlLast, q);
+                                          Clear(colKksFl);
+                                          Set(varKksFlPick, ""); Reset(cmbKksFl);
+                                          Set(varKksFlMsg, "Searching for " & Upper(q) & " ...");
+                                          IfError(
+                                              Set(varKksFlRaw, 'BioSap-Integration-FunctionalLocations'.Run(q));
+                                              If(
+                                                  IsBlank(varKksFlRaw) || IsBlank(varKksFlRaw.functionallocationoutput),
+                                                  Clear(colKksFl),
+                                                  ClearCollect(
+                                      colKksFl,
+                                      ForAll(
+                                          Table(ParseJSON(varKksFlRaw.functionallocationoutput)) As R,
+                                          {
+                                              Code: Text(R.Value.functionKey),
+                                              Description: Text(R.Value.description),
+                                              Display: Text(R.Value.functionKey) & " - " & Text(R.Value.description) &
+                                                  If(Boolean(R.Value.maintainable), "", "   (not maintainable)"),
+                                              Maintainable: Boolean(R.Value.maintainable),
+                                              Level: Text(R.Value.level)
+                                          }
+                                      )
+                                  )
+                                              );
+                                              If(
+                                                  CountRows(colKksFl) = 0,
+                                                  Set(gblToast, { Text: "No functional locations found for " & Upper(q) & ".", Kind: "Warning", At: Now() }); true,
+                                                      Set(varKksFlPick, First(colKksFl).Code);
+                                                      Reset(cmbKksFl)
+                                              );
+                                              Set(
+                                                  varKksFlMsg,
+                                                  With(
+                                                      { n: CountRows(colKksFl) },
+                                                      If(
+                                                          n = 0,
+                                                          "No Functional Locations found for " & Upper(q) & ".",
+                                                          Text(n) & " Functional Locations found for " & Upper(q) & ". " &
+                                                              If(
+                                                                  n > 50,
+                                                                  "The list is long - type more characters to narrow it.",
+                                                                  "Select one from the list below."
+                                                              )
+                                                      )
+                                                  )
+                                              ),
+                                              Clear(colKksFl);
+                                              Set(varKksFlMsg, "Search failed: " & FirstError.Message);
+                                              Set(gblToast, { Text: "The functional locations search failed. Try again.", Kind: "Error", At: Now() }); true
+                                          );
+                                          Set(varKksFlBusy, false)
+                                      )
+                                  );
+                                      Reset(cmbKksFl),
+                                      If(
+                                      IsBlank(Self.Selected.Code) && !varKksFlBusy,
+                                      Set(varKksFlPick, ""); Clear(colKksFl); Set(varKksFlLast, ""); Set(varKksFlQuery, ""); Set(varKksFlMsg, ""),
+                                      Set(varKksFlPick, Coalesce(Self.Selected.Code, ""))
+                                  )
+                                  )
+                              RadiusBottomLeft: |-
+                                  =R.input
+                              RadiusBottomRight: |-
+                                  =R.input
+                              RadiusTopLeft: |-
+                                  =R.input
+                              RadiusTopRight: |-
+                                  =R.input
+                              SelectMultiple: |-
+                                  =false
+                              Size: |-
+                                  =If(LayoutRank < 2, 16, 14)
+                              ValidationState: |-
+                                  =If(false && IsBlank(Self.Selected.Code), ValidationState.Error, ValidationState.None)
+                              Width: |-
+                                  =Max(0, ((((Min(560, App.Width - 24)) - 18 - 18))) - (If(!varKksFlBusy, (154) + 8, 0)) - (If(varKksFlBusy, (154) + 8, 0)) - 2)
+                        - btnKksFlSearch:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Search functional location"
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =If(LayoutRank < 2, AlignInContainer.Start, AlignInContainer.Center)
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-input'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'text-primary'
+                              DisplayMode: |-
+                                  =If(Len(Trim(Coalesce(cmbKksFl.SearchText, varKksFlQuery))) < 7, DisplayMode.Disabled, DisplayMode.Edit)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =36
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
+                              LayoutMinWidth: |-
+                                  =154
+                              OnSelect: |-
+                                  =With(
+                                      { q: Upper(Trim(Coalesce(cmbKksFl.SearchText, varKksFlQuery))) },
+                                      If(
+                                          Len(q) < 7,
+                                          Set(gblToast, { Text: "Type at least 7 characters before searching.", Kind: "Warning", At: Now() }); true,
+                                  
+                                          Set(varKksFlBusy, true);
+                                          Set(varKksFlLast, q);
+                                          Clear(colKksFl);
+                                          Set(varKksFlPick, ""); Reset(cmbKksFl);
+                                          Set(varKksFlMsg, "Searching for " & Upper(q) & " ...");
+                                          IfError(
+                                              Set(varKksFlRaw, 'BioSap-Integration-FunctionalLocations'.Run(q));
+                                              If(
+                                                  IsBlank(varKksFlRaw) || IsBlank(varKksFlRaw.functionallocationoutput),
+                                                  Clear(colKksFl),
+                                                  ClearCollect(
+                                      colKksFl,
+                                      ForAll(
+                                          Table(ParseJSON(varKksFlRaw.functionallocationoutput)) As R,
+                                          {
+                                              Code: Text(R.Value.functionKey),
+                                              Description: Text(R.Value.description),
+                                              Display: Text(R.Value.functionKey) & " - " & Text(R.Value.description) &
+                                                  If(Boolean(R.Value.maintainable), "", "   (not maintainable)"),
+                                              Maintainable: Boolean(R.Value.maintainable),
+                                              Level: Text(R.Value.level)
+                                          }
+                                      )
+                                  )
+                                              );
+                                              If(
+                                                  CountRows(colKksFl) = 0,
+                                                  Set(gblToast, { Text: "No functional locations found for " & Upper(q) & ".", Kind: "Warning", At: Now() }); true,
+                                                      Set(varKksFlPick, First(colKksFl).Code);
+                                                      Reset(cmbKksFl)
+                                              );
+                                              Set(
+                                                  varKksFlMsg,
+                                                  With(
+                                                      { n: CountRows(colKksFl) },
+                                                      If(
+                                                          n = 0,
+                                                          "No Functional Locations found for " & Upper(q) & ".",
+                                                          Text(n) & " Functional Locations found for " & Upper(q) & ". " &
+                                                              If(
+                                                                  n > 50,
+                                                                  "The list is long - type more characters to narrow it.",
+                                                                  "Select one from the list below."
+                                                              )
+                                                      )
+                                                  )
+                                              ),
+                                              Clear(colKksFl);
+                                              Set(varKksFlMsg, "Search failed: " & FirstError.Message);
+                                              Set(gblToast, { Text: "The functional locations search failed. Try again.", Kind: "Error", At: Now() }); true
+                                          );
+                                          Set(varKksFlBusy, false)
+                                      )
+                                  )
+                              RadiusBottomLeft: |-
+                                  =R.input
+                              RadiusBottomRight: |-
+                                  =R.input
+                              RadiusTopLeft: |-
+                                  =R.input
+                              RadiusTopRight: |-
+                                  =R.input
+                              Size: |-
+                                  =T.input
+                              Text: |-
+                                  ="Search"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Visible: |-
+                                  =!varKksFlBusy
+                              Width: |-
+                                  =154
+                        - imgKksFlBusy:
+                            Control: Image
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Searching"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Height: |-
+                                  =36
+                              Image: |-
+                                  ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='154' height='36' viewBox='0 0 154 36'><rect x='0.5' y='0.5' width='153' height='35' rx='10' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='34.0' cy='18' r='8' fill='none' stroke='" & C.'hex-border-default' & "' stroke-width='2.5'/><circle cx='34.0' cy='18' r='8' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2.5' stroke-linecap='round' stroke-dasharray='14 40'><animateTransform attributeName='transform' type='rotate' from='0 34.0 18' to='360 34.0 18' dur='0.8s' repeatCount='indefinite'/></circle><text x='50.0' y='23' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Searching..." & "</text></svg>")
+                              ImagePosition: |-
+                                  =ImagePosition.Fit
+                              LayoutMinWidth: |-
+                                  =154
+                              OnSelect: |-
+                                  =false
+                              TabIndex: |-
+                                  =0
+                              Visible: |-
+                                  =varKksFlBusy
+                              Width: |-
+                                  =154
+                  - tmrKksFlCapture:
+                      Control: Timer
+                      Properties:
+                        AutoPause: |-
+                            =false
+                        AutoStart: |-
+                            =false
+                        Duration: |-
+                            =300
+                        Height: |-
+                            =1
+                        OnTimerEnd: |-
+                            =If(!IsBlank(cmbKksFl.SearchText), Set(varKksFlQuery, cmbKksFl.SearchText))
+                        Repeat: |-
+                            =true
+                        Start: |-
+                            =!IsBlank(cmbKksFl.SearchText)
+                        Visible: |-
+                            =false
+                        Width: |-
+                            =1
+            - txtKksFlMsg:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =Max(1, RoundUp(Len(varKksFlMsg) / Max(20, RoundDown((Min(560, App.Width - 24) - 36) / 7, 0)), 0)) * 18
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =T.small
+                  Text: |-
+                      =varKksFlMsg
+                  Visible: |-
+                      =!IsBlank(varKksFlMsg)
+                  Wrap: |-
+                      =true
+            - conKksFlSelected:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: |-
+                      =C.'border-subtle'
+                  BorderThickness: |-
+                      =1
+                  DropShadow: |-
+                      =DropShadow.None
+                  Fill: |-
+                      =C.'bg-muted'
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =12 + (Max((Max(1, RoundUp(Len(varKksFlPick & With({d: LookUp(colKksFl, Code = varKksFlPick)}, If(IsBlank(d.Description), "", " - " & d.Description) & If(!IsBlank(d.Code) && !d.Maintainable, "   (not maintainable)", ""))) / Max(14, RoundDown(((Min(560, App.Width - 24) - 36) - 2 * 8 - H.hit - 8) / 7.5, 0)), 0)) * 19 + 1), (H.hit))) * 1 + 0
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Start
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  PaddingBottom: |-
+                      =6
+                  PaddingLeft: |-
+                      =8
+                  PaddingRight: |-
+                      =8
+                  PaddingTop: |-
+                      =6
+                  RadiusBottomLeft: |-
+                      =R.input
+                  RadiusBottomRight: |-
+                      =R.input
+                  RadiusTopLeft: |-
+                      =R.input
+                  RadiusTopRight: |-
+                      =R.input
+                  Visible: |-
+                      =!IsBlank(varKksFlPick)
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - txtKksFlSelected:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            =Self.Text
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =Max(1, RoundUp(Len(varKksFlPick & With({d: LookUp(colKksFl, Code = varKksFlPick)}, If(IsBlank(d.Description), "", " - " & d.Description) & If(!IsBlank(d.Code) && !d.Maintainable, "   (not maintainable)", ""))) / Max(14, RoundDown(((Min(560, App.Width - 24) - 36) - 2 * 8 - H.hit - 8) / 7.5, 0)), 0)) * 19 + 1
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.body
+                        Text: |-
+                            =varKksFlPick & With({d: LookUp(colKksFl, Code = varKksFlPick)}, If(IsBlank(d.Description), "", " - " & d.Description) & If(!IsBlank(d.Code) && !d.Maintainable, "   (not maintainable)", ""))
+                        Width: |-
+                            =((Min(560, App.Width - 24) - 36) - 2 * 8 - H.hit - 8)
+                        Wrap: |-
+                            =true
+                  - btnKksFlCopy:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Copy " & varKksFlPick
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =H.hit
+                        Icon: |-
+                            ="Copy"
+                        Layout: |-
+                            =ButtonLayout.IconOnly
+                        OnSelect: |-
+                            =Copy(varKksFlPick);
+                            Set(gblToast, { Text: "Copied " & varKksFlPick & " to the clipboard.", Kind: "Success", At: Now() }); true
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            =""
+                        Tooltip: |-
+                            ="Copy " & varKksFlPick
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =H.hit
       - imgKksLoading:
           Control: Image
           Properties:
