@@ -54,3 +54,45 @@ RULES_JSON = os.path.join(HERE, "fl_rules.generated.json")
 def rules():
     with open(RULES_JSON, encoding="utf-8") as f:
         return json.load(f)
+
+
+# --- sidepanelet (raekkens editor, issue #278) ---------------------------
+# Panelets sektioner i SAMME raekkefoelge som raekkens kolonner:
+#   Functional Location | Description | KKS type | Assigned class |
+#   Class data | Room | Sort field | ABC indicator | ATEX |
+#   Manufacturer | Warranty
+# og derefter TRM og GIV_EXT/WCM. Class, TRM og Ext er reglernes Section;
+# de andre deler Master-felterne op. Status-sektionen (SAP status, Info,
+# User status, System status) vises ikke i panelet.
+PANEL_SECTIONS = [
+    ("Main", "Functional location"),
+    ("Class", "Class characteristics"),
+    ("Loc", "Location and indicators"),
+    ("Mfr", "Manufacturer"),
+    ("War", "Warranty"),
+    ("TRM", "TRM"),
+    ("Ext", "GIV_EXT and WCM"),
+]
+# Master-felterne: (felt, sektion, etiket). Etiketten er raekkens
+# kolonneoverskrift, hvor feltet har sin egen kolonne (fl_parts.V_FIXED -
+# tests/test_fl_panel_order.py holder dem ens). Raekkefoelgen her ER
+# raekkefoelgen i sektionen. ASSIGNED CLASS er ikke et spool-felt, men
+# raekkens klasse - kun til visning.
+PANEL_FIELDS = [
+    ("FUNCTIONAL LOCATION", "Main", "Functional Location"),
+    ("DESCRIPTION", "Main", "Description"),
+    ("STRINDICATOR", "Main", "KKS type"),
+    ("ASSIGNED CLASS", "Main", "Assigned class"),
+    ("ROOM", "Loc", "Room"),
+    ("SORT FIELD", "Loc", "Sort field"),
+    ("ABC INDIC.", "Loc", "ABC indicator"),
+    ("ATEX", "Loc", "ATEX"),
+    ("MANUFACTURER", "Mfr", "Manufacturer"),
+    ("MODEL NUMBER", "Mfr", "Model Number"),
+    ("MANUFACTURER PART NUMBER", "Mfr", "Manufacturer Part Number"),
+    ("MANUFACTURER SERIAL NUMBER", "Mfr", "Manufacturer Serial Number"),
+    ("WARRANTY START", "War", "Warranty Start"),
+    ("WARRANTY END", "War", "Warranty End"),
+]
+# Raekkens eget felt - ikke et spool-felt i colFlColumns.
+PANEL_ROW_ONLY = "ASSIGNED CLASS"
