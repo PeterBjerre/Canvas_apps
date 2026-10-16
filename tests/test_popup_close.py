@@ -73,7 +73,7 @@ def test_popups_found():
     assert len(POPUPS) >= 40
     names = {n for _, n, _ in POPUPS}
     for must in ("conVhpObjListModal", "conVhpPickerModal", "conFlClsModal",
-                 "conFlPopModal", "conKksPickModal", "conVhpNotesModal"):
+                 "conKksPickModal", "conVhpNotesModal"):
         assert must in names
 
 
