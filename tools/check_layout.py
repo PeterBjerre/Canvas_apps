@@ -1546,9 +1546,11 @@ def rule_10(ctx):
         # ModernButton har ingen TabIndex - compile: "Unknown property
         # 'TabIndex' for control type 'ModernButton'" (issue #79).
         "ModernButton": ("TabIndex",),
-        # Den klassiske Attachments-kontrol har ikke den modernes
-        # AttachmentsCount/IsUploading/OnError (issue #165).
-        "Attachments": ("AttachmentsCount", "IsUploading", "OnError"),
+        # Den moderne Attachments-kontrol har ingen af den klassiskes
+        # tekst-, kant- og polstringsegenskaber (issue #134/#161, MS Learn).
+        "ModernAttachments": ("NoAttachmentsText", "BorderColor", "BorderThickness",
+                              "PaddingBottom", "PaddingLeft", "PaddingRight",
+                              "PaddingTop", "TabIndex"),
     }
     # Nogle egenskaber afhaenger ogsaa af varianten. Et Gallery med
     # Variant: VariableHeight har ingen WrapCount - compile: "Unknown
@@ -2028,16 +2030,21 @@ def rule_16(ctx):
     # saa gaar regel 15's rigtige fund samme vej.
 
 
+ATTACHMENTS_CONTROL = "ModernAttachments@1.3.0"
+
+
 def rule_16b(ctx):
-    """Ingen ModernAttachments-kontrol (issue #165)"""
-    # Studio i dette miljoe kender ikke ModernAttachments: compile gav
-    # "Unknown control type 'ModernAttachments'" for alle fem (issue #165,
-    # efter #134). Al dokumentupload er den klassiske kontrol fra
-    # tools/doc_upload.picker - een oplevelse i hele appen.
+    """Kun ModernAttachments@1.3.0 til filer (issue #161)"""
+    # Al dokumentupload er den moderne kontrol fra tools/doc_upload.picker
+    # - een oplevelse i hele appen. Versionen er den, Peters Studio
+    # (authoring 3.26101.10) skriver. En anden version er ikke afproevet:
+    # foer den version gav typen "Unknown control type" (issue #165).
+    # Den klassiske Attachments@2.3.0 er ude (issue #161).
     for p_, name, body in ctx.all_nodes:
-        if (body.get("Control") or "").strip().split("@")[0] == "ModernAttachments":
-            ctx.problems.append(f"[16b] {name}: ModernAttachments kendes ikke af Studio - "
-                                f"byg den med doc_upload.picker (Attachments@2.3.0)")
+        ctl = (body.get("Control") or "").strip()
+        if ctl.split("@")[0] in ("Attachments", "ModernAttachments") and ctl != ATTACHMENTS_CONTROL:
+            ctx.problems.append(f"[16b] {name}: {ctl} - filer vaelges med "
+                                f"{ATTACHMENTS_CONTROL} fra doc_upload.picker")
 
 
 def rule_33(ctx):
@@ -2051,7 +2058,7 @@ def rule_33(ctx):
               "ModernTextInput": "inp", "ModernNumberInput": "num",
               "ModernDatePicker": "dte", "Classic/DropDown": "drp",
               "ModernCombobox": "cmb", "ModernCheckbox": "chk",
-              "ModernToggle": "tgl", "Attachments": "att"}
+              "ModernToggle": "tgl", "ModernAttachments": "att"}
     for p_, name, body in all_nodes:
         want = PREFIX.get((body.get("Control") or "").strip().split("@")[0])
         if want and not re.match(want + r"[A-Z]", name):
@@ -2326,7 +2333,7 @@ def rule_38(ctx):
     # 10), og GroupContainer, Timer og HtmlViewer meldes ikke.
     kinds = ("Image", "Rectangle", "ModernText", "ModernButton", "ModernTextInput",
              "ModernNumberInput", "ModernDropdown", "ModernCombobox", "ModernCheckbox",
-             "ModernDatePicker", "ModernToggle", "Attachments", "Gallery")
+             "ModernDatePicker", "ModernToggle", "ModernAttachments", "Gallery")
     for _p, name, body in ctx.all_nodes:
         ctl = (body.get("Control") or "").strip().split("@")[0]
         if ctl not in kinds:
@@ -2455,7 +2462,7 @@ RULES = [
     Rule('21', 'ButtonAppearance.Secondary', rule_21),
     Rule('22', 'Concurrent med en indbyrdes afhaengighed', rule_22),
     Rule('16', 'Ingen Classic/DropDown', rule_16),
-    Rule('16b', 'Ingen ModernAttachments-kontrol (issue #165)', rule_16b),
+    Rule('16b', 'Kun ModernAttachments@1.3.0 til filer (issue #161)', rule_16b),
     Rule('33', 'Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4)', rule_33),
     Rule('18', 'Enhver Gallery skal have TabIndex', rule_18),
     Rule('19', 'AccessibleLabel maa ikke vaere kontrollens navn', rule_19),
