@@ -11711,37 +11711,41 @@ Screens:
                                                     =0 + 0 + 0 + (60) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (200) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (50) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (64) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14)) + (110) + Max(18, Int((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - 8 - 1462) / 14))
                                                 Y: |-
                                                     =0 + 0 + ((((44) - 2) - 0 - 0) - (32)) / 2
-                                          - inpVhpOpVendor:
-                                              Control: ModernTextInput
+                                          - btnVhpOpVendor:
+                                              Control: ModernButton
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Supplier"
+                                                    ="Vendor for operation " & ThisItem.OperationNo & ": " & Coalesce(Trim(Coalesce(ThisItem.Vendor, "")), "none")
+                                                Align: |-
+                                                    =Align.Center
                                                 Appearance: |-
-                                                    =If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                                BasePaletteColor: |-
-                                                    =C.'color-brand-primary'
+                                                    =ButtonAppearance.Outline
                                                 BorderColor: |-
-                                                    =If(varVhpViewOnly, C.'border-default', If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'border-input', C.'border-default'))
-                                                BorderStyle: |-
-                                                    =BorderStyle.Solid
+                                                    =If(!IsBlank(Trim(Coalesce(ThisItem.Vendor, ""))), C.'border-ok', C.'border-default')
                                                 BorderThickness: |-
                                                     =1
                                                 Color: |-
-                                                    =If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                                Default: |-
-                                                    =ThisItem.Vendor
+                                                    =If(!IsBlank(Trim(Coalesce(ThisItem.Vendor, ""))), C.'state-ok-fg', C.'text-primary')
                                                 DisplayMode: |-
-                                                    =If((If(varVhpViewOnly, DisplayMode.View, If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                                                Fill: |-
-                                                    =If(If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                    =If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02" && !varVhpViewOnly, DisplayMode.Edit, DisplayMode.Disabled)
                                                 Font: |-
                                                     =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
                                                 Height: |-
                                                     =32
-                                                OnChange: |-
-                                                    =Patch(colVhpOperations, ThisItem, { Vendor: Self.Text })
-                                                Placeholder: |-
-                                                    =""
+                                                Layout: |-
+                                                    =ButtonLayout.TextOnly
+                                                OnSelect: |-
+                                                    =With(
+                                                        { v: Trim(Coalesce(ThisItem.Vendor, "")) },
+                                                        Set(varVhpVenOpNo, ThisItem.OperationNo);
+                                                        Set(varVhpVenQuery, ""); Set(varVhpVenLast, ""); Set(varVhpVenMsg, "");
+                                                        Clear(colVhpVendors);
+                                                        If(!IsBlank(v), Collect(colVhpVendors, { Code: v, Description: v, Display: v, Maintainable: true, Level: "" }));
+                                                        Set(varVhpVenPick, v);
+                                                        Reset(cmbVhpVendor)
+                                                    )
                                                 RadiusBottomLeft: |-
                                                     =R.input
                                                 RadiusBottomRight: |-
@@ -11751,9 +11755,13 @@ Screens:
                                                 RadiusTopRight: |-
                                                     =R.input
                                                 Size: |-
-                                                    =If(LayoutRank < 2, 16, 14)
-                                                ValidationState: |-
-                                                    =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                                    =T.small
+                                                Text: |-
+                                                    =If(IsBlank(Trim(Coalesce(ThisItem.Vendor, ""))), If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", "Search...", "-"), Left(Trim(Coalesce(ThisItem.Vendor, "")), 12) & If(Len(Trim(Coalesce(ThisItem.Vendor, ""))) > 12, "..."))
+                                                Tooltip: |-
+                                                    =If(IsBlank(Trim(Coalesce(ThisItem.Vendor, ""))), "Search for a vendor", Trim(Coalesce(ThisItem.Vendor, "")))
+                                                VerticalAlign: |-
+                                                    =VerticalAlign.Middle
                                                 Width: |-
                                                     =110
                                                 X: |-
@@ -15465,13 +15473,13 @@ Screens:
             Image: |-
                 =""
             OnSelect: |-
-                =If(LayoutRank < 2, If(!IfError(Coalesce(varVhpAttBusy, false), false), If(varVhpTasklistPickerOpen || varVhpLongTextOpen || varVhpObjListOpen || !IsBlank(varVhpMatOpNo) || !IsBlank(varVhpAttOpNo), Set(varVhpTasklistPickerOpen, false); Set(varVhpLongTextOpen, false); Set(varVhpObjListOpen, false); Set(varVhpMatOpNo, ""); Set(varVhpAttOpNo, ""); Reset(attVhpAttPicker); Clear(colVhpAttUp); Set(varVhpAttRemove, Blank()), Set(varVhpOpMNo, ""))))
+                =If(LayoutRank < 2, If(!IfError(Coalesce(varVhpAttBusy, false), false) && !varVhpVenBusy, If(varVhpTasklistPickerOpen || varVhpLongTextOpen || varVhpObjListOpen || !IsBlank(varVhpMatOpNo) || !IsBlank(varVhpAttOpNo) || !IsBlank(varVhpVenOpNo), Set(varVhpTasklistPickerOpen, false); Set(varVhpLongTextOpen, false); Set(varVhpObjListOpen, false); Set(varVhpMatOpNo, ""); Set(varVhpAttOpNo, ""); Set(varVhpVenOpNo, ""); Reset(attVhpAttPicker); Clear(colVhpAttUp); Set(varVhpAttRemove, Blank()), Set(varVhpOpMNo, ""))))
             PressedFill: |-
                 =C.'overlay'
             TabIndex: |-
                 =If(LayoutRank < 2, 0, -1)
             Visible: |-
-                =varVhpTasklistPickerOpen || varVhpLongTextOpen || varVhpObjListOpen || !IsBlank(varVhpMatOpNo) || !IsBlank(varVhpAttOpNo) || !IsBlank(varVhpOpMNo)
+                =varVhpTasklistPickerOpen || varVhpLongTextOpen || varVhpObjListOpen || !IsBlank(varVhpMatOpNo) || !IsBlank(varVhpAttOpNo) || !IsBlank(varVhpOpMNo) || !IsBlank(varVhpVenOpNo)
             Width: |-
                 =App.Width
             X: |-
@@ -16186,39 +16194,43 @@ Screens:
                             ="Supplier"
                         Wrap: |-
                             =false
-                  - inpVhpOpMVendor:
-                      Control: ModernTextInput
+                  - btnVhpOpMVendor:
+                      Control: ModernButton
                       Properties:
                         AccessibleLabel: |-
-                            ="Supplier"
+                            ="Vendor for operation " & varVhpOpMNo & ": " & Coalesce(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Vendor, "")), "none")
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
                         Appearance: |-
-                            =If((If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                        BasePaletteColor: |-
-                            =C.'color-brand-primary'
+                            =ButtonAppearance.Outline
                         BorderColor: |-
-                            =If(varVhpViewOnly, C.'border-default', If((If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'border-input', C.'border-default'))
-                        BorderStyle: |-
-                            =BorderStyle.Solid
+                            =If(!IsBlank(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Vendor, ""))), C.'border-ok', C.'border-default')
                         BorderThickness: |-
                             =1
                         Color: |-
-                            =If((If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                        Default: |-
-                            =LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Vendor
+                            =If(!IsBlank(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Vendor, ""))), C.'state-ok-fg', C.'text-primary')
                         DisplayMode: |-
-                            =If((If(varVhpViewOnly, DisplayMode.View, If((If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                        Fill: |-
-                            =If(If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                            =If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02" && !varVhpViewOnly, DisplayMode.Edit, DisplayMode.Disabled)
                         Font: |-
                             =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
                         Height: |-
                             =32
-                        LayoutMinWidth: |-
-                            =0
-                        OnChange: |-
-                            =Patch(colVhpOperations, LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo), { Vendor: Self.Text })
-                        Placeholder: |-
-                            =""
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =With(
+                                { v: Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Vendor, "")) },
+                                Set(varVhpVenOpNo, varVhpOpMNo);
+                                Set(varVhpVenQuery, ""); Set(varVhpVenLast, ""); Set(varVhpVenMsg, "");
+                                Clear(colVhpVendors);
+                                If(!IsBlank(v), Collect(colVhpVendors, { Code: v, Description: v, Display: v, Maintainable: true, Level: "" }));
+                                Set(varVhpVenPick, v);
+                                Reset(cmbVhpVendor)
+                            )
                         RadiusBottomLeft: |-
                             =R.input
                         RadiusBottomRight: |-
@@ -16228,9 +16240,13 @@ Screens:
                         RadiusTopRight: |-
                             =R.input
                         Size: |-
-                            =If(LayoutRank < 2, 16, 14)
-                        ValidationState: |-
-                            =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                            =T.small
+                        Text: |-
+                            =If(IsBlank(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Vendor, ""))), If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", "Search...", "-"), Left(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Vendor, "")), 40) & If(Len(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Vendor, ""))) > 40, "..."))
+                        Tooltip: |-
+                            =If(IsBlank(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Vendor, ""))), "Search for a vendor", Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Vendor, "")))
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
                         Width: |-
                             =(Min(620, App.Width - 40) - 36)
                   - txtVhpOpML6:
@@ -18728,6 +18744,715 @@ Screens:
                             =!(!IfError(varVhpViewOnly, false))
                         Wrap: |-
                             =true
+      - conVhpVenModal:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'color-brand-primary-soft'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.ExtraBold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =98 + 12 + (40 + If(false, 0 + (1), 0)) + If(!IsBlank(varVhpVenMsg), 12 + (32), 0) + 12 + (If(((Min(620, App.Width - 40) - 36)) >= (118) + (145) + 8, 32, (32) + 8 + (32)))
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =18
+            PaddingRight: |-
+                =18
+            PaddingTop: |-
+                =18
+            RadiusBottomLeft: |-
+                =R.modal
+            RadiusBottomRight: |-
+                =R.modal
+            RadiusTopLeft: |-
+                =R.modal
+            RadiusTopRight: |-
+                =R.modal
+            Visible: |-
+                =IfError(!IsBlank(varVhpVenOpNo), false)
+            Width: |-
+                =Min(620, App.Width - 40)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =Max(20, (App.Height - Self.Height) / 3)
+          Children:
+            - conVhpVenHeadRow:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =32
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =12
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - txtVhpVenTitle:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            =Self.Text
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =26
+                        LayoutMinWidth: |-
+                            =0
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.cardTitle
+                        Text: |-
+                            ="Vendor · Operation " & varVhpVenOpNo
+                        Width: |-
+                            =Max(0, (((Min(620, App.Width - 40)) - 18 - 18)) - ((77) + 12) - 2)
+                        Wrap: |-
+                            =false
+                  - btnVhpVenClose:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-input'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =32
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varVhpVenOpNo, "")
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Close"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =77
+            - txtVhpVenCurrent:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =18
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =T.small
+                  Text: |-
+                      ="Current vendor: " & Coalesce(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpVenOpNo).Vendor, "")), "(none)")
+                  Wrap: |-
+                      =false
+            - conVhpVenWrap:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =40 + If(false, 0 + (1), 0)
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Stretch
+                  LayoutDirection: |-
+                      =LayoutDirection.Vertical
+                  LayoutGap: |-
+                      =0
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =(Min(620, App.Width - 40) - 36)
+                Children:
+                  - conVhpVenInput:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =40
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Center
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =8
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        PaddingBottom: |-
+                            =2
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =2
+                        Width: |-
+                            =(Min(620, App.Width - 40) - 36)
+                      Children:
+                        - cmbVhpVendor:
+                            Control: ModernCombobox
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Vendor - type at least 3 characters, then Search or Enter"
+                              Appearance: |-
+                                  =If((If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              BorderColor: |-
+                                  =If((If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'border-input', C.'border-default')
+                              BorderStyle: |-
+                                  =BorderStyle.Solid
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =If((If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                              DefaultSelectedItems: |-
+                                  =Filter(colVhpVendors, Code = varVhpVenPick)
+                              DelayOutput: |-
+                                  =false
+                              DisplayMode: |-
+                                  =If((If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                              Fill: |-
+                                  =If(If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                              FillPortions: |-
+                                  =0
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =36
+                              InputTextPlaceholder: |-
+                                  ="At least 3 characters - vendor number or name"
+                              IsSearchable: |-
+                                  =true
+                              ItemDisplayText: |-
+                                  =ThisItem.Display
+                              Items: |-
+                                  =With(
+                                      { q: Trim(Self.SearchText) },
+                                      With(
+                                          {
+                                              s: { Code: "?search", Description: q,
+                                                    Display: q & "  -  press Enter to search",
+                                                    Maintainable: true, Level: "" },
+                                              n: CountRows(colVhpVendors),
+                                              ask: Len(q) >= 3 && !varVhpVenBusy &&
+                                                   Upper(q) <> Upper(Coalesce(varVhpVenLast, "")),
+                                              narrow: CountRows(colVhpVendors) > 0 && !IsBlank(varVhpVenLast) &&
+                                                      StartsWith(Upper(q), Upper(varVhpVenLast))
+                                          },
+                                          If(
+                                              !ask, colVhpVendors,
+                                              ForAll(
+                                                  Sequence(n + 1),
+                                                  If(narrow, If(Value <= n, Index(colVhpVendors, Value), s),
+                                                      If(Value = 1, s, Index(colVhpVendors, Value - 1)))
+                                              )
+                                          )
+                                      )
+                                  )
+                              LayoutMinWidth: |-
+                                  =0
+                              OnChange: |-
+                                  =If(
+                                      Self.Selected.Code = "?search",
+                                      Set(varVhpVenQuery, Self.Selected.Description);
+                                      With(
+                                      { q: Upper(Trim(varVhpVenQuery)) },
+                                      If(
+                                          Len(q) < 3,
+                                          Set(gblToast, { Text: "Type at least 3 characters before searching.", Kind: "Warning", At: Now() }); true,
+                                  
+                                          Set(varVhpVenBusy, true);
+                                          Set(varVhpVenLast, q);
+                                          Clear(colVhpVendors);
+                                          Set(varVhpVenPick, ""); Reset(cmbVhpVendor);
+                                          Set(varVhpVenMsg, "Searching for " & Upper(q) & " ...");
+                                          IfError(
+                                              Set(varVhpVenRaw, 'BioSap-Integration-VendorsAll'.Run(Substitute(q, Char(34), "")));
+                                              If(
+                                                  IsBlank(varVhpVenRaw) || IsBlank(varVhpVenRaw.vendoroutput),
+                                                  Clear(colVhpVendors),
+                                                  ClearCollect(
+                                      colVhpVendors,
+                                      Filter(
+                                          ForAll(
+                                              Table(ParseJSON(varVhpVenRaw.vendoroutput)) As R,
+                                              With(
+                                                  { s: Trim(Text(R.Value.'Vendors[Vendor Search]')) },
+                                                  { Code: s, Description: s, Display: s, Maintainable: true, Level: "" }
+                                              )
+                                          ),
+                                          !IsBlank(Code)
+                                      )
+                                  )
+                                              );
+                                              If(
+                                                  CountRows(colVhpVendors) = 0,
+                                                  Set(gblToast, { Text: "No vendors found for " & Upper(q) & ".", Kind: "Warning", At: Now() }); true,
+                                                      Set(varVhpVenPick, First(colVhpVendors).Code);
+                                                      Reset(cmbVhpVendor)
+                                              );
+                                              Set(
+                                                  varVhpVenMsg,
+                                                  With(
+                                                      { n: CountRows(colVhpVendors) },
+                                                      If(
+                                                          n = 0,
+                                                          "No vendors found for " & Upper(q) & ".",
+                                                          Text(n) & " vendors found for " & Upper(q) & ". " &
+                                                              If(
+                                                                  n > 50,
+                                                                  "The list is long - type more characters to narrow it.",
+                                                                  "Select one from the list below."
+                                                              )
+                                                      )
+                                                  )
+                                              ),
+                                              Clear(colVhpVendors);
+                                              Set(varVhpVenMsg, "Search failed: " & FirstError.Message);
+                                              Set(gblToast, { Text: "The vendors search failed. Try again.", Kind: "Error", At: Now() }); true
+                                          );
+                                          Set(varVhpVenBusy, false)
+                                      )
+                                  );
+                                      Reset(cmbVhpVendor),
+                                      If(
+                                      IsBlank(Self.Selected.Code) && !varVhpVenBusy,
+                                      Set(varVhpVenPick, ""); Clear(colVhpVendors); Set(varVhpVenLast, ""); Set(varVhpVenQuery, ""); Set(varVhpVenMsg, ""),
+                                      Set(varVhpVenPick, Coalesce(Self.Selected.Code, ""))
+                                  )
+                                  )
+                              RadiusBottomLeft: |-
+                                  =R.input
+                              RadiusBottomRight: |-
+                                  =R.input
+                              RadiusTopLeft: |-
+                                  =R.input
+                              RadiusTopRight: |-
+                                  =R.input
+                              SelectMultiple: |-
+                                  =false
+                              Size: |-
+                                  =If(LayoutRank < 2, 16, 14)
+                              ValidationState: |-
+                                  =If(false && IsBlank(Self.Selected.Code), ValidationState.Error, ValidationState.None)
+                              Width: |-
+                                  =Max(0, ((((Min(620, App.Width - 40)) - 18 - 18))) - (If(!varVhpVenBusy, (154) + 8, 0)) - (If(varVhpVenBusy, (154) + 8, 0)) - 2)
+                        - btnVhpVenSearch:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Search vendor"
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Center
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-input'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'text-primary'
+                              DisplayMode: |-
+                                  =If(Len(Trim(Coalesce(cmbVhpVendor.SearchText, varVhpVenQuery))) < 3, DisplayMode.Disabled, If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit))
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =36
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
+                              LayoutMinWidth: |-
+                                  =154
+                              OnSelect: |-
+                                  =With(
+                                      { q: Upper(Trim(Coalesce(cmbVhpVendor.SearchText, varVhpVenQuery))) },
+                                      If(
+                                          Len(q) < 3,
+                                          Set(gblToast, { Text: "Type at least 3 characters before searching.", Kind: "Warning", At: Now() }); true,
+                                  
+                                          Set(varVhpVenBusy, true);
+                                          Set(varVhpVenLast, q);
+                                          Clear(colVhpVendors);
+                                          Set(varVhpVenPick, ""); Reset(cmbVhpVendor);
+                                          Set(varVhpVenMsg, "Searching for " & Upper(q) & " ...");
+                                          IfError(
+                                              Set(varVhpVenRaw, 'BioSap-Integration-VendorsAll'.Run(Substitute(q, Char(34), "")));
+                                              If(
+                                                  IsBlank(varVhpVenRaw) || IsBlank(varVhpVenRaw.vendoroutput),
+                                                  Clear(colVhpVendors),
+                                                  ClearCollect(
+                                      colVhpVendors,
+                                      Filter(
+                                          ForAll(
+                                              Table(ParseJSON(varVhpVenRaw.vendoroutput)) As R,
+                                              With(
+                                                  { s: Trim(Text(R.Value.'Vendors[Vendor Search]')) },
+                                                  { Code: s, Description: s, Display: s, Maintainable: true, Level: "" }
+                                              )
+                                          ),
+                                          !IsBlank(Code)
+                                      )
+                                  )
+                                              );
+                                              If(
+                                                  CountRows(colVhpVendors) = 0,
+                                                  Set(gblToast, { Text: "No vendors found for " & Upper(q) & ".", Kind: "Warning", At: Now() }); true,
+                                                      Set(varVhpVenPick, First(colVhpVendors).Code);
+                                                      Reset(cmbVhpVendor)
+                                              );
+                                              Set(
+                                                  varVhpVenMsg,
+                                                  With(
+                                                      { n: CountRows(colVhpVendors) },
+                                                      If(
+                                                          n = 0,
+                                                          "No vendors found for " & Upper(q) & ".",
+                                                          Text(n) & " vendors found for " & Upper(q) & ". " &
+                                                              If(
+                                                                  n > 50,
+                                                                  "The list is long - type more characters to narrow it.",
+                                                                  "Select one from the list below."
+                                                              )
+                                                      )
+                                                  )
+                                              ),
+                                              Clear(colVhpVendors);
+                                              Set(varVhpVenMsg, "Search failed: " & FirstError.Message);
+                                              Set(gblToast, { Text: "The vendors search failed. Try again.", Kind: "Error", At: Now() }); true
+                                          );
+                                          Set(varVhpVenBusy, false)
+                                      )
+                                  )
+                              RadiusBottomLeft: |-
+                                  =R.input
+                              RadiusBottomRight: |-
+                                  =R.input
+                              RadiusTopLeft: |-
+                                  =R.input
+                              RadiusTopRight: |-
+                                  =R.input
+                              Size: |-
+                                  =T.input
+                              Text: |-
+                                  ="Search"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Visible: |-
+                                  =!varVhpVenBusy
+                              Width: |-
+                                  =154
+                        - imgVhpVenBusy:
+                            Control: Image
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Searching"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Height: |-
+                                  =36
+                              Image: |-
+                                  ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='154' height='36' viewBox='0 0 154 36'><rect x='0.5' y='0.5' width='153' height='35' rx='10' fill='" & C.'hex-state-neutral-bg' & "' stroke='" & C.'hex-border-default' & "'/><circle cx='34.0' cy='18' r='8' fill='none' stroke='" & C.'hex-border-default' & "' stroke-width='2.5'/><circle cx='34.0' cy='18' r='8' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2.5' stroke-linecap='round' stroke-dasharray='14 40'><animateTransform attributeName='transform' type='rotate' from='0 34.0 18' to='360 34.0 18' dur='0.8s' repeatCount='indefinite'/></circle><text x='50.0' y='23' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>" & "Searching..." & "</text></svg>")
+                              ImagePosition: |-
+                                  =ImagePosition.Fit
+                              LayoutMinWidth: |-
+                                  =154
+                              OnSelect: |-
+                                  =false
+                              TabIndex: |-
+                                  =0
+                              Visible: |-
+                                  =varVhpVenBusy
+                              Width: |-
+                                  =154
+                  - tmrVhpVenCapture:
+                      Control: Timer
+                      Properties:
+                        AutoPause: |-
+                            =false
+                        AutoStart: |-
+                            =false
+                        Duration: |-
+                            =300
+                        Height: |-
+                            =1
+                        OnTimerEnd: |-
+                            =If(!IsBlank(cmbVhpVendor.SearchText), Set(varVhpVenQuery, cmbVhpVendor.SearchText))
+                        Repeat: |-
+                            =true
+                        Start: |-
+                            =!IsBlank(cmbVhpVendor.SearchText)
+                        Visible: |-
+                            =false
+                        Width: |-
+                            =1
+            - txtVhpVenMsg:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =32
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =T.small
+                  Text: |-
+                      =varVhpVenMsg
+                  Visible: |-
+                      =!IsBlank(varVhpVenMsg)
+                  Wrap: |-
+                      =true
+            - conVhpVenActions:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =If(((Min(620, App.Width - 40) - 36)) >= (118) + (145) + 8, 32, (32) + 8 + (32))
+                  LayoutAlignItems: |-
+                      =If(((Min(620, App.Width - 40) - 36)) >= (118) + (145) + 8, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                  LayoutDirection: |-
+                      =If(((Min(620, App.Width - 40) - 36)) >= (118) + (145) + 8, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                  LayoutGap: |-
+                      =8
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - btnVhpVenUse:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Use vendor"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        BasePaletteColor: |-
+                            =C.'color-brand-primary'
+                        Color: |-
+                            =C.'text-on-primary'
+                        DisplayMode: |-
+                            =If(varVhpViewOnly || varVhpVenBusy || IsBlank(cmbVhpVendor.Selected.Code) || cmbVhpVendor.Selected.Code = "?search", DisplayMode.Disabled, DisplayMode.Edit)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =32
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        LayoutMinWidth: |-
+                            =If(((Min(620, App.Width - 40) - 36)) >= (118) + (145) + 8, 118, 0)
+                        OnSelect: |-
+                            =Patch(colVhpOperations, LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpVenOpNo), { Vendor: cmbVhpVendor.Selected.Code });
+                            Set(varVhpVenOpNo, "")
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Use vendor"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =118
+                  - btnVhpVenRemove:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Remove vendor"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-error'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'state-error-fg'
+                        DisplayMode: |-
+                            =If(varVhpViewOnly || varVhpVenBusy || IsBlank(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpVenOpNo).Vendor, ""))), DisplayMode.Disabled, DisplayMode.Edit)
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =32
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        LayoutMinWidth: |-
+                            =If(((Min(620, App.Width - 40) - 36)) >= (118) + (145) + 8, 145, 0)
+                        OnSelect: |-
+                            =Patch(colVhpOperations, LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpVenOpNo), { Vendor: "" });
+                            Set(varVhpVenOpNo, "")
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Remove vendor"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =145
       - conVhpPickerModal:
           Control: GroupContainer
           Variant: AutoLayout
@@ -24863,6 +25588,14 @@ Screens:
                             // Popupperne for materialer og dokumenter pr. operation (OperationNo, tom = lukket).
                             Set(varVhpMatOpNo, "");
                             Set(varVhpAttOpNo, "");
+                            // Leverandoersoegningen paa PM02-operationer (tools/vendor_search.py):
+                            // operationen i popup'en (tom = lukket) og vaelgerens tilstand.
+                            Set(varVhpVenOpNo, "");
+                            Set(varVhpVenBusy, false);
+                            Set(varVhpVenQuery, "");
+                            Set(varVhpVenLast, "");
+                            Set(varVhpVenPick, "");
+                            Set(varVhpVenMsg, "");
                             // Lang tekst: "op" = en operation, "item" = itemets lange tekst.
                             Set(varVhpLongTextTarget, "op");
                             Set(varVhpTasklistPickerOpen, false);
