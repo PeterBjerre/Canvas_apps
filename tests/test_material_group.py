@@ -49,3 +49,14 @@ def test_dropdown_keeps_a_material_group_not_in_the_list():
 def test_named_formula_reads_md_material_group():
     text = open(APP, encoding="utf-8").read()
     assert re.search(r"colVhpMaterialGroups = Sort\(ForAll\(MD_MaterialGroup As R,", text)
+
+
+def test_both_dropdowns_show_code_and_material_group_description():
+    """Peter 2026-10-16: koden sammen med Material Group Description, i
+    tabellens celle som i popup'en. Der gemmes stadig kun koden."""
+    app = open(APP, encoding="utf-8").read()
+    assert "Trim(R.MaterialGroup) & \" - \" & Trim(R.MaterialGroupDescription)" in app
+    text = open(SCREEN, encoding="utf-8").read()
+    for name in ("drpVhpOpMatGrp", "drpVhpOpMMatGrp"):
+        m = re.search(r"- %s:\n(?:.*\n){0,120}?\s+ItemDisplayText: (.*\n.*)" % name, text)
+        assert m and "ThisItem.Display" in m.group(1), name
