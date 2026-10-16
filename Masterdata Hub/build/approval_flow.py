@@ -24,7 +24,8 @@ from gen_screen import (Ctrl, C_OVERLAY, C_MODAL_BG, C_PRIMARY_SOFT, C_MUTED, C_
                         C_MUTED_BG, C_TRANSPARENT, C_PRIMARY, C_INFO_BG, C_INFO_FG,
                         C_WARN_FG, C_WARN_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_VALID_FG, C_VALID_BG,
                         C_INVALID_FG, C_INVALID_BG, C_CARD_BORDER, C_ROW_HOVER, C_ROW_PRESSED)
-from build_helpers import group, text_ctrl, button, grow, spinner_svg, row_hit, text_px, text_input
+from build_helpers import (group, text_ctrl, button, grow, spinner_svg, row_hit, text_px,
+                           text_input, label_px)
 from hub_config import DOMAINS
 from design_tokens import ref_hex
 import icons
@@ -204,26 +205,74 @@ def decided(table):
 # etiketten (11 px) oeverst, knuden under med luft imellem, og knuderne
 # staar symmetrisk om midten af de 270, saa striben kan centreres i
 # kolonnen. Tilstandene og deres farver er uaendrede.
-STRIP_W, STRIP_H = 270, 36
+STRIP_H = 36
 LABEL_Y = 12      # etikettens grundlinje
 LABEL_SIZE = 11
 NODE_Y = 25       # knudens midte: top 19, bund 31 - 7 px under grundlinjen
-# VENSTRESTILLET I KOLONNEN (issue #290). Striben staar nu ved kolonnens
-# venstre kant, under overskriften "Approval" (der har 0 px venstre luft),
-# i stedet for midt i kolonnen. Det foerste trin er altid "System"; dens
-# etiket er ca. 36 px bred ved 11 px semibold, saa den foerste knude staar
-# 19 px inde - etikettens venstre kant flugter med overskriften og
-# klippes ikke af billedets kant. Alle knuder flyttes lige meget, saa
-# afstandene og etiketterne over knuderne er uaendrede.
-STRIP_X0 = 19
+# CENTRERET I PILLEN (issue #318). #290 satte foerste knude fast 19 px
+# inde: "System" stod klos op ad pillens venstre kant, mens der var ca.
+# 27 px tomt mellem SAP og pilen. Nu regnes knuderne af den bredde,
+# striben faktisk har:
+#
+#   pillen   |<-- PILL_PAD -->[System ... SAP]<-- PILL_PAD -->(pil) 8|
+#            |<------------- STRIP_W ------------------------>|ARROW_W|
+#
+# Billedet er pillens bredde minus pilens plads (ARROW_W: knappens
+# PaddingRight 8 + tegnet "\u203a" ca. 8). Inde i billedet er der lige
+# meget luft (PILL_PAD) fra pillens venstre kant til den foerste etiket
+# og fra den sidste etiket til pilen. Knuderne staar med lige store
+# afstande imellem, og hver etiket staar centreret over sin knude.
+# Etiketternes bredde er fontens egne maal (build_helpers.label_px).
+#
+# Bred skaerm: pillen er kolonnens mindstebredde (270), saa striben er
+# 254 bred. Kompakt (tablet) er pillen hele raekkens bredde, og striben
+# regnes af Parent.TemplateWidth - samme formel, saa den foelger med.
+PILL_W = 270
+ARROW_W = 16
+PILL_PAD = 12
+STRIP_W = PILL_W - ARROW_W
 
 
-NOT_STARTED = (
-    '"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'%d\' height=\'%d\' viewBox=\'0 0 %d %d\'>'
-    '<text x=\'%d\' y=\'%d\' text-anchor=\'start\' %s font-size=\'12\' '
-    'fill=\'" & %s & "\'>Not required</text></svg>"'
-    % (STRIP_W, STRIP_H, STRIP_W, STRIP_H, 0, STRIP_H // 2 + 4, SVG_FONT,
-       ref_hex("text-muted")))
+def strip_xs(names, width):
+    """Knudernes x i en stribe paa width px (issue #318).
+
+    width er et tal (bred skaerm: tallene regnes her) eller et Power
+    Fx-udtryk (kompakt: der regnes i appen, afrundet til hele px, saa
+    tallet bliver til tekst uden decimalkomma). Foerste etiket starter
+    PILL_PAD inde, sidste slutter PILL_PAD foer kanten; knuderne derimellem
+    staar med lige store afstande."""
+    first = PILL_PAD + label_px(names[0], LABEL_SIZE) / 2
+    last_off = PILL_PAD + label_px(names[-1], LABEL_SIZE) / 2
+    n = len(names)
+    if isinstance(width, (int, float)):
+        step = (width - last_off - first) / (n - 1)
+        return [int(round(first + i * step)) for i in range(n)]
+    return [f"Round({first:g} + {i} * (({width}) - {last_off + first:g}) / {n - 1}, 0)"
+            for i in range(n)]
+
+
+def _num(v):
+    """Et tal i SVG-teksten: et heltal staar direkte, et Power Fx-udtryk
+    saettes ind med &."""
+    return str(v) if isinstance(v, int) else f'" & {v} & "'
+
+
+def _svg_open(width):
+    w = _num(width)
+    return ('"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'%s\' height=\'%d\' '
+            'viewBox=\'0 0 %s %d\'>"' % (w, STRIP_H, w, STRIP_H))
+
+
+def not_started(width=STRIP_W):
+    """ "Not required" ved billedets venstre kant (issue #290) - der er ingen
+    pille, naar anmodningen intet forloeb har."""
+    return (_svg_open(width)[:-1] +
+            '<text x=\'0\' y=\'%d\' text-anchor=\'start\' %s font-size=\'12\' '
+            'fill=\'" & %s & "\'>Not required</text></svg>"'
+            % (STRIP_H // 2 + 4, SVG_FONT, ref_hex("text-muted")))
+
+
+NOT_STARTED = not_started()
 
 
 # GODKENDELSESLOGGEN HENTES EEN GANG (2026-10-05)
@@ -265,48 +314,54 @@ def _strip_glyph(value):
             + ', "%s")' % icons.WORKFLOW_DEFAULT)
 
 
-def _strip_body(xs, names, var):
+def _strip_body(names, var, width):
     """Striben selv: en knude pr. trin paa en linje, farvet af tilstanden.
 
-    xs, names og var er lige lange - saa kan baade VH-planens fire trin og
-    Materials to tegnes af den samme kode (issue #204). Alle xs flyttes,
-    saa det foerste trin staar ved STRIP_X0 (issue #290) - afstandene er
-    de samme som foer."""
-    xs = [x - xs[0] + STRIP_X0 for x in xs]
-    parts = ['"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'%d\' height=\'%d\' '
-             'viewBox=\'0 0 %d %d\'>"' % (STRIP_W, STRIP_H, STRIP_W, STRIP_H)]
+    names og var er lige lange - saa kan baade VH-planens fire trin,
+    Materials to og MP's tre tegnes af den samme kode (issue #204).
+    Knudernes x regnes af stribens bredde (strip_xs, issue #318)."""
+    xs = strip_xs(names, width)
+    dyn = not isinstance(width, int)
+    if dyn:
+        # Hver x regnes een gang i appen og bruges af streg, knude og etiket.
+        pv = [f"p{i}" for i in range(len(xs))]
+        bind = "{ " + ", ".join(f"{k}: {x}" for k, x in zip(pv, xs)) + " }"
+        xs = pv
+    parts = [_svg_open(width)]
+    num = _num
+    off = (lambda x: f"({x} - {NODE_R})") if dyn else (lambda x: x - NODE_R)
     # Trinnets navn staar centreret over sin knude (issue #274), i
     # knudens farve som foer UX-reviewet. Navnene staar ogsaa i billedets
     # tooltip (build_hub, imgMdRowApproval) og i popuppen.
     y = NODE_Y
     for i in range(len(names) - 1):
         parts.append(
-            f'"<line x1=\'{xs[i]}\' y1=\'{y}\' x2=\'{xs[i + 1]}\' y2=\'{y}\' stroke-width=\'2\' '
+            f'"<line x1=\'{num(xs[i])}\' y1=\'{y}\' x2=\'{num(xs[i + 1])}\' y2=\'{y}\' stroke-width=\'2\' '
             f'stroke-linecap=\'round\' stroke=\'" & If({PASSED % ((var[i],) * 3)}, '
             f'{ref_hex("state-ok-fg")}, {ref_hex("border-default")}) & "\'/>"')
     for i, nm in enumerate(names):
         col = _hex_switch(var[i])
         hollow = f'{var[i]} = "Pending"'
         parts.append(
-            f'"<circle cx=\'{xs[i]}\' cy=\'{y}\' r=\'{NODE_R}\' stroke-width=\'1.5\' stroke=\'" & {col} & '
+            f'"<circle cx=\'{num(xs[i])}\' cy=\'{y}\' r=\'{NODE_R}\' stroke-width=\'1.5\' stroke=\'" & {col} & '
             f'"\' fill=\'" & If({hollow}, "none", {col}) & "\'/>"')
         # Symbolet i knuden (issue #139): farven alene skiller ikke Approved
         # fra In progress. Samme symboler som popuppens tidslinje.
         parts.append(
-            f'If({hollow}, "", "<g transform=\'translate({xs[i] - NODE_R} {y - NODE_R}) '
+            f'If({hollow}, "", "<g transform=\'translate({num(off(xs[i]))} {y - NODE_R}) '
             f'scale({NODE_R / 12:g})\' fill=\'none\' stroke=\'" & {ref_hex("text-on-primary")} & '
             f'"\' stroke-width=\'{NODE_STROKE:g}\' stroke-linecap=\'round\' stroke-linejoin=\'round\'>'
             f'<path d=\'" & {_strip_glyph(var[i])} & "\'/></g>")')
         parts.append(
-            f'"<text x=\'{xs[i]}\' y=\'{LABEL_Y}\' text-anchor=\'middle\' {SVG_FONT} '
+            f'"<text x=\'{num(xs[i])}\' y=\'{LABEL_Y}\' text-anchor=\'middle\' {SVG_FONT} '
             f'font-size=\'{LABEL_SIZE}\' font-weight=\'600\' fill=\'" & {col} & "\'>{nm}</text>"')
     parts.append('"</svg>"')
-    return " &\n".join(parts)
+    body = " &\n".join(parts)
+    return f"With({bind},\n{body})" if dyn else body
 
 
-def _vh_strip(req):
-    body = _strip_body([36, 102, 168, 234],
-                       ["System", "Cost", "Quality", "SAP"], ["a", "b", "c", "d"])
+def _vh_strip(req, width=STRIP_W):
+    body = _strip_body(["System", "Cost", "Quality", "SAP"], ["a", "b", "c", "d"], width)
     return (
         f"With({{a: {stage_state(latest('L', 'System'), expected('System', req), 'true')}}},\n"
         f"With({{b: {stage_state(latest('L', 'Cost'), expected('Cost', req), 'a')}}},\n"
@@ -314,38 +369,40 @@ def _vh_strip(req):
         f"With({{d: {sap_state(req)}}},\n{body}))))")
 
 
-def _mat_strip(req):
+def _mat_strip(req, width=STRIP_W):
     """Materials stribe: systemgodkendelsen og overdragelsen.
 
     En indmelding UDEN strategiske raekker har ingen "Requested"-raekker i
     loggen, og saa er der intet forloeb at vise - den staar som "Not
     required", praecis som et domaene uden godkendelse."""
-    body = _strip_body([69, 201], ["System", "Handover"], ["a", "d"])
+    body = _strip_body(["System", "Handover"], ["a", "d"], width)
     state = stage_state(decided(latest("L", "System")), mat_expected("L"), "true")
-    return (f'If(\n    CountRows(Filter(L, Stage = "System")) = 0, {NOT_STARTED},\n'
+    return (f'If(\n    CountRows(Filter(L, Stage = "System")) = 0, {not_started(width)},\n'
             f"    With({{a: {state}}},\n"
             f"    With({{d: {sap_state(req)}}},\n{body}))\n)")
 
 
-def _mp_strip(req):
+def _mp_strip(req, width=STRIP_W):
     """Measuring Points stribe (issue #210): systemgodkendelsen, taelleren i
     PRODOS/SRO og oprettelsen i SAP. Uden raekker i nogen af de to trin
     (ingen ny taeller) er der intet forloeb: "Not required"."""
-    body = _strip_body([44, 135, 226], ["System", "Counter", "SAP"], ["a", "b", "d"])
+    body = _strip_body(["System", "Counter", "SAP"], ["a", "b", "d"], width)
     return (f'If(\n    CountRows(Filter(L, Stage = "System" || Stage = "Counter")) = 0, '
-            f'{NOT_STARTED},\n'
+            f'{not_started(width)},\n'
             f"    With({{a: {mp_state('L', 'System', 'true')}}},\n"
             f"    With({{b: {mp_state('L', 'Counter', 'a')}}},\n"
             f"    With({{d: {sap_state(req)}}},\n{body})))\n)")
 
 
-def row_svg():
-    """Power Fx text for the strip's SVG, or "" when the request has no approval flow."""
+def row_svg(width=STRIP_W):
+    """Power Fx text for the strip's SVG, or "Not required" when the request
+    has no approval flow. width: the image's width - a number, or a Power
+    Fx expression for a strip that follows the row (issue #318)."""
     req = "ThisItem"
-    mp = f"        {is_mp(req)},\n        {_mp_strip(req)},\n" if MP_ON else ""
-    inner = (f"If(\n        {is_mat(req)},\n        {_mat_strip(req)},\n{mp}"
-             f"        {_vh_strip(req)}\n    )")
-    return ("If(\n    !(" + applies(req) + '), ' + NOT_STARTED + ',\n'
+    mp = f"        {is_mp(req)},\n        {_mp_strip(req, width)},\n" if MP_ON else ""
+    inner = (f"If(\n        {is_mat(req)},\n        {_mat_strip(req, width)},\n{mp}"
+             f"        {_vh_strip(req, width)}\n    )")
+    return ("If(\n    !(" + applies(req) + '), ' + not_started(width) + ',\n'
             f"    With(\n        {{ L: {ROW_LOG} }},\n"
             f"        {inner}\n    )\n)")
 
