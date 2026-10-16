@@ -51,10 +51,16 @@ visning og hentes igen ved naeste FL-soegning.
 import sp_config as cfg
 from build_helpers import concurrent
 import permissions as perm
+import request_index as ri
 import submission_notes as sn
 import display_text as dt
 
 # Hvem maa se noterne ved Submit (issue #115) - tools/submission_notes.py.
+# Planens Status ved Send retur og indeksets tilsvarende (docs/32 §5).
+RETURNED, AWAITING = "Returned", "AfventerInfo"
+# Indeksets status, som rettighederne regnes paa - AfventerInfo, naar
+# planen selv staar i Returned (se load_block).
+IDX_STATUS = f'If(pl.Status.Value = "{RETURNED}", "{AWAITING}", idx.Status.Value)'
 NOTE_S_OK = sn.may_self("idx.RequesterEmail", "varVhpMe")
 NOTE_A_OK = sn.may_approver("idx.RequesterEmail", "varVhpMe", "idx.AssignedToEmail",
                             sn.decided_in(sn.LOG, "varVhpRequestGuid", "varVhpMe"))
@@ -264,8 +270,25 @@ def load_block():
         # Edit for the owner of a draft or of a plan returned in the approval
         # (AfventerInfo), and for an admin (tools/permissions.py);
         # everyone else stays in View.
+        # INDEKSET HALTER BAGEFTER PLANEN (2026-10-16): systemflowet satte
+        # ikke Status i MD_RequestIndex, saa en returneret plan stod stadig
+        # som Indsendt, og hverken hubben eller Edit vidste, den var sendt
+        # retur. Planens egen Status er sandheden: staar den i Returned,
+        # regnes rettigheden paa AfventerInfo, og indeksraekken rettes -
+        # kun naar de er uenige, og en fejl (fx ingen skriveadgang) stopper
+        # ikke indlaesningen.
+        "                If(\n"
+        f"                    pl.Status.Value = \"{RETURNED}\" && !IsBlank(idx.ID) && "
+        f"idx.Status.Value <> \"{AWAITING}\",\n"
+        "                    IfError(\n"
+        f"                        Patch({cfg.L_INDEX}, idx, {{ Status: {{ Value: \"{AWAITING}\" }}, "
+        f"StatusStep: {ri.step(AWAITING)} }});\n"
+        "                        true,\n"
+        "                        false\n"
+        "                    )\n"
+        "                );\n"
         "                Set(varVhpCanEdit, "
-        + perm.may_change("idx.RequesterEmail", "idx.Status.Value", "varVhpMe", resubmit=True) + ");\n"
+        + perm.may_change("idx.RequesterEmail", IDX_STATUS, "varVhpMe", resubmit=True) + ");\n"
         "                Set(varVhpViewOnly, !(Lower(Coalesce(Param(\"mode\"), \"\")) = \"edit\" && varVhpCanEdit));\n"
         "\n"
         "                // --- de fem hentninger, PAA EEN GANG -------------\n"
