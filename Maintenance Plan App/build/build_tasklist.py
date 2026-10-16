@@ -56,7 +56,8 @@ OPS_COLS = [
     ("CTRL", 90),
     ("VENDOR", 110),
     ("COST", 80),
-    ("MAT.GRP", 90),
+    # Koden og beskrivelsen, fx "B10.13 - Onsite/Marine Maint." (29 tegn).
+    ("MAT.GRP", 220),
     ("LONG TEXT", 170),
     ("PACKAGES", 110),
     # Knapper, som Details og Docs i Equipments liste (issue #54). De
@@ -1175,10 +1176,11 @@ def build_tasklist_section():
     numOpCost = number_field("inpVhpOpCost", "ThisItem.Cost", width=w["COST"], height=32,
                              display_mode=DM_PURCHASE, label="\"Price\"",
                              onchange=f"Patch(colVhpOperations, ThisItem, {{ Cost: {NV} }})")
-    # Cellen er 90 px og viser koden alene; popup'en paa smalle skaerme
-    # viser ogsaa teksten. Se matgrp_items.
+    # Cellen viser koden og beskrivelsen, som popup'en paa smalle skaerme.
+    # Der gemmes kun koden (Value). Se matgrp_items.
     txtOpMatGrp = themed_dropdown(
-        "drpVhpOpMatGrp", matgrp_items("ThisItem.MaterialGroup"), "ThisItem.MaterialGroup",
+        "drpVhpOpMatGrp", matgrp_items("ThisItem.MaterialGroup"),
+        matgrp_display("ThisItem.MaterialGroup"), display_col="Display",
         width=w["MAT.GRP"], height=32, display_mode=DM_PURCHASE, label="\"Material group\"",
         onchange="Patch(colVhpOperations, ThisItem, { MaterialGroup: Self.Selected.Value })")
     # Cellen viser begyndelsen af teksten; skrivningen sker i popup'en, hvor
