@@ -658,7 +658,7 @@ def test_filters_are_a_toolbar_at_the_top_of_the_list():
     under bjaelken, vaerktoejslinjen og kortets egne linjer."""
     import ib_parts as P
     rows = P.build_filters()
-    assert [r.name for r in rows] == ["conIbTbTop", "conIbTbFilters", "conIbSearchRow"]
+    assert [r.name for r in rows] == ["conIbTbTop", "conIbTbFilters"]
     names = {c.name for c in _walk_ctrls(rows)}
     for n in ("btnIbScopeAll", "btnIbScopeMine", "btnIbScopeAssigned", "btnIbStateOpen",
               "btnIbStateClosed", "btnIbStateArchived", "inpIbSearch", "drpIbSort", "drpIbFltApp",
@@ -670,7 +670,7 @@ def test_filters_are_a_toolbar_at_the_top_of_the_list():
     for r in rows:
         assert "Fill" not in r.props and "BorderColor" not in r.props
     card = P.build_list()
-    assert [c.name for c in card.children[:3]] == ["conIbTbTop", "conIbTbFilters", "conIbSearchRow"]
+    assert [c.name for c in card.children[:3]] == ["conIbTbTop", "conIbTbFilters", "conIbCountRow"]
     text = open(os.path.join(ROOT, "BIO SAP App", "ScreenIssueBoard.pa.yaml"), encoding="utf-8").read()
     body = text[text.index("- conIbBody:"):text.index("- conIbTbTop:")]
     assert body.count("- con") == 2          # conIbBody og conIbListCard
