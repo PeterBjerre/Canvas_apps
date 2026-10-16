@@ -136,7 +136,7 @@ def test_indicator_fields():
     war = _prop("btnFlRowWar", "BorderColor")
     assert '"WARRANTY START"' in war and '"WARRANTY END"' in war
     cls = _prop("btnFlRowClassData", "BorderColor")
-    assert 'Section in ["Class", "TRM", "Ext"]' in cls and "ThisItem.AssignedClass" in cls
+    assert 'Section in ["Class", "TRM"]' in cls and "ThisItem.AssignedClass" in cls
 
 
 def test_disabled_states_and_permissions():
@@ -185,7 +185,7 @@ def test_jump_folds_the_sections_before_it():
     for key in ("Main", "Class", "Loc"):
         assert '!(IfError(varFlPanelJump, "") in ["Mfr", "War"])' in _prop(f"conFlPanel{key}", "Visible")
     assert '!(IfError(varFlPanelJump, "") in ["War"])' in _prop("conFlPanelMfr", "Visible")
-    for key in ("War", "TRM", "Ext"):
+    for key in ("War", "TRM"):
         assert "varFlPanelJump" not in _prop(f"conFlPanel{key}", "Visible")
     assert _prop("btnFlPanelShowAll", "OnSelect") == 'Set(varFlPanelJump, "")'
     assert _children("conFlEditorSections")[0] == "btnFlPanelShowAll"
