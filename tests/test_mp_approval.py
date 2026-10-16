@@ -625,7 +625,7 @@ def test_the_plan_and_material_strips_are_the_same_with_the_flag(hub_on, hub_off
 
 def test_the_mp_strip_has_system_counter_and_sap(hub_on):
     mp = hub_on["mp"]
-    # System, Counter og SAP: tre knuder (etiketterne er vaek, UX-review).
+    # System, Counter og SAP: tre knuder med hver sin etiket (issue #274).
     assert mp.count("<circle") == 3
     for stage in ("System", "Counter"):
         assert 'Stage = "%s"' % stage in mp, stage
