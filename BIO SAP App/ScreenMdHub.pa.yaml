@@ -33,7 +33,6 @@ Screens:
                   )
               ) As R, { Id: R.ID, Domain: R.Domain.Value, Mine: R.AssignedToEmail = varMdMe, Stuck: R.IsOpen && R.Status.Value in ["Indsendt", "UnderBehandling", "AfventerInfo"] && R.LastActionOn < DateAdd(Now(), -5, TimeUnit.Days), Ret: R.Status.Value = "AfventerInfo" && R.RequesterEmail = varMdMe })),
               Set(varMdAprAll, SortByColumns(Filter(MD_ApprovalLog, Stage = "System" || Stage = "Cost" || Stage = "Quality"), "ID", SortOrder.Descending)),
-              Set(varMdResumeList, FirstN(Sort(Table(FirstN(Sort(Filter('MD_RequestIndex', RequesterEmail = varMdMe && Status.Value = "Kladde"), LastActionOn, SortOrder.Descending), 3), FirstN(Sort(Filter('MD_RequestIndex', RequesterEmail = varMdMe && Status.Value = "AfventerInfo"), LastActionOn, SortOrder.Descending), 3)), LastActionOn, SortOrder.Descending), 3)),
               Set(varMdSelfNotes, If(IsAdmin, ShowColumns(VHP_NoteToSelf, RequestGuid), ShowColumns(Filter(VHP_NoteToSelf, OwnerEmail = varMdMe), RequestGuid)))
           );
           Set(varMdLoading, false)
@@ -324,7 +323,7 @@ Screens:
                             Control: ModernButton
                             Properties:
                               AccessibleLabel: |-
-                                  ="Department"
+                                  ="All requests"
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
@@ -1362,1276 +1361,6 @@ Screens:
                                         =Parent.Width - 84 - 16
                                     Y: |-
                                         =(Parent.Height + 4 - 36) / 2
-                  - conMdResume:
-                      Control: GroupContainer
-                      Variant: AutoLayout
-                      Properties:
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        DropShadow: |-
-                            =DropShadow.None
-                        FillPortions: |-
-                            =0
-                        Height: |-
-                            =20 + 8 + If(LayoutRank >= 2, 60, Min(CountRows(varMdResumeList), 3) * 60 + Max(Min(CountRows(varMdResumeList), 3) - 1, 0) * 12)
-                        LayoutAlignItems: |-
-                            =LayoutAlignItems.Stretch
-                        LayoutDirection: |-
-                            =LayoutDirection.Vertical
-                        LayoutGap: |-
-                            =8
-                        LayoutMinWidth: |-
-                            =0
-                        LayoutOverflowX: |-
-                            =LayoutOverflow.Hide
-                        LayoutOverflowY: |-
-                            =LayoutOverflow.Hide
-                        Visible: |-
-                            =!IsEmpty(varMdResumeList) && !IfError(varMdLoading, false)
-                        Width: |-
-                            =Parent.Width
-                      Children:
-                        - conMdResumeHead:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =20
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Center
-                              LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
-                              LayoutGap: |-
-                                  =8
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              Width: |-
-                                  =Parent.Width
-                            Children:
-                              - txtMdResumeTitle:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Continue where you left off"
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =20
-                                    LayoutMinWidth: |-
-                                        =221
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.body
-                                    Text: |-
-                                        ="Continue where you left off"
-                                    Width: |-
-                                        =221
-                                    Wrap: |-
-                                        =false
-                              - txtMdResumeSub:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Your latest drafts and requests that need information"
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-muted'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    FillPortions: |-
-                                        =0
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =20
-                                    LayoutMinWidth: |-
-                                        =0
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.small
-                                    Text: |-
-                                        ="Your latest drafts and requests that need information"
-                                    Width: |-
-                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18))) - ((221) + 8) - 2)
-                                    Wrap: |-
-                                        =false
-                        - conMdResumeCards:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =If(LayoutRank >= 2, 60, Min(CountRows(varMdResumeList), 3) * 60 + Max(Min(CountRows(varMdResumeList), 3) - 1, 0) * 12)
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Start
-                              LayoutDirection: |-
-                                  =If(LayoutRank >= 2, LayoutDirection.Horizontal, LayoutDirection.Vertical)
-                              LayoutGap: |-
-                                  =12
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              Width: |-
-                                  =Parent.Width
-                            Children:
-                              - conMdResumeCard1:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderThickness: |-
-                                        =1
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    Fill: |-
-                                        =C.'bg-card'
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =60
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Center
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =12
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    PaddingBottom: |-
-                                        =8
-                                    PaddingLeft: |-
-                                        =12
-                                    PaddingRight: |-
-                                        =12
-                                    PaddingTop: |-
-                                        =8
-                                    RadiusBottomLeft: |-
-                                        =R.input
-                                    RadiusBottomRight: |-
-                                        =R.input
-                                    RadiusTopLeft: |-
-                                        =R.input
-                                    RadiusTopRight: |-
-                                        =R.input
-                                    Visible: |-
-                                        =CountRows(varMdResumeList) >= 1
-                                    Width: |-
-                                        =If(LayoutRank >= 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 24) / 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset))
-                                  Children:
-                                    - rctMdResumeStripe1:
-                                        Control: Rectangle
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Switch(
-                                                  If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).Domain.Value,
-                                                  "FunctionalLocation", "Functional location",
-                                                  "MaintenancePlan", "Maintenance plan",
-                                                  "Material", "Material",
-                                                  "Equipment", "Equipment",
-                                                  "MeasuringPoint", "Measuring point",
-                                                  "Request"
-                                              )
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Fill: |-
-                                              =Switch(
-                                                  If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).Domain.Value,
-                                                  "FunctionalLocation", C.'domain-fl',
-                                                  "MaintenancePlan", C.'domain-vhp',
-                                                  "Material", C.'domain-mat',
-                                                  "Equipment", C.'domain-eq',
-                                                  "MeasuringPoint", C.'domain-mp',
-                                                  C.'text-muted'
-                                              )
-                                          Height: |-
-                                              =36
-                                          LayoutMinWidth: |-
-                                              =4
-                                          OnSelect: |-
-                                              =false
-                                          TabIndex: |-
-                                              =0
-                                          Width: |-
-                                              =4
-                                    - conMdResumeWords1:
-                                        Control: GroupContainer
-                                        Variant: AutoLayout
-                                        Properties:
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          DropShadow: |-
-                                              =DropShadow.None
-                                          FillPortions: |-
-                                              =0
-                                          Height: |-
-                                              =42
-                                          LayoutAlignItems: |-
-                                              =LayoutAlignItems.Stretch
-                                          LayoutDirection: |-
-                                              =LayoutDirection.Vertical
-                                          LayoutGap: |-
-                                              =2
-                                          LayoutMinWidth: |-
-                                              =0
-                                          LayoutOverflowX: |-
-                                              =LayoutOverflow.Hide
-                                          LayoutOverflowY: |-
-                                              =LayoutOverflow.Hide
-                                          Width: |-
-                                              =Max(0, ((If(LayoutRank >= 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 24) / 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset))) - 12 - 12) - ((4) + 12) - ((124) + 12) - 2)
-                                        Children:
-                                          - conMdResumeTop1:
-                                              Control: GroupContainer
-                                              Variant: AutoLayout
-                                              Properties:
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                DropShadow: |-
-                                                    =DropShadow.None
-                                                FillPortions: |-
-                                                    =0
-                                                Height: |-
-                                                    =22
-                                                LayoutAlignItems: |-
-                                                    =LayoutAlignItems.Center
-                                                LayoutDirection: |-
-                                                    =LayoutDirection.Horizontal
-                                                LayoutGap: |-
-                                                    =8
-                                                LayoutMinWidth: |-
-                                                    =0
-                                                LayoutOverflowX: |-
-                                                    =LayoutOverflow.Hide
-                                                LayoutOverflowY: |-
-                                                    =LayoutOverflow.Hide
-                                                Width: |-
-                                                    =Parent.Width
-                                              Children:
-                                                - txtMdResumeNo1:
-                                                    Control: ModernText
-                                                    Properties:
-                                                      AccessibleLabel: |-
-                                                          =Self.Text
-                                                      BorderStyle: |-
-                                                          =BorderStyle.None
-                                                      BorderThickness: |-
-                                                          =0
-                                                      Color: |-
-                                                          =C.'text-primary'
-                                                      Fill: |-
-                                                          =RGBA(0, 0, 0, 0)
-                                                      Font: |-
-                                                          =Font.'Segoe UI'
-                                                      FontWeight: |-
-                                                          =FontWeight.Semibold
-                                                      Height: |-
-                                                          =22
-                                                      LayoutMinWidth: |-
-                                                          =Min(140, Len(If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).RequestNo) * 9 + 8)
-                                                      PaddingBottom: |-
-                                                          =0
-                                                      PaddingLeft: |-
-                                                          =0
-                                                      PaddingRight: |-
-                                                          =0
-                                                      PaddingTop: |-
-                                                          =0
-                                                      Size: |-
-                                                          =T.body
-                                                      Text: |-
-                                                          =If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).RequestNo
-                                                      Width: |-
-                                                          =Min(140, Len(If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).RequestNo) * 9 + 8)
-                                                      Wrap: |-
-                                                          =false
-                                                - imgMdResumeStatus1:
-                                                    Control: Image
-                                                    Properties:
-                                                      AccessibleLabel: |-
-                                                          ="Status: " & Switch(If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).Status.Value, "Kladde", "Draft", "Indsendt", "Submitted", "UnderBehandling", "In progress", "AfventerInfo", "Awaiting info", "KlarTilSAP", "Ready for SAP", "OprettetISAP", "Created in SAP", "Afvist", "Rejected", "Annulleret", "Cancelled", If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).Status.Value)
-                                                      AlignInContainer: |-
-                                                          =AlignInContainer.Center
-                                                      BorderStyle: |-
-                                                          =BorderStyle.None
-                                                      BorderThickness: |-
-                                                          =0
-                                                      Height: |-
-                                                          =22
-                                                      Image: |-
-                                                          ="data:image/svg+xml;utf8," & EncodeUrl(Switch(
-                                                              If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).Status.Value,
-                                                              "Kladde", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='61' height='22' rx='11' fill='" & C.'hex-state-neutral-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-neutral-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 2.5H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5L14 2.5Z M14 2.5v5h5 M9 13h6M9 17h6'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-neutral-fg' & "'>Draft</text></svg>",
-                                                              "Indsendt", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='89' height='22' rx='11' fill='" & C.'hex-state-info-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21.5 3 2.5 10.5l7 3 3 7L21.5 3Z M9.5 13.5 21.5 3'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-info-fg' & "'>Submitted</text></svg>",
-                                                              "UnderBehandling", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='94' height='22' rx='11' fill='" & C.'hex-state-violet-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-violet-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z'/><path d='M12 6.5a5.5 5.5 0 0 1 0 11Z' fill='" & C.'hex-state-violet-fg' & "' stroke='none'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-violet-fg' & "'>In progress</text></svg>",
-                                                              "AfventerInfo", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='105' height='22' rx='11' fill='" & C.'hex-state-warn-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 7.5v5.5M12 16.5v.01'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-warn-fg' & "'>Awaiting info</text></svg>",
-                                                              "KlarTilSAP", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='109' height='22' rx='11' fill='" & C.'hex-state-ok-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M8 12.2l2.8 2.8L16 9.5'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-ok-fg' & "'>Ready for SAP</text></svg>",
-                                                              "OprettetISAP", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='113' height='22' rx='11' fill='" & C.'hex-state-lime-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-lime-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5s7.5-3.2 7.5-9.5V5.2L12 2.5 4.5 5.2V12c0 6.3 7.5 9.5 7.5 9.5Z M8.8 11.8l2.3 2.3 4.3-4.6'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-lime-fg' & "'>Created in SAP</text></svg>",
-                                                              "Afvist", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='80' height='22' rx='11' fill='" & C.'hex-state-error-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-error-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M9 9l6 6M15 9l-6 6'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-error-fg' & "'>Rejected</text></svg>",
-                                                              "Annulleret", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='86' height='22' rx='11' fill='" & C.'hex-state-rose-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-rose-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M5.3 5.3l13.4 13.4'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-rose-fg' & "'>Cancelled</text></svg>",
-                                                              "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='61' height='22' rx='11' fill='" & C.'hex-state-neutral-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-neutral-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 2.5H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5L14 2.5Z M14 2.5v5h5 M9 13h6M9 17h6'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-neutral-fg' & "'>Draft</text></svg>"
-                                                          ))
-                                                      ImagePosition: |-
-                                                          =ImagePosition.Fit
-                                                      LayoutMinWidth: |-
-                                                          =113
-                                                      OnSelect: |-
-                                                          =false
-                                                      TabIndex: |-
-                                                          =0
-                                                      Width: |-
-                                                          =113
-                                          - txtMdResumeLine1:
-                                              Control: ModernText
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    =Self.Text
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                BorderThickness: |-
-                                                    =0
-                                                Color: |-
-                                                    =C.'text-muted'
-                                                Fill: |-
-                                                    =RGBA(0, 0, 0, 0)
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                Height: |-
-                                                    =18
-                                                PaddingBottom: |-
-                                                    =0
-                                                PaddingLeft: |-
-                                                    =0
-                                                PaddingRight: |-
-                                                    =0
-                                                PaddingTop: |-
-                                                    =0
-                                                Size: |-
-                                                    =T.small
-                                                Text: |-
-                                                    =Switch(
-                                                        If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).Domain.Value,
-                                                        "FunctionalLocation", "Functional location",
-                                                        "MaintenancePlan", "Maintenance plan",
-                                                        "Material", "Material",
-                                                        "Equipment", "Equipment",
-                                                        "MeasuringPoint", "Measuring point",
-                                                        "Request"
-                                                    ) & "  ·  " & Substitute(Substitute(Substitute(Substitute(If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).ShortText, " 1 raekke(r)", " 1 row"), " raekke(r)", " rows"), " 1 row(s)", " 1 row"), " row(s)", " rows")
-                                                Wrap: |-
-                                                    =false
-                                    - btnMdResumeGo1:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Continue " & If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).RequestNo
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =C.'border-input'
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =32
-                                          Icon: |-
-                                              ="ChevronRight"
-                                          Layout: |-
-                                              =ButtonLayout.IconBefore
-                                          LayoutMinWidth: |-
-                                              =124
-                                          OnSelect: |-
-                                              =If(
-                                                  ((Lower(Coalesce(If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).RequesterEmail, "")) = varMdMe && (If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).Status.Value = "Kladde")) || (IsAdmin && (If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).Status.Value = "Kladde" || If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).Status.Value = "AfventerInfo"))),
-                                                  If(
-                                                  IfError(gblNavigating, false),
-                                                  false,
-                                                  IsBlank(If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).RequestGuid),
-                                                  Set(gblToast, { Text: "This request has no ID.", Kind: "Error", At: Now() }); true,
-                                                  Switch(
-                                                      If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).Domain.Value,
-                                                      "FunctionalLocation",
-                                                          Set(gblNavigating, true);
-                                                          Set(varFlOpened, "");
-                                                          Set(gblFlWant, "edit:" & If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).RequestGuid);
-                                                          Navigate(ScreenFunctionalLocation, ScreenTransition.None),
-                                                      "MaintenancePlan",
-                                                          Set(gblNavigating, true);
-                                                          Set(varVhpOpened, "");
-                                                          Set(gblVhpWant, "edit:" & If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).RequestGuid);
-                                                          Navigate(ScreenVhPlan, ScreenTransition.None),
-                                                      "Material",
-                                                          Set(gblNavigating, true);
-                                                          Set(varMatOpened, "");
-                                                          Set(gblMatWant, "edit:" & If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).RequestGuid);
-                                                          Navigate(ScreenMaterial, ScreenTransition.None),
-                                                      "Equipment",
-                                                          Set(gblNavigating, true);
-                                                          Set(varEqOpened, "");
-                                                          Set(gblEqWant, "edit:" & If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).RequestGuid);
-                                                          Navigate(ScreenEquipment, ScreenTransition.None),
-                                                      "MeasuringPoint",
-                                                          Set(gblNavigating, true);
-                                                          Set(varMpOpened, "");
-                                                          Set(gblMpWant, "edit:" & If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).RequestGuid);
-                                                          Navigate(ScreenMeasuringPoint, ScreenTransition.None),
-                                                      Set(gblToast, { Text: "This kind of request has no screen in the app yet.", Kind: "Warning", At: Now() }); true
-                                                  )
-                                              ),
-                                                  If(
-                                                  IfError(gblNavigating, false),
-                                                  false,
-                                                  IsBlank(If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).RequestGuid),
-                                                  Set(gblToast, { Text: "This request has no ID.", Kind: "Error", At: Now() }); true,
-                                                  Switch(
-                                                      If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).Domain.Value,
-                                                      "FunctionalLocation",
-                                                          Set(gblNavigating, true);
-                                                          Set(varFlOpened, "");
-                                                          Set(gblFlWant, "req:" & If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).RequestGuid);
-                                                          Navigate(ScreenFunctionalLocation, ScreenTransition.None),
-                                                      "MaintenancePlan",
-                                                          Set(gblNavigating, true);
-                                                          Set(varVhpOpened, "");
-                                                          Set(gblVhpWant, "req:" & If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).RequestGuid);
-                                                          Navigate(ScreenVhPlan, ScreenTransition.None),
-                                                      "Material",
-                                                          Set(gblNavigating, true);
-                                                          Set(varMatOpened, "");
-                                                          Set(gblMatWant, "req:" & If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).RequestGuid);
-                                                          Navigate(ScreenMaterial, ScreenTransition.None),
-                                                      "Equipment",
-                                                          Set(gblNavigating, true);
-                                                          Set(varEqOpened, "");
-                                                          Set(gblEqWant, "req:" & If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).RequestGuid);
-                                                          Navigate(ScreenEquipment, ScreenTransition.None),
-                                                      "MeasuringPoint",
-                                                          Set(gblNavigating, true);
-                                                          Set(varMpOpened, "");
-                                                          Set(gblMpWant, "req:" & If(CountRows(varMdResumeList) >= 1, Index(varMdResumeList, 1)).RequestGuid);
-                                                          Navigate(ScreenMeasuringPoint, ScreenTransition.None),
-                                                      Set(gblToast, { Text: "This kind of request has no screen in the app yet.", Kind: "Warning", At: Now() }); true
-                                                  )
-                                              )
-                                              )
-                                          RadiusBottomLeft: |-
-                                              =R.input
-                                          RadiusBottomRight: |-
-                                              =R.input
-                                          RadiusTopLeft: |-
-                                              =R.input
-                                          RadiusTopRight: |-
-                                              =R.input
-                                          Size: |-
-                                              =T.input
-                                          Text: |-
-                                              ="Continue"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =124
-                              - conMdResumeCard2:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderThickness: |-
-                                        =1
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    Fill: |-
-                                        =C.'bg-card'
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =60
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Center
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =12
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    PaddingBottom: |-
-                                        =8
-                                    PaddingLeft: |-
-                                        =12
-                                    PaddingRight: |-
-                                        =12
-                                    PaddingTop: |-
-                                        =8
-                                    RadiusBottomLeft: |-
-                                        =R.input
-                                    RadiusBottomRight: |-
-                                        =R.input
-                                    RadiusTopLeft: |-
-                                        =R.input
-                                    RadiusTopRight: |-
-                                        =R.input
-                                    Visible: |-
-                                        =CountRows(varMdResumeList) >= 2
-                                    Width: |-
-                                        =If(LayoutRank >= 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 24) / 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset))
-                                  Children:
-                                    - rctMdResumeStripe2:
-                                        Control: Rectangle
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Switch(
-                                                  If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).Domain.Value,
-                                                  "FunctionalLocation", "Functional location",
-                                                  "MaintenancePlan", "Maintenance plan",
-                                                  "Material", "Material",
-                                                  "Equipment", "Equipment",
-                                                  "MeasuringPoint", "Measuring point",
-                                                  "Request"
-                                              )
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Fill: |-
-                                              =Switch(
-                                                  If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).Domain.Value,
-                                                  "FunctionalLocation", C.'domain-fl',
-                                                  "MaintenancePlan", C.'domain-vhp',
-                                                  "Material", C.'domain-mat',
-                                                  "Equipment", C.'domain-eq',
-                                                  "MeasuringPoint", C.'domain-mp',
-                                                  C.'text-muted'
-                                              )
-                                          Height: |-
-                                              =36
-                                          LayoutMinWidth: |-
-                                              =4
-                                          OnSelect: |-
-                                              =false
-                                          TabIndex: |-
-                                              =0
-                                          Width: |-
-                                              =4
-                                    - conMdResumeWords2:
-                                        Control: GroupContainer
-                                        Variant: AutoLayout
-                                        Properties:
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          DropShadow: |-
-                                              =DropShadow.None
-                                          FillPortions: |-
-                                              =0
-                                          Height: |-
-                                              =42
-                                          LayoutAlignItems: |-
-                                              =LayoutAlignItems.Stretch
-                                          LayoutDirection: |-
-                                              =LayoutDirection.Vertical
-                                          LayoutGap: |-
-                                              =2
-                                          LayoutMinWidth: |-
-                                              =0
-                                          LayoutOverflowX: |-
-                                              =LayoutOverflow.Hide
-                                          LayoutOverflowY: |-
-                                              =LayoutOverflow.Hide
-                                          Width: |-
-                                              =Max(0, ((If(LayoutRank >= 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 24) / 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset))) - 12 - 12) - ((4) + 12) - ((124) + 12) - 2)
-                                        Children:
-                                          - conMdResumeTop2:
-                                              Control: GroupContainer
-                                              Variant: AutoLayout
-                                              Properties:
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                DropShadow: |-
-                                                    =DropShadow.None
-                                                FillPortions: |-
-                                                    =0
-                                                Height: |-
-                                                    =22
-                                                LayoutAlignItems: |-
-                                                    =LayoutAlignItems.Center
-                                                LayoutDirection: |-
-                                                    =LayoutDirection.Horizontal
-                                                LayoutGap: |-
-                                                    =8
-                                                LayoutMinWidth: |-
-                                                    =0
-                                                LayoutOverflowX: |-
-                                                    =LayoutOverflow.Hide
-                                                LayoutOverflowY: |-
-                                                    =LayoutOverflow.Hide
-                                                Width: |-
-                                                    =Parent.Width
-                                              Children:
-                                                - txtMdResumeNo2:
-                                                    Control: ModernText
-                                                    Properties:
-                                                      AccessibleLabel: |-
-                                                          =Self.Text
-                                                      BorderStyle: |-
-                                                          =BorderStyle.None
-                                                      BorderThickness: |-
-                                                          =0
-                                                      Color: |-
-                                                          =C.'text-primary'
-                                                      Fill: |-
-                                                          =RGBA(0, 0, 0, 0)
-                                                      Font: |-
-                                                          =Font.'Segoe UI'
-                                                      FontWeight: |-
-                                                          =FontWeight.Semibold
-                                                      Height: |-
-                                                          =22
-                                                      LayoutMinWidth: |-
-                                                          =Min(140, Len(If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).RequestNo) * 9 + 8)
-                                                      PaddingBottom: |-
-                                                          =0
-                                                      PaddingLeft: |-
-                                                          =0
-                                                      PaddingRight: |-
-                                                          =0
-                                                      PaddingTop: |-
-                                                          =0
-                                                      Size: |-
-                                                          =T.body
-                                                      Text: |-
-                                                          =If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).RequestNo
-                                                      Width: |-
-                                                          =Min(140, Len(If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).RequestNo) * 9 + 8)
-                                                      Wrap: |-
-                                                          =false
-                                                - imgMdResumeStatus2:
-                                                    Control: Image
-                                                    Properties:
-                                                      AccessibleLabel: |-
-                                                          ="Status: " & Switch(If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).Status.Value, "Kladde", "Draft", "Indsendt", "Submitted", "UnderBehandling", "In progress", "AfventerInfo", "Awaiting info", "KlarTilSAP", "Ready for SAP", "OprettetISAP", "Created in SAP", "Afvist", "Rejected", "Annulleret", "Cancelled", If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).Status.Value)
-                                                      AlignInContainer: |-
-                                                          =AlignInContainer.Center
-                                                      BorderStyle: |-
-                                                          =BorderStyle.None
-                                                      BorderThickness: |-
-                                                          =0
-                                                      Height: |-
-                                                          =22
-                                                      Image: |-
-                                                          ="data:image/svg+xml;utf8," & EncodeUrl(Switch(
-                                                              If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).Status.Value,
-                                                              "Kladde", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='61' height='22' rx='11' fill='" & C.'hex-state-neutral-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-neutral-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 2.5H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5L14 2.5Z M14 2.5v5h5 M9 13h6M9 17h6'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-neutral-fg' & "'>Draft</text></svg>",
-                                                              "Indsendt", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='89' height='22' rx='11' fill='" & C.'hex-state-info-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21.5 3 2.5 10.5l7 3 3 7L21.5 3Z M9.5 13.5 21.5 3'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-info-fg' & "'>Submitted</text></svg>",
-                                                              "UnderBehandling", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='94' height='22' rx='11' fill='" & C.'hex-state-violet-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-violet-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z'/><path d='M12 6.5a5.5 5.5 0 0 1 0 11Z' fill='" & C.'hex-state-violet-fg' & "' stroke='none'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-violet-fg' & "'>In progress</text></svg>",
-                                                              "AfventerInfo", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='105' height='22' rx='11' fill='" & C.'hex-state-warn-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 7.5v5.5M12 16.5v.01'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-warn-fg' & "'>Awaiting info</text></svg>",
-                                                              "KlarTilSAP", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='109' height='22' rx='11' fill='" & C.'hex-state-ok-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M8 12.2l2.8 2.8L16 9.5'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-ok-fg' & "'>Ready for SAP</text></svg>",
-                                                              "OprettetISAP", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='113' height='22' rx='11' fill='" & C.'hex-state-lime-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-lime-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5s7.5-3.2 7.5-9.5V5.2L12 2.5 4.5 5.2V12c0 6.3 7.5 9.5 7.5 9.5Z M8.8 11.8l2.3 2.3 4.3-4.6'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-lime-fg' & "'>Created in SAP</text></svg>",
-                                                              "Afvist", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='80' height='22' rx='11' fill='" & C.'hex-state-error-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-error-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M9 9l6 6M15 9l-6 6'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-error-fg' & "'>Rejected</text></svg>",
-                                                              "Annulleret", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='86' height='22' rx='11' fill='" & C.'hex-state-rose-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-rose-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M5.3 5.3l13.4 13.4'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-rose-fg' & "'>Cancelled</text></svg>",
-                                                              "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='61' height='22' rx='11' fill='" & C.'hex-state-neutral-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-neutral-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 2.5H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5L14 2.5Z M14 2.5v5h5 M9 13h6M9 17h6'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-neutral-fg' & "'>Draft</text></svg>"
-                                                          ))
-                                                      ImagePosition: |-
-                                                          =ImagePosition.Fit
-                                                      LayoutMinWidth: |-
-                                                          =113
-                                                      OnSelect: |-
-                                                          =false
-                                                      TabIndex: |-
-                                                          =0
-                                                      Width: |-
-                                                          =113
-                                          - txtMdResumeLine2:
-                                              Control: ModernText
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    =Self.Text
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                BorderThickness: |-
-                                                    =0
-                                                Color: |-
-                                                    =C.'text-muted'
-                                                Fill: |-
-                                                    =RGBA(0, 0, 0, 0)
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                Height: |-
-                                                    =18
-                                                PaddingBottom: |-
-                                                    =0
-                                                PaddingLeft: |-
-                                                    =0
-                                                PaddingRight: |-
-                                                    =0
-                                                PaddingTop: |-
-                                                    =0
-                                                Size: |-
-                                                    =T.small
-                                                Text: |-
-                                                    =Switch(
-                                                        If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).Domain.Value,
-                                                        "FunctionalLocation", "Functional location",
-                                                        "MaintenancePlan", "Maintenance plan",
-                                                        "Material", "Material",
-                                                        "Equipment", "Equipment",
-                                                        "MeasuringPoint", "Measuring point",
-                                                        "Request"
-                                                    ) & "  ·  " & Substitute(Substitute(Substitute(Substitute(If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).ShortText, " 1 raekke(r)", " 1 row"), " raekke(r)", " rows"), " 1 row(s)", " 1 row"), " row(s)", " rows")
-                                                Wrap: |-
-                                                    =false
-                                    - btnMdResumeGo2:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Continue " & If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).RequestNo
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =C.'border-input'
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =32
-                                          Icon: |-
-                                              ="ChevronRight"
-                                          Layout: |-
-                                              =ButtonLayout.IconBefore
-                                          LayoutMinWidth: |-
-                                              =124
-                                          OnSelect: |-
-                                              =If(
-                                                  ((Lower(Coalesce(If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).RequesterEmail, "")) = varMdMe && (If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).Status.Value = "Kladde")) || (IsAdmin && (If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).Status.Value = "Kladde" || If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).Status.Value = "AfventerInfo"))),
-                                                  If(
-                                                  IfError(gblNavigating, false),
-                                                  false,
-                                                  IsBlank(If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).RequestGuid),
-                                                  Set(gblToast, { Text: "This request has no ID.", Kind: "Error", At: Now() }); true,
-                                                  Switch(
-                                                      If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).Domain.Value,
-                                                      "FunctionalLocation",
-                                                          Set(gblNavigating, true);
-                                                          Set(varFlOpened, "");
-                                                          Set(gblFlWant, "edit:" & If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).RequestGuid);
-                                                          Navigate(ScreenFunctionalLocation, ScreenTransition.None),
-                                                      "MaintenancePlan",
-                                                          Set(gblNavigating, true);
-                                                          Set(varVhpOpened, "");
-                                                          Set(gblVhpWant, "edit:" & If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).RequestGuid);
-                                                          Navigate(ScreenVhPlan, ScreenTransition.None),
-                                                      "Material",
-                                                          Set(gblNavigating, true);
-                                                          Set(varMatOpened, "");
-                                                          Set(gblMatWant, "edit:" & If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).RequestGuid);
-                                                          Navigate(ScreenMaterial, ScreenTransition.None),
-                                                      "Equipment",
-                                                          Set(gblNavigating, true);
-                                                          Set(varEqOpened, "");
-                                                          Set(gblEqWant, "edit:" & If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).RequestGuid);
-                                                          Navigate(ScreenEquipment, ScreenTransition.None),
-                                                      "MeasuringPoint",
-                                                          Set(gblNavigating, true);
-                                                          Set(varMpOpened, "");
-                                                          Set(gblMpWant, "edit:" & If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).RequestGuid);
-                                                          Navigate(ScreenMeasuringPoint, ScreenTransition.None),
-                                                      Set(gblToast, { Text: "This kind of request has no screen in the app yet.", Kind: "Warning", At: Now() }); true
-                                                  )
-                                              ),
-                                                  If(
-                                                  IfError(gblNavigating, false),
-                                                  false,
-                                                  IsBlank(If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).RequestGuid),
-                                                  Set(gblToast, { Text: "This request has no ID.", Kind: "Error", At: Now() }); true,
-                                                  Switch(
-                                                      If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).Domain.Value,
-                                                      "FunctionalLocation",
-                                                          Set(gblNavigating, true);
-                                                          Set(varFlOpened, "");
-                                                          Set(gblFlWant, "req:" & If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).RequestGuid);
-                                                          Navigate(ScreenFunctionalLocation, ScreenTransition.None),
-                                                      "MaintenancePlan",
-                                                          Set(gblNavigating, true);
-                                                          Set(varVhpOpened, "");
-                                                          Set(gblVhpWant, "req:" & If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).RequestGuid);
-                                                          Navigate(ScreenVhPlan, ScreenTransition.None),
-                                                      "Material",
-                                                          Set(gblNavigating, true);
-                                                          Set(varMatOpened, "");
-                                                          Set(gblMatWant, "req:" & If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).RequestGuid);
-                                                          Navigate(ScreenMaterial, ScreenTransition.None),
-                                                      "Equipment",
-                                                          Set(gblNavigating, true);
-                                                          Set(varEqOpened, "");
-                                                          Set(gblEqWant, "req:" & If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).RequestGuid);
-                                                          Navigate(ScreenEquipment, ScreenTransition.None),
-                                                      "MeasuringPoint",
-                                                          Set(gblNavigating, true);
-                                                          Set(varMpOpened, "");
-                                                          Set(gblMpWant, "req:" & If(CountRows(varMdResumeList) >= 2, Index(varMdResumeList, 2)).RequestGuid);
-                                                          Navigate(ScreenMeasuringPoint, ScreenTransition.None),
-                                                      Set(gblToast, { Text: "This kind of request has no screen in the app yet.", Kind: "Warning", At: Now() }); true
-                                                  )
-                                              )
-                                              )
-                                          RadiusBottomLeft: |-
-                                              =R.input
-                                          RadiusBottomRight: |-
-                                              =R.input
-                                          RadiusTopLeft: |-
-                                              =R.input
-                                          RadiusTopRight: |-
-                                              =R.input
-                                          Size: |-
-                                              =T.input
-                                          Text: |-
-                                              ="Continue"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =124
-                              - conMdResumeCard3:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderThickness: |-
-                                        =1
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    Fill: |-
-                                        =C.'bg-card'
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =60
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Center
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =12
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    PaddingBottom: |-
-                                        =8
-                                    PaddingLeft: |-
-                                        =12
-                                    PaddingRight: |-
-                                        =12
-                                    PaddingTop: |-
-                                        =8
-                                    RadiusBottomLeft: |-
-                                        =R.input
-                                    RadiusBottomRight: |-
-                                        =R.input
-                                    RadiusTopLeft: |-
-                                        =R.input
-                                    RadiusTopRight: |-
-                                        =R.input
-                                    Visible: |-
-                                        =CountRows(varMdResumeList) >= 3
-                                    Width: |-
-                                        =If(LayoutRank >= 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 24) / 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset))
-                                  Children:
-                                    - rctMdResumeStripe3:
-                                        Control: Rectangle
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Switch(
-                                                  If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).Domain.Value,
-                                                  "FunctionalLocation", "Functional location",
-                                                  "MaintenancePlan", "Maintenance plan",
-                                                  "Material", "Material",
-                                                  "Equipment", "Equipment",
-                                                  "MeasuringPoint", "Measuring point",
-                                                  "Request"
-                                              )
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Fill: |-
-                                              =Switch(
-                                                  If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).Domain.Value,
-                                                  "FunctionalLocation", C.'domain-fl',
-                                                  "MaintenancePlan", C.'domain-vhp',
-                                                  "Material", C.'domain-mat',
-                                                  "Equipment", C.'domain-eq',
-                                                  "MeasuringPoint", C.'domain-mp',
-                                                  C.'text-muted'
-                                              )
-                                          Height: |-
-                                              =36
-                                          LayoutMinWidth: |-
-                                              =4
-                                          OnSelect: |-
-                                              =false
-                                          TabIndex: |-
-                                              =0
-                                          Width: |-
-                                              =4
-                                    - conMdResumeWords3:
-                                        Control: GroupContainer
-                                        Variant: AutoLayout
-                                        Properties:
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          DropShadow: |-
-                                              =DropShadow.None
-                                          FillPortions: |-
-                                              =0
-                                          Height: |-
-                                              =42
-                                          LayoutAlignItems: |-
-                                              =LayoutAlignItems.Stretch
-                                          LayoutDirection: |-
-                                              =LayoutDirection.Vertical
-                                          LayoutGap: |-
-                                              =2
-                                          LayoutMinWidth: |-
-                                              =0
-                                          LayoutOverflowX: |-
-                                              =LayoutOverflow.Hide
-                                          LayoutOverflowY: |-
-                                              =LayoutOverflow.Hide
-                                          Width: |-
-                                              =Max(0, ((If(LayoutRank >= 2, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 24) / 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset))) - 12 - 12) - ((4) + 12) - ((124) + 12) - 2)
-                                        Children:
-                                          - conMdResumeTop3:
-                                              Control: GroupContainer
-                                              Variant: AutoLayout
-                                              Properties:
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                DropShadow: |-
-                                                    =DropShadow.None
-                                                FillPortions: |-
-                                                    =0
-                                                Height: |-
-                                                    =22
-                                                LayoutAlignItems: |-
-                                                    =LayoutAlignItems.Center
-                                                LayoutDirection: |-
-                                                    =LayoutDirection.Horizontal
-                                                LayoutGap: |-
-                                                    =8
-                                                LayoutMinWidth: |-
-                                                    =0
-                                                LayoutOverflowX: |-
-                                                    =LayoutOverflow.Hide
-                                                LayoutOverflowY: |-
-                                                    =LayoutOverflow.Hide
-                                                Width: |-
-                                                    =Parent.Width
-                                              Children:
-                                                - txtMdResumeNo3:
-                                                    Control: ModernText
-                                                    Properties:
-                                                      AccessibleLabel: |-
-                                                          =Self.Text
-                                                      BorderStyle: |-
-                                                          =BorderStyle.None
-                                                      BorderThickness: |-
-                                                          =0
-                                                      Color: |-
-                                                          =C.'text-primary'
-                                                      Fill: |-
-                                                          =RGBA(0, 0, 0, 0)
-                                                      Font: |-
-                                                          =Font.'Segoe UI'
-                                                      FontWeight: |-
-                                                          =FontWeight.Semibold
-                                                      Height: |-
-                                                          =22
-                                                      LayoutMinWidth: |-
-                                                          =Min(140, Len(If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).RequestNo) * 9 + 8)
-                                                      PaddingBottom: |-
-                                                          =0
-                                                      PaddingLeft: |-
-                                                          =0
-                                                      PaddingRight: |-
-                                                          =0
-                                                      PaddingTop: |-
-                                                          =0
-                                                      Size: |-
-                                                          =T.body
-                                                      Text: |-
-                                                          =If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).RequestNo
-                                                      Width: |-
-                                                          =Min(140, Len(If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).RequestNo) * 9 + 8)
-                                                      Wrap: |-
-                                                          =false
-                                                - imgMdResumeStatus3:
-                                                    Control: Image
-                                                    Properties:
-                                                      AccessibleLabel: |-
-                                                          ="Status: " & Switch(If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).Status.Value, "Kladde", "Draft", "Indsendt", "Submitted", "UnderBehandling", "In progress", "AfventerInfo", "Awaiting info", "KlarTilSAP", "Ready for SAP", "OprettetISAP", "Created in SAP", "Afvist", "Rejected", "Annulleret", "Cancelled", If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).Status.Value)
-                                                      AlignInContainer: |-
-                                                          =AlignInContainer.Center
-                                                      BorderStyle: |-
-                                                          =BorderStyle.None
-                                                      BorderThickness: |-
-                                                          =0
-                                                      Height: |-
-                                                          =22
-                                                      Image: |-
-                                                          ="data:image/svg+xml;utf8," & EncodeUrl(Switch(
-                                                              If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).Status.Value,
-                                                              "Kladde", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='61' height='22' rx='11' fill='" & C.'hex-state-neutral-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-neutral-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 2.5H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5L14 2.5Z M14 2.5v5h5 M9 13h6M9 17h6'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-neutral-fg' & "'>Draft</text></svg>",
-                                                              "Indsendt", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='89' height='22' rx='11' fill='" & C.'hex-state-info-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21.5 3 2.5 10.5l7 3 3 7L21.5 3Z M9.5 13.5 21.5 3'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-info-fg' & "'>Submitted</text></svg>",
-                                                              "UnderBehandling", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='94' height='22' rx='11' fill='" & C.'hex-state-violet-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-violet-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z'/><path d='M12 6.5a5.5 5.5 0 0 1 0 11Z' fill='" & C.'hex-state-violet-fg' & "' stroke='none'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-violet-fg' & "'>In progress</text></svg>",
-                                                              "AfventerInfo", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='105' height='22' rx='11' fill='" & C.'hex-state-warn-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 7.5v5.5M12 16.5v.01'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-warn-fg' & "'>Awaiting info</text></svg>",
-                                                              "KlarTilSAP", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='109' height='22' rx='11' fill='" & C.'hex-state-ok-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M8 12.2l2.8 2.8L16 9.5'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-ok-fg' & "'>Ready for SAP</text></svg>",
-                                                              "OprettetISAP", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='113' height='22' rx='11' fill='" & C.'hex-state-lime-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-lime-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5s7.5-3.2 7.5-9.5V5.2L12 2.5 4.5 5.2V12c0 6.3 7.5 9.5 7.5 9.5Z M8.8 11.8l2.3 2.3 4.3-4.6'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-lime-fg' & "'>Created in SAP</text></svg>",
-                                                              "Afvist", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='80' height='22' rx='11' fill='" & C.'hex-state-error-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-error-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M9 9l6 6M15 9l-6 6'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-error-fg' & "'>Rejected</text></svg>",
-                                                              "Annulleret", "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='86' height='22' rx='11' fill='" & C.'hex-state-rose-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-rose-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M5.3 5.3l13.4 13.4'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-rose-fg' & "'>Cancelled</text></svg>",
-                                                              "<svg xmlns='http://www.w3.org/2000/svg' width='113' height='22' viewBox='0 0 113 22'><rect width='61' height='22' rx='11' fill='" & C.'hex-state-neutral-bg' & "'/><g transform='translate(8 5) scale(0.5)' fill='none' stroke='" & C.'hex-state-neutral-fg' & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 2.5H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5L14 2.5Z M14 2.5v5h5 M9 13h6M9 17h6'/></g><text x='25' y='15' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & C.'hex-state-neutral-fg' & "'>Draft</text></svg>"
-                                                          ))
-                                                      ImagePosition: |-
-                                                          =ImagePosition.Fit
-                                                      LayoutMinWidth: |-
-                                                          =113
-                                                      OnSelect: |-
-                                                          =false
-                                                      TabIndex: |-
-                                                          =0
-                                                      Width: |-
-                                                          =113
-                                          - txtMdResumeLine3:
-                                              Control: ModernText
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    =Self.Text
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                BorderThickness: |-
-                                                    =0
-                                                Color: |-
-                                                    =C.'text-muted'
-                                                Fill: |-
-                                                    =RGBA(0, 0, 0, 0)
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                Height: |-
-                                                    =18
-                                                PaddingBottom: |-
-                                                    =0
-                                                PaddingLeft: |-
-                                                    =0
-                                                PaddingRight: |-
-                                                    =0
-                                                PaddingTop: |-
-                                                    =0
-                                                Size: |-
-                                                    =T.small
-                                                Text: |-
-                                                    =Switch(
-                                                        If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).Domain.Value,
-                                                        "FunctionalLocation", "Functional location",
-                                                        "MaintenancePlan", "Maintenance plan",
-                                                        "Material", "Material",
-                                                        "Equipment", "Equipment",
-                                                        "MeasuringPoint", "Measuring point",
-                                                        "Request"
-                                                    ) & "  ·  " & Substitute(Substitute(Substitute(Substitute(If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).ShortText, " 1 raekke(r)", " 1 row"), " raekke(r)", " rows"), " 1 row(s)", " 1 row"), " row(s)", " rows")
-                                                Wrap: |-
-                                                    =false
-                                    - btnMdResumeGo3:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Continue " & If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).RequestNo
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =C.'border-input'
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =32
-                                          Icon: |-
-                                              ="ChevronRight"
-                                          Layout: |-
-                                              =ButtonLayout.IconBefore
-                                          LayoutMinWidth: |-
-                                              =124
-                                          OnSelect: |-
-                                              =If(
-                                                  ((Lower(Coalesce(If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).RequesterEmail, "")) = varMdMe && (If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).Status.Value = "Kladde")) || (IsAdmin && (If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).Status.Value = "Kladde" || If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).Status.Value = "AfventerInfo"))),
-                                                  If(
-                                                  IfError(gblNavigating, false),
-                                                  false,
-                                                  IsBlank(If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).RequestGuid),
-                                                  Set(gblToast, { Text: "This request has no ID.", Kind: "Error", At: Now() }); true,
-                                                  Switch(
-                                                      If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).Domain.Value,
-                                                      "FunctionalLocation",
-                                                          Set(gblNavigating, true);
-                                                          Set(varFlOpened, "");
-                                                          Set(gblFlWant, "edit:" & If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).RequestGuid);
-                                                          Navigate(ScreenFunctionalLocation, ScreenTransition.None),
-                                                      "MaintenancePlan",
-                                                          Set(gblNavigating, true);
-                                                          Set(varVhpOpened, "");
-                                                          Set(gblVhpWant, "edit:" & If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).RequestGuid);
-                                                          Navigate(ScreenVhPlan, ScreenTransition.None),
-                                                      "Material",
-                                                          Set(gblNavigating, true);
-                                                          Set(varMatOpened, "");
-                                                          Set(gblMatWant, "edit:" & If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).RequestGuid);
-                                                          Navigate(ScreenMaterial, ScreenTransition.None),
-                                                      "Equipment",
-                                                          Set(gblNavigating, true);
-                                                          Set(varEqOpened, "");
-                                                          Set(gblEqWant, "edit:" & If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).RequestGuid);
-                                                          Navigate(ScreenEquipment, ScreenTransition.None),
-                                                      "MeasuringPoint",
-                                                          Set(gblNavigating, true);
-                                                          Set(varMpOpened, "");
-                                                          Set(gblMpWant, "edit:" & If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).RequestGuid);
-                                                          Navigate(ScreenMeasuringPoint, ScreenTransition.None),
-                                                      Set(gblToast, { Text: "This kind of request has no screen in the app yet.", Kind: "Warning", At: Now() }); true
-                                                  )
-                                              ),
-                                                  If(
-                                                  IfError(gblNavigating, false),
-                                                  false,
-                                                  IsBlank(If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).RequestGuid),
-                                                  Set(gblToast, { Text: "This request has no ID.", Kind: "Error", At: Now() }); true,
-                                                  Switch(
-                                                      If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).Domain.Value,
-                                                      "FunctionalLocation",
-                                                          Set(gblNavigating, true);
-                                                          Set(varFlOpened, "");
-                                                          Set(gblFlWant, "req:" & If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).RequestGuid);
-                                                          Navigate(ScreenFunctionalLocation, ScreenTransition.None),
-                                                      "MaintenancePlan",
-                                                          Set(gblNavigating, true);
-                                                          Set(varVhpOpened, "");
-                                                          Set(gblVhpWant, "req:" & If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).RequestGuid);
-                                                          Navigate(ScreenVhPlan, ScreenTransition.None),
-                                                      "Material",
-                                                          Set(gblNavigating, true);
-                                                          Set(varMatOpened, "");
-                                                          Set(gblMatWant, "req:" & If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).RequestGuid);
-                                                          Navigate(ScreenMaterial, ScreenTransition.None),
-                                                      "Equipment",
-                                                          Set(gblNavigating, true);
-                                                          Set(varEqOpened, "");
-                                                          Set(gblEqWant, "req:" & If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).RequestGuid);
-                                                          Navigate(ScreenEquipment, ScreenTransition.None),
-                                                      "MeasuringPoint",
-                                                          Set(gblNavigating, true);
-                                                          Set(varMpOpened, "");
-                                                          Set(gblMpWant, "req:" & If(CountRows(varMdResumeList) >= 3, Index(varMdResumeList, 3)).RequestGuid);
-                                                          Navigate(ScreenMeasuringPoint, ScreenTransition.None),
-                                                      Set(gblToast, { Text: "This kind of request has no screen in the app yet.", Kind: "Warning", At: Now() }); true
-                                                  )
-                                              )
-                                              )
-                                          RadiusBottomLeft: |-
-                                              =R.input
-                                          RadiusBottomRight: |-
-                                              =R.input
-                                          RadiusTopLeft: |-
-                                              =R.input
-                                          RadiusTopRight: |-
-                                              =R.input
-                                          Size: |-
-                                              =T.input
-                                          Text: |-
-                                              ="Continue"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =124
                   - conMdRetBanner:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -2819,7 +1548,7 @@ Screens:
                               LayoutDirection: |-
                                   =If(LayoutRank >= 2, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                               LayoutGap: |-
-                                  =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 6, 4)
+                                  =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 6, 4)
                               LayoutMinWidth: |-
                                   =0
                               LayoutOverflowX: |-
@@ -2855,7 +1584,7 @@ Screens:
                                     Height: |-
                                         =36
                                     LayoutMinWidth: |-
-                                        =If(LayoutRank >= 2, Max(If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 140, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 120, 64), Min(360, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 307, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 240, 168)) + (44) + (1) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 195, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 143, 65)) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 178, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 129, 65)) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 296, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 244, 111)) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 110, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 92, 35))) - (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 6, 4)) * 8)), 0)
+                                        =If(LayoutRank >= 2, Max(If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 140, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 120, 64), Min(360, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 307, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 240, 168)) + (44) + (1) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 195, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 143, 65)) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 178, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 129, 65)) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 306, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 253, 96)) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 110, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 92, 35))) - (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 6, 4)) * 8)), 0)
                                     OnChange: |-
                                         =Set(varMdSearch, Self.Text);
                                         If(IsEmpty(colAppPrefs), Collect(colAppPrefs, { Dark: darkModeEnabled }));
@@ -2872,13 +1601,13 @@ Screens:
                                     RadiusTopRight: |-
                                         =R.input
                                     Size: |-
-                                        =If(LayoutRank < 2, 16, !(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061), 12, 14)
+                                        =If(LayoutRank < 2, 16, !(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070), 12, 14)
                                     Type: |-
                                         =TextInputType.Search
                                     ValidationState: |-
                                         =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                     Width: |-
-                                        =Max(If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 140, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 120, 64), Min(360, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 307, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 240, 168)) + (44) + (1) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 195, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 143, 65)) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 178, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 129, 65)) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 296, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 244, 111)) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 110, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 92, 35))) - (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 6, 4)) * 8))
+                                        =Max(If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 140, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 120, 64), Min(360, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 307, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 240, 168)) + (44) + (1) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 195, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 143, 65)) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 178, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 129, 65)) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 306, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 253, 96)) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 110, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 92, 35))) - (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 6, 4)) * 8))
                               - conMdFltStatus:
                                   Control: GroupContainer
                                   Variant: AutoLayout
@@ -2904,7 +1633,7 @@ Screens:
                                     LayoutGap: |-
                                         =2
                                     LayoutMinWidth: |-
-                                        =If(LayoutRank >= 2, If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 307, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 240, 168), 0)
+                                        =If(LayoutRank >= 2, If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 307, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 240, 168), 0)
                                     LayoutOverflowX: |-
                                         =LayoutOverflow.Hide
                                     LayoutOverflowY: |-
@@ -2928,7 +1657,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 2
                                     Width: |-
-                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 307, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 240, 168)
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 307, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 240, 168)
                                   Children:
                                     - conMdFltStatusOpen:
                                         Control: ModernButton
@@ -2958,9 +1687,9 @@ Screens:
                                           Icon: |-
                                               =If(varMdStatusMode = "open", "Checkmark", "")
                                           Layout: |-
-                                              =If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061), ButtonLayout.TextOnly, If(varMdStatusMode = "open", ButtonLayout.IconBefore, ButtonLayout.TextOnly))
+                                              =If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070), ButtonLayout.TextOnly, If(varMdStatusMode = "open", ButtonLayout.IconBefore, ButtonLayout.TextOnly))
                                           LayoutMinWidth: |-
-                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 100, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 78, 54)
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 100, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 78, 54)
                                           OnSelect: |-
                                               =Set(varMdStatusMode, "open");
                                               ClearCollect(colMdScope, ForAll(If(
@@ -2988,13 +1717,13 @@ Screens:
                                           RadiusTopRight: |-
                                               =15
                                           Size: |-
-                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 14, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 12, 12)
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 14, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 12, 12)
                                           Text: |-
                                               ="Open"
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 100, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 78, 54)
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 100, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 78, 54)
                                     - conMdFltStatusClosed:
                                         Control: ModernButton
                                         Properties:
@@ -3023,9 +1752,9 @@ Screens:
                                           Icon: |-
                                               =If(varMdStatusMode = "done", "Checkmark", "")
                                           Layout: |-
-                                              =If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061), ButtonLayout.TextOnly, If(varMdStatusMode = "done", ButtonLayout.IconBefore, ButtonLayout.TextOnly))
+                                              =If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070), ButtonLayout.TextOnly, If(varMdStatusMode = "done", ButtonLayout.IconBefore, ButtonLayout.TextOnly))
                                           LayoutMinWidth: |-
-                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 114, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 90, 66)
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 114, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 90, 66)
                                           OnSelect: |-
                                               =Set(varMdStatusMode, "done");
                                               ClearCollect(colMdScope, ForAll(If(
@@ -3053,7 +1782,7 @@ Screens:
                                           RadiusTopRight: |-
                                               =15
                                           Size: |-
-                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 14, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 12, 12)
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 14, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 12, 12)
                                           Text: |-
                                               ="Closed"
                                           Tooltip: |-
@@ -3061,7 +1790,7 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 114, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 90, 66)
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 114, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 90, 66)
                                     - conMdFltStatusAll:
                                         Control: ModernButton
                                         Properties:
@@ -3090,9 +1819,9 @@ Screens:
                                           Icon: |-
                                               =If(varMdStatusMode = "all", "Checkmark", "")
                                           Layout: |-
-                                              =If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061), ButtonLayout.TextOnly, If(varMdStatusMode = "all", ButtonLayout.IconBefore, ButtonLayout.TextOnly))
+                                              =If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070), ButtonLayout.TextOnly, If(varMdStatusMode = "all", ButtonLayout.IconBefore, ButtonLayout.TextOnly))
                                           LayoutMinWidth: |-
-                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 85, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 64, 40)
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 85, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 64, 40)
                                           OnSelect: |-
                                               =Set(varMdStatusMode, "all");
                                               ClearCollect(colMdScope, ForAll(If(
@@ -3120,13 +1849,13 @@ Screens:
                                           RadiusTopRight: |-
                                               =15
                                           Size: |-
-                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 14, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 12, 12)
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 14, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 12, 12)
                                           Text: |-
                                               ="All"
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 85, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 64, 40)
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 85, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 64, 40)
                               - btnMdFltPeek:
                                   Control: ModernButton
                                   Properties:
@@ -3236,9 +1965,9 @@ Screens:
                                     Icon: |-
                                         ="Person"
                                     Layout: |-
-                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, ButtonLayout.IconBefore, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, ButtonLayout.TextOnly, ButtonLayout.IconBefore)
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, ButtonLayout.IconBefore, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, ButtonLayout.TextOnly, ButtonLayout.IconBefore)
                                     LayoutMinWidth: |-
-                                        =If(LayoutRank >= 2, If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 195, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 143, 65), 0)
+                                        =If(LayoutRank >= 2, If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 195, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 143, 65), 0)
                                     OnSelect: |-
                                         =Set(varMdFlag, If(varMdFlag = "me", "", "me"));
                                         If(varMdFlag <> "", Set(varMdStatusMode, "open"));
@@ -3267,17 +1996,17 @@ Screens:
                                     RadiusTopRight: |-
                                         =R.input
                                     Size: |-
-                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 14, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 12, 12)
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 14, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 12, 12)
                                     Text: |-
-                                        =If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061), Text(CountRows(Filter(colMdScope, Mine))), "Waiting for me (" & Text(CountRows(Filter(colMdScope, Mine))) & ")")
+                                        =If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070), Text(CountRows(Filter(colMdScope, Mine))), "Waiting for me (" & Text(CountRows(Filter(colMdScope, Mine))) & ")")
                                     Tooltip: |-
-                                        =If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061), "Waiting for me", "")
+                                        =If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070), "Waiting for me", "")
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Visible: |-
                                         =LayoutRank >= 2
                                     Width: |-
-                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 195, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 143, 65)
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 195, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 143, 65)
                               - btnMdFltStuck:
                                   Control: ModernButton
                                   Properties:
@@ -3304,9 +2033,9 @@ Screens:
                                     Icon: |-
                                         ="Clock"
                                     Layout: |-
-                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, ButtonLayout.IconBefore, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, ButtonLayout.TextOnly, ButtonLayout.IconBefore)
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, ButtonLayout.IconBefore, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, ButtonLayout.TextOnly, ButtonLayout.IconBefore)
                                     LayoutMinWidth: |-
-                                        =If(LayoutRank >= 2, If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 178, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 129, 65), 0)
+                                        =If(LayoutRank >= 2, If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 178, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 129, 65), 0)
                                     OnSelect: |-
                                         =Set(varMdFlag, If(varMdFlag = "stuck", "", "stuck"));
                                         If(varMdFlag <> "", Set(varMdStatusMode, "open"));
@@ -3335,17 +2064,17 @@ Screens:
                                     RadiusTopRight: |-
                                         =R.input
                                     Size: |-
-                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 14, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 12, 12)
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 14, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 12, 12)
                                     Text: |-
-                                        =If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061), Text(CountRows(Filter(colMdScope, Stuck))), "Stuck > 5 d (" & Text(CountRows(Filter(colMdScope, Stuck))) & ")")
+                                        =If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070), Text(CountRows(Filter(colMdScope, Stuck))), "Stuck > 5 d (" & Text(CountRows(Filter(colMdScope, Stuck))) & ")")
                                     Tooltip: |-
-                                        =If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061), "Stuck > 5 d", "")
+                                        =If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070), "Stuck > 5 d", "")
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Visible: |-
                                         =LayoutRank >= 2
                                     Width: |-
-                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 178, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 129, 65)
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 178, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 129, 65)
                               - conMdFltGap:
                                   Control: GroupContainer
                                   Variant: AutoLayout
@@ -3373,7 +2102,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 2
                                     Width: |-
-                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18))) - ((Max(If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 140, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 120, 64), Min(360, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 307, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 240, 168)) + (44) + (1) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 195, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 143, 65)) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 178, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 129, 65)) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 296, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 244, 111)) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 110, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 92, 35))) - (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 6, 4)) * 8))) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 6, 4)) - (If(LayoutRank >= 2, (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 307, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 240, 168)) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 6, 4), 0)) - (If(LayoutRank >= 2, (44) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 6, 4), 0)) - (If(LayoutRank >= 2, (1) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 6, 4), 0)) - (If(LayoutRank >= 2, (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 195, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 143, 65)) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 6, 4), 0)) - (If(LayoutRank >= 2, (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 178, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 129, 65)) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 6, 4), 0)) - (If(LayoutRank >= 2, (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 296, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 244, 111)) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 6, 4), 0)) - (If(LayoutRank >= 2, (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 110, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 92, 35)) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 6, 4), 0)) - 2)
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18))) - ((Max(If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 140, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 120, 64), Min(360, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 307, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 240, 168)) + (44) + (1) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 195, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 143, 65)) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 178, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 129, 65)) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 306, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 253, 96)) + (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 110, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 92, 35))) - (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 6, 4)) * 8))) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 6, 4)) - (If(LayoutRank >= 2, (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 307, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 240, 168)) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 6, 4), 0)) - (If(LayoutRank >= 2, (44) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 6, 4), 0)) - (If(LayoutRank >= 2, (1) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 6, 4), 0)) - (If(LayoutRank >= 2, (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 195, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 143, 65)) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 6, 4), 0)) - (If(LayoutRank >= 2, (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 178, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 129, 65)) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 6, 4), 0)) - (If(LayoutRank >= 2, (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 306, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 253, 96)) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 6, 4), 0)) - (If(LayoutRank >= 2, (If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 110, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 92, 35)) + If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 10, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 6, 4), 0)) - 2)
                               - conMdFltView:
                                   Control: GroupContainer
                                   Variant: AutoLayout
@@ -3399,7 +2128,7 @@ Screens:
                                     LayoutGap: |-
                                         =2
                                     LayoutMinWidth: |-
-                                        =If(LayoutRank >= 2, If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 296, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 244, 111), 0)
+                                        =If(LayoutRank >= 2, If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 306, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 253, 96), 0)
                                     LayoutOverflowX: |-
                                         =LayoutOverflow.Hide
                                     LayoutOverflowY: |-
@@ -3423,7 +2152,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 2
                                     Width: |-
-                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 296, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 244, 111)
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 306, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 253, 96)
                                   Children:
                                     - conMdFltViewMine:
                                         Control: ModernButton
@@ -3453,9 +2182,9 @@ Screens:
                                           Icon: |-
                                               =If(varMdView = "mine", "Checkmark", "")
                                           Layout: |-
-                                              =If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061), ButtonLayout.TextOnly, If(varMdView = "mine", ButtonLayout.IconBefore, ButtonLayout.TextOnly))
+                                              =If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070), ButtonLayout.TextOnly, If(varMdView = "mine", ButtonLayout.IconBefore, ButtonLayout.TextOnly))
                                           LayoutMinWidth: |-
-                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 149, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 123, 50)
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 149, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 123, 50)
                                           OnSelect: |-
                                               =Set(varMdView, "mine"); Set(varMdDomain, "");
                                               ClearCollect(colMdScope, ForAll(If(
@@ -3483,18 +2212,18 @@ Screens:
                                           RadiusTopRight: |-
                                               =15
                                           Size: |-
-                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 14, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 12, 12)
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 14, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 12, 12)
                                           Text: |-
-                                              =If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061), "Mine", "My requests")
+                                              =If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070), "Mine", "My requests")
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 149, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 123, 50)
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 149, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 123, 50)
                                     - conMdFltViewDept:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="View: Department" & If(varMdView = "queue", ", selected", "")
+                                              ="View: All requests" & If(varMdView = "queue", ", selected", "")
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
@@ -3518,9 +2247,9 @@ Screens:
                                           Icon: |-
                                               =If(varMdView = "queue", "Checkmark", "")
                                           Layout: |-
-                                              =If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061), ButtonLayout.TextOnly, If(varMdView = "queue", ButtonLayout.IconBefore, ButtonLayout.TextOnly))
+                                              =If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070), ButtonLayout.TextOnly, If(varMdView = "queue", ButtonLayout.IconBefore, ButtonLayout.TextOnly))
                                           LayoutMinWidth: |-
-                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 141, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 115, 55)
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 151, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 124, 40)
                                           OnSelect: |-
                                               =Set(varMdView, "queue"); Set(varMdDomain, "");
                                               ClearCollect(colMdScope, ForAll(If(
@@ -3548,13 +2277,13 @@ Screens:
                                           RadiusTopRight: |-
                                               =15
                                           Size: |-
-                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 14, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 12, 12)
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 14, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 12, 12)
                                           Text: |-
-                                              =If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061), "Dept.", "Department")
+                                              =If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070), "All", "All requests")
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 141, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 115, 55)
+                                              =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 151, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 124, 40)
                               - txtMdTotal:
                                   Control: ModernText
                                   Properties:
@@ -3575,7 +2304,7 @@ Screens:
                                     Height: |-
                                         =36
                                     LayoutMinWidth: |-
-                                        =If(LayoutRank >= 2, If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 110, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 92, 35), 0)
+                                        =If(LayoutRank >= 2, If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 110, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 92, 35), 0)
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -3587,11 +2316,11 @@ Screens:
                                     Size: |-
                                         =T.small
                                     Text: |-
-                                        =Text(CountRows(Filter(colMdScope, varMdDomain = "" || Domain = varMdDomain))) & If(CountRows(colMdScope) >= 500, "+", "") & If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061), "", " requests")
+                                        =Text(CountRows(Filter(colMdScope, varMdDomain = "" || Domain = varMdDomain))) & If(CountRows(colMdScope) >= 500, "+", "") & If(!(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070), "", " requests")
                                     Visible: |-
                                         =LayoutRank >= 2
                                     Width: |-
-                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1351, 110, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1061, 92, 35)
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1361, 110, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) >= 1070, 92, 35)
                                     Wrap: |-
                                         =false
                         - conMdFltMobile:
@@ -5337,16 +4066,16 @@ Screens:
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     Height: |-
-                                        =30
+                                        =36
                                     Image: |-
                                         ="data:image/svg+xml;utf8," & EncodeUrl(If(
-                                            !((ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "Material") && ThisItem.Status.Value <> "Kladde"), "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='30' viewBox='0 0 270 30'><text x='4' y='19' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>-</text></svg>",
+                                            !((ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "Material") && ThisItem.Status.Value <> "Kladde"), "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='36' viewBox='0 0 270 36'><text x='135' y='22' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
                                             With(
                                                 { L: With({ c: Filter(varMdAprAll, RequestGuid = ThisItem.RequestGuid) }, If(IsEmpty(c) && CountRows(varMdAprAll) >= 500, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c)) },
                                                 If(
                                                 ThisItem.Domain.Value = "Material",
                                                 If(
-                                            CountRows(Filter(L, Stage = "System")) = 0, "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='30' viewBox='0 0 270 30'><text x='4' y='19' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>-</text></svg>",
+                                            CountRows(Filter(L, Stage = "System")) = 0, "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='36' viewBox='0 0 270 36'><text x='135' y='22' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
                                             With({a: With({T: Filter(If(IsBlank(Filter(L, Stage = "System")) || IsEmpty(Filter(L, Stage = "System")), Blank(), ForAll(GroupBy(Filter(L, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))), Decision <> "Requested")}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
                                             n > 0 && n >= Max(1, CountRows(Distinct(Filter(L, Stage = "System" && Decision = "Requested"), ItemGuid))) && k = n, "Skipped",
@@ -5356,9 +4085,9 @@ Screens:
                                         "Pending"
                                         )))},
                                             With({d: Switch(ThisItem.Status.Value, "OprettetISAP", "Done", "KlarTilSAP", "In progress", "Pending")},
-                                        "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='30' viewBox='0 0 270 30'>" &
-                                        "<line x1='66' y1='15' x2='198' y2='15' stroke-width='2' stroke-linecap='round' stroke='" & If((a = "Approved" || a = "Skipped" || a = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
-                                        "<circle cx='66' cy='15' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='36' viewBox='0 0 270 36'>" &
+                                        "<line x1='69' y1='25' x2='201' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((a = "Approved" || a = "Skipped" || a = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
+                                        "<circle cx='69' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             a,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -5381,8 +4110,20 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(a = "Pending", "", "<g transform='translate(60 9) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(a, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
-                                        "<circle cx='198' cy='15' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        If(a = "Pending", "", "<g transform='translate(63 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(a, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='69' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                            a,
+                                            "Approved", C.'hex-state-ok-fg',
+                                            "Done", C.'hex-state-ok-fg',
+                                            "Skipped", C.'hex-state-neutral-fg',
+                                            "In progress", C.'hex-state-info-fg',
+                                            "Returned", C.'hex-state-warn-fg',
+                                            "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
+                                            C.'hex-text-muted'
+                                        ) & "'>System</text>" &
+                                        "<circle cx='201' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             d,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -5405,7 +4146,19 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(d = "Pending", "", "<g transform='translate(192 9) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(d, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        If(d = "Pending", "", "<g transform='translate(195 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(d, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='201' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                            d,
+                                            "Approved", C.'hex-state-ok-fg',
+                                            "Done", C.'hex-state-ok-fg',
+                                            "Skipped", C.'hex-state-neutral-fg',
+                                            "In progress", C.'hex-state-info-fg',
+                                            "Returned", C.'hex-state-warn-fg',
+                                            "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
+                                            C.'hex-text-muted'
+                                        ) & "'>Handover</text>" &
                                         "</svg>"))
                                         ),
                                                 With({a: With({T: If(IsBlank(Filter(L, Stage = "System")) || IsEmpty(Filter(L, Stage = "System")), Blank(), ForAll(GroupBy(Filter(L, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
@@ -5433,11 +4186,11 @@ Screens:
                                         "Pending"
                                         )))},
                                         With({d: Switch(ThisItem.Status.Value, "OprettetISAP", "Done", "KlarTilSAP", "In progress", "Pending")},
-                                        "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='30' viewBox='0 0 270 30'>" &
-                                        "<line x1='33' y1='15' x2='99' y2='15' stroke-width='2' stroke-linecap='round' stroke='" & If((a = "Approved" || a = "Skipped" || a = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
-                                        "<line x1='99' y1='15' x2='165' y2='15' stroke-width='2' stroke-linecap='round' stroke='" & If((b = "Approved" || b = "Skipped" || b = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
-                                        "<line x1='165' y1='15' x2='231' y2='15' stroke-width='2' stroke-linecap='round' stroke='" & If((c = "Approved" || c = "Skipped" || c = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
-                                        "<circle cx='33' cy='15' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='36' viewBox='0 0 270 36'>" &
+                                        "<line x1='36' y1='25' x2='102' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((a = "Approved" || a = "Skipped" || a = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
+                                        "<line x1='102' y1='25' x2='168' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((b = "Approved" || b = "Skipped" || b = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
+                                        "<line x1='168' y1='25' x2='234' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((c = "Approved" || c = "Skipped" || c = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
+                                        "<circle cx='36' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             a,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -5460,8 +4213,20 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(a = "Pending", "", "<g transform='translate(27 9) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(a, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
-                                        "<circle cx='99' cy='15' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        If(a = "Pending", "", "<g transform='translate(30 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(a, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='36' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                            a,
+                                            "Approved", C.'hex-state-ok-fg',
+                                            "Done", C.'hex-state-ok-fg',
+                                            "Skipped", C.'hex-state-neutral-fg',
+                                            "In progress", C.'hex-state-info-fg',
+                                            "Returned", C.'hex-state-warn-fg',
+                                            "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
+                                            C.'hex-text-muted'
+                                        ) & "'>System</text>" &
+                                        "<circle cx='102' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             b,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -5484,8 +4249,20 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(b = "Pending", "", "<g transform='translate(93 9) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(b, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
-                                        "<circle cx='165' cy='15' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        If(b = "Pending", "", "<g transform='translate(96 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(b, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='102' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                            b,
+                                            "Approved", C.'hex-state-ok-fg',
+                                            "Done", C.'hex-state-ok-fg',
+                                            "Skipped", C.'hex-state-neutral-fg',
+                                            "In progress", C.'hex-state-info-fg',
+                                            "Returned", C.'hex-state-warn-fg',
+                                            "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
+                                            C.'hex-text-muted'
+                                        ) & "'>Cost</text>" &
+                                        "<circle cx='168' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             c,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -5508,8 +4285,20 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(c = "Pending", "", "<g transform='translate(159 9) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(c, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
-                                        "<circle cx='231' cy='15' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        If(c = "Pending", "", "<g transform='translate(162 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(c, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='168' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                            c,
+                                            "Approved", C.'hex-state-ok-fg',
+                                            "Done", C.'hex-state-ok-fg',
+                                            "Skipped", C.'hex-state-neutral-fg',
+                                            "In progress", C.'hex-state-info-fg',
+                                            "Returned", C.'hex-state-warn-fg',
+                                            "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
+                                            C.'hex-text-muted'
+                                        ) & "'>Quality</text>" &
+                                        "<circle cx='234' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             d,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -5532,7 +4321,19 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(d = "Pending", "", "<g transform='translate(225 9) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(d, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        If(d = "Pending", "", "<g transform='translate(228 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(d, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='234' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                            d,
+                                            "Approved", C.'hex-state-ok-fg',
+                                            "Done", C.'hex-state-ok-fg',
+                                            "Skipped", C.'hex-state-neutral-fg',
+                                            "In progress", C.'hex-state-info-fg',
+                                            "Returned", C.'hex-state-warn-fg',
+                                            "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
+                                            C.'hex-text-muted'
+                                        ) & "'>SAP</text>" &
                                         "</svg>"))))
                                             )
                                             )
@@ -5550,9 +4351,9 @@ Screens:
                                     Width: |-
                                         =270
                                     X: |-
-                                        =0 + 12 + 0 + ((176 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14))) + 16 + (((150 + 5 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + If(varMdView = "mine", (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)), 0))) + 16 + ((72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14))) + 16 + If(!(varMdView = "mine"), (If(varMdView = "mine", 0, (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)))) + 16, 0) + 0 + 0
+                                        =0 + 12 + 0 + ((176 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14))) + 16 + (((150 + 5 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + If(varMdView = "mine", (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)), 0))) + 16 + ((72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14))) + 16 + If(!(varMdView = "mine"), (If(varMdView = "mine", 0, (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)))) + 16, 0) + 0 + (((((270 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14))) - 0 - 0) - ((270) + 0 - 0)) / 2)
                                     Y: |-
-                                        =0 + 0 + ((((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1) - 0 - 0) - (30)) / 2 + 0 + (((30) - 0 - 0) - (30)) / 2
+                                        =0 + 0 + ((((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1) - 0 - 0) - (36)) / 2 + 0 + (((36) - 0 - 0) - (36)) / 2
                               - imgMdRowStatus:
                                   Control: Image
                                   Properties:
@@ -5931,16 +4732,16 @@ Screens:
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     Height: |-
-                                        =30
+                                        =36
                                     Image: |-
                                         ="data:image/svg+xml;utf8," & EncodeUrl(If(
-                                            !((ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "Material") && ThisItem.Status.Value <> "Kladde"), "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='30' viewBox='0 0 270 30'><text x='4' y='19' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>-</text></svg>",
+                                            !((ThisItem.Domain.Value = "MaintenancePlan" || ThisItem.Domain.Value = "Material") && ThisItem.Status.Value <> "Kladde"), "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='36' viewBox='0 0 270 36'><text x='135' y='22' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
                                             With(
                                                 { L: With({ c: Filter(varMdAprAll, RequestGuid = ThisItem.RequestGuid) }, If(IsEmpty(c) && CountRows(varMdAprAll) >= 500, Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c)) },
                                                 If(
                                                 ThisItem.Domain.Value = "Material",
                                                 If(
-                                            CountRows(Filter(L, Stage = "System")) = 0, "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='30' viewBox='0 0 270 30'><text x='4' y='19' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>-</text></svg>",
+                                            CountRows(Filter(L, Stage = "System")) = 0, "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='36' viewBox='0 0 270 36'><text x='135' y='22' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='12' fill='" & C.'hex-text-muted' & "'>Not required</text></svg>",
                                             With({a: With({T: Filter(If(IsBlank(Filter(L, Stage = "System")) || IsEmpty(Filter(L, Stage = "System")), Blank(), ForAll(GroupBy(Filter(L, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending)))), Decision <> "Requested")}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
                                             r > 0, "Returned",
                                             n > 0 && n >= Max(1, CountRows(Distinct(Filter(L, Stage = "System" && Decision = "Requested"), ItemGuid))) && k = n, "Skipped",
@@ -5950,9 +4751,9 @@ Screens:
                                         "Pending"
                                         )))},
                                             With({d: Switch(ThisItem.Status.Value, "OprettetISAP", "Done", "KlarTilSAP", "In progress", "Pending")},
-                                        "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='30' viewBox='0 0 270 30'>" &
-                                        "<line x1='66' y1='15' x2='198' y2='15' stroke-width='2' stroke-linecap='round' stroke='" & If((a = "Approved" || a = "Skipped" || a = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
-                                        "<circle cx='66' cy='15' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='36' viewBox='0 0 270 36'>" &
+                                        "<line x1='69' y1='25' x2='201' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((a = "Approved" || a = "Skipped" || a = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
+                                        "<circle cx='69' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             a,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -5975,8 +4776,20 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(a = "Pending", "", "<g transform='translate(60 9) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(a, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
-                                        "<circle cx='198' cy='15' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        If(a = "Pending", "", "<g transform='translate(63 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(a, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='69' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                            a,
+                                            "Approved", C.'hex-state-ok-fg',
+                                            "Done", C.'hex-state-ok-fg',
+                                            "Skipped", C.'hex-state-neutral-fg',
+                                            "In progress", C.'hex-state-info-fg',
+                                            "Returned", C.'hex-state-warn-fg',
+                                            "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
+                                            C.'hex-text-muted'
+                                        ) & "'>System</text>" &
+                                        "<circle cx='201' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             d,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -5999,7 +4812,19 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(d = "Pending", "", "<g transform='translate(192 9) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(d, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        If(d = "Pending", "", "<g transform='translate(195 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(d, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='201' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                            d,
+                                            "Approved", C.'hex-state-ok-fg',
+                                            "Done", C.'hex-state-ok-fg',
+                                            "Skipped", C.'hex-state-neutral-fg',
+                                            "In progress", C.'hex-state-info-fg',
+                                            "Returned", C.'hex-state-warn-fg',
+                                            "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
+                                            C.'hex-text-muted'
+                                        ) & "'>Handover</text>" &
                                         "</svg>"))
                                         ),
                                                 With({a: With({T: If(IsBlank(Filter(L, Stage = "System")) || IsEmpty(Filter(L, Stage = "System")), Blank(), ForAll(GroupBy(Filter(L, Stage = "System"), ItemGuid, colgrp), First(SortByColumns(colgrp, "DecidedOn", SortOrder.Descending))))}, With({n: CountRows(T), r: CountRows(Filter(T, Decision = "Return")), k: CountRows(Filter(T, Decision = "Skipped"))}, If(
@@ -6027,11 +4852,11 @@ Screens:
                                         "Pending"
                                         )))},
                                         With({d: Switch(ThisItem.Status.Value, "OprettetISAP", "Done", "KlarTilSAP", "In progress", "Pending")},
-                                        "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='30' viewBox='0 0 270 30'>" &
-                                        "<line x1='33' y1='15' x2='99' y2='15' stroke-width='2' stroke-linecap='round' stroke='" & If((a = "Approved" || a = "Skipped" || a = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
-                                        "<line x1='99' y1='15' x2='165' y2='15' stroke-width='2' stroke-linecap='round' stroke='" & If((b = "Approved" || b = "Skipped" || b = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
-                                        "<line x1='165' y1='15' x2='231' y2='15' stroke-width='2' stroke-linecap='round' stroke='" & If((c = "Approved" || c = "Skipped" || c = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
-                                        "<circle cx='33' cy='15' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        "<svg xmlns='http://www.w3.org/2000/svg' width='270' height='36' viewBox='0 0 270 36'>" &
+                                        "<line x1='36' y1='25' x2='102' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((a = "Approved" || a = "Skipped" || a = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
+                                        "<line x1='102' y1='25' x2='168' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((b = "Approved" || b = "Skipped" || b = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
+                                        "<line x1='168' y1='25' x2='234' y2='25' stroke-width='2' stroke-linecap='round' stroke='" & If((c = "Approved" || c = "Skipped" || c = "Done"), C.'hex-state-ok-fg', C.'hex-border-default') & "'/>" &
+                                        "<circle cx='36' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             a,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -6054,8 +4879,20 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(a = "Pending", "", "<g transform='translate(27 9) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(a, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
-                                        "<circle cx='99' cy='15' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        If(a = "Pending", "", "<g transform='translate(30 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(a, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='36' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                            a,
+                                            "Approved", C.'hex-state-ok-fg',
+                                            "Done", C.'hex-state-ok-fg',
+                                            "Skipped", C.'hex-state-neutral-fg',
+                                            "In progress", C.'hex-state-info-fg',
+                                            "Returned", C.'hex-state-warn-fg',
+                                            "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
+                                            C.'hex-text-muted'
+                                        ) & "'>System</text>" &
+                                        "<circle cx='102' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             b,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -6078,8 +4915,20 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(b = "Pending", "", "<g transform='translate(93 9) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(b, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
-                                        "<circle cx='165' cy='15' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        If(b = "Pending", "", "<g transform='translate(96 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(b, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='102' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                            b,
+                                            "Approved", C.'hex-state-ok-fg',
+                                            "Done", C.'hex-state-ok-fg',
+                                            "Skipped", C.'hex-state-neutral-fg',
+                                            "In progress", C.'hex-state-info-fg',
+                                            "Returned", C.'hex-state-warn-fg',
+                                            "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
+                                            C.'hex-text-muted'
+                                        ) & "'>Cost</text>" &
+                                        "<circle cx='168' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             c,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -6102,8 +4951,20 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(c = "Pending", "", "<g transform='translate(159 9) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(c, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
-                                        "<circle cx='231' cy='15' r='6' stroke-width='1.5' stroke='" & Switch(
+                                        If(c = "Pending", "", "<g transform='translate(162 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(c, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='168' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                            c,
+                                            "Approved", C.'hex-state-ok-fg',
+                                            "Done", C.'hex-state-ok-fg',
+                                            "Skipped", C.'hex-state-neutral-fg',
+                                            "In progress", C.'hex-state-info-fg',
+                                            "Returned", C.'hex-state-warn-fg',
+                                            "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
+                                            C.'hex-text-muted'
+                                        ) & "'>Quality</text>" &
+                                        "<circle cx='234' cy='25' r='6' stroke-width='1.5' stroke='" & Switch(
                                             d,
                                             "Approved", C.'hex-state-ok-fg',
                                             "Done", C.'hex-state-ok-fg',
@@ -6126,7 +4987,19 @@ Screens:
                                             "Note", C.'hex-color-brand-primary',
                                             C.'hex-text-muted'
                                         )) & "'/>" &
-                                        If(d = "Pending", "", "<g transform='translate(225 9) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(d, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        If(d = "Pending", "", "<g transform='translate(228 19) scale(0.5)' fill='none' stroke='" & C.'hex-text-on-primary' & "' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='" & Switch(d, "Approved", "M7 12.5l3.2 3.2L17 9", "Done", "M7 12.5l3.2 3.2L17 9", "Skipped", "M8 12h8", "In progress", "M12 7a5 5 0 1 1-5 5", "Returned", "M10 8l-4 4 4 4M6 12h8a4 4 0 0 1 4 4", "M12 12v.01") & "'/></g>") &
+                                        "<text x='234' y='12' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='11' font-weight='600' fill='" & Switch(
+                                            d,
+                                            "Approved", C.'hex-state-ok-fg',
+                                            "Done", C.'hex-state-ok-fg',
+                                            "Skipped", C.'hex-state-neutral-fg',
+                                            "In progress", C.'hex-state-info-fg',
+                                            "Returned", C.'hex-state-warn-fg',
+                                            "Pending", C.'hex-text-muted',
+                                            "Admin", C.'hex-state-warn-fg',
+                                            "Note", C.'hex-color-brand-primary',
+                                            C.'hex-text-muted'
+                                        ) & "'>SAP</text>" &
                                         "</svg>"))))
                                             )
                                             )
@@ -6405,9 +5278,9 @@ Screens:
                                     Width: |-
                                         =If(LayoutRank < 4, ((((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18) - 2 * 0 - 18 - 40) - 24) / 4) * 4, 270)
                                     X: |-
-                                        =If(LayoutRank < 4, 12, 12 + (176 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + 16 + ((150 + 5 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + If(varMdView = "mine", (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)), 0)) + 16 + (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + 16 + If(varMdView = "mine", 0, (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14))) + 16)
+                                        =If(LayoutRank < 4, 12, 12 + (176 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + 16 + ((150 + 5 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + If(varMdView = "mine", (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)), 0)) + 16 + (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) + 16 + If(varMdView = "mine", 0, (72 + (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14))) + 16 + ((270 + 2 * (Max(0, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36 - 4 - 18 - 40) - 1256) / 14)) - 270) / 2)
                                     Y: |-
-                                        =If(LayoutRank < 4, 65, ((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1 - 40) / 2)
+                                        =If(LayoutRank < 4, 68, ((If(LayoutRank < 2, 62, If(LayoutRank < 4, 112, 52))) - 1 - 40) / 2)
                               - imgMdRowActionsZone:
                                   Control: Image
                                   Properties:

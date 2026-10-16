@@ -57,7 +57,9 @@ Efter skærmbilledet `image.png` (nu kun i git-historikken), med to afvigelser:
   celle (før tre gange). *Requester* skjules i *My requests*, og TEXT får
   pladsen.
 - Godkendelsesstriben har ingen mikroetiketter (trinene står i
-  tooltip'en), og "Not required" er "-".
+  tooltip'en), og "Not required" er "-". *Rullet tilbage i issue #274:*
+  trinnavnene (System, Cost, Quality, SAP) står igen centreret over hver
+  knude, striben er centreret i kolonnen, og "Not required" vises igen.
 - Status er den fælles statuschip (`tools/status_chip.py`). *Updated*
   viser datoen (dd-mm-yyyy); den relative tid står i rækkens tooltip.
 - **Stuck** gælder kun Indsendt, UnderBehandling og AfventerInfo, efter
@@ -73,8 +75,6 @@ Efter skærmbilledet `image.png` (nu kun i git-historikken), med to afvigelser:
 - Fliserne er 72 px høje: ikon, navn og "12 open requests" på to linjer.
   Til højre en (+)-knap, der starter en ny anmodning i domænet (samme
   handling som menuen). Flisen selv filtrerer stadig listen.
-- "Continue where you left off" viser din senest ændrede kladde med
-  *Continue* (åbner i Edit).
 - REQUEST, PLANT, STATUS og UPDATED sorterer ved klik; et klik mere vender
   rækkefølgen. Standard er UPDATED, nyeste først.
 

@@ -512,7 +512,7 @@ def segmented(name, options, display_mode=None, label=None, fit=False, compact=F
     virker, og hver har sin AccessibleLabel med "selected".
 
     fit=True: hvert segment er lige bredt som sin tekst (+ flueben) - til
-    lange valg som "My requests" og "Department"."""
+    lange valg som "My requests" og "All requests"."""
     w_uni = seg_button_width()
     if compact:
         w_uni = max(fit_button_width('"%s"' % o[1], size=SEG_SIZE, min_w=0) for o in options) + ICON_W - 6

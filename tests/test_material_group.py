@@ -60,7 +60,8 @@ def test_named_formula_reads_md_material_group():
 
 def test_list_shows_code_and_material_group_description():
     app = open(APP, encoding="utf-8").read()
-    assert "Trim(R.MaterialGroup) & \" - \" & Trim(R.MaterialGroupDescription)" in app
+    assert "\" - \" & Trim(R.MaterialGroupDescription)" in app
+    assert "\" - \" & Trim(R.Description2)" in app
     text = open(SCREEN, encoding="utf-8").read()
     n = text.index("- galVhpMatGroups:")
     assert "=ThisItem.Display" in text[n:n + 6000]

@@ -5243,583 +5243,6 @@ Screens:
                 =0
             Y: |-
                 =0
-      - conMatPoBackdrop:
-          Control: Image
-          Properties:
-            AccessibleLabel: |-
-                ="Close the dialog"
-            BorderStyle: |-
-                =BorderStyle.None
-            BorderThickness: |-
-                =0
-            Fill: |-
-                =C.'overlay'
-            FocusedBorderColor: |-
-                =RGBA(0, 0, 0, 0)
-            FocusedBorderThickness: |-
-                =2
-            Height: |-
-                =App.Height
-            HoverFill: |-
-                =C.'overlay'
-            Image: |-
-                =""
-            OnSelect: |-
-                =If(LayoutRank < 2, false)
-            PressedFill: |-
-                =C.'overlay'
-            TabIndex: |-
-                =If(LayoutRank < 2, 0, -1)
-            Visible: |-
-                =IfError(varMatPoOpen, false)
-            Width: |-
-                =App.Width
-            X: |-
-                =0
-            Y: |-
-                =0
-      - conMatPoModal:
-          Control: GroupContainer
-          Variant: AutoLayout
-          Properties:
-            BorderColor: |-
-                =C.'color-brand-primary-soft'
-            BorderThickness: |-
-                =1
-            DropShadow: |-
-                =DropShadow.ExtraBold
-            Fill: |-
-                =C.'bg-modal'
-            FillPortions: |-
-                =0
-            Height: |-
-                =68 + 12 + (If(LayoutRank < 2, 36, 18)) + 12 + (Min(220, App.Height - 220))
-            LayoutAlignItems: |-
-                =LayoutAlignItems.Stretch
-            LayoutDirection: |-
-                =LayoutDirection.Vertical
-            LayoutGap: |-
-                =12
-            LayoutMinWidth: |-
-                =0
-            LayoutOverflowX: |-
-                =LayoutOverflow.Hide
-            LayoutOverflowY: |-
-                =LayoutOverflow.Hide
-            PaddingBottom: |-
-                =18
-            PaddingLeft: |-
-                =18
-            PaddingRight: |-
-                =18
-            PaddingTop: |-
-                =18
-            RadiusBottomLeft: |-
-                =R.modal
-            RadiusBottomRight: |-
-                =R.modal
-            RadiusTopLeft: |-
-                =R.modal
-            RadiusTopRight: |-
-                =R.modal
-            Visible: |-
-                =IfError(varMatPoOpen, false)
-            Width: |-
-                =Min(640, App.Width - 32)
-            X: |-
-                =(App.Width - Self.Width) / 2
-            Y: |-
-                =Max(20, (App.Height - Self.Height) / 3)
-          Children:
-            - conMatPoHead:
-                Control: GroupContainer
-                Variant: AutoLayout
-                Properties:
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  DropShadow: |-
-                      =DropShadow.None
-                  FillPortions: |-
-                      =0
-                  Height: |-
-                      =32
-                  LayoutAlignItems: |-
-                      =LayoutAlignItems.Center
-                  LayoutDirection: |-
-                      =LayoutDirection.Horizontal
-                  LayoutGap: |-
-                      =12
-                  LayoutMinWidth: |-
-                      =0
-                  LayoutOverflowX: |-
-                      =LayoutOverflow.Hide
-                  LayoutOverflowY: |-
-                      =LayoutOverflow.Hide
-                  Width: |-
-                      =Parent.Width
-                Children:
-                  - txtMatPoH:
-                      Control: ModernText
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Purchase order text"
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        BorderThickness: |-
-                            =0
-                        Color: |-
-                            =C.'text-primary'
-                        Fill: |-
-                            =RGBA(0, 0, 0, 0)
-                        FillPortions: |-
-                            =0
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
-                        Height: |-
-                            =26
-                        LayoutMinWidth: |-
-                            =0
-                        PaddingBottom: |-
-                            =0
-                        PaddingLeft: |-
-                            =0
-                        PaddingRight: |-
-                            =0
-                        PaddingTop: |-
-                            =0
-                        Size: |-
-                            =T.cardTitle
-                        Text: |-
-                            ="Purchase order text"
-                        Width: |-
-                            =Max(0, (((Min(640, App.Width - 32)) - 18 - 18)) - ((84) + 12) - 2)
-                        Wrap: |-
-                            =false
-                  - btnMatPoClose:
-                      Control: ModernButton
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Close the purchase order text"
-                        Align: |-
-                            =Align.Center
-                        AlignInContainer: |-
-                            =AlignInContainer.Center
-                        Appearance: |-
-                            =ButtonAppearance.Outline
-                        BorderColor: |-
-                            =C.'border-input'
-                        BorderThickness: |-
-                            =1
-                        Color: |-
-                            =C.'text-primary'
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
-                        Height: |-
-                            =32
-                        Layout: |-
-                            =ButtonLayout.TextOnly
-                        LayoutMinWidth: |-
-                            =84
-                        OnSelect: |-
-                            =Set(varMatPoOpen, false)
-                        RadiusBottomLeft: |-
-                            =R.input
-                        RadiusBottomRight: |-
-                            =R.input
-                        RadiusTopLeft: |-
-                            =R.input
-                        RadiusTopRight: |-
-                            =R.input
-                        Size: |-
-                            =T.input
-                        Text: |-
-                            ="Close"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
-                        Width: |-
-                            =84
-            - txtMatPoHint:
-                Control: ModernText
-                Properties:
-                  AccessibleLabel: |-
-                      =Self.Text
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  BorderThickness: |-
-                      =0
-                  Color: |-
-                      =C.'text-muted'
-                  Fill: |-
-                      =RGBA(0, 0, 0, 0)
-                  Font: |-
-                      =Font.'Segoe UI'
-                  Height: |-
-                      =If(LayoutRank < 2, 36, 18)
-                  PaddingBottom: |-
-                      =0
-                  PaddingLeft: |-
-                      =0
-                  PaddingRight: |-
-                      =0
-                  PaddingTop: |-
-                      =0
-                  Size: |-
-                      =T.small
-                  Text: |-
-                      =If((varMatViewOnly || varMatRowStatus = "submitted"), "Read only - this row cannot be changed.", "The text is saved with the row when you choose Save.")
-                  Wrap: |-
-                      =true
-            - inpMatPoText:
-                Control: ModernTextInput
-                Properties:
-                  AccessibleLabel: |-
-                      ="Purchase order text"
-                  Appearance: |-
-                      =If((If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                  BasePaletteColor: |-
-                      =C.'color-brand-primary'
-                  BorderColor: |-
-                      =If((If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'border-input', C.'border-default')
-                  BorderStyle: |-
-                      =BorderStyle.Solid
-                  BorderThickness: |-
-                      =1
-                  Color: |-
-                      =If((If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                  Default: |-
-                      =varMatFRemarks
-                  DisplayMode: |-
-                      =If((If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                  Fill: |-
-                      =If(If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                  Font: |-
-                      =Font.'Segoe UI'
-                  Height: |-
-                      =Min(220, App.Height - 220)
-                  LayoutMinWidth: |-
-                      =0
-                  OnChange: |-
-                      =Set(varMatFRemarks, Self.Text)
-                  Placeholder: |-
-                      ="Text for the purchase order"
-                  RadiusBottomLeft: |-
-                      =R.input
-                  RadiusBottomRight: |-
-                      =R.input
-                  RadiusTopLeft: |-
-                      =R.input
-                  RadiusTopRight: |-
-                      =R.input
-                  Size: |-
-                      =If(LayoutRank < 2, 16, 14)
-                  Type: |-
-                      =TextInputType.Multiline
-                  ValidationState: |-
-                      =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
-                  Width: |-
-                      =Parent.Width
-      - conMatResetConfirmBackdrop:
-          Control: Image
-          Properties:
-            AccessibleLabel: |-
-                ="Close the dialog"
-            BorderStyle: |-
-                =BorderStyle.None
-            BorderThickness: |-
-                =0
-            Fill: |-
-                =C.'overlay'
-            FocusedBorderColor: |-
-                =RGBA(0, 0, 0, 0)
-            FocusedBorderThickness: |-
-                =2
-            Height: |-
-                =App.Height
-            HoverFill: |-
-                =C.'overlay'
-            Image: |-
-                =""
-            OnSelect: |-
-                =If(LayoutRank < 2, Set(varMatResetAsk, false))
-            PressedFill: |-
-                =C.'overlay'
-            TabIndex: |-
-                =If(LayoutRank < 2, 0, -1)
-            Visible: |-
-                =IfError(varMatResetAsk, false)
-            Width: |-
-                =App.Width
-            X: |-
-                =0
-            Y: |-
-                =0
-      - conMatResetConfirmModal:
-          Control: GroupContainer
-          Variant: AutoLayout
-          Properties:
-            BorderColor: |-
-                =C.'color-brand-primary-soft'
-            BorderThickness: |-
-                =1
-            DropShadow: |-
-                =DropShadow.ExtraBold
-            Fill: |-
-                =C.'bg-modal'
-            FillPortions: |-
-                =0
-            Height: |-
-                =162
-            LayoutAlignItems: |-
-                =LayoutAlignItems.Stretch
-            LayoutDirection: |-
-                =LayoutDirection.Vertical
-            LayoutGap: |-
-                =12
-            LayoutMinWidth: |-
-                =0
-            LayoutOverflowX: |-
-                =LayoutOverflow.Hide
-            LayoutOverflowY: |-
-                =LayoutOverflow.Hide
-            PaddingBottom: |-
-                =18
-            PaddingLeft: |-
-                =18
-            PaddingRight: |-
-                =18
-            PaddingTop: |-
-                =18
-            RadiusBottomLeft: |-
-                =R.modal
-            RadiusBottomRight: |-
-                =R.modal
-            RadiusTopLeft: |-
-                =R.modal
-            RadiusTopRight: |-
-                =R.modal
-            Visible: |-
-                =IfError(varMatResetAsk, false)
-            Width: |-
-                =Min(460, App.Width - 40)
-            X: |-
-                =(App.Width - Self.Width) / 2
-            Y: |-
-                =Max(20, (App.Height - Self.Height) / 3)
-          Children:
-            - txtMatResetConfirmTitle:
-                Control: ModernText
-                Properties:
-                  AccessibleLabel: |-
-                      ="Discard unsaved changes?"
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  BorderThickness: |-
-                      =0
-                  Color: |-
-                      =C.'text-primary'
-                  Fill: |-
-                      =RGBA(0, 0, 0, 0)
-                  Font: |-
-                      =Font.'Segoe UI'
-                  FontWeight: |-
-                      =FontWeight.Semibold
-                  Height: |-
-                      =26
-                  PaddingBottom: |-
-                      =0
-                  PaddingLeft: |-
-                      =0
-                  PaddingRight: |-
-                      =0
-                  PaddingTop: |-
-                      =0
-                  Size: |-
-                      =T.cardTitle
-                  Text: |-
-                      ="Discard unsaved changes?"
-                  Wrap: |-
-                      =false
-            - txtMatResetConfirmText:
-                Control: ModernText
-                Properties:
-                  AccessibleLabel: |-
-                      ="The form is cleared and starts a new row. Saved rows and the request are not changed."
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  BorderThickness: |-
-                      =0
-                  Color: |-
-                      =C.'text-muted'
-                  Fill: |-
-                      =RGBA(0, 0, 0, 0)
-                  Font: |-
-                      =Font.'Segoe UI'
-                  Height: |-
-                      =40
-                  PaddingBottom: |-
-                      =0
-                  PaddingLeft: |-
-                      =0
-                  PaddingRight: |-
-                      =0
-                  PaddingTop: |-
-                      =0
-                  Size: |-
-                      =T.body
-                  Text: |-
-                      ="The form is cleared and starts a new row. Saved rows and the request are not changed."
-                  Wrap: |-
-                      =true
-            - conMatResetConfirmFooter:
-                Control: GroupContainer
-                Variant: AutoLayout
-                Properties:
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  DropShadow: |-
-                      =DropShadow.None
-                  FillPortions: |-
-                      =0
-                  Height: |-
-                      =36
-                  LayoutAlignItems: |-
-                      =LayoutAlignItems.Center
-                  LayoutDirection: |-
-                      =LayoutDirection.Horizontal
-                  LayoutGap: |-
-                      =8
-                  LayoutJustifyContent: |-
-                      =LayoutJustifyContent.End
-                  LayoutMinWidth: |-
-                      =0
-                  LayoutOverflowX: |-
-                      =LayoutOverflow.Hide
-                  LayoutOverflowY: |-
-                      =LayoutOverflow.Hide
-                  Width: |-
-                      =Parent.Width
-                Children:
-                  - btnMatResetConfirmCancel:
-                      Control: ModernButton
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Close"
-                        Align: |-
-                            =Align.Center
-                        AlignInContainer: |-
-                            =AlignInContainer.Center
-                        Appearance: |-
-                            =ButtonAppearance.Outline
-                        BorderColor: |-
-                            =C.'border-input'
-                        BorderThickness: |-
-                            =1
-                        Color: |-
-                            =C.'text-primary'
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
-                        Height: |-
-                            =36
-                        Layout: |-
-                            =ButtonLayout.TextOnly
-                        OnSelect: |-
-                            =Set(varMatResetAsk, false)
-                        RadiusBottomLeft: |-
-                            =R.input
-                        RadiusBottomRight: |-
-                            =R.input
-                        RadiusTopLeft: |-
-                            =R.input
-                        RadiusTopRight: |-
-                            =R.input
-                        Size: |-
-                            =T.input
-                        Text: |-
-                            ="Close"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
-                        Width: |-
-                            =77
-                  - btnMatResetConfirm:
-                      Control: ModernButton
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Reset"
-                        Align: |-
-                            =Align.Center
-                        AlignInContainer: |-
-                            =AlignInContainer.Center
-                        Appearance: |-
-                            =ButtonAppearance.Outline
-                        BorderColor: |-
-                            =C.'border-error'
-                        BorderThickness: |-
-                            =1
-                        Color: |-
-                            =C.'state-error-fg'
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
-                        Height: |-
-                            =36
-                        Layout: |-
-                            =ButtonLayout.TextOnly
-                        OnSelect: |-
-                            =Set(varMatResetAsk, false);
-                            Set(varMatActiveRowId, Blank());
-                            Set(varMatRowStatus, "valid");
-                            Set(varMatValidated, false);
-                            Set(varMatFText, "");
-                            Set(varMatFPlant, Coalesce(First(colAppPrefs).prefMatNewPlant, ""));
-                            Set(varMatEditorOpen, false);
-                            Set(varMatEditorTab, "Details");
-                            Set(varMatFManufacturer, "");
-                            Set(varMatFModelNumber, "");
-                            Set(varMatFManufacturerPartNo, "");
-                            Set(varMatFSupplier, "");
-                            Set(varMatFSupplierPartNo, "");
-                            Set(varMatFDeliveringTime, Blank());
-                            Set(varMatFPrice, Blank());
-                            Set(varMatFPriceUnit, "");
-                            Set(varMatFStockUnit, "");
-                            Set(varMatFIsStockItem, false);
-                            Set(varMatFMinStock, Blank());
-                            Set(varMatFMaxStock, Blank());
-                            Set(varMatFStorageBin, "X");
-                            Set(varMatFStrategicPart, "");
-                            Set(varMatFWearPart, "");
-                            Set(varMatFRemarks, "");
-                            Set(varMatFMaintenanceOrderNo, "");
-                            Set(varMatFReplacesExisting, false);
-                            Set(varMatFReplacedMaterialNo, "");
-                            Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
-                            Clear(colMatObjects);
-                            Set(varMatObjRowId, Blank());
-                            Clear(colMatObjPop);
-                            Set(varMatInfo, "")
-                        RadiusBottomLeft: |-
-                            =R.input
-                        RadiusBottomRight: |-
-                            =R.input
-                        RadiusTopLeft: |-
-                            =R.input
-                        RadiusTopRight: |-
-                            =R.input
-                        Size: |-
-                            =T.input
-                        Text: |-
-                            ="Reset"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
-                        Width: |-
-                            =77
       - imgMatNavScrim:
           Control: Image
           Properties:
@@ -8680,7 +8103,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =26 + 12 + (20 * RoundUp(789 * 1.25 / (If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18), 0) + 4) + 12 + (20) + 12 + (0 + (62) + 20 + (62) + 20 + (If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (60) + (60) + 20, If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 460, (Max((60), (60))) + 0, (Max((60), (60))) + 0)))) + If(Coalesce(varMatFIsStockItem, false), 12 + (0 + (If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + (62) + 40, If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 460, (Max((62), (62))) + (62) + 20, (Max((62), (62), (62))) + 0)))), 0) + If(Coalesce(varMatFIsStockItem, false) && !IsBlank(varMatFMinStock) && !IsBlank(varMatFMaxStock) && varMatFMinStock > varMatFMaxStock, 12 + (18), 0) + If(Coalesce(varMatFReplacesExisting, false), 12 + (0 + (62)), 0) + 12 + (28) + 12 + (0 + (If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + (62) + 40, If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 460, (Max((62), (62))) + (62) + 20, (Max((62), (62), (62))) + 0)))) + 12 + (0 + (If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + (62) + 40, If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 460, (Max((62), (62))) + (62) + 20, (Max((62), (62), (62))) + 0))) + 20 + (62)) + 12 + (28) + 12 + (0 + (If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + (62) + 40, If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 460, (Max((62), (62))) + (62) + 20, (Max((62), (62), (62))) + 0)))) + 12 + (0 + (If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (60) + (60) + (62) + 40, If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 460, (Max((60), (60))) + (62) + 20, (Max((60), (60), (62))) + 0)))) + If(!IsBlank(varMatActiveRowId), 12 + (0 + (80)), 0) + If(!IsBlank(varMatInfo), 12 + (18), 0)
+                            =26 + 12 + (20 * RoundUp(789 * 1.25 / (If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18), 0) + 4) + 12 + (20) + 12 + (0 + (62) + 20 + (62) + 20 + (If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (60) + (60) + 20, If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 460, (Max((60), (60))) + 0, (Max((60), (60))) + 0)))) + If(Coalesce(varMatFIsStockItem, false), 12 + (0 + (If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + (62) + 40, If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 460, (Max((62), (62))) + (62) + 20, (Max((62), (62), (62))) + 0)))), 0) + If(Coalesce(varMatFIsStockItem, false) && !IsBlank(varMatFMinStock) && !IsBlank(varMatFMaxStock) && varMatFMinStock > varMatFMaxStock, 12 + (18), 0) + If(Coalesce(varMatFReplacesExisting, false), 12 + (0 + (62)), 0) + 12 + (28) + 12 + (0 + (If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + (62) + 40, If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 460, (Max((62), (62))) + (62) + 20, (Max((62), (62), (62))) + 0)))) + 12 + (82 + (If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + (62) + 40, If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 460, (Max((62), (62))) + (62) + 20, (Max((62), (62), (62))) + 0)))) + 12 + (28) + 12 + (0 + (If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + (62) + 40, If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 460, (Max((62), (62))) + (62) + 20, (Max((62), (62), (62))) + 0)))) + 12 + (0 + (If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (60) + (60) + (62) + 40, If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 460, (Max((60), (60))) + (62) + 20, (Max((60), (60), (62))) + 0)))) + If(!IsBlank(varMatActiveRowId), 12 + (0 + (80)), 0) + If(!IsBlank(varMatInfo), 12 + (18), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -11159,7 +10582,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =0 + (If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + (62) + 40, If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 460, (Max((62), (62))) + (62) + 20, (Max((62), (62), (62))) + 0))) + 20 + (62)
+                                  =82 + (If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, (62) + (62) + (62) + 40, If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 460, (Max((62), (62))) + (62) + 20, (Max((62), (62), (62))) + 0)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -11587,11 +11010,13 @@ Screens:
                                           Height: |-
                                               =62
                                           LayoutAlignItems: |-
-                                              =LayoutAlignItems.Stretch
+                                              =LayoutAlignItems.Start
                                           LayoutDirection: |-
                                               =LayoutDirection.Vertical
                                           LayoutGap: |-
-                                              =6
+                                              =0
+                                          LayoutJustifyContent: |-
+                                              =LayoutJustifyContent.End
                                           LayoutMinWidth: |-
                                               =0
                                           LayoutOverflowX: |-
@@ -11601,164 +11026,55 @@ Screens:
                                           Width: |-
                                               =If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 460, ((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
                                         Children:
-                                          - txtMatPoLbl:
-                                              Control: ModernText
+                                          - btnMatPoText:
+                                              Control: ModernButton
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Purchase order text"
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
+                                                    =If((varMatViewOnly || varMatRowStatus = "submitted"), "View the purchase order text", If(!IsBlank(Trim(Coalesce(varMatFRemarks, ""))), "Edit the purchase order text", "Add a purchase order text"))
+                                                Align: |-
+                                                    =Align.Center
+                                                AlignInContainer: |-
+                                                    =AlignInContainer.Start
+                                                Appearance: |-
+                                                    =If(!IsBlank(Trim(Coalesce(varMatFRemarks, ""))), ButtonAppearance.Primary, ButtonAppearance.Outline)
+                                                BasePaletteColor: |-
+                                                    =C.'color-brand-primary'
+                                                BorderColor: |-
+                                                    =If(!IsBlank(Trim(Coalesce(varMatFRemarks, ""))), C.'color-brand-primary', C.'border-default')
                                                 BorderThickness: |-
-                                                    =0
+                                                    =1
                                                 Color: |-
-                                                    =C.'text-primary'
-                                                Fill: |-
-                                                    =RGBA(0, 0, 0, 0)
+                                                    =If(!IsBlank(Trim(Coalesce(varMatFRemarks, ""))), C.'text-on-primary', C.'text-primary')
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 FontWeight: |-
                                                     =FontWeight.Semibold
                                                 Height: |-
-                                                    =20
-                                                PaddingBottom: |-
-                                                    =0
-                                                PaddingLeft: |-
-                                                    =0
-                                                PaddingRight: |-
-                                                    =0
-                                                PaddingTop: |-
-                                                    =0
+                                                    =36
+                                                Layout: |-
+                                                    =ButtonLayout.TextOnly
+                                                LayoutMinWidth: |-
+                                                    =97
+                                                OnSelect: |-
+                                                    =Set(varMatPoOpen, true)
+                                                RadiusBottomLeft: |-
+                                                    =R.modal
+                                                RadiusBottomRight: |-
+                                                    =R.modal
+                                                RadiusTopLeft: |-
+                                                    =R.modal
+                                                RadiusTopRight: |-
+                                                    =R.modal
                                                 Size: |-
                                                     =T.body
                                                 Text: |-
-                                                    ="Purchase order text"
+                                                    =If((varMatViewOnly || varMatRowStatus = "submitted"), "View text", If(!IsBlank(Trim(Coalesce(varMatFRemarks, ""))), "Edit text", "Add text"))
+                                                Tooltip: |-
+                                                    ="Text for the purchase order"
+                                                VerticalAlign: |-
+                                                    =VerticalAlign.Middle
                                                 Width: |-
-                                                    =Parent.Width
-                                                Wrap: |-
-                                                    =false
-                                          - conMatPoRow:
-                                              Control: GroupContainer
-                                              Variant: AutoLayout
-                                              Properties:
-                                                BorderStyle: |-
-                                                    =BorderStyle.None
-                                                DropShadow: |-
-                                                    =DropShadow.None
-                                                FillPortions: |-
-                                                    =0
-                                                Height: |-
-                                                    =36
-                                                LayoutAlignItems: |-
-                                                    =LayoutAlignItems.Center
-                                                LayoutDirection: |-
-                                                    =LayoutDirection.Horizontal
-                                                LayoutGap: |-
-                                                    =8
-                                                LayoutMinWidth: |-
-                                                    =0
-                                                LayoutOverflowX: |-
-                                                    =LayoutOverflow.Hide
-                                                LayoutOverflowY: |-
-                                                    =LayoutOverflow.Hide
-                                                Width: |-
-                                                    =If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 460, ((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))
-                                              Children:
-                                                - inpMatPoInfo:
-                                                    Control: ModernTextInput
-                                                    Properties:
-                                                      AccessibleLabel: |-
-                                                          ="Purchase order text"
-                                                      Appearance: |-
-                                                          =If((DisplayMode.View) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                                      BasePaletteColor: |-
-                                                          =C.'color-brand-primary'
-                                                      BorderColor: |-
-                                                          =If((DisplayMode.View) = DisplayMode.Edit, C.'border-input', C.'border-default')
-                                                      BorderStyle: |-
-                                                          =BorderStyle.Solid
-                                                      BorderThickness: |-
-                                                          =1
-                                                      Color: |-
-                                                          =If((DisplayMode.View) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                                      Default: |-
-                                                          =If(!IsBlank(Trim(Coalesce(varMatFRemarks, ""))), Substitute(Trim(varMatFRemarks), Char(10), " "), "No text yet")
-                                                      DisplayMode: |-
-                                                          =If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                                                      Fill: |-
-                                                          =If(DisplayMode.View = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                                      FillPortions: |-
-                                                          =0
-                                                      Font: |-
-                                                          =Font.'Segoe UI'
-                                                      Height: |-
-                                                          =36
-                                                      LayoutMinWidth: |-
-                                                          =0
-                                                      Placeholder: |-
-                                                          =""
-                                                      RadiusBottomLeft: |-
-                                                          =R.input
-                                                      RadiusBottomRight: |-
-                                                          =R.input
-                                                      RadiusTopLeft: |-
-                                                          =R.input
-                                                      RadiusTopRight: |-
-                                                          =R.input
-                                                      Size: |-
-                                                          =If(LayoutRank < 2, 16, 14)
-                                                      ValidationState: |-
-                                                          =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
-                                                      Width: |-
-                                                          =Max(0, (((If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 360, If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18, If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) < 460, ((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) - 20) / 2, ((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 2 * 20 - 2 * 20 - 18) - 40) / 3))))) - ((97) + 8) - 2)
-                                                - btnMatPoText:
-                                                    Control: ModernButton
-                                                    Properties:
-                                                      AccessibleLabel: |-
-                                                          ="Open the purchase order text"
-                                                      Align: |-
-                                                          =Align.Center
-                                                      AlignInContainer: |-
-                                                          =AlignInContainer.Center
-                                                      Appearance: |-
-                                                          =If(!IsBlank(Trim(Coalesce(varMatFRemarks, ""))), ButtonAppearance.Primary, ButtonAppearance.Outline)
-                                                      BasePaletteColor: |-
-                                                          =C.'color-brand-primary'
-                                                      BorderColor: |-
-                                                          =If(!IsBlank(Trim(Coalesce(varMatFRemarks, ""))), C.'color-brand-primary', C.'border-default')
-                                                      BorderThickness: |-
-                                                          =1
-                                                      Color: |-
-                                                          =If(!IsBlank(Trim(Coalesce(varMatFRemarks, ""))), C.'text-on-primary', C.'text-primary')
-                                                      Font: |-
-                                                          =Font.'Segoe UI'
-                                                      FontWeight: |-
-                                                          =FontWeight.Semibold
-                                                      Height: |-
-                                                          =32
-                                                      Layout: |-
-                                                          =ButtonLayout.TextOnly
-                                                      LayoutMinWidth: |-
-                                                          =97
-                                                      OnSelect: |-
-                                                          =Set(varMatPoOpen, true)
-                                                      RadiusBottomLeft: |-
-                                                          =R.modal
-                                                      RadiusBottomRight: |-
-                                                          =R.modal
-                                                      RadiusTopLeft: |-
-                                                          =R.modal
-                                                      RadiusTopRight: |-
-                                                          =R.modal
-                                                      Size: |-
-                                                          =T.body
-                                                      Text: |-
-                                                          =If((varMatViewOnly || varMatRowStatus = "submitted"), "View text", If(!IsBlank(Trim(Coalesce(varMatFRemarks, ""))), "Edit text", "Add text"))
-                                                      Tooltip: |-
-                                                          ="Text for the purchase order"
-                                                      VerticalAlign: |-
-                                                          =VerticalAlign.Middle
-                                                      Width: |-
-                                                          =97
+                                                    =97
                         - conMatSecPrice:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -16148,6 +15464,584 @@ Screens:
                                   =VerticalAlign.Middle
                               Width: |-
                                   =104
+      - conMatPoBackdrop:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Close the dialog"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
+            FocusedBorderThickness: |-
+                =2
+            Height: |-
+                =App.Height
+            HoverFill: |-
+                =C.'overlay'
+            Image: |-
+                =""
+            OnSelect: |-
+                =If(LayoutRank < 2, false)
+            PressedFill: |-
+                =C.'overlay'
+            TabIndex: |-
+                =If(LayoutRank < 2, 0, -1)
+            Visible: |-
+                =IfError(varMatPoOpen, false)
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conMatPoModal:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'color-brand-primary-soft'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.ExtraBold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =68 + 12 + (If(LayoutRank < 2, 36, 18)) + 12 + (Min(220, App.Height - 220))
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =18
+            PaddingRight: |-
+                =18
+            PaddingTop: |-
+                =18
+            RadiusBottomLeft: |-
+                =R.modal
+            RadiusBottomRight: |-
+                =R.modal
+            RadiusTopLeft: |-
+                =R.modal
+            RadiusTopRight: |-
+                =R.modal
+            Visible: |-
+                =IfError(varMatPoOpen, false)
+            Width: |-
+                =Min(640, App.Width - 32)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =Max(20, (App.Height - Self.Height) / 3)
+          Children:
+            - conMatPoHead:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =32
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =12
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - txtMatPoH:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Purchase order text"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =26
+                        LayoutMinWidth: |-
+                            =0
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.cardTitle
+                        Text: |-
+                            ="Purchase order text"
+                        Width: |-
+                            =Max(0, (((Min(640, App.Width - 32)) - 18 - 18)) - ((84) + 12) - 2)
+                        Wrap: |-
+                            =false
+                  - btnMatPoClose:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close the purchase order text"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-input'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =32
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        LayoutMinWidth: |-
+                            =84
+                        OnSelect: |-
+                            =If(!(varMatViewOnly || varMatRowStatus = "submitted"), Set(varMatFRemarks, inpMatPoText.Text));
+                            Set(varMatPoOpen, false)
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Close"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =84
+            - txtMatPoHint:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =If(LayoutRank < 2, 36, 18)
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =T.small
+                  Text: |-
+                      =If((varMatViewOnly || varMatRowStatus = "submitted"), "Read only - this row cannot be changed.", "The text is saved with the row when you choose Save.")
+                  Wrap: |-
+                      =true
+            - inpMatPoText:
+                Control: ModernTextInput
+                Properties:
+                  AccessibleLabel: |-
+                      ="Purchase order text"
+                  Appearance: |-
+                      =If((If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                  BasePaletteColor: |-
+                      =C.'color-brand-primary'
+                  BorderColor: |-
+                      =If((If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'border-input', C.'border-default')
+                  BorderStyle: |-
+                      =BorderStyle.Solid
+                  BorderThickness: |-
+                      =1
+                  Color: |-
+                      =If((If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                  Default: |-
+                      =varMatFRemarks
+                  DisplayMode: |-
+                      =If((If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                  Fill: |-
+                      =If(If(varMatViewOnly || varMatRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =Min(220, App.Height - 220)
+                  LayoutMinWidth: |-
+                      =0
+                  OnChange: |-
+                      =Set(varMatFRemarks, Self.Text)
+                  Placeholder: |-
+                      ="Text for the purchase order"
+                  RadiusBottomLeft: |-
+                      =R.input
+                  RadiusBottomRight: |-
+                      =R.input
+                  RadiusTopLeft: |-
+                      =R.input
+                  RadiusTopRight: |-
+                      =R.input
+                  Size: |-
+                      =If(LayoutRank < 2, 16, 14)
+                  Type: |-
+                      =TextInputType.Multiline
+                  ValidationState: |-
+                      =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                  Width: |-
+                      =Parent.Width
+      - conMatResetConfirmBackdrop:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Close the dialog"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
+            FocusedBorderThickness: |-
+                =2
+            Height: |-
+                =App.Height
+            HoverFill: |-
+                =C.'overlay'
+            Image: |-
+                =""
+            OnSelect: |-
+                =If(LayoutRank < 2, Set(varMatResetAsk, false))
+            PressedFill: |-
+                =C.'overlay'
+            TabIndex: |-
+                =If(LayoutRank < 2, 0, -1)
+            Visible: |-
+                =IfError(varMatResetAsk, false)
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conMatResetConfirmModal:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'color-brand-primary-soft'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.ExtraBold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =162
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =18
+            PaddingRight: |-
+                =18
+            PaddingTop: |-
+                =18
+            RadiusBottomLeft: |-
+                =R.modal
+            RadiusBottomRight: |-
+                =R.modal
+            RadiusTopLeft: |-
+                =R.modal
+            RadiusTopRight: |-
+                =R.modal
+            Visible: |-
+                =IfError(varMatResetAsk, false)
+            Width: |-
+                =Min(460, App.Width - 40)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =Max(20, (App.Height - Self.Height) / 3)
+          Children:
+            - txtMatResetConfirmTitle:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="Discard unsaved changes?"
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-primary'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =26
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =T.cardTitle
+                  Text: |-
+                      ="Discard unsaved changes?"
+                  Wrap: |-
+                      =false
+            - txtMatResetConfirmText:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="The form is cleared and starts a new row. Saved rows and the request are not changed."
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =40
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =T.body
+                  Text: |-
+                      ="The form is cleared and starts a new row. Saved rows and the request are not changed."
+                  Wrap: |-
+                      =true
+            - conMatResetConfirmFooter:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =36
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutJustifyContent: |-
+                      =LayoutJustifyContent.End
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - btnMatResetConfirmCancel:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-input'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varMatResetAsk, false)
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Close"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =77
+                  - btnMatResetConfirm:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Reset"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-error'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'state-error-fg'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varMatResetAsk, false);
+                            Set(varMatActiveRowId, Blank());
+                            Set(varMatRowStatus, "valid");
+                            Set(varMatValidated, false);
+                            Set(varMatFText, "");
+                            Set(varMatFPlant, Coalesce(First(colAppPrefs).prefMatNewPlant, ""));
+                            Set(varMatEditorOpen, false);
+                            Set(varMatEditorTab, "Details");
+                            Set(varMatFManufacturer, "");
+                            Set(varMatFModelNumber, "");
+                            Set(varMatFManufacturerPartNo, "");
+                            Set(varMatFSupplier, "");
+                            Set(varMatFSupplierPartNo, "");
+                            Set(varMatFDeliveringTime, Blank());
+                            Set(varMatFPrice, Blank());
+                            Set(varMatFPriceUnit, "");
+                            Set(varMatFStockUnit, "");
+                            Set(varMatFIsStockItem, false);
+                            Set(varMatFMinStock, Blank());
+                            Set(varMatFMaxStock, Blank());
+                            Set(varMatFStorageBin, "X");
+                            Set(varMatFStrategicPart, "");
+                            Set(varMatFWearPart, "");
+                            Set(varMatFRemarks, "");
+                            Set(varMatFMaintenanceOrderNo, "");
+                            Set(varMatFReplacesExisting, false);
+                            Set(varMatFReplacedMaterialNo, "");
+                            Set(varMatFlQuery, ""); Set(varMatFlLast, ""); Set(varMatFlMsg, ""); Clear(colMatFl); Reset(cmbMatFl);
+                            Clear(colMatObjects);
+                            Set(varMatObjRowId, Blank());
+                            Clear(colMatObjPop);
+                            Set(varMatInfo, "")
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Reset"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =77
       - conMatPasteBackdrop:
           Control: Image
           Properties:
