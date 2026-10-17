@@ -1716,7 +1716,7 @@ def send_fx(submit):
 def build_submit_confirm():
     """Bekraeftelsen foer Submit og ventespinneren (issue #54).
 
-    [sloer, popup, spinner] - skal staa SIDST i skaermens boern, saa de
+    [sloer, popup, sloer, spinner] - skal staa SIDST i skaermens boern, saa de
     ligger oven paa alt andet."""
     return confirm_modal(
         "Dom", CONFIRM_VAR, "Submit request?",

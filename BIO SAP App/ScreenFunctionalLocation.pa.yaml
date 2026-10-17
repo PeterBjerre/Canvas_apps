@@ -14638,7 +14638,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =178 + If(IfError(varFlLoadFailed, false), 6 + (36), 0)
+                =138 + If(!IfError(varFlLoadFailed, false), 0 + (40), 0) + If(IfError(varFlLoadFailed, false), 6 + (40), 0) + If(IfError(varFlLoadFailed, false), 6 + (36), 0)
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -14676,11 +14676,32 @@ Screens:
             Y: |-
                 =(App.Height - Self.Height) / 2
           Children:
+            - spnFlLoadIcon:
+                Control: ModernSpinner@1.1.0
+                Properties:
+                  AccessibleLabel: |-
+                      ="Loading"
+                  AlignInContainer: |-
+                      =AlignInContainer.Center
+                  BasePaletteColor: |-
+                      =C.'color-brand-primary'
+                  Color: |-
+                      =C.'text-primary'
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =40
+                  Label: |-
+                      =""
+                  Visible: |-
+                      =!IfError(varFlLoadFailed, false)
+                  Width: |-
+                      =40
             - imgFlLoadIcon:
                 Control: Image
                 Properties:
                   AccessibleLabel: |-
-                      =If(IfError(varFlLoadFailed, false), "Error", "Loading")
+                      ="Error"
                   AlignInContainer: |-
                       =AlignInContainer.Center
                   BorderStyle: |-
@@ -14690,11 +14711,13 @@ Screens:
                   Height: |-
                       =40
                   Image: |-
-                      =If(IfError(varFlLoadFailed, false), "data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><circle cx='20' cy='20' r='16' fill='none' stroke-width='3' stroke='" & C.'hex-state-error-fg' & "'/><path d='M20 12 V22' stroke='" & C.'hex-state-error-fg' & "' stroke-width='4' stroke-linecap='round'/><circle cx='20' cy='29' r='3' fill='" & C.'hex-state-error-fg' & "'/></svg>"), "data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><style>.f{opacity:0;animation:f .2s ease-out 0.15s forwards}.s{transform-origin:20px 20px;animation:s .9s linear infinite}@keyframes f{to{opacity:1}}@keyframes s{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.s{animation:none}}</style><g class='f' transform='translate(0 0)'><circle cx='20' cy='20' r='12' fill='none' stroke-width='4' stroke='" & C.'hex-state-neutral-bg' & "'/><path class='s' d='M20 8 a12 12 0 0 1 12 12' fill='none' stroke-width='4' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'/></g></svg>"))
+                      ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><circle cx='20' cy='20' r='16' fill='none' stroke-width='3' stroke='" & C.'hex-state-error-fg' & "'/><path d='M20 12 V22' stroke='" & C.'hex-state-error-fg' & "' stroke-width='4' stroke-linecap='round'/><circle cx='20' cy='29' r='3' fill='" & C.'hex-state-error-fg' & "'/></svg>")
                   ImagePosition: |-
                       =ImagePosition.Fit
                   TabIndex: |-
                       =0
+                  Visible: |-
+                      =IfError(varFlLoadFailed, false)
                   Width: |-
                       =40
             - txtFlLoadTitle:
