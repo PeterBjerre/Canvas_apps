@@ -49,7 +49,7 @@ SPINNERS = {
     },
     "ScreenIssueBoard.pa.yaml": {
         "spnIbBusy": ("IfError((varIbBusy || varIbPosting) && !varIbUploading, false)", '""'),
-        "spnIbUploading": ("IfError(varIbUploading, false)", '"Uploading files..."'),
+        "spnIbUploading": ("IfError(varIbUploading, false)", '"Saving files..."'),
     },
     "ScreenKks.pa.yaml": {
         "spnKksLoading": ("IfError(varKksLoading, false)", '""'),
