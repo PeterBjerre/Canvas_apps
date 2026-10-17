@@ -263,6 +263,55 @@ def button(name, text, onselect, primary=False, danger=False, width=140, height=
     return Ctrl(name, "ModernButton", props=props, h=height, vis=visible)
 
 
+def flat_button(name, text, onselect, *, accessible, height, color, width=None,
+                appearance="Transparent", base_color=None, align="Left", size=None,
+                weight="Normal", padding=0, border=None, radius=0, tooltip=None,
+                visible=None):
+    """En ModernButton UDEN Fluent-knappens indre luft (issue #307).
+
+    De sidste klassiske knapper, der ikke er raekkelag: feedback-vaelgerens
+    felt (venstrestillet tekst, der flugter med listen under, #140) og
+    "nogle valgt"-feltet i operationsvaelgeren (18 x 18 px). De brugte
+    Classic/Button for Padding* og BorderStyle; den opdaterede moderne knap
+    har begge (Microsoft Learn, "Button modern control in canvas apps").
+
+    Kun Learns egenskaber. Hover-, tryk- og fokusfarverne er Fluent-temaets
+    - knappen har intet HoverFill/PressedFill/FocusedBorder* og intet Fill
+    (fyldet er Appearance + BasePaletteColor). border er (farve, tykkelse)
+    eller None (ingen kant)."""
+    pad = str(padding)
+    props = {
+        "AccessibleLabel": accessible,
+        "Align": f"Align.{align}",
+        "Appearance": f"ButtonAppearance.{appearance}",
+        "BorderStyle": "BorderStyle.Solid" if border else "BorderStyle.None",
+        "BorderThickness": str(border[1]) if border else "0",
+        "Color": color,
+        "Font": FONT,
+        "FontWeight": f"FontWeight.{weight}",
+        "Height": str(height),
+        # Intet Layout: uden Icon er knappen ren tekst (Learn kender kun
+        # IconBefore/IconAfter/IconOnly).
+        "OnSelect": onselect,
+        "PaddingBottom": pad, "PaddingLeft": pad, "PaddingRight": pad, "PaddingTop": pad,
+        **lay.radius(radius),
+        "Size": str(size if size is not None else lay.SIZE_INPUT),
+        "Text": text,
+        "VerticalAlign": "VerticalAlign.Middle",
+    }
+    if border:
+        props["BorderColor"] = border[0]
+    if base_color:
+        props["BasePaletteColor"] = base_color
+    if width is not None:
+        props["Width"] = str(width)
+    if tooltip:
+        props["Tooltip"] = tooltip
+    if visible is not None:
+        props["Visible"] = visible
+    return Ctrl(name, "ModernButton", props=props, h=height, vis=visible)
+
+
 def icon_on_mobile(btn, w=40):
     """Under Tablet er knappen kun sit ikon (en kvadratisk flade); ellers uaendret."""
     narrow = lay.below("Tablet")

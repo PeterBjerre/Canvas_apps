@@ -5419,38 +5419,28 @@ Screens:
                                                 Width: |-
                                                     =20
                                           - btnIbFbSubject:
-                                              Control: Classic/Button
+                                              Control: ModernButton
                                               Properties:
+                                                AccessibleLabel: |-
+                                                    =If(!IsBlank(gblFbSel.Kind), gblFbSel.Label, "Pick a subject or request")
                                                 Align: |-
                                                     =Align.Left
-                                                BorderColor: |-
-                                                    =RGBA(0, 0, 0, 0)
+                                                Appearance: |-
+                                                    =ButtonAppearance.Transparent
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
                                                     =If(!IsBlank(gblFbSel.Kind), C.'input-fg', C.'text-muted')
-                                                Fill: |-
-                                                    =RGBA(0, 0, 0, 0)
                                                 FillPortions: |-
                                                     =0
-                                                FocusedBorderColor: |-
-                                                    =C.'color-brand-primary'
-                                                FocusedBorderThickness: |-
-                                                    =2
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 FontWeight: |-
                                                     =FontWeight.Normal
                                                 Height: |-
                                                     =34
-                                                HoverBorderColor: |-
-                                                    =RGBA(0, 0, 0, 0)
-                                                HoverColor: |-
-                                                    =If(!IsBlank(gblFbSel.Kind), C.'input-fg', C.'text-muted')
-                                                HoverFill: |-
-                                                    =RGBA(0, 0, 0, 0)
                                                 LayoutMinWidth: |-
                                                     =0
                                                 OnSelect: |-
@@ -5463,16 +5453,16 @@ Screens:
                                                     =0
                                                 PaddingTop: |-
                                                     =0
-                                                PressedBorderColor: |-
-                                                    =RGBA(0, 0, 0, 0)
-                                                PressedColor: |-
-                                                    =If(!IsBlank(gblFbSel.Kind), C.'input-fg', C.'text-muted')
-                                                PressedFill: |-
-                                                    =RGBA(0, 0, 0, 0)
+                                                RadiusBottomLeft: |-
+                                                    =0
+                                                RadiusBottomRight: |-
+                                                    =0
+                                                RadiusTopLeft: |-
+                                                    =0
+                                                RadiusTopRight: |-
+                                                    =0
                                                 Size: |-
                                                     =If(LayoutRank < 2, 12, 10.5)
-                                                TabIndex: |-
-                                                    =0
                                                 Text: |-
                                                     =With({t: If(!IsBlank(gblFbSel.Kind), gblFbSel.Label, "Pick a subject or request"), c: RoundDown((Self.Width) / If(LayoutRank < 2, 8.2, 7.2), 0)}, If(Len(t) > c, Left(t, Max(1, c - 3)) & "...", t))
                                                 VerticalAlign: |-
