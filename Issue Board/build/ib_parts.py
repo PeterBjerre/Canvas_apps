@@ -2360,7 +2360,7 @@ def build_delete():
 def build_loading():
     # Hentningen af listen har pladsholder-raekker (conIbSkeleton, M7);
     # hjulet daekker kun det, brugeren selv har sat i gang.
-    return [loading_overlay("imgIbBusy", "(varIbBusy || varIbPosting) && !varIbUploading",
-                            "Sending, please wait"),
-            loading_overlay("imgIbUploading", "varIbUploading", "Saving files, please wait",
-                            caption="Saving files...")]
+    return [*loading_overlay("imgIbBusy", "(varIbBusy || varIbPosting) && !varIbUploading",
+                             "Sending, please wait"),
+            *loading_overlay("imgIbUploading", "varIbUploading", "Saving files, please wait",
+                             caption="Saving files...")]
