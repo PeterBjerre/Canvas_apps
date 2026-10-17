@@ -1260,6 +1260,41 @@ def flow_ok(children, container_w, gap=8, flex=None, flex_min=0):
     return _fits_expr(container_w, _sum_expr(terms, gap))
 
 
+# Pynt- og statusikoner er den moderne Icon-kontrol (issue #306, del af
+# #161). Versionen er den, Microsoft Learns YAML-eksempler skriver;
+# check_layout regel 16i afviser enhver anden og ukendte egenskaber.
+ICON_CONTROL = "ModernIcon@1.1.0"
+
+
+def fluent(key):
+    """Fluent-navnet (som Power Fx-tekst) for en noegle i icons.FLUENT.
+    KeyError, hvis ikonet ikke har et sidestykke dér - et domaeneikon skal
+    blive et Image (docs/38)."""
+    return '"%s"' % _icons.FLUENT[key]
+
+
+def fluent_icon(name, icon_fx, color, accessible, *, size=20, visible=None):
+    """Et Fluent-ikon som pynt eller status - EEN kontrol for hele repoet.
+
+    icon_fx: Power Fx-tekst med Fluent-navnet (fluent(...) eller en
+    Switch/If af dem). color: tokenfarven (C...), som billedet havde.
+    Ingen OnSelect: uden den er ikonet pynt, ikke en knap, og naas ikke med
+    tastaturet (Learn). TabIndex findes ikke paa kontrollen. Stregtegning
+    som foer = IconStyle.Outline. Width/Height som billedets."""
+    assert name.startswith("ico"), name
+    props = {
+        "AccessibleLabel": accessible,
+        "Height": str(size),
+        "Icon": icon_fx,
+        "IconColor": color,
+        "IconStyle": "IconStyle.Outline",
+        "Width": str(size),
+    }
+    if visible is not None:
+        props["Visible"] = visible
+    return Ctrl(name, ICON_CONTROL, props=props, h=size, vis=visible)
+
+
 PAGE_ICON = 32
 
 
