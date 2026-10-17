@@ -40,7 +40,10 @@ SCHEMA = os.path.join(ROOT, "sharepoint", "inspect", "out", "schema.json")
 # VISNINGSNAVN kan vaere aendret - MD_RequestIndex.Title hedder RequestNo og
 # MD_Strategy.Title hedder StrategyKey i Power Fx. Skemaet ved det; en
 # haardkodet undtagelse ville lukke oejnene for praecis den fejl.
-BUILTIN = {"ID", "Created", "Modified", "Author", "Editor"}
+# "Attachments" er listens vedhaeftninger (issue #300): appen Patch'er dem
+# direkte fra den moderne Attachments-kontrol. Export-ListSchema.ps1
+# springer feltet over som systemfelt, saa udtraekket kan ikke vise det.
+BUILTIN = {"ID", "Created", "Modified", "Author", "Editor", "Attachments"}
 
 # Power Fx-funktioner der tager (kilde, kolonneudtryk ...).
 COL_FUNCS = ("LookUp", "Filter", "Sort", "SortByColumns", "Distinct",

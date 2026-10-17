@@ -2191,7 +2191,7 @@ def table_surface(gal, rule_name, surface=C_CARD_BG):
     Parent.TemplateHeight - 2 eller - 1; den bliver - 1."""
     pad = int(gal.props.get("TemplatePadding", "0"))
     ts = str(gal.props["TemplateSize"])
-    # TemplateSize kan vaere en formel (fx H.hit + 6 - doc_upload.TEMPLATE_H).
+    # TemplateSize kan vaere en formel (fx H.hit + 6).
     size = int(ts) + pad if ts.isdigit() else (f"{ts} + {pad}" if pad else ts)
     gal.props["Fill"] = surface
     gal.props["TemplatePadding"] = "0"

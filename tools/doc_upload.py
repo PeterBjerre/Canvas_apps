@@ -25,22 +25,26 @@ drag-and-drop paa web, flere filer, filtype-ikoner og fejl ved for store
 filer. Paa mobil bruges enhedens filvaelger - derfor staar der ingen
 instruktion om at traekke filer i vores egen tekst: kun loftet.
 
-Kontrollen staar med Items = Blank(): den holder de VALGTE filer, ikke de
-gemte. De gemte ligger i dokumentbiblioteket (tools/attflows.py) og ikke
-i en listes Attachments-kolonne, og en samling kan kontrollen ikke vise
-som gemte filer. Listen under kontrollen er derfor stadig et galleri -
-nu med filtype, navn, Open og Remove pr. raekke.
+KONTRAKTEN (issue #300)
+-----------------------
+Kontrollen er bundet til en LISTERAEKKES vedhaeftninger:
+Items = <raekke>.Attachments (tools/attflows.Pane.items). Den viser selv
+de gemte filer, aabner/henter dem ved tryk og markerer en fjernet fil
+til fjernelse, til der gemmes. Gem-knappen (save_button) Patch'er
+raekkens Attachments med kontrollens Attachments-output i eet kald -
+uden flows (Peter, 2026-10-17). Derfor er der intet galleri over gemte
+filer, ingen Open/Remove pr. raekke og ingen Refresh mere.
 
-Flowkontrakten er uaendret: kontrollens Attachments-tabel har Name og
-Value ligesom den klassiske, og det er de to, flowet faar. Dokumenterne
-bliver i biblioteket TaskListDocuments via de samme tre flows: den
-moderne kontrol kan Patch'e til listevedhaeftninger og Dataverse, men
-ikke til et dokumentbibliotek (MS Learn; Peter, issue #161).
+Foer stod kontrollen med Items = Blank() og sendte hver fil gennem et
+flow til biblioteket TaskListDocuments. Uden Items havde Attachments-
+outputtet intet skema, og F.Name/F.Value kompilerede ikke (issue #300).
+
+I View-tilstand (laast anmodning) viser kontrollen kun filerne til
+download.
 """
-from gen_screen import (Ctrl, C_MUTED, C_MUTED_BG, C_INVALID_FG, C_VALID_FG, C_CARD_BORDER,
-                        C_INFO_BG)
+from gen_screen import Ctrl, C_MUTED, C_WARN_FG
 import layout_tokens as lay
-from build_helpers import text_ctrl, button, group, grow, fit_button_width, ICON_W, ensure_hit, capped_body
+from build_helpers import text_ctrl, button, fit_button_width, ICON_W, capped_body  # noqa: F401
 
 # Versionen er den, Studio selv skriver (Peter, issue #161). Regel 16b
 # afviser den klassiske kontrol og enhver anden version.
@@ -52,16 +56,6 @@ PICKER_H = 112
 PICKER_FILE_H = 36
 PICKER_MAX_FILES_SHOWN = 4
 
-# Raekkerne i listen over gemte filer. Remove er en ikonknap og skal have
-# klikfladen H.hit (UX-review F6, regel 40): 32 px fra Desktop, 44 under -
-# derfor er raekken 48 px under Desktop. ROW_H er en formel; TEMPLATE_H er
-# galleriets skabelon (raekken minus 2 px polstring).
-ROW_H = f"({lay.HIT} + 8)"
-TEMPLATE_H = f"{lay.HIT} + 6"
-BADGE_W = 44
-REMOVE_W = 40
-
-
 def picker_height(ref):
     """Hoejden som udtryk - ref er "Self" i kontrollen og navnet i
     foraelderens regnestykke."""
@@ -69,21 +63,24 @@ def picker_height(ref):
             f"Min({ref}.AttachmentsCount, {PICKER_MAX_FILES_SHOWN}) * {PICKER_FILE_H})")
 
 
-def picker(name, label, max_files, max_mb, display_mode=None, visible=None):
+def picker(name, label, max_files, max_mb, items, display_mode=None, visible=None):
     """Den moderne Attachments-kontrol - kun egenskaber, MS Learn
     dokumenterer for typen: Items, MaxAttachments, MaxAttachmentSize,
     AccessibleLabel, DisplayMode og OnError. Den klassiskes kant,
-    polstring og NoAttachmentsText findes ikke her (regel 10)."""
+    polstring og NoAttachmentsText findes ikke her (regel 10).
+
+    items er raekkens vedhaeftninger (attflows.Pane.items) - ALDRIG
+    Blank(): saa har Attachments-outputtet intet skema (issue #300)."""
     props = {
         "AccessibleLabel": label,
         "Height": picker_height("Self"),
-        # Blank: kontrollen holder de filer, der er VALGT, ikke de gemte.
-        "Items": "Blank()",
+        # De gemte filer paa listeraekken (issue #300).
+        "Items": items,
         "MaxAttachments": str(max_files),
         "MaxAttachmentSize": str(max_mb),
         # Koerer kun, naar en fil ikke kan TILFOEJES (for stor, for mange).
-        # Fejl i flowet melder Upload-knappen (tools/attflows.py).
-        "OnError": (f'Notify("This file could not be added. You can add up to {max_files} '
+        # Fejl ved gem melder gem-knappen (tools/attflows.save_fx).
+        "OnError": (f'Notify("This file could not be added. A row can have up to {max_files} '
                     f'files of up to {max_mb} MB each.", NotificationType.Error)'),
         "Width": "Parent.Width",
     }
@@ -94,98 +91,51 @@ def picker(name, label, max_files, max_mb, display_mode=None, visible=None):
     return Ctrl(name, CONTROL, props=props, h=picker_height(name), vis=visible)
 
 
+def picker_mode(pane, can_edit):
+    """View, naar der ikke maa rettes (filerne kan stadig hentes);
+    Disabled, mens der gemmes, eller raekken ikke er gemt endnu."""
+    return (f"If(!({can_edit}), DisplayMode.View, {pane.busy} || IsBlank({pane.row_var}), "
+            "DisplayMode.Disabled, DisplayMode.Edit)")
+
+
 def limits_text(name, max_files, max_mb, extra="", visible=None):
     """Loftet - og ikke en instruktion mere. Kontrollen siger selv, hvordan
     man vaelger filer, og hvad der kan lade sig goere paa enheden."""
-    return text_ctrl(name, f'"Up to {max_files} files at a time, {max_mb} MB each.{extra}"',
+    return text_ctrl(name, f'"Up to {max_files} files, {max_mb} MB each.{extra}"',
                      size=lay.SIZE_SMALL, color=C_MUTED, height=34 if extra else 18,
                      wrap="true", visible=visible)
 
 
-def upload_button(name, picker_name, onselect, busy, base_mode="DisplayMode.Edit",
-                  visible=None):
-    """Den ene upload-handling. Spaerret, mens intet er valgt, mens
-    kontrollen laeser filerne ind (IsUploading), og mens et flow koerer -
-    saa et dobbelt-tryk ikke sender filerne to gange."""
-    text = '"Upload"'
-    b = button(name, text, onselect, primary=True,
-               width=fit_button_width(text) + ICON_W, height=36, icon="ArrowUpload",
-               accessible='"Upload the chosen files"', visible=visible,
-               display_mode=(f"If({busy} || {picker_name}.AttachmentsCount = 0 || "
-                             f"{picker_name}.IsUploading, DisplayMode.Disabled, {base_mode})"))
+SAVE_TEXT = '"Save documents"'
+
+
+def save_button(name, pane, onselect=None, base_mode="DisplayMode.Edit", visible=None):
+    """Den ene gem-handling: Patch af raekkens Attachments
+    (attflows.save_fx). Spaerret, mens kontrollen laeser filerne ind
+    (IsUploading), og mens der gemmes - saa et dobbelt-tryk ikke gemmer
+    to gange. Er raekken ikke gemt, siger knappen det (not_saved)."""
+    b = button(name, SAVE_TEXT, onselect or pane.save_fx(), primary=True,
+               width=fit_button_width(SAVE_TEXT) + ICON_W, height=36, icon="Save",
+               accessible='"Save the documents on this row"', visible=visible,
+               display_mode=(f"If({pane.busy} || {pane.picker}.IsUploading, "
+                             f"DisplayMode.Disabled, {base_mode})"))
     b.props["LayoutMinWidth"] = b.props["Width"]
     return b
 
 
 def status_text(name, pane, visible=None):
-    """Hvad der sker, og hvad der skete - i ord (tools/attflows.Pane)."""
+    """Mens der gemmes - i ord."""
     vis = pane.status_visible() if visible is None else f"({visible}) && {pane.status_visible()}"
-    return text_ctrl(name, pane.status_fx(), size=lay.SIZE_SMALL,
-                     color=pane.status_color_fx(C_VALID_FG, C_INVALID_FG, C_MUTED),
-                     height=34, wrap="true", visible=vis,
-                     accessible=pane.status_fx())
+    return text_ctrl(name, pane.status_fx(), size=lay.SIZE_SMALL, color=C_MUTED,
+                     height=18, wrap="true", visible=vis, accessible=pane.status_fx())
 
 
-def type_badge(name, file_expr):
-    """Filtypen som et lille maerke: PDF, DOCX, XLSX. Navnet efter det
-    sidste punktum - uden punktum staar der FILE."""
-    ext = (f'If(IsBlank(Find(".", {file_expr})), "FILE", '
-           f'Upper(Left(Last(Split({file_expr}, ".")).Value, 4)))')
-    t = text_ctrl(name, ext, size=lay.SIZE_MICRO, weight="Semibold", color=C_MUTED,
-                  height=24, width=BADGE_W, align="Center",
-                  extra={"Fill": C_MUTED_BG, "VerticalAlign": "VerticalAlign.Middle",
-                         **lay.radius(6)})
-    t.props["LayoutMinWidth"] = str(BADGE_W)
-    return t
-
-
-def open_button(name, url_expr, file_expr):
-    """Open - i en NY fane: et dokument er ikke en app, og Replace ville
-    smide appen og en halvudfyldt formular vaek. Browseren aabner eller
-    henter filen efter typen."""
-    text = '"Open"'
-    w = fit_button_width(text, min_w=64)
-    b = button(name, text, f"Launch({url_expr}, {{ }}, LaunchTarget.New)", width=w, height=32,
-               accessible=f'"Open or download " & {file_expr}',
-               display_mode=f'If(IsBlank({url_expr}), DisplayMode.Disabled, DisplayMode.Edit)')
-    b.props["LayoutMinWidth"] = str(w)
-    return b
-
-
-def remove_button(name, pane, file_expr, can_edit):
-    """Remove pr. dokument - kun mens der maa redigeres. Det sletter ikke
-    endnu: det beder om en bekraeftelse (remove_confirm)."""
-    b = button(name, '"Remove"', f"Set({pane.remove_var}, {file_expr})", danger=True,
-               width=REMOVE_W, height=32, icon="Delete", visible=can_edit,
-               accessible=f'"Remove " & {file_expr}', tooltip=f'"Remove " & {file_expr}',
-               display_mode=f"If({pane.busy}, DisplayMode.Disabled, DisplayMode.Edit)")
-    b.props["Layout"] = "ButtonLayout.IconOnly"
-    b.props["LayoutMinWidth"] = str(REMOVE_W)
-    ensure_hit(b)
-    return b
-
-
-def remove_confirm(prefix, pane):
-    """Bekraeftelsen inde i popuppen: "Remove x.pdf from SharePoint?" med
-    Cancel og Remove. Filen slettes i biblioteket - det kan ikke fortrydes,
-    og derfor spoerger vi en gang."""
-    vis = f"!IsBlank({pane.remove_var})"
-    msg = text_ctrl(f"txt{prefix}RemoveAsk",
-                    f'"Remove " & {pane.remove_var} & " from SharePoint? This cannot be undone."',
-                    size=lay.SIZE_BODY, height=36, wrap="true")
-    cancel = button(f"btn{prefix}RemoveCancel", '"Cancel"', f"Set({pane.remove_var}, Blank())",
-                    width=fit_button_width('"Cancel"'), height=32)
-    ok = button(f"btn{prefix}RemoveConfirm", '"Remove"', pane.remove_fx(), danger=True,
-                width=fit_button_width('"Remove"'), height=32,
-                accessible=f'"Remove " & {pane.remove_var}',
-                display_mode=f"If({pane.busy}, DisplayMode.Disabled, DisplayMode.Edit)")
-    for b in (cancel, ok):
-        b.props["LayoutMinWidth"] = b.props["Width"]
-    btns = group(f"con{prefix}RemoveBtns", [cancel, ok], direction="Horizontal", gap=8,
-                 height=32, justify="End", align_items="Center")
-    return group(f"con{prefix}Remove", [msg, btns], direction="Vertical", gap=8,
-                 fill=C_INFO_BG, border_color=C_CARD_BORDER, radius=lay.RADIUS_INPUT,
-                 pad=(10, 12, 10, 12), visible=vis)
+def not_saved_text(name, pane, visible=None):
+    """Raekken findes ikke i SharePoint endnu - sig hvorfor kontrollen
+    er spaerret."""
+    vis = f"IsBlank({pane.row_var})" if visible is None else f"({visible}) && IsBlank({pane.row_var})"
+    return text_ctrl(name, f'"{pane.not_saved}"', size=lay.SIZE_SMALL, color=C_WARN_FG,
+                     height=34, wrap="true", visible=vis)
 
 
 def readonly_note(name, visible):
