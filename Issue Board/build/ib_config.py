@@ -32,10 +32,11 @@ ARKITEKTUREN (issue #193 - foer: trin 1 og 2 i issue #114)
         archive  kun admin: arkiver eller gendan.
         delete   kun admin, og kun med sagsnummeret som bekraeftelse:
                  sletter haendelserne og sagen med dens vedhaeftninger.
-        attach   en fil paa sagens raekke (SharePoint-vedhaeftning) og en
-                 Attachment-haendelse i Activity. Kun rapportoeren og
-                 admins. Appen kalder den fra fanen Attachments - og
-                 papirclipsen paa flisen aabner sagen paa den fane.
+        attach   (bruges ikke af appen siden issue #300) en fil paa
+                 sagens raekke og en Attachment-haendelse i Activity.
+                 Appen Patch'er nu selv sagens Attachments fra fanen
+                 Attachments (rapportoeren retter sin egen sag, admins
+                 alle) - papirclipsen paa flisen aabner sagen paa fanen.
 
 RETTIGHEDER (sharepoint/provision/Provision-IssueBoard.ps1)
 -----------------------------------------------------------
@@ -151,8 +152,8 @@ SEED_CSV = os.path.join(ROOT, "sharepoint", "seed", "IB_AppSections.csv")
 # aeldste, der falder ud.
 ROW_LIMIT = 500
 
-# Vedhaeftninger: samme loft som dokumentruden (tools/domain_parts.py) - og
-# flowet afviser over 10 MB.
+# Vedhaeftninger: samme loft som dokumentruden (tools/domain_parts.py).
+# Siden issue #300 er kontrollen bundet til sagens gemte filer, og
+# MaxAttachments er loftet for HELE sagen - ikke pr. omgang. Derfor 10.
 MAX_FILE_MB = 10
-MAX_FILES = 5
-IMAGE_EXT = ["png", "jpg", "jpeg", "gif", "bmp", "webp"]
+MAX_FILES = 10

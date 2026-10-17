@@ -88,6 +88,7 @@ from layout_tokens import SHELL_W, below, at_least, if_below
 
 import ib_config as cfg
 import doc_upload as du
+import attflows
 
 P = "Ib"
 NARROW = below("Tablet")
@@ -388,12 +389,11 @@ SEC = {"Application": '""', "Section": '""', "AppOrder": "0", "SectionOrder": "0
 ACT = {"Kind": '""', "Actor": '""', "Role": '""', "Body": '""', "At": "Now()", "Internal": "false",
        "IsSystem": "false", "File": '""', "SizeKb": "0", "Initial": "false"}
 ADMINS = {"Email": '""', "Name": '""'}
-UPLOAD = {"Name": '""', "Msg": '""'}
 
 
 def collections():
     return [("colIbAll", ROW), ("colIbSections", SEC), ("colIbActivity", ACT), ("colIbAdmins", ADMINS),
-            ("colIbUp", UPLOAD), ("colIbFresh", ROW), ("colIbActFresh", ACT)]
+            ("colIbFresh", ROW), ("colIbActFresh", ACT)]
 
 
 # ---------------------------------------------------------------------------
@@ -450,11 +450,14 @@ IbCanEdit = !varIbSelPeek && !varIbSel.Archived && ({IS_ADMIN} || (IbSelMine && 
 IbCanReopen = !varIbSelPeek && !varIbSel.Archived && ({IS_ADMIN} || IbSelMine) && varIbSel.Status in {REOPENABLE_FX};
 IbCanManage = !varIbSelPeek && {IS_ADMIN};
 IbCanComment = !varIbSelPeek && IbSeeActivity && !varIbSel.Archived;
-// Filer paa en sag: rapportoeren og admins (flowet tjekker det igen).
+// Filer paa en sag: rapportoeren og admins. Appen Patch'er selv raekken
+// (issue #300); SharePoint lader kun rapportoeren (Created By) og
+// admins (Design) rette den.
 IbCanAttach = !varIbSelPeek && IbSeeActivity && !varIbSel.Archived;
-// Antallet af filer paa sagen - af Activity, saa fanen kan vise det uden
-// at hente filerne. Uden Activity: de hentede filer, naar fanen er valgt.
-IbFileCount = If(IbSeeActivity, CountRows(Filter(colIbActivity, Kind = "Attachment")), varIbFilesFor = varIbSelId, CountRows(varIbFiles), Blank());'''
+// Antallet af filer paa sagen: de hentede vedhaeftninger, naar fanen er
+// hentet. Ellers af Activity (Attachment-haendelserne fra foer #300), saa
+// fanen kan vise et tal uden at hente filerne.
+IbFileCount = If(varIbFilesFor = varIbSelId, CountRows(varIbFiles), IbSeeActivity, CountRows(Filter(colIbActivity, Kind = "Attachment")), Blank());'''
 
 
 # Statussen er den faelles statuschip (tools/status_chip.py, UX-review T4):
@@ -1313,29 +1316,6 @@ CLIENT_FX = 'Left(Host.OSType & " · " & Host.BrowserUserAgent, 250)'
 FALLBACK = '{ ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }'
 
 
-def _upload(picker, ticket_id, initial, dup_check=None):
-    """Hver valgt fil gennem flowet (handlingen attach) - som dokument-
-    ruden (tools/attflows.py): ForAll giver een tabel, og ClearCollect
-    skriver den i eet kald. Msg er tom, naar filen kom igennem, ellers
-    grunden. dup_check: udtryk, der er sandt, naar F.Name allerede findes."""
-    run = (f"IfError({cfg.FLOW}.Run(\n"
-           f'                \"{cfg.ACT_ATTACH}\",\n'
-           f"                JSON({{ ticketId: {ticket_id}, initial: {initial} }}),\n"
-           "                { file: { contentBytes: F.Value, name: F.Name } }\n"
-           f"            ), {FALLBACK})")
-    msg = (f'With({{ res: {run} }}, If(res.ok = "yes", "", Coalesce(res.message, "not saved")))')
-    if dup_check:
-        msg = f'If({dup_check}, "a file with this name is already attached", {msg})'
-    return (
-        "ClearCollect(\n"
-        "    colIbUp,\n"
-        f"    ForAll({picker}.Attachments As F, {{ Name: F.Name, Msg: {msg} }})\n"
-        ")"
-    )
-
-
-UP_FAILED = "Filter(colIbUp, !IsBlank(Msg))"
-
 # Formularen tom igen efter en indsendt sag. Variablerne foerst - Default
 # paa Application og Section laeser dem.
 CLEAR_FORM = ('Set(varIbFormApp, "");\nSet(varIbFormSection, "");\nSet(varIbMore, false);\n'
@@ -1362,7 +1342,6 @@ SHOW_NEW = (
     + LOAD_ACTIVITY + ";\n"
     "Set(varIbDetailOn, true)"
 )
-UP_FAILED_TEXT = f'Concat({UP_FAILED}, Name & " (" & Msg & ")", "; ")'
 
 # Ny sag (issue #193): appen opretter raekken selv med Patch - ikke
 # gennem flowet. Nummeret, rapportoeren (ud fra Created By) og
@@ -1554,13 +1533,21 @@ def _dflt(field, empty='""'):
 SEL_REF = "varIbSel"
 
 
+# Sagens vedhaeftninger, naar de er hentet for DENNE sag (LOAD_FILES).
+FILES_ITEMS = "If(varIbFilesFor = varIbSelId, varIbFiles, FirstN(varIbFiles, 0))"
+
+
 def _attachments(name, label):
-    """Vaelg filer - den faelles moderne Attachments-kontrol
-    (tools/doc_upload.py, issue #134/#161). Filerne sendes foerst, naar man
-    trykker; flowkaldet (_upload) laeser Name og Value som foer og gaar
-    stadig gennem flowet - ingen Patch paa IB_Tickets (Peter, #161)."""
-    return du.picker(name, label, cfg.MAX_FILES, cfg.MAX_FILE_MB,
-                     display_mode="If(varIbUploading, DisplayMode.Disabled, DisplayMode.Edit)")
+    """Sagens filer - den faelles moderne Attachments-kontrol
+    (tools/doc_upload.py, issue #134/#161), bundet til raekkens
+    vedhaeftninger (issue #300). Kontrollen viser, aabner og fjerner selv
+    filerne; UPLOAD_FILES gemmer dem med een Patch paa IB_Tickets - ikke
+    gennem flowet (Peter, 2026-10-17: "En bruger maa gerne redigere sit
+    eget issue")."""
+    return du.picker(name, label, cfg.MAX_FILES, cfg.MAX_FILE_MB, FILES_ITEMS,
+                     display_mode=("If(!IbCanAttach, DisplayMode.View, varIbUploading || "
+                                   "varIbFilesBusy || varIbFilesFor <> varIbSelId, "
+                                   "DisplayMode.Disabled, DisplayMode.Edit)"))
 
 
 def _differs(ctrl, field):
@@ -1885,24 +1872,16 @@ DELETE = _run(
     f'Notify({SEL}.TicketNo & " has been deleted permanently.", NotificationType.Success)',
     "The issue could not be deleted.")
 
-UPLOAD_FILES = (
-    "If(\n"
-    "    CountRows(attIbFiles.Attachments) = 0,\n"
-    '    Notify("Choose one or more files first.", NotificationType.Warning),\n'
-    "    Set(varIbUploading, true);\n"
-    "    " + _upload("attIbFiles", "varIbSelId", "false",
-                     dup_check="F.Name in ShowColumns(varIbFiles, DisplayName)").replace("\n", "\n    ")
-    + ";\n"
-    "    Reset(attIbFiles);\n"
-    "    " + AFTER_CHANGE.replace("\n", "\n    ") + ";\n"
-    "    Set(varIbUploading, false);\n"
-    "    If(\n"
-    f"        CountRows({UP_FAILED}) > 0,\n"
-    f'        Notify("Not attached: " & {UP_FAILED_TEXT}, NotificationType.Error),\n'
-    '        Notify("The files have been attached.", NotificationType.Success)\n'
-    "    )\n"
-    ")"
-)
+# Gem filerne (issue #300): EEN Patch af sagens Attachments med kontrollens
+# Attachments-output - nye filer laegges paa, fjernede slettes. Ingen flow
+# og ingen Attachment-haendelse i Activity. En fil med et navn, der
+# allerede findes, faar selv et suffiks af kontrollen (MS Learn), saa
+# appens eget dublet-tjek er ikke noedvendigt mere. Bagefter hentes sagen
+# og filerne igen (AFTER_CHANGE).
+UPLOAD_FILES = attflows.save_fx(
+    cfg.L_TICKETS, f"LookUp({cfg.L_TICKETS}, ID = varIbSelId)", "attIbFiles",
+    "varIbUploading", None, AFTER_CHANGE + ";",
+    extra_fields=", LastActivityOn: Now()")
 
 
 def _text_block(name, label, expr, visible=None):
@@ -2007,73 +1986,31 @@ def _actions():
 
 
 def _files_panel():
-    """Fanen Attachments: filerne paa sagens raekke, et lille billede af
-    billedfiler, Open, og - mens sagen ikke er arkiveret - Upload."""
-    tw = "Parent.TemplateWidth"
-    row_h = 60
-    ext = 'Lower(Last(Split(ThisItem.DisplayName, ".")).Value)'
-    is_img = f"{ext} in {_table(cfg.IMAGE_EXT)}"
-    thumb = Ctrl("imgIbFileThumb", "Image", props={
-        "AccessibleLabel": '"Preview of " & ThisItem.DisplayName',
-        "BorderColor": C_CARD_BORDER, "BorderStyle": "BorderStyle.Solid", "BorderThickness": "1",
-        "Height": "44", "Image": "ThisItem.Value", "ImagePosition": "ImagePosition.Fill",
-        "OnSelect": "false", "TabIndex": "0", **lay.radius(6),
-        "Visible": is_img, "Width": "44", "X": "0", "Y": "8",
-    }, h=44, vis=is_img)
-    kind = text_ctrl("txtIbFileKind", f"Upper(Left({ext}, 4))", size=lay.SIZE_MICRO,
-                     weight="Semibold", color=C_MUTED, height=44, width=44, align="Center",
-                     visible=f"!({is_img})",
-                     extra={"X": "0", "Y": "8", "VerticalAlign": "VerticalAlign.Middle",
-                            "Fill": C_MUTED_BG, **lay.radius(6)})
-    open_w = fit_button_width('"Open"')
-    name = text_ctrl("txtIbFileName", "ThisItem.DisplayName", size=lay.SIZE_BODY, weight="Semibold",
-                     height=20, width=f"{tw} - 56 - {open_w} - 12",
-                     extra={"X": "56", "Y": "9"})
-    meta = text_ctrl(
-        "txtIbFileMeta",
-        'With({ e: LookUp(colIbActivity, Kind = "Attachment" && File = ThisItem.DisplayName) }, '
-        f'Upper({ext}) & If(IsBlank(e), "", "  ·  " & e.SizeKb & " KB  ·  " & e.Actor & "  ·  " & '
-        'Text(e.At, ' + DATETIME_FMT + ') & If(e.Initial, "  ·  with the report", "  ·  added later")))',
-        size=lay.SIZE_SMALL, color=C_MUTED, height=18, width=f"{tw} - 56 - {open_w} - 12",
-        extra={"X": "56", "Y": "31"})
-    # NY fane: en fil er ikke en app, og Replace ville smide appen vaek.
-    opn = button("btnIbFileOpen", '"Open"', "Launch(ThisItem.AbsoluteUri, { }, LaunchTarget.New)",
-                 width=open_w, height=32, accessible='"Open or download " & ThisItem.DisplayName')
-    opn.props["X"] = f"{tw} - {open_w}"
-    opn.props["Y"] = "14"
-    files_items = "If(varIbFilesFor = varIbSelId, varIbFiles, FirstN(varIbFiles, 0))"
-    # Alle filer i fuld hoejde - fanens flade scroller (issue #212).
-    gal_h = f"galIbFiles.AllItemsCount * {row_h}"
-    gal = Ctrl("galIbFiles", "Gallery", variant="Vertical", props={
-        "AccessibleLabel": '"Attachments"',
-        "BorderStyle": "BorderStyle.None", "Fill": C_TRANSPARENT, "FillPortions": "0",
-        "Height": gal_h, "Items": files_items, "LayoutMinWidth": "0",
-        "LoadingSpinner": "LoadingSpinner.None", "Selectable": "false",
-        "ShowScrollbar": "false", "TabIndex": "0", "TemplatePadding": "0",
-        "TemplateSize": str(row_h), "Width": "Parent.Width", "WrapCount": "1",
-    }, children=[thumb, kind, name, meta, opn], h=gal_h,
-        vis="galIbFiles.AllItemsCount > 0")
+    """Fanen Attachments: sagens vedhaeftninger i den moderne kontrol
+    (issue #300). Den viser, aabner og - mens sagen kan rettes - fjerner
+    filerne selv; "Save documents" gemmer aendringerne."""
     state = text_ctrl(
         "txtIbFilesState",
         'If(varIbFilesBusy, "Loading attachments...", IfError(varIbFilesFailed, false), '
         '"The attachments could not be loaded. Select the tab again to retry.", '
         '"No files yet. Screenshots help a lot.")',
         size=lay.SIZE_BODY, color=f"If(IfError(varIbFilesFailed, false), {C_INVALID_FG}, {C_MUTED})",
-        height=20, wrap="true", visible="galIbFiles.AllItemsCount = 0")
-    picker = _attachments("attIbFiles", '"Choose files to attach"')
-    up = button("btnIbUpload", '"Upload"', UPLOAD_FILES, primary=True,
-                width=fit_button_width('"Upload"') + ICON_W, height=36, icon="ArrowUpload",
-                accessible='"Upload the chosen files to this issue"',
-                display_mode=("If(attIbFiles.AttachmentsCount = 0 || attIbFiles.IsUploading || "
-                              "varIbUploading, DisplayMode.Disabled, DisplayMode.Edit)"))
+        height=20, wrap="true",
+        visible=f"varIbFilesBusy || IfError(varIbFilesFailed, false) || CountRows({FILES_ITEMS}) = 0")
+    picker = _attachments("attIbFiles", '"Attachments on this issue"')
+    up = button("btnIbUpload", du.SAVE_TEXT, UPLOAD_FILES, primary=True,
+                width=fit_button_width(du.SAVE_TEXT) + ICON_W, height=36, icon="Save",
+                accessible='"Save the attachments on this issue"',
+                display_mode=("If(attIbFiles.IsUploading || varIbUploading || "
+                              "varIbFilesFor <> varIbSelId, DisplayMode.Disabled, DisplayMode.Edit)"))
     up.props["AlignInContainer"] = "AlignInContainer.End"
     hint = text_ctrl("txtIbFilesHint",
-                     f'"Up to {cfg.MAX_FILES} files at a time, {cfg.MAX_FILE_MB} MB each. Everyone '
+                     f'"Up to {cfg.MAX_FILES} files, {cfg.MAX_FILE_MB} MB each. Everyone '
                      'who uses the Issue Board can open the files - leave out personal data."',
                      size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true")
-    adder = group("conIbFileAdd", [picker, hint, up], direction="Vertical", gap=8,
+    adder = group("conIbFileAdd", [hint, up], direction="Vertical", gap=8,
                   visible="IbCanAttach")
-    return group("conIbDetFiles", [state, gal, adder], direction="Vertical", gap=12,
+    return group("conIbDetFiles", [state, picker, adder], direction="Vertical", gap=12,
                  visible='varIbTab = "files"')
 
 
@@ -2423,7 +2360,7 @@ def build_delete():
 def build_loading():
     # Hentningen af listen har pladsholder-raekker (conIbSkeleton, M7);
     # hjulet daekker kun det, brugeren selv har sat i gang.
-    return [loading_overlay("imgIbBusy", "(varIbBusy || varIbPosting) && !varIbUploading",
-                            "Sending, please wait"),
-            loading_overlay("imgIbUploading", "varIbUploading", "Uploading files, please wait",
-                            caption="Uploading files...")]
+    return [*loading_overlay("imgIbBusy", "(varIbBusy || varIbPosting) && !varIbUploading",
+                             "Sending, please wait"),
+            *loading_overlay("imgIbUploading", "varIbUploading", "Saving files, please wait",
+                             caption="Saving files...")]

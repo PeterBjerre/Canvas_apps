@@ -66,7 +66,7 @@ def build_screen(render=render_screen):
                           *CONFIRM,
                           *overlay,
                           # Ventespinneren, mens der gemmes - oeverst af alt.
-                          loading_overlay("imgVhpSaving", "varVhpSaving")])
+                          *loading_overlay("imgVhpSaving", "varVhpSaving")])
 
 
 def main():

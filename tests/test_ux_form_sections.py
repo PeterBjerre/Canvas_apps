@@ -56,7 +56,7 @@ def test_materials_and_measuring_points_have_titled_sections():
     for t in ("Identification", "Manufacturer and supplier", "Price and classification"):
         assert f'Upper("{t}")' in m, t
     p = _yaml("ScreenMeasuringPoint.pa.yaml")
-    for t in ("Identification", "Measuring point", "PRODOS", "Notes and documents"):
+    for t in ("Identification", "Measuring point", "PRODOS", "Notes"):
         assert f'Upper("{t}")' in p, t
     # Maalepunktets sektion kun for et nyt maalepunkt - som dens raekker.
     i = p.index("- conMpSecType:")
@@ -124,8 +124,12 @@ def test_equipment_and_measuring_point_have_documents_and_more_actions():
     for screen, prefix in (("ScreenEquipment.pa.yaml", "Eq"),
                           ("ScreenMeasuringPoint.pa.yaml", "Mp")):
         props = _properties(screen)
-        assert f"btn{prefix}RowDocs" in props
-        assert "FileCount" in props[f"btn{prefix}RowDocs"]["Text"]
+        if prefix == "Mp":
+            # Ingen dokumenter paa maalepunkter (issue #300).
+            assert f"btn{prefix}RowDocs" not in props
+        else:
+            assert f"btn{prefix}RowDocs" in props
+            assert "FileCount" in props[f"btn{prefix}RowDocs"]["Text"]
         assert f"btn{prefix}RowMore" in props
         assert f"con{prefix}RowMoreMenu" in props
         assert f"btn{prefix}MoreCopy" in props and f"btn{prefix}MoreDelete" in props
