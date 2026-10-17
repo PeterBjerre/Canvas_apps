@@ -224,7 +224,12 @@ def test_flow_has_every_action_the_screen_calls():
     import ib_parts as P
     text = "\n".join([P.SUBMIT, P.SAVE_EDIT, P.POST, P.REOPEN, P.ARCHIVE, P.DELETE,
                       P.UPLOAD_FILES])
+    # attach findes stadig i flowet, men appen bruger den ikke laengere:
+    # filerne Patch'es direkte paa sagens raekke (issue #300).
     for act in cases:
+        if act == cfg.ACT_ATTACH:
+            assert f'"{act}"' not in text, act
+            continue
         assert f'"{act}"' in text, act
 
 
@@ -587,7 +592,8 @@ def test_list_columns_are_balanced_and_aligned_with_the_header():
 def test_row_has_an_attach_button_after_creation():
     """Issue #193: vedhaeftninger er en knap i raekken - kun for
     rapportoeren og admins, oven paa raekkens klikflade, og den aabner sagen
-    paa fanen Attachments (klassisk Attachments-kontrol + flowet)."""
+    paa fanen Attachments. Siden issue #300 gemmes filerne med Patch paa
+    sagens raekke - ikke gennem flowets attach."""
     import ib_parts as P
     from permissions import IS_ADMIN
     ctrls = _list_gallery()
@@ -601,7 +607,9 @@ def test_row_has_an_attach_button_after_creation():
     # Knapperne ligger efter klikfladen - oeverst.
     assert text.index("- btnIbRowOpen:") < text.index("- btnIbRowAttachC:") < text.index("- btnIbRowAttach:")
     assert "Control: ModernAttachments@1.3.0" in text and "Attachments@2.3.0" not in text
-    assert f'"{cfg.ACT_ATTACH}"' in P.UPLOAD_FILES
+    assert f'"{cfg.ACT_ATTACH}"' not in P.UPLOAD_FILES
+    assert f"Patch(\n        {cfg.L_TICKETS},\n        LookUp({cfg.L_TICKETS}, ID = varIbSelId)" in P.UPLOAD_FILES
+    assert "Attachments: attIbFiles.Attachments" in P.UPLOAD_FILES
 
 
 def test_github_script_reads_provisioned_columns_and_vocabulary():

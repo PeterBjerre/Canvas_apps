@@ -3,7 +3,7 @@
 Measuring Points EGNE dele: formularen med de betingede sektioner,
 karakteristik-opslaget, valideringen og listens kolonner (issue #210).
 
-Byggeklodserne - gitteret, knapperne, pillerne, dokumentcellen,
+Byggeklodserne - gitteret, knapperne, pillerne,
 FL-comboboksen, listen, detaljerne og indsend - er faelles med Equipment
 og Materials og staar i tools/domain_parts.py.
 
@@ -22,7 +22,8 @@ FORMULAREN SPOERGER KUN OM DET, DER GAELDER
     PRODOS = Yes:           [ PRODOS tag ]
     PRODOS = Yes + Counter: [ Counter exists in PRODOS? ]
     taelleren mangler:      [ Counter to be created in ]  + info
-    [ Remarks    ][ Documentation ]
+    [ Remarks    ]
+    Ingen dokumenter paa maalepunkter (Peter, issue #300).
 
 HVER SEKTION ER SIN EGEN RAEKKE, OG RAEKKEN BAERER BETINGELSEN. Saa koster
 en skjult sektion ingen hoejde: AutoLayout udelader skjulte boern, og
@@ -148,8 +149,6 @@ def _cell(key, width=dp.CELL_W):
                             required=True, width=width)
     if key == "TEXT":
         return dp.text_cell(width)
-    if key == "DOCS":
-        return dp.docs_cell(width)
     if key == "PLANT":
         return dp.plant_cell(width)
     if key == "MeasuringPointType":
@@ -172,7 +171,7 @@ REQUIRED_FIELDS = {"ExistsInSap", "MeasuringPoint", "MeasuringPointType",
                    "InProdos", "ProdosTag", "ProdosCounterExists",
                    "CounterCreateIn"}
 
-SPECIAL = {"FL", "TEXT", "DOCS", "PLANT"}
+SPECIAL = {"FL", "TEXT", "PLANT"}
 # Raekkerne: (navn, betingelse eller None, cellerne). Hoejst fire celler.
 ROWS = [
     ("Object", None, ["PLANT", "FL", "TEXT", "ExistsInSap"]),
@@ -186,7 +185,8 @@ ROWS = [
     ("Tag", cfg.IN_PRODOS, ["ProdosTag"]),
     ("CounterQ", cfg.COUNTER_Q, ["ProdosCounterExists"]),
     ("CounterIn", cfg.COUNTER_MISSING, ["CounterCreateIn"]),
-    ("More", None, ["Remarks", "DOCS"]),
+    # Ingen Documentation: maalepunkter har ingen dokumenter (issue #300).
+    ("More", None, ["Remarks"]),
 ]
 FORM_ORDER = [k for _n, _c, keys in ROWS for k in keys]
 # SEKTIONERNE (UX-review M2): (titel, synlighed) foer den raekke, der
@@ -195,7 +195,7 @@ SECTION_STARTS = {
     "Object": ("Identification", None),
     "Type": ("Measuring point", cfg.NEW),
     "Source": ("PRODOS", cfg.NEW),
-    "More": ("Notes and documents", None),
+    "More": ("Notes", None),
 }
 NOT_IN_GRID = {cfg.FL_FIELD}
 
@@ -351,10 +351,6 @@ def build_rows():
 
 
 dp.configure(row_actions=[
-    dp.RowAction("btnDomRowDocs",
-                 'If(Coalesce(ThisItem.FileCount, 0) > 0, "Documents (" & ThisItem.FileCount & ")", "Documents")',
-                 dp.open_docs_fx(), 126, icon="Document",
-                 label='"Documents for " & ThisItem.ItemKey'),
     dp.RowAction("btnDomRowOpen", '"Edit"', dp.load_row_fx(), 64,
                  mode=dp.DM_ROW_EDIT),
     dp.RowAction("btnDomRowMore", '"More"', "Set(varDomMoreRowId, ThisItem.RowId)",
