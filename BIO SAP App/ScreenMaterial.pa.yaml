@@ -2683,40 +2683,9 @@ Screens:
                                               Reset(inpMatDetCreatedNo);
                                               Set(varMatEditorTab, "Documents");
                                               Set(varMatDocsId, varMatActiveRowId);
-                                              If(
-                                                  Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).FileCount, 0) > 0 &&
-                                                  CountRows(Filter(colMatAttachments, RowId = varMatActiveRowId)) = 0,
-                                                  Set(
-                                                      varMatAttJson,
-                                                      'BioSap-GetSubmittedAttachments'.Run("TaskListDocuments/" & LookUp(colMatRows, RowId = varMatDocsId).ItemKey).files
-                                                  );
-                                                  RemoveIf(colMatAttachments, RowId = varMatDocsId);
-                                                  Collect(
-                                                      colMatAttachments,
-                                                      ForAll(
-                                                          ParseJSON(Coalesce(varMatAttJson, "[]")) As J,
-                                                          {
-                                                              RowId: varMatDocsId,
-                                                              FileName: Text(J.Name),
-                                                              FileUrl: Text(J.Link),
-                                                              Identifier: Text(J.Identifier),
-                                                              Selected: false
-                                                          }
-                                                      )
-                                                  );
-                                                  With(
-                                                      { n: CountRows(Filter(colMatAttachments, RowId = varMatDocsId)) },
-                                                      Patch(
-                                                          MaterialItems,
-                                                          LookUp(MaterialItems, ID = varMatDocsId),
-                                                          { FileCount: n }
-                                                      );
-                                                      UpdateIf(
-                                                          colMatRows,
-                                                          RowId = varMatDocsId,
-                                                          { FileCount: n }
-                                                      )
-                                                  )
+                                              With(
+                                                  { docRowId: Coalesce(varMatActiveRowId, 0) },
+                                                  Set(varMatAttRow, If(docRowId = 0, Blank(), LookUp(MaterialItems, ID = docRowId)))
                                               )
                                           RadiusBottomLeft: |-
                                               =R.input
@@ -3315,40 +3284,9 @@ Screens:
                                               Reset(inpMatDetCreatedNo);
                                               Set(varMatEditorTab, "Documents");
                                               Set(varMatDocsId, varMatActiveRowId);
-                                              If(
-                                                  Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).FileCount, 0) > 0 &&
-                                                  CountRows(Filter(colMatAttachments, RowId = varMatActiveRowId)) = 0,
-                                                  Set(
-                                                      varMatAttJson,
-                                                      'BioSap-GetSubmittedAttachments'.Run("TaskListDocuments/" & LookUp(colMatRows, RowId = varMatDocsId).ItemKey).files
-                                                  );
-                                                  RemoveIf(colMatAttachments, RowId = varMatDocsId);
-                                                  Collect(
-                                                      colMatAttachments,
-                                                      ForAll(
-                                                          ParseJSON(Coalesce(varMatAttJson, "[]")) As J,
-                                                          {
-                                                              RowId: varMatDocsId,
-                                                              FileName: Text(J.Name),
-                                                              FileUrl: Text(J.Link),
-                                                              Identifier: Text(J.Identifier),
-                                                              Selected: false
-                                                          }
-                                                      )
-                                                  );
-                                                  With(
-                                                      { n: CountRows(Filter(colMatAttachments, RowId = varMatDocsId)) },
-                                                      Patch(
-                                                          MaterialItems,
-                                                          LookUp(MaterialItems, ID = varMatDocsId),
-                                                          { FileCount: n }
-                                                      );
-                                                      UpdateIf(
-                                                          colMatRows,
-                                                          RowId = varMatDocsId,
-                                                          { FileCount: n }
-                                                      )
-                                                  )
+                                              With(
+                                                  { docRowId: Coalesce(varMatActiveRowId, 0) },
+                                                  Set(varMatAttRow, If(docRowId = 0, Blank(), LookUp(MaterialItems, ID = docRowId)))
                                               )
                                           RadiusBottomLeft: |-
                                               =R.input
@@ -5229,8 +5167,7 @@ Screens:
             OnSelect: |-
                 =If(LayoutRank < 2, If(!IfError(Coalesce(varMatAttBusy, false), false), Set(varMatDocsId, Blank());
                 Reset(attMatPicker);
-                Clear(colMatAttUp);
-                Set(varMatAttRemove, Blank())))
+                Set(varMatAttRow, Blank())))
             PressedFill: |-
                 =C.'overlay'
             TabIndex: |-
@@ -8041,40 +7978,9 @@ Screens:
                               OnSelect: |-
                                   =Set(varMatEditorTab, "Documents");
                                   Set(varMatDocsId, varMatActiveRowId);
-                                  If(
-                                      Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).FileCount, 0) > 0 &&
-                                      CountRows(Filter(colMatAttachments, RowId = varMatActiveRowId)) = 0,
-                                      Set(
-                                          varMatAttJson,
-                                          'BioSap-GetSubmittedAttachments'.Run("TaskListDocuments/" & LookUp(colMatRows, RowId = varMatDocsId).ItemKey).files
-                                      );
-                                      RemoveIf(colMatAttachments, RowId = varMatDocsId);
-                                      Collect(
-                                          colMatAttachments,
-                                          ForAll(
-                                              ParseJSON(Coalesce(varMatAttJson, "[]")) As J,
-                                              {
-                                                  RowId: varMatDocsId,
-                                                  FileName: Text(J.Name),
-                                                  FileUrl: Text(J.Link),
-                                                  Identifier: Text(J.Identifier),
-                                                  Selected: false
-                                              }
-                                          )
-                                      );
-                                      With(
-                                          { n: CountRows(Filter(colMatAttachments, RowId = varMatDocsId)) },
-                                          Patch(
-                                              MaterialItems,
-                                              LookUp(MaterialItems, ID = varMatDocsId),
-                                              { FileCount: n }
-                                          );
-                                          UpdateIf(
-                                              colMatRows,
-                                              RowId = varMatDocsId,
-                                              { FileCount: n }
-                                          )
-                                      )
+                                  With(
+                                      { docRowId: Coalesce(varMatActiveRowId, 0) },
+                                      Set(varMatAttRow, If(docRowId = 0, Blank(), LookUp(MaterialItems, ID = docRowId)))
                                   )
                               RadiusBottomLeft: |-
                                   =15
@@ -13616,7 +13522,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + (Min(48 + If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 0 + (If(attMatPicker.AttachmentsCount = 0, 112, 112 + Min(attMatPicker.AttachmentsCount, 4) * 36)), 0) + If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (18), 0) + If((IfError(Coalesce(varMatAttBusy, false), false) || CountRows(colMatAttUp) > 0), 12 + (34), 0) + If(!IsBlank(varMatAttRemove), 12 + (96), 0) + 12 + (CountRows(Filter(colMatAttachments, RowId = varMatDocsId)) * (H.hit + 8)) + If(IfError(CountRows(Filter(colMatAttachments, RowId = varMatDocsId)) = 0, false), 12 + (36), 0) + If(!IsBlank(varMatDocsId) && !(!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 32 - 14))
+                            =0 + (Min(0 + (If(attMatPicker.AttachmentsCount = 0, 112, 112 + Min(attMatPicker.AttachmentsCount, 4) * 36)) + If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varMatAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varMatDocsId) && !(!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 32 - 14))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -13665,28 +13571,26 @@ Screens:
                                   Control: ModernAttachments@1.3.0
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Choose documents to upload"
+                                        ="Documents on the selected row"
                                     DisplayMode: |-
-                                        =If(IfError(Coalesce(varMatAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)
+                                        =If(!((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted")), DisplayMode.View, IfError(Coalesce(varMatAttBusy, false), false) || IsBlank(varMatAttRow), DisplayMode.Disabled, DisplayMode.Edit)
                                     Height: |-
                                         =If(Self.AttachmentsCount = 0, 112, 112 + Min(Self.AttachmentsCount, 4) * 36)
                                     Items: |-
-                                        =Blank()
+                                        =varMatAttRow.Attachments
                                     MaxAttachmentSize: |-
                                         =10
                                     MaxAttachments: |-
                                         =10
                                     OnError: |-
-                                        =Set(gblToast, { Text: "This file could not be added. You can add up to 10 files of up to 10 MB each.", Kind: "Error", At: Now() }); true
-                                    Visible: |-
-                                        =(!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted")
+                                        =Set(gblToast, { Text: "This file could not be added. A row can have up to 10 files of up to 10 MB each.", Kind: "Error", At: Now() }); true
                                     Width: |-
                                         =Parent.Width
                               - txtMatAttLimits:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Up to 10 files at a time, 10 MB each."
+                                        ="Up to 10 files, 10 MB each."
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -13710,7 +13614,7 @@ Screens:
                                     Size: |-
                                         =T.small
                                     Text: |-
-                                        ="Up to 10 files at a time, 10 MB each."
+                                        ="Up to 10 files, 10 MB each."
                                     Visible: |-
                                         =(!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted")
                                     Wrap: |-
@@ -13741,74 +13645,58 @@ Screens:
                                         =LayoutOverflow.Hide
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
+                                    Visible: |-
+                                        =(!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted")
                                     Width: |-
                                         =Parent.Width
                                   Children:
-                                    - btnMatAttRefresh:
+                                    - btnMatAttUpload:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Refresh the document list"
+                                              ="Save the documents on this row"
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
                                               =AlignInContainer.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =C.'border-input'
-                                          BorderThickness: |-
-                                              =1
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           Color: |-
-                                              =C.'text-primary'
+                                              =C.'text-on-primary'
                                           DisplayMode: |-
-                                              =If(IsBlank(varMatDocsId) || IfError(Coalesce(varMatAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)
+                                              =If(IfError(Coalesce(varMatAttBusy, false), false) || attMatPicker.IsUploading, DisplayMode.Disabled, DisplayMode.Edit)
                                           Font: |-
                                               =Font.'Segoe UI'
                                           FontWeight: |-
                                               =FontWeight.Semibold
                                           Height: |-
                                               =36
+                                          Icon: |-
+                                              ="Save"
                                           Layout: |-
-                                              =ButtonLayout.TextOnly
+                                              =ButtonLayout.IconBefore
                                           LayoutMinWidth: |-
-                                              =91
+                                              =179
                                           OnSelect: |-
                                               =If(
-                                                  IsBlank(LookUp(colMatRows, RowId = varMatDocsId).ItemKey),
-                                                  Set(gblToast, { Text: "Save the row first - the folder is named after the row key.", Kind: "Warning", At: Now() }); true,
-                                              
+                                                  IsBlank(varMatAttRow),
+                                                  Set(gblToast, { Text: "Save the row first - documents are attached to the saved row.", Kind: "Warning", At: Now() }); true,
                                                   Set(varMatAttBusy, true);
-                                                  Set(
-                                                      varMatAttJson,
-                                                      'BioSap-GetSubmittedAttachments'.Run("TaskListDocuments/" & LookUp(colMatRows, RowId = varMatDocsId).ItemKey).files
-                                                  );
-                                                  RemoveIf(colMatAttachments, RowId = varMatDocsId);
-                                                  Collect(
-                                                      colMatAttachments,
-                                                      ForAll(
-                                                          ParseJSON(Coalesce(varMatAttJson, "[]")) As J,
-                                                          {
-                                                              RowId: varMatDocsId,
-                                                              FileName: Text(J.Name),
-                                                              FileUrl: Text(J.Link),
-                                                              Identifier: Text(J.Identifier),
-                                                              Selected: false
-                                                          }
-                                                      )
-                                                  );
-                                                  With(
-                                                      { n: CountRows(Filter(colMatAttachments, RowId = varMatDocsId)) },
-                                                      Patch(
-                                                          MaterialItems,
-                                                          LookUp(MaterialItems, ID = varMatDocsId),
-                                                          { FileCount: n }
+                                                  IfError(
+                                                      Set(
+                                                          varMatAttRowSaved,
+                                                          Patch(
+                                                              MaterialItems,
+                                                              varMatAttRow,
+                                                              { Attachments: attMatPicker.Attachments, FileCount: attMatPicker.AttachmentsCount }
+                                                          )
                                                       );
-                                                      UpdateIf(
-                                                          colMatRows,
-                                                          RowId = varMatDocsId,
-                                                          { FileCount: n }
-                                                      )
+                                                      true,
+                                                      Set(gblToast, { Text: "The documents could not be saved. " & FirstError.Message, Kind: "Error", At: Now() }); true,
+                                                      Set(varMatAttRow, LookUp(MaterialItems, ID = varMatAttRowSaved.ID));
+                                                      UpdateIf(colMatRows, RowId = varMatAttRowSaved.ID, { FileCount: Coalesce(varMatAttRowSaved.FileCount, 0) });
+                                                      Reset(attMatPicker);
+                                                      Set(gblToast, { Text: "Documents saved.", Kind: "Success", At: Now() }); true
                                                   );
                                                   Set(varMatAttBusy, false)
                                               )
@@ -13823,625 +13711,18 @@ Screens:
                                           Size: |-
                                               =T.input
                                           Text: |-
-                                              ="Refresh"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =91
-                                    - btnMatAttUpload:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Upload the chosen files"
-                                          Align: |-
-                                              =Align.Center
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          BasePaletteColor: |-
-                                              =C.'color-brand-primary'
-                                          Color: |-
-                                              =C.'text-on-primary'
-                                          DisplayMode: |-
-                                              =If(IfError(Coalesce(varMatAttBusy, false), false) || attMatPicker.AttachmentsCount = 0 || attMatPicker.IsUploading, DisplayMode.Disabled, DisplayMode.Edit)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =36
-                                          Icon: |-
-                                              ="ArrowUpload"
-                                          Layout: |-
-                                              =ButtonLayout.IconBefore
-                                          LayoutMinWidth: |-
-                                              =110
-                                          OnSelect: |-
-                                              =If(
-                                                  IsBlank(LookUp(colMatRows, RowId = varMatDocsId).ItemKey),
-                                                  Set(gblToast, { Text: "Save the row first - the folder is named after the row key.", Kind: "Warning", At: Now() }); true,
-                                              
-                                                  CountRows(attMatPicker.Attachments) = 0,
-                                                  Set(gblToast, { Text: "Choose one or more files first.", Kind: "Warning", At: Now() }); true,
-                                              
-                                                  Set(varMatAttBusy, true);
-                                                  If(CountRows(Filter(colMatAttUp, !Ok)) = 0, Clear(colMatAttUp));
-                                                  With(
-                                                      { done: Filter(colMatAttUp, Ok).Name },
-                                                      RemoveIf(colMatAttUp, !Ok);
-                                                      Collect(
-                                                          colMatAttUp,
-                                                          ForAll(
-                                                              Filter(attMatPicker.Attachments As P, !(P.Name in done)) As F,
-                                                              {
-                                                                  Name: F.Name,
-                                                                  Ok: IfError(
-                                                                      Lower(
-                                                                          Text(
-                                                                              'BioSap-TaskListAttachment'.Run(
-                                                                                  LookUp(colMatRows, RowId = varMatDocsId).ItemKey,
-                                                                                  { file: { contentBytes: F.Value, name: F.Name } }
-                                                                              ).flowrunsuccess
-                                                                          )
-                                                                      ) = "true",
-                                                                      false
-                                                                  )
-                                                              }
-                                                          )
-                                                      )
-                                                  );
-                                                  If(CountRows(Filter(colMatAttUp, !Ok)) = 0, Reset(attMatPicker));
-                                              
-                                                  Set(
-                                                      varMatAttJson,
-                                                      'BioSap-GetSubmittedAttachments'.Run("TaskListDocuments/" & LookUp(colMatRows, RowId = varMatDocsId).ItemKey).files
-                                                  );
-                                                  RemoveIf(colMatAttachments, RowId = varMatDocsId);
-                                                  Collect(
-                                                      colMatAttachments,
-                                                      ForAll(
-                                                          ParseJSON(Coalesce(varMatAttJson, "[]")) As J,
-                                                          {
-                                                              RowId: varMatDocsId,
-                                                              FileName: Text(J.Name),
-                                                              FileUrl: Text(J.Link),
-                                                              Identifier: Text(J.Identifier),
-                                                              Selected: false
-                                                          }
-                                                      )
-                                                  );
-                                                  With(
-                                                      { n: CountRows(Filter(colMatAttachments, RowId = varMatDocsId)) },
-                                                      Patch(
-                                                          MaterialItems,
-                                                          LookUp(MaterialItems, ID = varMatDocsId),
-                                                          { FileCount: n }
-                                                      );
-                                                      UpdateIf(
-                                                          colMatRows,
-                                                          RowId = varMatDocsId,
-                                                          { FileCount: n }
-                                                      )
-                                                  );
-                                                  Set(varMatAttBusy, false);
-                                              
-                                                  If(
-                                                      CountRows(Filter(colMatAttUp, !Ok)) > 0,
-                                                      Set(gblToast, { Text: "Not uploaded: " &
-                                                          Concat(Filter(colMatAttUp, !Ok), Name, ", ") &
-                                                          ". Select Upload again to retry.", Kind: "Error", At: Now() }); true,
-                                                      Set(gblToast, { Text: "Documents uploaded.", Kind: "Success", At: Now() }); true
-                                                  )
-                                              )
-                                          RadiusBottomLeft: |-
-                                              =R.input
-                                          RadiusBottomRight: |-
-                                              =R.input
-                                          RadiusTopLeft: |-
-                                              =R.input
-                                          RadiusTopRight: |-
-                                              =R.input
-                                          Size: |-
-                                              =T.input
-                                          Text: |-
-                                              ="Upload"
+                                              ="Save documents"
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
                                               =(!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted")
                                           Width: |-
-                                              =110
+                                              =179
                               - txtMatAttStatus:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
-                                        =If(
-                                            IfError(Coalesce(varMatAttBusy, false), false),
-                                            "Working... please wait.",
-                                            CountRows(Filter(colMatAttUp, !Ok)) > 0,
-                                            "Not uploaded: " & Concat(Filter(colMatAttUp, !Ok), Name, ", ") &
-                                                ". Select Upload again to retry - files already uploaded are skipped.",
-                                            CountRows(colMatAttUp) > 0,
-                                            "Uploaded: " & Concat(colMatAttUp, Name, ", "),
-                                            ""
-                                        )
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =If(IfError(Coalesce(varMatAttBusy, false), false), C.'text-muted', CountRows(Filter(colMatAttUp, !Ok)) > 0, C.'state-error-fg', C.'state-ok-fg')
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =34
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.small
-                                    Text: |-
-                                        =If(
-                                            IfError(Coalesce(varMatAttBusy, false), false),
-                                            "Working... please wait.",
-                                            CountRows(Filter(colMatAttUp, !Ok)) > 0,
-                                            "Not uploaded: " & Concat(Filter(colMatAttUp, !Ok), Name, ", ") &
-                                                ". Select Upload again to retry - files already uploaded are skipped.",
-                                            CountRows(colMatAttUp) > 0,
-                                            "Uploaded: " & Concat(colMatAttUp, Name, ", "),
-                                            ""
-                                        )
-                                    Visible: |-
-                                        =(IfError(Coalesce(varMatAttBusy, false), false) || CountRows(colMatAttUp) > 0)
-                                    Wrap: |-
-                                        =true
-                              - conMatAttRemove:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderThickness: |-
-                                        =1
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    Fill: |-
-                                        =C.'state-info-bg'
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =96
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Stretch
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Vertical
-                                    LayoutGap: |-
-                                        =8
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    PaddingBottom: |-
-                                        =10
-                                    PaddingLeft: |-
-                                        =12
-                                    PaddingRight: |-
-                                        =12
-                                    PaddingTop: |-
-                                        =10
-                                    RadiusBottomLeft: |-
-                                        =R.input
-                                    RadiusBottomRight: |-
-                                        =R.input
-                                    RadiusTopLeft: |-
-                                        =R.input
-                                    RadiusTopRight: |-
-                                        =R.input
-                                    Visible: |-
-                                        =!IsBlank(varMatAttRemove)
-                                    Width: |-
-                                        =Parent.Width
-                                  Children:
-                                    - txtMatAttRemoveAsk:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =36
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.body
-                                          Text: |-
-                                              ="Remove " & varMatAttRemove & " from SharePoint? This cannot be undone."
-                                          Wrap: |-
-                                              =true
-                                    - conMatAttRemoveBtns:
-                                        Control: GroupContainer
-                                        Variant: AutoLayout
-                                        Properties:
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          DropShadow: |-
-                                              =DropShadow.None
-                                          FillPortions: |-
-                                              =0
-                                          Height: |-
-                                              =32
-                                          LayoutAlignItems: |-
-                                              =LayoutAlignItems.Center
-                                          LayoutDirection: |-
-                                              =LayoutDirection.Horizontal
-                                          LayoutGap: |-
-                                              =8
-                                          LayoutJustifyContent: |-
-                                              =LayoutJustifyContent.End
-                                          LayoutMinWidth: |-
-                                              =0
-                                          LayoutOverflowX: |-
-                                              =LayoutOverflow.Hide
-                                          LayoutOverflowY: |-
-                                              =LayoutOverflow.Hide
-                                          Width: |-
-                                              =Parent.Width
-                                        Children:
-                                          - btnMatAttRemoveCancel:
-                                              Control: ModernButton
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="Cancel"
-                                                Align: |-
-                                                    =Align.Center
-                                                AlignInContainer: |-
-                                                    =AlignInContainer.Center
-                                                Appearance: |-
-                                                    =ButtonAppearance.Outline
-                                                BorderColor: |-
-                                                    =C.'border-input'
-                                                BorderThickness: |-
-                                                    =1
-                                                Color: |-
-                                                    =C.'text-primary'
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =32
-                                                Layout: |-
-                                                    =ButtonLayout.TextOnly
-                                                LayoutMinWidth: |-
-                                                    =86
-                                                OnSelect: |-
-                                                    =Set(varMatAttRemove, Blank())
-                                                RadiusBottomLeft: |-
-                                                    =R.input
-                                                RadiusBottomRight: |-
-                                                    =R.input
-                                                RadiusTopLeft: |-
-                                                    =R.input
-                                                RadiusTopRight: |-
-                                                    =R.input
-                                                Size: |-
-                                                    =T.input
-                                                Text: |-
-                                                    ="Cancel"
-                                                VerticalAlign: |-
-                                                    =VerticalAlign.Middle
-                                                Width: |-
-                                                    =86
-                                          - btnMatAttRemoveConfirm:
-                                              Control: ModernButton
-                                              Properties:
-                                                AccessibleLabel: |-
-                                                    ="Remove " & varMatAttRemove
-                                                Align: |-
-                                                    =Align.Center
-                                                AlignInContainer: |-
-                                                    =AlignInContainer.Center
-                                                Appearance: |-
-                                                    =ButtonAppearance.Outline
-                                                BorderColor: |-
-                                                    =C.'border-error'
-                                                BorderThickness: |-
-                                                    =1
-                                                Color: |-
-                                                    =C.'state-error-fg'
-                                                DisplayMode: |-
-                                                    =If(IfError(Coalesce(varMatAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)
-                                                Font: |-
-                                                    =Font.'Segoe UI'
-                                                FontWeight: |-
-                                                    =FontWeight.Semibold
-                                                Height: |-
-                                                    =32
-                                                Layout: |-
-                                                    =ButtonLayout.TextOnly
-                                                LayoutMinWidth: |-
-                                                    =89
-                                                OnSelect: |-
-                                                    =Set(varMatAttBusy, true);
-                                                    With(
-                                                        { d: LookUp(colMatAttachments, RowId = varMatDocsId && FileName = varMatAttRemove) },
-                                                        If(
-                                                            IsBlank(d.Identifier) ||
-                                                                IfError('BioSap-DeleteSubmittedAttachments'.Run(d.Identifier); true, false),
-                                                            RemoveIf(colMatAttachments, RowId = varMatDocsId && FileName = d.FileName);
-                                                            Set(gblToast, { Text: d.FileName & " removed.", Kind: "Success", At: Now() }); true,
-                                                            Set(gblToast, { Text: d.FileName & " could not be removed. Try again.", Kind: "Error", At: Now() }); true
-                                                        )
-                                                    );
-                                                    Set(varMatAttRemove, Blank());
-                                                    Set(varMatAttBusy, false)
-                                                RadiusBottomLeft: |-
-                                                    =R.input
-                                                RadiusBottomRight: |-
-                                                    =R.input
-                                                RadiusTopLeft: |-
-                                                    =R.input
-                                                RadiusTopRight: |-
-                                                    =R.input
-                                                Size: |-
-                                                    =T.input
-                                                Text: |-
-                                                    ="Remove"
-                                                VerticalAlign: |-
-                                                    =VerticalAlign.Middle
-                                                Width: |-
-                                                    =89
-                              - galMatAttachments:
-                                  Control: Gallery
-                                  Variant: Vertical
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Documents on the selected row"
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =CountRows(Filter(colMatAttachments, RowId = varMatDocsId)) * (H.hit + 8)
-                                    Items: |-
-                                        =Sort(Filter(colMatAttachments, RowId = varMatDocsId), FileName)
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LoadingSpinner: |-
-                                        =LoadingSpinner.None
-                                    Selectable: |-
-                                        =false
-                                    ShowScrollbar: |-
-                                        =false
-                                    TabIndex: |-
-                                        =0
-                                    TemplatePadding: |-
-                                        =2
-                                    TemplateSize: |-
-                                        =H.hit + 6
-                                    Width: |-
-                                        =Parent.Width
-                                    WrapCount: |-
-                                        =1
-                                  Children:
-                                    - txtMatAttType:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          Align: |-
-                                              =Align.Center
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =C.'bg-muted'
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =24
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          RadiusBottomLeft: |-
-                                              =6
-                                          RadiusBottomRight: |-
-                                              =6
-                                          RadiusTopLeft: |-
-                                              =6
-                                          RadiusTopRight: |-
-                                              =6
-                                          Size: |-
-                                              =T.micro
-                                          Text: |-
-                                              =If(IsBlank(Find(".", ThisItem.FileName)), "FILE", Upper(Left(Last(Split(ThisItem.FileName, ".")).Value, 4)))
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =44
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =0 + 0 + 0
-                                          Y: |-
-                                              =0 + 0 + ((((H.hit + 6) - 2) - 0 - 0) - (24)) / 2
-                                    - txtMatAttName:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =28
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.body
-                                          Text: |-
-                                              =ThisItem.FileName
-                                          Width: |-
-                                              =Max(0, (((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18) - 2 * 2 - 0 - 40)) - ((44) + 10) - ((71) + 10) - (If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), (Max(40, H.hit)) + 10, 0)) - 2)
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =0 + 0 + 0 + (44) + 10
-                                          Y: |-
-                                              =0 + 0 + ((((H.hit + 6) - 2) - 0 - 0) - (28)) / 2
-                                    - btnMatAttOpen:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Open or download " & ThisItem.FileName
-                                          Align: |-
-                                              =Align.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =C.'border-input'
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'text-primary'
-                                          DisplayMode: |-
-                                              =If(IsBlank(ThisItem.FileUrl), DisplayMode.Disabled, DisplayMode.Edit)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =32
-                                          Layout: |-
-                                              =ButtonLayout.TextOnly
-                                          OnSelect: |-
-                                              =Launch(ThisItem.FileUrl, { }, LaunchTarget.New)
-                                          RadiusBottomLeft: |-
-                                              =R.input
-                                          RadiusBottomRight: |-
-                                              =R.input
-                                          RadiusTopLeft: |-
-                                              =R.input
-                                          RadiusTopRight: |-
-                                              =R.input
-                                          Size: |-
-                                              =T.input
-                                          Text: |-
-                                              ="Open"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =71
-                                          X: |-
-                                              =0 + 0 + 0 + (44) + 10 + (Max(0, (((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18) - 2 * 2 - 0 - 40)) - ((44) + 10) - ((71) + 10) - (If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), (Max(40, H.hit)) + 10, 0)) - 2)) + 10
-                                          Y: |-
-                                              =0 + 0 + ((((H.hit + 6) - 2) - 0 - 0) - (32)) / 2
-                                    - btnMatAttRemove:
-                                        Control: ModernButton
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Remove " & ThisItem.FileName
-                                          Align: |-
-                                              =Align.Center
-                                          Appearance: |-
-                                              =ButtonAppearance.Outline
-                                          BorderColor: |-
-                                              =C.'border-error'
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =C.'state-error-fg'
-                                          DisplayMode: |-
-                                              =If(IfError(Coalesce(varMatAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =H.hit
-                                          Icon: |-
-                                              ="Delete"
-                                          Layout: |-
-                                              =ButtonLayout.IconOnly
-                                          OnSelect: |-
-                                              =Set(varMatAttRemove, ThisItem.FileName)
-                                          RadiusBottomLeft: |-
-                                              =R.input
-                                          RadiusBottomRight: |-
-                                              =R.input
-                                          RadiusTopLeft: |-
-                                              =R.input
-                                          RadiusTopRight: |-
-                                              =R.input
-                                          Size: |-
-                                              =T.input
-                                          Text: |-
-                                              ="Remove"
-                                          Tooltip: |-
-                                              ="Remove " & ThisItem.FileName
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Visible: |-
-                                              =(!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted")
-                                          Width: |-
-                                              =Max(40, H.hit)
-                                          X: |-
-                                              =0 + 0 + 0 + (44) + 10 + (Max(0, (((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 18) - 2 * 2 - 0 - 40)) - ((44) + 10) - ((71) + 10) - (If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), (Max(40, H.hit)) + 10, 0)) - 2)) + 10 + (71) + 10
-                                          Y: |-
-                                              =0 + 0 + ((((H.hit + 6) - 2) - 0 - 0) - (H.hit)) / 2
-                              - txtMatAttEmpty:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =Self.Text
+                                        =If(IfError(Coalesce(varMatAttBusy, false), false), "Saving documents... please wait.", "")
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -14453,7 +13734,7 @@ Screens:
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
-                                        =36
+                                        =18
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -14463,15 +13744,11 @@ Screens:
                                     PaddingTop: |-
                                         =0
                                     Size: |-
-                                        =T.body
+                                        =T.small
                                     Text: |-
-                                        =If(
-                                            IsBlank(LookUp(colMatRows, RowId = varMatDocsId).ItemKey),
-                                            "Save the row first - the folder is named after the row key.",
-                                            "No documents in " & "TaskListDocuments/" & LookUp(colMatRows, RowId = varMatDocsId).ItemKey & " yet."
-                                        )
+                                        =If(IfError(Coalesce(varMatAttBusy, false), false), "Saving documents... please wait.", "")
                                     Visible: |-
-                                        =IfError(CountRows(Filter(colMatAttachments, RowId = varMatDocsId)) = 0, false)
+                                        =IfError(Coalesce(varMatAttBusy, false), false)
                                     Wrap: |-
                                         =true
                               - txtMatAttReadOnly:
@@ -16879,7 +16156,7 @@ Screens:
                   Size: |-
                       =T.body
                   Text: |-
-                      ="Row " & LookUp(colMatRows, RowId = varMatDeleteId).ItemKey & " is deleted in SharePoint. The documents remain in the library."
+                      ="Row " & LookUp(colMatRows, RowId = varMatDeleteId).ItemKey & " is deleted in SharePoint, together with its attached documents."
                   Wrap: |-
                       =true
             - conMatDelConfirmFooter:
@@ -16998,8 +16275,7 @@ Screens:
                                         Set(gblToast, { Text: "Delete failed: " & FirstError.Message, Kind: "Error", At: Now() });
                                         false
                                     ),
-                                    RemoveIf(colMatAttachments, RowId = varMatDeleteId);
-                                    If(varMatDocsId = varMatDeleteId, Set(varMatDocsId, Blank()));
+                                    If(varMatDocsId = varMatDeleteId, Set(varMatDocsId, Blank()); Reset(attMatPicker); Set(varMatAttRow, Blank()));
                                     If(
                                         (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)),
                                         IfError(
@@ -17183,8 +16459,8 @@ Screens:
                                             )
                                         )
                                     );
-                                    Set(varMatInfo, "Row deleted. The documents remain in the library.");
-                                    Set(gblToast, { Text: "Row deleted. The documents remain in the library.", Kind: "Success", At: Now() }); true
+                                    Set(varMatInfo, "Row deleted.");
+                                    Set(gblToast, { Text: "Row deleted.", Kind: "Success", At: Now() }); true
                                 )
                             );
                             Set(varMatDeleteId, Blank());
@@ -18114,10 +17390,6 @@ Screens:
                             Set(varMatLoadStep, If(IsBlank(gblMatReqId), "Setting up a new request", "Finding the request"));
                             If(false, ClearCollect(colMatRows, { RowId: 0, ItemKey: "", RequestNo: "", Status: "", FileCount: 0, MaterialDescription: "", Plant: "", Manufacturer: "", ModelNumber: "", ManufacturerPartNo: "", Supplier: "", SupplierPartNo: "", DeliveringTime: 0, Price: 0, PriceUnit: "", StockUnit: "", IsStockItem: false, MinStock: 0, MaxStock: 0, StorageBin: "", StrategicPart: "", WearPart: "", Remarks: "", MaintenanceOrderNo: "", ReplacesExisting: false, ReplacedMaterialNo: "", FunctionalLocation: "", ObjectList: "", ObjectListJson: "", ApprovalRequired: false, CreatedMaterialNo: "", RequesterName: "", RequesterEmail: "", SubmittedOn: Blank() }));
                 
-                            If(false, ClearCollect(colMatAttachments, { RowId: 0, FileName: "", FileUrl: "", Identifier: "", Selected: false }));
-                
-                            If(false, ClearCollect(colMatAttUp, { Name: "", Ok: false }));
-                
                             If(false, ClearCollect(colMatFl, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" }));
                 
                             If(false, ClearCollect(colMatPaste, { Line: 0, Ok: false, Note: "", MaterialDescription: "", Plant: "", Manufacturer: "", ModelNumber: "", ManufacturerPartNo: "", Supplier: "", SupplierPartNo: "", PriceUnit: "", StockUnit: "", StorageBin: "", StrategicPart: "", WearPart: "", Remarks: "", MaintenanceOrderNo: "", ReplacedMaterialNo: "" }));
@@ -18140,7 +17412,6 @@ Screens:
                             Set(varMatConfirmDelete, false);
                             // Hvilken raekke dokumentpopuppen viser. Blank = lukket.
                             Set(varMatDocsId, Blank());
-                            Set(varMatAttJson, "");
                             Set(varMatFlMsg, "");
                             Set(varMatFlBusy, false);
                             // Paste rows (UX-review L3): popuppen og den indsatte tekst.
