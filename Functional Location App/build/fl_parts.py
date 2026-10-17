@@ -30,6 +30,7 @@ from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED, C_WHITE,
                         C_CARD_BG, C_DIVIDER)
 from design_tokens import ref_hex
 import layout_tokens as lay
+from progress_overlay import progress_overlay
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least, below
 import icons
 import display_text as dt
@@ -1392,8 +1393,8 @@ def build_submit_confirm():
         "Fl", "varFlConfirmSubmit", "Submit request?",
         '"A JSON snapshot is frozen and the rows are locked."',
         "Submit", with_busy("varFlSaving", S.submit_fx()), "btnFlSubmitConfirm") + delete_modal(
-        "Fl", "varFlRequestGuid", cfg.L_INDEX, cfg.DOMAIN) + loading_overlay(
-        "imgFlSaving", "varFlSaving")
+        "Fl", "varFlRequestGuid", cfg.L_INDEX, cfg.DOMAIN) + [
+        *progress_overlay("imgFlSaving", "varFlSaving", "Saving, please wait")]
 
 
 # ---------------------------------------------------------------------------

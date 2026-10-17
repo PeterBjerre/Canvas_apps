@@ -20,37 +20,32 @@ APP = os.path.join(ROOT, "BIO SAP App")
 VERSION = "ModernSpinner@1.1.0"
 
 # Skaerm -> {spinner: (Visible, Label)}. Visible og Label er de samme som
-# det gamle billedes (synlighed og billedtekst).
+# det gamle billedes (synlighed og billedtekst). Gem/upload-sloerene
+# (*Saving, IbBusy, IbUploading) er ikke hjul, men ModernProgressBar (#305).
 SPINNERS = {
     "ScreenEquipment.pa.yaml": {
-        "spnEqSaving": ("IfError(varEqSaving, false)", '""'),
         "spnEqLoadIcon": ("!IfError(varEqLoadFailed, false)", '""'),
         "spnEqFlBusy": ("varEqFlBusy", '"Searching..."'),
     },
     "ScreenMaterial.pa.yaml": {
-        "spnMatSaving": ("IfError(varMatSaving, false)", '""'),
         "spnMatLoadIcon": ("!IfError(varMatLoadFailed, false)", '""'),
         "spnMatFlBusy": ("varMatFlBusy", '"Searching..."'),
     },
     "ScreenMeasuringPoint.pa.yaml": {
-        "spnMpSaving": ("IfError(varMpSaving, false)", '""'),
         "spnMpLoadIcon": ("!IfError(varMpLoadFailed, false)", '""'),
         "spnMpFlBusy": ("varMpFlBusy", '"Searching..."'),
     },
     "ScreenFunctionalLocation.pa.yaml": {
-        "spnFlSaving": ("IfError(varFlSaving, false)", '""'),
         "spnFlLoadIcon": ("!IfError(varFlLoadFailed, false)", '""'),
     },
     "ScreenVhPlan.pa.yaml": {
-        "spnVhpSaving": ("IfError(varVhpSaving, false)", '""'),
         "spnVhpLoadIcon": ("!IfError(varVhpLoadFailed, false)", '""'),
         "spnVhpFlBusy": ("varVhpFlBusy", '"Searching..."'),
         "spnVhpVenBusy": ("varVhpVenBusy", '"Searching..."'),
     },
-    "ScreenIssueBoard.pa.yaml": {
-        "spnIbBusy": ("IfError((varIbBusy || varIbPosting) && !varIbUploading, false)", '""'),
-        "spnIbUploading": ("IfError(varIbUploading, false)", '"Saving files..."'),
-    },
+    # Gem/upload er ModernProgressBar (issue #305, tests/test_modern_progress_bar.py)
+    # - Issue Board har derfor ingen hjul, men ingen drejende billeder heller.
+    "ScreenIssueBoard.pa.yaml": {},
     "ScreenKks.pa.yaml": {
         "spnKksLoading": ("IfError(varKksLoading, false)", '""'),
         "spnKksFlBusy": ("varKksFlBusy", '"Searching..."'),
@@ -104,7 +99,7 @@ def test_every_spinner_is_modern_spinner_in_the_brand_color():
             for bad in ("Image", "TabIndex", "Fill", "SpinnerSize", "FontSize", "FontColor"):
                 assert _prop(block, bad) is None, (name, bad)
             total += 1
-    assert total == 21
+    assert total == 14
 
 
 def test_overlays_keep_the_scrim_and_center_the_wheel():
@@ -113,8 +108,7 @@ def test_overlays_keep_the_scrim_and_center_the_wheel():
     for screen, spins in SPINNERS.items():
         text = _read(screen)
         for name in spins:
-            if not (name.endswith("Saving") or name in ("spnIbBusy", "spnIbUploading",
-                                                       "spnKksLoading", "spnMdNavigating")):
+            if name not in ("spnKksLoading", "spnMdNavigating"):
                 continue
             scrim = "img" + name[3:]
             sb = _block(text, scrim)
@@ -128,8 +122,7 @@ def test_overlays_keep_the_scrim_and_center_the_wheel():
 
 
 def test_caption_stays_below_the_wheel():
-    for screen, name in (("ScreenIssueBoard.pa.yaml", "spnIbUploading"),
-                         ("ScreenMdHub.pa.yaml", "spnMdNavigating")):
+    for screen, name in (("ScreenMdHub.pa.yaml", "spnMdNavigating"),):
         block = _block(_read(screen), name)
         assert _prop(block, "LabelPosition") == "SpinnerLabelPosition.Below", name
 
