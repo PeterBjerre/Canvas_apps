@@ -512,6 +512,7 @@ layoutfejl bor:
 | 16b | Kun ModernAttachments@1.3.0 til filer (issue #161) |
 | 16c | Hjul er ModernSpinner@1.1.0 - aldrig et animeret billede (issue #302) |
 | 16f | Gem/upload-bjaelken er ModernProgressBar@1.0.0, ubestemt (issue #305) |
+| 16k | Knapper er ModernButton - Classic/Button kun som gennemsigtigt klik-lag (issue #307) |
 | 33 | Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4) |
 | 18 | Enhver Gallery skal have TabIndex |
 | 19 | AccessibleLabel maa ikke vaere kontrollens navn |
@@ -525,6 +526,7 @@ layoutfejl bor:
 | 40 | Ikonknapper har mindst klikfladen H.hit (UX-review F6/T10) |
 | 41 | Ingen ModernNumberInput - tal er number_field (UX-review T10) |
 | 42 | Tekststoerrelser er paa typeskalaen T.* (UX-review M6) |
+| 16e | Maerker er ModernBadge@1.0.0 med vores egne farver (issue #304) |
 <!-- rules:end -->
 
 Punkt 7 fanger den klassiske: du sletter en kontrol og glemmer en

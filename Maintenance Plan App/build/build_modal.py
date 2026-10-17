@@ -6,7 +6,7 @@ from gen_screen import (Ctrl, C_MUTED, C_TRANSPARENT, C_DIVIDER, C_MODAL_BG,
                         C_PRIMARY_SOFT, C_OVERLAY, C_PRIMARY, C_WHITE)
 import layout_tokens as lay
 from layout_tokens import at_least, if_below
-from build_helpers import tap_backdrop, text_ctrl, group, button, text_input, grow, ICON_SAVE, checkbox_theme, table_surface
+from build_helpers import tap_backdrop, text_ctrl, group, button, text_input, grow, ICON_SAVE, checkbox_theme, table_surface, flat_button
 from design_tokens import ref_hex
 
 MUT_HEX = ref_hex("text-muted")
@@ -172,22 +172,16 @@ def build_tasklist_picker_modal():
         "Tooltip": "\"Select all\"",
         "Width": str(SEL_W),
     }), h=22, vis=f"{DESK} && !{SOME_VISIBLE_SELECTED}")
-    btnHeadPartial = Ctrl("btnVhpPickerHeadPartial", "Classic/Button", props={
-        "BorderColor": C_PRIMARY, "BorderStyle": "BorderStyle.Solid", "BorderThickness": "1",
-        "Color": C_WHITE, "Fill": C_PRIMARY, "FocusedBorderColor": C_PRIMARY,
-        "FocusedBorderThickness": "2", "FontWeight": "FontWeight.Bold",
-        "Height": "18", "HoverColor": C_WHITE, "HoverFill": C_PRIMARY,
-        "OnSelect": SELECT_ALL_VISIBLE,
-        "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0",
-        "PressedColor": C_WHITE, "PressedFill": C_PRIMARY,
-        "RadiusBottomLeft": "4", "RadiusBottomRight": "4", "RadiusTopLeft": "4", "RadiusTopRight": "4",
-        "Size": "12", "TabIndex": "0",
-        # Den klassiske knap har ingen AccessibleLabel - skaermlaeseren
-        # laeser Text og Tooltip.
-        "Text": "\"\u2212\"",
-        "Tooltip": "\"Some lines selected - select all\"",
-        "Width": "18",
-    }, h=18, vis=f"{DESK} && {SOME_VISIBLE_SELECTED}")
+    # ModernButton (issue #307): Padding* = 0, saa "−" kan staa i 18 x 18 px.
+    # Fyldet er Primary + BasePaletteColor; hover/tryk er Fluent-temaets
+    # nuancer af primaerfarven (den klassiske holdt fladen ens) - docs/38.
+    btnHeadPartial = flat_button(
+        "btnVhpPickerHeadPartial", "\"\u2212\"", SELECT_ALL_VISIBLE,
+        accessible="\"Some lines selected - select all\"",
+        tooltip="\"Some lines selected - select all\"",
+        appearance="Primary", base_color=C_PRIMARY, color=C_WHITE, align="Center",
+        border=(C_PRIMARY, 1), radius=4, size=12, weight="Bold",
+        height=18, width=18, visible=f"{DESK} && {SOME_VISIBLE_SELECTED}")
     # Lodret, ikke vandret: der er altid kun EEN af de to synlig, og de
     # deler SEL-kolonnens 26 px.
     headSel = group("conVhpPickerHeadSel", [chkHeadAll, btnHeadPartial], direction="Vertical", gap=0,
