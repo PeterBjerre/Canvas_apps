@@ -119,6 +119,12 @@ New-MdField 'MD_TasklistAttachment' 'UploadStatus' Choice `
 Write-Host "`nTaskListMain" -ForegroundColor Cyan
 New-MdField 'TaskListMain' 'MaterialGroup' Text
 
+# Dokumenterne paa en operation er SharePoint-vedhaeftninger paa dens
+# raekke (issue #300) - appen gemmer dem selv med Patch. Det er SharePoints
+# standard, men slaas til her, saa ingen kan have slaaet det fra.
+Set-PnPList -Identity 'TaskListMain' -EnableAttachments $true | Out-Null
+Write-Host "    ~ vedhaeftninger slaaet til paa TaskListMain" -ForegroundColor Green
+
 # ---------------------------------------------------------------------------
 # Ydelsesnummeret (PM03)
 # ---------------------------------------------------------------------------

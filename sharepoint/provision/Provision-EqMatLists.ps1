@@ -365,10 +365,27 @@ function Test-DocumentLibrary {
 }
 
 # ---------------------------------------------------------------------------
+# Vedhaeftninger paa raekken (issue #300)
+#
+# Appen gemmer dokumenterne som SharePoint-vedhaeftninger paa raekken med
+# Patch - ikke laengere gennem flowene til TaskListDocuments. Det er
+# SharePoints standard paa en ny liste, men slaas til her, saa ingen kan
+# have slaaet det fra.
+# ---------------------------------------------------------------------------
+function Enable-MdAttachments {
+    param([string]$List)
+    if (Get-PnPList -Identity $List -ErrorAction SilentlyContinue) {
+        Set-PnPList -Identity $List -EnableAttachments $true | Out-Null
+        Write-Host "    ~ vedhaeftninger slaaet til paa $List" -ForegroundColor Green
+    }
+}
+
+# ---------------------------------------------------------------------------
 Write-Host "`nProvisionerer mod $SiteUrl" -ForegroundColor Cyan
 
 if ($Domain -eq 'Equipment' -or $Domain -eq 'Both') {
     New-EquipmentList
+    Enable-MdAttachments 'EquipmentItems'
     Set-MdView 'EquipmentItems' @('Title', 'RequestNo', 'Plant', 'EquipmentNumber',
                                   'FunctionalLocation', 'SerialNumber', 'RowStatus',
                                   'RequesterEmail', 'SubmittedOn')
@@ -376,6 +393,7 @@ if ($Domain -eq 'Equipment' -or $Domain -eq 'Both') {
 
 if ($Domain -eq 'Material' -or $Domain -eq 'Both') {
     New-MaterialList
+    Enable-MdAttachments 'MaterialItems'
     Set-MdView 'MaterialItems' @('Title', 'RequestNo', 'Plant', 'FunctionalLocation',
                                  'ManufacturerPartNo', 'Supplier', 'Price', 'RowStatus',
                                  'RequesterEmail', 'SubmittedOn')
@@ -392,6 +410,5 @@ Write-Host "     colEquipmentRows / colMaterialRows og forsvinder, naar appen"
 Write-Host "     lukkes. Gem-knappen skal have et Patch mod listen her."
 Write-Host "  4. WarrantyStart/WarrantyEnd er DATO-kolonner. Appen sender i dag"
 Write-Host "     Text(..., ""dd/mm/yyyy"") - send .SelectedDate direkte i stedet."
-Write-Host "  5. Dokumentfelterne er ikke provisioneret. Dokumenter hoerer i"
-Write-Host "     TaskListDocuments/<ItemKey>/ via de tre flows - se"
-Write-Host "     docs/24-eq-mat-persistering.md."
+Write-Host "  5. Dokumenterne er vedhaeftninger paa raekken (issue #300) - appen"
+Write-Host "     gemmer dem selv med Patch. TaskListDocuments bruges ikke til nye filer."
