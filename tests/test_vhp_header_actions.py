@@ -77,7 +77,9 @@ def test_delete_is_icon_only_in_header():
     assert "A submitted plan cannot be deleted." in b.split("Tooltip:")[1]
     assert "=Set(varVhpDeleteOpen, true)" in b
     assert "If((VhpSubmitted || varVhpSaving), DisplayMode.Disabled, DisplayMode.Edit)" in b
-    assert "(!IfError(varVhpViewOnly, true) && !IsBlank(varVhpRequestGuid))" in b
+    # En returneret plan kan kun en admin slette (tests/test_vh_resubmit.py).
+    assert ('(!IfError(varVhpViewOnly, true) && !IsBlank(varVhpRequestGuid) && '
+            '(varVhpFlow.Status <> "Returned" || IsAdmin))') in b
     # Bekraeftelsen findes stadig.
     assert "IfError(varVhpDeleteOpen, false)" in _block(y, "conVhpReqDelConfirmModal")
 

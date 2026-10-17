@@ -1254,7 +1254,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =36 + ((If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 36, (36) + 8 + (36) + 8 + (36) + If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 8 + (0), 0) + If(!varEqViewOnly, 8 + (36), 0) + If(!varEqViewOnly, 8 + (36), 0) + If(!varEqViewOnly, 8 + (36), 0))) + 12) + If(!IsEmpty(Filter(
+                            =36 + ((If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 36, (36) + 8 + (36) + 8 + (36) + If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 8 + (0), 0) + If(!varEqViewOnly, 8 + (36), 0) + If(!varEqViewOnly, 8 + (36), 0) + If(!varEqViewOnly && !IsEmpty(colEqRows), 8 + (36), 0))) + 12) + If(!IsEmpty(Filter(
                                 colEqRows,
                                 (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
                                 (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
@@ -1318,7 +1318,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =(If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 36, (36) + 8 + (36) + 8 + (36) + If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 8 + (0), 0) + If(!varEqViewOnly, 8 + (36), 0) + If(!varEqViewOnly, 8 + (36), 0) + If(!varEqViewOnly, 8 + (36), 0))) + 12
+                                  =(If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 36, (36) + 8 + (36) + 8 + (36) + If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 8 + (0), 0) + If(!varEqViewOnly, 8 + (36), 0) + If(!varEqViewOnly, 8 + (36), 0) + If(!varEqViewOnly && !IsEmpty(colEqRows), 8 + (36), 0))) + 12
                               LayoutAlignItems: |-
                                   =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
@@ -1518,7 +1518,7 @@ Screens:
                                     Visible: |-
                                         =(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48
                                     Width: |-
-                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18)) - ((240) + 8) - ((170) + 8) - ((170) + 8) - (If(!varEqViewOnly, (124) + 8, 0)) - (If(!varEqViewOnly, (138) + 8, 0)) - (If(!varEqViewOnly, (91) + 8, 0)) - 2)
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18)) - ((240) + 8) - ((170) + 8) - ((170) + 8) - (If(!varEqViewOnly, (124) + 8, 0)) - (If(!varEqViewOnly, (138) + 8, 0)) - (If(!varEqViewOnly && !IsEmpty(colEqRows), (91) + 8, 0)) - 2)
                               - btnEqToolbarCopy:
                                   Control: ModernButton
                                   Properties:
@@ -1704,7 +1704,7 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Visible: |-
-                                        =!varEqViewOnly
+                                        =!varEqViewOnly && !IsEmpty(colEqRows)
                                     Width: |-
                                         =91
                         - conEqTableWrap:

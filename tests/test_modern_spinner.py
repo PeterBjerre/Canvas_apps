@@ -53,6 +53,7 @@ SPINNERS = {
     },
     "ScreenKks.pa.yaml": {
         "spnKksLoading": ("IfError(varKksLoading, false)", '""'),
+        "spnKksFlBusy": ("varKksFlBusy", '"Searching..."'),
     },
     "ScreenMdHub.pa.yaml": {
         "spnMdNavigating": ("IfError(gblNavigating, false)", '"Opening..."'),
@@ -103,7 +104,7 @@ def test_every_spinner_is_modern_spinner_in_the_brand_color():
             for bad in ("Image", "TabIndex", "Fill", "SpinnerSize", "FontSize", "FontColor"):
                 assert _prop(block, bad) is None, (name, bad)
             total += 1
-    assert total == 20
+    assert total == 21
 
 
 def test_overlays_keep_the_scrim_and_center_the_wheel():

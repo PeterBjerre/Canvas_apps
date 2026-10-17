@@ -121,6 +121,8 @@ M_SPID = M_LOOKUP + ".SpId"
 # arbejdsgangens status. De to maa ikke blandes sammen.
 PLAN_STATUS_DRAFT = "Draft"
 PLAN_STATUS_SUBMITTED = "In Progress"
+# Sat af godkendelsesflowene ved Send retur (docs/32 §5).
+PLAN_STATUS_RETURNED = "Returned"
 
 # PRIORITETEN regnes, den vaelges ikke - samme regel som den gamle app
 # (solution/BIOSAP/.../orsted_biosapmaintenanceplans_ba408.src, Priority-
@@ -215,8 +217,11 @@ def plan_fields():
         "{\n"
         "            Title: varVhpPlan.PlanText,\n"
         # En admin, der retter en andens plan, flytter den ikke tilbage til
-        # Draft - godkendelsesflowet laeser planens status.
-        f"            Status: If({AS_ADMIN} && !IsBlank({PLAN_NOW}), {PLAN_NOW}.Status, "
+        # Draft - godkendelsesflowet laeser planens status. Det goer ejeren
+        # heller ikke med en plan, der er sendt retur: den bliver Returned
+        # (med kommentaren i banneret), til den indsendes igen.
+        f"            Status: If(!IsBlank({PLAN_NOW}) && ({AS_ADMIN} || "
+        f"{PLAN_NOW}.Status.Value = \"{PLAN_STATUS_RETURNED}\"), {PLAN_NOW}.Status, "
         f"{{ Value: \"{PLAN_STATUS_DRAFT}\" }}),\n"
         "            PlantsInitial: { Value: varVhpPlan.Plant },\n"
         "            Cycle: varVhpPlan.Cycle,\n"
@@ -347,7 +352,7 @@ def _step_keys():
         # Rettigheden i selve handlingen - ikke kun i UI'et.
         "    If(\n"
         f"        !IsBlank({IDX_NOW}) &&\n"
-        f"        !{perm.may_change(IDX_NOW + '.RequesterEmail', IDX_NOW + '.Status.Value', 'varVhpMe')},\n"
+        f"        !{perm.may_change(IDX_NOW + '.RequesterEmail', IDX_NOW + '.Status.Value', 'varVhpMe', resubmit=True)},\n"
         "        Collect(colVhpSaveErrors, {\n"
         "            Where: \"Request\",\n"
         "            Msg: \"This request can no longer be changed.\"\n"

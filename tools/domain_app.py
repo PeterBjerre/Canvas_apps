@@ -19,7 +19,7 @@ import domain_parts as dp
 import permissions as perm
 import display_text as dt
 from build_helpers import (click_outside_overlay, app_frame, sticky_actions, request_shell, row_editor_panel,
-                           button, fit_button_width, group, ICON_W)
+                           button, fit_button_width, group, ICON_W, editor_footer)
 from gen_screen import C_APP_BG
 from side_nav import side_nav
 
@@ -208,33 +208,9 @@ def _row_editor(form, panel_content=None, reset=None):
     reset.props["Width"] = str(fit_button_width('"Reset"'))
     reset.props["Height"] = str(lay.HIT_TOUCH)
     reset.h = lay.HIT_TOUCH
-    # Bundbjaelken: Delete og Reset til venstre, Cancel og Save til hoejre.
-    # Grupperne er Start-justeret og praecis knaphoeje - med Center tegnede
-    # Studio de indlejrede knapper forskudt nedad og klippede dem. Er
-    # panelet for smalt til begge par paa een linje (mobil), staar parrene
-    # under hinanden.
-    left_w = fit_button_width('"Delete row"') + 8 + fit_button_width('"Reset"')
-    right_w = fit_button_width('"Cancel"') + 8 + SAVE_W
-    for b in (delete, reset, cancel, save):
-        b.props["AlignInContainer"] = "AlignInContainer.Start"
-        b.props["LayoutMinWidth"] = b.props["Width"]
-    left = group("conDomEditorDeleteAction", [delete, reset], direction="Horizontal",
-                 gap=8, height=lay.HIT_TOUCH, width=left_w, align_items="Start",
-                 align_in_container="Start")
-    right = group("conDomEditorSaveActions", [cancel, save], direction="Horizontal",
-                  gap=8, height=lay.HIT_TOUCH, width=right_w, align_items="Start",
-                  align_in_container="Start", justify="End")
-    one_line = f"({lay.PANEL_W_AT}) - 2 * 20 >= {left_w + 16 + right_w}"
-    footer = group("conDomEditorFooter", [left, right], direction="Horizontal",
-                   gap=8, height=f"If({one_line}, {lay.HIT_TOUCH}, {2 * lay.HIT_TOUCH + 8})",
-                   width="Parent.Width", justify="SpaceBetween", align_items="Start")
-    # Under hinanden (mobil) staar Cancel og Save stadig til hoejre.
-    right.props["AlignInContainer"] = (f"If({one_line}, AlignInContainer.Start, "
-                                       "AlignInContainer.End)")
-    footer.props["LayoutDirection"] = (f"If({one_line}, LayoutDirection.Horizontal, "
-                                       "LayoutDirection.Vertical)")
-    footer.props["LayoutAlignItems"] = (f"If({one_line}, LayoutAlignItems.Start, "
-                                        "LayoutAlignItems.Stretch)")
+    # Bundbjaelken: Delete og Reset til venstre, Cancel og Save til hoejre
+    # (build_helpers.editor_footer - FL's panel har den samme, issue #308).
+    footer = editor_footer("Dom", delete, reset, cancel, save)
     content = (list(form.children[:-2]) + [form.children[-1]]
                if panel_content is None else panel_content)
     return row_editor_panel(
