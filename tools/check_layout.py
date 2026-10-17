@@ -2068,6 +2068,8 @@ SPINNER_PROPS = {
     "AlignInContainer", "FillPortions", "LayoutMinHeight", "LayoutMinWidth",
     "LayoutMaxHeight", "LayoutMaxWidth",
 }
+
+
 # Et animeret SVG-hjul er en DREJNING: CSS (spinner_svg: rotate(360deg))
 # eller SMIL (busy_box: animateTransform type='rotate'). VH-planens
 # trinikoner (build_hero) tegner og pulserer - de drejer ikke og er ikke hjul.
@@ -2098,6 +2100,18 @@ def rule_16c(ctx):
                                     f"dokumenteret Spinner-egenskab")
 
 
+PROGRESS_CONTROL = "ModernProgressBar@1.0.0"
+# Den opdaterede Progress bar efter Microsoft Learn ("Progress bar modern
+# control in canvas apps"). Ingen Label, farve, TabIndex eller OnChange.
+PROGRESS_PROPS = {
+    "AccessibleLabel", "ContentLanguage", "DisplayMode", "Height", "Indeterminate", "Max",
+    "ProgressColor", "Shape", "Thickness", "Tooltip", "Value", "Visible", "Width", "X", "Y",
+    # Containerens egne egenskaber paa ethvert barn.
+    "AlignInContainer", "FillPortions", "LayoutMinHeight", "LayoutMinWidth",
+    "LayoutMaxHeight", "LayoutMaxWidth",
+}
+
+
 BUTTON_CONTROL = "ModernButton"
 # Den opdaterede moderne knaps egenskaber efter Microsoft Learn ("Button
 # modern control in canvas apps") plus Layout = ButtonLayout.TextOnly, som
@@ -2115,6 +2129,28 @@ BUTTON_PROPS = {
     "AlignInContainer", "FillPortions", "LayoutMinHeight", "LayoutMinWidth",
     "LayoutMaxHeight", "LayoutMaxWidth",
 }
+
+
+def rule_16f(ctx):
+    """Gem/upload-bjaelken er ModernProgressBar@1.0.0, ubestemt (issue #305)"""
+    # Alle bjaelker kommer fra progress_overlay.progress_bar. Versionen er
+    # Learns; en anden er ikke afproevet (jf. regel 16b og issue #165).
+    # Appen kender aldrig fremskridtet i procent - kun at noget koerer -
+    # saa Indeterminate skal vaere true.
+    for p_, name, body in ctx.all_nodes:
+        ctl = (body.get("Control") or "").strip()
+        if ctl.split("@")[0] != "ModernProgressBar":
+            continue
+        props = body.get("Properties") or {}
+        if ctl != PROGRESS_CONTROL:
+            ctx.problems.append(f"[16f] {name}: {ctl} - bjaelken er {PROGRESS_CONTROL} "
+                                f"fra progress_overlay.progress_bar")
+        for key in sorted(set(props) - PROGRESS_PROPS):
+            ctx.problems.append(f"[16f] {name}: {ctl} - '{key}' er ikke en "
+                                f"dokumenteret Progress bar-egenskab")
+        if str(props.get("Indeterminate", "")).strip().lstrip("=").strip() != "true":
+            ctx.problems.append(f"[16f] {name}: {ctl} uden Indeterminate = true - appen "
+                                f"kender ikke fremskridtet")
 
 
 def rule_16k(ctx):
@@ -2155,7 +2191,7 @@ def rule_33(ctx):
               "ModernDatePicker": "dte", "Classic/DropDown": "drp",
               "ModernCombobox": "cmb", "ModernCheckbox": "chk",
               "ModernToggle": "tgl", "ModernAttachments": "att",
-              "ModernBadge": "bdg", "ModernSpinner": "spn"}
+              "ModernProgressBar": "prg", "ModernBadge": "bdg", "ModernSpinner": "spn"}
     for p_, name, body in all_nodes:
         want = PREFIX.get((body.get("Control") or "").strip().split("@")[0])
         if want and not re.match(want + r"[A-Z]", name):
@@ -2431,7 +2467,7 @@ def rule_38(ctx):
     kinds = ("Image", "Rectangle", "ModernText", "ModernButton", "ModernTextInput",
              "ModernNumberInput", "ModernDropdown", "ModernCombobox", "ModernCheckbox",
              "ModernDatePicker", "ModernToggle", "ModernAttachments", "ModernSpinner",
-             "ModernBadge", "Gallery")
+             "ModernProgressBar", "ModernBadge", "Gallery")
     for _p, name, body in ctx.all_nodes:
         ctl = (body.get("Control") or "").strip().split("@")[0]
         if ctl not in kinds:
@@ -2604,6 +2640,7 @@ RULES = [
     Rule('16', 'Ingen Classic/DropDown', rule_16),
     Rule('16b', 'Kun ModernAttachments@1.3.0 til filer (issue #161)', rule_16b),
     Rule('16c', 'Hjul er ModernSpinner@1.1.0 - aldrig et animeret billede (issue #302)', rule_16c),
+    Rule('16f', 'Gem/upload-bjaelken er ModernProgressBar@1.0.0, ubestemt (issue #305)', rule_16f),
     Rule('16k', 'Knapper er ModernButton - Classic/Button kun som gennemsigtigt klik-lag (issue #307)', rule_16k),
     Rule('33', 'Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4)', rule_33),
     Rule('18', 'Enhver Gallery skal have TabIndex', rule_18),
