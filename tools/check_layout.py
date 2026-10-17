@@ -35,6 +35,7 @@ if HERE not in sys.path:
     sys.path.insert(0, HERE)
 import layout_tokens as lay
 import fx
+from design_tokens import TRANSPARENT as TRANSPARENT_FX
 
 # Skaermen findes af sig selv ud fra arbejdsmappen. Er der mere end een
 # skaerm, angives den paa kommandolinjen.
@@ -811,6 +812,13 @@ def rule_25(ctx):
     # og de knapper virkede.
     for p, name, body in all_nodes:
         if body.get("Control") != "ModernButton":
+            continue
+        # Undtagelse (issue #307): en knap med PaddingTop/-Bottom = 0 har
+        # ingen indre luft, der kan skubbe teksten ud (build_helpers.flat_button,
+        # fx "nogle valgt"-feltet paa 18 px i operationsvaelgeren).
+        pp_ = body.get("Properties") or {}
+        if all(str(pp_.get(k, "")).strip().lstrip("=").strip() == "0"
+               for k in ("PaddingTop", "PaddingBottom")):
             continue
         h = evaluate((body.get("Properties") or {}).get("Height"), 1366, 3, 4, 4)
         if h is not None and h < lay.BUTTON_MIN_H:
@@ -2047,6 +2055,51 @@ def rule_16b(ctx):
                                 f"{ATTACHMENTS_CONTROL} fra doc_upload.picker")
 
 
+BUTTON_CONTROL = "ModernButton"
+# Den opdaterede moderne knaps egenskaber efter Microsoft Learn ("Button
+# modern control in canvas apps") plus Layout = ButtonLayout.TextOnly, som
+# appen har deployet siden starten. Ingen TabIndex, Fill, HoverFill,
+# PressedFill eller Focused* - og ingen af de gamle Font*-navne.
+BUTTON_PROPS = {
+    "AccessibleLabel", "Align", "Appearance", "BasePaletteColor", "BorderColor",
+    "BorderStyle", "BorderThickness", "Color", "ContentLanguage", "DisplayMode",
+    "Font", "FontWeight", "Height", "Icon", "IconRotation", "IconStyle", "Italic",
+    "Layout", "OnSelect", "PaddingBottom", "PaddingLeft", "PaddingRight",
+    "PaddingTop", "RadiusBottomLeft", "RadiusBottomRight", "RadiusTopLeft",
+    "RadiusTopRight", "Size", "Strikethrough", "Text", "Tooltip", "Underline",
+    "VerticalAlign", "Visible", "Width", "X", "Y",
+    # Containerens egne egenskaber paa ethvert barn.
+    "AlignInContainer", "FillPortions", "LayoutMinHeight", "LayoutMinWidth",
+    "LayoutMaxHeight", "LayoutMaxWidth",
+}
+
+
+def rule_16k(ctx):
+    """Knapper er ModernButton - Classic/Button kun som gennemsigtigt klik-lag (issue #307)"""
+    # Studio skriver ModernButton uden @-version; en version er ikke
+    # afproevet (jf. regel 16b). En klassisk knap er kun tilladt som
+    # klik-lag over en raekke (build_helpers.row_hit og btnMdRowApproval):
+    # de har gennemsigtig tekst og brug for HoverFill/PressedFill, som den
+    # moderne knap ikke har. Alt andet bygges med build_helpers.button
+    # eller flat_button.
+    for p_, name, body in ctx.all_nodes:
+        ctl = (body.get("Control") or "").strip()
+        props = body.get("Properties") or {}
+        base = ctl.split("@")[0]
+        if base == "ModernButton":
+            if ctl != BUTTON_CONTROL:
+                ctx.problems.append(f"[16k] {name}: {ctl} - knapper er {BUTTON_CONTROL} "
+                                    f"uden version")
+            for key in sorted(set(props) - BUTTON_PROPS):
+                ctx.problems.append(f"[16k] {name}: {ctl} - '{key}' er ikke en "
+                                    f"dokumenteret Button-egenskab")
+        elif base == "Classic/Button":
+            col = str(props.get("Color", "")).strip().lstrip("=").strip()
+            if col != TRANSPARENT_FX:
+                ctx.problems.append(f"[16k] {name}: Classic/Button med synlig tekst - brug "
+                                    f"build_helpers.button/flat_button (ModernButton)")
+
+
 def rule_33(ctx):
     """Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4)"""
     all_nodes = ctx.all_nodes
@@ -2463,6 +2516,7 @@ RULES = [
     Rule('22', 'Concurrent med en indbyrdes afhaengighed', rule_22),
     Rule('16', 'Ingen Classic/DropDown', rule_16),
     Rule('16b', 'Kun ModernAttachments@1.3.0 til filer (issue #161)', rule_16b),
+    Rule('16k', 'Knapper er ModernButton - Classic/Button kun som gennemsigtigt klik-lag (issue #307)', rule_16k),
     Rule('33', 'Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4)', rule_33),
     Rule('18', 'Enhver Gallery skal have TabIndex', rule_18),
     Rule('19', 'AccessibleLabel maa ikke vaere kontrollens navn', rule_19),
