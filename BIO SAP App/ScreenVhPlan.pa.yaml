@@ -900,29 +900,61 @@ Screens:
                                                           =Max(0, Min(192, ((Max(0, Min(286, ((Max(0, ((If(LayoutRank < 2, 56, If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - If(LayoutRank < 3, If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566), Max(If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566), If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) / 2))))) - (If(LayoutRank >= 2, (32) + 10, 0)) - 2))))))) - (If(IsBlank(varVhpPlanKey), 0, 6 + 88))))
                                                       Wrap: |-
                                                           =false
-                                                - imgVhpNumber:
-                                                    Control: Image
+                                                - bdgVhpNumber:
+                                                    Control: ModernBadge@1.0.0
                                                     Properties:
                                                       AccessibleLabel: |-
                                                           ="Number " & varVhpPlanKey
+                                                      Align: |-
+                                                          =Align.Center
                                                       AlignInContainer: |-
                                                           =AlignInContainer.Center
+                                                      Appearance: |-
+                                                          =BadgeAppearance.Filled
                                                       BorderStyle: |-
                                                           =BorderStyle.None
                                                       BorderThickness: |-
                                                           =0
+                                                      Color: |-
+                                                          =ColorValue(C.'hex-domain-vhp')
+                                                      Content: |-
+                                                          =varVhpPlanKey
+                                                      Fill: |-
+                                                          =ColorValue(C.'hex-domain-vhp' & "1F")
+                                                      Font: |-
+                                                          =Font.'Segoe UI'
+                                                      FontWeight: |-
+                                                          =FontWeight.Semibold
                                                       Height: |-
                                                           =26
-                                                      Image: |-
-                                                          =If(IsBlank(varVhpPlanKey), "", "data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='88' height='26' viewBox='0 0 88 26'><rect width='88' height='26' rx='13' fill='" & C.'hex-domain-vhp' & "' fill-opacity='0.12'/><text x='44' y='17.5' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='12' font-weight='600' fill='" & C.'hex-domain-vhp' & "'>" & varVhpPlanKey & "</text></svg>"))
-                                                      ImagePosition: |-
-                                                          =ImagePosition.Fit
+                                                      Intent: |-
+                                                          =BadgeIntent.Neutral
                                                       LayoutMinWidth: |-
                                                           =88
-                                                      OnSelect: |-
-                                                          =false
-                                                      TabIndex: |-
+                                                      PaddingBottom: |-
                                                           =0
+                                                      PaddingLeft: |-
+                                                          =0
+                                                      PaddingRight: |-
+                                                          =0
+                                                      PaddingTop: |-
+                                                          =0
+                                                      RadiusBottomLeft: |-
+                                                          =13
+                                                      RadiusBottomRight: |-
+                                                          =13
+                                                      RadiusTopLeft: |-
+                                                          =13
+                                                      RadiusTopRight: |-
+                                                          =13
+                                                      Shape: |-
+                                                          =BadgeShape.Circular
+                                                      Size: |-
+                                                          =T.small
+                                                      VerticalAlign: |-
+                                                          =VerticalAlign.Middle
+                                                      Visible: |-
+                                                          =!IsBlank(varVhpPlanKey)
                                                       Width: |-
                                                           =88
                                           - txtVhpSub:
@@ -3166,29 +3198,35 @@ Screens:
                                         =LayoutOverflow.Hide
                                     Width: |-
                                         =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18)) - ((111) + 12) - ((83) + 12) - (If((VhpPlanValid), (72) + 12, 0)) - 2)
-                              - txtVhpPlanHeadBadge:
-                                  Control: ModernText
+                              - bdgVhpPlanHeadBadge:
+                                  Control: ModernBadge@1.0.0
                                   Properties:
                                     AccessibleLabel: |-
-                                        =If(Self.Text = "Valid", "Step 1: valid", "Step 1: " & If(Self.Text = "Invalid", "invalid", "not complete yet"))
+                                        =If(Self.Content = "Valid", "Step 1: valid", "Step 1: " & If(Self.Content = "Invalid", "invalid", "not complete yet"))
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
                                         =AlignInContainer.Center
+                                    Appearance: |-
+                                        =BadgeAppearance.Filled
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
                                         =0
                                     Color: |-
-                                        =Switch(Self.Text, "Valid", C.'state-ok-fg', "Invalid", C.'state-error-fg', C.'text-muted')
+                                        =Switch(Self.Content, "Valid", C.'state-ok-fg', "Invalid", C.'state-error-fg', C.'text-muted')
+                                    Content: |-
+                                        =If(VhpPlanValid, "Valid", "")
                                     Fill: |-
-                                        =Switch(Self.Text, "Valid", C.'state-ok-bg', "Invalid", C.'state-error-bg', C.'state-neutral-bg')
+                                        =Switch(Self.Content, "Valid", C.'state-ok-bg', "Invalid", C.'state-error-bg', C.'state-neutral-bg')
                                     Font: |-
                                         =Font.'Segoe UI'
                                     FontWeight: |-
                                         =FontWeight.Semibold
                                     Height: |-
                                         =22
+                                    Intent: |-
+                                        =BadgeIntent.Neutral
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -3205,16 +3243,16 @@ Screens:
                                         =12
                                     RadiusTopRight: |-
                                         =12
+                                    Shape: |-
+                                        =BadgeShape.Circular
                                     Size: |-
                                         =T.micro
-                                    Text: |-
-                                        =If(VhpPlanValid, "Valid", "")
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
                                     Visible: |-
                                         =(VhpPlanValid)
                                     Width: |-
                                         =72
-                                    Wrap: |-
-                                        =false
                         - conVhpPlanHelp:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -6030,29 +6068,46 @@ Screens:
                                                       Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
                                                   )
                                               )))), (72) + 12, 0)) - (If(!varVhpViewOnly, (Max(36, H.hit)) + 12, 0)) - (If(!varVhpViewOnly, (108) + 12, 0)) - 2)
-                                    - txtVhpItemsHeadBadge:
-                                        Control: ModernText
+                                    - bdgVhpItemsHeadBadge:
+                                        Control: ModernBadge@1.0.0
                                         Properties:
                                           AccessibleLabel: |-
-                                              =If(Self.Text = "Valid", "Step 2: valid", "Step 2: " & If(Self.Text = "Invalid", "invalid", "not complete yet"))
+                                              =If(Self.Content = "Valid", "Step 2: valid", "Step 2: " & If(Self.Content = "Invalid", "invalid", "not complete yet"))
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
                                               =AlignInContainer.Center
+                                          Appearance: |-
+                                              =BadgeAppearance.Filled
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
                                               =0
                                           Color: |-
-                                              =Switch(Self.Text, "Valid", C.'state-ok-fg', "Invalid", C.'state-error-fg', C.'text-muted')
+                                              =Switch(Self.Content, "Valid", C.'state-ok-fg', "Invalid", C.'state-error-fg', C.'text-muted')
+                                          Content: |-
+                                              =If((VhpItemsValid && !(With(
+                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                  !IsBlank(varVhpActiveItemId) && (
+                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
+                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
+                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                  )
+                                              ))), "Valid", "")
                                           Fill: |-
-                                              =Switch(Self.Text, "Valid", C.'state-ok-bg', "Invalid", C.'state-error-bg', C.'state-neutral-bg')
+                                              =Switch(Self.Content, "Valid", C.'state-ok-bg', "Invalid", C.'state-error-bg', C.'state-neutral-bg')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           FontWeight: |-
                                               =FontWeight.Semibold
                                           Height: |-
                                               =22
+                                          Intent: |-
+                                              =BadgeIntent.Neutral
                                           PaddingBottom: |-
                                               =0
                                           PaddingLeft: |-
@@ -6069,21 +6124,12 @@ Screens:
                                               =12
                                           RadiusTopRight: |-
                                               =12
+                                          Shape: |-
+                                              =BadgeShape.Circular
                                           Size: |-
                                               =T.micro
-                                          Text: |-
-                                              =If((VhpItemsValid && !(With(
-                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                  !IsBlank(varVhpActiveItemId) && (
-                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                  )
-                                              ))), "Valid", "")
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
                                           Visible: |-
                                               =((VhpItemsValid && !(With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
@@ -6099,8 +6145,6 @@ Screens:
                                               ))))
                                           Width: |-
                                               =72
-                                          Wrap: |-
-                                              =false
                                     - btnVhpCopyItem:
                                         Control: ModernButton
                                         Properties:
@@ -7198,29 +7242,46 @@ Screens:
                                                     =(!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)
                                                 Width: |-
                                                     =110
-                                          - txtVhpEditorHeadBadge:
-                                              Control: ModernText
+                                          - bdgVhpEditorHeadBadge:
+                                              Control: ModernBadge@1.0.0
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    =If(Self.Text = "Valid", "Step 2: valid", "Step 2: " & If(Self.Text = "Invalid", "invalid", "not complete yet"))
+                                                    =If(Self.Content = "Valid", "Step 2: valid", "Step 2: " & If(Self.Content = "Invalid", "invalid", "not complete yet"))
                                                 Align: |-
                                                     =Align.Center
                                                 AlignInContainer: |-
                                                     =AlignInContainer.Center
+                                                Appearance: |-
+                                                    =BadgeAppearance.Filled
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =Switch(Self.Text, "Valid", C.'state-ok-fg', "Invalid", C.'state-error-fg', C.'text-muted')
+                                                    =Switch(Self.Content, "Valid", C.'state-ok-fg', "Invalid", C.'state-error-fg', C.'text-muted')
+                                                Content: |-
+                                                    =If((VhpItemsValid && !(With(
+                                                        { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                        !IsBlank(varVhpActiveItemId) && (
+                                                            Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                            (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                            (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                            (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
+                                                            (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
+                                                            (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                            Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                        )
+                                                    ))), "Valid", LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status = "invalid", "Invalid", "")
                                                 Fill: |-
-                                                    =Switch(Self.Text, "Valid", C.'state-ok-bg', "Invalid", C.'state-error-bg', C.'state-neutral-bg')
+                                                    =Switch(Self.Content, "Valid", C.'state-ok-bg', "Invalid", C.'state-error-bg', C.'state-neutral-bg')
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 FontWeight: |-
                                                     =FontWeight.Semibold
                                                 Height: |-
                                                     =22
+                                                Intent: |-
+                                                    =BadgeIntent.Neutral
                                                 PaddingBottom: |-
                                                     =0
                                                 PaddingLeft: |-
@@ -7237,21 +7298,12 @@ Screens:
                                                     =12
                                                 RadiusTopRight: |-
                                                     =12
+                                                Shape: |-
+                                                    =BadgeShape.Circular
                                                 Size: |-
                                                     =T.micro
-                                                Text: |-
-                                                    =If((VhpItemsValid && !(With(
-                                                        { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
-                                                        !IsBlank(varVhpActiveItemId) && (
-                                                            Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
-                                                            (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
-                                                            (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
-                                                            (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
-                                                            (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
-                                                            (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
-                                                            Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
-                                                        )
-                                                    ))), "Valid", LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status = "invalid", "Invalid", "")
+                                                VerticalAlign: |-
+                                                    =VerticalAlign.Middle
                                                 Visible: |-
                                                     =((VhpItemsValid && !(With(
                                                         { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
@@ -7267,8 +7319,6 @@ Screens:
                                                     )))) || (LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status = "invalid")
                                                 Width: |-
                                                     =72
-                                                Wrap: |-
-                                                    =false
                                     - conVhpItemHelp:
                                         Control: GroupContainer
                                         Variant: AutoLayout
@@ -10406,29 +10456,35 @@ Screens:
                                         =LayoutOverflow.Hide
                                     Width: |-
                                         =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18)) - ((228) + 12) - (If((VhpOpsValid), (72) + 12, 0)) - 2)
-                              - txtVhpOpsHeadBadge:
-                                  Control: ModernText
+                              - bdgVhpOpsHeadBadge:
+                                  Control: ModernBadge@1.0.0
                                   Properties:
                                     AccessibleLabel: |-
-                                        =If(Self.Text = "Valid", "Step 3: valid", "Step 3: " & If(Self.Text = "Invalid", "invalid", "not complete yet"))
+                                        =If(Self.Content = "Valid", "Step 3: valid", "Step 3: " & If(Self.Content = "Invalid", "invalid", "not complete yet"))
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
                                         =AlignInContainer.Center
+                                    Appearance: |-
+                                        =BadgeAppearance.Filled
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
                                         =0
                                     Color: |-
-                                        =Switch(Self.Text, "Valid", C.'state-ok-fg', "Invalid", C.'state-error-fg', C.'text-muted')
+                                        =Switch(Self.Content, "Valid", C.'state-ok-fg', "Invalid", C.'state-error-fg', C.'text-muted')
+                                    Content: |-
+                                        =If(VhpOpsValid, "Valid", "")
                                     Fill: |-
-                                        =Switch(Self.Text, "Valid", C.'state-ok-bg', "Invalid", C.'state-error-bg', C.'state-neutral-bg')
+                                        =Switch(Self.Content, "Valid", C.'state-ok-bg', "Invalid", C.'state-error-bg', C.'state-neutral-bg')
                                     Font: |-
                                         =Font.'Segoe UI'
                                     FontWeight: |-
                                         =FontWeight.Semibold
                                     Height: |-
                                         =22
+                                    Intent: |-
+                                        =BadgeIntent.Neutral
                                     PaddingBottom: |-
                                         =0
                                     PaddingLeft: |-
@@ -10445,16 +10501,16 @@ Screens:
                                         =12
                                     RadiusTopRight: |-
                                         =12
+                                    Shape: |-
+                                        =BadgeShape.Circular
                                     Size: |-
                                         =T.micro
-                                    Text: |-
-                                        =If(VhpOpsValid, "Valid", "")
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
                                     Visible: |-
                                         =(VhpOpsValid)
                                     Width: |-
                                         =72
-                                    Wrap: |-
-                                        =false
                         - conVhpOpsHelp:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -19748,8 +19804,16 @@ Screens:
                                           Width: |-
                                               =26
                                     - btnVhpPickerHeadPartial:
-                                        Control: Classic/Button
+                                        Control: ModernButton
                                         Properties:
+                                          AccessibleLabel: |-
+                                              ="Some lines selected - select all"
+                                          Align: |-
+                                              =Align.Center
+                                          Appearance: |-
+                                              =ButtonAppearance.Primary
+                                          BasePaletteColor: |-
+                                              =C.'color-brand-primary'
                                           BorderColor: |-
                                               =C.'color-brand-primary'
                                           BorderStyle: |-
@@ -19758,20 +19822,12 @@ Screens:
                                               =1
                                           Color: |-
                                               =C.'text-on-primary'
-                                          Fill: |-
-                                              =C.'color-brand-primary'
-                                          FocusedBorderColor: |-
-                                              =C.'color-brand-primary'
-                                          FocusedBorderThickness: |-
-                                              =2
+                                          Font: |-
+                                              =Font.'Segoe UI'
                                           FontWeight: |-
                                               =FontWeight.Bold
                                           Height: |-
                                               =18
-                                          HoverColor: |-
-                                              =C.'text-on-primary'
-                                          HoverFill: |-
-                                              =C.'color-brand-primary'
                                           OnSelect: |-
                                               =Collect(
                                                   colVhpPickerSelected,
@@ -19794,10 +19850,6 @@ Screens:
                                               =0
                                           PaddingTop: |-
                                               =0
-                                          PressedColor: |-
-                                              =C.'text-on-primary'
-                                          PressedFill: |-
-                                              =C.'color-brand-primary'
                                           RadiusBottomLeft: |-
                                               =4
                                           RadiusBottomRight: |-
@@ -19808,12 +19860,12 @@ Screens:
                                               =4
                                           Size: |-
                                               =T.small
-                                          TabIndex: |-
-                                              =0
                                           Text: |-
                                               ="−"
                                           Tooltip: |-
                                               ="Some lines selected - select all"
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
                                           Visible: |-
                                               =LayoutRank >= 3 && IfError(CountRows(Filter(Filter(
                                                   LookUp(colVhpTasklists, Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Operations,
@@ -24482,38 +24534,28 @@ Screens:
                                                 Width: |-
                                                     =20
                                           - btnVhpFbSubject:
-                                              Control: Classic/Button
+                                              Control: ModernButton
                                               Properties:
+                                                AccessibleLabel: |-
+                                                    =If(!IsBlank(gblFbSel.Kind), gblFbSel.Label, "Pick a subject or request")
                                                 Align: |-
                                                     =Align.Left
-                                                BorderColor: |-
-                                                    =RGBA(0, 0, 0, 0)
+                                                Appearance: |-
+                                                    =ButtonAppearance.Transparent
                                                 BorderStyle: |-
                                                     =BorderStyle.None
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
                                                     =If(!IsBlank(gblFbSel.Kind), C.'input-fg', C.'text-muted')
-                                                Fill: |-
-                                                    =RGBA(0, 0, 0, 0)
                                                 FillPortions: |-
                                                     =0
-                                                FocusedBorderColor: |-
-                                                    =C.'color-brand-primary'
-                                                FocusedBorderThickness: |-
-                                                    =2
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 FontWeight: |-
                                                     =FontWeight.Normal
                                                 Height: |-
                                                     =34
-                                                HoverBorderColor: |-
-                                                    =RGBA(0, 0, 0, 0)
-                                                HoverColor: |-
-                                                    =If(!IsBlank(gblFbSel.Kind), C.'input-fg', C.'text-muted')
-                                                HoverFill: |-
-                                                    =RGBA(0, 0, 0, 0)
                                                 LayoutMinWidth: |-
                                                     =0
                                                 OnSelect: |-
@@ -24526,16 +24568,16 @@ Screens:
                                                     =0
                                                 PaddingTop: |-
                                                     =0
-                                                PressedBorderColor: |-
-                                                    =RGBA(0, 0, 0, 0)
-                                                PressedColor: |-
-                                                    =If(!IsBlank(gblFbSel.Kind), C.'input-fg', C.'text-muted')
-                                                PressedFill: |-
-                                                    =RGBA(0, 0, 0, 0)
+                                                RadiusBottomLeft: |-
+                                                    =0
+                                                RadiusBottomRight: |-
+                                                    =0
+                                                RadiusTopLeft: |-
+                                                    =0
+                                                RadiusTopRight: |-
+                                                    =0
                                                 Size: |-
                                                     =If(LayoutRank < 2, 12, 10.5)
-                                                TabIndex: |-
-                                                    =0
                                                 Text: |-
                                                     =With({t: If(!IsBlank(gblFbSel.Kind), gblFbSel.Label, "Pick a subject or request"), c: RoundDown((Self.Width) / If(LayoutRank < 2, 8.2, 7.2), 0)}, If(Len(t) > c, Left(t, Max(1, c - 3)) & "...", t))
                                                 VerticalAlign: |-

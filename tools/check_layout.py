@@ -35,6 +35,7 @@ if HERE not in sys.path:
     sys.path.insert(0, HERE)
 import layout_tokens as lay
 import fx
+from design_tokens import TRANSPARENT as TRANSPARENT_FX
 
 # Skaermen findes af sig selv ud fra arbejdsmappen. Er der mere end een
 # skaerm, angives den paa kommandolinjen.
@@ -811,6 +812,13 @@ def rule_25(ctx):
     # og de knapper virkede.
     for p, name, body in all_nodes:
         if body.get("Control") != "ModernButton":
+            continue
+        # Undtagelse (issue #307): en knap med PaddingTop/-Bottom = 0 har
+        # ingen indre luft, der kan skubbe teksten ud (build_helpers.flat_button,
+        # fx "nogle valgt"-feltet paa 18 px i operationsvaelgeren).
+        pp_ = body.get("Properties") or {}
+        if all(str(pp_.get(k, "")).strip().lstrip("=").strip() == "0"
+               for k in ("PaddingTop", "PaddingBottom")):
             continue
         h = evaluate((body.get("Properties") or {}).get("Height"), 1366, 3, 4, 4)
         if h is not None and h < lay.BUTTON_MIN_H:
@@ -2104,6 +2112,25 @@ PROGRESS_PROPS = {
 }
 
 
+BUTTON_CONTROL = "ModernButton"
+# Den opdaterede moderne knaps egenskaber efter Microsoft Learn ("Button
+# modern control in canvas apps") plus Layout = ButtonLayout.TextOnly, som
+# appen har deployet siden starten. Ingen TabIndex, Fill, HoverFill,
+# PressedFill eller Focused* - og ingen af de gamle Font*-navne.
+BUTTON_PROPS = {
+    "AccessibleLabel", "Align", "Appearance", "BasePaletteColor", "BorderColor",
+    "BorderStyle", "BorderThickness", "Color", "ContentLanguage", "DisplayMode",
+    "Font", "FontWeight", "Height", "Icon", "IconRotation", "IconStyle", "Italic",
+    "Layout", "OnSelect", "PaddingBottom", "PaddingLeft", "PaddingRight",
+    "PaddingTop", "RadiusBottomLeft", "RadiusBottomRight", "RadiusTopLeft",
+    "RadiusTopRight", "Size", "Strikethrough", "Text", "Tooltip", "Underline",
+    "VerticalAlign", "Visible", "Width", "X", "Y",
+    # Containerens egne egenskaber paa ethvert barn.
+    "AlignInContainer", "FillPortions", "LayoutMinHeight", "LayoutMinWidth",
+    "LayoutMaxHeight", "LayoutMaxWidth",
+}
+
+
 def rule_16f(ctx):
     """Gem/upload-bjaelken er ModernProgressBar@1.0.0, ubestemt (issue #305)"""
     # Alle bjaelker kommer fra progress_overlay.progress_bar. Versionen er
@@ -2126,6 +2153,32 @@ def rule_16f(ctx):
                                 f"kender ikke fremskridtet")
 
 
+def rule_16k(ctx):
+    """Knapper er ModernButton - Classic/Button kun som gennemsigtigt klik-lag (issue #307)"""
+    # Studio skriver ModernButton uden @-version; en version er ikke
+    # afproevet (jf. regel 16b). En klassisk knap er kun tilladt som
+    # klik-lag over en raekke (build_helpers.row_hit og btnMdRowApproval):
+    # de har gennemsigtig tekst og brug for HoverFill/PressedFill, som den
+    # moderne knap ikke har. Alt andet bygges med build_helpers.button
+    # eller flat_button.
+    for p_, name, body in ctx.all_nodes:
+        ctl = (body.get("Control") or "").strip()
+        props = body.get("Properties") or {}
+        base = ctl.split("@")[0]
+        if base == "ModernButton":
+            if ctl != BUTTON_CONTROL:
+                ctx.problems.append(f"[16k] {name}: {ctl} - knapper er {BUTTON_CONTROL} "
+                                    f"uden version")
+            for key in sorted(set(props) - BUTTON_PROPS):
+                ctx.problems.append(f"[16k] {name}: {ctl} - '{key}' er ikke en "
+                                    f"dokumenteret Button-egenskab")
+        elif base == "Classic/Button":
+            col = str(props.get("Color", "")).strip().lstrip("=").strip()
+            if col != TRANSPARENT_FX:
+                ctx.problems.append(f"[16k] {name}: Classic/Button med synlig tekst - brug "
+                                    f"build_helpers.button/flat_button (ModernButton)")
+
+
 def rule_33(ctx):
     """Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4)"""
     all_nodes = ctx.all_nodes
@@ -2138,7 +2191,7 @@ def rule_33(ctx):
               "ModernDatePicker": "dte", "Classic/DropDown": "drp",
               "ModernCombobox": "cmb", "ModernCheckbox": "chk",
               "ModernToggle": "tgl", "ModernAttachments": "att",
-              "ModernProgressBar": "prg", "ModernSpinner": "spn"}
+              "ModernProgressBar": "prg", "ModernBadge": "bdg", "ModernSpinner": "spn"}
     for p_, name, body in all_nodes:
         want = PREFIX.get((body.get("Control") or "").strip().split("@")[0])
         if want and not re.match(want + r"[A-Z]", name):
@@ -2414,8 +2467,7 @@ def rule_38(ctx):
     kinds = ("Image", "Rectangle", "ModernText", "ModernButton", "ModernTextInput",
              "ModernNumberInput", "ModernDropdown", "ModernCombobox", "ModernCheckbox",
              "ModernDatePicker", "ModernToggle", "ModernAttachments", "ModernSpinner",
-             "ModernProgressBar",
-             "Gallery")
+             "ModernProgressBar", "ModernBadge", "Gallery")
     for _p, name, body in ctx.all_nodes:
         ctl = (body.get("Control") or "").strip().split("@")[0]
         if ctl not in kinds:
@@ -2506,6 +2558,48 @@ def rule_42(ctx):
                 f"(T.micro/small/body/input/cardTitle/pageTitle)")
 
 
+BADGE_CONTROL = "ModernBadge@1.0.0"
+# Badgens egenskaber efter Microsoft Learn ("Badge modern control in canvas
+# apps", den opdaterede Badge). Ingen TabIndex og ingen af de gamle navne
+# (FontColor, FontSize, ThemeColor ...). Text hedder Content.
+BADGE_PROPS = {
+    "AccessibleLabel", "Align", "Appearance", "BasePaletteColor", "BorderColor",
+    "BorderStyle", "BorderThickness", "Color", "Content", "ContentLanguage",
+    "DisplayMode", "Fill", "Font", "FontWeight", "Height", "Icon", "IconPosition",
+    "Intent", "Italic", "OnSelect", "PaddingBottom", "PaddingLeft", "PaddingRight",
+    "PaddingTop", "RadiusBottomLeft", "RadiusBottomRight", "RadiusTopLeft",
+    "RadiusTopRight", "Shape", "Size", "Strikethrough", "Tooltip", "Underline",
+    "VerticalAlign", "Visible", "Width", "X", "Y",
+    # Containerens egne egenskaber paa ethvert barn.
+    "AlignInContainer", "FillPortions", "LayoutMinHeight", "LayoutMinWidth",
+    "LayoutMaxHeight", "LayoutMaxWidth",
+}
+
+
+def rule_16e(ctx):
+    """Maerker er ModernBadge@1.0.0 med vores egne farver (issue #304)"""
+    # Alle status- og nummermaerker kommer fra build_helpers.modern_badge.
+    # Versionen er Learns; en anden er ikke afproevet (jf. regel 16b og
+    # issue #165). Color og Fill skal staa: ellers tegner Fluent maerket i
+    # Intent-farven, og statusfarverne (state-*) er vaek - i moerk
+    # tilstand ogsaa vores tema.
+    for p_, name, body in ctx.all_nodes:
+        ctl = (body.get("Control") or "").strip()
+        if ctl.split("@")[0] != "ModernBadge":
+            continue
+        props = body.get("Properties") or {}
+        if ctl != BADGE_CONTROL:
+            ctx.problems.append(f"[16e] {name}: {ctl} - maerker er {BADGE_CONTROL} "
+                                f"fra build_helpers.modern_badge")
+        for key in sorted(set(props) - BADGE_PROPS):
+            ctx.problems.append(f"[16e] {name}: {ctl} - '{key}' er ikke en "
+                                f"dokumenteret Badge-egenskab")
+        for key in ("Color", "Fill", "Content", "AccessibleLabel"):
+            if key not in props:
+                ctx.problems.append(f"[16e] {name}: {ctl} mangler {key} - "
+                                    f"brug build_helpers.modern_badge")
+
+
 RULES = [
     Rule('0', 'Hvert kontrolnavn findes kun een gang', rule_0),
     Rule('1', 'Ingen kontrol-til-kontrol hoejdereferencer', rule_1),
@@ -2547,6 +2641,7 @@ RULES = [
     Rule('16b', 'Kun ModernAttachments@1.3.0 til filer (issue #161)', rule_16b),
     Rule('16c', 'Hjul er ModernSpinner@1.1.0 - aldrig et animeret billede (issue #302)', rule_16c),
     Rule('16f', 'Gem/upload-bjaelken er ModernProgressBar@1.0.0, ubestemt (issue #305)', rule_16f),
+    Rule('16k', 'Knapper er ModernButton - Classic/Button kun som gennemsigtigt klik-lag (issue #307)', rule_16k),
     Rule('33', 'Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4)', rule_33),
     Rule('18', 'Enhver Gallery skal have TabIndex', rule_18),
     Rule('19', 'AccessibleLabel maa ikke vaere kontrollens navn', rule_19),
@@ -2560,6 +2655,7 @@ RULES = [
     Rule('40', 'Ikonknapper har mindst klikfladen H.hit (UX-review F6/T10)', rule_40),
     Rule('41', 'Ingen ModernNumberInput - tal er number_field (UX-review T10)', rule_41),
     Rule('42', 'Tekststoerrelser er paa typeskalaen T.* (UX-review M6)', rule_42),
+    Rule('16e', 'Maerker er ModernBadge@1.0.0 med vores egne farver (issue #304)', rule_16e),
 ]
 
 

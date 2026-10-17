@@ -51,7 +51,8 @@ from gen_screen import Ctrl, C_OVERLAY, C_MODAL_BG, C_PRIMARY_SOFT, C_MUTED, C_T
 from gen_screen import C_DISABLED_BG, C_DIVIDER, C_INPUT_BG, C_INPUT_FG, C_PRIMARY, C_TRANSPARENT, FONT
 from design_tokens import ref as _t, ref_hex
 from build_helpers import (group, text_ctrl, button, text_input,
-                           fit_button_width, grow, row_hit, ICON_W, ensure_hit)
+                           fit_button_width, grow, row_hit, ICON_W, ensure_hit,
+                           flat_button)
 import layout_tokens as lay
 import request_index as ri
 import icons
@@ -219,25 +220,14 @@ def _subject_picker(n, avail):
     # Pladsholderen og den valgte vaerdi har de andre felters typografi
     # (issue #205, se SUBJECT_SIZE): normal vaegt, een linje, ... til sidst.
     size = SUBJECT_SIZE
-    btn = Ctrl(n("btn", "Subject"), "Classic/Button", props={
-        "Align": "Align.Left",
-        "BorderColor": C_TRANSPARENT, "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
-        "Color": f"If({has}, {C_INPUT_FG}, {C_MUTED})",
-        "Fill": C_TRANSPARENT,
-        "FocusedBorderColor": C_PRIMARY, "FocusedBorderThickness": "2",
-        "Font": FONT, "FontWeight": "FontWeight.Normal",
-        "Height": "34",
-        "HoverBorderColor": C_TRANSPARENT, "HoverColor": f"If({has}, {C_INPUT_FG}, {C_MUTED})",
-        "HoverFill": C_TRANSPARENT,
-        "OnSelect": toggle,
-        "PaddingBottom": "0", "PaddingLeft": "0", "PaddingRight": "0", "PaddingTop": "0",
-        "PressedBorderColor": C_TRANSPARENT, "PressedColor": f"If({has}, {C_INPUT_FG}, {C_MUTED})",
-        "PressedFill": C_TRANSPARENT,
-        "Size": size,
-        "TabIndex": "0",
-        "Text": _fit(label, "Self.Width", SUBJECT_PX),
-        "VerticalAlign": "VerticalAlign.Middle",
-    }, h=34)
+    # ModernButton med Padding* = 0 og ingen kant (issue #307): teksten
+    # flugter med listen under (#140). Feltets flade og kant er beholderens
+    # (conXxFbSubject); knappen er gennemsigtig (ButtonAppearance.Transparent).
+    # Hover/tryk/fokus er Fluent-temaets - se docs/38.
+    btn = flat_button(
+        n("btn", "Subject"), _fit(label, "Self.Width", SUBJECT_PX), toggle,
+        accessible=label, height=34, size=size,
+        color=f"If({has}, {C_INPUT_FG}, {C_MUTED})")
     chevron = Ctrl(n("img", "SubjectChevron"), "Image", props={
         "AccessibleLabel": f'If({PICK}, "Collapse list", "Expand list")', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
         "Fill": C_TRANSPARENT, "Height": "20",
