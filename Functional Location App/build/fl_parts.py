@@ -1392,8 +1392,8 @@ def build_submit_confirm():
         "Fl", "varFlConfirmSubmit", "Submit request?",
         '"A JSON snapshot is frozen and the rows are locked."',
         "Submit", with_busy("varFlSaving", S.submit_fx()), "btnFlSubmitConfirm") + delete_modal(
-        "Fl", "varFlRequestGuid", cfg.L_INDEX, cfg.DOMAIN) + [
-        loading_overlay("imgFlSaving", "varFlSaving")]
+        "Fl", "varFlRequestGuid", cfg.L_INDEX, cfg.DOMAIN) + loading_overlay(
+        "imgFlSaving", "varFlSaving")
 
 
 # ---------------------------------------------------------------------------
