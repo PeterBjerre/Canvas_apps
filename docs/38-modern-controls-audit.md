@@ -76,6 +76,41 @@ gevinst og flere kontroller at teste; de bliver.
 |---|---|---|---|
 | ModernAttachments@1.3.0 | 5 (`attEqPicker`, `attMatPicker`, `attMpPicker`, `attVhpAttPicker`, `attIbFiles`) | vælg filer til upload | Byttet fra `Attachments@2.3.0`. Peters Studio (authoring 3.26101.10) kender typen og skriver `@1.3.0`. Stadig preview på Learn. Upload går uændret gennem flowene: `BioSap-TaskListAttachment` til biblioteket `TaskListDocuments` og `BioSap-IssueBoard-Submit` ("attach") til `IB_Tickets`. Regel 16b afviser den klassiske og enhver anden version. |
 
+### Gem og upload — byttet til ModernProgressBar@1.0.0 (#305)
+
+Gem-, send- og uploadsløret viste det samme drejende SVG-hjul som
+indlæsningen. En gemning eller upload kører, uden at appen kender
+fremskridtet, så det er nu Learns *ubestemte* Progress bar. Sløret er det
+samme Image som før (samme farve, tager stadig trykket), nu uden billede.
+
+| Kontrol (før → efter) | Skærm | Visible (uændret) | Tekst |
+|---|---|---|---|
+| `imgEqSaving` (slør) → + `prgEqSaving` | Eq | `IfError(varEqSaving, false)` | — |
+| `imgMatSaving` → + `prgMatSaving` | Mat | `IfError(varMatSaving, false)` | — |
+| `imgMpSaving` → + `prgMpSaving` | MP | `IfError(varMpSaving, false)` | — |
+| `imgFlSaving` → + `prgFlSaving` | FL | `IfError(varFlSaving, false)` | — |
+| `imgVhpSaving` → + `prgVhpSaving` | VHP | `IfError(varVhpSaving, false)` | — |
+| `imgIbBusy` → + `prgIbBusy` ("Sending") | IB | `IfError((varIbBusy \|\| varIbPosting) && !varIbUploading, false)` | — |
+| `imgIbUploading` → + `prgIbUploading` + `txtIbUploadingCaption` | IB | `IfError(varIbUploading, false)` | "Uploading files..." under bjælken (stod før i SVG'en under hjulet) |
+
+Bjælken: `Indeterminate = true`, `ProgressColor.Brand`,
+`ProgressThickness.Large`, `ProgressShape.Rounded`, 8 px høj,
+`Min(320, App.Width - 32)` bred, midt på skærmen. `AccessibleLabel` er
+slørets tekst ("Saving, please wait" osv.). Learn: kontrollen viser ingen
+tekst, så billedteksten er en ModernText. Farven kan kun være en af Fluents
+semantiske farver (Brand = appens brandfarve); sporets farve kan ikke
+sættes. Bygger: `tools/progress_overlay.py` (`progress_overlay`,
+`progress_bar`). Regel 16f afviser en anden version, en udokumenteret
+egenskab og `Indeterminate` ≠ `true`; præfikset er `prg` (regel 33).
+
+Bevidst **ikke** byttet:
+
+| Indikator | Hvorfor |
+|---|---|
+| Dokumentrudernes upload (Eq, Mat, MP, VHP: statuslinjen "Working... please wait." i `tools/attflows.py`/`tools/doc_upload.py`) | Ruderne bygges om i PR #323. Følger efter #323, så de to ikke konflikter. |
+| Indlæsning: `imgKksLoading`, `imgMdNavigating` ("Opening..."), kortet "Opening request" (`*LoadIcon`), `imgMdAprSpinner`, "Searching..." | Ikke gem/upload, men indlæsning/søgning: de er hjul og hører til ModernSpinner (#302). |
+| `loading_overlay` i `tools/build_helpers.py` | Bruges stadig af indlæsningen ovenfor; gem/upload kalder den ikke længere. |
+
 ## Versioner og egenskaber
 
 - Kun `ModernAttachments@1.3.0` har en eksplicit version i YAML'en (indtil
@@ -89,6 +124,9 @@ gevinst og flere kontroller at teste; de bliver.
   `Align.*`, `FontWeight.*`). Intet at opdatere.
 - `ModernButton` har stadig ingen `TabIndex` (check_layout regel 10) og
   intet `Fill`.
+- `ModernProgressBar@1.0.0` (#305) har eksplicit version: den, Learns
+  YAML-eksempel skriver. Ikke set i Peters Studio før; giver den "Unknown
+  control type", rulles #305 tilbage.
 
 ## Kandidater — kræver Peters bekræftelse først
 
@@ -101,7 +139,6 @@ Modern controls**, at typen findes og deployer, før den tages i brug.
 | ModernIcon | 34 dekorative ikoner | Kun Fluent-ikoner; domæneikonerne (`tools/icons.py`) findes ikke der. |
 | ModernBadge | nummer- og statusbadges (i dag ModernText/Image) | |
 | ModernTabList | faner (`galFlTabs`, VHP's ops/pkg-knapper, IB's scope/state) | |
-| ModernProgressBar | "Saving"/"Uploading"-billeder | |
 | ModernLink | evt. links, der i dag er knapper | |
 | ModernToggle, ModernRadio | par af Primary/Outline-knapper som vælgere | |
 | ModernTable (preview) | simple læselister | Preview: ikke til kritiske lister. |
