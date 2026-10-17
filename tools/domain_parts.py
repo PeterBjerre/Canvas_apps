@@ -1715,14 +1715,14 @@ def send_fx(submit):
 def build_submit_confirm():
     """Bekraeftelsen foer Submit og ventespinneren (issue #54).
 
-    [sloer, popup, spinner] - skal staa SIDST i skaermens boern, saa de
+    [sloer, popup, sloer, spinner] - skal staa SIDST i skaermens boern, saa de
     ligger oven paa alt andet."""
     return confirm_modal(
         "Dom", CONFIRM_VAR, "Submit request?",
         '"The valid rows are sent to the landing page as Submitted and locked."',
         "Submit", with_busy(SAVING_VAR, send_fx(True)), "btnDomSubmitConfirm") + delete_modal(
-        "Dom", "varDomRequestGuid", cfg.L_INDEX, cfg.DOMAIN, WHAT) + [
-        loading_overlay("imgDomSaving", SAVING_VAR)]
+        "Dom", "varDomRequestGuid", cfg.L_INDEX, cfg.DOMAIN, WHAT) + loading_overlay(
+        "imgDomSaving", SAVING_VAR)
 
 
 # ---------------------------------------------------------------------------

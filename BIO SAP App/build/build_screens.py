@@ -432,7 +432,7 @@ def build_hub():
     if seen["props"].get("OnVisible") != build_hub.HUB_ON_VISIBLE:
         raise SystemExit("Masterdata Hub's OnVisible er aendret - byg den ind her.")
     from build_helpers import loading_overlay as shared_overlay
-    seen["children"].append(shared_overlay("imgMdNavigating", "gblNavigating",
+    seen["children"].extend(shared_overlay("imgMdNavigating", "gblNavigating",
                                            "Opening, please wait", "Opening..."))
     _write(d["screen"], render_screen(d["screen"], screen_props(seen["props"]),
                                       with_toast(d, seen["children"])))
