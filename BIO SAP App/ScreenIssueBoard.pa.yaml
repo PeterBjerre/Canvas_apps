@@ -13950,25 +13950,25 @@ Screens:
                 =0
             Y: |-
                 =0
-      - spnIbBusy:
-          Control: ModernSpinner@1.1.0
+      - prgIbBusy:
+          Control: ModernProgressBar@1.0.0
           Properties:
             AccessibleLabel: |-
                 ="Sending, please wait"
-            BasePaletteColor: |-
-                =C.'color-brand-primary'
-            Color: |-
-                =C.'text-primary'
-            Font: |-
-                =Font.'Segoe UI'
             Height: |-
-                =64
-            Label: |-
-                =""
+                =8
+            Indeterminate: |-
+                =true
+            ProgressColor: |-
+                =ProgressColor.Brand
+            Shape: |-
+                =ProgressShape.Rounded
+            Thickness: |-
+                =ProgressThickness.Large
             Visible: |-
                 =IfError((varIbBusy || varIbPosting) && !varIbUploading, false)
             Width: |-
-                =64
+                =Min(320, App.Width - 32)
             X: |-
                 =(App.Width - Self.Width) / 2
             Y: |-
@@ -14006,35 +14006,72 @@ Screens:
                 =0
             Y: |-
                 =0
-      - spnIbUploading:
-          Control: ModernSpinner@1.1.0
+      - prgIbUploading:
+          Control: ModernProgressBar@1.0.0
           Properties:
             AccessibleLabel: |-
                 ="Saving files, please wait"
-            BasePaletteColor: |-
-                =C.'color-brand-primary'
+            Height: |-
+                =8
+            Indeterminate: |-
+                =true
+            ProgressColor: |-
+                =ProgressColor.Brand
+            Shape: |-
+                =ProgressShape.Rounded
+            Thickness: |-
+                =ProgressThickness.Large
+            Visible: |-
+                =IfError(varIbUploading, false)
+            Width: |-
+                =Min(320, App.Width - 32)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =(App.Height - Self.Height) / 2
+      - txtIbUploadingCaption:
+          Control: ModernText
+          Properties:
+            AccessibleLabel: |-
+                ="Saving files..."
+            Align: |-
+                =Align.Center
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
             Color: |-
                 =C.'text-primary'
+            Fill: |-
+                =RGBA(0, 0, 0, 0)
             Font: |-
                 =Font.'Segoe UI'
             FontWeight: |-
                 =FontWeight.Semibold
             Height: |-
-                =100
-            Label: |-
-                ="Saving files..."
-            LabelPosition: |-
-                =SpinnerLabelPosition.Below
+                =24
+            PaddingBottom: |-
+                =0
+            PaddingLeft: |-
+                =0
+            PaddingRight: |-
+                =0
+            PaddingTop: |-
+                =0
             Size: |-
                 =T.input
+            Text: |-
+                ="Saving files..."
             Visible: |-
                 =IfError(varIbUploading, false)
             Width: |-
-                =Min(440, App.Width - 32)
+                =Min(320, App.Width - 32)
+            Wrap: |-
+                =false
             X: |-
                 =(App.Width - Self.Width) / 2
             Y: |-
-                =(App.Height - Self.Height) / 2
+                =App.Height / 2 + 16
       - conIbToast:
           Control: GroupContainer
           Variant: AutoLayout

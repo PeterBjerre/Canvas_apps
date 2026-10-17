@@ -84,6 +84,7 @@ import icons
 import status_chip as sc
 import display_text as dt
 import layout_tokens as lay
+from progress_overlay import progress_overlay
 from layout_tokens import SHELL_W, below, at_least, if_below
 
 import ib_config as cfg
@@ -2360,7 +2361,8 @@ def build_delete():
 def build_loading():
     # Hentningen af listen har pladsholder-raekker (conIbSkeleton, M7);
     # hjulet daekker kun det, brugeren selv har sat i gang.
-    return [*loading_overlay("imgIbBusy", "(varIbBusy || varIbPosting) && !varIbUploading",
-                             "Sending, please wait"),
-            *loading_overlay("imgIbUploading", "varIbUploading", "Saving files, please wait",
-                             caption="Saving files...")]
+    # Gem og upload er en ubestemt Progress bar (issue #305); samme Visible.
+    return [*progress_overlay("imgIbBusy", "(varIbBusy || varIbPosting) && !varIbUploading",
+                              "Sending, please wait"),
+            *progress_overlay("imgIbUploading", "varIbUploading", "Saving files, please wait",
+                              caption="Saving files...")]
