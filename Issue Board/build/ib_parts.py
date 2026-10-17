@@ -77,7 +77,7 @@ from build_helpers import (empty_state, fluent, fluent_icon, skeleton_rows, ensu
                            flow_row, grow, icon_on_mobile, label_row, loading_overlay, row_hit, row_rule,
                            tap_backdrop,
                            label_px, text_ctrl, text_input, text_min_height, text_px, themed_dropdown, top_bar,
-                           ICON_W)
+                           ICON_W, modern_badge)
 from permissions import IS_ADMIN, ADMIN_LIST, ADMIN_GROUP
 from design_tokens import ref as _t, ref_hex
 import icons
@@ -962,11 +962,11 @@ def _pri_badge(name, expr, width=PRI_W, visible=None):
 
 
 def _no_badge(name, expr, width=NO_W):
-    """Sagsnummeret som kompakt maerke."""
-    return text_ctrl(name, expr, size=lay.SIZE_SMALL, weight="Semibold", color=C_PRIMARY,
-                     height=CHIP_H, width=width, align="Center", fill=C_MUTED_BG,
-                     accessible='"Ticket " & Self.Text',
-                     extra={"VerticalAlign": "VerticalAlign.Middle", **lay.radius(12)})
+    """Sagsnummeret som kompakt maerke - en ModernBadge (#304), samme
+    farver og maal som teksten foer."""
+    return modern_badge(name, expr, size=lay.SIZE_SMALL, color=C_PRIMARY, fill=C_MUTED_BG,
+                        height=CHIP_H, width=width, radius=12,
+                        accessible='"Ticket " & Self.Content')
 
 
 def _text_chip(name, key, table, prefix, visible=None):
@@ -986,11 +986,10 @@ def _text_chip(name, key, table, prefix, visible=None):
                _t("state-neutral-fg"))
     align = sw(lambda lbl, tone: "Align.Left" if tone == "plain" else "Align.Center", "Align.Center")
     text = sw(lambda lbl, tone: f'"{lbl}"', '"Unknown"')
-    t = text_ctrl(name, text, size=sc.SIZE, weight="Semibold", color=color, height=CHIP_H,
-                  width=width, fill=fill, accessible=f"{prefix} & Self.Text", visible=visible,
-                  extra={"Align": align, "VerticalAlign": "VerticalAlign.Middle",
-                         "PaddingLeft": "0", "PaddingRight": "0", "LayoutMinWidth": width,
-                         **lay.radius(CHIP_H // 2)})
+    # En ModernBadge (#304): samme tekst, farvepar, bredde og hjoerner.
+    t = modern_badge(name, text, size=sc.SIZE, color=color, fill=fill, height=CHIP_H,
+                     width=width, accessible=f"{prefix} & Self.Content", visible=visible,
+                     extra={"Align": align, "LayoutMinWidth": width})
     return t, f"({width})"
 
 
@@ -1023,7 +1022,7 @@ def _table_row():
         return text_ctrl(name, expr, height=20, width=COL_W[key], wrap="false", **kw)
 
     cells = {
-        "ID": _no_badge("txtIbRowNo", "ThisItem.TicketNo", width=COL_W["ID"]),
+        "ID": _no_badge("bdgIbRowNo", "ThisItem.TicketNo", width=COL_W["ID"]),
         # Kun titlen, paa een linje - en lang titel afkortes med ellipse.
         "TITLE": txt("txtIbRowTitle", "TITLE", "ThisItem.Title", weight="Semibold",
                      accessible='"Title: " & ThisItem.Title'),
@@ -1076,7 +1075,7 @@ def _list_head():
 def _compact_row():
     """Under Desktop: nummer, prioritet og status; titlen; hvem og hvor
     (rapportoeren foerst - samme raekkefoelge som tabellen, issue #244)."""
-    no = _no_badge("txtIbRowNoC", "ThisItem.TicketNo")
+    no = _no_badge("bdgIbRowNoC", "ThisItem.TicketNo")
     pri = _pri_badge("txtIbRowPriorityC", "ThisItem.Priority", visible=at_least("Tablet"))
     gap = grow(group("conIbRowGapC", [], direction="Horizontal", height=0))
     chip = _chip("txtIbRowStatusC", "ThisItem.Status", "ThisItem.Archived")
@@ -2081,7 +2080,7 @@ def _role_tokens(expr):
 def build_detail():
     # 1. Sagsnummeret som maerke, titlen og Close (kun ikonet, oeverst til
     #    hoejre - popuppens eneste vej ud).
-    no = _no_badge("txtIbDetNo", f"{SEL}.TicketNo")
+    no = _no_badge("bdgIbDetNo", f"{SEL}.TicketNo")
     no.props["LayoutMinWidth"] = str(NO_W)
     # Bladring: raekkefoelgen er listens (filtreret og sorteret) - galIbList.AllItems.
     nav_list = "galIbList.AllItems"
@@ -2107,8 +2106,8 @@ def build_detail():
     # Maerkerne er tekster med statussens farvepar (som sagsnummeret,
     # _no_badge) - SVG-billederne (sc.status_chip) var tomme i Play her.
     key = f'If({SEL}.Archived, "Archived", {SEL}.Status)'
-    chip, chip_w = _text_chip("txtIbDetStatus", key, ISSUE_STATUS, '"Status: "')
-    pri, pri_w = _text_chip("txtIbDetPriority", f"{SEL}.Priority", sc.PRIORITY, '"Priority: "',
+    chip, chip_w = _text_chip("bdgIbDetStatus", key, ISSUE_STATUS, '"Status: "')
+    pri, pri_w = _text_chip("bdgIbDetPriority", f"{SEL}.Priority", sc.PRIORITY, '"Priority: "',
                             visible=f"!IsBlank({SEL}.Priority)")
     badges_w = f"({chip_w} + 8 + If(IsBlank({SEL}.Priority), 0, {pri_w} + 8))"
     badges = group("conIbDetBadges", [chip, pri], direction="Horizontal", gap=8, height=CHIP_H,
@@ -2209,11 +2208,10 @@ def build_detail():
                           "BorderStyle": "BorderStyle.Dashed",
                           "BorderThickness": "If(ThisItem.IsSystem, 1, 0)"})
     rfg, rbg = _role_tokens("ThisItem.Role")
-    role = text_ctrl("txtIbActRole", "ThisItem.Role", size=lay.SIZE_MICRO, weight="Semibold",
-                     height=20, width=ROLE_W, align="Center", color=rfg, fill=rbg,
-                     accessible='"Role: " & Self.Text',
-                     extra={"X": str(ACT_ROW_PAD), "Y": "8", "VerticalAlign": "VerticalAlign.Middle",
-                            **lay.radius(10)})
+    # Rollen som ModernBadge (#304) - samme farvepar og maal.
+    role = modern_badge("bdgIbActRole", "ThisItem.Role", color=rfg, fill=rbg, height=20,
+                        width=ROLE_W, radius=10, accessible='"Role: " & Self.Content',
+                        extra={"X": str(ACT_ROW_PAD), "Y": "8"})
     actor_x = ACT_ROW_PAD + ROLE_W + 8
     actor = text_ctrl("txtIbActActor",
                       'ThisItem.Actor & If(ThisItem.Internal, "  ·  internal note, admins only", '

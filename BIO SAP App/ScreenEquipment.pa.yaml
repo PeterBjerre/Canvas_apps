@@ -338,29 +338,61 @@ Screens:
                                               =Max(0, Min(127, ((Max(0, Min(221, ((Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 34)) - (If(LayoutRank >= 2, (32) + 10, 0)) - ((If(LayoutRank < 2, 103, 124)) + 10) - (If(LayoutRank >= 2, (1) + 10, 0)) - (If(IfError(varEqViewOnly && varEqCanEdit, false), (If(LayoutRank < 2, 40, 96)) + 10, 0)) - (If(!IsBlank(varEqRequestGuid), (If(LayoutRank < 2, 40, 130)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 135)) + 10, 0)) - (If(LayoutRank >= 3, (If(LayoutRank < 2, 40, 186)) + 10, 0)) - (If(!IfError(varEqViewOnly, true) && !IsBlank(varEqRequestGuid), (If(LayoutRank < 2, 40, 106)) + 10, 0)) - 2))))))) - (If(IsBlank(varEqRequestNo), 0, 6 + 88))))
                                           Wrap: |-
                                               =false
-                                    - imgEqNumber:
-                                        Control: Image
+                                    - bdgEqNumber:
+                                        Control: ModernBadge@1.0.0
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Number " & varEqRequestNo
+                                          Align: |-
+                                              =Align.Center
                                           AlignInContainer: |-
                                               =AlignInContainer.Center
+                                          Appearance: |-
+                                              =BadgeAppearance.Filled
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
                                               =0
+                                          Color: |-
+                                              =ColorValue(C.'hex-domain-eq')
+                                          Content: |-
+                                              =varEqRequestNo
+                                          Fill: |-
+                                              =ColorValue(C.'hex-domain-eq' & "1F")
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
                                           Height: |-
                                               =26
-                                          Image: |-
-                                              =If(IsBlank(varEqRequestNo), "", "data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='88' height='26' viewBox='0 0 88 26'><rect width='88' height='26' rx='13' fill='" & C.'hex-domain-eq' & "' fill-opacity='0.12'/><text x='44' y='17.5' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='12' font-weight='600' fill='" & C.'hex-domain-eq' & "'>" & varEqRequestNo & "</text></svg>"))
-                                          ImagePosition: |-
-                                              =ImagePosition.Fit
+                                          Intent: |-
+                                              =BadgeIntent.Neutral
                                           LayoutMinWidth: |-
                                               =88
-                                          OnSelect: |-
-                                              =false
-                                          TabIndex: |-
+                                          PaddingBottom: |-
                                               =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          RadiusBottomLeft: |-
+                                              =13
+                                          RadiusBottomRight: |-
+                                              =13
+                                          RadiusTopLeft: |-
+                                              =13
+                                          RadiusTopRight: |-
+                                              =13
+                                          Shape: |-
+                                              =BadgeShape.Circular
+                                          Size: |-
+                                              =T.small
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Visible: |-
+                                              =!IsBlank(varEqRequestNo)
                                           Width: |-
                                               =88
                               - txtEqSub:
