@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import render_screen, C_APP_BG, OUT_DIR
 from build_helpers import app_frame, sticky_actions
 from build_hero import build_top_bar, HELP_ON, HELP_ACTION, focus_border, CONFIRM
-from build_helpers import loading_overlay
+from progress_overlay import progress_overlay
 from gen_screen import C_CARD_BORDER
 from side_nav import side_nav
 from build_plan_header import build_plan_header
@@ -65,8 +65,9 @@ def build_screen(render=render_screen):
                           build_longtext_modal(), build_object_list_modal(),
                           *CONFIRM,
                           *overlay,
-                          # Ventespinneren, mens der gemmes - oeverst af alt.
-                          loading_overlay("imgVhpSaving", "varVhpSaving")])
+                          # Gem-bjaelken (issue #305), mens der gemmes - oeverst af alt.
+                          *progress_overlay("imgVhpSaving", "varVhpSaving",
+                                            "Saving, please wait")])
 
 
 def main():
