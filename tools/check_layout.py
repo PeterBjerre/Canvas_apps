@@ -2047,6 +2047,51 @@ def rule_16b(ctx):
                                 f"{ATTACHMENTS_CONTROL} fra doc_upload.picker")
 
 
+SPINNER_CONTROL = "ModernSpinner@1.1.0"
+# Spinnerens egenskaber efter Microsoft Learn (den opdaterede Spinner,
+# "Spinner modern control in canvas apps"). Ingen SpinnerSize, Fill eller
+# TabIndex - og ingen af de gamle Font*-navne.
+SPINNER_PROPS = {
+    "AccessibleLabel", "Appearance", "BasePaletteColor", "Color", "ContentLanguage",
+    "DisplayMode", "Font", "FontWeight", "Height", "Italic", "Label", "LabelPosition",
+    "OnChange", "Size", "Strikethrough", "Tooltip", "Underline", "Visible", "Width",
+    "X", "Y",
+    # Containerens egne egenskaber paa ethvert barn.
+    "AlignInContainer", "FillPortions", "LayoutMinHeight", "LayoutMinWidth",
+    "LayoutMaxHeight", "LayoutMaxWidth",
+}
+
+
+# Et animeret SVG-hjul er en DREJNING: CSS (spinner_svg: rotate(360deg))
+# eller SMIL (busy_box: animateTransform type='rotate'). VH-planens
+# trinikoner (build_hero) tegner og pulserer - de drejer ikke og er ikke hjul.
+SPIN_RE = re.compile(r"rotate\(\s*360|animateTransform[^>]*type=\\?['\"]rotate", re.I)
+
+
+def rule_16c(ctx):
+    """Hjul er ModernSpinner@1.1.0 - aldrig et animeret billede (issue #302)"""
+    # Alle hjul kommer fra build_helpers.spinner. Et Image med et drejende
+    # SVG var appens egen spinner til #302; nu tegner Fluent hjulet i
+    # brandfarven (BasePaletteColor). Versionen er Learns; en anden er ikke
+    # afproevet (jf. regel 16b og issue #165).
+    for p_, name, body in ctx.all_nodes:
+        ctl = (body.get("Control") or "").strip()
+        props = body.get("Properties") or {}
+        base = ctl.split("@")[0]
+        if base == "Image":
+            img = str(props.get("Image", ""))
+            if SPIN_RE.search(img):
+                ctx.problems.append(f"[16c] {name}: Image med et animeret hjul - "
+                                    f"brug {SPINNER_CONTROL} fra build_helpers.spinner")
+        elif base == "ModernSpinner":
+            if ctl != SPINNER_CONTROL:
+                ctx.problems.append(f"[16c] {name}: {ctl} - hjul er {SPINNER_CONTROL} "
+                                    f"fra build_helpers.spinner")
+            for key in sorted(set(props) - SPINNER_PROPS):
+                ctx.problems.append(f"[16c] {name}: {ctl} - '{key}' er ikke en "
+                                    f"dokumenteret Spinner-egenskab")
+
+
 PROGRESS_CONTROL = "ModernProgressBar@1.0.0"
 # Den opdaterede Progress bar efter Microsoft Learn ("Progress bar modern
 # control in canvas apps"). Ingen Label, farve, TabIndex eller OnChange.
@@ -2093,7 +2138,7 @@ def rule_33(ctx):
               "ModernDatePicker": "dte", "Classic/DropDown": "drp",
               "ModernCombobox": "cmb", "ModernCheckbox": "chk",
               "ModernToggle": "tgl", "ModernAttachments": "att",
-              "ModernProgressBar": "prg"}
+              "ModernProgressBar": "prg", "ModernSpinner": "spn"}
     for p_, name, body in all_nodes:
         want = PREFIX.get((body.get("Control") or "").strip().split("@")[0])
         if want and not re.match(want + r"[A-Z]", name):
@@ -2368,7 +2413,8 @@ def rule_38(ctx):
     # 10), og GroupContainer, Timer og HtmlViewer meldes ikke.
     kinds = ("Image", "Rectangle", "ModernText", "ModernButton", "ModernTextInput",
              "ModernNumberInput", "ModernDropdown", "ModernCombobox", "ModernCheckbox",
-             "ModernDatePicker", "ModernToggle", "ModernAttachments", "ModernProgressBar",
+             "ModernDatePicker", "ModernToggle", "ModernAttachments", "ModernSpinner",
+             "ModernProgressBar",
              "Gallery")
     for _p, name, body in ctx.all_nodes:
         ctl = (body.get("Control") or "").strip().split("@")[0]
@@ -2499,6 +2545,7 @@ RULES = [
     Rule('22', 'Concurrent med en indbyrdes afhaengighed', rule_22),
     Rule('16', 'Ingen Classic/DropDown', rule_16),
     Rule('16b', 'Kun ModernAttachments@1.3.0 til filer (issue #161)', rule_16b),
+    Rule('16c', 'Hjul er ModernSpinner@1.1.0 - aldrig et animeret billede (issue #302)', rule_16c),
     Rule('16f', 'Gem/upload-bjaelken er ModernProgressBar@1.0.0, ubestemt (issue #305)', rule_16f),
     Rule('33', 'Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4)', rule_33),
     Rule('18', 'Enhver Gallery skal have TabIndex', rule_18),
