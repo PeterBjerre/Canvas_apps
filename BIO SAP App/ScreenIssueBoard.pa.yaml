@@ -10,7 +10,6 @@ Screens:
           If(false, ClearCollect(colIbSections, { Application: "", Section: "", AppOrder: 0, SectionOrder: 0, ScreenKey: "" }));
           If(false, ClearCollect(colIbActivity, { Kind: "", Actor: "", Role: "", Body: "", At: Now(), Internal: false, IsSystem: false, File: "", SizeKb: 0, Initial: false }));
           If(false, ClearCollect(colIbAdmins, { Email: "", Name: "" }));
-          If(false, ClearCollect(colIbUp, { Name: "", Msg: "" }));
           If(false, ClearCollect(colIbFresh, { Id: 0, TicketNo: "", Title: "", Description: "", Steps: "", Expected: "", Actual: "", Application: "", Section: "", Other: "", RelatedNo: "", Severity: "", Priority: "", Status: "", Resolution: "", Assigned: "", CreatedOn: Now(), UpdatedOn: Now(), Archived: false, Reporter: "", ReporterName: "", AssignedEmail: "", PriRank: 0, StatusRank: 0 }));
           If(false, ClearCollect(colIbActFresh, { Kind: "", Actor: "", Role: "", Body: "", At: Now(), Internal: false, IsSystem: false, File: "", SizeKb: 0, Initial: false }));
           
@@ -11947,7 +11946,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =Max(160, Min(App.Height - 32 - 36 - (Max(44, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36)) - 96 - 132 - 30) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))) - 12 - (49 + (If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 22, 22 + 6 + 20)) + 8 + (If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 39, 2 * 39 + 12)) + If(IbCanReopen || IbCanEdit || IbCanManage, 8 + (Max(44, H.hit) + 2 * 3), 0) + If(varIbSelPeek, 8 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 8 + (34), 0)) - 12, Max(200, (0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)), (If(IbSeeActivity, 0 + If((varIbActBusy && IsEmpty(colIbActivity)) || IfError(varIbActFailed, false), 0 + (34), 0) + If(!IsEmpty(colIbActivity), 12 + (Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40))), 0) + If(IbCanComment, 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0) + If(varIbSel.Archived, 12 + (18), 0), 0)), (0 + If(galIbFiles.AllItemsCount = 0, 0 + (20), 0) + If(galIbFiles.AllItemsCount > 0, 12 + (galIbFiles.AllItemsCount * 60), 0) + If(IbCanAttach, 12 + (86 + (If(attIbFiles.AttachmentsCount = 0, 112, 112 + Min(attIbFiles.AttachmentsCount, 4) * 36))), 0)))))
+                      =Max(160, Min(App.Height - 32 - 36 - (Max(44, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36)) - 96 - 132 - 30) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))) - 12 - (49 + (If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 22, 22 + 6 + 20)) + 8 + (If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 39, 2 * 39 + 12)) + If(IbCanReopen || IbCanEdit || IbCanManage, 8 + (Max(44, H.hit) + 2 * 3), 0) + If(varIbSelPeek, 8 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 8 + (34), 0)) - 12, Max(200, (0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)), (If(IbSeeActivity, 0 + If((varIbActBusy && IsEmpty(colIbActivity)) || IfError(varIbActFailed, false), 0 + (34), 0) + If(!IsEmpty(colIbActivity), 12 + (Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40))), 0) + If(IbCanComment, 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0) + If(varIbSel.Archived, 12 + (18), 0), 0)), (0 + If(varIbFilesBusy || IfError(varIbFilesFailed, false) || CountRows(If(varIbFilesFor = varIbSelId, varIbFiles, FirstN(varIbFiles, 0))) = 0, 0 + (20), 0) + 12 + (If(attIbFiles.AttachmentsCount = 0, 112, 112 + Min(attIbFiles.AttachmentsCount, 4) * 36)) + If(IbCanAttach, 12 + (78), 0)))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -13271,259 +13270,28 @@ Screens:
                               Text: |-
                                   =If(varIbFilesBusy, "Loading attachments...", IfError(varIbFilesFailed, false), "The attachments could not be loaded. Select the tab again to retry.", "No files yet. Screenshots help a lot.")
                               Visible: |-
-                                  =galIbFiles.AllItemsCount = 0
+                                  =varIbFilesBusy || IfError(varIbFilesFailed, false) || CountRows(If(varIbFilesFor = varIbSelId, varIbFiles, FirstN(varIbFiles, 0))) = 0
                               Wrap: |-
                                   =true
-                        - galIbFiles:
-                            Control: Gallery
-                            Variant: Vertical
+                        - attIbFiles:
+                            Control: ModernAttachments@1.3.0
                             Properties:
                               AccessibleLabel: |-
-                                  ="Attachments"
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              FillPortions: |-
-                                  =0
+                                  ="Attachments on this issue"
+                              DisplayMode: |-
+                                  =If(!IbCanAttach, DisplayMode.View, varIbUploading || varIbFilesBusy || varIbFilesFor <> varIbSelId, DisplayMode.Disabled, DisplayMode.Edit)
                               Height: |-
-                                  =galIbFiles.AllItemsCount * 60
+                                  =If(Self.AttachmentsCount = 0, 112, 112 + Min(Self.AttachmentsCount, 4) * 36)
                               Items: |-
                                   =If(varIbFilesFor = varIbSelId, varIbFiles, FirstN(varIbFiles, 0))
-                              LayoutMinWidth: |-
-                                  =0
-                              LoadingSpinner: |-
-                                  =LoadingSpinner.None
-                              Selectable: |-
-                                  =false
-                              ShowScrollbar: |-
-                                  =false
-                              TabIndex: |-
-                                  =0
-                              TemplatePadding: |-
-                                  =0
-                              TemplateSize: |-
-                                  =60
-                              Visible: |-
-                                  =galIbFiles.AllItemsCount > 0
+                              MaxAttachmentSize: |-
+                                  =10
+                              MaxAttachments: |-
+                                  =10
+                              OnError: |-
+                                  =Set(gblToast, { Text: "This file could not be added. A row can have up to 10 files of up to 10 MB each.", Kind: "Error", At: Now() }); true
                               Width: |-
                                   =Parent.Width
-                              WrapCount: |-
-                                  =1
-                            Children:
-                              - imgIbFileThumb:
-                                  Control: Image
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Preview of " & ThisItem.DisplayName
-                                    BorderColor: |-
-                                        =C.'border-default'
-                                    BorderStyle: |-
-                                        =BorderStyle.Solid
-                                    BorderThickness: |-
-                                        =1
-                                    Height: |-
-                                        =44
-                                    Image: |-
-                                        =ThisItem.Value
-                                    ImagePosition: |-
-                                        =ImagePosition.Fill
-                                    OnSelect: |-
-                                        =false
-                                    RadiusBottomLeft: |-
-                                        =6
-                                    RadiusBottomRight: |-
-                                        =6
-                                    RadiusTopLeft: |-
-                                        =6
-                                    RadiusTopRight: |-
-                                        =6
-                                    TabIndex: |-
-                                        =0
-                                    Visible: |-
-                                        =Lower(Last(Split(ThisItem.DisplayName, ".")).Value) in ["png", "jpg", "jpeg", "gif", "bmp", "webp"]
-                                    Width: |-
-                                        =44
-                                    X: |-
-                                        =0
-                                    Y: |-
-                                        =8
-                              - txtIbFileKind:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =Self.Text
-                                    Align: |-
-                                        =Align.Center
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-muted'
-                                    Fill: |-
-                                        =C.'bg-muted'
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =44
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    RadiusBottomLeft: |-
-                                        =6
-                                    RadiusBottomRight: |-
-                                        =6
-                                    RadiusTopLeft: |-
-                                        =6
-                                    RadiusTopRight: |-
-                                        =6
-                                    Size: |-
-                                        =T.micro
-                                    Text: |-
-                                        =Upper(Left(Lower(Last(Split(ThisItem.DisplayName, ".")).Value), 4))
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Visible: |-
-                                        =!(Lower(Last(Split(ThisItem.DisplayName, ".")).Value) in ["png", "jpg", "jpeg", "gif", "bmp", "webp"])
-                                    Width: |-
-                                        =44
-                                    Wrap: |-
-                                        =false
-                                    X: |-
-                                        =0
-                                    Y: |-
-                                        =8
-                              - txtIbFileName:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =Self.Text
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =20
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.body
-                                    Text: |-
-                                        =ThisItem.DisplayName
-                                    Width: |-
-                                        =(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 18 - 18)) - 18) - 2 * 0 - 0 - 40) - 56 - 72 - 12
-                                    Wrap: |-
-                                        =false
-                                    X: |-
-                                        =56
-                                    Y: |-
-                                        =9
-                              - txtIbFileMeta:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =Self.Text
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-muted'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =18
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.small
-                                    Text: |-
-                                        =With({ e: LookUp(colIbActivity, Kind = "Attachment" && File = ThisItem.DisplayName) }, Upper(Lower(Last(Split(ThisItem.DisplayName, ".")).Value)) & If(IsBlank(e), "", "  ·  " & e.SizeKb & " KB  ·  " & e.Actor & "  ·  " & Text(e.At, "dd-mm-yyyy hh:mm") & If(e.Initial, "  ·  with the report", "  ·  added later")))
-                                    Width: |-
-                                        =(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 18 - 18)) - 18) - 2 * 0 - 0 - 40) - 56 - 72 - 12
-                                    Wrap: |-
-                                        =false
-                                    X: |-
-                                        =56
-                                    Y: |-
-                                        =31
-                              - btnIbFileOpen:
-                                  Control: ModernButton
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Open or download " & ThisItem.DisplayName
-                                    Align: |-
-                                        =Align.Center
-                                    AlignInContainer: |-
-                                        =AlignInContainer.Center
-                                    Appearance: |-
-                                        =ButtonAppearance.Outline
-                                    BorderColor: |-
-                                        =C.'border-input'
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =32
-                                    Layout: |-
-                                        =ButtonLayout.TextOnly
-                                    OnSelect: |-
-                                        =Launch(ThisItem.AbsoluteUri, { }, LaunchTarget.New)
-                                    RadiusBottomLeft: |-
-                                        =R.input
-                                    RadiusBottomRight: |-
-                                        =R.input
-                                    RadiusTopLeft: |-
-                                        =R.input
-                                    RadiusTopRight: |-
-                                        =R.input
-                                    Size: |-
-                                        =T.input
-                                    Text: |-
-                                        ="Open"
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Width: |-
-                                        =72
-                                    X: |-
-                                        =(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 18 - 18)) - 18) - 2 * 0 - 0 - 40) - 72
-                                    Y: |-
-                                        =14
                         - conIbFileAdd:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -13535,7 +13303,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =86 + (If(attIbFiles.AttachmentsCount = 0, 112, 112 + Min(attIbFiles.AttachmentsCount, 4) * 36))
+                                  =78
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -13553,30 +13321,11 @@ Screens:
                               Width: |-
                                   =Parent.Width
                             Children:
-                              - attIbFiles:
-                                  Control: ModernAttachments@1.3.0
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Choose files to attach"
-                                    DisplayMode: |-
-                                        =If(varIbUploading, DisplayMode.Disabled, DisplayMode.Edit)
-                                    Height: |-
-                                        =If(Self.AttachmentsCount = 0, 112, 112 + Min(Self.AttachmentsCount, 4) * 36)
-                                    Items: |-
-                                        =Blank()
-                                    MaxAttachmentSize: |-
-                                        =10
-                                    MaxAttachments: |-
-                                        =5
-                                    OnError: |-
-                                        =Set(gblToast, { Text: "This file could not be added. You can add up to 5 files of up to 10 MB each.", Kind: "Error", At: Now() }); true
-                                    Width: |-
-                                        =Parent.Width
                               - txtIbFilesHint:
                                   Control: ModernText
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Up to 5 files at a time, 10 MB each. Everyone who uses the Issue Board can open the files - leave out personal data."
+                                        ="Up to 10 files, 10 MB each. Everyone who uses the Issue Board can open the files - leave out personal data."
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -13600,14 +13349,14 @@ Screens:
                                     Size: |-
                                         =T.small
                                     Text: |-
-                                        ="Up to 5 files at a time, 10 MB each. Everyone who uses the Issue Board can open the files - leave out personal data."
+                                        ="Up to 10 files, 10 MB each. Everyone who uses the Issue Board can open the files - leave out personal data."
                                     Wrap: |-
                                         =true
                               - btnIbUpload:
                                   Control: ModernButton
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Upload the chosen files to this issue"
+                                        ="Save the attachments on this issue"
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -13617,7 +13366,7 @@ Screens:
                                     Color: |-
                                         =C.'text-on-primary'
                                     DisplayMode: |-
-                                        =If(attIbFiles.AttachmentsCount = 0 || attIbFiles.IsUploading || varIbUploading, DisplayMode.Disabled, DisplayMode.Edit)
+                                        =If(attIbFiles.IsUploading || varIbUploading || varIbFilesFor <> varIbSelId, DisplayMode.Disabled, DisplayMode.Edit)
                                     Font: |-
                                         =Font.'Segoe UI'
                                     FontWeight: |-
@@ -13625,23 +13374,19 @@ Screens:
                                     Height: |-
                                         =36
                                     Icon: |-
-                                        ="ArrowUpload"
+                                        ="Save"
                                     Layout: |-
                                         =ButtonLayout.IconBefore
                                     OnSelect: |-
-                                        =If(
-                                            CountRows(attIbFiles.Attachments) = 0,
-                                            Set(gblToast, { Text: "Choose one or more files first.", Kind: "Warning", At: Now() }); true,
-                                            Set(varIbUploading, true);
-                                            ClearCollect(
-                                                colIbUp,
-                                                ForAll(attIbFiles.Attachments As F, { Name: F.Name, Msg: If(F.Name in ShowColumns(varIbFiles, DisplayName), "a file with this name is already attached", With({ res: IfError('BioSap-IssueBoard-Submit'.Run(
-                                                            "attach",
-                                                            JSON({ ticketId: varIbSelId, initial: false }),
-                                                            { file: { contentBytes: F.Value, name: F.Name } }
-                                                        ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }) }, If(res.ok = "yes", "", Coalesce(res.message, "not saved")))) })
+                                        =Set(varIbUploading, true);
+                                        IfError(
+                                            Patch(
+                                                IB_Tickets,
+                                                LookUp(IB_Tickets, ID = varIbSelId),
+                                                { Attachments: attIbFiles.Attachments, LastActivityOn: Now() }
                                             );
-                                            Reset(attIbFiles);
+                                            true,
+                                            Set(gblToast, { Text: "The documents could not be saved. " & FirstError.Message, Kind: "Error", At: Now() }); true,
                                             With(
                                                 { r: LookUp(IB_Tickets, ID = varIbSelId) },
                                                 If(
@@ -13682,13 +13427,10 @@ Screens:
                                             If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh); Clear(colIbActFresh));
                                             Set(varIbActBusy, false)
                                             );
-                                            Set(varIbUploading, false);
-                                            If(
-                                                CountRows(Filter(colIbUp, !IsBlank(Msg))) > 0,
-                                                Set(gblToast, { Text: "Not attached: " & Concat(Filter(colIbUp, !IsBlank(Msg)), Name & " (" & Msg & ")", "; "), Kind: "Error", At: Now() }); true,
-                                                Set(gblToast, { Text: "The files have been attached.", Kind: "Success", At: Now() }); true
-                                            )
-                                        )
+                                            Reset(attIbFiles);
+                                            Set(gblToast, { Text: "Documents saved.", Kind: "Success", At: Now() }); true
+                                        );
+                                        Set(varIbUploading, false)
                                     RadiusBottomLeft: |-
                                         =R.input
                                     RadiusBottomRight: |-
@@ -13700,11 +13442,11 @@ Screens:
                                     Size: |-
                                         =T.input
                                     Text: |-
-                                        ="Upload"
+                                        ="Save documents"
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Width: |-
-                                        =110
+                                        =179
       - conIbDelBackdrop:
           Control: GroupContainer
           Variant: AutoLayout
@@ -14185,9 +13927,7 @@ Screens:
             HoverFill: |-
                 =C.'overlay'
             Image: |-
-                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><style>.f{opacity:0;animation:f .2s ease-out 0.15s forwards}.s{transform-origin:32px 32px;animation:s .9s linear infinite}@keyframes f{to{opacity:1}}@keyframes s{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.s{animation:none}}</style><g class='f' transform='translate(0 0)'><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path class='s' d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'/></g></svg>")
-            ImagePosition: |-
-                =ImagePosition.Center
+                =""
             PressedFill: |-
                 =C.'overlay'
             TabIndex: |-
@@ -14200,11 +13940,34 @@ Screens:
                 =0
             Y: |-
                 =0
+      - spnIbBusy:
+          Control: ModernSpinner@1.1.0
+          Properties:
+            AccessibleLabel: |-
+                ="Sending, please wait"
+            BasePaletteColor: |-
+                =C.'color-brand-primary'
+            Color: |-
+                =C.'text-primary'
+            Font: |-
+                =Font.'Segoe UI'
+            Height: |-
+                =64
+            Label: |-
+                =""
+            Visible: |-
+                =IfError((varIbBusy || varIbPosting) && !varIbUploading, false)
+            Width: |-
+                =64
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =(App.Height - Self.Height) / 2
       - imgIbUploading:
           Control: Image
           Properties:
             AccessibleLabel: |-
-                ="Uploading files, please wait"
+                ="Saving files, please wait"
             BorderStyle: |-
                 =BorderStyle.None
             BorderThickness: |-
@@ -14220,9 +13983,7 @@ Screens:
             HoverFill: |-
                 =C.'overlay'
             Image: |-
-                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='440' height='100' viewBox='0 0 440 100'><style>.f{opacity:0;animation:f .2s ease-out 0.15s forwards}.s{transform-origin:32px 32px;animation:s .9s linear infinite}@keyframes f{to{opacity:1}}@keyframes s{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.s{animation:none}}</style><g class='f' transform='translate(188 0)'><text x='32' y='88' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>Uploading files...</text><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path class='s' d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'/></g></svg>")
-            ImagePosition: |-
-                =ImagePosition.Center
+                =""
             PressedFill: |-
                 =C.'overlay'
             TabIndex: |-
@@ -14235,6 +13996,35 @@ Screens:
                 =0
             Y: |-
                 =0
+      - spnIbUploading:
+          Control: ModernSpinner@1.1.0
+          Properties:
+            AccessibleLabel: |-
+                ="Saving files, please wait"
+            BasePaletteColor: |-
+                =C.'color-brand-primary'
+            Color: |-
+                =C.'text-primary'
+            Font: |-
+                =Font.'Segoe UI'
+            FontWeight: |-
+                =FontWeight.Semibold
+            Height: |-
+                =100
+            Label: |-
+                ="Saving files..."
+            LabelPosition: |-
+                =SpinnerLabelPosition.Below
+            Size: |-
+                =T.input
+            Visible: |-
+                =IfError(varIbUploading, false)
+            Width: |-
+                =Min(440, App.Width - 32)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =(App.Height - Self.Height) / 2
       - conIbToast:
           Control: GroupContainer
           Variant: AutoLayout

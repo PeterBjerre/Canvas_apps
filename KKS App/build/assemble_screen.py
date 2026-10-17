@@ -35,7 +35,7 @@ def build_screen(render=render_screen):
     # sidebarens panel. Ventespinneren ligger oeverst, mens noeglerne hentes.
     return render(cfg.SCREEN, {"Fill": C_APP_BG, "OnVisible": P.on_visible()},
                   [root, *nav, *overlay, *P.build_picker(), *P.build_detail(),
-                   *P.build_fl_search(), P.build_loading()])
+                   *P.build_fl_search(), *P.build_loading()])
 
 
 def main():

@@ -548,7 +548,11 @@ WORKING_COLLECTIONS = [
     ("colVhpMaterials",
      {"ItemId": 0, "LineId": 0, "MaterialNo": '""', "Description": '""',
       "Unit": '""', "Quantity": 0, "OperationNo": '""', "Selected": "false"}),
-    # Dokumenter. OperationsKey er ";0010;0020;" ligesom PackagesKey -
+    # De AELDRE dokumentraekker i MD_TasklistAttachment (foer issue #300).
+    # De hentes og gemmes uaendret, saa en gemning ikke sletter dem, men
+    # dokumentruden viser dem ikke: nye filer er vedhaeftninger paa
+    # operationens raekke i TaskListMain (build_attflows.py).
+    # OperationsKey er ";0010;0020;" ligesom PackagesKey -
     # tomt (";") betyder at dokumentet hoerer til hele planen og ikke til
     # en bestemt operation.
     # FileName er noeglen paa raekken, ikke et loebenummer: SharePoint
@@ -559,17 +563,6 @@ WORKING_COLLECTIONS = [
      {"ItemId": 0, "FileName": '""', "FileUrl": '""', "Identifier": '""',
       "FileSize": 0, "OperationsKey": '";"', "Status": '""',
       "Selected": "false"}),
-    # Arbejdsspand til opdateringen fra biblioteket. colVhpAttKeep holder
-    # operationskoblingen fast, mens raekkerne skiftes ud - den findes kun
-    # i appen og ville ellers gaa tabt ved hver opdatering.
-    ("colVhpAttFiles",
-     {"Name": '""', "Link": '""', "Identifier": '""'}),
-    ("colVhpAttKeep",
-     {"FileName": '""', "OperationsKey": '";"'}),
-    # Hvad flowet svarede paa hver enkelt fil ved upload. Uden den kunne
-    # knappen kun kvittere paa tro og love.
-    ("colVhpAttUp",
-     {"Name": '""', "Ok": "false"}),
     # Kobler appens lokale ItemId til den raekke, der blev oprettet i
     # MaintenanceItems. Operationerne har brug for begge dele til deres
     # opslagsfelt, og de kan foerst kendes EFTER items er skrevet.
