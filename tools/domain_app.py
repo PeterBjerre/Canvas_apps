@@ -44,13 +44,6 @@ def collections(cfg):
         # Spejlet af SharePoint-listen. ALDRIG sandheden - den hentes forfra
         # efter hver skrivning.
         ("colDomRows", _row_schema(cfg)),
-        # Dokumenterne som de ligger i biblioteket. Identifier er den, en
-        # sletning skal bruge; FileUrl er linket.
-        ("colDomAttachments",
-         {"RowId": "0", "FileName": '""', "FileUrl": '""', "Identifier": '""',
-          "Selected": "false"}),
-        # Hvad upload-flowet svarede pr. fil.
-        ("colDomAttUp", {"Name": '""', "Ok": "false"}),
         # FL-soegningens resultat (tools/build_flsearch.py).
         ("colDomFl",
          {"Code": '""', "Description": '""', "Display": '""',
@@ -111,7 +104,6 @@ Set(varDomConfirmDelete, false);
 // Hvilken raekke dokumentpopuppen viser. Blank = lukket.
 Set(varDomDocsId, Blank());
 Set(varDomRowStatus, "valid");
-Set(varDomAttJson, "");
 Set(varDomFlMsg, "");
 // FL-vaelgeren (tools/fl_picker.py): soegeteksten, den sidste soegning,
 // og om flowet koerer.
@@ -134,6 +126,11 @@ def onstart(cfg, extra_collections=(), extra_state=""):
     state = STATE
     if getattr(cfg, "ROW_PANEL_ENABLED", False):
         state = state.replace("Set(varDomDetailsId, Blank());\n", "")
+    if not dp.DOCS:
+        # Ingen dokumentrude (Measuring Point, issue #300) - og saa heller
+        # ingen variabel, hvis type kun ruden kunne fortaelle.
+        state = state.replace("// Hvilken raekke dokumentpopuppen viser. Blank = lukket.\n"
+                              "Set(varDomDocsId, Blank());\n", "")
     body = (_collection_block(cfg, extra_collections) + "\n\n"
             + tok.onstart_block() + "\n\n" + state)
     if getattr(cfg, "ROW_PANEL_ENABLED", False):
@@ -244,6 +241,13 @@ def build_screen(cfg, parts, render):
     form = parts.build_form(panel=True) if panel_enabled else parts.build_form()
     rows = parts.build_rows()
     footer = sticky_actions("Dom", dp.BAR_ACTIONS)
+    # Dokumentpopuppen - kun i apper med dokumenter (issue #300), og ikke
+    # dér, hvor sidepanelet selv har en Documents-fane.
+    docs_popup = ([dp.build_attachments()]
+                  if dp.DOCS and not (panel_enabled and hasattr(parts, "editor_panel_content"))
+                  else [])
+    # Sloeret: med sidepanel er dokumentpopuppen den eneste, der bruger det.
+    backdrop = [] if (panel_enabled and not dp.DOCS) else [dp.build_backdrop()]
     if panel_enabled:
         extras = _panel_extras(parts)
         if hasattr(parts, "editor_panel_content"):
@@ -281,10 +285,9 @@ def build_screen(cfg, parts, render):
     return render(cfg.SCREEN,
                   {"Fill": C_APP_BG, "OnVisible": on_visible(),
                    **({"OnHidden": "Set(varDomEditorOpen, false)"} if panel_enabled else {})},
-                                    [root, *nav, dp.build_backdrop(),
+                                    [root, *nav, *backdrop,
                                      *([] if panel_enabled else [dp.build_details(extra=extra)]),
-                                     *([] if panel_enabled and hasattr(parts, "editor_panel_content")
-                                         else [dp.build_attachments()]), *below, *overlay, *outside, *editor,
+                                     *docs_popup, *below, *overlay, *outside, *editor,
                                      *above,
                                      *dp.build_row_menu(), *dp.build_paste(),
                    # Bekraeftelserne og ventespinneren - oeverst.
