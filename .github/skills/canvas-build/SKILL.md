@@ -510,6 +510,7 @@ layoutfejl bor:
 | 22 | Concurrent med en indbyrdes afhaengighed |
 | 16 | Ingen Classic/DropDown |
 | 16b | Kun ModernAttachments@1.3.0 til filer (issue #161) |
+| 16k | Knapper er ModernButton - Classic/Button kun som gennemsigtigt klik-lag (issue #307) |
 | 33 | Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4) |
 | 18 | Enhver Gallery skal have TabIndex |
 | 19 | AccessibleLabel maa ikke vaere kontrollens navn |
