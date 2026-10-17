@@ -25,7 +25,7 @@ from gen_screen import (Ctrl, C_OVERLAY, C_MODAL_BG, C_PRIMARY_SOFT, C_MUTED, C_
                         C_WARN_FG, C_WARN_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_VALID_FG, C_VALID_BG,
                         C_INVALID_FG, C_INVALID_BG, C_CARD_BORDER, C_ROW_HOVER, C_ROW_PRESSED)
 from build_helpers import (group, text_ctrl, button, grow, spinner_svg, row_hit, text_px,
-                           text_input, label_px)
+                           text_input, label_px, modern_badge)
 from hub_config import DOMAINS
 from design_tokens import ref_hex
 import icons
@@ -899,24 +899,20 @@ def number_badge(name, rec=R):
     of it. The colour follows the request's domain - the same tokens as
     the hub's domain icons (hub_config.DOMAINS).
 
+    Var et Image med en SVG-pille; nu en ModernBadge (#304) med samme maal
+    og farver: fyldet er domaenefarven med alfa 1F (12 %).
+
     rec: the record with Domain and RequestNo - the popup's request
     (varMdAprReq) or a gallery row (ThisItem, the hub table, issue #178)."""
     R = rec
     col = ("Switch(" + R + ".Domain.Value, " +
            ", ".join(f'"{d["key"]}", {ref_hex(d["token"])}' for d in DOMAINS) +
            f', {ref_hex("text-muted")})')
-    svg = ('"data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'88\' '
-           'height=\'26\' viewBox=\'0 0 88 26\'><rect width=\'88\' height=\'26\' rx=\'13\' fill=\'" & c & '
-           '"\' fill-opacity=\'0.12\'/><text x=\'44\' y=\'17.5\' text-anchor=\'middle\' '
-           'font-family=\'Segoe UI, sans-serif\' font-size=\'12\' font-weight=\'600\' fill=\'" & c & '
-           '"\'>" & ' + R + '.RequestNo & "</text></svg>")')
-    return Ctrl(name, "Image", props={
-        "AccessibleLabel": f'"Request " & {R}.RequestNo',
-        "BorderStyle": "BorderStyle.None", "BorderThickness": "0", "Fill": C_TRANSPARENT,
-        "Height": "26", "Image": f'If(IsBlank({R}.RequestNo), "", With({{ c: {col} }}, {svg}))',
-        "ImagePosition": "ImagePosition.Fit", "LayoutMinWidth": "88",
-        "OnSelect": "false", "TabIndex": "0", "Width": "88",
-    }, h=26)
+    return modern_badge(name, f"{R}.RequestNo", color=f"ColorValue({col})",
+                        fill=f'ColorValue({col} & "1F")', width=88, height=26,
+                        size=lay.SIZE_SMALL, accessible=f'"Request " & {R}.RequestNo',
+                        visible=f"!IsBlank({R}.RequestNo)",
+                        extra={"LayoutMinWidth": "88"})
 
 
 NOTE_IN_H = 76
@@ -1062,17 +1058,13 @@ def build_popup():
     x2 = text_ctrl(n("txt", "X2"), "ThisItem.L2", size=lay.SIZE_SMALL, color=C_MUTED, height=17,
                    visible=_is("X"), width=f"{TW} - {LX + 8}", extra={"X": str(LX), "Y": "22"})
     sw = lambda table: _switch("ThisItem.State", table, C_NEUTRAL_FG)
-    chip = text_ctrl(n("txt", "Chip"), "ThisItem.Label", size=lay.SIZE_MICRO, weight="Semibold",
-                     height=CHIP_H, align="Center", color=sw(BADGE_FG),
-                     fill=_switch("ThisItem.State", BADGE_BG, C_NEUTRAL_BG),
-                     width=CHIP_W,
-                     accessible='"Status " & ThisItem.Label & If(ThisItem.Cur, ", current stage", "")',
-                     visible=f'!({_is("X")})',
-                     extra={"X": chip_x, "Y": str((ROW_H - CHIP_H) // 2),
-                            "VerticalAlign": "VerticalAlign.Middle",
-                            "PaddingLeft": "8", "PaddingRight": "8",
-                            "RadiusBottomLeft": "6", "RadiusBottomRight": "6",
-                            "RadiusTopLeft": "6", "RadiusTopRight": "6"})
+    # Trinets status som ModernBadge (#304) - samme tekst, farver og maal.
+    chip = modern_badge(n("bdg", "Chip"), "ThisItem.Label", color=sw(BADGE_FG),
+                        fill=_switch("ThisItem.State", BADGE_BG, C_NEUTRAL_BG),
+                        width=CHIP_W, height=CHIP_H, radius=6, pad=(8, 8),
+                        accessible='"Status " & ThisItem.Label & If(ThisItem.Cur, ", current stage", "")',
+                        visible=f'!({_is("X")})',
+                        extra={"X": chip_x, "Y": str((ROW_H - CHIP_H) // 2)})
     # Noteraekken (issue #115) aabner noterne i stedet for at folde ud.
     is_note = f'{_is("D")} && ThisItem.Stage = "{NOTE_STAGE}"'
     hit = row_hit(n("btn", "Expand"), f"If({is_note}, {sn.hub_open_fx(R)}, {toggle})",
@@ -1106,7 +1098,7 @@ def build_popup():
                       size=lay.SIZE_CARD_TITLE, weight="Semibold", height=26, wrap="false",
                       width=f"If({IS_TIMELINE}, {tw_t}, {tw_a})")
     title.props["LayoutMinWidth"] = str(min(tw_a, tw_t))
-    no_badge = number_badge(n("img", "No"))
+    no_badge = number_badge(n("bdg", "No"))
     spacer = grow(text_ctrl(n("txt", "HeadGap"), '""', size=lay.SIZE_MICRO, height=20,
                             accessible='"Spacer"'))
     btnClose = button(n("btn", "Close"), '"Close"', CLOSE, width=84, height=32)

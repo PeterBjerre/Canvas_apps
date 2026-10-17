@@ -2058,7 +2058,8 @@ def rule_33(ctx):
               "ModernTextInput": "inp", "ModernNumberInput": "num",
               "ModernDatePicker": "dte", "Classic/DropDown": "drp",
               "ModernCombobox": "cmb", "ModernCheckbox": "chk",
-              "ModernToggle": "tgl", "ModernAttachments": "att"}
+              "ModernToggle": "tgl", "ModernAttachments": "att",
+              "ModernBadge": "bdg"}
     for p_, name, body in all_nodes:
         want = PREFIX.get((body.get("Control") or "").strip().split("@")[0])
         if want and not re.match(want + r"[A-Z]", name):
@@ -2333,7 +2334,8 @@ def rule_38(ctx):
     # 10), og GroupContainer, Timer og HtmlViewer meldes ikke.
     kinds = ("Image", "Rectangle", "ModernText", "ModernButton", "ModernTextInput",
              "ModernNumberInput", "ModernDropdown", "ModernCombobox", "ModernCheckbox",
-             "ModernDatePicker", "ModernToggle", "ModernAttachments", "Gallery")
+             "ModernDatePicker", "ModernToggle", "ModernAttachments", "ModernBadge",
+             "Gallery")
     for _p, name, body in ctx.all_nodes:
         ctl = (body.get("Control") or "").strip().split("@")[0]
         if ctl not in kinds:
@@ -2424,6 +2426,48 @@ def rule_42(ctx):
                 f"(T.micro/small/body/input/cardTitle/pageTitle)")
 
 
+BADGE_CONTROL = "ModernBadge@1.0.0"
+# Badgens egenskaber efter Microsoft Learn ("Badge modern control in canvas
+# apps", den opdaterede Badge). Ingen TabIndex og ingen af de gamle navne
+# (FontColor, FontSize, ThemeColor ...). Text hedder Content.
+BADGE_PROPS = {
+    "AccessibleLabel", "Align", "Appearance", "BasePaletteColor", "BorderColor",
+    "BorderStyle", "BorderThickness", "Color", "Content", "ContentLanguage",
+    "DisplayMode", "Fill", "Font", "FontWeight", "Height", "Icon", "IconPosition",
+    "Intent", "Italic", "OnSelect", "PaddingBottom", "PaddingLeft", "PaddingRight",
+    "PaddingTop", "RadiusBottomLeft", "RadiusBottomRight", "RadiusTopLeft",
+    "RadiusTopRight", "Shape", "Size", "Strikethrough", "Tooltip", "Underline",
+    "VerticalAlign", "Visible", "Width", "X", "Y",
+    # Containerens egne egenskaber paa ethvert barn.
+    "AlignInContainer", "FillPortions", "LayoutMinHeight", "LayoutMinWidth",
+    "LayoutMaxHeight", "LayoutMaxWidth",
+}
+
+
+def rule_16e(ctx):
+    """Maerker er ModernBadge@1.0.0 med vores egne farver (issue #304)"""
+    # Alle status- og nummermaerker kommer fra build_helpers.modern_badge.
+    # Versionen er Learns; en anden er ikke afproevet (jf. regel 16b og
+    # issue #165). Color og Fill skal staa: ellers tegner Fluent maerket i
+    # Intent-farven, og statusfarverne (state-*) er vaek - i moerk
+    # tilstand ogsaa vores tema.
+    for p_, name, body in ctx.all_nodes:
+        ctl = (body.get("Control") or "").strip()
+        if ctl.split("@")[0] != "ModernBadge":
+            continue
+        props = body.get("Properties") or {}
+        if ctl != BADGE_CONTROL:
+            ctx.problems.append(f"[16e] {name}: {ctl} - maerker er {BADGE_CONTROL} "
+                                f"fra build_helpers.modern_badge")
+        for key in sorted(set(props) - BADGE_PROPS):
+            ctx.problems.append(f"[16e] {name}: {ctl} - '{key}' er ikke en "
+                                f"dokumenteret Badge-egenskab")
+        for key in ("Color", "Fill", "Content", "AccessibleLabel"):
+            if key not in props:
+                ctx.problems.append(f"[16e] {name}: {ctl} mangler {key} - "
+                                    f"brug build_helpers.modern_badge")
+
+
 RULES = [
     Rule('0', 'Hvert kontrolnavn findes kun een gang', rule_0),
     Rule('1', 'Ingen kontrol-til-kontrol hoejdereferencer', rule_1),
@@ -2476,6 +2520,7 @@ RULES = [
     Rule('40', 'Ikonknapper har mindst klikfladen H.hit (UX-review F6/T10)', rule_40),
     Rule('41', 'Ingen ModernNumberInput - tal er number_field (UX-review T10)', rule_41),
     Rule('42', 'Tekststoerrelser er paa typeskalaen T.* (UX-review M6)', rule_42),
+    Rule('16e', 'Maerker er ModernBadge@1.0.0 med vores egne farver (issue #304)', rule_16e),
 ]
 
 
