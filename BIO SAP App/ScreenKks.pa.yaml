@@ -5238,29 +5238,23 @@ Screens:
                                               =!IsBlank(inpKksFind.Text)
                                           Width: |-
                                               =Max(36, H.hit)
-                                    - imgKksFindIcon:
-                                        Control: Image
+                                    - icoKksFindIcon:
+                                        Control: ModernIcon@1.1.0
                                         Properties:
                                           AccessibleLabel: |-
                                               ="Search"
                                           AlignInContainer: |-
                                               =AlignInContainer.Center
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
                                           Height: |-
                                               =20
-                                          Image: |-
-                                              ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-text-muted' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z M20 20l-4-4'/></g></svg>")
-                                          ImagePosition: |-
-                                              =ImagePosition.Fit
+                                          Icon: |-
+                                              ="Search"
+                                          IconColor: |-
+                                              =C.'text-muted'
+                                          IconStyle: |-
+                                              =IconStyle.Outline
                                           LayoutMinWidth: |-
                                               =20
-                                          OnSelect: |-
-                                              =false
-                                          TabIndex: |-
-                                              =0
                                           Width: |-
                                               =20
                               - tmrKksFindApply:
@@ -10131,29 +10125,23 @@ Screens:
             Y: |-
                 =App.Height - Self.Height - 24
           Children:
-            - imgKksToastIcon:
-                Control: Image
+            - icoKksToastIcon:
+                Control: ModernIcon@1.1.0
                 Properties:
                   AccessibleLabel: |-
                       =IfError(gblToast.Kind, "Message")
                   AlignInContainer: |-
                       =AlignInContainer.Center
-                  BorderStyle: |-
-                      =BorderStyle.None
-                  BorderThickness: |-
-                      =0
                   Height: |-
                       =20
-                  Image: |-
-                      ="data:image/svg+xml;utf8," & EncodeUrl(Switch(IfError(gblToast.Kind, ""), "Success", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-ok-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M8 12.2l2.8 2.8L16 9.5'/></g></svg>", "Warning", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-warn-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 7.5v5.5M12 16.5v.01'/></g></svg>", "Error", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-error-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M9 9l6 6M15 9l-6 6'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g transform='translate(0 0) scale(0.833333)' fill='none' stroke='" & C.'hex-state-info-fg' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z M12 11v5.5M12 7.5v.01'/></g></svg>"))
-                  ImagePosition: |-
-                      =ImagePosition.Fit
+                  Icon: |-
+                      =Switch(IfError(gblToast.Kind, ""), "Success", "CheckmarkCircle", "Warning", "ErrorCircle", "Error", "DismissCircle", "Info")
+                  IconColor: |-
+                      =Switch(IfError(gblToast.Kind, ""), "Success", C.'state-ok-fg', "Warning", C.'state-warn-fg', "Error", C.'state-error-fg', C.'state-info-fg')
+                  IconStyle: |-
+                      =IconStyle.Outline
                   LayoutMinWidth: |-
                       =20
-                  OnSelect: |-
-                      =false
-                  TabIndex: |-
-                      =0
                   Width: |-
                       =20
             - txtKksToastText:
