@@ -543,60 +543,55 @@ def segmented(name, options, display_mode=None, label=None, fit=False, compact=F
                  radius=SEG_H // 2, pad=SEG_PAD, align_in_container="Start")
 
 
-def spinner_svg(size=64, stroke=6, delay=0.15, caption=None):
-    """Hjulet - EEN tegning for hele repoet (issue #64).
+# Hjulet er den moderne Spinner-kontrol (issue #302, del af #161). Versionen
+# er den, Microsoft Learns YAML-eksempel skriver; check_layout regel 16c
+# afviser enhver anden - og ethvert animeret SVG-hjul i et Image.
+SPINNER_CONTROL = "ModernSpinner@1.1.0"
 
-    Et drejende SVG-hjul i temaets farver: et spor i state-neutral-bg og en
-    bue i brandfarven. Udtrykket er en Power Fx-streng, der giver en
-    data-URI - klar til et Images Image-egenskab.
 
-    delay: hjulet toner ind efter saa mange sekunder. En hentning, der er
-    faerdig hurtigere, viser derfor ikke et hjul, der blinker forbi - kun
-    sloeret, som alligevel skal spaerre skaermen.
+def spinner(name, visible, accessible, *, width, height, label='""', below=False,
+            size=None, weight=None):
+    """Hjulet - EEN kontrol for hele repoet (issue #64, #302).
 
-    CSS-ANIMATION, IKKE SMIL (issue #92)
-    ------------------------------------
-    Drejningen og indtoningen er CSS i SVG'ens egen <style>, saa
-    @media (prefers-reduced-motion: reduce) kan stoppe drejningen for den,
-    der har bedt styresystemet om mindre bevaegelse. Buen staar saa
-    stille, og statusteksten fortaeller stadig, hvad der sker. Power Apps
-    kan ikke selv laese indstillingen; browseren goer det for billedet,
-    hvor den understoettes."""
-    hx = lambda n: '" & %s & "' % ref_hex_expr(n)
-    c = size // 2
-    r = c - stroke - 4
-    w = max(size, 440) if caption else size
-    h = size + 36 if caption else size
-    cx = w // 2
-    text = (f"<text x='{c}' y='{size + 24}' text-anchor='middle' font-family='Segoe UI, sans-serif' "
-            f"font-size='14' font-weight='600' fill='{hx('text-primary')}'>{caption}</text>"
-            if caption else "")
-    style = ("<style>"
-             f".f{{opacity:0;animation:f .2s ease-out {delay}s forwards}}"
-             f".s{{transform-origin:{c}px {c}px;animation:s .9s linear infinite}}"
-             "@keyframes f{to{opacity:1}}"
-             "@keyframes s{to{transform:rotate(360deg)}}"
-             "@media (prefers-reduced-motion:reduce){.s{animation:none}}"
-             "</style>")
-    svg = ('"' + f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h}' "
-           f"viewBox='0 0 {w} {h}'>"
-           f"{style}"
-           f"<g class='f' transform='translate({cx - c} 0)'>"
-           f"{text}"
-           f"<circle cx='{c}' cy='{c}' r='{r}' fill='none' stroke-width='{stroke}' "
-           f"stroke='{hx('state-neutral-bg')}'/>"
-           f"<path class='s' d='M{c} {c - r} a{r} {r} 0 0 1 {r} {r}' fill='none' "
-           f"stroke-width='{stroke}' stroke-linecap='round' "
-           f"stroke='{hx('color-brand-primary')}'/>"
-           f"</g>"
-           "</svg>" + '"')
-    return f'"data:image/svg+xml;utf8," & EncodeUrl({svg})'
+    Var et drejende SVG-billede (spinner_svg) i temaets farver. Nu den
+    moderne Spinner fra Microsoft Learn. Kun dokumenterede egenskaber:
+
+      BasePaletteColor  brandfarven (color-brand-primary) - den palet,
+                        Fluent tegner hjulet med. Hjulets spor og praecise
+                        nuance vaelger Fluent selv; dem kan vi ikke saette.
+      Label/Color/Size  teksten ved hjulet i text-primary, som foer
+      LabelPosition     SpinnerLabelPosition.Below, naar teksten skal staa
+                        under hjulet (below=True); ellers Fluents standard
+                        (After = til hoejre)
+
+    Hjulets egen stoerrelse kan ikke saettes (Learn har ingen SpinnerSize);
+    Width/Height er kontrollens plads, som foer billedets. Spinneren tager
+    ikke input og har ingen TabIndex. Den forsinkede indtoning og
+    prefers-reduced-motion fra SVG'en (issue #92) styrer Fluent nu selv."""
+    props = {
+        "AccessibleLabel": accessible,
+        "BasePaletteColor": C_PRIMARY,
+        "Color": C_TITLE,
+        "Font": FONT,
+        "Height": str(height),
+        "Label": label,
+        "Visible": visible,
+        "Width": str(width),
+    }
+    if below:
+        props["LabelPosition"] = "SpinnerLabelPosition.Below"
+    if size:
+        props["Size"] = str(size)
+    if weight:
+        props["FontWeight"] = f"FontWeight.{weight}"
+    return Ctrl(name, SPINNER_CONTROL, props=props, h=height, vis=visible)
 
 
 def error_svg(size=40, stroke=4):
     """Det stille modstykke til hjulet: en cirkel med et udraabstegn i
-    fejlfarven, i hjulets stoerrelse - saa intet flytter sig, naar en
-    indlaesning stopper med en fejl (issue #92)."""
+    fejlfarven, i hjulets plads - saa intet flytter sig, naar en
+    indlaesning stopper med en fejl (issue #92). Et stillestaaende billede,
+    ikke en spinner (regel 16c afviser kun animerede)."""
     hx = lambda n: '" & %s & "' % ref_hex_expr(n)
     c = size // 2
     r = c - stroke
@@ -637,9 +632,13 @@ def stable_scrim(fill=C_OVERLAY):
 def loading_overlay(name, busy_var, label="Saving, please wait", caption=None):
     """DEN ventespinner - ens i alle apps og alle skaerme (issue #54, #64).
 
-    Et drejende hjul (spinner_svg) midt paa skaermen, oven paa alt, i
-    sloerets farve - saa ingen naar at trykke paa noget, mens der hentes
-    eller gemmes. Synlig, saa laenge busy_var er sand.
+    [sloer, hjul]: et sloer over hele skaermen i sloerets farve - saa ingen
+    naar at trykke paa noget, mens der hentes eller gemmes - og den moderne
+    Spinner (spinner, issue #302) midt paa. Begge synlige, saa laenge
+    busy_var er sand. caption staar under hjulet.
+
+    Sloeret er det samme Image som foer, nu uden billede (som
+    open_overlay's sloer); hjulet hedder som sloeret med "spn" for "img".
 
     Bruges til BAADE gemning (appernes Save/Submit) og indlaesning (den
     samlede apps skaerme). Der var to kopier af den samme SVG - een her og
@@ -649,20 +648,29 @@ def loading_overlay(name, busy_var, label="Saving, please wait", caption=None):
 
     Staar SIDST i skaermens boern: det, der staar senere, ligger oeverst."""
     vis = f"IfError({busy_var}, false)"
-    return Ctrl(name, "Image", props={
+    scrim = Ctrl(name, "Image", props={
         "AccessibleLabel": f'"{label}"',
         "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0",
         **stable_scrim(),
         "Height": "App.Height",
-        "Image": spinner_svg(caption=caption),
-        "ImagePosition": "ImagePosition.Center",
+        "Image": '""',
         "TabIndex": "0",
         "Visible": vis,
         "Width": "App.Width",
         "X": "0",
         "Y": "0",
     }, h="App.Height", vis=vis)
+    assert name.startswith("img"), name
+    if caption:
+        spin = spinner("spn" + name[3:], vis, f'"{label}"', width="Min(440, App.Width - 32)",
+                       height=100, label=f'"{caption}"', below=True,
+                       size=lay.SIZE_INPUT, weight="Semibold")
+    else:
+        spin = spinner("spn" + name[3:], vis, f'"{label}"', width=64, height=64)
+    spin.props["X"] = "(App.Width - Self.Width) / 2"
+    spin.props["Y"] = "(App.Height - Self.Height) / 2"
+    return [scrim, spin]
 
 
 def open_overlay(prefix, busy_var, failed_var, slow_var, *, title_fx, step_fx, hint_fx,
@@ -672,7 +680,7 @@ def open_overlay(prefix, busy_var, failed_var, slow_var, *, title_fx, step_fx, h
     Erstatter det store hjul med den faste billedtekst. Et lille, centreret
     kort paa sloeret:
 
-        (hjul)                 eller (!) ved en fejl - samme stoerrelse
+        (hjul)                 eller (!) ved en fejl - samme plads
         Opening request        titlen
         Loading items ...      det trin, indlaesningen ER i lige nu
         Taking longer ...      kun naar det trin tager lang tid
@@ -710,17 +718,21 @@ def open_overlay(prefix, busy_var, failed_var, slow_var, *, title_fx, step_fx, h
         "X": "0",
         "Y": "0",
     }, h="App.Height", vis=vis)
+    # Hjulet og fejlikonet har samme plads (40 x 40); kun een er synlig.
+    spin = spinner(f"spn{prefix}LoadIcon", f"!{failed}", '"Loading"', width=40, height=40)
+    spin.props["AlignInContainer"] = "AlignInContainer.Center"
     icon = Ctrl(f"img{prefix}LoadIcon", "Image", props={
-        "AccessibleLabel": f'If({failed}, "Error", "Loading")',
+        "AccessibleLabel": '"Error"',
         "AlignInContainer": "AlignInContainer.Center",
         "BorderStyle": "BorderStyle.None",
         "BorderThickness": "0",
         "Height": "40",
-        "Image": f"If({failed}, {error_svg(40, 4)}, {spinner_svg(40, 4)})",
+        "Image": error_svg(40, 4),
         "ImagePosition": "ImagePosition.Fit",
         "TabIndex": "0",
+        "Visible": failed,
         "Width": "40",
-    }, h=40)
+    }, h=40, vis=failed)
     title = text_ctrl(f"txt{prefix}LoadTitle", title_fx, size=lay.SIZE_CARD_TITLE,
                       weight="Semibold", align="Center", height=26, wrap="false")
     step = text_ctrl(f"txt{prefix}LoadStep", step_fx, size=13, color=C_MUTED,
@@ -733,7 +745,7 @@ def open_overlay(prefix, busy_var, failed_var, slow_var, *, title_fx, step_fx, h
                    width=fit_button_width('"Retry"'), height=36)
     actions = group(f"con{prefix}LoadActions", [close, retry], direction="Horizontal", gap=8,
                     height=36, justify="Center", align_items="Center", visible=failed)
-    card = group(f"con{prefix}LoadCard", [icon, title, step, hint, actions],
+    card = group(f"con{prefix}LoadCard", [spin, icon, title, step, hint, actions],
                  direction="Vertical", gap=6, fill=C_MODAL_BG, border_color=C_CARD_BORDER,
                  radius=lay.RADIUS_MODAL, pad=(22, 20, 18, 20),
                  width="Min(360, App.Width - 32)", drop_shadow="Bold", visible=vis)
@@ -2214,7 +2226,7 @@ def table_surface(gal, rule_name, surface=C_CARD_BG):
     Parent.TemplateHeight - 2 eller - 1; den bliver - 1."""
     pad = int(gal.props.get("TemplatePadding", "0"))
     ts = str(gal.props["TemplateSize"])
-    # TemplateSize kan vaere en formel (fx H.hit + 6 - doc_upload.TEMPLATE_H).
+    # TemplateSize kan vaere en formel (fx H.hit + 6).
     size = int(ts) + pad if ts.isdigit() else (f"{ts} + {pad}" if pad else ts)
     gal.props["Fill"] = surface
     gal.props["TemplatePadding"] = "0"

@@ -724,6 +724,7 @@ def build_detail():
 
 
 def build_loading():
+    """[sloer, hjul] (build_helpers.loading_overlay)."""
     return loading_overlay("imgKksLoading", "varKksLoading", "Loading KKS keys, please wait")
 
 
