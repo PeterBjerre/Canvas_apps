@@ -8,10 +8,11 @@ ModernButton 329, ModernTextInput 72, ModernDropdown 32, ModernNumberInput
 Grundregel for auditten: **kun kontroltyper, som appen allerede deployer i
 dag**. ModernAttachments gav "Unknown control type" i Peters Studio (#165),
 så ingen nye `Modern*`-typer er indført. Ingen preview-kontrol er brugt.
-Undtagelser, som Peter har godkendt bagefter: ModernAttachments@1.3.0 og
-ModernSpinner@1.1.0 (#302) — se "byttet" nederst i oversigten — samt
-ModernBadge@1.0.0 (#304, #161 delt i #302–#307) — se "Mærker" nedenfor.
-Desuden ModernTabList@1.0.0 (#303), se *Faner*.
+Undtagelser, som Peter har godkendt bagefter: ModernAttachments@1.3.0,
+ModernSpinner@1.1.0 (#302) og ModernProgressBar@1.0.0 (#305) — se
+"byttet" nederst i oversigten — samt ModernBadge@1.0.0 (#304, #161 delt
+i #302–#307) — se "Mærker" nedenfor. Desuden ModernTabList@1.0.0 (#303),
+se *Faner*.
 
 ## Hvad er ændret
 
@@ -158,6 +159,9 @@ drejende SVG'er fra `spinner_svg` og 5 "Searching..."-billeder fra
 `fl_picker.busy_box`). Alle 20 er byttet; regel 16c afviser fremover
 ethvert Image med et drejende SVG (CSS `rotate(360…)` eller SMIL
 `animateTransform type='rotate'`) og enhver anden Spinner-version.
+De 7 gem/upload-slør i første række (`*Saving`, `imgIbBusy`,
+`imgIbUploading`) er siden blevet ModernProgressBar (#305, nedenfor); kun
+`imgKksLoading` og `imgMdNavigating` er stadig hjul der — 13 hjul i alt.
 
 | Hvor | Antal | Før | Efter |
 |---|---|---|---|
@@ -212,10 +216,46 @@ tekst siger det samme.
 | Material/Eq/MP | `conDomEditorTabs` (Details · Objects · Documents) | Ikke nævnt i #303. "Documents" åbner dokumentruden, som bygges om i #323. |
 | Material/Eq/MP, VHP | `conDom*Seg`, `conVhpItemRevisionSeg`, `conVhpItemNonFlowSeg` | Ikke faner, men feltværdier (Yes/No, None/ZBOW) i en formular. Kandidat til ModernRadio/ModernToggle, ikke Tab list. |
 
+### Gem og upload — byttet til ModernProgressBar@1.0.0 (#305)
+
+Gem-, send- og uploadsløret viste det samme hjul som indlæsningen (til
+#302 et drejende SVG, derefter ModernSpinner). En gemning eller upload kører, uden at appen kender
+fremskridtet, så det er nu Learns *ubestemte* Progress bar. Sløret er det
+samme Image som før (samme farve, tager stadig trykket), nu uden billede.
+
+| Kontrol (før → efter) | Skærm | Visible (uændret) | Tekst |
+|---|---|---|---|
+| `imgEqSaving` (slør) → + `prgEqSaving` | Eq | `IfError(varEqSaving, false)` | — |
+| `imgMatSaving` → + `prgMatSaving` | Mat | `IfError(varMatSaving, false)` | — |
+| `imgMpSaving` → + `prgMpSaving` | MP | `IfError(varMpSaving, false)` | — |
+| `imgFlSaving` → + `prgFlSaving` | FL | `IfError(varFlSaving, false)` | — |
+| `imgVhpSaving` → + `prgVhpSaving` | VHP | `IfError(varVhpSaving, false)` | — |
+| `imgIbBusy` → + `prgIbBusy` ("Sending") | IB | `IfError((varIbBusy \|\| varIbPosting) && !varIbUploading, false)` | — |
+| `imgIbUploading` → + `prgIbUploading` + `txtIbUploadingCaption` | IB | `IfError(varIbUploading, false)` | "Saving files..." under bjælken (stod før som hjulets `Label`) |
+
+Bjælken: `Indeterminate = true`, `ProgressColor.Brand`,
+`ProgressThickness.Large`, `ProgressShape.Rounded`, 8 px høj,
+`Min(320, App.Width - 32)` bred, midt på skærmen. `AccessibleLabel` er
+slørets tekst ("Saving, please wait" osv.). Learn: kontrollen viser ingen
+tekst, så billedteksten er en ModernText. Farven kan kun være en af Fluents
+semantiske farver (Brand = appens brandfarve); sporets farve kan ikke
+sættes. Bygger: `tools/progress_overlay.py` (`progress_overlay`,
+`progress_bar`). Regel 16f afviser en anden version, en udokumenteret
+egenskab og `Indeterminate` ≠ `true`; præfikset er `prg` (regel 33).
+
+Bevidst **ikke** byttet:
+
+| Indikator | Hvorfor |
+|---|---|
+| Dokumentrudernes upload (Eq, Mat, MP, VHP: statuslinjen "Working... please wait." i `tools/attflows.py`/`tools/doc_upload.py`) | Ruderne bygges om i PR #323. Følger efter #323, så de to ikke konflikter. |
+| Indlæsning: `imgKksLoading`, `imgMdNavigating` ("Opening..."), kortet "Opening request" (`*LoadIcon`), `imgMdAprSpinner`, "Searching..." | Ikke gem/upload, men indlæsning/søgning: de er hjul og hører til ModernSpinner (#302). |
+| `loading_overlay` i `tools/build_helpers.py` | Bruges stadig af indlæsningen ovenfor; gem/upload kalder den ikke længere. |
+
 ## Versioner og egenskaber
 
 - Kun `ModernAttachments@1.3.0`, `ModernSpinner@1.1.0`,
-  `ModernBadge@1.0.0` (#304) og `ModernTabList@1.0.0` (#303) har en
+  `ModernProgressBar@1.0.0` (#305), `ModernBadge@1.0.0` (#304) og
+  `ModernTabList@1.0.0` (#303) har en
   eksplicit version i YAML'en (indtil #161 var det `Attachments@2.3.0`).
   Badge-versionen er den, Learns YAML-eksempel skriver; den er ikke set i
   Peters Studio endnu. De øvrige moderne kontroller står uden `@`-version
@@ -231,6 +271,9 @@ tekst siger det samme.
   `Align.*`, `FontWeight.*`). Intet at opdatere.
 - `ModernButton` har stadig ingen `TabIndex` (check_layout regel 10) og
   intet `Fill`.
+- `ModernProgressBar@1.0.0` (#305) har eksplicit version: den, Learns
+  YAML-eksempel skriver. Ikke set i Peters Studio før; giver den "Unknown
+  control type", rulles #305 tilbage.
 
 ## Kandidater — kræver Peters bekræftelse først
 
@@ -240,8 +283,6 @@ Modern controls**, at typen findes og deployer, før den tages i brug.
 | Kontrol | Kunne erstatte | Bemærkning |
 |---|---|---|
 | ModernIcon | 34 dekorative ikoner | Kun Fluent-ikoner; domæneikonerne (`tools/icons.py`) findes ikke der. |
-| ModernTabList | **Brugt (#303)**: IB's scope/state, VHP's ops/pkg, hubbens My/All. Version `@1.0.0` fra Learns YAML-eksempel – bekræft i Studio. | `galFlTabs` m.fl. bevidst beholdt, se *Faner* ovenfor. |
-| ModernProgressBar | "Saving"/"Uploading"-billeder | |
 | ModernLink | evt. links, der i dag er knapper | |
 | ModernToggle, ModernRadio | par af Primary/Outline-knapper som vælgere | |
 | ModernTable (preview) | simple læselister | Preview: ikke til kritiske lister. |
