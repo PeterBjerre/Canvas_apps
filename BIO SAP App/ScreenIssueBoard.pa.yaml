@@ -14195,9 +14195,7 @@ Screens:
             HoverFill: |-
                 =C.'overlay'
             Image: |-
-                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><style>.f{opacity:0;animation:f .2s ease-out 0.15s forwards}.s{transform-origin:32px 32px;animation:s .9s linear infinite}@keyframes f{to{opacity:1}}@keyframes s{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.s{animation:none}}</style><g class='f' transform='translate(0 0)'><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path class='s' d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'/></g></svg>")
-            ImagePosition: |-
-                =ImagePosition.Center
+                =""
             PressedFill: |-
                 =C.'overlay'
             TabIndex: |-
@@ -14210,6 +14208,29 @@ Screens:
                 =0
             Y: |-
                 =0
+      - prgIbBusy:
+          Control: ModernProgressBar@1.0.0
+          Properties:
+            AccessibleLabel: |-
+                ="Sending, please wait"
+            Height: |-
+                =8
+            Indeterminate: |-
+                =true
+            ProgressColor: |-
+                =ProgressColor.Brand
+            Shape: |-
+                =ProgressShape.Rounded
+            Thickness: |-
+                =ProgressThickness.Large
+            Visible: |-
+                =IfError((varIbBusy || varIbPosting) && !varIbUploading, false)
+            Width: |-
+                =Min(320, App.Width - 32)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =(App.Height - Self.Height) / 2
       - imgIbUploading:
           Control: Image
           Properties:
@@ -14230,9 +14251,7 @@ Screens:
             HoverFill: |-
                 =C.'overlay'
             Image: |-
-                ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='440' height='100' viewBox='0 0 440 100'><style>.f{opacity:0;animation:f .2s ease-out 0.15s forwards}.s{transform-origin:32px 32px;animation:s .9s linear infinite}@keyframes f{to{opacity:1}}@keyframes s{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.s{animation:none}}</style><g class='f' transform='translate(188 0)'><text x='32' y='88' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & C.'hex-text-primary' & "'>Uploading files...</text><circle cx='32' cy='32' r='22' fill='none' stroke-width='6' stroke='" & C.'hex-state-neutral-bg' & "'/><path class='s' d='M32 10 a22 22 0 0 1 22 22' fill='none' stroke-width='6' stroke-linecap='round' stroke='" & C.'hex-color-brand-primary' & "'/></g></svg>")
-            ImagePosition: |-
-                =ImagePosition.Center
+                =""
             PressedFill: |-
                 =C.'overlay'
             TabIndex: |-
@@ -14245,6 +14264,72 @@ Screens:
                 =0
             Y: |-
                 =0
+      - prgIbUploading:
+          Control: ModernProgressBar@1.0.0
+          Properties:
+            AccessibleLabel: |-
+                ="Uploading files, please wait"
+            Height: |-
+                =8
+            Indeterminate: |-
+                =true
+            ProgressColor: |-
+                =ProgressColor.Brand
+            Shape: |-
+                =ProgressShape.Rounded
+            Thickness: |-
+                =ProgressThickness.Large
+            Visible: |-
+                =IfError(varIbUploading, false)
+            Width: |-
+                =Min(320, App.Width - 32)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =(App.Height - Self.Height) / 2
+      - txtIbUploadingCaption:
+          Control: ModernText
+          Properties:
+            AccessibleLabel: |-
+                ="Uploading files..."
+            Align: |-
+                =Align.Center
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Color: |-
+                =C.'text-primary'
+            Fill: |-
+                =RGBA(0, 0, 0, 0)
+            Font: |-
+                =Font.'Segoe UI'
+            FontWeight: |-
+                =FontWeight.Semibold
+            Height: |-
+                =24
+            PaddingBottom: |-
+                =0
+            PaddingLeft: |-
+                =0
+            PaddingRight: |-
+                =0
+            PaddingTop: |-
+                =0
+            Size: |-
+                =T.input
+            Text: |-
+                ="Uploading files..."
+            Visible: |-
+                =IfError(varIbUploading, false)
+            Width: |-
+                =Min(320, App.Width - 32)
+            Wrap: |-
+                =false
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =App.Height / 2 + 16
       - conIbToast:
           Control: GroupContainer
           Variant: AutoLayout
