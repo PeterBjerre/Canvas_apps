@@ -510,6 +510,7 @@ layoutfejl bor:
 | 22 | Concurrent med en indbyrdes afhaengighed |
 | 16 | Ingen Classic/DropDown |
 | 16b | Kun ModernAttachments@1.3.0 til filer (issue #161) |
+| 16f | Gem/upload-bjaelken er ModernProgressBar@1.0.0, ubestemt (issue #305) |
 | 33 | Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4) |
 | 18 | Enhver Gallery skal have TabIndex |
 | 19 | AccessibleLabel maa ikke vaere kontrollens navn |
