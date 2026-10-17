@@ -525,6 +525,7 @@ layoutfejl bor:
 | 40 | Ikonknapper har mindst klikfladen H.hit (UX-review F6/T10) |
 | 41 | Ingen ModernNumberInput - tal er number_field (UX-review T10) |
 | 42 | Tekststoerrelser er paa typeskalaen T.* (UX-review M6) |
+| 16e | Maerker er ModernBadge@1.0.0 med vores egne farver (issue #304) |
 <!-- rules:end -->
 
 Punkt 7 fanger den klassiske: du sletter en kontrol og glemmer en
