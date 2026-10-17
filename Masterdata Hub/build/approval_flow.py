@@ -26,6 +26,7 @@ from gen_screen import (Ctrl, C_OVERLAY, C_MODAL_BG, C_PRIMARY_SOFT, C_MUTED, C_
                         C_INVALID_FG, C_INVALID_BG, C_CARD_BORDER, C_ROW_HOVER, C_ROW_PRESSED)
 from build_helpers import (group, text_ctrl, button, grow, spinner_svg, row_hit, text_px,
                            text_input, label_px)
+from build_helpers import fluent, fluent_icon
 from hub_config import DOMAINS
 from design_tokens import ref_hex
 import icons
@@ -1030,18 +1031,11 @@ def build_popup():
                        extra={"X": "42", "Y": "26"})
 
     y1 = f"If({one_line}, {(ROW_H - 20) // 2}, 6)"
-    person = Ctrl(n("img", "Person"), "Image", props={
-        "AccessibleLabel": '"User"', "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
-        "Fill": C_TRANSPARENT, "Height": str(ICON_W),
-        "Image": ('"data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns=\'http://www.w3.org/2000/svg\' '
-                  'width=\'24\' height=\'24\' viewBox=\'0 0 24 24\'><path d=\'' + PERSON +
-                  '\' fill=\'none\' stroke=\'" & ' + ref_hex("text-muted") +
-                  ' & "\' stroke-width=\'%g\' stroke-linecap=\'round\' stroke-linejoin=\'round\'/></svg>")'
-                  % icons.stroke(ICON_W)),
-        "ImagePosition": "ImagePosition.Fit", "OnSelect": "false", "TabIndex": "0",
-        "Width": str(ICON_W), "X": str(LX), "Y": f"{y1} + 2",
-        "Visible": f"{_is('D')} && ThisItem.Human",
-    }, h=ICON_W, vis=f"{_is('D')} && ThisItem.Human")
+    # Personen er Fluents "Person" (issue #306) - pynt foran navnet.
+    person = fluent_icon(n("ico", "Person"), fluent("person"), C_MUTED, '"User"', size=ICON_W,
+                         visible=f"{_is('D')} && ThisItem.Human")
+    person.props["X"] = str(LX)
+    person.props["Y"] = f"{y1} + 2"
     actor = text_ctrl(n("txt", "DTitle"), "ThisItem.Title", size=lay.SIZE_BODY, weight="Semibold",
                       color=f"If(ThisItem.Human, {C_TITLE}, {C_MUTED})", height=20,
                       visible=_is("D"), width=actor_w,

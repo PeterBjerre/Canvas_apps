@@ -171,6 +171,15 @@ FLUENT = {
     "more": "MoreHorizontal",
     "check": "Checkmark",
     "paste": "ClipboardPaste",   # Paste rows (UX-review L3) - efterproeves i Studio
+    # Pynt- og statusikoner paa den moderne Icon-kontrol (issue #306,
+    # build_helpers.fluent_icon). Samme FORM som stregikonet, det afloeser:
+    "ok": "CheckmarkCircle",     # STATUS_READY: ring med flueben
+    "awaiting": "ErrorCircle",   # STATUS_AWAITING: ring med udraabstegn
+    "rejected": "DismissCircle", # STATUS_REJECTED: ring med kryds
+    "person": "Person",          # PERSON
+    # "info" (ring med "i") og "search" (lup) staar ovenfor.
+    # Domaeneikonerne (DOMAIN) har INTET Fluent-sidestykke - de er vores
+    # egne, ens med sidebaren, og bliver Image-kontroller (docs/38).
 }
 
 # Stregen ved en given tegnet stoerrelse - se ovenfor.

@@ -33,7 +33,7 @@ raekke. Det, der er lavet om:
 from gen_screen import (Ctrl, C_CARD_BG, C_DISABLED_BG, C_DIVIDER, C_INFO_BG,
                         C_INFO_FG, C_INVALID_FG, C_MUTED, C_MUTED_BG, C_PRIMARY,
                         C_PRIMARY_SOFT, C_MODAL_BG, C_TRANSPARENT, C_WHITE)
-from build_helpers import (border_rule, button, card, concurrent, fit_button_width, flow_row, group, grow,
+from build_helpers import (border_rule, fluent, fluent_icon, button, card, concurrent, fit_button_width, flow_row, group, grow,
                            input_theme, loading_overlay, row_hit, row_rule, text_ctrl,
                            text_modal, themed_dropdown, top_bar, app_frame, text_input,
                            ensure_hit, hit_size)
@@ -399,20 +399,11 @@ SEARCH_ICON = 20
 
 
 def _search_row():
-    import icons
-    from design_tokens import ref_hex
-    col = '" & %s & "' % ref_hex("text-muted")
-    glyph = icons.svg("M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z M20 20l-4-4", col, size=SEARCH_ICON)
-    ico = Ctrl("imgKksFindIcon", "Image", props={
-        "AccessibleLabel": '"Search"',
-        "AlignInContainer": "AlignInContainer.Center",
-        "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
-        "Height": str(SEARCH_ICON),
-        "Image": f'"data:image/svg+xml;utf8," & EncodeUrl("{glyph}")',
-        "ImagePosition": "ImagePosition.Fit",
-        "LayoutMinWidth": str(SEARCH_ICON),
-        "OnSelect": "false", "TabIndex": "0", "Width": str(SEARCH_ICON),
-    }, h=SEARCH_ICON)
+    # Lupen er Fluents "Search" (issue #306) - pynt ved feltet, ingen klik.
+    ico = fluent_icon("icoKksFindIcon", fluent("search"), C_MUTED, '"Search"',
+                      size=SEARCH_ICON)
+    ico.props["AlignInContainer"] = "AlignInContainer.Center"
+    ico.props["LayoutMinWidth"] = str(SEARCH_ICON)
     inp = text_input("inpKksFind", "varKksQuery", placeholder='"Search code or description"',
                      height=SEARCH_H, label='"Search KKS codes and descriptions"')
     inp.props["TriggerOutput"] = "TriggerOutput.Keypress"
