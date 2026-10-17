@@ -137,9 +137,6 @@ Set(varVhpVenMsg, "");
 Set(varVhpLongTextTarget, "op");
 Set(varVhpTasklistPickerOpen, false);
 
-// Get-flowet svarer med en STRENG, der skal gennem ParseJSON.
-Set(varVhpAttJson, "");
-
 // Popup'en til lang tekst paa en operation. Operationen udpeges af
 // BEGGE noegler - OperationNo er kun unikt inden for et item.
 Set(varVhpLongTextOpen, false);

@@ -8,8 +8,9 @@ ModernButton 329, ModernTextInput 72, ModernDropdown 32, ModernNumberInput
 Grundregel for auditten: **kun kontroltyper, som appen allerede deployer i
 dag**. ModernAttachments gav "Unknown control type" i Peters Studio (#165),
 så ingen nye `Modern*`-typer er indført. Ingen preview-kontrol er brugt.
-Undtagelse, som Peter har bedt om bagefter (#161 delt i #302–#307):
-ModernBadge@1.0.0 (#304) — se "Mærker" nedenfor.
+Undtagelser, som Peter har godkendt bagefter: ModernAttachments@1.3.0 og
+ModernSpinner@1.1.0 (#302) — se "byttet" nederst i oversigten — samt
+ModernBadge@1.0.0 (#304, #161 delt i #302–#307) — se "Mærker" nedenfor.
 
 ## Hvad er ændret
 
@@ -41,7 +42,12 @@ Bemærk: rækkelaget er en *klassisk* kontrol **oven på** moderne tekster,
 ikke en klassisk kontrol skjult under en falsk moderne flade. Det er det,
 issuet forbyder.
 
-### Image — 304
+### Image — 304 ved auditten
+
+Efter #302 er 6 Image-kontroller væk (`imgMdAprSpinner` og de 5
+"Searching..."-billeder). Ventesløret (9) og fejlikonet i
+"Opening request"-kortet (5) er stadig billeder, nu uden hjul. Tallene
+herunder er auditens; de er ikke talt om.
 
 Efter #304 er de 5 nummerpiller (`img…Number` og `imgMdAprNo`) ModernBadge;
 tallene herunder er auditens og er ikke talt om.
@@ -52,7 +58,6 @@ tallene herunder er auditens og er ikke talt om.
 | Øvrige klikbare ikoner (hubbens fliser og "New", række-ikoner Edit/Delete/Notes/Timeline, VH-trin, hjælp, objektliste) | 27 | Hub, VHP, … | Egne domæneikoner i tokenfarver. ModernButton.Icon tager kun Fluent-ikonnavne. |
 | Feedback-vælgerens ikon/chevron | 21 | alle | Del af det samme felt som `btn*FbSubject`. |
 | Dekorative/status-ikoner (sidetitel, nummerbadge, status, domæne, rail, fil-miniature) | 34 | alle | Ingen moderne ikonkontrol i appen i dag. |
-| Spinnere (animeret SVG) | 12 | alle | ModernSpinner bruges ikke i appen (kandidat, se nedenfor). |
 | Slør bag popup (luk ved tryk udenfor) | 20 | alle | Fuldskærms trykflade; ingen moderne kontrol med `OnSelect` og gennemsigtig flade. |
 
 ### Rectangle — 22
@@ -112,6 +117,26 @@ egenskaber (fx `ThemeColor`, `FontSize`, `TabIndex`) og et mærke uden
 Antal-mærker på faner og i sidebaren findes ikke som egne kontroller i
 appen i dag (tallene står i knappernes tekst), så der var intet at bytte.
 
+### Spinnere — byttet til ModernSpinner@1.1.0 (#302)
+
+Auditten talte 12; en fuld optælling efter #302 fandt 20 Image-hjul (15
+drejende SVG'er fra `spinner_svg` og 5 "Searching..."-billeder fra
+`fl_picker.busy_box`). Alle 20 er byttet; regel 16c afviser fremover
+ethvert Image med et drejende SVG (CSS `rotate(360…)` eller SMIL
+`animateTransform type='rotate'`) og enhver anden Spinner-version.
+
+| Hvor | Antal | Før | Efter |
+|---|---|---|---|
+| Ventesløret ved gem/indlæsning (`loading_overlay`): `*Saving` (Eq, FL, Mat, MP, VHP), `imgIbBusy`, `imgIbUploading`, `imgKksLoading`, `imgMdNavigating` | 9 | Ét Image over hele skærmen med hjul (og evt. billedtekst) i SVG'en | Samme Image som slør (uden billede, tager stadig trykket) + `spn…` midt på skærmen, oven på sløret. Billedteksten ("Uploading files...", "Opening...") er spinnerens `Label` under hjulet |
+| Kortet "Opening request" (`open_overlay`): `*LoadIcon` (Eq, FL, Mat, MP, VHP) | 5 | Ét 40 × 40-billede: hjul eller fejl-(!) | `spn…LoadIcon` (40 × 40) mens der hentes; `img…LoadIcon` viser kun (!) ved fejl, samme plads |
+| Godkendelsesflow/aktivitet i hubben: `imgMdAprSpinner` → `spnMdAprSpinner` | 1 | Image 110 px høj | Spinner, samme plads og synlighed |
+| FL-/leverandørsøgning: `img*FlBusy`/`imgVhpVenBusy` → `spn*…Busy` (Eq, Mat, MP, VHP ×2) | 5 | Ét billede: knapformet boks, hjul og "Searching..." | Spinner med "Searching..." til højre for hjulet i knappens faste plads (154 × 36). Boksen bag er væk |
+
+Farve: `BasePaletteColor = C.'color-brand-primary'` (Fluent tegner hjulet
+ud fra paletten), etiketten i `C.'text-primary'`. Sporets farve, hjulets
+størrelse og den forsinkede indtoning kan ikke sættes på kontrollen
+(ingen `SpinnerSize`/`Fill` på Learn). Bygger: `build_helpers.spinner`.
+
 ### Attachments — byttet til ModernAttachments@1.3.0 (#161)
 
 | Kontrol | Antal | Brug | Status |
@@ -120,11 +145,11 @@ appen i dag (tallene står i knappernes tekst), så der var intet at bytte.
 
 ## Versioner og egenskaber
 
-- Kun `ModernAttachments@1.3.0` og `ModernBadge@1.0.0` (#304) har en
-  eksplicit version i YAML'en (indtil #161 var det `Attachments@2.3.0`).
-  Badge-versionen er den, Learns YAML-eksempel skriver; den er ikke set i
-  Peters Studio endnu. De øvrige moderne kontroller står uden `@`-version
-  (Studio vælger sin egen).
+- Kun `ModernAttachments@1.3.0`, `ModernSpinner@1.1.0` og
+  `ModernBadge@1.0.0` (#304) har en eksplicit version i YAML'en (indtil
+  #161 var det `Attachments@2.3.0`). Badge-versionen er den, Learns
+  YAML-eksempel skriver; den er ikke set i Peters Studio endnu. De øvrige
+  moderne kontroller står uden `@`-version (Studio vælger sin egen).
 - Ingen af de omdøbte/fjernede egenskaber fra Microsoft Learn's
   *Recent updates to modern controls* findes i appen: ingen `FontColor`,
   `FontSize`, `FontItalic`, `BorderRadius`, `Weight`, `AcceptsFocus` eller
@@ -141,7 +166,6 @@ Modern controls**, at typen findes og deployer, før den tages i brug.
 
 | Kontrol | Kunne erstatte | Bemærkning |
 |---|---|---|
-| ModernSpinner | 12 Image-spinnere | GA ifølge Learn. Mister vores tokenfarver, hvis den ikke kan farves. |
 | ModernIcon | 34 dekorative ikoner | Kun Fluent-ikoner; domæneikonerne (`tools/icons.py`) findes ikke der. |
 | ModernTabList | faner (`galFlTabs`, VHP's ops/pkg-knapper, IB's scope/state) | |
 | ModernProgressBar | "Saving"/"Uploading"-billeder | |
@@ -153,7 +177,7 @@ Modern controls**, at typen findes og deployer, før den tages i brug.
 ## Resterende arbejde
 
 1. Peter bekræfter, hvilke kandidater hans Studio kender.
-2. Derefter, én type ad gangen: spinnere → ModernSpinner, faner →
+2. Derefter, én type ad gangen: ~~spinnere → ModernSpinner~~ (#302), faner →
    ModernTabList, og evt. `btn*FbSubject` → ModernButton med `Padding*`.
 3. Rækkelag, sidebar, slør, Gallery, Timer og HtmlViewer bliver, til
    Microsoft giver ModernButton en styrbar flade eller en moderne

@@ -24,7 +24,7 @@ from gen_screen import (Ctrl, C_OVERLAY, C_MODAL_BG, C_PRIMARY_SOFT, C_MUTED, C_
                         C_MUTED_BG, C_TRANSPARENT, C_PRIMARY, C_INFO_BG, C_INFO_FG,
                         C_WARN_FG, C_WARN_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_VALID_FG, C_VALID_BG,
                         C_INVALID_FG, C_INVALID_BG, C_CARD_BORDER, C_ROW_HOVER, C_ROW_PRESSED)
-from build_helpers import (group, text_ctrl, button, grow, spinner_svg, row_hit, text_px,
+from build_helpers import (group, text_ctrl, button, grow, spinner, row_hit, text_px,
                            text_input, label_px, modern_badge)
 from hub_config import DOMAINS
 from design_tokens import ref_hex
@@ -1115,13 +1115,10 @@ def build_popup():
     gal.props["Visible"] = f"!{busy}"
     sub.props["Visible"] = f"!{busy}"
     note, note_vis, note_h = _note_panel(busy)
-    spin = Ctrl(n("img", "Spinner"), "Image", props={
-        "AccessibleLabel": f'If({IS_TIMELINE}, "Loading activity", "Loading approval flow")',
-        "BorderStyle": "BorderStyle.None",
-        "BorderThickness": "0", "Fill": C_TRANSPARENT, "Height": "110",
-        "Image": spinner_svg(), "ImagePosition": "ImagePosition.Center",
-        "TabIndex": "0", "Visible": busy, "Width": GW,
-    }, h=110, vis=busy)
+    # Den moderne Spinner (issue #302) i samme plads som det gamle billede.
+    spin = spinner(n("spn", "Spinner"), busy,
+                   f'If({IS_TIMELINE}, "Loading activity", "Loading approval flow")',
+                   width=GW, height=110)
 
     modal = group(n("con", "Modal"), [head, sub, note, spin, gal], direction="Vertical", gap=10,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,

@@ -510,6 +510,7 @@ layoutfejl bor:
 | 22 | Concurrent med en indbyrdes afhaengighed |
 | 16 | Ingen Classic/DropDown |
 | 16b | Kun ModernAttachments@1.3.0 til filer (issue #161) |
+| 16c | Hjul er ModernSpinner@1.1.0 - aldrig et animeret billede (issue #302) |
 | 33 | Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4) |
 | 18 | Enhver Gallery skal have TabIndex |
 | 19 | AccessibleLabel maa ikke vaere kontrollens navn |
@@ -920,8 +921,8 @@ funktion, `fl_picker()`, og den samme flow-kontrakt, `build_flsearch.py`:
   bliver stående, til der søges igen, nulstilles lokalt eller vælges om.
 - Status ("6 Functional Locations found for …", søger, ingen fund, fejl)
   står **under** feltet i alle tre apps.
-- **Mens flowet kører**, står knappen stille (samme størrelse, deaktiveret,
-  uden tekst), og én `ModernSpinner` drejer i en fast plads lige til højre.
+- **Mens flowet kører**, er knappen skjult, og én `ModernSpinner@1.1.0`
+  med "Searching..." står i dens faste plads (`fl_picker.busy_box`, #302).
   Rækken har 2 px luft over og under, så knappens fokusring ikke klippes.
 - Comboboksen har samme hjørner (10), kant og fyld som de andre felter.
 - **Reset er lokal:** `fl_picker.reset_fx()` rydder kun den vælgers egne

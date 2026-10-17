@@ -53,7 +53,7 @@ def test_fl_picker_names_unchanged():
     """Generaliseringen af fl_picker maa ikke omdoebe FL-vaelgerens kontroller."""
     with open(SCREEN, encoding="utf-8") as f:
         y = f.read()
-    for n in ("btnVhpFlSearch:", "imgVhpFlBusy:", "conVhpFlWrap:", "tmrVhpFlCapture:"):
+    for n in ("btnVhpFlSearch:", "spnVhpFlBusy:", "conVhpFlWrap:", "tmrVhpFlCapture:"):
         assert n in y
 
 

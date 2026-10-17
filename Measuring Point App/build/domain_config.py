@@ -43,6 +43,9 @@ SCREEN = "ScreenMeasuringPoint"
 TITLE = "Measuring Points"
 SUBTITLE = "Report counters and measuring points for a functional location."
 ROW_PANEL_ENABLED = True
+# Ingen dokumenter paa maalepunkter (Peter, issue #300): ingen
+# dokumentrude, ingen Documentation-celle og ingen Documents-knap.
+DOCS_ENABLED = False
 
 # Praefikset i noeglerne og i anmodningsnummeret: MP-000123.
 PREFIX = "MP"
