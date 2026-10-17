@@ -73,7 +73,7 @@ from gen_screen import (Ctrl, stack_height, C_INPUT_BORDER, C_APP_BG, C_CARD_BG,
                         C_PRIMARY, C_PRIMARY_SOFT, C_TITLE, C_TRANSPARENT, C_WARN_BG,
                         C_WARN_FG)
 from build_helpers import (empty_state, skeleton_rows, ensure_hit, hit_size, button, card, checkbox_theme, concurrent, confirm_modal,
-                           fit_button_width, group, icon_button, segmented, SEG_GAP, SEG_H, SEG_PAD, SEG_SIZE,
+                           fit_button_width, group, icon_button, SEG_H, tab_list, tabs_w,
                            flow_row, grow, icon_on_mobile, label_row, loading_overlay, row_hit, row_rule,
                            tap_backdrop,
                            label_px, text_ctrl, text_input, text_min_height, text_px, themed_dropdown, top_bar,
@@ -628,23 +628,15 @@ CLEAR_FILTERS = ('Set(varIbApp, "");\nSet(varIbSection, "");\nSet(varIbStatusF, 
 # og listeparrene) blev stadig tegnet som tomme rammer. Nu staar hver knap
 # og hver liste DIREKTE i sin flow_row, som i hubbens filterlinje.
 TB_W = CARD_W
-# Et segments bredde (issue #291, kompakt): teksten (text_px er med vilje
-# ~10 % for bred) + 2 x 12 px polstring + fluebenet (16) og dets afstand (6).
-SEG_EXTRA = 46
-
-
-def _seg_w(text):
-    return text_px(text, SEG_SIZE) + SEG_EXTRA
-
-
-def _track_w(*texts):
-    w = sum(_seg_w(t) for t in texts)
-    return w + (len(texts) - 1) * SEG_GAP + 2 * SEG_PAD
-
-
-SCOPE_ADMIN_W = _track_w("All issues", "My issues", "Assigned to me")
-SCOPE_USER_W = _track_w("All issues", "My issues")
-STATE_ALL_W = _track_w("Open", "Closed", "Archived")
+# Kontakterne er faner (ModernTabList, issue #303): (vaerdi, tekst, kort
+# tekst). Den korte tekst bruges, naar kortet er for smalt til de lange -
+# fanerne ruller ikke (Learn: "Tab buttons don't automatically scroll").
+SCOPE_TABS = (("all", "All issues", "All"), ("mine", "My issues", "Mine"),
+              ("assigned", "Assigned to me", "Assigned"))
+STATE_TABS = (("open", "Open"), ("closed", "Closed"), ("archived", "Archived"))
+SCOPE_ADMIN_W = tabs_w([t for _k, t, _s in SCOPE_TABS])
+SCOPE_USER_W = tabs_w([t for _k, t, _s in SCOPE_TABS[:2]])
+STATE_ALL_W = tabs_w([t for _k, t in STATE_TABS])
 TB_GAP = 8           # mellem grupperne i en linje
 SEARCH_MIN = 176     # soegefeltet + luppen, naar linje 2 staar vandret
 SEARCH_W = 240       # soegefeltet + luppen, naar der er plads (issue #301)
@@ -691,47 +683,22 @@ TB_LINE_H = 36
 
 def build_filters():
     """Vaerktoejslinjens to raekker - de staar direkte i listekortet."""
-    scope = segmented("conIbScope", [
-        ("All", "All issues", SCOPE_ALL, 'Set(varIbScope, "all")',
-         '"Show all issues from all testers"'),
-        ("Mine", "My issues", 'varIbScope = "mine"', 'Set(varIbScope, "mine")',
-         '"Show the issues you reported"'),
-        ("Assigned", "Assigned to me", 'varIbScope = "assigned"', 'Set(varIbScope, "assigned")',
-         '"Show the issues assigned to me"'),
-    ], label="Show", fit=True)
-    for child, nm in zip(scope.children, ("btnIbScopeAll", "btnIbScopeMine", "btnIbScopeAssigned")):
-        child.name = nm
-    asg = scope.children[2]
-    asg.props["Visible"] = IS_ADMIN
-    asg.vis = IS_ADMIN
-    # Smalt: skinnen faar hele linjen og knapperne deler den, saa den aldrig
-    # er bredere end kortet.
-    wide = f"If({IS_ADMIN}, {SCOPE_ADMIN_W}, {SCOPE_USER_W})"
-    scope.props["Width"] = f"If({TOP_OK}, {wide}, {TB_W})"
-    n_btn = f"If({IS_ADMIN}, 3, 2)"
-    share = f"(({TB_W}) - 2 * {SEG_PAD} - ({n_btn} - 1) * {SEG_GAP}) / {n_btn}"
-    for child, text in zip(scope.children, ("All issues", "My issues", "Assigned to me")):
-        w0 = _seg_w(text)
-        child.props["Width"] = f"If({TOP_OK}, {w0}, {share})"
-        child.props["LayoutMinWidth"] = "0"
-    scope.h = SEG_H
+    # Issue #303: kontakterne er faner (build_helpers.tab_list). Samme
+    # variabler og vaerdier som knapperne: varIbScope ("all", "mine",
+    # "assigned" - kun for admin) og varIbState ("open", "closed",
+    # "archived"). Filtreringen er uaendret.
+    roomy = f"({TB_W}) >= {SCOPE_ADMIN_W}"
+    scope = tab_list("tabIbScope", "varIbScope", [
+        (k, f'If({roomy}, "{t}", "{s}")') + ((IS_ADMIN,) if k == "assigned" else ())
+        for k, t, s in SCOPE_TABS], label="Show issues",
+        # Smalt: fanerne faar hele linjen (de staar til venstre i den).
+        width=f"If({TOP_OK}, If({IS_ADMIN}, {SCOPE_ADMIN_W}, {SCOPE_USER_W}), {TB_W})")
+    scope.props["LayoutMinWidth"] = "0"
 
-    state = segmented("conIbState", [
-        ("Open", "Open", 'varIbState = "open"', 'Set(varIbState, "open")', '"Show open issues"'),
-        ("Closed", "Closed", 'varIbState = "closed"', 'Set(varIbState, "closed")',
-         '"Show closed issues"'),
-        ("Archived", "Archived", 'varIbState = "archived"', 'Set(varIbState, "archived")',
-         '"Show archived issues"'),
-    ], label="Show", fit=True)
-    for child, nm in zip(state.children, ("btnIbStateOpen", "btnIbStateClosed", "btnIbStateArchived")):
-        child.name = nm
-    state.props["Width"] = f"If({TOP_OK}, {STATE_ALL_W}, {TB_W})"
-    share3 = f"(({TB_W}) - 2 * {SEG_PAD} - 2 * {SEG_GAP}) / 3"
-    for child, text in zip(state.children, ("Open", "Closed", "Archived")):
-        w0 = _seg_w(text)
-        child.props["Width"] = f"If({TOP_OK}, {w0}, {share3})"
-        child.props["LayoutMinWidth"] = "0"
-    state.h = SEG_H
+    state = tab_list("tabIbState", "varIbState", [(k, f'"{t}"') for k, t in STATE_TABS],
+                     label="Show issues by state",
+                     width=f"If({TOP_OK}, {STATE_ALL_W}, {TB_W})")
+    state.props["LayoutMinWidth"] = "0"
 
     search = text_input("inpIbSearch", '""', placeholder='"Search issues"',
                         label='"Search issues"', height=TB_LINE_H)

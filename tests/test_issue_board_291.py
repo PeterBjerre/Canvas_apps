@@ -23,7 +23,7 @@ def _names(ctrls):
 def test_toolbar_rows_have_the_requested_order():
     import ib_parts as P
     top, filters = P.build_filters()
-    assert _names(top.children) == ["conIbScope", "conIbState", "rctIbTbSortGap", "drpIbSort"]
+    assert _names(top.children) == ["tabIbScope", "tabIbState", "rctIbTbSortGap", "drpIbSort"]
     assert _names(filters.children) == ["conIbSearchRow", "conIbFltPairA", "conIbFltPairB"]
     pairs = [c for p in filters.children[1:] for c in p.children]
     assert _names(pairs) == ["drpIbFltApp", "drpIbFltSection", "drpIbFltStatus", "drpIbFltPriority"]
@@ -44,13 +44,14 @@ def test_both_rows_fit_on_one_line_from_desktop():
 
 
 def test_switches_are_compact():
+    """Issue #303: kontakterne er faner; hver fane er teksten + Fluents
+    luft - ingen flueben-plads laengere."""
     import ib_parts as P
-    from build_helpers import fit_button_width, ICON_W, SEG_SIZE
+    from build_helpers import tab_w, text_px, TAB_SIZE
     for t in ("All issues", "My issues", "Assigned to me", "Open", "Closed", "Archived"):
-        old = fit_button_width('"%s"' % t, size=SEG_SIZE, min_w=0) + ICON_W + 8
-        assert P._seg_w(t) < old
-        # Plads til teksten, polstringen og fluebenet ved det valgte.
-        assert P._seg_w(t) >= fit_button_width('"%s"' % t, size=SEG_SIZE, min_w=0) + 14
+        assert text_px(t, TAB_SIZE) + 20 <= tab_w(t) <= text_px(t, TAB_SIZE) + 40
+    assert P.SCOPE_ADMIN_W == sum(tab_w(t) for t in ("All issues", "My issues", "Assigned to me"))
+    assert P.STATE_ALL_W == sum(tab_w(t) for t in ("Open", "Closed", "Archived"))
 
 
 def test_only_one_result_count():
