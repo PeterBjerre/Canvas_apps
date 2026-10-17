@@ -26,17 +26,50 @@ View/Edit, flows, SAP eller vedhæftninger er rørt.
 Skærme: Eq = Equipment, FL = Functional Location, IB = Issue Board,
 KKS, Mat = Material, Hub = MdHub, VHP = VH-plan.
 
-### Classic/Button — 25 (var 26)
+### Classic/Button — 19 (var 28 før #307)
+
+Kun klik-lag med gennemsigtig tekst er tilbage. Check_layout regel 16k
+afviser enhver anden Classic/Button.
 
 | Formål | Antal | Skærm(e) | Kontroller | Grund til at beholde |
 |---|---|---|---|---|
-| Klik-lag over en hel række (`row_hit`) | 16 | alle | `btn*FbSubjectPick` (7), `btnIbRowOpen`, `btnIbSimOpen`, `btnKksRowHit`, `btnKksPickHit`, `btnMdRowHit`, `btnMdPeekOpen`, `btnMdAprExpand`, `btnVhpItemOpen`, `btnVhpOpMHit` | Gennemsigtigt lag med `HoverFill`/`PressedFill` i tokens (row-hover/row-pressed). ModernButton har intet `Fill`, `HoverFill` eller `PressedFill`; Fluent-temaets egen hover-flade ville dække rækken. |
-| Feedback-vælgerens "dropdown"-felt | 7 | alle | `btn*FbSubject` | Venstrestillet tekst uden indre luft, gennemsigtig i alle tilstande, så teksten flugter med listen under (#140). ModernButton har ingen hover-/tryk-farver, vi kan sætte, og `Padding*` er kun dokumenteret for den *opdaterede* knap — ikke afprøvet i Peters Studio. |
+| Klik-lag over en hel række (`row_hit`) | 18 | alle | `btn*FbSubjectPick` (8), `btnIbRowOpen`, `btnIbSimOpen`, `btnKksRowHit`, `btnKksPickHit`, `btnMdRowHit`, `btnMdPeekOpen`, `btnMdAprExpand`, `btnVhpItemOpen`, `btnVhpOpMHit`, `btnVhpMgHit` | Gennemsigtigt lag med `HoverFill`/`PressedFill` i tokens (row-hover/row-pressed). ModernButton har intet `Fill`, `HoverFill` eller `PressedFill`; Fluent-temaets egen hover-flade ville dække rækken. |
 | Godkendelses-chevron i hubbens række | 1 | Hub | `btnMdRowApproval` | Pilleformet trykzone med `HoverFill`/`PressedFill` og højrestillet "›". Samme grund som rækkelaget. |
-| "Nogle valgt – vælg alle" i operationsvælgeren | 1 | VHP | `btnVhpPickerHeadPartial` | 18 × 18 px felt i primærfarven med "−". ModernCheckbox har ingen delvis tilstand, og den mindste ModernButton i appen er 30 px; Fluent-knappens min.-bredde/indre luft ved 18 px er ikke afprøvet. |
 
 Alle har `TabIndex = 0` og læses via `Text`/`Tooltip` (Classic/Button har
 ingen `AccessibleLabel`), jf. #168.
+
+### Byttet til ModernButton (#307)
+
+| Kontrol | Antal | Skærm(e) | Før | Efter |
+|---|---|---|---|---|
+| `btn*FbSubject` (feedback-vælgerens felt) | 8 | Eq, FL, IB, KKS, Mat, Hub, MP, VHP | Classic/Button, gennemsigtig, `Padding* = 0`, `Align.Left` | ModernButton, `ButtonAppearance.Transparent`, `Padding* = 0`, `Align.Left`, `BorderStyle.None`. Feltets flade og kant er stadig beholderens (`con*FbSubject`), så teksten flugter med listen under (#140). |
+| `btnVhpPickerHeadPartial` ("nogle valgt – vælg alle") | 1 | VHP | Classic/Button 18 × 18 px i primærfarven med "−" | ModernButton 18 × 18 px, `ButtonAppearance.Primary` + `BasePaletteColor` = primærfarven, 1 px kant, radius 4, `Padding* = 0`, fed "−". |
+
+Begge bygges af `build_helpers.flat_button`. OnSelect og synlighed er
+uændrede (tests/test_modern_buttons.py). Typen skrives som `ModernButton`
+uden `@`-version, som resten af appen og som Studio selv skriver den.
+Regel 16k låser det og afviser egenskaber, Learn ikke dokumenterer for
+den opdaterede knap. Regel 25 (mindst 30 px) undtager en knap med
+`PaddingTop`/`PaddingBottom` = 0.
+
+Det kan ModernButton **ikke** gengive (bevidst accepteret):
+
+- **Hover og tryk.** Den klassiske knap havde egne `HoverFill`/`PressedFill`/
+  `Hover*Color`, så fladen var ens i alle tilstande. ModernButton har ingen
+  af dem; hover/tryk er Fluent-temaets. På feedback-feltet (Transparent)
+  kan teksten skifte farve ved hover; på "−"-feltet bliver fladen en
+  mørkere nuance af primærfarven.
+- **Fokusramme.** `FocusedBorderColor`/`FocusedBorderThickness` (2 px i
+  primærfarven) findes ikke; Fluent tegner sin egen fokusring.
+- **TabIndex.** Findes ikke på ModernButton (regel 10); knappen er altid
+  i tab-rækkefølgen, som før med `TabIndex = 0`.
+- **18 px uden min.-størrelse er ikke afprøvet.** Fluent-knappen kan have
+  en min.-bredde/-højde, der ignorerer `Width = 18`. Ser "−"-feltet
+  forkert ud i Studio, rulles #307 tilbage.
+
+Ny til gengæld: begge har nu `AccessibleLabel` (den klassiske knap har
+ingen).
 
 Bemærk: rækkelaget er en *klassisk* kontrol **oven på** moderne tekster,
 ikke en klassisk kontrol skjult under en falsk moderne flade. Det er det,
@@ -53,7 +86,7 @@ herunder er auditens; de er ikke talt om.
 |---|---|---|---|
 | Sidebar og temaskift (klikbare SVG'er, lukket + åben) | 190 | alle | `tools/side_nav.py` og `theme_button` (#37): en ModernButton tegner Fluent-temaets form og kan hverken have vores egne domæneikoner (`tools/icons.py`) eller accentstregen. |
 | Øvrige klikbare ikoner (hubbens fliser og "New", række-ikoner Edit/Delete/Notes/Timeline, VH-trin, hjælp, objektliste) | 27 | Hub, VHP, … | Egne domæneikoner i tokenfarver. ModernButton.Icon tager kun Fluent-ikonnavne. |
-| Feedback-vælgerens ikon/chevron | 21 | alle | Del af det samme felt som `btn*FbSubject`. |
+| Feedback-vælgerens ikon/chevron | 21 | alle | Del af det samme felt som `btn*FbSubject`; egne SVG'er, ikke Fluent-ikoner. |
 | Dekorative/status-ikoner (sidetitel, nummerbadge, status, domæne, rail, fil-miniature) | 34 | alle | 13 med et Fluent-sidestykke er byttet til ModernIcon@1.1.0 (#306); resten er domæneikoner eller tegninger med tekst — se "Ikoner — ModernIcon" nedenfor. |
 | Slør bag popup (luk ved tryk udenfor) | 20 | alle | Fuldskærms trykflade; ingen moderne kontrol med `OnSelect` og gennemsigtig flade. |
 
@@ -170,13 +203,12 @@ Modern controls**, at typen findes og deployer, før den tages i brug.
 | ModernLink | evt. links, der i dag er knapper | |
 | ModernToggle, ModernRadio | par af Primary/Outline-knapper som vælgere | |
 | ModernTable (preview) | simple læselister | Preview: ikke til kritiske lister. |
-| Opdateret ModernButton med `Padding*` og `BorderStyle` | `btn*FbSubject`, `btnVhpPickerHeadPartial` | Dokumenteret på Learn, men ikke brugt i appen; afprøv i Studio først. Rækkelagene kræver stadig `HoverFill`/`PressedFill`. |
 
 ## Resterende arbejde
 
 1. Peter bekræfter, hvilke kandidater hans Studio kender.
 2. Derefter, én type ad gangen: ~~spinnere → ModernSpinner~~ (#302), faner →
-   ModernTabList, og evt. `btn*FbSubject` → ModernButton med `Padding*`.
+   ModernTabList (`btn*FbSubject` → ModernButton er gjort i #307).
 3. Rækkelag, sidebar, slør, Gallery, Timer og HtmlViewer bliver, til
    Microsoft giver ModernButton en styrbar flade eller en moderne
    erstatning går GA.
