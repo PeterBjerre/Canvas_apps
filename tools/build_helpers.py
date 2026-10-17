@@ -543,6 +543,108 @@ def segmented(name, options, display_mode=None, label=None, fit=False, compact=F
                  radius=SEG_H // 2, pad=SEG_PAD, align_in_container="Start")
 
 
+# FANER (issue #303, del af #161) - DEN moderne Tab list fra Microsoft
+# Learn ("Tab List modern control in canvas apps"). Versionen er den, Learns
+# YAML-eksempel skriver; check_layout regel 16t afviser enhver anden og
+# enhver egenskab, Learn ikke dokumenterer for typen.
+TABLIST_CONTROL = "ModernTabList@1.0.0"
+# Hoejden er den samme som de linjer, fanerne staar i (36). Den indre luft
+# er sat, saa teksten (20 px linje) og understregningen har plads - Fluents
+# egen luft ville goere fanen hoejere end linjen.
+TAB_H = 36
+TAB_PAD_X = 10
+TAB_PAD_Y = 4
+TAB_SIZE = 13
+# Fluents egen afstand mellem fanerne og om understregningen.
+TAB_SLACK = 8
+
+
+def tab_w(text, size=TAB_SIZE):
+    """En fanes bredde: teksten (text_px er med vilje lidt for bred) + den
+    indre luft i begge sider + Fluents egen afstand."""
+    return text_px(text, size) + 2 * TAB_PAD_X + TAB_SLACK
+
+
+def tabs_w(texts, size=TAB_SIZE):
+    """Hele fanerækkens bredde."""
+    return sum(tab_w(t, size) for t in texts)
+
+
+def _fx_literals(fx):
+    return re.findall(r'"([^"]*)"', fx)
+
+
+def tab_list(name, var, tabs, *, label, width, tail="", size=TAB_SIZE, visible=None):
+    """Een fanerække - ModernTabList - der laeser og saetter en VARIABEL.
+
+    var:   variablen, fanerne afspejler (fx varIbScope). Den er stadig det,
+           al filtrering laeser; fanerne er kun en ny maade at saette den.
+    tabs:  liste af (noegle, tekst-udtryk) eller (noegle, tekst-udtryk,
+           betingelse). noegle er variablens vaerdi ("mine"); tekst-udtryk
+           er Power Fx, der giver fanens tekst - en litteral ('"My issues"')
+           eller et If(), der vaelger en kort tekst paa en smal skaerm.
+           betingelse (Power Fx) skjuler fanen, naar den er falsk (fx kun
+           for admin).
+    tail:  Power Fx, der koeres efter Set(var, ...) - fx hubbens
+           genindlaesning og gem af filtrene.
+
+    Items    fanernes tekster ([...], eller Filter([...], ...) med betingelser)
+    Default  teksten for variablens vaerdi; ukendt eller tom -> foerste fane.
+             Saa foelger fanerne med, naar variablen saettes andre steder
+             (mobilens dropdown, hero-trinnet, OnStart).
+    OnChange oversaetter den valgte tekst tilbage til noeglen - alle tekster,
+             et tekst-udtryk kan give (lang og kort) - og saetter variablen
+             KUN naar den faktisk skifter. En Default, der nulstiller fanen,
+             goer derfor intet (ingen ekstra genindlaesning).
+
+    Valgt fane: Appearance Underline - Fluents streg under den valgte, saa
+    det ikke kun er en farve. Color er text-primary, saa teksten kan laeses
+    i baade lys og moerk tilstand (appen saetter ikke Fluent-temaet, jf.
+    regel 10c). Ingen TabIndex (Learn har ingen); fanerne er Fluents egne,
+    saa Tab, piletaster og skaermlaeser virker."""
+    texts, conds, mapping = [], [], []
+    for t in tabs:
+        key, fx = t[0], t[1]
+        cond = t[2] if len(t) > 2 else None
+        texts.append(fx)
+        lits = _fx_literals(fx)
+        assert lits, (name, fx)
+        if cond:
+            conds.append("(" + " && ".join(f'Value <> "{lit}"' for lit in lits) + f" || {cond})")
+        mapping += [(lit, key) for lit in lits]
+    items = "[" + ", ".join(texts) + "]"
+    if conds:
+        items = f"Filter({items}, " + " && ".join(conds) + ")"
+    default = (f"Switch({var}, " + ", ".join(f'"{t[0]}", {t[1]}' for t in tabs)
+               + f", {tabs[0][1]})")
+    pick = ("Switch(Self.Selected.Value, "
+            + ", ".join(f'"{lit}", "{key}"' for lit, key in mapping) + ', "")')
+    on_change = (f"With({{ k: {pick} }},\n"
+                 f"    If(!IsBlank(k) && k <> {var},\n"
+                 f"        Set({var}, k)"
+                 + (";\n        " + tail.replace("\n", "\n        ") if tail else "")
+                 + "\n    )\n)")
+    props = {
+        "AccessibleLabel": f'"{label}"',
+        "AlignInContainer": "AlignInContainer.Start",
+        "Alignment": "TabListAlignment.Start",
+        "Appearance": "TabListAppearance.Underline",
+        "Color": C_TITLE,
+        "Default": default,
+        "Font": FONT,
+        "Height": str(TAB_H),
+        "Items": items,
+        "OnChange": on_change,
+        "PaddingBottom": str(TAB_PAD_Y),
+        "PaddingLeft": str(TAB_PAD_X),
+        "PaddingRight": str(TAB_PAD_X),
+        "PaddingTop": str(TAB_PAD_Y),
+        "Size": str(size),
+        "Width": str(width),
+    }
+    return Ctrl(name, TABLIST_CONTROL, props=props, h=TAB_H, vis=visible)
+
+
 def spinner_svg(size=64, stroke=6, delay=0.15, caption=None):
     """Hjulet - EEN tegning for hele repoet (issue #64).
 
