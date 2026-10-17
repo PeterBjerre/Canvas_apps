@@ -52,6 +52,7 @@ from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_WARN_BG, C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY, C_DIVIDER,
                         C_INVALID_FG)
 import layout_tokens as lay
+from progress_overlay import progress_overlay
 from layout_tokens import fits, if_below, below, at_least
 from build_helpers import (row_rule, ensure_hit, validation_summary, tap_backdrop, text_ctrl, text_min_height, group, button, text_input,
                            checkbox_theme, date_picker, fit_button_row,
@@ -1721,8 +1722,8 @@ def build_submit_confirm():
         "Dom", CONFIRM_VAR, "Submit request?",
         '"The valid rows are sent to the landing page as Submitted and locked."',
         "Submit", with_busy(SAVING_VAR, send_fx(True)), "btnDomSubmitConfirm") + delete_modal(
-        "Dom", "varDomRequestGuid", cfg.L_INDEX, cfg.DOMAIN, WHAT) + loading_overlay(
-        "imgDomSaving", SAVING_VAR)
+        "Dom", "varDomRequestGuid", cfg.L_INDEX, cfg.DOMAIN, WHAT) + [
+        *progress_overlay("imgDomSaving", SAVING_VAR, "Saving, please wait")]
 
 
 # ---------------------------------------------------------------------------
