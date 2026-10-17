@@ -1491,21 +1491,21 @@ def mode_badge(prefix, var):
 
 
 def number_badge(prefix, var, key):
-    """Pill with the plan/request number (e.g. MP0142) in the page icon's colour; empty until there is one."""
+    """Pill with the plan/request number (e.g. MP0142) in the page icon's colour; hidden until there is one.
+
+    Var et 88 x 26 Image med en SVG-pille (tekst i ikonets farve paa en
+    12 % tone af den). Nu en ModernBadge (#304) med samme maal og farver:
+    teksten i farven, fyldet den samme farve med alfa 1F (= 12 %) - som
+    8-cifret hex til ColorValue (Power Fx: "#rrggbbaa")."""
     import icons
     col = ref_hex_expr(icons.token(key))
-    svg = ('"data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'88\' '
-           'height=\'26\' viewBox=\'0 0 88 26\'><rect width=\'88\' height=\'26\' rx=\'13\' fill=\'" & ' + col +
-           ' & "\' fill-opacity=\'0.12\'/><text x=\'44\' y=\'17.5\' text-anchor=\'middle\' '
-           'font-family=\'Segoe UI, sans-serif\' font-size=\'12\' font-weight=\'600\' fill=\'" & ' + col +
-           ' & "\'>" & ' + var + ' & "</text></svg>")')
-    return Ctrl(f"img{prefix}Number", "Image", props={
-        "AccessibleLabel": f'"Number " & {var}',
-        "AlignInContainer": "AlignInContainer.Start",
-        "BorderStyle": "BorderStyle.None", "BorderThickness": "0", "Height": "26",
-        "Image": f'If(IsBlank({var}), "", {svg})', "ImagePosition": "ImagePosition.Fit",
-        "LayoutMinWidth": "88", "OnSelect": "false", "TabIndex": "0", "Width": "88",
-    }, h=26)
+    vis = f"!IsBlank({var})"
+    b = modern_badge(f"bdg{prefix}Number", var, color=f"ColorValue({col})",
+                     fill=f'ColorValue({col} & "1F")', width=88, height=26,
+                     size=lay.SIZE_SMALL, accessible=f'"Number " & {var}', visible=vis,
+                     extra={"AlignInContainer": "AlignInContainer.Start",
+                            "LayoutMinWidth": "88"})
+    return b
 
 
 # ---------------------------------------------------------------------------
@@ -2668,14 +2668,64 @@ def two_col_row(name, cell_a, cell_b, container_w=SHELL_W):
     return row_n(name, [cell_a, cell_b], container_w=container_w)
 
 
+# MAERKET (issue #304, del af #161). Status- og nummermaerker var en
+# ModernText med fyld og runde hjoerner eller et Image med en SVG-pille. Nu
+# den moderne Badge. Versionen er den, Microsoft Learns YAML-eksempel
+# skriver ("Badge modern control in canvas apps"); check_layout regel 16e
+# afviser enhver anden.
+BADGE_CONTROL = "ModernBadge@1.0.0"
+
+
+def modern_badge(name, content, *, color, fill, width, height=22, size=lay.SIZE_MICRO,
+                 weight="Semibold", radius=None, pad=(0, 0), align="Center",
+                 accessible=None, visible=None, extra=None):
+    """Et maerke - EEN kontrol for alle status- og nummermaerker (#304).
+
+    Farverne er vores egne tokens, ikke Fluents: Color og Fill saettes
+    altid (Learn: "When blank, Intent and Appearance determine ..."), saa
+    maerket har PRAECIS de farver, det havde som tekst/billede - ogsaa i
+    moerk tilstand. Intent er Neutral, saa et maerke, der af en eller anden
+    grund mister sit fyld, aldrig staar i Fluents groenne standard
+    (Positive). Kun egenskaber fra Learn (regel 16e).
+
+    pad: (venstre, hoejre) luft om teksten. radius: hjoernet; standard er
+    en pille (halv hoejde). Maerket tager ikke input: intet OnSelect og
+    ingen TabIndex (Learn: uden OnSelect er det display-only)."""
+    r = height // 2 if radius is None else radius
+    props = {
+        "AccessibleLabel": accessible or "Self.Content",
+        "Align": f"Align.{align}",
+        "Appearance": "BadgeAppearance.Filled",
+        "BorderStyle": "BorderStyle.None",
+        "BorderThickness": "0",
+        "Color": color,
+        "Content": content,
+        "Fill": fill,
+        "Font": FONT,
+        "FontWeight": f"FontWeight.{weight}",
+        "Height": str(height),
+        "Intent": "BadgeIntent.Neutral",
+        "PaddingBottom": "0", "PaddingLeft": str(pad[0]),
+        "PaddingRight": str(pad[1]), "PaddingTop": "0",
+        "Shape": "BadgeShape.Circular" if 2 * r >= height else "BadgeShape.Rounded",
+        "Size": str(size),
+        "VerticalAlign": "VerticalAlign.Middle",
+        "Width": str(width),
+        **lay.radius(r),
+    }
+    if visible is not None:
+        props["Visible"] = visible
+    if extra:
+        props.update(extra)
+    return Ctrl(name, BADGE_CONTROL, props=props, h=height, vis=visible)
+
+
 def badge(name, text, size=11, width=64):
-    return text_ctrl(name, text, size=size, color=C_MUTED, weight="Semibold", height=22,
-                     width=width, wrap="false",
-                     extra={"Fill": C_NEUTRAL_BG, "Align": "Align.Center",
-                            "AlignInContainer": "AlignInContainer.Center",
-                            "PaddingLeft": "10", "PaddingRight": "10",
-                            "RadiusBottomLeft": "12", "RadiusBottomRight": "12",
-                            "RadiusTopLeft": "12", "RadiusTopRight": "12"})
+    """Det graa trin-maerke ("Step N") - nu en ModernBadge (#304) med de
+    samme farver, maal og hjoerner som teksten foer."""
+    return modern_badge(name, text, color=C_MUTED, fill=C_NEUTRAL_BG, width=width, size=size,
+                        radius=12, pad=(10, 10),
+                        extra={"AlignInContainer": "AlignInContainer.Center"})
 
 
 # SEKTIONSOVERSKRIFTEN (issue #228). Stod i VH-planens build_plan_header;
@@ -2697,11 +2747,11 @@ def step_badge(name, step_label, valid_fx, attention_fx=None):
             + '"")')
     b = badge(name, text, width=72)
     b.vis = f"({valid_fx})" + (f" || ({attention_fx})" if attention_fx else "")
-    # Self.Text: formlen bag teksten regnes een gang, ikke tre.
-    b.props["Color"] = f'Switch(Self.Text, "Valid", {C_VALID_FG}, "Invalid", {C_INVALID_FG}, {C_MUTED})'
-    b.props["Fill"] = f'Switch(Self.Text, "Valid", {C_VALID_BG}, "Invalid", {C_INVALID_BG}, {C_NEUTRAL_BG})'
-    b.props["AccessibleLabel"] = (f'If(Self.Text = "Valid", "{step_label}: valid", '
-                                  f'"{step_label}: " & If(Self.Text = "Invalid", "invalid", "not complete yet"))')
+    # Self.Content: formlen bag teksten regnes een gang, ikke tre.
+    b.props["Color"] = f'Switch(Self.Content, "Valid", {C_VALID_FG}, "Invalid", {C_INVALID_FG}, {C_MUTED})'
+    b.props["Fill"] = f'Switch(Self.Content, "Valid", {C_VALID_BG}, "Invalid", {C_INVALID_BG}, {C_NEUTRAL_BG})'
+    b.props["AccessibleLabel"] = (f'If(Self.Content = "Valid", "{step_label}: valid", '
+                                  f'"{step_label}: " & If(Self.Content = "Invalid", "invalid", "not complete yet"))')
     return b
 
 
@@ -2722,9 +2772,9 @@ def section_header(name, title, step_label, extra_right=(), extra_left=(), valid
 
     right = list(extra_right)
     if step_label and valid_fx:
-        right.append(step_badge(child_name("txt", name, "Badge"), step_label, valid_fx, attention_fx))
+        right.append(step_badge(child_name("bdg", name, "Badge"), step_label, valid_fx, attention_fx))
     elif step_label:
-        right.append(badge(child_name("txt", name, "Badge"), f"\"{step_label}\"", width=64))
+        right.append(badge(child_name("bdg", name, "Badge"), f"\"{step_label}\"", width=64))
 
     # FLAD RAEKKE (issue #54 - titlerne manglede i Studio). Titlen staar
     # DIREKTE i overskriftens raekke, ikke i en indlejret gruppe, og en tom
