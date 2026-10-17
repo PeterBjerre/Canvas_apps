@@ -24,7 +24,9 @@
                         sender mail til admins og rapportoeren.
                         Vedhaeftninger ligger som SharePoint-vedhaeftninger
                         PAA raekken og arver listens rettigheder: alle kan
-                        laese dem; flowet laegger dem paa.
+                        laese dem. Siden issue #300 laegger appen dem selv
+                        paa med Patch (brugerens egen forbindelse) - det
+                        kraever, at rapportoeren er raekkens Created By.
     IB_TicketComments   kommentarer og haendelser, een raekke pr. haendelse
                         (aldrig en samlet tekst). PRIVAT: kun ejerne og
                         flowets konto paa listen. Hver raekke faar sine egne
@@ -47,6 +49,12 @@
     (rapportoeren Read, admins Contribute). Scriptet nulstiller dem, saa
     de arver listen og ses af alle (besluttet i #193). Kun raekker med
     unikke rettigheder roeres.
+
+    De sager blev oprettet af FLOWET, saa Created By er flowets konto, og
+    "Edit own items" lader ikke rapportoeren rette dem - heller ikke
+    vedhaefte filer (issue #300: "En bruger maa gerne redigere sit eget
+    issue"). Scriptet saetter Created By til rapportoeren (ReporterEmail)
+    paa de sager, hvor de to ikke er den samme. Modified roeres ikke.
 
     ADMINS
     ------
@@ -331,6 +339,37 @@ function Reset-TicketItemPermissions {
     Write-Host "    ~ $n gamle sag(er) arver nu listens rettigheder" -ForegroundColor Green
 }
 
+function Set-TicketAuthors {
+    # Issue #300: rapportoeren retter selv sin sag (og dens vedhaeftninger)
+    # med Patch, og listen tillader kun "edit own items". Sager, flowet
+    # oprettede foer #193, har flowets konto som Created By - her saettes
+    # Created By til rapportoeren. Kun sager, hvor de to er forskellige.
+    param([string]$List)
+    $items = Get-PnPListItem -List $List -PageSize 500 -Fields 'ID', 'Author', 'ReporterEmail'
+    $n = 0
+    foreach ($it in $items) {
+        $reporter = ([string]$it.FieldValues.ReporterEmail).Trim().ToLowerInvariant()
+        if (-not $reporter) { continue }
+        $author = $it.FieldValues.Author
+        $authorEmail = if ($author) { ([string]$author.Email).Trim().ToLowerInvariant() } else { '' }
+        if ($authorEmail -eq $reporter) { continue }
+        if ($WhatIfOnly) {
+            Write-Host "    ? ville saette Created By = $reporter paa sag $($it.Id)" -ForegroundColor Yellow
+        } else {
+            try {
+                Set-PnPListItem -List $List -Identity $it.Id -Values @{ Author = $reporter } `
+                    -UpdateType UpdateOverwriteVersion | Out-Null
+            }
+            catch {
+                Write-Host "    ! sag $($it.Id): $($_.Exception.Message)" -ForegroundColor Red
+                continue
+            }
+        }
+        $n++
+    }
+    Write-Host "    ~ $n sag(er) har nu rapportoeren som Created By" -ForegroundColor Green
+}
+
 # ---------------------------------------------------------------------------
 Write-Host "`n=== $TICKETS ===" -ForegroundColor Cyan
 # ---------------------------------------------------------------------------
@@ -478,6 +517,8 @@ if ($SkipPermissions) {
     if (Get-PnPList -Identity $TICKETS -ErrorAction SilentlyContinue) {
         Write-Host "  $TICKETS - gamle sagers rettigheder"
         Reset-TicketItemPermissions $TICKETS
+        Write-Host "  $TICKETS - rapportoeren som Created By (issue #300)"
+        Set-TicketAuthors $TICKETS
     }
     Write-Host "  $COMMENTS (privat)"
     Set-PrivateList $COMMENTS
@@ -501,5 +542,7 @@ Write-Host "     BioSap-IssueBoard-OnCreated, saet deres forbindelser til servic
 Write-Host "     og slaa BioSap-IssueBoard-OnCreated til."
 Write-Host "  3. Datakilderne i Studio: $TICKETS, $COMMENTS, $SECTIONS og flowet"
 Write-Host "     BioSap-IssueBoard-Submit. $SHARED bruges ikke laengere."
+Write-Host "     Appen vedhaefter filer med Patch paa $TICKETS (issue #300) - flowets"
+Write-Host "     handling attach bruges ikke laengere."
 Write-Host "  4. Koer sharepoint/inspect/Export-ListSchema.ps1, saa schema.md kender"
 Write-Host "     listerne."
