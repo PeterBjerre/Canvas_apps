@@ -660,8 +660,7 @@ def test_filters_are_a_toolbar_at_the_top_of_the_list():
     rows = P.build_filters()
     assert [r.name for r in rows] == ["conIbTbTop", "conIbTbFilters"]
     names = {c.name for c in _walk_ctrls(rows)}
-    for n in ("btnIbScopeAll", "btnIbScopeMine", "btnIbScopeAssigned", "btnIbStateOpen",
-              "btnIbStateClosed", "btnIbStateArchived", "inpIbSearch", "drpIbSort", "drpIbFltApp",
+    for n in ("tabIbScope", "tabIbState", "inpIbSearch", "drpIbSort", "drpIbFltApp",
               "drpIbFltSection", "drpIbFltStatus", "drpIbFltPriority"):
         assert n in names
     for gone in ("conIbFilterCard", "conIbToolbar", "conIbSwitches", "conIbFltLine",
