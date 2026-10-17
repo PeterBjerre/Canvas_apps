@@ -29,7 +29,7 @@ OVERLAYS = {
     "ScreenVhPlan.pa.yaml": [("imgVhpSaving", "varVhpSaving", None)],
     "ScreenIssueBoard.pa.yaml": [
         ("imgIbBusy", "(varIbBusy || varIbPosting) && !varIbUploading", None),
-        ("imgIbUploading", "varIbUploading", "Uploading files..."),
+        ("imgIbUploading", "varIbUploading", "Saving files..."),
     ],
 }
 # Indlaesning (ikke gem/upload) er ikke dette issue - de er hjul (#302).

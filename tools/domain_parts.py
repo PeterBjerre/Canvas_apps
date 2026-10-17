@@ -90,9 +90,12 @@ import status_chip as sc
 import icons
 import design_tokens as tok
 
-# Flowkontrakten staar i tools/attflows.py; ruden her er dens
-# domaeneudgave - samme tre flows, egne samlingsnavne.
+# Vedhaeftningskontrakten staar i tools/attflows.py; ruden her er dens
+# domaeneudgave - filerne er vedhaeftninger paa raekken i cfg.L_ROWS
+# (issue #300).
 att = attflows.DomainPane()
+# Har appen dokumenter? Measuring Point har ikke (Peter, issue #300).
+DOCS = bool(getattr(cfg, "DOCS_ENABLED", True))
 from fl_picker import fl_picker, known_fx as fl_known_fx, reset_fx as fl_reset_fx
 
 # Raekkens felter i een flad liste - raekkefoelgen er sektionernes.
@@ -929,20 +932,9 @@ def load_row_fx():
 
 
 def open_docs_fx():
-    """Raekkens Docs-knap: peg popuppen paa DENNE raekke, og hent mappen,
-    hvis raekken har filer, der ikke allerede er hentet.
-
-    Raekkefoelgen er ikke tilfaeldig: att.refresh_fx() laeser varDomDocsId,
-    saa den skal saettes foerst - ellers henter flowet forrige raekkes
-    mappe."""
-    return (
-        "Set(varDomDocsId, ThisItem.RowId);\n"
-        "If(\n"
-        "    ThisItem.FileCount > 0 &&\n"
-        "    CountRows(Filter(colDomAttachments, RowId = ThisItem.RowId)) = 0,\n"
-        + att.refresh_fx(4) + "\n"
-        ")"
-    )
+    """Raekkens Docs-knap: peg popuppen paa DENNE raekke og hent raekken
+    fra listen (LookUp paa ID), saa kontrollen viser dens vedhaeftninger."""
+    return "Set(varDomDocsId, ThisItem.RowId);\n" + att.load_fx("ThisItem.RowId")
 
 
 def build_backdrop():
@@ -1196,10 +1188,10 @@ def delete_confirmed_fx():
         '            Notify("Delete failed: " & FirstError.Message, NotificationType.Error);\n'
         "            false\n"
         "        ),\n"
-        f"        RemoveIf(colDomAttachments, RowId = {DELETE_ID});\n"
         + ("" if getattr(cfg, "ROW_PANEL_ENABLED", False) else
            f"        If(varDomDetailsId = {DELETE_ID}, Set(varDomDetailsId, Blank()));\n") +
-        f"        If(varDomDocsId = {DELETE_ID}, Set(varDomDocsId, Blank()));\n"
+        (f"        If(varDomDocsId = {DELETE_ID}, {DOCS_CLOSE.replace(chr(10), ' ')});\n"
+         if DOCS else "") +
         # Var det den aabne raekke, skal formularen ogsaa ryddes - ellers
         # staar der felter fra noget, der ikke findes.
         f"        If(\n            {AS_ADMIN},\n"
@@ -1210,9 +1202,8 @@ def delete_confirmed_fx():
         "            " + clear_form_fx().replace("\n", "\n            ") + "\n"
         "        );\n"
         + refresh_rows_fx(8) + ";\n"
-        '        Set(varDomInfo, "Row deleted. The documents remain in the library.");\n'
-        '        Notify("Row deleted. The documents remain in the library.", '
-        "NotificationType.Success)\n"
+        '        Set(varDomInfo, "Row deleted.");\n'
+        '        Notify("Row deleted.", NotificationType.Success)\n'
         "    )\n"
         ");\n"
         f"Set({DELETE_ID}, Blank())"
@@ -1223,8 +1214,9 @@ def build_delete_confirm():
     """Bekraeftelsen foer sletning - [sloer, popup], som Submit's."""
     return confirm_modal(
         "DomDel", DELETE_VAR, "Delete row?",
-        f'"Row " & LookUp(colDomRows, RowId = {DELETE_ID}).ItemKey & '
-        '" is deleted in SharePoint. The documents remain in the library."',
+        f'"Row " & LookUp(colDomRows, RowId = {DELETE_ID}).ItemKey & ' +
+        ('" is deleted in SharePoint, together with its attached documents."' if DOCS
+         else '" is deleted in SharePoint."'),
         "Delete", with_busy(SAVING_VAR, delete_confirmed_fx()),
         "btnDomDeleteConfirm", icon="Delete")
 
@@ -1232,71 +1224,26 @@ def build_delete_confirm():
 # Dokumentruden
 #
 # Den erstatter DocumentType og DocumentLink. De to felter var et link,
-# brugeren selv skulle skaffe; her ligger filen i biblioteket, og appen
-# kender den.
+# brugeren selv skulle skaffe; her ligger filen som vedhaeftning paa
+# raekken i SharePoint (issue #300), og appen kender den.
 #
-# Ruden hoerer til den VALGTE, GEMTE raekke - ikke til formularen. Mappen
-# hedder raekkens ItemKey, og den findes foerst efter Gem.
+# Ruden hoerer til den VALGTE, GEMTE raekke - ikke til formularen.
 # ---------------------------------------------------------------------------
 def build_attachments():
-    """Dokumentpopuppen (issue #134): den moderne Attachments-kontrol,
-    een Upload, og listen over gemte filer med filtype, Open og Remove.
+    """Dokumentpopuppen (issue #134, #300): den moderne Attachments-
+    kontrol bundet til raekkens vedhaeftninger og een "Save documents".
+    Kontrollen viser, aabner og fjerner selv de gemte filer.
     Opbygningen er den faelles i tools/doc_upload.py."""
     edit = DOCS_EDIT
-    pick = du.picker(att.picker, '"Choose documents to upload"', 10, 10, visible=edit,
-                     display_mode=f"If({att.busy}, DisplayMode.Disabled, DisplayMode.Edit)")
-    # 10 MB, ikke 50. Kontrollen holder filen i hukommelsen som base64, og
-    # flowet sender den videre i samme form. En datablad eller en manual er
-    # langt under.
+    pick = du.picker(att.picker, '"Documents on the selected row"', 10, 10, att.items,
+                     display_mode=du.picker_mode(att, edit))
+    # 10 MB: SharePoint-vedhaeftninger fra Power Apps. En datablad eller
+    # en manual er langt under.
     limits = du.limits_text("txtDomAttLimits", 10, 10, visible=edit)
-    up = du.upload_button("btnDomAttUpload", att.picker, att.upload_fx(), att.busy,
-                          visible=edit)
-    refresh = button("btnDomAttRefresh", '"Refresh"', att.refresh_button_fx(),
-                     width=fit_button_width('"Refresh"'), height=36,
-                     accessible='"Refresh the document list"',
-                     display_mode=f"If(IsBlank(varDomDocsId) || {att.busy}, "
-                                  "DisplayMode.Disabled, DisplayMode.Edit)")
-    refresh.props["LayoutMinWidth"] = refresh.props["Width"]
-    actions = group("conDomAttActions", [refresh, up], direction="Horizontal", gap=8,
-                    height=36, justify="End", align_items="Center")
+    save = du.save_button("btnDomAttUpload", att, visible=edit)
+    actions = group("conDomAttActions", [save], direction="Horizontal", gap=8,
+                    height=36, justify="End", align_items="Center", visible=edit)
     status = du.status_text("txtDomAttStatus", att)
-    confirm = du.remove_confirm("DomAtt", att)
-
-    file = "ThisItem.FileName"
-    badge_ = du.type_badge("txtDomAttType", file)
-    name = grow(text_ctrl("txtDomAttName", file, size=13, height=28, wrap="false"))
-    link = du.open_button("btnDomAttOpen", "ThisItem.FileUrl", file)
-    rem = du.remove_button("btnDomAttRemove", att, file, edit)
-    row = group("conDomAttRow", pin_widths([badge_, name, link, rem]),
-                direction="Horizontal", gap=10,
-                height="Parent.TemplateHeight - 2", align_items="Center",
-                width="Parent.TemplateWidth")
-
-    # Filnavnet er raekkens noegle - der er INGEN LineId paa dokumenterne.
-    # Hele listen staar i galleriet; er der flere, end popuppen kan vise,
-    # scroller popuppens indhold (du.capped_body) - ikke galleriet i den.
-    gal_h = f"CountRows({att.scope}) * {du.ROW_H}"
-    gal = Ctrl("galDomAttachments", "Gallery", variant="Vertical", props={
-        "AccessibleLabel": '"Documents on the selected row"',
-        "BorderStyle": "BorderStyle.None",
-        "Fill": C_TRANSPARENT,
-        "FillPortions": "0",
-        "Height": gal_h,
-        "Items": f"Sort({att.scope}, FileName)",
-        "LayoutMinWidth": "0",
-        "LoadingSpinner": "LoadingSpinner.None",
-        "Selectable": "false",
-        "ShowScrollbar": "false",
-        "TabIndex": "0",
-        "TemplatePadding": "2",
-        "TemplateSize": du.TEMPLATE_H,
-        "Width": "Parent.Width",
-        "WrapCount": "1",
-    }, children=[row], h=gal_h)
-
-    empty = text_ctrl("txtDomAttEmpty", att.empty_text_fx(), size=13,
-                      color=C_MUTED, height=36, wrap="true",
-                      visible=f"IfError(CountRows({att.scope}) = 0, false)")
     ro = du.readonly_note("txtDomAttReadOnly", f"!IsBlank(varDomDocsId) && !{edit}")
 
     title = grow(text_ctrl(
@@ -1310,7 +1257,7 @@ def build_attachments():
                  gap=12, align_items="Center")
     # Popuppen: 18 + 18 luft, hovedet og afstanden - resten er indholdet.
     body = du.capped_body("conDomAttBody",
-                          [pick, limits, actions, status, confirm, gal, empty, ro],
+                          [pick, limits, actions, status, ro],
                           f"App.Height - 40 - 36 - {head.h} - 14")
     modal = group("conDomAttModal", [head, body],
                   direction="Vertical", gap=14,
@@ -2014,20 +1961,13 @@ def open_active_docs_fx():
     Samme som raekkens Docs-knap (open_docs_fx), bare med den aktive raekke
     i stedet for ThisItem. Popuppen aabner kun her og paa Docs - aldrig af
     sig selv: varDomDocsId er Blank fra OnStart."""
-    return (
-        "Set(varDomDocsId, varDomActiveRowId);\n"
-        "If(\n"
-        f"    Coalesce({ACTIVE}.FileCount, 0) > 0 &&\n"
-        "    CountRows(Filter(colDomAttachments, RowId = varDomActiveRowId)) = 0,\n"
-        + att.refresh_fx(4) + "\n"
-        ")"
-    )
+    return "Set(varDomDocsId, varDomActiveRowId);\n" + att.load_fx("varDomActiveRowId")
 
 
 def docs_cell(width=CELL_W):
     """Documentation: hvor mange dokumenter raekken har, og en knap til
-    den eksisterende dokumentpopup. Dokumenterne ligger i en mappe, der
-    hedder raekkens noegle, saa knappen virker foerst efter Save."""
+    den eksisterende dokumentpopup. Dokumenterne er vedhaeftninger paa
+    raekken i SharePoint, saa knappen virker foerst efter Save."""
     info = grow(text_input(
         "inpDomDocsInfo",
         ('If(IsBlank(varDomActiveRowId), "Add the row first", '
