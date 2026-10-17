@@ -140,6 +140,29 @@ FL_PICK_VAR = "varVhpFlPick"
 # Materials og de andre FL-soegninger beholder build_flsearch.MIN_SEARCH_LEN.
 FL_MIN_LEN = 8
 
+# KUN FL FRA PLANENS VAERK. En FL-kode starter med vaerket (SSV13 HFC10
+# hoerer til SSV), og System approval sender en plan retur, naar en FL
+# hoerer til et andet vaerk end planens. Derfor soeges der kun, naar de
+# foerste 3 tegn er planens Plant (store/smaa bogstaver er ligegyldige). Er
+# der ikke valgt Plant endnu, kan der slet ikke soeges.
+FL_PLANT_PREFIX = "Upper(Left(Trim(varVhpPlan.Plant), 3))"
+
+
+def fl_wrong_plant(q):
+    """Sand, naar soegeteksten q (trimmet) ikke maa soeges paa i denne plan."""
+    return (f"(IsBlank(varVhpPlan.Plant) || "
+            f"Upper(Left({q}, 3)) <> {FL_PLANT_PREFIX})")
+
+
+FL_WRONG_PLANT_MSG = (
+    "If(\n"
+    "    IsBlank(varVhpPlan.Plant),\n"
+    "    \"Choose a plant in the Plan header before searching for a functional location.\",\n"
+    f"    \"Only functional locations for plant \" & {FL_PLANT_PREFIX} &\n"
+    f"        \" can be searched. The search must start with \" & {FL_PLANT_PREFIX} & \".\"\n"
+    ")"
+)
+
 # REVISION OG NON FLOW USER STATUS ER SEGMENTEREDE VALG (issue #141).
 # Knapper har ingen Value, saa valget staar i en KLADDE-variabel pr. felt:
 # Blank = uroert, og saa gaelder itemets gemte vaerdi. Reset (nyt item,
@@ -622,18 +645,27 @@ def build_item_editor():
         display_mode=DM_ITEM, required_formula=REQ_ITEM, label="Functional location",
         width=FL_W, trail=[btnObjList], stack_search=True, col_w=EDITOR_COL_W,
         stack_cond=f"({below('Tablet')} || ({EDITOR_CW}) < {TWO_COL_MIN})",
-        min_len=FL_MIN_LEN)
+        min_len=FL_MIN_LEN, block=(fl_wrong_plant, FL_WRONG_PLANT_MSG))
 
     # For kort soegetekst (issue #144): en kort besked under feltet, saa
     # laenge der er skrevet noget, men faerre end FL_MIN_LEN tegn. Laeser
     # comboboksens SearchText direkte - ikke FL_QUERY_VAR, som timeren kun
     # opdaterer, naar der staar noget, og som derfor kan vaere foraeldet.
     fl_typed = f"Len(Trim({FL_COMBO}.SearchText))"
+    # Forkert vaerk: vises fra 3 tegn (der kan prefikset afgoeres) - eller med
+    # det samme, hvis planen ikke har en Plant endnu.
+    fl_wrong = (f"!{FL_BUSY_VAR} && {fl_typed} > 0 && "
+                f"(IsBlank(varVhpPlan.Plant) || ({fl_typed} >= 3 && "
+                f"{fl_wrong_plant(f'Trim({FL_COMBO}.SearchText)')}))")
+    flWrongPlant = text_ctrl(
+        "txtVhpFlWrongPlant", FL_WRONG_PLANT_MSG,
+        size=12, color=C_WARN_FG, height=32, wrap="true", visible=fl_wrong)
     flTooShort = text_ctrl(
         "txtVhpFlTooShort",
         f'"Enter at least {FL_MIN_LEN} characters to search."',
         size=12, color=C_WARN_FG, height=18, wrap="false",
-        visible=f"!{FL_BUSY_VAR} && {fl_typed} > 0 && {fl_typed} < {FL_MIN_LEN}")
+        visible=(f"!{FL_BUSY_VAR} && {fl_typed} > 0 && {fl_typed} < {FL_MIN_LEN} && "
+                 f"!({fl_wrong})"))
 
     # Soegningens status UNDER feltet - som i Materials (issue #72): "6
     # Functional Locations found for SSV13 HFC10AJ010. Select one from the
@@ -651,7 +683,7 @@ def build_item_editor():
     # (Tooltip). Er der intet at vaelge og intet valgt, er den deaktiveret.
     # Bredden er regnet af den bredeste tekst, den kan faa.
     flBlock = group("conVhpItemFlBlock",
-                    [flLabelRow, flHint, flPicker, flTooShort, flMsg],
+                    [flLabelRow, flHint, flPicker, flWrongPlant, flTooShort, flMsg],
                     direction="Vertical", gap=6, width=FL_W, fill_portions=0,
                     align_in_container="Start")
 

@@ -976,7 +976,7 @@ Screens:
                                               =VerticalAlign.Middle
                                           Width: |-
                                               =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 867, 110, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 2 * 2 - 2 * 2) / 3)
-                              - rctIbTbSpacer:
+                              - rctIbTbSortGap:
                                   Control: Rectangle
                                   Properties:
                                     AccessibleLabel: |-
@@ -987,12 +987,10 @@ Screens:
                                         =0
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
-                                    FillPortions: |-
-                                        =0
                                     Height: |-
                                         =1
                                     LayoutMinWidth: |-
-                                        =0
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 867, Max(0, Min(16, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 867)), 0)
                                     OnSelect: |-
                                         =false
                                     TabIndex: |-
@@ -1000,7 +998,7 @@ Screens:
                                     Visible: |-
                                         =((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 867
                                     Width: |-
-                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18)) - ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 867, If(IsAdmin, 397, 242), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18))) + 8) - ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 867, 296, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18))) + 8) - ((Min(150, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18))) + 8) - 2)
+                                        =Max(0, Min(16, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 867))
                               - drpIbSort:
                                   Control: ModernDropdown
                                   Properties:
@@ -1100,13 +1098,13 @@ Screens:
                                     LayoutGap: |-
                                         =8
                                     LayoutMinWidth: |-
-                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 868, If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 868, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 694, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)), 0)
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 868, If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 1035, 240, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 868, Min(240, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 694), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)), 0)
                                     LayoutOverflowX: |-
                                         =LayoutOverflow.Hide
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 868, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 694, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18))
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 1035, 240, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 868, Min(240, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 694), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18))
                                   Children:
                                     - inpIbSearch:
                                         Control: ModernTextInput
@@ -1154,7 +1152,7 @@ Screens:
                                           ValidationState: |-
                                               =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
                                           Width: |-
-                                              =Max(0, ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 868, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 694, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)))) - ((20) + 8) - 2)
+                                              =Max(0, ((If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 1035, 240, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 868, Min(240, (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 694), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)))) - ((20) + 8) - 2)
                                     - imgIbSearchIcon:
                                         Control: Image
                                         Properties:
@@ -1201,13 +1199,13 @@ Screens:
                                     LayoutGap: |-
                                         =8
                                     LayoutMinWidth: |-
-                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 868, Min(337, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)), 0)
+                                        =If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 868, Min(If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 1035, 438, 337), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)), 0)
                                     LayoutOverflowX: |-
                                         =LayoutOverflow.Hide
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =Min(337, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18))
+                                        =Min(If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 1035, 438, 337), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18))
                                   Children:
                                     - drpIbFltApp:
                                         Control: ModernDropdown
@@ -1241,7 +1239,7 @@ Screens:
                                           Items: |-
                                               =Ungroup(Table({ x: Table({ Application: "All applications" }) }, { x: IbApps }), x)
                                           LayoutMinWidth: |-
-                                              =Min(179, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 8) / 2)
+                                              =Min(If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 1035, 212, 179), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 8) / 2)
                                           OnChange: |-
                                               =Set(varIbApp, If(Self.Selected.Application = "All applications", "", Self.Selected.Application));
                                               Set(varIbSection, "");
@@ -1259,7 +1257,7 @@ Screens:
                                           ValidationState: |-
                                               =If(false && IsBlank(Self.Selected.Application), ValidationState.Error, ValidationState.None)
                                           Width: |-
-                                              =Min(179, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 8) / 2)
+                                              =Min(If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 1035, 212, 179), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 8) / 2)
                                     - drpIbFltSection:
                                         Control: ModernDropdown
                                         Properties:
@@ -1294,7 +1292,7 @@ Screens:
                                           Items: |-
                                               =Ungroup(Table({ x: Table({ Section: "All sections" }) }, { x: ShowColumns(IbFilterSections, Section) }), x)
                                           LayoutMinWidth: |-
-                                              =Min(150, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 8) / 2)
+                                              =Min(If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 1035, 218, 150), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 8) / 2)
                                           OnChange: |-
                                               =Set(varIbSection, If(Self.Selected.Section = "All sections", "", Self.Selected.Section))
                                           RadiusBottomLeft: |-
@@ -1310,7 +1308,7 @@ Screens:
                                           ValidationState: |-
                                               =If(false && IsBlank(Self.Selected.Section), ValidationState.Error, ValidationState.None)
                                           Width: |-
-                                              =Min(150, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 8) / 2)
+                                              =Min(If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18) >= 1035, 218, 150), ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) - 8) / 2)
                               - conIbFltPairB:
                                   Control: GroupContainer
                                   Variant: AutoLayout

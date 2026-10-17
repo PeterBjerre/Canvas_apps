@@ -1385,7 +1385,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =36 + ((If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 36, (36) + 8 + (36) + 8 + (36) + If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 8 + (0), 0) + If(!varMpViewOnly, 8 + (36), 0) + If(!varMpViewOnly, 8 + (36), 0) + If(!varMpViewOnly, 8 + (36), 0))) + 12) + If(!IsEmpty(Filter(
+                            =36 + ((If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 36, (36) + 8 + (36) + 8 + (36) + If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 8 + (0), 0) + If(!varMpViewOnly, 8 + (36), 0) + If(!varMpViewOnly, 8 + (36), 0) + If(!varMpViewOnly && !IsEmpty(colMpRows), 8 + (36), 0))) + 12) + If(!IsEmpty(Filter(
                                 colMpRows,
                                 (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
                                 (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
@@ -1449,7 +1449,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =(If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 36, (36) + 8 + (36) + 8 + (36) + If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 8 + (0), 0) + If(!varMpViewOnly, 8 + (36), 0) + If(!varMpViewOnly, 8 + (36), 0) + If(!varMpViewOnly, 8 + (36), 0))) + 12
+                                  =(If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 36, (36) + 8 + (36) + 8 + (36) + If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, 8 + (0), 0) + If(!varMpViewOnly, 8 + (36), 0) + If(!varMpViewOnly, 8 + (36), 0) + If(!varMpViewOnly && !IsEmpty(colMpRows), 8 + (36), 0))) + 12
                               LayoutAlignItems: |-
                                   =If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                               LayoutDirection: |-
@@ -1649,7 +1649,7 @@ Screens:
                                     Visible: |-
                                         =(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) >= (240) + (170) + (170) + (124) + (138) + (91) + (0) + 48
                                     Width: |-
-                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18)) - ((240) + 8) - ((170) + 8) - ((170) + 8) - (If(!varMpViewOnly, (124) + 8, 0)) - (If(!varMpViewOnly, (138) + 8, 0)) - (If(!varMpViewOnly, (91) + 8, 0)) - 2)
+                                        =Max(0, ((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18)) - ((240) + 8) - ((170) + 8) - ((170) + 8) - (If(!varMpViewOnly, (124) + 8, 0)) - (If(!varMpViewOnly, (138) + 8, 0)) - (If(!varMpViewOnly && !IsEmpty(colMpRows), (91) + 8, 0)) - 2)
                               - btnMpToolbarCopy:
                                   Control: ModernButton
                                   Properties:
@@ -1849,7 +1849,7 @@ Screens:
                                     VerticalAlign: |-
                                         =VerticalAlign.Middle
                                     Visible: |-
-                                        =!varMpViewOnly
+                                        =!varMpViewOnly && !IsEmpty(colMpRows)
                                     Width: |-
                                         =91
                         - conMpTableWrap:

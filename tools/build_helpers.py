@@ -1844,6 +1844,40 @@ def click_outside_overlay(name, close_fx, visible, label="Close panel"):
     }, h="App.Height", vis=visible)
 
 
+def editor_footer(prefix, delete, reset, cancel, save):
+    """Sidepanelets bundbjaelke: Delete row og Reset til venstre, Cancel og
+    Save til hoejre (Materials, issue #228 - FL bruger den samme, #308).
+
+    Grupperne er Start-justeret og praecis knaphoeje - med Center tegnede
+    Studio de indlejrede knapper forskudt nedad og klippede dem. Er panelet
+    for smalt til begge par paa een linje (mobil), staar parrene under
+    hinanden, og Cancel og Save staar stadig til hoejre. Knapperne har
+    deres bredde paa forhaand (Width)."""
+    gap = 8
+    left_w = int(delete.props["Width"]) + gap + int(reset.props["Width"])
+    right_w = int(cancel.props["Width"]) + gap + int(save.props["Width"])
+    for b in (delete, reset, cancel, save):
+        b.props["AlignInContainer"] = "AlignInContainer.Start"
+        b.props["LayoutMinWidth"] = b.props["Width"]
+    left = group(f"con{prefix}EditorDeleteAction", [delete, reset], direction="Horizontal",
+                 gap=gap, height=lay.HIT_TOUCH, width=left_w, align_items="Start",
+                 align_in_container="Start")
+    right = group(f"con{prefix}EditorSaveActions", [cancel, save], direction="Horizontal",
+                  gap=gap, height=lay.HIT_TOUCH, width=right_w, align_items="Start",
+                  align_in_container="Start", justify="End")
+    one_line = f"({lay.PANEL_W_AT}) - 2 * 20 >= {left_w + 16 + right_w}"
+    footer = group(f"con{prefix}EditorFooter", [left, right], direction="Horizontal",
+                   gap=gap, height=f"If({one_line}, {lay.HIT_TOUCH}, {2 * lay.HIT_TOUCH + gap})",
+                   width="Parent.Width", justify="SpaceBetween", align_items="Start")
+    right.props["AlignInContainer"] = (f"If({one_line}, AlignInContainer.Start, "
+                                       "AlignInContainer.End)")
+    footer.props["LayoutDirection"] = (f"If({one_line}, LayoutDirection.Horizontal, "
+                                       "LayoutDirection.Vertical)")
+    footer.props["LayoutAlignItems"] = (f"If({one_line}, LayoutAlignItems.Start, "
+                                        "LayoutAlignItems.Stretch)")
+    return footer
+
+
 def row_editor_panel(prefix, position, sections, footer, previous_fx, next_fx,
                      close_fx, visible, width=None, previous_mode=None,
                      next_mode=None, side_by_side=False, multiple=None):

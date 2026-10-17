@@ -2480,9 +2480,12 @@ def build_list(slots, badge_head, search_placeholder):
                               width=fit_button_width('"Paste rows"') + ICON_W, height=36,
                               tooltip='"Paste rows copied from Excel - they are added as drafts"',
                               visible="!varDomViewOnly"))
+        # Issue #310: uden raekker staar Add row kun i den tomme tilstand
+        # (btnDomRowsEmptyAdd, samme betingelse IsEmpty(colDomRows)) - ikke
+        # ogsaa her. Paste rows bliver staaende.
         row_add.append(button("btnDomNewRow", '"Add row"', new_row_fx(), primary=True,
                               width=fit_button_width('"Add row"'), height=36,
-                              visible="!varDomViewOnly"))
+                              visible="!varDomViewOnly && !IsEmpty(colDomRows)"))
     # Soegning og filtre staar til venstre, Add row/Copy til hoejre: en tom,
     # fleksibel gruppe tager resten af linjen og skubber knapperne ud.
     if row_add:

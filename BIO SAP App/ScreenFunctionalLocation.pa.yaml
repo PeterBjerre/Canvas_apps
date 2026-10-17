@@ -2103,17 +2103,17 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Class data of row " & ThisItem.Pos & If(!IsBlank(ThisItem.AssignedClass) && !IsEmpty(Filter(colFlVals, RowGuid = ThisItem.RowGuid && Field in Filter(colFlColumns, Cls = ThisItem.AssignedClass && Section in ["Class", "TRM", "Ext"]).Field)), ", filled in", ", empty")
+                                              ="Class data of row " & ThisItem.Pos & If(!IsBlank(ThisItem.AssignedClass) && !IsEmpty(Filter(colFlVals, RowGuid = ThisItem.RowGuid && Field in Filter(colFlColumns, Cls = ThisItem.AssignedClass && Section in ["Class", "TRM"]).Field)), ", filled in", ", empty")
                                           Align: |-
                                               =Align.Center
                                           Appearance: |-
                                               =ButtonAppearance.Outline
                                           BorderColor: |-
-                                              =If(!IsBlank(ThisItem.AssignedClass) && !IsEmpty(Filter(colFlVals, RowGuid = ThisItem.RowGuid && Field in Filter(colFlColumns, Cls = ThisItem.AssignedClass && Section in ["Class", "TRM", "Ext"]).Field)), C.'border-ok', C.'border-default')
+                                              =If(!IsBlank(ThisItem.AssignedClass) && !IsEmpty(Filter(colFlVals, RowGuid = ThisItem.RowGuid && Field in Filter(colFlColumns, Cls = ThisItem.AssignedClass && Section in ["Class", "TRM"]).Field)), C.'border-ok', C.'border-default')
                                           BorderThickness: |-
                                               =1
                                           Color: |-
-                                              =If(!IsBlank(ThisItem.AssignedClass) && !IsEmpty(Filter(colFlVals, RowGuid = ThisItem.RowGuid && Field in Filter(colFlColumns, Cls = ThisItem.AssignedClass && Section in ["Class", "TRM", "Ext"]).Field)), C.'state-ok-fg', C.'text-primary')
+                                              =If(!IsBlank(ThisItem.AssignedClass) && !IsEmpty(Filter(colFlVals, RowGuid = ThisItem.RowGuid && Field in Filter(colFlColumns, Cls = ThisItem.AssignedClass && Section in ["Class", "TRM"]).Field)), C.'state-ok-fg', C.'text-primary')
                                           DisplayMode: |-
                                               =If(!IsBlank(ThisItem.AssignedClass), DisplayMode.Edit, DisplayMode.Disabled)
                                           Font: |-
@@ -2123,9 +2123,9 @@ Screens:
                                           Height: |-
                                               =30
                                           Icon: |-
-                                              =If(!IsBlank(ThisItem.AssignedClass) && !IsEmpty(Filter(colFlVals, RowGuid = ThisItem.RowGuid && Field in Filter(colFlColumns, Cls = ThisItem.AssignedClass && Section in ["Class", "TRM", "Ext"]).Field)), "Checkmark", "")
+                                              =If(!IsBlank(ThisItem.AssignedClass) && !IsEmpty(Filter(colFlVals, RowGuid = ThisItem.RowGuid && Field in Filter(colFlColumns, Cls = ThisItem.AssignedClass && Section in ["Class", "TRM"]).Field)), "Checkmark", "")
                                           Layout: |-
-                                              =If(!IsBlank(ThisItem.AssignedClass) && !IsEmpty(Filter(colFlVals, RowGuid = ThisItem.RowGuid && Field in Filter(colFlColumns, Cls = ThisItem.AssignedClass && Section in ["Class", "TRM", "Ext"]).Field)), ButtonLayout.IconBefore, ButtonLayout.TextOnly)
+                                              =If(!IsBlank(ThisItem.AssignedClass) && !IsEmpty(Filter(colFlVals, RowGuid = ThisItem.RowGuid && Field in Filter(colFlColumns, Cls = ThisItem.AssignedClass && Section in ["Class", "TRM"]).Field)), ButtonLayout.IconBefore, ButtonLayout.TextOnly)
                                           OnSelect: |-
                                               =Set(varFlDetailRow, ThisItem.RowGuid);
                                               Set(varFlPanelJump, "");
@@ -2133,7 +2133,7 @@ Screens:
                                               ClearCollect(colFlDet, With(
                                                   { dc: Coalesce(LookUp(colFlRows, RowGuid = varFlDetailRow).AssignedClass, "NO CLASS") },
                                                   ForAll(
-                                                      Filter(colFlColumns, Cls = dc && Section <> "Status") As K,
+                                                      Filter(colFlColumns, Cls = dc && Section <> "Status" && Section <> "Ext") As K,
                                                       With(
                                                           { pm: LookUp(colFlPane, Field = K.Field) },
                                                           {
@@ -2145,7 +2145,9 @@ Screens:
                                                       )
                                                   )
                                               ));
-                                              Collect(colFlDet, { Column: "Assigned class", Field: "ASSIGNED CLASS", Editable: false, List: "", MaxLen: 0, Section: "Master", Kind: "ro", Pane: "Main", PaneOrd: 4, Value: "", Issue: "" });
+                                              Collect(colFlDet, { Column: "Assigned class", Field: "ASSIGNED CLASS", Editable: false, List: "", MaxLen: 0, Section: "Master", Kind: "ro", Pane: "Kks", PaneOrd: 4, Value: "", Issue: "" });
+                                              ClearCollect(colFlPanelSnap, LookUp(colFlRows, RowGuid = varFlDetailRow));
+                                              ClearCollect(colFlPanelSnapVals, Filter(colFlVals, RowGuid = varFlDetailRow));
                                               Set(varFlPanelOpen, true)
                                           RadiusBottomLeft: |-
                                               =R.input
@@ -2160,7 +2162,7 @@ Screens:
                                           Text: |-
                                               ="Class data"
                                           Tooltip: |-
-                                              =If(!IsBlank(ThisItem.AssignedClass), "Edit the class characteristics, TRM and GIV_EXT / WCM fields of this row", "Valid FL first - the class is determined by the KKS code of a valid Functional Location.")
+                                              =If(!IsBlank(ThisItem.AssignedClass), "Edit the class characteristics and TRM fields of this row", "Valid FL first - the class is determined by the KKS code of a valid Functional Location.")
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
@@ -2427,7 +2429,7 @@ Screens:
                                               ClearCollect(colFlDet, With(
                                                   { dc: Coalesce(LookUp(colFlRows, RowGuid = varFlDetailRow).AssignedClass, "NO CLASS") },
                                                   ForAll(
-                                                      Filter(colFlColumns, Cls = dc && Section <> "Status") As K,
+                                                      Filter(colFlColumns, Cls = dc && Section <> "Status" && Section <> "Ext") As K,
                                                       With(
                                                           { pm: LookUp(colFlPane, Field = K.Field) },
                                                           {
@@ -2439,7 +2441,9 @@ Screens:
                                                       )
                                                   )
                                               ));
-                                              Collect(colFlDet, { Column: "Assigned class", Field: "ASSIGNED CLASS", Editable: false, List: "", MaxLen: 0, Section: "Master", Kind: "ro", Pane: "Main", PaneOrd: 4, Value: "", Issue: "" });
+                                              Collect(colFlDet, { Column: "Assigned class", Field: "ASSIGNED CLASS", Editable: false, List: "", MaxLen: 0, Section: "Master", Kind: "ro", Pane: "Kks", PaneOrd: 4, Value: "", Issue: "" });
+                                              ClearCollect(colFlPanelSnap, LookUp(colFlRows, RowGuid = varFlDetailRow));
+                                              ClearCollect(colFlPanelSnapVals, Filter(colFlVals, RowGuid = varFlDetailRow));
                                               Set(varFlPanelOpen, true)
                                           RadiusBottomLeft: |-
                                               =R.input
@@ -2497,7 +2501,7 @@ Screens:
                                               ClearCollect(colFlDet, With(
                                                   { dc: Coalesce(LookUp(colFlRows, RowGuid = varFlDetailRow).AssignedClass, "NO CLASS") },
                                                   ForAll(
-                                                      Filter(colFlColumns, Cls = dc && Section <> "Status") As K,
+                                                      Filter(colFlColumns, Cls = dc && Section <> "Status" && Section <> "Ext") As K,
                                                       With(
                                                           { pm: LookUp(colFlPane, Field = K.Field) },
                                                           {
@@ -2509,7 +2513,9 @@ Screens:
                                                       )
                                                   )
                                               ));
-                                              Collect(colFlDet, { Column: "Assigned class", Field: "ASSIGNED CLASS", Editable: false, List: "", MaxLen: 0, Section: "Master", Kind: "ro", Pane: "Main", PaneOrd: 4, Value: "", Issue: "" });
+                                              Collect(colFlDet, { Column: "Assigned class", Field: "ASSIGNED CLASS", Editable: false, List: "", MaxLen: 0, Section: "Master", Kind: "ro", Pane: "Kks", PaneOrd: 4, Value: "", Issue: "" });
+                                              ClearCollect(colFlPanelSnap, LookUp(colFlRows, RowGuid = varFlDetailRow));
+                                              ClearCollect(colFlPanelSnapVals, Filter(colFlVals, RowGuid = varFlDetailRow));
                                               Set(varFlPanelOpen, true)
                                           RadiusBottomLeft: |-
                                               =R.input
@@ -3035,7 +3041,7 @@ Screens:
                                       ClearCollect(colFlDet, With(
                                           { dc: Coalesce(LookUp(colFlRows, RowGuid = varFlDetailRow).AssignedClass, "NO CLASS") },
                                           ForAll(
-                                              Filter(colFlColumns, Cls = dc && Section <> "Status") As K,
+                                              Filter(colFlColumns, Cls = dc && Section <> "Status" && Section <> "Ext") As K,
                                               With(
                                                   { pm: LookUp(colFlPane, Field = K.Field) },
                                                   {
@@ -3047,7 +3053,7 @@ Screens:
                                               )
                                           )
                                       ));
-                                      Collect(colFlDet, { Column: "Assigned class", Field: "ASSIGNED CLASS", Editable: false, List: "", MaxLen: 0, Section: "Master", Kind: "ro", Pane: "Main", PaneOrd: 4, Value: "", Issue: "" })
+                                      Collect(colFlDet, { Column: "Assigned class", Field: "ASSIGNED CLASS", Editable: false, List: "", MaxLen: 0, Section: "Master", Kind: "ro", Pane: "Kks", PaneOrd: 4, Value: "", Issue: "" })
                                   );
                                   
                                   // I. Faerdig. varFlStale styrer Submit (FL68).
@@ -3063,7 +3069,7 @@ Screens:
                                       With(
                                           { dc: Coalesce(dr.AssignedClass, "NO CLASS") },
                                           ForAll(
-                                              Sort(Filter(colFlColumns, Cls = dc && Section in ["Class", "TRM", "Ext"]), Ord) As K,
+                                              Sort(Filter(colFlColumns, Cls = dc && Section in ["Class", "TRM"]), Ord) As K,
                                               {
                                                   Column: K.Column, Field: K.Field, Editable: K.Editable,
                                                   List: K.List, MaxLen: K.MaxLen, Section: K.Section, Kind: K.Kind,
@@ -3961,7 +3967,7 @@ Screens:
                                             With(
                                                 { dc: Coalesce(dr.AssignedClass, "NO CLASS") },
                                                 ForAll(
-                                                    Sort(Filter(colFlColumns, Cls = dc && Section in ["Class", "TRM", "Ext"]), Ord) As K,
+                                                    Sort(Filter(colFlColumns, Cls = dc && Section in ["Class", "TRM"]), Ord) As K,
                                                     {
                                                         Column: K.Column, Field: K.Field, Editable: K.Editable,
                                                         List: K.List, MaxLen: K.MaxLen, Section: K.Section, Kind: K.Kind,
@@ -7309,7 +7315,7 @@ Screens:
             Image: |-
                 =""
             OnSelect: |-
-                =Set(varFlPanelOpen, false); Set(varFlPanelJump, ""); Set(varFlDetailRow, ""); Clear(colFlDet)
+                =Set(varFlPanelOpen, false); Set(varFlPanelJump, ""); Set(varFlDetailRow, ""); Clear(colFlDet); Clear(colFlPanelSnap); Clear(colFlPanelSnapVals)
             PressedFill: |-
                 =RGBA(0, 0, 0, 0)
             TabIndex: |-
@@ -7469,7 +7475,7 @@ Screens:
                             ClearCollect(colFlDet, With(
                                 { dc: Coalesce(LookUp(colFlRows, RowGuid = varFlDetailRow).AssignedClass, "NO CLASS") },
                                 ForAll(
-                                    Filter(colFlColumns, Cls = dc && Section <> "Status") As K,
+                                    Filter(colFlColumns, Cls = dc && Section <> "Status" && Section <> "Ext") As K,
                                     With(
                                         { pm: LookUp(colFlPane, Field = K.Field) },
                                         {
@@ -7481,7 +7487,9 @@ Screens:
                                     )
                                 )
                             ));
-                            Collect(colFlDet, { Column: "Assigned class", Field: "ASSIGNED CLASS", Editable: false, List: "", MaxLen: 0, Section: "Master", Kind: "ro", Pane: "Main", PaneOrd: 4, Value: "", Issue: "" });
+                            Collect(colFlDet, { Column: "Assigned class", Field: "ASSIGNED CLASS", Editable: false, List: "", MaxLen: 0, Section: "Master", Kind: "ro", Pane: "Kks", PaneOrd: 4, Value: "", Issue: "" });
+                            ClearCollect(colFlPanelSnap, LookUp(colFlRows, RowGuid = varFlDetailRow));
+                            ClearCollect(colFlPanelSnapVals, Filter(colFlVals, RowGuid = varFlDetailRow));
                             Set(varFlPanelOpen, true)
                         PressedFill: |-
                             =If((If(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos <= 1, DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
@@ -7537,7 +7545,7 @@ Screens:
                             ClearCollect(colFlDet, With(
                                 { dc: Coalesce(LookUp(colFlRows, RowGuid = varFlDetailRow).AssignedClass, "NO CLASS") },
                                 ForAll(
-                                    Filter(colFlColumns, Cls = dc && Section <> "Status") As K,
+                                    Filter(colFlColumns, Cls = dc && Section <> "Status" && Section <> "Ext") As K,
                                     With(
                                         { pm: LookUp(colFlPane, Field = K.Field) },
                                         {
@@ -7549,7 +7557,9 @@ Screens:
                                     )
                                 )
                             ));
-                            Collect(colFlDet, { Column: "Assigned class", Field: "ASSIGNED CLASS", Editable: false, List: "", MaxLen: 0, Section: "Master", Kind: "ro", Pane: "Main", PaneOrd: 4, Value: "", Issue: "" });
+                            Collect(colFlDet, { Column: "Assigned class", Field: "ASSIGNED CLASS", Editable: false, List: "", MaxLen: 0, Section: "Master", Kind: "ro", Pane: "Kks", PaneOrd: 4, Value: "", Issue: "" });
+                            ClearCollect(colFlPanelSnap, LookUp(colFlRows, RowGuid = varFlDetailRow));
+                            ClearCollect(colFlPanelSnapVals, Filter(colFlVals, RowGuid = varFlDetailRow));
                             Set(varFlPanelOpen, true)
                         PressedFill: |-
                             =If((If(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos >= CountRows(Sort(colFlRows, RowNo)), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
@@ -7597,7 +7607,7 @@ Screens:
                         LayoutMinWidth: |-
                             =44
                         OnSelect: |-
-                            =Set(varFlPanelOpen, false); Set(varFlPanelJump, ""); Set(varFlDetailRow, ""); Clear(colFlDet)
+                            =Set(varFlPanelOpen, false); Set(varFlPanelJump, ""); Set(varFlDetailRow, ""); Clear(colFlDet); Clear(colFlPanelSnap); Clear(colFlPanelSnapVals)
                         PressedFill: |-
                             =C.'row-pressed'
                         RadiusBottomLeft: |-
@@ -7625,7 +7635,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =App.Height - (88)
+                      =App.Height - (100 + (If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 >= 410, 44, 96)))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -7711,7 +7721,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + If(CountRows(Filter(colFlDet, Pane = "Main")) > 0 && !(IfError(varFlPanelJump, "") in ["Mfr", "War"]), 0 + (22), 0) + If(IfError(CountRows(Sort(Filter(colFlDet, Pane = "Main"), PaneOrd)) > 0, false), 8 + (RoundUp(CountRows(Sort(Filter(colFlDet, Pane = "Main"), PaneOrd)) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 3 * 200, 3, If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1))), 0) * 86), 0)
+                            =0 + If(CountRows(Filter(colFlDet, Pane = "Main")) > 0 && !(IfError(varFlPanelJump, "") in ["Mfr", "War"]), 0 + (22), 0) + If(IfError(CountRows(Sort(Filter(colFlDet, Pane = "Main"), PaneOrd)) > 0, false), 8 + (RoundUp(CountRows(Sort(Filter(colFlDet, Pane = "Main"), PaneOrd)) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 3 * 200, 3, If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1))), 0) * 86), 0) + If(IfError(CountRows(Sort(Filter(colFlDet, Pane = "Kks"), PaneOrd)) > 0, false), 8 + (RoundUp(CountRows(Sort(Filter(colFlDet, Pane = "Kks"), PaneOrd)) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1)), 0) * 86), 0)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -7950,7 +7960,7 @@ Screens:
                                     Height: |-
                                         =36
                                     ItemDisplayText: |-
-                                        =(With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, ""))))
+                                        =ThisItem.Value
                                     Items: |-
                                         =Ungroup(
                                             Table(
@@ -8124,9 +8134,378 @@ Screens:
                                     Size: |-
                                         =T.small
                                     Text: |-
-                                        =Coalesce((Switch(     ThisItem.Field,     "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),     "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),     Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && Field = ThisItem.Field && Ord >= 100), Ord)).Short, "") )), Switch(ThisItem.Field, "STRINDICATOR", "Derived from the KKS code.", "ASSIGNED CLASS", "Determined by the KKS code.", "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
+                                        =Coalesce((Switch(     ThisItem.Field,     "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),     "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),     Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && Field = ThisItem.Field && Ord >= 100), Ord)).Short, "") )), Switch(ThisItem.Field, "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
                                     Width: |-
                                         =((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 0 - 40) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 3 * 200, 3, If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1))) - 2 * 0) - 0 - 16
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0
+                                    Y: |-
+                                        =0 + 0 + 0 + (18) + 2 + If(ThisItem.Kind = "text", (36) + 2, 0) + If(ThisItem.Kind = "list", (36) + 2, 0) + If(ThisItem.Kind = "check", (36) + 2, 0) + If(ThisItem.Kind = "ro", (36) + 2, 0)
+                        - galFlPanelKksFields:
+                            Control: Gallery
+                            Variant: Vertical
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Functional location - KKS type and assigned class"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =RoundUp(CountRows(Sort(Filter(colFlDet, Pane = "Kks"), PaneOrd)) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1)), 0) * 86
+                              Items: |-
+                                  =Sort(Filter(colFlDet, Pane = "Kks"), PaneOrd)
+                              LayoutMinWidth: |-
+                                  =0
+                              LoadingSpinner: |-
+                                  =LoadingSpinner.None
+                              Selectable: |-
+                                  =false
+                              ShowScrollbar: |-
+                                  =false
+                              TabIndex: |-
+                                  =0
+                              TemplatePadding: |-
+                                  =0
+                              TemplateSize: |-
+                                  =86
+                              Visible: |-
+                                  =IfError(CountRows(Sort(Filter(colFlDet, Pane = "Kks"), PaneOrd)) > 0, false)
+                              Width: |-
+                                  =Parent.Width
+                              WrapCount: |-
+                                  =If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1)
+                            Children:
+                              - txtFlPanelKksLbl:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =Self.Text
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =18
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =T.small
+                                    Text: |-
+                                        =ThisItem.Column & If(ThisItem.Field = "DESCRIPTION", " *", "")
+                                    Width: |-
+                                        =((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 0 - 40) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1)) - 2 * 0) - 0 - 16
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0
+                                    Y: |-
+                                        =0 + 0 + 0
+                              - inpFlPanelKksVal:
+                                  Control: ModernTextInput
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =ThisItem.Column
+                                    Appearance: |-
+                                        =If((If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
+                                    BorderColor: |-
+                                        =If(!IsBlank((Switch(     ThisItem.Field,     "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),     "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),     Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && Field = ThisItem.Field && Ord >= 100), Ord)).Short, "") ))), C.'border-error', !IsBlank((With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, ""))))), C.'border-ok', C.'border-default')
+                                    BorderStyle: |-
+                                        =BorderStyle.Solid
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =If((If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                    Default: |-
+                                        =(With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, ""))))
+                                    DisplayMode: |-
+                                        =If((If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                    Fill: |-
+                                        =If(If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =36
+                                    MaxLength: |-
+                                        =If(ThisItem.MaxLen > 0, ThisItem.MaxLen, 4000)
+                                    OnChange: |-
+                                        =With(
+                                            { f: ThisItem.Field, nv: Trim(Self.Text) },
+                                            Switch(
+                                                f,
+                                                "FUNCTIONAL LOCATION",
+                                                Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { FL: Upper(Trim(Substitute(Substitute(Substitute(nv, Char(160), " "), Char(13), ""), Char(10), ""))) }),
+                                                "DESCRIPTION",
+                                                Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { Description: nv }),
+                                                RemoveIf(colFlVals, RowGuid = varFlDetailRow && Field = f);
+                                                If(!IsBlank(nv), Collect(colFlVals, { RowGuid: varFlDetailRow, Field: f, Value: nv }))
+                                            )
+                                        );
+                                        Set(varFlStale, true);
+                                        Select(btnFlVerify)
+                                    Placeholder: |-
+                                        =If(ThisItem.Field = "WARRANTY START" || ThisItem.Field = "WARRANTY END", "DD.MM.YYYY", "")
+                                    RadiusBottomLeft: |-
+                                        =R.input
+                                    RadiusBottomRight: |-
+                                        =R.input
+                                    RadiusTopLeft: |-
+                                        =R.input
+                                    RadiusTopRight: |-
+                                        =R.input
+                                    Size: |-
+                                        =If(LayoutRank < 2, 16, 14)
+                                    ValidationState: |-
+                                        =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
+                                    Visible: |-
+                                        =ThisItem.Kind = "text"
+                                    Width: |-
+                                        =((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 0 - 40) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1)) - 2 * 0) - 0 - 16
+                                    X: |-
+                                        =0 + 0
+                                    Y: |-
+                                        =0 + 0 + 0 + (18) + 2
+                              - drpFlPanelKksVal:
+                                  Control: ModernDropdown
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =ThisItem.Column
+                                    Appearance: |-
+                                        =If((If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
+                                    BorderColor: |-
+                                        =If(!IsBlank((Switch(     ThisItem.Field,     "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),     "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),     Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && Field = ThisItem.Field && Ord >= 100), Ord)).Short, "") ))), C.'border-error', !IsBlank((With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, ""))))), C.'border-ok', C.'border-default')
+                                    BorderStyle: |-
+                                        =BorderStyle.Solid
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =If((If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                    Default: |-
+                                        =LookUp(Ungroup(
+                                            Table(
+                                                { G: Table({ Value: "" }) },
+                                                { G: Filter(Table({ Value: (With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, "")))) }), !IsBlank(Value) &&
+                                                            !(Upper(Value) in With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)).UValue)) },
+                                                { G: ForAll(Sort(With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)), Ord) As O, { Value: O.Value }) }
+                                            ),
+                                            G
+                                        ) As _dd, _dd.Value = (LookUp(Ungroup(
+                                            Table(
+                                                { G: Table({ Value: "" }) },
+                                                { G: Filter(Table({ Value: (With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, "")))) }), !IsBlank(Value) &&
+                                                            !(Upper(Value) in With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)).UValue)) },
+                                                { G: ForAll(Sort(With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)), Ord) As O, { Value: O.Value }) }
+                                            ),
+                                            G
+                                        ), Upper(Value) = Upper((With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, "")))))).Value))
+                                    DisplayMode: |-
+                                        =If((If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                    Fill: |-
+                                        =If(If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =36
+                                    ItemDisplayText: |-
+                                        =ThisItem.Value
+                                    Items: |-
+                                        =Ungroup(
+                                            Table(
+                                                { G: Table({ Value: "" }) },
+                                                { G: Filter(Table({ Value: (With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, "")))) }), !IsBlank(Value) &&
+                                                            !(Upper(Value) in With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)).UValue)) },
+                                                { G: ForAll(Sort(With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)), Ord) As O, { Value: O.Value }) }
+                                            ),
+                                            G
+                                        )
+                                    OnChange: |-
+                                        =With(
+                                            { f: ThisItem.Field, nv: Trim(Coalesce(Self.Selected.Value, "")) },
+                                            Switch(
+                                                f,
+                                                "FUNCTIONAL LOCATION",
+                                                Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { FL: Upper(Trim(Substitute(Substitute(Substitute(nv, Char(160), " "), Char(13), ""), Char(10), ""))) }),
+                                                "DESCRIPTION",
+                                                Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { Description: nv }),
+                                                RemoveIf(colFlVals, RowGuid = varFlDetailRow && Field = f);
+                                                If(!IsBlank(nv), Collect(colFlVals, { RowGuid: varFlDetailRow, Field: f, Value: nv }))
+                                            )
+                                        );
+                                        Set(varFlStale, true);
+                                        Select(btnFlVerify)
+                                    RadiusBottomLeft: |-
+                                        =R.input
+                                    RadiusBottomRight: |-
+                                        =R.input
+                                    RadiusTopLeft: |-
+                                        =R.input
+                                    RadiusTopRight: |-
+                                        =R.input
+                                    Size: |-
+                                        =If(LayoutRank < 2, 16, 14)
+                                    ValidationState: |-
+                                        =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
+                                    Visible: |-
+                                        =ThisItem.Kind = "list"
+                                    Width: |-
+                                        =((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 0 - 40) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1)) - 2 * 0) - 0 - 16
+                                    X: |-
+                                        =0 + 0
+                                    Y: |-
+                                        =0 + 0 + 0 + (18) + 2 + If(ThisItem.Kind = "text", (36) + 2, 0)
+                              - chkFlPanelKksVal:
+                                  Control: ModernCheckbox
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =ThisItem.Column
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Default: |-
+                                        =Upper(Trim((With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, "")))))) = "X"
+                                    DisplayMode: |-
+                                        =If((If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =36
+                                    Label: |-
+                                        ="Yes"
+                                    OnCheck: |-
+                                        =With(
+                                            { f: ThisItem.Field, nv: Trim("X") },
+                                            Switch(
+                                                f,
+                                                "FUNCTIONAL LOCATION",
+                                                Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { FL: Upper(Trim(Substitute(Substitute(Substitute(nv, Char(160), " "), Char(13), ""), Char(10), ""))) }),
+                                                "DESCRIPTION",
+                                                Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { Description: nv }),
+                                                RemoveIf(colFlVals, RowGuid = varFlDetailRow && Field = f);
+                                                If(!IsBlank(nv), Collect(colFlVals, { RowGuid: varFlDetailRow, Field: f, Value: nv }))
+                                            )
+                                        );
+                                        Set(varFlStale, true);
+                                        Select(btnFlVerify)
+                                    OnUncheck: |-
+                                        =With(
+                                            { f: ThisItem.Field, nv: Trim("") },
+                                            Switch(
+                                                f,
+                                                "FUNCTIONAL LOCATION",
+                                                Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { FL: Upper(Trim(Substitute(Substitute(Substitute(nv, Char(160), " "), Char(13), ""), Char(10), ""))) }),
+                                                "DESCRIPTION",
+                                                Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { Description: nv }),
+                                                RemoveIf(colFlVals, RowGuid = varFlDetailRow && Field = f);
+                                                If(!IsBlank(nv), Collect(colFlVals, { RowGuid: varFlDetailRow, Field: f, Value: nv }))
+                                            )
+                                        );
+                                        Set(varFlStale, true);
+                                        Select(btnFlVerify)
+                                    Size: |-
+                                        =T.body
+                                    Visible: |-
+                                        =ThisItem.Kind = "check"
+                                    Width: |-
+                                        =((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 0 - 40) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1)) - 2 * 0) - 0 - 16
+                                    X: |-
+                                        =0 + 0
+                                    Y: |-
+                                        =0 + 0 + 0 + (18) + 2 + If(ThisItem.Kind = "text", (36) + 2, 0) + If(ThisItem.Kind = "list", (36) + 2, 0)
+                              - txtFlPanelKksRo:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =Self.Text
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =36
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =T.input
+                                    Text: |-
+                                        =If(IsBlank((With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, ""))))), "-", (With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, "")))))
+                                    Visible: |-
+                                        =ThisItem.Kind = "ro"
+                                    Width: |-
+                                        =((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 0 - 40) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1)) - 2 * 0) - 0 - 16
+                                    Wrap: |-
+                                        =false
+                                    X: |-
+                                        =0 + 0
+                                    Y: |-
+                                        =0 + 0 + 0 + (18) + 2 + If(ThisItem.Kind = "text", (36) + 2, 0) + If(ThisItem.Kind = "list", (36) + 2, 0) + If(ThisItem.Kind = "check", (36) + 2, 0)
+                              - txtFlPanelKksIssue:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =Self.Text
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =If(IsBlank((Switch(     ThisItem.Field,     "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),     "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),     Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && Field = ThisItem.Field && Ord >= 100), Ord)).Short, "") ))), C.'text-muted', C.'state-error-fg')
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =18
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =T.small
+                                    Text: |-
+                                        =Coalesce((Switch(     ThisItem.Field,     "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),     "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),     Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && Field = ThisItem.Field && Ord >= 100), Ord)).Short, "") )), Switch(ThisItem.Field, "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
+                                    Width: |-
+                                        =((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 0 - 40) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1)) - 2 * 0) - 0 - 16
                                     Wrap: |-
                                         =false
                                     X: |-
@@ -8383,7 +8762,7 @@ Screens:
                                     Height: |-
                                         =36
                                     ItemDisplayText: |-
-                                        =(With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, ""))))
+                                        =ThisItem.Value
                                     Items: |-
                                         =Ungroup(
                                             Table(
@@ -8557,7 +8936,7 @@ Screens:
                                     Size: |-
                                         =T.small
                                     Text: |-
-                                        =Coalesce((Switch(     ThisItem.Field,     "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),     "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),     Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && Field = ThisItem.Field && Ord >= 100), Ord)).Short, "") )), Switch(ThisItem.Field, "STRINDICATOR", "Derived from the KKS code.", "ASSIGNED CLASS", "Determined by the KKS code.", "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
+                                        =Coalesce((Switch(     ThisItem.Field,     "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),     "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),     Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && Field = ThisItem.Field && Ord >= 100), Ord)).Short, "") )), Switch(ThisItem.Field, "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
                                     Width: |-
                                         =((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 0 - 40) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 3 * 200, 3, If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1))) - 2 * 0) - 0 - 16
                                     Wrap: |-
@@ -8816,7 +9195,7 @@ Screens:
                                     Height: |-
                                         =36
                                     ItemDisplayText: |-
-                                        =(With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, ""))))
+                                        =ThisItem.Value
                                     Items: |-
                                         =Ungroup(
                                             Table(
@@ -8990,7 +9369,7 @@ Screens:
                                     Size: |-
                                         =T.small
                                     Text: |-
-                                        =Coalesce((Switch(     ThisItem.Field,     "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),     "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),     Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && Field = ThisItem.Field && Ord >= 100), Ord)).Short, "") )), Switch(ThisItem.Field, "STRINDICATOR", "Derived from the KKS code.", "ASSIGNED CLASS", "Determined by the KKS code.", "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
+                                        =Coalesce((Switch(     ThisItem.Field,     "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),     "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),     Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && Field = ThisItem.Field && Ord >= 100), Ord)).Short, "") )), Switch(ThisItem.Field, "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
                                     Width: |-
                                         =((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 0 - 40) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 3 * 200, 3, If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1))) - 2 * 0) - 0 - 16
                                     Wrap: |-
@@ -9249,7 +9628,7 @@ Screens:
                                     Height: |-
                                         =36
                                     ItemDisplayText: |-
-                                        =(With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, ""))))
+                                        =ThisItem.Value
                                     Items: |-
                                         =Ungroup(
                                             Table(
@@ -9423,7 +9802,7 @@ Screens:
                                     Size: |-
                                         =T.small
                                     Text: |-
-                                        =Coalesce((Switch(     ThisItem.Field,     "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),     "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),     Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && Field = ThisItem.Field && Ord >= 100), Ord)).Short, "") )), Switch(ThisItem.Field, "STRINDICATOR", "Derived from the KKS code.", "ASSIGNED CLASS", "Determined by the KKS code.", "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
+                                        =Coalesce((Switch(     ThisItem.Field,     "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),     "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),     Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && Field = ThisItem.Field && Ord >= 100), Ord)).Short, "") )), Switch(ThisItem.Field, "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
                                     Width: |-
                                         =((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 0 - 40) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 3 * 200, 3, If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1))) - 2 * 0) - 0 - 16
                                     Wrap: |-
@@ -9682,7 +10061,7 @@ Screens:
                                     Height: |-
                                         =36
                                     ItemDisplayText: |-
-                                        =(With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, ""))))
+                                        =ThisItem.Value
                                     Items: |-
                                         =Ungroup(
                                             Table(
@@ -9856,7 +10235,7 @@ Screens:
                                     Size: |-
                                         =T.small
                                     Text: |-
-                                        =Coalesce((Switch(     ThisItem.Field,     "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),     "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),     Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && Field = ThisItem.Field && Ord >= 100), Ord)).Short, "") )), Switch(ThisItem.Field, "STRINDICATOR", "Derived from the KKS code.", "ASSIGNED CLASS", "Determined by the KKS code.", "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
+                                        =Coalesce((Switch(     ThisItem.Field,     "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),     "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),     Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && Field = ThisItem.Field && Ord >= 100), Ord)).Short, "") )), Switch(ThisItem.Field, "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
                                     Width: |-
                                         =((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 0 - 40) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 3 * 200, 3, If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1))) - 2 * 0) - 0 - 16
                                     Wrap: |-
@@ -10115,7 +10494,7 @@ Screens:
                                     Height: |-
                                         =36
                                     ItemDisplayText: |-
-                                        =(With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, ""))))
+                                        =ThisItem.Value
                                     Items: |-
                                         =Ungroup(
                                             Table(
@@ -10289,7 +10668,7 @@ Screens:
                                     Size: |-
                                         =T.small
                                     Text: |-
-                                        =Coalesce((Switch(     ThisItem.Field,     "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),     "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),     Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && Field = ThisItem.Field && Ord >= 100), Ord)).Short, "") )), Switch(ThisItem.Field, "STRINDICATOR", "Derived from the KKS code.", "ASSIGNED CLASS", "Determined by the KKS code.", "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
+                                        =Coalesce((Switch(     ThisItem.Field,     "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),     "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),     Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && Field = ThisItem.Field && Ord >= 100), Ord)).Short, "") )), Switch(ThisItem.Field, "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
                                     Width: |-
                                         =((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 0 - 40) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 3 * 200, 3, If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1))) - 2 * 0) - 0 - 16
                                     Wrap: |-
@@ -10298,10 +10677,41 @@ Screens:
                                         =0 + 0
                                     Y: |-
                                         =0 + 0 + 0 + (18) + 2 + If(ThisItem.Kind = "text", (36) + 2, 0) + If(ThisItem.Kind = "list", (36) + 2, 0) + If(ThisItem.Kind = "check", (36) + 2, 0) + If(ThisItem.Kind = "ro", (36) + 2, 0)
-                  - conFlPanelExt:
+            - conFlEditorFooter:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 >= 410, 44, 96)
+                  LayoutAlignItems: |-
+                      =If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 >= 410, LayoutAlignItems.Start, LayoutAlignItems.Stretch)
+                  LayoutDirection: |-
+                      =If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 >= 410, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                  LayoutGap: |-
+                      =8
+                  LayoutJustifyContent: |-
+                      =LayoutJustifyContent.SpaceBetween
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - conFlEditorDeleteAction:
                       Control: GroupContainer
                       Variant: AutoLayout
                       Properties:
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
                         BorderStyle: |-
                             =BorderStyle.None
                         DropShadow: |-
@@ -10309,11 +10719,11 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + If(CountRows(Filter(colFlDet, Pane = "Ext")) > 0, 0 + (22), 0) + If(IfError(CountRows(Sort(Filter(colFlDet, Pane = "Ext"), PaneOrd)) > 0, false), 8 + (RoundUp(CountRows(Sort(Filter(colFlDet, Pane = "Ext"), PaneOrd)) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 3 * 200, 3, If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1))), 0) * 86), 0)
+                            =44
                         LayoutAlignItems: |-
-                            =LayoutAlignItems.Stretch
+                            =LayoutAlignItems.Start
                         LayoutDirection: |-
-                            =LayoutDirection.Vertical
+                            =LayoutDirection.Horizontal
                         LayoutGap: |-
                             =8
                         LayoutMinWidth: |-
@@ -10322,415 +10732,1056 @@ Screens:
                             =LayoutOverflow.Hide
                         LayoutOverflowY: |-
                             =LayoutOverflow.Hide
-                        Visible: |-
-                            =CountRows(Filter(colFlDet, Pane = "Ext")) > 0
                         Width: |-
-                            =Parent.Width
+                            =196
                       Children:
-                        - txtFlPanelExtTitle:
-                            Control: ModernText
+                        - btnFlEditorDelete:
+                            Control: ModernButton
                             Properties:
                               AccessibleLabel: |-
-                                  ="GIV_EXT and WCM"
-                              BorderStyle: |-
-                                  =BorderStyle.None
+                                  ="Delete row"
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Start
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-error'
                               BorderThickness: |-
-                                  =0
+                                  =1
                               Color: |-
-                                  =C.'text-primary'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
+                                  =C.'state-error-fg'
+                              DisplayMode: |-
+                                  =If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.Disabled, DisplayMode.Edit)
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
                                   =FontWeight.Semibold
                               Height: |-
-                                  =22
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
+                                  =44
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
+                              LayoutMinWidth: |-
+                                  =111
+                              OnSelect: |-
+                                  =Set(varFlPanelDelAsk, true)
+                              RadiusBottomLeft: |-
+                                  =R.input
+                              RadiusBottomRight: |-
+                                  =R.input
+                              RadiusTopLeft: |-
+                                  =R.input
+                              RadiusTopRight: |-
+                                  =R.input
                               Size: |-
-                                  =T.body
+                                  =T.input
                               Text: |-
-                                  ="GIV_EXT and WCM"
+                                  ="Delete row"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
                               Visible: |-
-                                  =CountRows(Filter(colFlDet, Pane = "Ext")) > 0
-                              Wrap: |-
-                                  =false
-                        - galFlPanelExtFields:
-                            Control: Gallery
-                            Variant: Vertical
+                                  =!IsBlank(varFlDetailRow)
+                              Width: |-
+                                  =111
+                        - btnFlEditorReset:
+                            Control: ModernButton
                             Properties:
                               AccessibleLabel: |-
-                                  ="GIV_EXT and WCM"
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              FillPortions: |-
-                                  =0
+                                  ="Reset"
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Start
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-input'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'text-primary'
+                              DisplayMode: |-
+                                  =If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.Disabled, DisplayMode.Edit)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
                               Height: |-
-                                  =RoundUp(CountRows(Sort(Filter(colFlDet, Pane = "Ext"), PaneOrd)) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 3 * 200, 3, If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1))), 0) * 86
-                              Items: |-
-                                  =Sort(Filter(colFlDet, Pane = "Ext"), PaneOrd)
+                                  =44
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
                               LayoutMinWidth: |-
-                                  =0
-                              LoadingSpinner: |-
-                                  =LoadingSpinner.None
-                              Selectable: |-
-                                  =false
-                              ShowScrollbar: |-
-                                  =false
-                              TabIndex: |-
-                                  =0
-                              TemplatePadding: |-
-                                  =0
-                              TemplateSize: |-
-                                  =86
-                              Visible: |-
-                                  =IfError(CountRows(Sort(Filter(colFlDet, Pane = "Ext"), PaneOrd)) > 0, false)
+                                  =77
+                              OnSelect: |-
+                                  =If(With({ s: First(colFlPanelSnap), r: LookUp(colFlRows, RowGuid = varFlDetailRow) }, !IsBlank(s.RowGuid) && (Coalesce(r.FL, "") <> Coalesce(s.FL, "") || Coalesce(r.Description, "") <> Coalesce(s.Description, "") || CountRows(Filter(colFlVals, RowGuid = s.RowGuid)) <> CountRows(colFlPanelSnapVals) || CountRows(Filter(colFlPanelSnapVals As o, Coalesce(LookUp(colFlVals, RowGuid = o.RowGuid && Field = o.Field).Value, "") <> o.Value)) > 0)), Set(varFlPanelResetAsk, true))
+                              RadiusBottomLeft: |-
+                                  =R.input
+                              RadiusBottomRight: |-
+                                  =R.input
+                              RadiusTopLeft: |-
+                                  =R.input
+                              RadiusTopRight: |-
+                                  =R.input
+                              Size: |-
+                                  =T.input
+                              Text: |-
+                                  ="Reset"
+                              Tooltip: |-
+                                  ="Undo the changes made to this row since it was opened"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
                               Width: |-
-                                  =Parent.Width
-                              WrapCount: |-
-                                  =If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 3 * 200, 3, If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1))
-                            Children:
-                              - txtFlPanelExtLbl:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =Self.Text
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-muted'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =18
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.small
-                                    Text: |-
-                                        =ThisItem.Column & If(ThisItem.Field = "DESCRIPTION", " *", "")
-                                    Width: |-
-                                        =((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 0 - 40) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 3 * 200, 3, If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1))) - 2 * 0) - 0 - 16
-                                    Wrap: |-
-                                        =false
-                                    X: |-
-                                        =0 + 0
-                                    Y: |-
-                                        =0 + 0 + 0
-                              - inpFlPanelExtVal:
-                                  Control: ModernTextInput
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =ThisItem.Column
-                                    Appearance: |-
-                                        =If((If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =If(!IsBlank((Switch(     ThisItem.Field,     "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),     "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),     Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && Field = ThisItem.Field && Ord >= 100), Ord)).Short, "") ))), C.'border-error', !IsBlank((With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, ""))))), C.'border-ok', C.'border-default')
-                                    BorderStyle: |-
-                                        =BorderStyle.Solid
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =If((If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                    Default: |-
-                                        =(With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, ""))))
-                                    DisplayMode: |-
-                                        =If((If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                                    Fill: |-
-                                        =If(If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =36
-                                    MaxLength: |-
-                                        =If(ThisItem.MaxLen > 0, ThisItem.MaxLen, 4000)
-                                    OnChange: |-
-                                        =With(
-                                            { f: ThisItem.Field, nv: Trim(Self.Text) },
-                                            Switch(
-                                                f,
-                                                "FUNCTIONAL LOCATION",
-                                                Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { FL: Upper(Trim(Substitute(Substitute(Substitute(nv, Char(160), " "), Char(13), ""), Char(10), ""))) }),
-                                                "DESCRIPTION",
-                                                Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { Description: nv }),
-                                                RemoveIf(colFlVals, RowGuid = varFlDetailRow && Field = f);
-                                                If(!IsBlank(nv), Collect(colFlVals, { RowGuid: varFlDetailRow, Field: f, Value: nv }))
-                                            )
-                                        );
-                                        Set(varFlStale, true);
-                                        Select(btnFlVerify)
-                                    Placeholder: |-
-                                        =If(ThisItem.Field = "WARRANTY START" || ThisItem.Field = "WARRANTY END", "DD.MM.YYYY", "")
-                                    RadiusBottomLeft: |-
-                                        =R.input
-                                    RadiusBottomRight: |-
-                                        =R.input
-                                    RadiusTopLeft: |-
-                                        =R.input
-                                    RadiusTopRight: |-
-                                        =R.input
-                                    Size: |-
-                                        =If(LayoutRank < 2, 16, 14)
-                                    ValidationState: |-
-                                        =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
-                                    Visible: |-
-                                        =ThisItem.Kind = "text"
-                                    Width: |-
-                                        =((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 0 - 40) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 3 * 200, 3, If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1))) - 2 * 0) - 0 - 16
-                                    X: |-
-                                        =0 + 0
-                                    Y: |-
-                                        =0 + 0 + 0 + (18) + 2
-                              - drpFlPanelExtVal:
-                                  Control: ModernDropdown
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =ThisItem.Column
-                                    Appearance: |-
-                                        =If((If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    BorderColor: |-
-                                        =If(!IsBlank((Switch(     ThisItem.Field,     "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),     "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),     Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && Field = ThisItem.Field && Ord >= 100), Ord)).Short, "") ))), C.'border-error', !IsBlank((With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, ""))))), C.'border-ok', C.'border-default')
-                                    BorderStyle: |-
-                                        =BorderStyle.Solid
-                                    BorderThickness: |-
-                                        =1
-                                    Color: |-
-                                        =If((If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                    Default: |-
-                                        =LookUp(Ungroup(
-                                            Table(
-                                                { G: Table({ Value: "" }) },
-                                                { G: Filter(Table({ Value: (With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, "")))) }), !IsBlank(Value) &&
-                                                            !(Upper(Value) in With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)).UValue)) },
-                                                { G: ForAll(Sort(With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)), Ord) As O, { Value: O.Value }) }
-                                            ),
-                                            G
-                                        ) As _dd, _dd.Value = (LookUp(Ungroup(
-                                            Table(
-                                                { G: Table({ Value: "" }) },
-                                                { G: Filter(Table({ Value: (With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, "")))) }), !IsBlank(Value) &&
-                                                            !(Upper(Value) in With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)).UValue)) },
-                                                { G: ForAll(Sort(With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)), Ord) As O, { Value: O.Value }) }
-                                            ),
-                                            G
-                                        ), Upper(Value) = Upper((With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, "")))))).Value))
-                                    DisplayMode: |-
-                                        =If((If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                                    Fill: |-
-                                        =If(If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =36
-                                    ItemDisplayText: |-
-                                        =(With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, ""))))
-                                    Items: |-
-                                        =Ungroup(
-                                            Table(
-                                                { G: Table({ Value: "" }) },
-                                                { G: Filter(Table({ Value: (With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, "")))) }), !IsBlank(Value) &&
-                                                            !(Upper(Value) in With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)).UValue)) },
-                                                { G: ForAll(Sort(With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)), Ord) As O, { Value: O.Value }) }
-                                            ),
-                                            G
-                                        )
-                                    OnChange: |-
-                                        =With(
-                                            { f: ThisItem.Field, nv: Trim(Coalesce(Self.Selected.Value, "")) },
-                                            Switch(
-                                                f,
-                                                "FUNCTIONAL LOCATION",
-                                                Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { FL: Upper(Trim(Substitute(Substitute(Substitute(nv, Char(160), " "), Char(13), ""), Char(10), ""))) }),
-                                                "DESCRIPTION",
-                                                Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { Description: nv }),
-                                                RemoveIf(colFlVals, RowGuid = varFlDetailRow && Field = f);
-                                                If(!IsBlank(nv), Collect(colFlVals, { RowGuid: varFlDetailRow, Field: f, Value: nv }))
-                                            )
-                                        );
-                                        Set(varFlStale, true);
-                                        Select(btnFlVerify)
-                                    RadiusBottomLeft: |-
-                                        =R.input
-                                    RadiusBottomRight: |-
-                                        =R.input
-                                    RadiusTopLeft: |-
-                                        =R.input
-                                    RadiusTopRight: |-
-                                        =R.input
-                                    Size: |-
-                                        =If(LayoutRank < 2, 16, 14)
-                                    ValidationState: |-
-                                        =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
-                                    Visible: |-
-                                        =ThisItem.Kind = "list"
-                                    Width: |-
-                                        =((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 0 - 40) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 3 * 200, 3, If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1))) - 2 * 0) - 0 - 16
-                                    X: |-
-                                        =0 + 0
-                                    Y: |-
-                                        =0 + 0 + 0 + (18) + 2 + If(ThisItem.Kind = "text", (36) + 2, 0)
-                              - chkFlPanelExtVal:
-                                  Control: ModernCheckbox
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =ThisItem.Column
-                                    BasePaletteColor: |-
-                                        =C.'color-brand-primary'
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Default: |-
-                                        =Upper(Trim((With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, "")))))) = "X"
-                                    DisplayMode: |-
-                                        =If((If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =36
-                                    Label: |-
-                                        ="Yes"
-                                    OnCheck: |-
-                                        =With(
-                                            { f: ThisItem.Field, nv: Trim("X") },
-                                            Switch(
-                                                f,
-                                                "FUNCTIONAL LOCATION",
-                                                Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { FL: Upper(Trim(Substitute(Substitute(Substitute(nv, Char(160), " "), Char(13), ""), Char(10), ""))) }),
-                                                "DESCRIPTION",
-                                                Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { Description: nv }),
-                                                RemoveIf(colFlVals, RowGuid = varFlDetailRow && Field = f);
-                                                If(!IsBlank(nv), Collect(colFlVals, { RowGuid: varFlDetailRow, Field: f, Value: nv }))
-                                            )
-                                        );
-                                        Set(varFlStale, true);
-                                        Select(btnFlVerify)
-                                    OnUncheck: |-
-                                        =With(
-                                            { f: ThisItem.Field, nv: Trim("") },
-                                            Switch(
-                                                f,
-                                                "FUNCTIONAL LOCATION",
-                                                Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { FL: Upper(Trim(Substitute(Substitute(Substitute(nv, Char(160), " "), Char(13), ""), Char(10), ""))) }),
-                                                "DESCRIPTION",
-                                                Patch(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow), { Description: nv }),
-                                                RemoveIf(colFlVals, RowGuid = varFlDetailRow && Field = f);
-                                                If(!IsBlank(nv), Collect(colFlVals, { RowGuid: varFlDetailRow, Field: f, Value: nv }))
-                                            )
-                                        );
-                                        Set(varFlStale, true);
-                                        Select(btnFlVerify)
-                                    Size: |-
-                                        =T.body
-                                    Visible: |-
-                                        =ThisItem.Kind = "check"
-                                    Width: |-
-                                        =((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 0 - 40) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 3 * 200, 3, If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1))) - 2 * 0) - 0 - 16
-                                    X: |-
-                                        =0 + 0
-                                    Y: |-
-                                        =0 + 0 + 0 + (18) + 2 + If(ThisItem.Kind = "text", (36) + 2, 0) + If(ThisItem.Kind = "list", (36) + 2, 0)
-                              - txtFlPanelExtRo:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =Self.Text
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =36
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.input
-                                    Text: |-
-                                        =If(IsBlank((With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, ""))))), "-", (With({ dr: LookUp(colFlRows, RowGuid = varFlDetailRow) }, Switch(ThisItem.Field, "STRINDICATOR", dr.KksType, "STR. INDICATOR", dr.KksType, "FUNCTIONAL LOCATION", dr.FL, "DESCRIPTION", dr.Description, "ASSIGNED CLASS", dr.AssignedClass, Coalesce(LookUp(colFlVals, RowGuid = varFlDetailRow && Field = ThisItem.Field).Value, "")))))
-                                    Visible: |-
-                                        =ThisItem.Kind = "ro"
-                                    Width: |-
-                                        =((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 0 - 40) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 3 * 200, 3, If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1))) - 2 * 0) - 0 - 16
-                                    Wrap: |-
-                                        =false
-                                    X: |-
-                                        =0 + 0
-                                    Y: |-
-                                        =0 + 0 + 0 + (18) + 2 + If(ThisItem.Kind = "text", (36) + 2, 0) + If(ThisItem.Kind = "list", (36) + 2, 0) + If(ThisItem.Kind = "check", (36) + 2, 0)
-                              - txtFlPanelExtIssue:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        =Self.Text
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =If(IsBlank((Switch(     ThisItem.Field,     "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),     "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),     Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && Field = ThisItem.Field && Ord >= 100), Ord)).Short, "") ))), C.'text-muted', C.'state-error-fg')
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =18
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.small
-                                    Text: |-
-                                        =Coalesce((Switch(     ThisItem.Field,     "FUNCTIONAL LOCATION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("FL" exactin Msg || "KKS" exactin Msg || "Plant" exactin Msg || "Function" exactin Msg || "Component" exactin Msg || "Equipment" exactin Msg || "BR18" exactin Msg || "Class" exactin Msg)), Ord)).Msg, ""),     "DESCRIPTION", Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && ("Description" exactin Msg)), Ord)).Msg, ""),     Coalesce(First(Sort(Filter(colFlIssues, RowGuid = varFlDetailRow && Sev = "Error" && Field = ThisItem.Field && Ord >= 100), Ord)).Short, "") )), Switch(ThisItem.Field, "STRINDICATOR", "Derived from the KKS code.", "ASSIGNED CLASS", "Determined by the KKS code.", "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
-                                    Width: |-
-                                        =((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20) - 20 - 20 - 18)) - 0 - 40) / (If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 3 * 200, 3, If(((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 - 2 * 20 - 18) >= 2 * 200, 2, 1))) - 2 * 0) - 0 - 16
-                                    Wrap: |-
-                                        =false
-                                    X: |-
-                                        =0 + 0
-                                    Y: |-
-                                        =0 + 0 + 0 + (18) + 2 + If(ThisItem.Kind = "text", (36) + 2, 0) + If(ThisItem.Kind = "list", (36) + 2, 0) + If(ThisItem.Kind = "check", (36) + 2, 0) + If(ThisItem.Kind = "ro", (36) + 2, 0)
+                                  =77
+                  - conFlEditorSaveActions:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: |-
+                            =If((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 2 * 20 >= 410, AlignInContainer.Start, AlignInContainer.End)
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =44
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Start
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =8
+                        LayoutJustifyContent: |-
+                            =LayoutJustifyContent.End
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Width: |-
+                            =198
+                      Children:
+                        - btnFlEditorCancel:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Cancel"
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Start
+                              Appearance: |-
+                                  =ButtonAppearance.Outline
+                              BorderColor: |-
+                                  =C.'border-input'
+                              BorderThickness: |-
+                                  =1
+                              Color: |-
+                                  =C.'text-primary'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =44
+                              Layout: |-
+                                  =ButtonLayout.TextOnly
+                              LayoutMinWidth: |-
+                                  =86
+                              OnSelect: |-
+                                  =If(
+                                      With({ s: First(colFlPanelSnap), r: LookUp(colFlRows, RowGuid = varFlDetailRow) }, !IsBlank(s.RowGuid) && (Coalesce(r.FL, "") <> Coalesce(s.FL, "") || Coalesce(r.Description, "") <> Coalesce(s.Description, "") || CountRows(Filter(colFlVals, RowGuid = s.RowGuid)) <> CountRows(colFlPanelSnapVals) || CountRows(Filter(colFlPanelSnapVals As o, Coalesce(LookUp(colFlVals, RowGuid = o.RowGuid && Field = o.Field).Value, "") <> o.Value)) > 0)),
+                                      With(
+                                          { s: First(colFlPanelSnap) },
+                                          If(
+                                              !IsBlank(s.RowGuid) && !IsBlank(LookUp(colFlRows, RowGuid = s.RowGuid)),
+                                              Patch(colFlRows, LookUp(colFlRows, RowGuid = s.RowGuid), s);
+                                              RemoveIf(colFlVals, RowGuid = s.RowGuid);
+                                              Collect(colFlVals, colFlPanelSnapVals)
+                                          )
+                                      );
+                                      Set(varFlStale, true);
+                                      Select(btnFlVerify)
+                                  );
+                                  Set(varFlPanelOpen, false); Set(varFlPanelJump, ""); Set(varFlDetailRow, ""); Clear(colFlDet); Clear(colFlPanelSnap); Clear(colFlPanelSnapVals)
+                              RadiusBottomLeft: |-
+                                  =R.input
+                              RadiusBottomRight: |-
+                                  =R.input
+                              RadiusTopLeft: |-
+                                  =R.input
+                              RadiusTopRight: |-
+                                  =R.input
+                              Size: |-
+                                  =T.input
+                              Text: |-
+                                  ="Cancel"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Width: |-
+                                  =86
+                        - btnFlEditorSave:
+                            Control: ModernButton
+                            Properties:
+                              AccessibleLabel: |-
+                                  =Self.Text
+                              Align: |-
+                                  =Align.Center
+                              AlignInContainer: |-
+                                  =AlignInContainer.Start
+                              BasePaletteColor: |-
+                                  =C.'color-brand-primary'
+                              Color: |-
+                                  =C.'text-on-primary'
+                              DisplayMode: |-
+                                  =If(varFlViewOnly || varFlStatus = "Indsendt" || CountRows(Filter(colFlRows, Status <> "draft")) = 0, DisplayMode.Disabled, DisplayMode.Edit)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =44
+                              Icon: |-
+                                  ="Save"
+                              Layout: |-
+                                  =ButtonLayout.IconBefore
+                              LayoutMinWidth: |-
+                                  =104
+                              OnSelect: |-
+                                  =Set(varFlSaving, true);
+                                  Clear(colFlSaveErrors);
+                                  // 0. Hovedet, som det staar i SharePoint nu: grundraekken i trin 1 og
+                                  //    rettigheden i selve handlingen (tools/permissions.py).
+                                  Set(varFlReqNow, If(!IsBlank(varFlRequestGuid), LookUp(FunctionalLocationRequests, RequestGuid = varFlRequestGuid)));
+                                  If(
+                                      !IsBlank(varFlReqNow) &&
+                                      !((Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe && (varFlReqNow.Status.Value = "Kladde")) || (IsAdmin && (varFlReqNow.Status.Value = "Kladde" || varFlReqNow.Status.Value = "AfventerInfo"))),
+                                      Collect(colFlSaveErrors, { Where: "Request", Msg: "This request can no longer be changed." })
+                                  );
+                                  If(IsBlank(varFlRequestGuid), Set(varFlRequestGuid, Text(GUID())));
+                                  
+                                  // 1. Hovedet. RequestNo er obligatorisk (Title) - GUID'en staar der, til
+                                  //    nummeret kan dannes af listens eget ID. Ejeren bevares.
+                                  If(
+                                      CountRows(colFlSaveErrors) = 0,
+                                      IfError(
+                                          Set(
+                                              varFlReq,
+                                              Patch(
+                                                  FunctionalLocationRequests,
+                                                  Coalesce(varFlReqNow, Defaults(FunctionalLocationRequests)),
+                                                  {
+                                                      RequestNo: Coalesce(varFlRequestNo, varFlRequestGuid),
+                                                      RequestGuid: varFlRequestGuid,
+                                                      RequesterEmail: Coalesce(varFlReqNow.RequesterEmail, varFlMe),
+                                                      RequesterName: Coalesce(varFlReqNow.RequesterName, User().FullName)
+                                                  }
+                                              )
+                                          );
+                                          true,
+                                          Collect(colFlSaveErrors, { Where: "Header", Msg: FirstError.Message });
+                                          false
+                                      )
+                                  );
+                                  If(
+                                      CountRows(colFlSaveErrors) = 0 && IsBlank(varFlRequestNo) && !IsBlank(varFlReq.ID),
+                                      Set(varFlRequestNo, "FL-" & Text(varFlReq.ID, "000000"));
+                                      IfError(
+                                          Patch(FunctionalLocationRequests, varFlReq, { RequestNo: varFlRequestNo });
+                                          true,
+                                          Collect(colFlSaveErrors, { Where: "Request number", Msg: FirstError.Message });
+                                          false
+                                      )
+                                  );
+                                  
+                                  If(
+                                      CountRows(colFlSaveErrors) = 0,
+                                  
+                                      // 2. Hvilke raekker findes allerede? Paa RowGuid - klientnoeglen.
+                                      //    En admin i en andens anmodning henter dem ogsaa med felter, til loggen.
+                                      If(
+                                          (!IsBlank(varFlReqNow) && !(Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe)),
+                                          ClearCollect(
+                                              colFlAdmOld,
+                                              ForAll(Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I,
+                                                  { RowGuid: I.RowGuid, RowNo: I.RowNo, FL: I.FunctionalLocation, Description: I.Description,
+                                                     KksType: I.KksType, AssignedClass: I.AssignedClass })
+                                          ),
+                                          Clear(colFlAdmOld)
+                                      );
+                                      ClearCollect(
+                                          colFlSp,
+                                          ForAll(Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) As I, { RowGuid: I.RowGuid, ID: I.ID })
+                                      );
+                                      // IfError kraever, at vaerdien og fallbacken har SAMME type. Patch af
+                                      // een raekke giver en record, Collect en tabel - og compile svarer
+                                      // "Invalid argument type (Table). Expecting a Record value instead"
+                                      // (issue #32, tre runder). Derfor slutter BEGGE grene af hver IfError
+                                      // i gemmet i en skalar: '; true' og '; false'.
+                                      IfError(
+                                          Collect(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && !(RowGuid in colFlSp.RowGuid)) As R, {
+                                                  RowGuid: R.RowGuid,
+                                                  RequestGuid: varFlRequestGuid,
+                                                  RequestId: varFlReq.ID,
+                                                  RowNo: R.RowNo,
+                                                  FunctionalLocation: R.FL,
+                                                  Description: R.Description,
+                                                  KksType: R.KksType,
+                                                  AssignedClass: R.AssignedClass,
+                                                  RowStatus: { Value: R.Status },
+                                                  FirstIssue: Left(Coalesce(R.FirstIssue, R.FirstWarning, ""), 255),
+                                                  IssueCount: R.IssueCount,
+                                                  TrmAssignment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "TRM ASSIGNMENT").Value, ""),
+                                                  AbcIndic: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "ABC INDIC.").Value, ""),
+                                                  SafetyCriticalEquipment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "SAFETY CRITICAL EQUIPMENT").Value, ""),
+                                                  RequesterEmail: Coalesce(varFlReq.RequesterEmail, varFlMe),
+                                                  SpoolValuesJson: JSON(
+                                                      ForAll(Sort(Filter(colFlVals, RowGuid = R.RowGuid), Field) As V,
+                                                             { field: V.Field, value: V.Value }),
+                                                      JSONFormat.Compact
+                                                  )
+                                              }));
+                                          true,
+                                          Collect(colFlSaveErrors, { Where: "New rows", Msg: FirstError.Message });
+                                          false
+                                      );
+                                      IfError(
+                                          With(
+                                              { ex: Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) },
+                                              Patch(FunctionalLocationItems, ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, LookUp(ex, RowGuid = R.RowGuid)),
+                                                    ForAll(Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid) As R, {
+                                                  RowGuid: R.RowGuid,
+                                                  RequestGuid: varFlRequestGuid,
+                                                  RequestId: varFlReq.ID,
+                                                  RowNo: R.RowNo,
+                                                  FunctionalLocation: R.FL,
+                                                  Description: R.Description,
+                                                  KksType: R.KksType,
+                                                  AssignedClass: R.AssignedClass,
+                                                  RowStatus: { Value: R.Status },
+                                                  FirstIssue: Left(Coalesce(R.FirstIssue, R.FirstWarning, ""), 255),
+                                                  IssueCount: R.IssueCount,
+                                                  TrmAssignment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "TRM ASSIGNMENT").Value, ""),
+                                                  AbcIndic: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "ABC INDIC.").Value, ""),
+                                                  SafetyCriticalEquipment: Coalesce(LookUp(colFlVals, RowGuid = R.RowGuid && Field = "SAFETY CRITICAL EQUIPMENT").Value, ""),
+                                                  RequesterEmail: Coalesce(varFlReq.RequesterEmail, varFlMe),
+                                                  SpoolValuesJson: JSON(
+                                                      ForAll(Sort(Filter(colFlVals, RowGuid = R.RowGuid), Field) As V,
+                                                             { field: V.Field, value: V.Value }),
+                                                      JSONFormat.Compact
+                                                  )
+                                              }))
+                                          );
+                                          true,
+                                          Collect(colFlSaveErrors, { Where: "Rows", Msg: FirstError.Message });
+                                          false
+                                      );
+                                  
+                                      // 3. Raekker, brugeren har slettet eller toemt (REVIEW.md D24). Her
+                                      //    stod: alle raekker, appen ikke kender. Saa slettede den, der
+                                      //    gemte sidst, de raekker en anden havde tilfoejet imens.
+                                      IfError(
+                                          With(
+                                              { ex: Filter(FunctionalLocationItems, RequestGuid = varFlRequestGuid) },
+                                              Remove(FunctionalLocationItems, Filter(ex, RowGuid in colFlDeleted.RowGuid ||
+                                                                     RowGuid in Filter(colFlRows, Status = "draft").RowGuid))
+                                          );
+                                          true,
+                                          Collect(colFlSaveErrors, { Where: "Deleted rows", Msg: FirstError.Message });
+                                          false
+                                      );
+                                  
+                                      // 4. Landingssiden.
+                                      IfError(
+                                      Set(varFlIdxNow, LookUp(MD_RequestIndex, RequestGuid = varFlRequestGuid));
+                                      Set(
+                                          varFlIdx,
+                                          Patch(
+                                              MD_RequestIndex,
+                                              Coalesce(varFlIdxNow, Defaults(MD_RequestIndex)),
+                                              {
+                                                  RequestNo: varFlRequestNo,
+                                                  Domain: { Value: "FunctionalLocation" },
+                                                  Status: { Value: Coalesce(varFlIdxNow.Status.Value, "Kladde") },
+                                                  StatusStep: Coalesce(varFlIdxNow.StatusStep, 1),
+                                                  IsOpen: true,
+                                                  RequestGuid: varFlRequestGuid,
+                                                  RequesterEmail: Coalesce(varFlReq.RequesterEmail, varFlMe),
+                                                  RequesterName: Coalesce(varFlReq.RequesterName, User().FullName),
+                                                  ShortText: "Functional Location - Spool: " & With({ _c: CountRows(Filter(colFlRows, Status <> "draft")) }, Text(_c) & If(_c = 1, " row", " rows")),
+                                                  Plant: Coalesce(Left(First(Sort(Filter(colFlRows, Status <> "draft"), RowNo)).FL, 3), ""),
+                                                  ItemCount: CountRows(Filter(colFlRows, Status <> "draft")),
+                                                  SourceItemId: varFlReq.ID,
+                                                  AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=functionallocation&reqid=" & varFlRequestGuid,
+                                                  LastActionOn: Now(),
+                                                  LastActionBy: varFlMe
+                                              }
+                                          )
+                                      );
+                                          true,
+                                          Collect(colFlSaveErrors, { Where: "Landing page", Msg: FirstError.Message });
+                                          false
+                                      );
+                                  
+                                      // 5. Status SIDST - og kun naar alt andet lykkedes.
+                                      If(
+                                          CountRows(colFlSaveErrors) = 0,
+                                          IfError(
+                                              Patch(
+                                                  FunctionalLocationRequests, varFlReq,
+                                                  {
+                                                      Status: { Value: Coalesce(varFlReqNow.Status.Value, "Kladde") },
+                                                      RowCount: CountRows(Filter(colFlRows, Status <> "draft")),
+                                                      ReadyCount: CountRows(Filter(colFlRows, Status = "valid" || Status = "warning")),
+                                                      IssueCount: CountRows(Filter(colFlRows, Status = "invalid")),
+                                                      WarningCount: CountRows(Filter(colFlRows, Status = "warning")),
+                                                      IndexItemId: varFlIdx.ID
+                                                  }
+                                              );
+                                              true,
+                                              Collect(colFlSaveErrors, { Where: "Status", Msg: FirstError.Message });
+                                              false
+                                          )
+                                      )
+                                  );
+                                  
+                                  // Een samlet tilbagemelding - aldrig een Notify pr. raekke.
+                                  If(
+                                      CountRows(colFlSaveErrors) = 0,
+                                      Set(varFlStatus, Coalesce(varFlReqNow.Status.Value, "Kladde"));
+                                      If(
+                                          (!IsBlank(varFlReqNow) && !(Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe)),
+                                          With(
+                                              { c: Concat(Filter(Table({ t: Concat(
+                                          Filter(
+                                              ForAll(colFlAdmOld As O,
+                                                  With({ n: LookUp(Filter(colFlRows, Status <> "draft"), RowGuid = O.RowGuid) },
+                                                      If(IsBlank(n), "Row " & O.RowNo & ": removed",
+                                                      Concat(
+                                                          Filter(
+                                                              Table(
+                                                              { f: "Functional location", a: Text(O.FL), b: Text(n.FL) },
+                                                              { f: "Description", a: Text(O.Description), b: Text(n.Description) },
+                                                              { f: "KKS type", a: Text(O.KksType), b: Text(n.KksType) },
+                                                              { f: "Class", a: Text(O.AssignedClass), b: Text(n.AssignedClass) }
+                                                              ),
+                                                              Coalesce(a, "") <> Coalesce(b, "")
+                                                          ),
+                                                          "Row " & O.RowNo & " " & f & ": " & Coalesce(a, "(blank)") & " → " & Coalesce(b, "(blank)"),
+                                                          "; "
+                                                      ))
+                                                  )
+                                              ),
+                                              !IsBlank(Value)
+                                          ),
+                                          Value,
+                                          "; "
+                                      ) }, { t: With({ k: CountRows(Filter(Filter(colFlRows, Status <> "draft"), !(RowGuid in colFlAdmOld.RowGuid))) }, If(k > 0, With({ _c: k }, Text(_c) & If(_c = 1, " row", " rows")) & " added", "")) }), !IsBlank(t)), t, "; ") },
+                                              If(
+                                                  !IsBlank(c),
+                                                  IfError(
+                                                      Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                          Title: varFlRequestNo,
+                                                          RequestGuid: varFlRequestGuid,
+                                                          Stage: "Admin",
+                                                          Decision: "AdminEdit",
+                                                          Detail: Left(c, 255),
+                                                          Comment: c,
+                                                          DecidedByEmail: Lower(User().Email),
+                                                          DecidedOn: Now()
+                                                      });
+                                                      true,
+                                                      Set(gblToast, { Text: "The change was saved, but the admin log entry failed: " & FirstError.Message, Kind: "Warning", At: Now() });
+                                                      false
+                                                  )
+                                              )
+                                          )
+                                      );
+                                      Clear(colFlDeleted);
+                                      Set(varFlInfo, "");
+                                      Set(gblToast, { Text: "Saved as " & varFlRequestNo & " - see it on the landing page.", Kind: "Success", At: Now() }); true,
+                                      Set(varFlInfo, "Saving failed (" & First(colFlSaveErrors).Where & "): " & First(colFlSaveErrors).Msg);
+                                      Set(gblToast, { Text: With({ _c: CountRows(colFlSaveErrors) }, Text(_c) & If(_c = 1, " step", " steps")) & " failed. What was saved is kept - try again.", Kind: "Error", At: Now() }); true
+                                  );
+                                  Set(varFlSaving, false);
+                                  If(CountRows(colFlSaveErrors) = 0, Set(varFlPanelOpen, false); Set(varFlPanelJump, ""); Set(varFlDetailRow, ""); Clear(colFlDet); Clear(colFlPanelSnap); Clear(colFlPanelSnapVals))
+                              RadiusBottomLeft: |-
+                                  =R.input
+                              RadiusBottomRight: |-
+                                  =R.input
+                              RadiusTopLeft: |-
+                                  =R.input
+                              RadiusTopRight: |-
+                                  =R.input
+                              Size: |-
+                                  =T.input
+                              Text: |-
+                                  ="Save"
+                              Tooltip: |-
+                                  ="Save the request with this row and close the panel"
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Width: |-
+                                  =104
+      - conFlRowDelConfirmBackdrop:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Close the dialog"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
+            FocusedBorderThickness: |-
+                =2
+            Height: |-
+                =App.Height
+            HoverFill: |-
+                =C.'overlay'
+            Image: |-
+                =""
+            OnSelect: |-
+                =If(LayoutRank < 2, Set(varFlPanelDelAsk, false))
+            PressedFill: |-
+                =C.'overlay'
+            TabIndex: |-
+                =If(LayoutRank < 2, 0, -1)
+            Visible: |-
+                =IfError(varFlPanelDelAsk, false)
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conFlRowDelConfirmModal:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'color-brand-primary-soft'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.ExtraBold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =162
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =18
+            PaddingRight: |-
+                =18
+            PaddingTop: |-
+                =18
+            RadiusBottomLeft: |-
+                =R.modal
+            RadiusBottomRight: |-
+                =R.modal
+            RadiusTopLeft: |-
+                =R.modal
+            RadiusTopRight: |-
+                =R.modal
+            Visible: |-
+                =IfError(varFlPanelDelAsk, false)
+            Width: |-
+                =Min(460, App.Width - 40)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =Max(20, (App.Height - Self.Height) / 3)
+          Children:
+            - txtFlRowDelConfirmTitle:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="Delete row?"
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-primary'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =26
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =T.cardTitle
+                  Text: |-
+                      ="Delete row?"
+                  Wrap: |-
+                      =false
+            - txtFlRowDelConfirmText:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      =Self.Text
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =40
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =T.body
+                  Text: |-
+                      ="Row " & Text(LookUp(colFlRows, RowGuid = varFlDetailRow).Pos) & " is removed from the request. Save the request to delete it in SharePoint too."
+                  Wrap: |-
+                      =true
+            - conFlRowDelConfirmFooter:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =36
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutJustifyContent: |-
+                      =LayoutJustifyContent.End
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - btnFlRowDelConfirmCancel:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-input'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varFlPanelDelAsk, false)
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Close"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =77
+                  - btnFlRowDelConfirm:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Delete"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-error'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'state-error-fg'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Icon: |-
+                            ="Delete"
+                        Layout: |-
+                            =ButtonLayout.IconBefore
+                        OnSelect: |-
+                            =Set(varFlPanelDelAsk, false);
+                            Collect(colFlDeleted, { RowGuid: varFlDetailRow });
+                            Remove(colFlRows, LookUp(colFlRows, RowGuid = varFlDetailRow));
+                            RemoveIf(colFlVals, RowGuid = varFlDetailRow);
+                            RemoveIf(colFlIssues, RowGuid = varFlDetailRow);
+                            If(CountRows(colFlRows) = 0, Collect(colFlRows, { RowGuid: Text(GUID()), RowNo: varFlNextRowNo, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "draft", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0, Pos: 0, FlBad: false, DescBad: false, Hint: "" });
+                            Set(varFlNextRowNo, varFlNextRowNo + 1));
+                            Set(varFlStale, true);
+                            Select(btnFlVerify);
+                            Set(varFlPanelOpen, false); Set(varFlPanelJump, ""); Set(varFlDetailRow, ""); Clear(colFlDet); Clear(colFlPanelSnap); Clear(colFlPanelSnapVals)
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Delete"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =106
+      - conFlRowResetConfirmBackdrop:
+          Control: Image
+          Properties:
+            AccessibleLabel: |-
+                ="Close the dialog"
+            BorderStyle: |-
+                =BorderStyle.None
+            BorderThickness: |-
+                =0
+            Fill: |-
+                =C.'overlay'
+            FocusedBorderColor: |-
+                =RGBA(0, 0, 0, 0)
+            FocusedBorderThickness: |-
+                =2
+            Height: |-
+                =App.Height
+            HoverFill: |-
+                =C.'overlay'
+            Image: |-
+                =""
+            OnSelect: |-
+                =If(LayoutRank < 2, Set(varFlPanelResetAsk, false))
+            PressedFill: |-
+                =C.'overlay'
+            TabIndex: |-
+                =If(LayoutRank < 2, 0, -1)
+            Visible: |-
+                =IfError(varFlPanelResetAsk, false)
+            Width: |-
+                =App.Width
+            X: |-
+                =0
+            Y: |-
+                =0
+      - conFlRowResetConfirmModal:
+          Control: GroupContainer
+          Variant: AutoLayout
+          Properties:
+            BorderColor: |-
+                =C.'color-brand-primary-soft'
+            BorderThickness: |-
+                =1
+            DropShadow: |-
+                =DropShadow.ExtraBold
+            Fill: |-
+                =C.'bg-modal'
+            FillPortions: |-
+                =0
+            Height: |-
+                =162
+            LayoutAlignItems: |-
+                =LayoutAlignItems.Stretch
+            LayoutDirection: |-
+                =LayoutDirection.Vertical
+            LayoutGap: |-
+                =12
+            LayoutMinWidth: |-
+                =0
+            LayoutOverflowX: |-
+                =LayoutOverflow.Hide
+            LayoutOverflowY: |-
+                =LayoutOverflow.Hide
+            PaddingBottom: |-
+                =18
+            PaddingLeft: |-
+                =18
+            PaddingRight: |-
+                =18
+            PaddingTop: |-
+                =18
+            RadiusBottomLeft: |-
+                =R.modal
+            RadiusBottomRight: |-
+                =R.modal
+            RadiusTopLeft: |-
+                =R.modal
+            RadiusTopRight: |-
+                =R.modal
+            Visible: |-
+                =IfError(varFlPanelResetAsk, false)
+            Width: |-
+                =Min(460, App.Width - 40)
+            X: |-
+                =(App.Width - Self.Width) / 2
+            Y: |-
+                =Max(20, (App.Height - Self.Height) / 3)
+          Children:
+            - txtFlRowResetConfirmTitle:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="Discard unsaved changes?"
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-primary'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  FontWeight: |-
+                      =FontWeight.Semibold
+                  Height: |-
+                      =26
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =T.cardTitle
+                  Text: |-
+                      ="Discard unsaved changes?"
+                  Wrap: |-
+                      =false
+            - txtFlRowResetConfirmText:
+                Control: ModernText
+                Properties:
+                  AccessibleLabel: |-
+                      ="The row returns to how it was when you opened it. Other rows and the request are not changed."
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  BorderThickness: |-
+                      =0
+                  Color: |-
+                      =C.'text-muted'
+                  Fill: |-
+                      =RGBA(0, 0, 0, 0)
+                  Font: |-
+                      =Font.'Segoe UI'
+                  Height: |-
+                      =40
+                  PaddingBottom: |-
+                      =0
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
+                  Size: |-
+                      =T.body
+                  Text: |-
+                      ="The row returns to how it was when you opened it. Other rows and the request are not changed."
+                  Wrap: |-
+                      =true
+            - conFlRowResetConfirmFooter:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =36
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutJustifyContent: |-
+                      =LayoutJustifyContent.End
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - btnFlRowResetConfirmCancel:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-input'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'text-primary'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varFlPanelResetAsk, false)
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Close"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =77
+                  - btnFlRowResetConfirm:
+                      Control: ModernButton
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Reset"
+                        Align: |-
+                            =Align.Center
+                        AlignInContainer: |-
+                            =AlignInContainer.Center
+                        Appearance: |-
+                            =ButtonAppearance.Outline
+                        BorderColor: |-
+                            =C.'border-error'
+                        BorderThickness: |-
+                            =1
+                        Color: |-
+                            =C.'state-error-fg'
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =36
+                        Layout: |-
+                            =ButtonLayout.TextOnly
+                        OnSelect: |-
+                            =Set(varFlPanelResetAsk, false);
+                            With(
+                                { s: First(colFlPanelSnap) },
+                                If(
+                                    !IsBlank(s.RowGuid) && !IsBlank(LookUp(colFlRows, RowGuid = s.RowGuid)),
+                                    Patch(colFlRows, LookUp(colFlRows, RowGuid = s.RowGuid), s);
+                                    RemoveIf(colFlVals, RowGuid = s.RowGuid);
+                                    Collect(colFlVals, colFlPanelSnapVals)
+                                )
+                            );
+                            Set(varFlStale, true);
+                            Select(btnFlVerify)
+                        RadiusBottomLeft: |-
+                            =R.input
+                        RadiusBottomRight: |-
+                            =R.input
+                        RadiusTopLeft: |-
+                            =R.input
+                        RadiusTopRight: |-
+                            =R.input
+                        Size: |-
+                            =T.input
+                        Text: |-
+                            ="Reset"
+                        VerticalAlign: |-
+                            =VerticalAlign.Middle
+                        Width: |-
+                            =77
       - imgFlClsBlock:
           Control: Image
           Properties:
@@ -10826,7 +11877,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =36 + (0 + (Max((46), (Max(36, H.hit)))) * 1 + 0) + 12 + (Min(0 + If(IfError(CountRows(Filter(colFlClsDet, Section = "Class")) > 0, false), 0 + (22), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "Class")) > 0, false), 8 + (RoundUp(CountRows(Filter(colFlClsDet, Section = "Class")) / (If(LayoutRank < 2, 1, 2)), 0) * 86), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "TRM")) > 0, false), 8 + (22), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "TRM")) > 0, false), 8 + (RoundUp(CountRows(Filter(colFlClsDet, Section = "TRM")) / (If(LayoutRank < 2, 1, 2)), 0) * 86), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "Ext")) > 0, false), 8 + (22), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "Ext")) > 0, false), 8 + (RoundUp(CountRows(Filter(colFlClsDet, Section = "Ext")) / (If(LayoutRank < 2, 1, 2)), 0) * 86), 0) + If(IfError(CountRows(colFlClsDet) = 0, false), 8 + (20), 0), App.Height - 220)) + If(!(varFlViewOnly || varFlStatus = "Indsendt"), 12 + (36), 0)
+                      =36 + (0 + (Max((46), (Max(36, H.hit)))) * 1 + 0) + 12 + (Min(0 + If(IfError(CountRows(Filter(colFlClsDet, Section = "Class")) > 0, false), 0 + (22), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "Class")) > 0, false), 8 + (RoundUp(CountRows(Filter(colFlClsDet, Section = "Class")) / (If(LayoutRank < 2, 1, 2)), 0) * 86), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "TRM")) > 0, false), 8 + (22), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "TRM")) > 0, false), 8 + (RoundUp(CountRows(Filter(colFlClsDet, Section = "TRM")) / (If(LayoutRank < 2, 1, 2)), 0) * 86), 0) + If(IfError(CountRows(colFlClsDet) = 0, false), 8 + (20), 0), App.Height - 220)) + If(!(varFlViewOnly || varFlStatus = "Indsendt"), 12 + (36), 0)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -11037,7 +12088,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =Min(0 + If(IfError(CountRows(Filter(colFlClsDet, Section = "Class")) > 0, false), 0 + (22), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "Class")) > 0, false), 8 + (RoundUp(CountRows(Filter(colFlClsDet, Section = "Class")) / (If(LayoutRank < 2, 1, 2)), 0) * 86), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "TRM")) > 0, false), 8 + (22), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "TRM")) > 0, false), 8 + (RoundUp(CountRows(Filter(colFlClsDet, Section = "TRM")) / (If(LayoutRank < 2, 1, 2)), 0) * 86), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "Ext")) > 0, false), 8 + (22), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "Ext")) > 0, false), 8 + (RoundUp(CountRows(Filter(colFlClsDet, Section = "Ext")) / (If(LayoutRank < 2, 1, 2)), 0) * 86), 0) + If(IfError(CountRows(colFlClsDet) = 0, false), 8 + (20), 0), App.Height - 220)
+                            =Min(0 + If(IfError(CountRows(Filter(colFlClsDet, Section = "Class")) > 0, false), 0 + (22), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "Class")) > 0, false), 8 + (RoundUp(CountRows(Filter(colFlClsDet, Section = "Class")) / (If(LayoutRank < 2, 1, 2)), 0) * 86), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "TRM")) > 0, false), 8 + (22), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "TRM")) > 0, false), 8 + (RoundUp(CountRows(Filter(colFlClsDet, Section = "TRM")) / (If(LayoutRank < 2, 1, 2)), 0) * 86), 0) + If(IfError(CountRows(colFlClsDet) = 0, false), 8 + (20), 0), App.Height - 220)
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -11072,7 +12123,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =0 + If(IfError(CountRows(Filter(colFlClsDet, Section = "Class")) > 0, false), 0 + (22), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "Class")) > 0, false), 8 + (RoundUp(CountRows(Filter(colFlClsDet, Section = "Class")) / (If(LayoutRank < 2, 1, 2)), 0) * 86), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "TRM")) > 0, false), 8 + (22), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "TRM")) > 0, false), 8 + (RoundUp(CountRows(Filter(colFlClsDet, Section = "TRM")) / (If(LayoutRank < 2, 1, 2)), 0) * 86), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "Ext")) > 0, false), 8 + (22), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "Ext")) > 0, false), 8 + (RoundUp(CountRows(Filter(colFlClsDet, Section = "Ext")) / (If(LayoutRank < 2, 1, 2)), 0) * 86), 0) + If(IfError(CountRows(colFlClsDet) = 0, false), 8 + (20), 0)
+                                  =0 + If(IfError(CountRows(Filter(colFlClsDet, Section = "Class")) > 0, false), 0 + (22), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "Class")) > 0, false), 8 + (RoundUp(CountRows(Filter(colFlClsDet, Section = "Class")) / (If(LayoutRank < 2, 1, 2)), 0) * 86), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "TRM")) > 0, false), 8 + (22), 0) + If(IfError(CountRows(Filter(colFlClsDet, Section = "TRM")) > 0, false), 8 + (RoundUp(CountRows(Filter(colFlClsDet, Section = "TRM")) / (If(LayoutRank < 2, 1, 2)), 0) * 86), 0) + If(IfError(CountRows(colFlClsDet) = 0, false), 8 + (20), 0)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -11431,7 +12482,7 @@ Screens:
                                           Size: |-
                                               =T.small
                                           Text: |-
-                                              =Coalesce(ThisItem.Issue, Switch(ThisItem.Field, "STRINDICATOR", "Derived from the KKS code.", "ASSIGNED CLASS", "Determined by the KKS code.", "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
+                                              =Coalesce(ThisItem.Issue, Switch(ThisItem.Field, "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
                                           Width: |-
                                               =((((((Min(900, App.Width - 32)) - 18 - 18) - 18 - 18)) - 0 - 40) / (If(LayoutRank < 2, 1, 2)) - 2 * 0) - 0 - 16
                                           Wrap: |-
@@ -11783,359 +12834,7 @@ Screens:
                                           Size: |-
                                               =T.small
                                           Text: |-
-                                              =Coalesce(ThisItem.Issue, Switch(ThisItem.Field, "STRINDICATOR", "Derived from the KKS code.", "ASSIGNED CLASS", "Determined by the KKS code.", "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
-                                          Width: |-
-                                              =((((((Min(900, App.Width - 32)) - 18 - 18) - 18 - 18)) - 0 - 40) / (If(LayoutRank < 2, 1, 2)) - 2 * 0) - 0 - 16
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =0 + 0
-                                          Y: |-
-                                              =0 + 0 + 0 + (18) + 2 + If(ThisItem.Kind = "text", (36) + 2, 0) + If(ThisItem.Kind = "list", (36) + 2, 0) + If(ThisItem.Kind = "check", (36) + 2, 0) + If(ThisItem.Kind = "ro", (36) + 2, 0)
-                              - txtFlXGroupH:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="GIV_EXT / WCM"
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =22
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.input
-                                    Text: |-
-                                        ="GIV_EXT / WCM"
-                                    Visible: |-
-                                        =IfError(CountRows(Filter(colFlClsDet, Section = "Ext")) > 0, false)
-                                    Wrap: |-
-                                        =false
-                              - galFlXFields:
-                                  Control: Gallery
-                                  Variant: Vertical
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="GIV_EXT and WCM fields"
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =RoundUp(CountRows(Filter(colFlClsDet, Section = "Ext")) / (If(LayoutRank < 2, 1, 2)), 0) * 86
-                                    Items: |-
-                                        =Filter(colFlClsDet, Section = "Ext")
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LoadingSpinner: |-
-                                        =LoadingSpinner.None
-                                    Selectable: |-
-                                        =false
-                                    ShowScrollbar: |-
-                                        =false
-                                    TabIndex: |-
-                                        =0
-                                    TemplatePadding: |-
-                                        =0
-                                    TemplateSize: |-
-                                        =86
-                                    Visible: |-
-                                        =IfError(CountRows(Filter(colFlClsDet, Section = "Ext")) > 0, false)
-                                    Width: |-
-                                        =Parent.Width
-                                    WrapCount: |-
-                                        =If(LayoutRank < 2, 1, 2)
-                                  Children:
-                                    - txtFlXLbl:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =18
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.small
-                                          Text: |-
-                                              =ThisItem.Column & If(ThisItem.Field = "DESCRIPTION", " *", "")
-                                          Width: |-
-                                              =((((((Min(900, App.Width - 32)) - 18 - 18) - 18 - 18)) - 0 - 40) / (If(LayoutRank < 2, 1, 2)) - 2 * 0) - 0 - 16
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =0 + 0
-                                          Y: |-
-                                              =0 + 0 + 0
-                                    - inpFlXVal:
-                                        Control: ModernTextInput
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.Column
-                                          Appearance: |-
-                                              =If((If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                          BasePaletteColor: |-
-                                              =C.'color-brand-primary'
-                                          BorderColor: |-
-                                              =If(!IsBlank(ThisItem.Issue), C.'border-error', !IsBlank(ThisItem.Value), C.'border-ok', C.'border-default')
-                                          BorderStyle: |-
-                                              =BorderStyle.Solid
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =If((If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                          Default: |-
-                                              =ThisItem.Value
-                                          DisplayMode: |-
-                                              =If((If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                                          Fill: |-
-                                              =If(If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =36
-                                          MaxLength: |-
-                                              =If(ThisItem.MaxLen > 0, ThisItem.MaxLen, 4000)
-                                          OnChange: |-
-                                              =Patch(colFlClsDet, LookUp(colFlClsDet, Field = ThisItem.Field), { Value: Self.Text })
-                                          Placeholder: |-
-                                              =If(ThisItem.Field = "WARRANTY START" || ThisItem.Field = "WARRANTY END", "DD.MM.YYYY", "")
-                                          RadiusBottomLeft: |-
-                                              =R.input
-                                          RadiusBottomRight: |-
-                                              =R.input
-                                          RadiusTopLeft: |-
-                                              =R.input
-                                          RadiusTopRight: |-
-                                              =R.input
-                                          Size: |-
-                                              =If(LayoutRank < 2, 16, 14)
-                                          ValidationState: |-
-                                              =If(false && IsBlank(Trim(Self.Text)), ValidationState.Error, ValidationState.None)
-                                          Visible: |-
-                                              =ThisItem.Kind = "text"
-                                          Width: |-
-                                              =((((((Min(900, App.Width - 32)) - 18 - 18) - 18 - 18)) - 0 - 40) / (If(LayoutRank < 2, 1, 2)) - 2 * 0) - 0 - 16
-                                          X: |-
-                                              =0 + 0
-                                          Y: |-
-                                              =0 + 0 + 0 + (18) + 2
-                                    - drpFlXVal:
-                                        Control: ModernDropdown
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.Column
-                                          Appearance: |-
-                                              =If((If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
-                                          BasePaletteColor: |-
-                                              =C.'color-brand-primary'
-                                          BorderColor: |-
-                                              =If(!IsBlank(ThisItem.Issue), C.'border-error', !IsBlank(ThisItem.Value), C.'border-ok', C.'border-default')
-                                          BorderStyle: |-
-                                              =BorderStyle.Solid
-                                          BorderThickness: |-
-                                              =1
-                                          Color: |-
-                                              =If((If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
-                                          Default: |-
-                                              =LookUp(Ungroup(
-                                                  Table(
-                                                      { G: Table({ Value: "" }) },
-                                                      { G: Filter(Table({ Value: ThisItem.Value }), !IsBlank(Value) &&
-                                                                  !(Upper(Value) in With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)).UValue)) },
-                                                      { G: ForAll(Sort(With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)), Ord) As O, { Value: O.Value }) }
-                                                  ),
-                                                  G
-                                              ) As _dd, _dd.Value = (LookUp(Ungroup(
-                                                  Table(
-                                                      { G: Table({ Value: "" }) },
-                                                      { G: Filter(Table({ Value: ThisItem.Value }), !IsBlank(Value) &&
-                                                                  !(Upper(Value) in With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)).UValue)) },
-                                                      { G: ForAll(Sort(With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)), Ord) As O, { Value: O.Value }) }
-                                                  ),
-                                                  G
-                                              ), Upper(Value) = Upper(ThisItem.Value)).Value))
-                                          DisplayMode: |-
-                                              =If((If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                                          Fill: |-
-                                              =If(If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =36
-                                          ItemDisplayText: |-
-                                              =ThisItem.Value
-                                          Items: |-
-                                              =Ungroup(
-                                                  Table(
-                                                      { G: Table({ Value: "" }) },
-                                                      { G: Filter(Table({ Value: ThisItem.Value }), !IsBlank(Value) &&
-                                                                  !(Upper(Value) in With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)).UValue)) },
-                                                      { G: ForAll(Sort(With({ lid: ThisItem.List }, Filter(colFlLists, List = lid)), Ord) As O, { Value: O.Value }) }
-                                                  ),
-                                                  G
-                                              )
-                                          OnChange: |-
-                                              =Patch(colFlClsDet, LookUp(colFlClsDet, Field = ThisItem.Field), { Value: Coalesce(Self.Selected.Value, "") })
-                                          RadiusBottomLeft: |-
-                                              =R.input
-                                          RadiusBottomRight: |-
-                                              =R.input
-                                          RadiusTopLeft: |-
-                                              =R.input
-                                          RadiusTopRight: |-
-                                              =R.input
-                                          Size: |-
-                                              =If(LayoutRank < 2, 16, 14)
-                                          ValidationState: |-
-                                              =If(false && IsBlank(Self.Selected.Value), ValidationState.Error, ValidationState.None)
-                                          Visible: |-
-                                              =ThisItem.Kind = "list"
-                                          Width: |-
-                                              =((((((Min(900, App.Width - 32)) - 18 - 18) - 18 - 18)) - 0 - 40) / (If(LayoutRank < 2, 1, 2)) - 2 * 0) - 0 - 16
-                                          X: |-
-                                              =0 + 0
-                                          Y: |-
-                                              =0 + 0 + 0 + (18) + 2 + If(ThisItem.Kind = "text", (36) + 2, 0)
-                                    - chkFlXVal:
-                                        Control: ModernCheckbox
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =ThisItem.Column
-                                          BasePaletteColor: |-
-                                              =C.'color-brand-primary'
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Default: |-
-                                              =Upper(Trim(ThisItem.Value)) = "X"
-                                          DisplayMode: |-
-                                              =If((If(varFlViewOnly || varFlStatus = "Indsendt", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =36
-                                          Label: |-
-                                              ="Yes"
-                                          OnCheck: |-
-                                              =Patch(colFlClsDet, LookUp(colFlClsDet, Field = ThisItem.Field), { Value: "X" })
-                                          OnUncheck: |-
-                                              =Patch(colFlClsDet, LookUp(colFlClsDet, Field = ThisItem.Field), { Value: "" })
-                                          Size: |-
-                                              =T.body
-                                          Visible: |-
-                                              =ThisItem.Kind = "check"
-                                          Width: |-
-                                              =((((((Min(900, App.Width - 32)) - 18 - 18) - 18 - 18)) - 0 - 40) / (If(LayoutRank < 2, 1, 2)) - 2 * 0) - 0 - 16
-                                          X: |-
-                                              =0 + 0
-                                          Y: |-
-                                              =0 + 0 + 0 + (18) + 2 + If(ThisItem.Kind = "text", (36) + 2, 0) + If(ThisItem.Kind = "list", (36) + 2, 0)
-                                    - txtFlXRo:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =36
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.input
-                                          Text: |-
-                                              =If(IsBlank(ThisItem.Value), "-", ThisItem.Value)
-                                          Visible: |-
-                                              =ThisItem.Kind = "ro"
-                                          Width: |-
-                                              =((((((Min(900, App.Width - 32)) - 18 - 18) - 18 - 18)) - 0 - 40) / (If(LayoutRank < 2, 1, 2)) - 2 * 0) - 0 - 16
-                                          Wrap: |-
-                                              =false
-                                          X: |-
-                                              =0 + 0
-                                          Y: |-
-                                              =0 + 0 + 0 + (18) + 2 + If(ThisItem.Kind = "text", (36) + 2, 0) + If(ThisItem.Kind = "list", (36) + 2, 0) + If(ThisItem.Kind = "check", (36) + 2, 0)
-                                    - txtFlXIssue:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =If(IsBlank(ThisItem.Issue), C.'text-muted', C.'state-error-fg')
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =18
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.small
-                                          Text: |-
-                                              =Coalesce(ThisItem.Issue, Switch(ThisItem.Field, "STRINDICATOR", "Derived from the KKS code.", "ASSIGNED CLASS", "Determined by the KKS code.", "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
+                                              =Coalesce(ThisItem.Issue, Switch(ThisItem.Field, "ABC INDIC.", "Set automatically from the TRM fields.", "TRM ASSIGNMENT", "Set automatically from the TRM fields.", "WARRANTY START", "Format DD.MM.YYYY", "WARRANTY END", "Format DD.MM.YYYY", ""))
                                           Width: |-
                                               =((((((Min(900, App.Width - 32)) - 18 - 18) - 18 - 18)) - 0 - 40) / (If(LayoutRank < 2, 1, 2)) - 2 * 0) - 0 - 16
                                           Wrap: |-
@@ -13726,6 +14425,10 @@ Screens:
                 
                             If(false, ClearCollect(colFlClsDet, { Column: "", Field: "", Editable: false, List: "", MaxLen: 0, Section: "", Kind: "", Value: "", Issue: "" }));
                 
+                            If(false, ClearCollect(colFlPanelSnap, { RowGuid: "", RowNo: 0, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0, Pos: 0, FlBad: false, DescBad: false, Hint: "" }));
+                
+                            If(false, ClearCollect(colFlPanelSnapVals, { RowGuid: "", Field: "", Value: "" }));
+                
                             If(false, ClearCollect(colFlDeleted, { RowGuid: "" }));
                 
                             If(false, ClearCollect(colFlTabs, { Key: "", Label: "" }));
@@ -13759,6 +14462,9 @@ Screens:
                             Set(varFlPanelOpen, false);
                             Set(varFlPanelJump, "");
                             Set(varFlDetCls, "");
+                            // Bundbjaelkens bekraeftelser: Delete row og Reset (issue #308).
+                            Set(varFlPanelDelAsk, false);
+                            Set(varFlPanelResetAsk, false);
                             // Class data-popuppen (issue #184): aaben, for hvilken raekke, og skal
                             // valideringen lukke den efter Apply?
                             Set(varFlClsOpen, false);

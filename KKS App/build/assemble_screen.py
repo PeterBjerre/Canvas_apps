@@ -31,9 +31,11 @@ def build_screen(render=render_screen):
     root = P.frame(P.build_header(), [P.build_browse(), P.build_results()])
     # Sidebaren: skinnen efter rammen, det aabne panel SIDST (tools/side_nav.py).
     nav, overlay = side_nav("Kks", cfg.APP_KEY)
-    # Ventespinneren ligger oeverst, mens noeglerne hentes.
+    # FL-soegningen (issue #295) ligger over alle de andre popups og
+    # sidebarens panel. Ventespinneren ligger oeverst, mens noeglerne hentes.
     return render(cfg.SCREEN, {"Fill": C_APP_BG, "OnVisible": P.on_visible()},
-                  [root, *nav, *overlay, *P.build_picker(), *P.build_detail(), *P.build_loading()])
+                  [root, *nav, *overlay, *P.build_picker(), *P.build_detail(),
+                   *P.build_fl_search(), *P.build_loading()])
 
 
 def main():
