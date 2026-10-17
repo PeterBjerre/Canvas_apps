@@ -9,8 +9,9 @@ Grundregel for auditten: **kun kontroltyper, som appen allerede deployer i
 dag**. ModernAttachments gav "Unknown control type" i Peters Studio (#165),
 så ingen nye `Modern*`-typer er indført. Ingen preview-kontrol er brugt.
 Undtagelser, som Peter har godkendt bagefter: ModernAttachments@1.3.0 og
-ModernSpinner@1.1.0 (#302) — se "byttet" nederst i oversigten. Desuden
-ModernTabList@1.0.0 (#303), se *Faner*.
+ModernSpinner@1.1.0 (#302) — se "byttet" nederst i oversigten — samt
+ModernBadge@1.0.0 (#304, #161 delt i #302–#307) — se "Mærker" nedenfor.
+Desuden ModernTabList@1.0.0 (#303), se *Faner*.
 
 ## Hvad er ændret
 
@@ -82,6 +83,9 @@ Efter #302 er 6 Image-kontroller væk (`imgMdAprSpinner` og de 5
 "Opening request"-kortet (5) er stadig billeder, nu uden hjul. Tallene
 herunder er auditens; de er ikke talt om.
 
+Efter #304 er de 5 nummerpiller (`img…Number` og `imgMdAprNo`) ModernBadge;
+tallene herunder er auditens og er ikke talt om.
+
 | Formål | Antal | Skærm(e) | Grund til at beholde |
 |---|---|---|---|
 | Sidebar og temaskift (klikbare SVG'er, lukket + åben) | 190 | alle | `tools/side_nav.py` og `theme_button` (#37): en ModernButton tegner Fluent-temaets form og kan hverken have vores egne domæneikoner (`tools/icons.py`) eller accentstregen. |
@@ -109,6 +113,43 @@ gevinst og flere kontroller at teste; de bliver.
 | Gallery | 41 (Eq 3, FL 5, IB 5, KKS 6, Mat 3, Hub 4, VHP 15) | lister, tabeller, faner, hjælp | Ingen GA-erstatning. ModernTable er preview og kan ikke det, galleriernes skabeloner gør (knapper, input og egne celler pr. række). |
 | Timer | 9 (Eq 2, FL 1, KKS 2, Mat 2, VHP 2) | forsinket søgning, "loader langsomt"-besked | Ingen moderne Timer. |
 | HtmlViewer | 8 (FL 1, VHP 7) | tabeloverskrifter, summer, FL-struktur | Ingen moderne erstatning. |
+
+### Mærker — byttet til ModernBadge@1.0.0 (#304)
+
+Status- og nummermærker, der var en ModernText med fyld og runde hjørner
+eller et Image med en SVG-pille, er nu den moderne Badge. Én byggeklods:
+`build_helpers.modern_badge`. Teksten er den samme, og farverne er vores
+egne tokens: `Color` og `Fill` sættes altid (Learn: er de tomme, vælger
+`Intent`/`Appearance` farven), så hver status har præcis sit farvepar fra
+før, også i mørk tilstand. `Intent` er `BadgeIntent.Neutral`, så et mærke
+aldrig falder tilbage til Fluents grønne standard. Ingen `OnSelect` og
+ingen `TabIndex` (display-only). Navnene har fået præfikset `bdg`.
+
+| Hvor | Antal | Før | Efter |
+|---|---|---|---|
+| Trin-mærket "Valid"/"Invalid" i VH-planens sektioner (`step_badge`) | 4 | `txtVhp…HeadBadge` (ModernText) | `bdgVhp…HeadBadge` — samme `Switch(Self.Content, …)` på state-ok/-error/-neutral |
+| Nummerpillen ved sidetitlen (`number_badge`, Eq/Mat/MP/VHP) | 4 | `img…Number` (Image, 88 × 26 SVG: tekst i domænefarven på 12 % af den) | `bdg…Number` — `Color = ColorValue(hex)`, `Fill = ColorValue(hex & "1F")` (1F = 12 %); skjult, mens der intet nummer er (billedet var tomt) |
+| Anmodningsnummeret i hubbens godkendelsesflow | 1 | `imgMdAprNo` (Image) | `bdgMdAprNo`, samme domænefarve-tone |
+| Trinets status i godkendelsesflowet ("Approved", "Pending" …) | 1 | `txtMdAprChip` | `bdgMdAprChip`, samme `BADGE_FG`/`BADGE_BG` |
+| Issue Board: sagsnummeret (række, kompakt række, detalje) | 3 | `txtIbRowNo`, `txtIbRowNoC`, `txtIbDetNo` | `bdgIb…No` |
+| Issue Board: status og prioritet i detaljen | 2 | `txtIbDetStatus`, `txtIbDetPriority` | `bdgIbDetStatus`, `bdgIbDetPriority` — samme state-*-par; Normal/Low er stadig tekst uden pille (gennemsigtigt fyld, venstrestillet) |
+| Issue Board: rollen i Activity | 1 | `txtIbActRole` | `bdgIbActRole` |
+
+Check_layout regel 16e afviser enhver anden Badge-version, ukendte
+egenskaber (fx `ThemeColor`, `FontSize`, `TabIndex`) og et mærke uden
+`Color`, `Fill`, `Content` eller `AccessibleLabel`.
+
+**Bevidst beholdt** (kan ikke byttes sikkert nu):
+
+| Mærke | Antal | Hvor | Grund |
+|---|---|---|---|
+| Statuschippen i listerne (`tools/status_chip.py`): `img…RowStatus`/`…RowStatusC` (Eq, Mat, MP, Hub, IB) og IB's prioritet `imgIbRowPriority`/`…C` | 14 | lister/tabeller | Chippen er ikon **og** tekst (UX-review T4, #139: status ses på formen, ikke kun på farven). Ikonerne er vores egne (`tools/icons.py`); Badge.`Icon` tager kun Fluent-ikonnavne, og flere af vores statusser har ingen afprøvet Fluent-pendant. Et bytte ville enten fjerne ikonet eller gætte på ikonnavne, Studio ikke har set. Kan byttes, hvis Peter vil have mærker uden ikon. |
+| View mode / Edit mode ved sidetitlen (`mode_badge`): `img…Mode` | 6 | alle domæneskærme | Samme grund: øje/blyant er egne ikoner foran teksten (#139). |
+| Filtypen i dokumentlisterne (`doc_upload.type_badge`): `txt…AttType` | 4 | Eq, Mat, MP, VHP | `tools/doc_upload.py` bygges om i PR #323 (#300); røres ikke her. Kandidat bagefter. |
+| `txtIbFileKind` | 1 | IB | En 44 × 44 fil-flise (miniature), ikke et mærke. |
+
+Antal-mærker på faner og i sidebaren findes ikke som egne kontroller i
+appen i dag (tallene står i knappernes tekst), så der var intet at bytte.
 
 ### Spinnere — byttet til ModernSpinner@1.1.0 (#302)
 
@@ -173,9 +214,12 @@ tekst siger det samme.
 
 ## Versioner og egenskaber
 
-- Kun `ModernAttachments@1.3.0`, `ModernSpinner@1.1.0` og
-  `ModernTabList@1.0.0` har en eksplicit version i YAML'en (indtil #161 var det `Attachments@2.3.0`). De øvrige moderne kontroller står
-  uden `@`-version (Studio vælger sin egen).
+- Kun `ModernAttachments@1.3.0`, `ModernSpinner@1.1.0`,
+  `ModernBadge@1.0.0` (#304) og `ModernTabList@1.0.0` (#303) har en
+  eksplicit version i YAML'en (indtil #161 var det `Attachments@2.3.0`).
+  Badge-versionen er den, Learns YAML-eksempel skriver; den er ikke set i
+  Peters Studio endnu. De øvrige moderne kontroller står uden `@`-version
+  (Studio vælger sin egen).
 - `ModernTabList@1.0.0` (#303) er versionen i Microsoft Learns
   YAML-eksempel for den opdaterede Tab list (med `Appearance`, `Default`,
   `Alignment`, `Color`/`Size`). Den er ikke set i Peters Studio endnu.
@@ -196,7 +240,6 @@ Modern controls**, at typen findes og deployer, før den tages i brug.
 | Kontrol | Kunne erstatte | Bemærkning |
 |---|---|---|
 | ModernIcon | 34 dekorative ikoner | Kun Fluent-ikoner; domæneikonerne (`tools/icons.py`) findes ikke der. |
-| ModernBadge | nummer- og statusbadges (i dag ModernText/Image) | |
 | ModernTabList | **Brugt (#303)**: IB's scope/state, VHP's ops/pkg, hubbens My/All. Version `@1.0.0` fra Learns YAML-eksempel – bekræft i Studio. | `galFlTabs` m.fl. bevidst beholdt, se *Faner* ovenfor. |
 | ModernProgressBar | "Saving"/"Uploading"-billeder | |
 | ModernLink | evt. links, der i dag er knapper | |
