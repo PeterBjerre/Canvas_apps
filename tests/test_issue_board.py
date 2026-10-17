@@ -435,7 +435,7 @@ def test_detail_popup_hierarchy_and_single_close():
     # (issue #212).
     assert [k.name for k in modal.children] == ["conIbDetHead", "conIbDetTop", "conIbDetContent"]
     assert [k.name for k in ctrls["conIbDetHead"].children] == [
-        "txtIbDetNo", "txtIbDetTitle", "btnIbDetPrevious", "btnIbDetNext", "btnIbDetClose"]
+        "bdgIbDetNo", "txtIbDetTitle", "btnIbDetPrevious", "btnIbDetNext", "btnIbDetClose"]
     # Pile til at blade mellem sagerne i listen og et kryds uden ramme -
     # alle tre som stregikoner i en Image.
     for n, label in (("btnIbDetPrevious", '"Previous issue"'), ("btnIbDetNext", '"Next issue"'),
@@ -519,7 +519,7 @@ def test_detail_popup_hierarchy_and_single_close():
 def test_activity_shows_role_badges():
     import ib_parts as P
     ctrls = {c.name: c for c in _walk_ctrls(P.build_detail())}
-    assert ctrls["txtIbActRole"].props["Text"] == "ThisItem.Role"
+    assert ctrls["bdgIbActRole"].props["Content"] == "ThisItem.Role"
     assert 'Role: Switch(role, "Admin", "Admin", "System", "System", "User")' in P.LOAD_ACTIVITY
     assert '" (admin)"' not in P.LOAD_ACTIVITY
     # Interne noter kun for admin; Post comment laast, naar feltet er tomt.
@@ -563,7 +563,7 @@ def test_list_columns_are_balanced_and_aligned_with_the_header():
     heads = [c[1] for c in P.LIST_COLS]
     assert heads == ["TICKET ID", "REQUESTER", "TITLE", "APPLICATION", "SECTION", "PRIORITY",
                      "STATUS", "ASSIGNED TO", "REPORTED", "UPDATED", "ACTIONS"]
-    assert [c.name for c in row.children][:3] == ["txtIbRowNo", "txtIbRowReq", "txtIbRowTitle"]
+    assert [c.name for c in row.children][:3] == ["bdgIbRowNo", "txtIbRowReq", "txtIbRowTitle"]
     # Titlen faar ikke hele den frie bredde (issue #244: hoejst en fjerdedel),
     # og maerkerne og handlingen vokser ikke - de har fast, tilstraekkelig plads.
     grow = {k: g for k, _h, _b, g, _w in P.LIST_COLS}
