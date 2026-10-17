@@ -46,7 +46,7 @@ issuet forbyder.
 | Sidebar og temaskift (klikbare SVG'er, lukket + åben) | 190 | alle | `tools/side_nav.py` og `theme_button` (#37): en ModernButton tegner Fluent-temaets form og kan hverken have vores egne domæneikoner (`tools/icons.py`) eller accentstregen. |
 | Øvrige klikbare ikoner (hubbens fliser og "New", række-ikoner Edit/Delete/Notes/Timeline, VH-trin, hjælp, objektliste) | 27 | Hub, VHP, … | Egne domæneikoner i tokenfarver. ModernButton.Icon tager kun Fluent-ikonnavne. |
 | Feedback-vælgerens ikon/chevron | 21 | alle | Del af det samme felt som `btn*FbSubject`. |
-| Dekorative/status-ikoner (sidetitel, nummerbadge, status, domæne, rail, fil-miniature) | 34 | alle | Ingen moderne ikonkontrol i appen i dag. |
+| Dekorative/status-ikoner (sidetitel, nummerbadge, status, domæne, rail, fil-miniature) | 34 | alle | 13 med et Fluent-sidestykke er byttet til ModernIcon@1.1.0 (#306); resten er domæneikoner eller tegninger med tekst — se "Ikoner — ModernIcon" nedenfor. |
 | Spinnere (animeret SVG) | 12 | alle | ModernSpinner bruges ikke i appen (kandidat, se nedenfor). |
 | Slør bag popup (luk ved tryk udenfor) | 20 | alle | Fuldskærms trykflade; ingen moderne kontrol med `OnSelect` og gennemsigtig flade. |
 
@@ -76,8 +76,49 @@ gevinst og flere kontroller at teste; de bliver.
 |---|---|---|---|
 | ModernAttachments@1.3.0 | 5 (`attEqPicker`, `attMatPicker`, `attMpPicker`, `attVhpAttPicker`, `attIbFiles`) | vælg filer til upload | Byttet fra `Attachments@2.3.0`. Peters Studio (authoring 3.26101.10) kender typen og skriver `@1.3.0`. Stadig preview på Learn. Upload går uændret gennem flowene: `BioSap-TaskListAttachment` til biblioteket `TaskListDocuments` og `BioSap-IssueBoard-Submit` ("attach") til `IB_Tickets`. Regel 16b afviser den klassiske og enhver anden version. |
 
+### Ikoner — byttet til ModernIcon@1.1.0 (#306)
+
+En fuld optælling efter #306 fandt 13 rene pynt-/statusikoner, hvis form
+har et Fluent-ikon. De er byttet; alle andre ikkeklikbare billeder er
+bevidst beholdt (tabellen under). Regel 16i låser typen til
+`ModernIcon@1.1.0` fra `build_helpers.fluent_icon`, kun Learns egenskaber
+(intet `TabIndex`, intet `Style`), navnet `ico…`, en ikke-tom
+`AccessibleLabel` og intet `OnSelect`. Fluent-navnene står i
+`tools/icons.FLUENT`.
+
+| Hvor | Antal | Før (stregikon i `tools/icons.py`) | Efter (Fluent) | Farve |
+|---|---|---|---|---|
+| Toast-beskeden: `ico{Eq,Fl,Ib,Kks,Mat,Md,Mp,Vhp}ToastIcon` | 8 | Ring med flueben / udråbstegn / kryds / "i" | `CheckmarkCircle` / `ErrorCircle` / `DismissCircle` / `Info` efter `gblToast.Kind` | `state-ok-fg` / `state-warn-fg` / `state-error-fg` / `state-info-fg` |
+| Lup ved søgefeltet: `icoIbSearchIcon`, `icoKksFindIcon` | 2 | Lup | `Search` | `text-muted` |
+| VH-plan: `icoVhpPlanFoldStatus` (sammenfoldet hoved), `icoVhpItemCardStatus` (item-kort) | 2 | Ring med flueben / udråbstegn | `CheckmarkCircle` / `ErrorCircle` | `state-ok-fg` / `state-error-fg` |
+| Hubbens godkendelsesforløb: `icoMdAprPerson` | 1 | Hoved og skuldre | `Person` | `text-muted` |
+
+Størrelse (20 × 20, personen 16 × 16), placering (`X`/`Y`,
+`AlignInContainer`, `LayoutMinWidth`), synlighed og etiketter er
+uændrede. `IconStyle.Outline` svarer til stregtegningen. Fluent tegner
+glyffen med sin egen streg og indre luft, så den kan se en anelse
+anderledes ud end vores 1,8 px-streg.
+
+#### Beholdt som Image — og hvorfor
+
+| Billede(r) | Antal | Grund |
+|---|---|---|
+| Sidetitlens ikon `img*TitleIcon` | 8 | Domæneikon fra `tools/icons.DOMAIN` på en tonet firkant i domænets farve. Ingen Fluent-sidestykke, og det skal være samme tegning som sidebaren (som bliver Image). |
+| Tom-liste-ikon med domæneikon (`imgEqRowsEmptyIcon`, `imgMatRowsEmptyIcon`, `imgMpRowsEmptyIcon`, `imgIbEmptyIcon`, `imgMdEmptyIcon`, `imgVhpItemsEmptyIcon`, `imgVhpMatEmptyIcon`) | 7 | Domæneikon (samme grund). |
+| Tom-liste-ikon med listeglyf (`imgVhpOpsEmptyIcon`, `imgVhpOpsEmptyMIcon`) | 2 | Samme `empty_state`-mønster som domæneikonerne: glyf på en 12 % tonet firkant. ModernIcon har `Fill`, men en tokenfarve med 12 % alfa kan ikke skrives uden at regne farven om, og mønsteret skal se ens ud på tværs af skærme. |
+| Domæne i hubbens række/kig (`imgMdRowDomain`, `imgMdRowDomainC`, `imgMdPeekDomain`) | 3 | Domæneikon (samme grund). |
+| Nummer- og tilstandsmærker (`img*Number`, `img*Mode`, `imgMdAprNo`) | 10 | Pille med tekst (og evt. glyf) i én tegning. ModernIcon kan ikke vise tekst — kandidat til ModernBadge. |
+| Statuspiller i rækkerne (`img*RowStatus(C)`, `imgIbRowPriority(C)`, `imgIbRowStatus(C)`, `imgIbSimStatus`, `imgMdRowStatus(C)`) | 13 | Pille med glyf og tekst — samme grund. |
+| Godkendelsesstriben `imgMdRowApproval(C)` | 2 | Flere knuder og streger i én tegning; ikke ét ikon. |
+| Godkendelsesforløbets rail `imgMdAprRail` | 1 | Lodret streg, fyldt knude og symbol i én tegning; ModernIcon kan ikke tegne forbindelseslinjen. |
+| Fil-miniature `imgIbFileThumb` | 1 | Brugerens eget billede, ikke et ikon. |
+| Fejlikonet i "Opening request" `img*LoadIcon` | 5 | Hører til ventekortet, som #302 (ModernSpinner) bygger om. Kan byttes til `ErrorCircle` bagefter. |
+| `imgFlClsBlock`, `imgMdRowActionsZone` | 2 | Ikke ikoner: tom trykflade/hover-zone. |
+
 ## Versioner og egenskaber
 
+- `ModernIcon@1.1.0` (#306) har også en eksplicit version (Learns
+  YAML-eksempler).
 - Kun `ModernAttachments@1.3.0` har en eksplicit version i YAML'en (indtil
   #161 var det `Attachments@2.3.0`). De øvrige moderne kontroller står
   uden `@`-version (Studio vælger sin egen).
@@ -98,7 +139,6 @@ Modern controls**, at typen findes og deployer, før den tages i brug.
 | Kontrol | Kunne erstatte | Bemærkning |
 |---|---|---|
 | ModernSpinner | 12 Image-spinnere | GA ifølge Learn. Mister vores tokenfarver, hvis den ikke kan farves. |
-| ModernIcon | 34 dekorative ikoner | Kun Fluent-ikoner; domæneikonerne (`tools/icons.py`) findes ikke der. |
 | ModernBadge | nummer- og statusbadges (i dag ModernText/Image) | |
 | ModernTabList | faner (`galFlTabs`, VHP's ops/pkg-knapper, IB's scope/state) | |
 | ModernProgressBar | "Saving"/"Uploading"-billeder | |
