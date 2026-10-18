@@ -74,7 +74,7 @@ PANEL_SECTIONS = [
     ("War", "Warranty"),
     ("TRM", "TRM"),
 ]
-# Reglernes sektioner, som hverken panelet eller Class data-popuppen viser.
+# Reglernes sektioner, som sidepanelet ikke viser.
 HIDDEN_SECTIONS = ("Status", "Ext")
 # KKS type og Assigned class staar paa EEN linje sidst i Functional
 # location-sektionen, lige foer Class data (issue #308) - et eget gitter

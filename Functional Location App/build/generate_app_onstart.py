@@ -201,9 +201,6 @@ COLLECTIONS = [
     # Sidepanelets felter for raekken varFlDetailRow (issue #278) - regnet,
     # naar panelet aabnes, og naar raekken skifter klasse (fl_parts.PANEL_FILL).
     ("colFlDet", PANEL_DET),
-    # Class data-popuppens KOPI af raekkens klassefelter (issue #184) -
-    # Apply skriver den tilbage, Close kasserer den (fl_parts.OPEN_CLS_FX).
-    ("colFlClsDet", DET),
     # Sidepanelets aftryk af raekken, da det blev aabnet paa den - Reset og
     # Cancel saetter raekken tilbage til det (fl_parts.PANEL_SNAP, #308).
     ("colFlPanelSnap", ROW),
@@ -266,11 +263,6 @@ Set(varFlDetCls, "");
 // Bundbjaelkens bekraeftelser: Delete row og Reset (issue #308).
 Set(varFlPanelDelAsk, false);
 Set(varFlPanelResetAsk, false);
-// Class data-popuppen (issue #184): aaben, for hvilken raekke, og skal
-// valideringen lukke den efter Apply?
-Set(varFlClsOpen, false);
-Set(varFlClsRow, "");
-Set(varFlClsCheck, false);
 // Er der aendret noget siden sidste validering? Submit kraever false (FL68).
 Set(varFlStale, false);
 // Submit bad om en frisk validering og svarer, naar den er faerdig (#277).

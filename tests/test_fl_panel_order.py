@@ -8,7 +8,6 @@ Functional Location: Submit og sidepanelet (issue #277 og #278).
     Status-sektion.
   - Panelet regnes ikke om, mens man skriver (kun ved en ny klasse), og
     dets sloer ligger aldrig under selve panelet.
-  - Class data-popuppen ligger over panelet.
 
 Power Fx kan ikke koeres her, saa testene laeser den GENEREREDE skaerm.
 
@@ -65,7 +64,8 @@ def test_panel_follows_the_row_order_and_labels():
 
 def test_generated_panel_sections_and_no_status():
     kids = T._children("conFlEditorSections")
-    assert kids == ["btnFlPanelShowAll"] + [f"conFlPanel{k}" for k, _t in cfg.PANEL_SECTIONS]
+    assert kids == (["btnFlPanelShowAll"] + [f"conFlPanel{k}" for k, _t in cfg.PANEL_SECTIONS]
+                    + ["txtFlPanelClsNone"])
     assert T._ctrl("conFlPanelStatus") is None
     on = T._prop("btnFlRowClassData", "OnSelect")
     assert 'Section <> "Status"' in on
@@ -98,18 +98,6 @@ def test_editing_does_not_rebuild_or_close_the_panel():
     w = T._prop("imgFlEditorBackdrop", "Width")
     assert w.startswith("Max(0, App.Width - (")
     assert "> 0" in T._prop("imgFlEditorBackdrop", "Visible")
-
-
-def test_class_popup_is_above_the_panel_and_blocks_it():
-    top = T._screen_children()
-    assert top.index("conFlEditorPanel") < top.index("imgFlClsBlock") < top.index("conFlClsBackdrop")
-    assert T._prop("imgFlClsBlock", "Visible") == "IfError(varFlClsOpen, false)"
-    assert T._prop("imgFlClsBlock", "Width") == "App.Width"
-    assert "OnSelect" not in T._ctrl("imgFlClsBlock")["Properties"]
-    # Popuppen roerer ikke panelet: Close og Apply nulstiller det ikke.
-    for n in ("btnFlClsClose", "btnFlClsApply"):
-        on = T._prop(n, "OnSelect")
-        assert "varFlPanelOpen" not in on and "colFlDet," not in on, n
 
 
 def test_submit_always_answers():

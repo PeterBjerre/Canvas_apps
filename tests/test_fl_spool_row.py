@@ -166,9 +166,9 @@ def test_manufacturer_and_warranty_open_the_side_panel():
                              f'Set(varFlPanelJump, "{jump}");')
         assert "ClearCollect(colFlDet, " in on
         assert on.endswith("Set(varFlPanelOpen, true)")
-    # Class data aabner panelet med alle sektioner.
+    # Class data aabner panelet med klassens felter (issue #346).
     on = _prop("btnFlRowClassData", "OnSelect")
-    assert 'Set(varFlPanelJump, "");' in on and on.endswith("Set(varFlPanelOpen, true)")
+    assert 'Set(varFlPanelJump, "Class");' in on and on.endswith("Set(varFlPanelOpen, true)")
     # Felterne skriver i raekken og validerer (roed/groen kant + besked).
     assert "Select(btnFlVerify)" in _prop("inpFlPanelMfrVal", "OnChange")
     assert "colFlIssues" in _prop("inpFlPanelMfrVal", "BorderColor")
@@ -183,11 +183,13 @@ def test_manufacturer_and_warranty_open_the_side_panel():
 def test_jump_folds_the_sections_before_it():
     """Aabnet fra Manufacturer: sektionerne foer er foldet sammen bag
     "Show all fields"; fra Warranty ogsaa Manufacturer."""
-    for key in ("Main", "Class", "Loc"):
-        assert '!(IfError(varFlPanelJump, "") in ["Mfr", "War"])' in _prop(f"conFlPanel{key}", "Visible")
-    assert '!(IfError(varFlPanelJump, "") in ["War"])' in _prop("conFlPanelMfr", "Visible")
-    for key in ("War", "TRM"):
-        assert "varFlPanelJump" not in _prop(f"conFlPanel{key}", "Visible")
+    for key in ("Main", "Loc"):
+        assert '!(IfError(varFlPanelJump, "") in ["Mfr", "War", "Class"])' in \
+            _prop(f"conFlPanel{key}", "Visible")
+    assert '!(IfError(varFlPanelJump, "") in ["Mfr", "War"])' in _prop("conFlPanelClass", "Visible")
+    assert '!(IfError(varFlPanelJump, "") in ["War", "Class"])' in _prop("conFlPanelMfr", "Visible")
+    assert '!(IfError(varFlPanelJump, "") in ["Class"])' in _prop("conFlPanelWar", "Visible")
+    assert "varFlPanelJump" not in _prop("conFlPanelTRM", "Visible")
     assert _prop("btnFlPanelShowAll", "OnSelect") == 'Set(varFlPanelJump, "")'
     assert _children("conFlEditorSections")[0] == "btnFlPanelShowAll"
     # Ny anmodning lukker panelet.
@@ -217,9 +219,10 @@ def test_table_scrolls_sideways_instead_of_hiding_columns():
 
 
 def test_classes_edit_opens_class_data():
+    """Issue #346: Edit aabner raekkens sidepanel med klassefelterne."""
     on = _prop("btnFlCOpen", "OnSelect")
-    assert on.startswith("Set(varFlClsRow, ThisItem.RowGuid);")
-    assert on.endswith("Set(varFlClsOpen, true)")
+    assert on.startswith('Set(varFlDetailRow, ThisItem.RowGuid);\nSet(varFlPanelJump, "Class");')
+    assert on.endswith("Set(varFlPanelOpen, true)")
 
 
 def _screen_children():
@@ -230,31 +233,16 @@ def _screen_children():
     return [list(c)[0] for c in scr["Children"]]
 
 
-def test_popups_sit_inside_their_backdrop():
-    """Issue #242: sloeret laa oven paa popupperne (graa og uden tryk).
-    Popuppen er nu et barn af sloeret, saa den altid tegnes over det, og
-    sloeret daemper kun siden under."""
+def test_class_data_popup_is_gone():
+    """Issue #346: Class data-popuppen (og dens sloer) er fjernet - Edit i
+    Classes aabner raekkens sidepanel."""
     top = _screen_children()
-    for scrim, modal, vis in (
-            ("conFlClsBackdrop", "conFlClsModal", "IfError(varFlClsOpen, false)"),):
-        assert scrim in top, scrim
-        assert modal not in top, modal
-        assert _children(scrim) == [modal], scrim
-        s = _ctrl(scrim)
-        assert s["Control"] == "GroupContainer", scrim
-        assert _prop(scrim, "Fill") == "C.'overlay'"
-        assert _prop(scrim, "Width") == "App.Width" and _prop(scrim, "Height") == "App.Height"
-        assert _prop(scrim, "Visible") == vis
-        assert _prop(scrim, "LayoutJustifyContent") == "LayoutJustifyContent.Center"
-        # Popuppen styres af sloeret - ingen egen X/Y.
-        props = _ctrl(modal)["Properties"]
-        assert "X" not in props and "Y" not in props, modal
-        assert _prop(modal, "Fill") == "C.'bg-modal'"
-    # Issue #278: Class data-popuppen og dens sloer ligger OVER raekkens
-    # sidepanel (og sidebaren), saa panelet ikke daekker popuppen og Apply.
-    assert top.index("conFlClsBackdrop") > top.index("conFlEditorPanel")
-    assert top.index("conFlClsBackdrop") > top.index("conFlNavOpen")
-    assert top.index("conFlClsBackdrop") > top.index("conFlRoot")
+    for gone in ("conFlClsBackdrop", "imgFlClsBlock"):
+        assert gone not in top, gone
+    text = _text()
+    for gone in ("conFlClsModal", "btnFlClsApply", "varFlClsOpen", "varFlClsRow",
+                 "colFlClsDet", "varFlClsCheck"):
+        assert gone not in text, gone
 
 
 def test_spare_width_is_shared_by_the_columns():

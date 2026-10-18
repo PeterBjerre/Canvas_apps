@@ -98,7 +98,8 @@ def test_giv_ext_and_wcm_are_gone_from_the_ui():
     for gone in ("conFlPanelExt", "galFlPanelExtFields", "galFlXFields", "txtFlXGroupH"):
         assert T._ctrl(gone) is None, gone
     assert 'Section <> "Status" && Section <> "Ext"' in T._prop("btnFlRowClassData", "OnSelect")
-    assert 'Section in ["Class", "TRM"]' in T._prop("btnFlCOpen", "OnSelect")
+    # Edit i Classes aabner samme panel (issue #346).
+    assert 'Section <> "Status" && Section <> "Ext"' in T._prop("btnFlCOpen", "OnSelect")
 
 
 def test_kks_type_beside_assigned_class_before_class_data():
@@ -117,7 +118,7 @@ def test_kks_type_beside_assigned_class_before_class_data():
 def test_dropdowns_use_the_materials_style():
     ref = _mat("drpMatPlant")["Properties"]
     for name in ("drpFlPanelMainVal", "drpFlPanelClassVal", "drpFlPanelLocVal",
-                 "drpFlPanelTRMVal", "drpFlCVal", "drpFlTVal"):
+                 "drpFlPanelTRMVal"):
         props = T._ctrl(name)["Properties"]
         for prop in ("BasePaletteColor", "Font", "Size"):
             assert str(props[prop]) == str(ref[prop]), (name, prop)
