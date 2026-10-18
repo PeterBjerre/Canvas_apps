@@ -651,7 +651,10 @@ HTML_TOKENS = ("text-primary", "text-muted",
                # Statuschippen (tools/status_chip.py, UX-review T4): pillens
                # flade i statussens tone.
                "state-ok-bg", "state-warn-bg", "state-error-bg", "state-violet-bg",
-               "state-lime-bg", "state-rose-bg")
+               "state-lime-bg", "state-rose-bg",
+               # Pakke-pillerne paa VH-planens operationslinjer
+               # (build_strategy.pkg_pills): kort-fladen og inputkanten.
+               "bg-card", "border-input", "border-error")
 
 
 

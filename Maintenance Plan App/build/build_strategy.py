@@ -26,9 +26,9 @@ INVARIANT: PackagesKey er aldrig tom - en operation uden pakker har ";".
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_MUTED, C_DIVIDER, C_VALID_FG, C_INVALID_FG,
-                        C_TRANSPARENT, SHELL_W, C_TITLE, C_INPUT_BORDER, C_BORDER_ERROR,
-                        C_VIOLET_FG, C_VIOLET_BG)
-from build_helpers import text_ctrl, group, button, button_row, checkbox_theme, flat_button
+                        C_TRANSPARENT, SHELL_W)
+from build_helpers import text_ctrl, group, button, button_row, checkbox_theme, row_hit
+from design_tokens import ref_hex
 from build_plan_header import help_panel
 
 IS_STRATEGY = "(varVhpPlan.PlanType = \"Strategy\")"
@@ -95,22 +95,49 @@ def _pkg_cell_gallery(name, template, items=PKGS_SORTED, template_size=CELL_W, h
 # ------------------------------------------------------------------
 # Operationslinjen viser strategiens pakker som piller - 1M 3M 6M 12M - og
 # et klik slaar pakken til eller fra paa netop den operation. Valgt: lys
-# violet flade, violet kant og tekst. Ikke valgt: ingen flade, graa kant og
+# violet flade, violet kant og tekst. Ikke valgt: kortets flade, graa kant og
 # daempet tekst. Har operationen INGEN pakke, er kanterne roede - det samme
 # signal som "(none)" i roedt foer.
 #
-# Pillen er en ModernButton (regel 16k): Primary med BasePaletteColor er
-# fladen, ligesom det valgte segment i segmented(). Allokeringen skrives i
-# PackagesKey paa samme maade som matricen (chkVhpPkgCell) - matricen og
-# pillerne er to visninger af den samme streng.
+# Pillen er et Image med en SVG, som hjaelpe- og temakontakten
+# (build_helpers.help_toggle): foerste udgave var en ModernButton med
+# Appearance Primary og BasePaletteColor = den lyse violet, men Fluent
+# tegnede fladen naesten sort, og knappen blev klippet i toppen af
+# galleriets scrollbar. En container kan ikke staa i et galleri (den foldes
+# ud til et Rectangle uden runde hjoerner), saa SVG'en er den eneste maade
+# at tegne PRAECIS pillen i appens egne farver.
+#
+# Allokeringen skrives i PackagesKey paa samme maade som matricen
+# (chkVhpPkgCell) - matricen og pillerne er to visninger af samme streng.
+PILL_H = 26
 PILL_W = 40
-PILL_H = 28
+# Har strategien flere end fire pakker, bliver pillerne smallere, saa op
+# til syv kan staa i cellen. Koderne er hoejst to tegn ("12", "6M").
+PILL_W_COMPACT = 26
 PILL_PAD = 2
-PILL_SLOT = PILL_W + 2 * PILL_PAD
-# Fire piller uden scroll - som i designforslaget. Strategier med flere
-# pakker (5-12) scroller vandret i cellen; matricen viser dem alle.
 PILL_FIT = 4
-PILLS_W = PILL_FIT * PILL_SLOT
+PILL_FIT_COMPACT = 7
+PILLS_W = PILL_FIT_COMPACT * (PILL_W_COMPACT + 2 * PILL_PAD)
+_IS_COMPACT = f"CountRows({PKGS}) > {PILL_FIT}"
+
+
+def _pill_svg(w, h=PILL_H):
+    """SVG-strengen (Power Fx) for een pille. Laeser ThisItem.Sel,
+    ThisItem.NoPkg og ThisItem.ShortCode i pille-galleriet."""
+    fill = f'" & If(ThisItem.Sel, {ref_hex("state-violet-bg")}, {ref_hex("bg-card")}) & "'
+    edge = (f'" & If(ThisItem.Sel, {ref_hex("state-violet-fg")}, ThisItem.NoPkg, '
+            f'{ref_hex("border-error")}, {ref_hex("border-input")}) & "')
+    ink = f'" & If(ThisItem.Sel, {ref_hex("state-violet-fg")}, {ref_hex("text-muted")}) & "'
+    r = (h - 1) / 2
+    return ('"' +
+            f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h}' "
+            f"viewBox='0 0 {w} {h}'>"
+            f"<rect x='0.5' y='0.5' width='{w - 1}' height='{h - 1}' rx='{r}' "
+            f"fill='{fill}' stroke='{edge}'/>"
+            f"<text x='{w / 2}' y='{h / 2 + 4}' text-anchor='middle' "
+            f"font-family='Segoe UI, sans-serif' font-size='12' font-weight='600' "
+            f"fill='{ink}'>\" & ThisItem.ShortCode & \"</text>"
+            "</svg>" + '"')
 
 
 def pkg_pills(prefix, op_no, key, width=PILLS_W):
@@ -118,41 +145,57 @@ def pkg_pills(prefix, op_no, key, width=PILLS_W):
     operationens nummer og PackagesKey, set fra der hvor galleriet staar
     (raekken i operationstabellen eller popup'en)."""
     sel = "ThisItem.Sel"
-    none = "ThisItem.NoPkg"
-    pill = flat_button(
-        f"btn{prefix}Pill", "ThisItem.ShortCode",
-        (
-            "If(!varVhpViewOnly,\n"
-            "    With(\n"
-            "        { pkg: Text(ThisItem.PackageNo), op: ThisItem.OpNo, was: ThisItem.Sel },\n"
-            "        UpdateIf(\n"
-            "            colVhpOperations,\n"
-            "            ItemId = varVhpActiveItemId && OperationNo = op,\n"
-            "            {\n"
-            "                PackagesKey:\n"
-            "                    If(\n"
-            "                        was,\n"
-            "                        Substitute(Coalesce(PackagesKey, \";\"), \";\" & pkg & \";\", \";\"),\n"
-            "                        Coalesce(PackagesKey, \";\") & pkg & \";\"\n"
-            "                    )\n"
-            "            }\n"
-            "        )\n"
-            "    )\n"
-            ")"
-        ),
-        accessible=(f'"Package " & ThisItem.ShortCode & " on operation " & ThisItem.OpNo & '
-                    f'If({sel}, ", selected", ", not selected")'),
-        height=PILL_H, width=PILL_W, color=f"If({sel}, {C_VIOLET_FG}, {C_MUTED})",
-        appearance="Outline", align="Center", size=12, weight="Semibold",
-        border=(f"If({sel}, {C_VIOLET_FG}, {none}, {C_BORDER_ERROR}, {C_INPUT_BORDER})", 1),
-        radius=PILL_H // 2,
-        tooltip=('ThisItem.ShortCode & " - " & Text(ThisItem.CycleLength) & " " & ThisItem.CycleUnit'))
-    pill.props["Appearance"] = f"If({sel}, ButtonAppearance.Primary, ButtonAppearance.Outline)"
-    pill.props["BasePaletteColor"] = C_VIOLET_BG
-    pill.props["AlignInContainer"] = "AlignInContainer.Center"
-    pill.props["LayoutMinWidth"] = str(PILL_W)
-    slot = group(f"con{prefix}PillSlot", [pill], direction="Horizontal", gap=0, height=PILL_H,
-                 align_items="Center", justify="Center", width="Parent.TemplateWidth")
+    pill_w = f"If({_IS_COMPACT}, {PILL_W_COMPACT}, {PILL_W})"
+    img = (f'"data:image/svg+xml;utf8," & EncodeUrl(If({_IS_COMPACT},\n'
+           f'    {_pill_svg(PILL_W_COMPACT)},\n    {_pill_svg(PILL_W)}\n))')
+    tpl_h = PILL_H + 2   # galleriets hoejde minus TemplatePadding
+    on_select = (
+        "If(!varVhpViewOnly,\n"
+        "    With(\n"
+        "        { pkg: Text(ThisItem.PackageNo), op: ThisItem.OpNo, was: ThisItem.Sel },\n"
+        "        UpdateIf(\n"
+        "            colVhpOperations,\n"
+        "            ItemId = varVhpActiveItemId && OperationNo = op,\n"
+        "            {\n"
+        "                PackagesKey:\n"
+        "                    If(\n"
+        "                        was,\n"
+        "                        Substitute(Coalesce(PackagesKey, \";\"), \";\" & pkg & \";\", \";\"),\n"
+        "                        Coalesce(PackagesKey, \";\") & pkg & \";\"\n"
+        "                    )\n"
+        "            }\n"
+        "        )\n"
+        "    )\n"
+        ")"
+    )
+    y = str((tpl_h - PILL_H) // 2)
+    # Billedet tegner kun pillen; klikket er et gennemsigtigt lag oven paa
+    # (build_helpers.row_hit) med pillens runde hjoerner - samme moenster
+    # som VH-planens item-kort. Det giver tone ved hover og tryk og kant
+    # ved fokus, og laget er ikke en ikonknap (regel 40 kraever 32-44 px).
+    pill = Ctrl(
+        f"img{prefix}Pill", "Image",
+        props={
+            "AccessibleLabel": 'ThisItem.ShortCode',
+            "BorderStyle": "BorderStyle.None",
+            "BorderThickness": "0",
+            "Fill": C_TRANSPARENT,
+            "Height": str(PILL_H),
+            "Image": img,
+            "ImagePosition": "ImagePosition.Fit",
+            "TabIndex": "0",
+            "Width": "Parent.TemplateWidth",
+            "X": "0",
+            "Y": y,
+        }, h=PILL_H)
+    hit = row_hit(
+        f"btn{prefix}PillHit", on_select,
+        (f'"Package " & ThisItem.ShortCode & " on operation " & ThisItem.OpNo & '
+         f'If({sel}, ", selected", ", not selected")'),
+        "Parent.TemplateWidth", PILL_H, radius=PILL_H // 2)
+    hit.props["Y"] = y
+    hit.props["Tooltip"] = ('ThisItem.ShortCode & " - " & Text(ThisItem.CycleLength) & " " & '
+                            'ThisItem.CycleUnit')
     items = (
         "With(\n"
         f"    {{ op: {op_no}, k: Coalesce({key}, \";\") }},\n"
@@ -167,7 +210,7 @@ def pkg_pills(prefix, op_no, key, width=PILLS_W):
         "    )\n"
         ")"
     )
-    gal_h = PILL_H + 2 * PILL_PAD
+    gal_h = tpl_h + 2 * PILL_PAD
     return Ctrl(
         f"gal{prefix}Pills", "Gallery", variant="Horizontal",
         props={
@@ -180,14 +223,17 @@ def pkg_pills(prefix, op_no, key, width=PILLS_W):
             "LayoutMinWidth": "0",
             "LoadingSpinner": "LoadingSpinner.None",
             "Selectable": "false",
-            "ShowScrollbar": f"CountRows({PKGS}) > {PILL_FIT}",
+            # Ingen scrollbar: den lagde sig over pillerne og klippede dem.
+            # Strategier med flere end syv pakker kan scrolles med hjul
+            # eller finger; matricen under Packages viser altid dem alle.
+            "ShowScrollbar": "false",
             "TabIndex": "0",
             "TemplatePadding": str(PILL_PAD),
-            "TemplateSize": str(PILL_W),
+            "TemplateSize": pill_w,
             "Width": str(width),
             "WrapCount": "1",
         },
-        children=[slot], h=gal_h)
+        children=[pill, hit], h=gal_h)
 
 
 def build_strategy_body():
