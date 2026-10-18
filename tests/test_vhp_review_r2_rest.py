@@ -86,3 +86,10 @@ def test_submit_resets_initial_email_flag():
     assert "InitialEmailSent: false" in st[i:st.index("varVhpFlow", i)]
     # Kun ved Submit - Save draft roerer ikke flaget.
     assert st.count("InitialEmailSent") == 1
+
+
+# --- R2-070: strategiplanens tomme Unit skrives som Blank() ------------------
+def test_blank_unit_is_written_as_blank():
+    f = build_save.plan_fields()
+    assert "Unit: If(IsBlank(varVhpPlan.Unit), Blank(), { Value: varVhpPlan.Unit })" in f
+    assert "Cycle: varVhpPlan.Cycle" in f

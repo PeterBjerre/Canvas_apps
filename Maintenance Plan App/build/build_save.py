@@ -253,8 +253,15 @@ def plan_fields():
         f"{PLAN_NOW}.Status.Value = \"{PLAN_STATUS_RETURNED}\"), {PLAN_NOW}.Status, "
         f"{{ Value: \"{PLAN_STATUS_DRAFT}\" }}),\n"
         "            PlantsInitial: { Value: varVhpPlan.Plant },\n"
+        # En strategiplan (IP42) har ingen cyklus og enhed: Plan Header
+        # saetter Cycle 0 og Unit "" (build_plan_header). Cycle 0 er et
+        # gyldigt tal; en tom Unit skrives som Blank() og ikke som valget
+        # { Value: "" }, som ikke findes i Choice-kolonnen (R2-070). Om
+        # SharePoint tager en tom Unit paa den paakraevede kolonne, er ikke
+        # efterproevet i Studio - SAP-ordren kraever kun unit paa en
+        # enkeltcyklusplan (schema/vhplan-sap-order.schema.json).
         "            Cycle: varVhpPlan.Cycle,\n"
-        "            Unit: { Value: varVhpPlan.Unit },\n"
+        "            Unit: If(IsBlank(varVhpPlan.Unit), Blank(), { Value: varVhpPlan.Unit }),\n"
         "            PlannedDate: Date(\n"
         "                varVhpPlan.FirstCallYear, varVhpPlan.FirstCallMonth, varVhpPlan.FirstCallDay\n"
         "            ),\n"
