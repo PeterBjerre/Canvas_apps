@@ -101,24 +101,31 @@ fra en af de fem enkeltapps — skriver den `AppUrl` =
    `.github/skills/canvas-build/SKILL.md`, "Datakilder skal findes i appen
    først"). Det er foreningsmængden af de fem appers:
 
-   *SharePoint-lister (21):* `CallHorizonMatrix`, `EquipmentItems`,
-   `FunctionalLocationItems`, `FunctionalLocationRequests`, `MD_FLKey`,
-   `MD_HelpText`, `MD_KksFunctionKey`,
+   *SharePoint-lister (25):* `CallHorizonMatrix`, `EquipmentItems`,
+   `FunctionalLocationItems`, `FunctionalLocationRequests`, `MD_ApprovalLog`,
+   `MD_Approver`, `MD_FLKey`, `MD_HelpText`, `MD_KksFunctionKey`,
    `MD_RequestIndex`, `MD_StandardTaskOperations`, `MD_Strategy`,
    `MD_StrategyPackage`, `MD_TasklistAttachment`, `MD_TasklistMaterial`,
    `MainWorkCenters`, `MaintenanceActivityTypeList`, `MaintenanceItems`,
    `MaintenancePlans`, `MaterialItems`, `PlantList`, `SortFieldList`,
-   `TaskListMain`
+   `TaskListMain`, `UserAndGroups`, `VHP_NoteToSelf`
 
-   *Flows (4):* `BioSap-DeleteSubmittedAttachments`,
+   `UserAndGroups` (admins: `IsAdmin`, `tools/permissions.py`),
+   `MD_Approver`, `MD_ApprovalLog` og `VHP_NoteToSelf` er **faste**
+   datakilder: hubben, VH-planen, Equipment, Material og Measuring Point
+   bruger dem, uanset hvilke features der er slået til (R2-078).
+
+   *Flows (5):* `BioSap-DeleteSubmittedAttachments`,
    `BioSap-GetSubmittedAttachments`, `BioSap-Integration-FunctionalLocations`,
-   `BioSap-TaskListAttachment`
+   `BioSap-SendFeedbackMail`, `BioSap-TaskListAttachment`
+
+   *Kun med Measuring Point slået til (`features.measuring_point`):*
+   listerne `MeasuringPointItems` og `MD_MpCharacteristic`.
 
    *Kun med Issue Board slået til (issue #114):* listerne `IB_Tickets`,
    `IB_TicketComments`, `IB_AppSections` og flowet
-   `BioSap-IssueBoard-Submit` samt `UserAndGroups` (admins).
-   (`BioSap-IssueBoard-OnCreated` udløses af SharePoint og er ingen
-   datakilde.)
+   `BioSap-IssueBoard-Submit`. (`BioSap-IssueBoard-OnCreated` udløses af
+   SharePoint og er ingen datakilde.) Kun `IB_*` følger flaget.
 3. **Sæt app-id'et** under `biosap` i `tools/canvas_apps.json`. Det står i
    Studio-URL'en (`…%2Fapps%2F<app_id>`).
 4. **Deploy:**

@@ -61,7 +61,7 @@ Repo: PeterBjerre/Canvas_apps. Svar og PR-beskrivelser på dansk. Appens tekster
 - `check_language`:
   - Al visningstekst på engelsk og i sentence case. Title Case-reglen har en liste over egennavne (`PROPER`).
   - Teksten "New" alene på en knap er forbudt (issue #243). Ny anmodning hedder præcis "New request".
-- `BIO SAP App/build/check_combined.py`: nye hub-variabler (`varMd*`) skal tilføjes i `HUB_OWN`.
+- `BIO SAP App/build/check_combined.py`: variabler uden domænetag skal stå i `SHARED`; hubbens `varMd*` har tagget `Md` (R2-078).
 - Designsystemet:
   - Segoe UI. Radier 10/12/14/16. Kontroller 36 px (`H.control` = 44 på touch).
   - Fokusring 2 px i brandfarve.

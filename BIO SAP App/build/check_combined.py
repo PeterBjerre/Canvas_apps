@@ -40,8 +40,10 @@ SHARED = {"gblFbOpen", "gblFbMe", "gblFbSel", "gblFbPick", "gblFbBusy", "colFbRe
           "gblNavFrom",
           # Beskederne nederst til hoejre (tools/toast.py, UX-review B1).
           "gblToast"}
-# Hubbens egne - de har aldrig haft et praefiks.
-HUB_OWN = {"varMdMe", "varMdSearch", "varMdPrefsRead", "varMdLoading", "varMdView", "varMdDomain", "varMdStatusMode", "varMdNewMenu", "varMdClosedPeek"}
+# Hubbens variabler (varMd*, colMd*) har tagget "Md" (combined._OWN) og
+# gaar gennem TAGGED som alle andre domaeners. Her stod HUB_OWN - en liste,
+# tjekket aldrig naaede, fordi TAGGED allerede havde godtaget navnet
+# (R2-078). Et utagget navn skal staa i SHARED.
 
 TAGS = sorted({d["tag"] for d in cb.DOMAINS}, key=len, reverse=True)
 TAGGED = re.compile(r"\b(?:var|col|gbl)(%s)(?=[A-Z0-9_])\w*" % "|".join(TAGS))
@@ -161,8 +163,6 @@ def main():
                 bad.add(name)
             for name in UNTAGGED.findall(f):
                 if TAGGED.fullmatch(name) or name in SHARED:
-                    continue
-                if d["key"] == "hub" and name in HUB_OWN:
                     continue
                 bad.add(name)
         for name in sorted(bad):

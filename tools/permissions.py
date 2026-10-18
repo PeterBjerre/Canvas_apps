@@ -12,8 +12,9 @@ Opslaget er een delegerbar LookUp i en navngiven formel. Navngivne formler
 evalueres dovent og huskes, saa listen laeses hoejst een gang pr. session,
 og kun hvis en formel faktisk spoerger.
 
-UserAndGroups skal tilfoejes som datakilde i Studio (BIO SAP App har den
-ikke i dag).
+UserAndGroups er en FAST datakilde i BIO SAP App (DataSources.json i
+solution/) - den foelger ikke Issue Board-flaget, for hubben, VH-planen,
+Equipment, Material og Measuring Point bruger IsAdmin (R2-078).
 
 REGLEN
 ------
