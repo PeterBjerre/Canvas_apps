@@ -64,6 +64,22 @@ C_HELP_KEY    = "HelpKey"     # Title, omdoebt
 # listen uden at laese hinandens tekster.
 HELP_APP      = "MaintenancePlan"
 
+# --- omkostningsgraensen (docs/32 §9, R2-082) -------------------------------
+# Graensen, over hvilken et item skal omkostningsgodkendes. Den staar i
+# AppSettings, een raekke PR. MILJOE (Provision-VHPlanApproval.ps1), og
+# BioSap-VhPlan-CostApproval laeser den samme raekke. Appen viser den kun
+# som information under operationernes total - flowet regner selv.
+L_SETTINGS      = "AppSettings"
+COST_OPTION     = "CostApprovalThresholdDkk"
+# Flowets reserve, naar raekken mangler.
+COST_DEFAULT    = 300000
+# Miljoeet, som det staar i AppSettings.Environment (DEV/TEST/PROD).
+SETTINGS_ENVS   = ("DEV", "TEST", "PROD")
+SETTINGS_ENV    = env.ENV_NAME.upper()
+if SETTINGS_ENV not in SETTINGS_ENVS:
+    raise SystemExit("sp_config: miljoeet '%s' findes ikke i AppSettings.Environment (%s)."
+                     % (env.ENV_NAME, ", ".join(SETTINGS_ENVS)))
+
 # --- kolonnenavne der IKKE er selvindlysende -------------------------------
 # MainWorkCenters er oprettet fra Excel, saa de interne navne er field_1 og
 # field_2. Visningsnavnet paa field_1 er 'Description' med 33 efterfoelgende
@@ -217,6 +233,13 @@ def named_formulas():
     # saa det er eet delegeret kald.
     #
     # Body er en Note-kolonne (ren tekst). Heading er tom paa hints.
+    # Omkostningsgraensen for DETTE miljoe. Dovent og cachet som de andre
+    # navngivne formler; Option og Environment er Choice, og = mod en
+    # konstant paa .Value delegeres til SharePoint (R2-082).
+    add("VhpCostThreshold",
+        f'Coalesce(LookUp({L_SETTINGS}, Option.Value = "{COST_OPTION}" && '
+        f'Environment.Value = "{SETTINGS_ENV}").Value, {COST_DEFAULT})',
+        "Omkostningsgraensen (kr.) fra AppSettings for miljoeet - kun visning.")
     add("colVhpHelp",
         _forall(f'Filter({L_HELP}, AppArea.Value = "{HELP_APP}")',
                 [("Key", f"R.{C_HELP_KEY}"),

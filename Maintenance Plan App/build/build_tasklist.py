@@ -4,7 +4,7 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_PRIMARY, C_WHITE, C_MODAL_BG, C_PRIMARY_SOFT,
-                        C_INVALID_FG, C_DIVIDER, C_TRANSPARENT, SHELL_W)
+                        C_INVALID_FG, C_DIVIDER, C_TRANSPARENT, SHELL_W, C_WARN_FG)
 import layout_tokens as lay
 import icons
 from build_helpers import (ensure_hit, popup_head, empty_state, checkbox_theme, table_surface, flow_row, text_ctrl,
@@ -312,6 +312,14 @@ def _ops_totals_html():
 # Tom tabel har ingen sum at vise - saa staar tomme-teksten der i stedet.
 TOTALS_ON = ("IfError(!IsBlank(varVhpActiveItemId) && "
              f"CountRows({OPS_ACTIVE}) > 0, false)")
+
+# OVER OMKOSTNINGSGRAENSEN (docs/32 §9, R2-082). En linje under totalen,
+# naar itemets sum er over graensen fra AppSettings (sp_config:
+# VhpCostThreshold). Kun information - godkendelsesflowet regner selv.
+COST_OVER_ON = (f"IfError({TOTALS_ON} && "
+                f"Sum({OPS_ACTIVE}, Cost) > VhpCostThreshold, false)")
+COST_OVER_TEXT = ('"Over " & ' + lay.num_text("VhpCostThreshold") +
+                  ' & " DKK - this item needs cost approval after submit."')
 
 
 # ---------------------------------------------------------------------------
@@ -1320,7 +1328,11 @@ def build_tasklist_section():
     # materialeruden allerede gjorde.
     opsEmptyM = empty_state("conVhpOpsEmptyM", OPS_EMPTY, icon_path=icons.LIST,
                             visible=f"!{has_ops} && {below('Tablet')}")
-    opsPane = group("conVhpOpsPane", [toolbar, tasklistMeta, opsHint, opsTableWrap, _ops_list_mobile(), opsEmptyM],
+    opsCostOver = text_ctrl("txtVhpOpsCostOver", COST_OVER_TEXT, size=12, color=C_WARN_FG,
+                            weight="Semibold", wrap="true", height=20, width="Parent.Width",
+                            visible=COST_OVER_ON)
+    opsPane = group("conVhpOpsPane", [toolbar, tasklistMeta, opsHint, opsTableWrap, _ops_list_mobile(),
+                                      opsCostOver, opsEmptyM],
                     direction="Vertical", gap=8, width="Parent.Width",
                     visible=OPS_PANE_ON)
     pkgPane = build_strategy_body()

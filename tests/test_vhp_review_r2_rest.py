@@ -109,3 +109,18 @@ def test_old_document_rows_are_still_read():
 
 def test_hub_url_dead_code_is_gone():
     assert not hasattr(cfg, "HUB_URL")
+
+
+# --- R2-082: omkostningsgraensen vises, filtreret paa miljoeet --------------
+def test_cost_threshold_formula_is_environment_filtered():
+    f = dict((n, e) for n, e, _w in cfg.named_formulas())["VhpCostThreshold"]
+    assert 'LookUp(AppSettings, Option.Value = "CostApprovalThresholdDkk"' in f
+    assert 'Environment.Value = "%s"' % cfg.SETTINGS_ENV in f
+    assert cfg.SETTINGS_ENV in ("DEV", "TEST", "PROD")
+
+
+def test_cost_over_line_under_the_totals():
+    import build_tasklist as bt
+    assert "Sum(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Cost) > VhpCostThreshold" in bt.COST_OVER_ON
+    screen = open(os.path.join(ROOT, "BIO SAP App", "ScreenVhPlan.pa.yaml"), encoding="utf-8").read()
+    assert "txtVhpOpsCostOver" in screen
