@@ -29,6 +29,7 @@ Reglen staar baade i UI'et (Visible/DisplayMode) og i selve handlingen
 skjult knap er ikke en sikring.
 """
 import request_index as ri
+import env_config as env
 
 ADMIN_LIST = "UserAndGroups"
 ADMIN_GROUP = "Admin"
@@ -44,7 +45,13 @@ OWNER_STATUSES = (ri.DRAFT,)
 ADMIN_STATUSES = (ri.DRAFT, "AfventerInfo")
 # Domaener, hvor ejeren retter og genindsender en anmodning, der er sendt
 # retur (AfventerInfo). Domaenenoeglen fra request_index.DOMAINS.
-RESUBMIT_DOMAINS = ("MaintenancePlan",)
+# R2-014: ogsaa FL, og Material/Measuring Point, naar deres godkendelse er
+# slaaet til - flowene og docs/36 beder rekvirenten rette og indsende igen.
+# Uden godkendelse sendes de aldrig retur. Equipment har ingen retur.
+RESUBMIT_DOMAINS = ("MaintenancePlan", "FunctionalLocation") + tuple(
+    d for d, flag in (("Material", "material_approval"),
+                      ("MeasuringPoint", "measuring_point_approval"))
+    if env.feature_on(flag))
 RESUBMIT_STATUSES = (ri.DRAFT, "AfventerInfo")
 
 

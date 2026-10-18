@@ -90,6 +90,9 @@ import status_chip as sc
 import icons
 import design_tokens as tok
 
+# Ejeren maa rette og genindsende en anmodning, der er sendt retur (R2-014).
+RESUBMIT = cfg.DOMAIN in perm.RESUBMIT_DOMAINS
+
 # Vedhaeftningskontrakten staar i tools/attflows.py; ruden her er dens
 # domaeneudgave - filerne er vedhaeftninger paa raekken i cfg.L_ROWS
 # (issue #300).
@@ -796,7 +799,7 @@ def open_request_fx():
         # Edit for the owner of a draft, and for an admin (tools/permissions.py);
         # everyone else stays in View.
         "        Set(varDomCanEdit, "
-        + perm.may_change("varDomIdx.RequesterEmail", "varDomIdx.Status.Value", "varDomMe") + ");\n"
+        + perm.may_change("varDomIdx.RequesterEmail", "varDomIdx.Status.Value", "varDomMe", resubmit=RESUBMIT) + ");\n"
         "        Set(varDomViewOnly, !(Lower(Coalesce(Param(\"mode\"), \"\")) = \"edit\" && varDomCanEdit))\n"
         "    )\n"
         ")"
@@ -1080,13 +1083,16 @@ def save_row_fx(status="valid", required=(), always=()):
         # lavede en dublet med Defaults().
         "    Set(varDomActiveRowId, varDomSpRow.ID);\n"
         "\n"
-        # En admins NYE raekke i en andens anmodning skal hoere til DEN
-        # anmodning - ellers forsvinder den fra listen (refresh_rows_fx).
+        # En NY raekke i en aaben anmodning skal hoere til DEN anmodning -
+        # ogsaa ejerens, ikke kun en admins. Ellers forsvinder den fra
+        # listen ved naeste refresh_rows_fx og bliver foraeldreloes (R2-002).
+        # Kun raekker uden GUID, saa en raekke aldrig flyttes fra en anden
+        # anmodning.
         "    If(\n"
-        f"        {AS_ADMIN} && Coalesce(varDomSpRow.RequestGuid, \"\") <> varDomRequestGuid,\n"
+        "        !IsBlank(varDomRequestGuid) && IsBlank(Coalesce(varDomSpRow.RequestGuid, \"\")),\n"
         "        Set(\n"
         "            varDomSpRow,\n"
-        f"            Patch({cfg.L_ROWS}, varDomSpRow, {{ RequestGuid: varDomRequestGuid, RequestNo: varDomRequestNo }})\n"
+        f"            Patch({cfg.L_ROWS}, varDomSpRow, {{ RequestGuid: varDomRequestGuid, RequestNo: Coalesce(varDomRequestNo, \"\") }})\n"
         "        )\n"
         "    );\n"
         "\n"
@@ -1630,6 +1636,24 @@ def send_fx(submit):
     else:
         row_patch[-1] = row_patch[-1].rstrip(",")
 
+    # KLADDERAEKKER FOELGER ANMODNINGEN (R2-002, valg a)
+    #
+    # Ved Submit faar kladderaekkerne anmodningens GUID og nummer, men ingen
+    # statusaendring. Ellers stod de uden GUID og forsvandt fra appen, saa
+    # snart GUID og session-start blev nulstillet. Nu ses de igen, naar
+    # anmodningen aabnes, og kan indsendes, hvis den sendes retur.
+    drafts_follow = ""
+    if submit:
+        drafts_follow = (
+            "        If(\n"
+            f"            CountRows({DRAFTS}) > 0,\n"
+            "            Patch(\n"
+            f"                {cfg.L_ROWS},\n"
+            f"                ForAll({DRAFTS} As X, {{ ID: X.RowId }}),\n"
+            f"                ForAll({DRAFTS}, {{ RequestNo: varDomRequestNo, RequestGuid: varDomRequestGuid }})\n"
+            "            )\n"
+            "        );\n")
+
     return (
         "If(\n"
         f"    CountRows({rows}) = 0,\n"
@@ -1643,7 +1667,7 @@ def send_fx(submit):
         "    );\n"
         "    If(\n"
         "        !IsBlank(varDomIdx) &&\n"
-        "        !" + perm.may_change("varDomIdx.RequesterEmail", "varDomIdx.Status.Value", "varDomMe") + ",\n"
+        "        !" + perm.may_change("varDomIdx.RequesterEmail", "varDomIdx.Status.Value", "varDomMe", resubmit=RESUBMIT) + ",\n"
         '        Notify("This request can no longer be changed.", NotificationType.Warning),\n'
         "\n"
         "    IfError(\n"
@@ -1697,6 +1721,7 @@ def send_fx(submit):
         "                }\n"
         "            )\n"
         "        );\n"
+        + drafts_follow +
         "\n"
         + refresh_rows_fx(8) + ";\n"
         + admin_submit_log +
@@ -2528,9 +2553,15 @@ def build_list(slots, badge_head, search_placeholder):
         "Dom", f"Sort({DRAFTS}, RowId, SortOrder.Descending)",
         f'ThisItem.ItemKey & If(IsBlank(ThisItem.{cfg.C_TEXT}), "", "  \u00b7  " & ThisItem.{cfg.C_TEXT})',
         "Open row" if not panel_on else "Go to field", load_row_fx(),
-        (f'{dt.plural(f"CountRows({DRAFTS})", "draft row")} & '
-         f'If(CountRows({DRAFTS}) = 1, " - complete it to submit it too", '
-         '" - complete them to submit them too")') if not panel_on else '"Still missing"',
+        # Lige efter Submit (GUID ryddet, samlingen har indsendte raekker)
+        # ligger kladderne paa den indsendte anmodning (R2-002, valg a).
+        f'If(IsBlank(varDomRequestGuid) && CountRows(Filter(colDomRows, Status = "submitted")) > 0, '
+        f'{dt.plural(f"CountRows({DRAFTS})", "draft row")} & " stayed on the request - '
+        'complete and submit them if the request is returned", '
+        + ((f'{dt.plural(f"CountRows({DRAFTS})", "draft row")} & '
+            f'If(CountRows({DRAFTS}) = 1, " - complete it to submit it too", '
+            '" - complete them to submit them too")') if not panel_on else '"Still missing"')
+        + ')',
         (f"IfError({FIX_VAR}, false) && CountRows({DRAFTS}) > 0 && !varDomViewOnly"
          if not panel_on else f"CountRows({DRAFTS}) > 0 && !varDomViewOnly"),
         f"Set({FIX_VAR}, false)", closable=not panel_on)
@@ -2649,8 +2680,9 @@ def _paste_add_fx():
         f"                {cfg.L_ROWS}, Defaults({cfg.L_ROWS}), {{\n"
         + "\n".join(copy) + "\n"
         '                    RowStatus: { Value: "draft" },\n'
-        f'                    RequestGuid: If({AS_ADMIN}, varDomRequestGuid, ""),\n'
-        f'                    RequestNo: If({AS_ADMIN}, varDomRequestNo, ""),\n'
+        # Ogsaa ejerens raekker hoerer til den aabne anmodning (R2-002).
+        '                    RequestGuid: Coalesce(varDomRequestGuid, ""),\n'
+        '                    RequestNo: Coalesce(varDomRequestNo, ""),\n'
         f"                    RequesterEmail: If({AS_ADMIN}, Lower(varDomIdx.RequesterEmail), varDomMe),\n"
         f"                    RequesterName: If({AS_ADMIN}, varDomIdx.RequesterName, User().FullName)\n"
         "                }) },\n"

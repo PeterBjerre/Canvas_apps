@@ -44,6 +44,9 @@ import request_index as ri
 import display_text as dt
 from fl_validation import BUCKETS
 
+# Ejeren maa rette og genindsende en anmodning, der er sendt retur (R2-014).
+RESUBMIT = cfg.DOMAIN in perm.RESUBMIT_DOMAINS
+
 LIVE = 'Filter(colFlRows, Status <> "draft")'
 ERRS = 'CountRows(Filter(colFlRows, Status = "invalid"))'
 READY = 'CountRows(Filter(colFlRows, Status = "valid" || Status = "warning"))'
@@ -169,7 +172,7 @@ def save_fx(status="Kladde", step=1, notify=True):
 Set(varFlReqNow, If(!IsBlank(varFlRequestGuid), LookUp({cfg.L_REQ}, RequestGuid = varFlRequestGuid)));
 If(
     !IsBlank(varFlReqNow) &&
-    !{perm.may_change("varFlReqNow.RequesterEmail", "varFlReqNow.Status.Value", "varFlMe")},
+    !{perm.may_change("varFlReqNow.RequesterEmail", "varFlReqNow.Status.Value", "varFlMe", resubmit=RESUBMIT)},
     Collect(colFlSaveErrors, {{ Where: "Request", Msg: "This request can no longer be changed." }})
 );
 If(IsBlank(varFlRequestGuid), Set(varFlRequestGuid, Text(GUID())));
@@ -442,7 +445,7 @@ If(
     Set(varFlRequestGuid, ""),
     Set(varFlRequestNo, Coalesce(varFlReq.RequestNo, ""));
     Set(varFlStatus, Coalesce(varFlReq.Status.Value, "Kladde"));
-    Set(varFlCanEdit, {perm.may_change("varFlReq.RequesterEmail", "varFlStatus", "varFlMe")});
+    Set(varFlCanEdit, {perm.may_change("varFlReq.RequesterEmail", "varFlStatus", "varFlMe", resubmit=RESUBMIT)});
     Set(varFlViewOnly, !(Lower(Coalesce(Param("mode"), "")) = "edit" && varFlCanEdit));
     Clear(colFlDeleted);
     ClearCollect(

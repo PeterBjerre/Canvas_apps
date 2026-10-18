@@ -373,6 +373,27 @@ Public Function StatusText(ByVal sess As Object) As String
     StatusText = Trim$(CStr(sess.FindById(ID_STATUSBAR).Text))
 End Function
 
+' Beskedparameter nr. i (0, 1 ...) paa statuslinjen, fx objektnummeret i
+' "Maintenance plan &1 created". Tom, hvis der ingen er.
+Public Function StatusParam(ByVal sess As Object, ByVal i As Long) As String
+    On Error Resume Next
+    StatusParam = Trim$(CStr(sess.FindById(ID_STATUSBAR).MessageParameter(i)))
+End Function
+
+' Beskedens noegle, fx "IP/032": beskedklasse og nummer. Skrives i
+' statusfilens log, saa de rigtige noegler kendes efter foerste koersel.
+Public Function StatusMsgKey(ByVal sess As Object) As String
+    Dim msgId As String
+    Dim msgNo As String
+
+    On Error Resume Next
+    msgId = Trim$(CStr(sess.FindById(ID_STATUSBAR).MessageId))
+    msgNo = Trim$(CStr(sess.FindById(ID_STATUSBAR).MessageNumber))
+    On Error GoTo 0
+    If Len(msgId) = 0 And Len(msgNo) = 0 Then Exit Function
+    StatusMsgKey = msgId & "/" & msgNo
+End Function
+
 ' E og A betyder, at det sidste trin IKKE gik igennem.
 Public Sub FailOnError(ByVal sess As Object, ByVal context As String)
     Dim t As String

@@ -103,12 +103,12 @@ Private Sub ReadTaskListNumbers(ByVal sess As Object, ByVal what As String, _
     If VhpUtil.IsAllDigits(headerGroup) Then
         outGroup = headerGroup
     Else
-        num = VhpMap.LongestDigitRun(msg)
-        If t = "S" And Len(num) >= 4 Then
+        num = VhpMap.NumberFromStatus(t, msg, VhpSap.StatusParam(sess, 0), 4)
+        If Len(num) > 0 Then
             outGroup = num
         Else
-            Err.Raise ERR_NEEDS_CHECK, "VhpSteps", what & VhpUtil.Dk(": SAP svarede '") & msg & _
-                VhpUtil.Dk("', og gruppenummeret kunne ikke l{ae}ses.") & hint
+            Err.Raise ERR_NEEDS_CHECK, "VhpSteps", what & VhpUtil.Dk(": SAP svarede '") & msg & "' (" & t & _
+                KeyNote(sess) & VhpUtil.Dk("), og gruppenummeret kunne ikke l{ae}ses.") & hint
         End If
     End If
 
@@ -567,9 +567,11 @@ End Function
 '==============================================================================
 
 ' Gem og laes nummeret paa det, der blev oprettet. Et nummer tages KUN fra et
-' svar af typen S eller W. E/A betyder, at intet blev gemt. Alt andet - en
-' dialog, et svar uden nummer - betyder, at nogen skal se efter i SAP, foer
-' planen koeres igen. Ellers kunne den samme position blive oprettet to gange.
+' svar af typen S (VhpMap.NumberFromStatus). E/A betyder, at intet blev gemt.
+' Alt andet - en advarsel (W), en dialog, et svar uden nummer - betyder, at
+' nogen skal se efter i SAP, foer planen koeres igen: SAP kan have gemt ved
+' en advarsel, eller ej. Ellers kunne den samme position blive oprettet to
+' gange, eller et aarstal fra advarslen blive planens nummer.
 Private Function SaveAndReadNumber(ByVal sess As Object, ByVal what As String, ByVal minDigits As Long, _
                                    ByVal checkHint As String) As String
     Dim t As String
@@ -589,14 +591,25 @@ Private Function SaveAndReadNumber(ByVal sess As Object, ByVal what As String, B
         Err.Raise ERR_SAP, "VhpSteps", what & ": " & msg
     End If
 
-    num = VhpMap.LongestDigitRun(msg)
-    If (t = "S" Or t = "W") And Len(num) >= minDigits Then
+    num = VhpMap.NumberFromStatus(t, msg, VhpSap.StatusParam(sess, 0), minDigits)
+    If Len(num) > 0 Then
         SaveAndReadNumber = num
         Exit Function
     End If
 
+    If t = "W" Then
+        Err.Raise ERR_NEEDS_CHECK, "VhpSteps", what & VhpUtil.Dk(": SAP svarede med en advarsel '") & msg & _
+            "' (W" & KeyNote(sess) & VhpUtil.Dk("). Det er uklart, om SAP gemte.") & checkHint
+    End If
     Err.Raise ERR_NEEDS_CHECK, "VhpSteps", what & VhpUtil.Dk(": SAP svarede '") & msg & "' (" & t & _
-        VhpUtil.Dk("), og nummeret kunne ikke l{ae}ses.") & checkHint
+        KeyNote(sess) & VhpUtil.Dk("), og nummeret kunne ikke l{ae}ses.") & checkHint
+End Function
+
+' ", IP/032" til fejlteksten, saa beskedens noegle staar i statusfilens log.
+Private Function KeyNote(ByVal sess As Object) As String
+    Dim key As String
+    key = VhpSap.StatusMsgKey(sess)
+    If Len(key) > 0 Then KeyNote = ", " & key
 End Function
 
 ' Bekraeft hvert gem (indstillingen ConfirmSave). Ja gemmer. Nej springer

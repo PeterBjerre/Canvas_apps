@@ -312,6 +312,38 @@ def test_a_return_unlocks_the_rows_and_asks_the_requester():
     assert rows["item/RowStatus/Value"] == "valid"
 
 
+def _run(names, given):
+    """Koer handlingerne names efter de givne outputs (navn -> vaerdi)."""
+    acts = {n: {"type": "Compose", "inputs": v} for n, v in given.items()}
+    for n in names:
+        acts[n] = _find(APPROVAL, n)
+    return wdl_eval.run(acts, list(given) + names, {}, {}).outputs
+
+
+def test_only_this_runs_returns_send_the_request_back():
+    """En Return fra en TIDLIGERE indsendelse er rettet. Talte den med,
+    blev en genindsendt anmodning sendt tilbage igen og igen (R2-016)."""
+    log = [{"Decision": "Return", "Title": "old-run"},
+           {"Decision": "Approve", "Title": "this-run"}]
+    out = _run(["Return_rows"], {"RunName": "this-run",
+                                 "Get_log_results": {"body/value": log}})
+    assert out["Return_rows"] == []
+    log.append({"Decision": "Return", "Title": "this-run"})
+    out = _run(["Return_rows"], {"RunName": "this-run",
+                                 "Get_log_results": {"body/value": log}})
+    assert len(out["Return_rows"]) == 1
+
+
+def test_every_log_row_carries_this_runs_name():
+    """Return_rows kender kun koerslen paa Title - saa skal hver lograekke
+    have den, ogsaa systemets egne Return-raekker."""
+    acts = _definition(APPROVAL)["actions"]
+    assert acts["RunName"]["inputs"] == "@workflow()?['run']?['name']"
+    assert acts["Respond_accepted"]["runAfter"] == {"RunName": ["Succeeded"]}
+    for p in _posts(APPROVAL, "MD_ApprovalLog"):
+        assert p["item/Title"] == "@outputs('RunName')"
+
+
 def test_only_the_rows_that_need_approval_are_asked_about():
     where = _find(APPROVAL, "Strategic_rows")["inputs"]["where"]
     assert where == "@equals(item()?['ApprovalRequired'], true)"

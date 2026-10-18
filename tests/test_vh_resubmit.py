@@ -26,7 +26,8 @@ def _vh():
 
 
 def test_permission_default_is_unchanged():
-    """Equipment, Material, MP og FL: ejeren stadig kun i Kladde."""
+    """Uden resubmit (Equipment, og Material/MP uden godkendelse): ejeren
+    stadig kun i Kladde."""
     rule = perm.may_change("R.RequesterEmail", "R.Status.Value", "me")
     owner_part = rule.split("||")[0]
     assert "AfventerInfo" not in owner_part
@@ -55,10 +56,13 @@ def test_owner_cannot_delete_returned_plan():
     assert "AfventerInfo" not in rd.may_delete("I", "me").split("||")[0]
 
 
-def test_hub_edit_enabled_for_returned_vh_plan_only():
+def test_hub_edit_enabled_for_returned_resubmit_domains_only():
+    """R2-014: VH-plan og FL (og Material/MP med deres godkendelse)."""
     text = open(HUB, encoding="utf-8").read()
-    assert ('ThisItem.Status.Value = "AfventerInfo") && '
-            '(ThisItem.Domain.Value = "MaintenancePlan")') in text
+    doms = " || ".join('ThisItem.Domain.Value = "%s"' % d for d in perm.RESUBMIT_DOMAINS)
+    assert ('ThisItem.Status.Value = "AfventerInfo") && (%s)' % doms) in text
+    assert "FunctionalLocation" in perm.RESUBMIT_DOMAINS
+    assert "Equipment" not in perm.RESUBMIT_DOMAINS
 
 
 def _actions(path):

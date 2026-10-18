@@ -194,9 +194,18 @@
           "type": "Compose",
           "inputs": "@trim(coalesce(triggerBody()?['text'], ''))"
         },
-        "Respond_accepted": {
+        "RunName": {
           "runAfter": {
             "RequestGuid": [
+              "Succeeded"
+            ]
+          },
+          "type": "Compose",
+          "inputs": "@workflow()?['run']?['name']"
+        },
+        "Respond_accepted": {
+          "runAfter": {
+            "RunName": [
               "Succeeded"
             ]
           },
@@ -351,34 +360,8 @@
                     ]
                   },
                   "actions": {
-                    "Patch_index_progress": {
-                      "type": "OpenApiConnection",
-                      "inputs": {
-                        "parameters": {
-                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
-                          "table": "MD_RequestIndex",
-                          "id": "@outputs('IndexId')",
-                          "item/Title": "@outputs('RequestNo')",
-                          "item/RequesterEmail": "@outputs('RequesterEmail')",
-                          "item/Status/Value": "UnderBehandling",
-                          "item/StatusStep": 3,
-                          "item/IsOpen": true,
-                          "item/LastActionOn": "@utcNow()",
-                          "item/LastActionBy": "System approval"
-                        },
-                        "host": {
-                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                          "operationId": "PatchItem",
-                          "connectionName": "shared_sharepointonline"
-                        }
-                      }
-                    },
                     "All_codes": {
-                      "runAfter": {
-                        "Patch_index_progress": [
-                          "Succeeded"
-                        ]
-                      },
+                      "runAfter": {},
                       "type": "Compose",
                       "inputs": "@split(join(body('Select_FL_list'), ';'), ';')"
                     },
@@ -773,7 +756,7 @@
                             "parameters": {
                               "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
                               "table": "MD_ApprovalLog",
-                              "item/Title": "@workflow()?['run']?['name']",
+                              "item/Title": "@outputs('RunName')",
                               "item/RequestGuid": "@outputs('RequestGuid')",
                               "item/Stage": "System",
                               "item/ItemGuid": "@items('For_each_open_unit')?['itemGuid']",
@@ -825,7 +808,7 @@
                             "parameters": {
                               "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
                               "table": "MD_ApprovalLog",
-                              "item/Title": "@workflow()?['run']?['name']",
+                              "item/Title": "@outputs('RunName')",
                               "item/RequestGuid": "@outputs('RequestGuid')",
                               "item/Stage": "System",
                               "item/ItemGuid": "@items('For_each_unresolved')?['itemGuid']",
@@ -866,7 +849,7 @@
                             "parameters": {
                               "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
                               "table": "MD_ApprovalLog",
-                              "item/Title": "@workflow()?['run']?['name']",
+                              "item/Title": "@outputs('RunName')",
                               "item/RequestGuid": "@outputs('RequestGuid')",
                               "item/Stage": "System",
                               "item/ItemGuid": "@concat(items('For_each_problem')?['itemKey'], '#none')",
@@ -919,10 +902,38 @@
                       "type": "Compose",
                       "inputs": "@union(body('Select_approver_emails'), body('Select_approver_emails'))"
                     },
+                    "Patch_index_progress": {
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "parameters": {
+                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                          "table": "MD_RequestIndex",
+                          "id": "@outputs('IndexId')",
+                          "item/Title": "@outputs('RequestNo')",
+                          "item/RequesterEmail": "@outputs('RequesterEmail')",
+                          "item/Status/Value": "UnderBehandling",
+                          "item/StatusStep": 3,
+                          "item/IsOpen": true,
+                          "item/LastActionOn": "@utcNow()",
+                          "item/LastActionBy": "System approval",
+                          "item/AssignedToEmail": "@toLower(coalesce(first(outputs('Approver_list')), ''))"
+                        },
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "operationId": "PatchItem",
+                          "connectionName": "shared_sharepointonline"
+                        }
+                      },
+                      "runAfter": {
+                        "Approver_list": [
+                          "Succeeded"
+                        ]
+                      }
+                    },
                     "For_each_approver": {
                       "foreach": "@outputs('Approver_list')",
                       "runAfter": {
-                        "Approver_list": [
+                        "Patch_index_progress": [
                           "Succeeded"
                         ]
                       },
@@ -1013,7 +1024,7 @@
                                   "type": "OpenApiConnection",
                                   "inputs": {
                                     "parameters": {
-                                      "item/Title": "@workflow()?['run']?['name']",
+                                      "item/Title": "@outputs('RunName')",
                                       "item/RequestGuid": "@outputs('RequestGuid')",
                                       "item/Stage": "System",
                                       "item/ItemGuid": "@items('For_each_my_unit')?['itemGuid']",
@@ -1053,7 +1064,7 @@
                                     "type": "OpenApiConnection",
                                     "inputs": {
                                       "parameters": {
-                                        "item/Title": "@workflow()?['run']?['name']",
+                                        "item/Title": "@outputs('RunName')",
                                         "item/RequestGuid": "@outputs('RequestGuid')",
                                         "item/Stage": "System",
                                         "item/ItemGuid": "@items('For_each_my_unit_returned')?['itemGuid']",
@@ -1111,7 +1122,7 @@
                       "type": "Query",
                       "inputs": {
                         "from": "@outputs('Get_log_results')?['body/value']",
-                        "where": "@equals(item()?['Decision'], 'Return')"
+                        "where": "@and(equals(item()?['Decision'], 'Return'), equals(item()?['Title'], outputs('RunName')))"
                       }
                     },
                     "Any_return": {
@@ -1191,7 +1202,9 @@
                               "item/StatusStep": 4,
                               "item/IsOpen": true,
                               "item/LastActionOn": "@utcNow()",
-                              "item/LastActionBy": "System approval"
+                              "item/LastActionBy": "System approval",
+                              "item/AssignedToEmail": "",
+                              "item/AssignedToName": ""
                             },
                             "host": {
                               "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -1243,7 +1256,9 @@
                                 "item/StatusStep": 2,
                                 "item/IsOpen": true,
                                 "item/LastActionOn": "@utcNow()",
-                                "item/LastActionBy": "System approval"
+                                "item/LastActionBy": "System approval",
+                                "item/AssignedToEmail": "",
+                                "item/AssignedToName": ""
                               },
                               "host": {
                                 "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",

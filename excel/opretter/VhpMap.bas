@@ -269,3 +269,23 @@ Public Function LongestDigitRun(ByVal s As String) As String
     If Len(cur) > Len(best) Then best = cur
     LongestDigitRun = best
 End Function
+
+' Nummeret paa det, SAP lige har gemt, ud fra statuslinjen. t er
+' MessageType, msg teksten og param den foerste beskedparameter
+' (MessageParameter(0)). Kun et succes-svar (S) giver et nummer: en
+' advarsel (W) kan staa foer gem ("Start date 01.01.2026 is in the past"),
+' og saa ville et aarstal eller en dato blive objektets nummer. Parameteren
+' bruges, naar den er et tal; ellers det laengste tal i teksten. Er nummeret
+' kortere end minDigits, er svaret tomt - kalderen beder om kontrol.
+Public Function NumberFromStatus(ByVal t As String, ByVal msg As String, ByVal param As String, _
+                                 ByVal minDigits As Long) As String
+    Dim num As String
+
+    If UCase$(Trim$(t)) <> "S" Then Exit Function
+
+    num = Trim$(param)
+    If Not VhpUtil.IsAllDigits(num) Or Len(num) < minDigits Then
+        num = LongestDigitRun(msg)
+    End If
+    If Len(num) >= minDigits Then NumberFromStatus = num
+End Function

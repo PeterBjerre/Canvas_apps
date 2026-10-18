@@ -395,7 +395,12 @@ Screens:
                                   Clear(colFlDeleted);
                                   Clear(colFlVals);
                                   Clear(colFlIssues);
+                                  Clear(colFlIssuesRaw);
                                   Clear(colFlTabs);
+                                  Clear(colFlDet);
+                                  Clear(colFlClsDet);
+                                  Clear(colFlPanelSnap);
+                                  Clear(colFlPanelSnapVals);
                                   Set(varFlRequestGuid, "");
                                   Set(varFlRequestNo, "");
                                   Set(varFlStatus, "");
@@ -405,12 +410,10 @@ Screens:
                                   Set(varFlDetailRow, "");
                                   Set(varFlPanelOpen, false);
                                   Set(varFlPanelJump, "");
-                                  Clear(colFlDet);
                                   Set(varFlClsOpen, false);
                                   Set(varFlClsCheck, false);
                                   Set(varFlSubmitAsk, false);
                                   Set(varFlClsRow, "");
-                                  Clear(colFlClsDet);
                                   Set(varFlStale, false);
                                   Set(varFlNextRowNo, 1);
                                   Collect(colFlRows, { RowGuid: Text(GUID()), RowNo: varFlNextRowNo, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "draft", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0, Pos: 0, FlBad: false, DescBad: false, Hint: "" });
@@ -555,7 +558,7 @@ Screens:
                                   Set(varFlReqNow, If(!IsBlank(varFlRequestGuid), LookUp(FunctionalLocationRequests, RequestGuid = varFlRequestGuid)));
                                   If(
                                       !IsBlank(varFlReqNow) &&
-                                      !((Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe && (varFlReqNow.Status.Value = "Kladde")) || (IsAdmin && (varFlReqNow.Status.Value = "Kladde" || varFlReqNow.Status.Value = "AfventerInfo"))),
+                                      !((Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe && (varFlReqNow.Status.Value = "Kladde" || varFlReqNow.Status.Value = "AfventerInfo")) || (IsAdmin && (varFlReqNow.Status.Value = "Kladde" || varFlReqNow.Status.Value = "AfventerInfo"))),
                                       Collect(colFlSaveErrors, { Where: "Request", Msg: "This request can no longer be changed." })
                                   );
                                   If(IsBlank(varFlRequestGuid), Set(varFlRequestGuid, Text(GUID())));
@@ -4342,7 +4345,7 @@ Screens:
                                   Set(varFlReqNow, If(!IsBlank(varFlRequestGuid), LookUp(FunctionalLocationRequests, RequestGuid = varFlRequestGuid)));
                                   If(
                                       !IsBlank(varFlReqNow) &&
-                                      !((Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe && (varFlReqNow.Status.Value = "Kladde")) || (IsAdmin && (varFlReqNow.Status.Value = "Kladde" || varFlReqNow.Status.Value = "AfventerInfo"))),
+                                      !((Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe && (varFlReqNow.Status.Value = "Kladde" || varFlReqNow.Status.Value = "AfventerInfo")) || (IsAdmin && (varFlReqNow.Status.Value = "Kladde" || varFlReqNow.Status.Value = "AfventerInfo"))),
                                       Collect(colFlSaveErrors, { Where: "Request", Msg: "This request can no longer be changed." })
                                   );
                                   If(IsBlank(varFlRequestGuid), Set(varFlRequestGuid, Text(GUID())));
@@ -10948,7 +10951,7 @@ Screens:
                                   Set(varFlReqNow, If(!IsBlank(varFlRequestGuid), LookUp(FunctionalLocationRequests, RequestGuid = varFlRequestGuid)));
                                   If(
                                       !IsBlank(varFlReqNow) &&
-                                      !((Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe && (varFlReqNow.Status.Value = "Kladde")) || (IsAdmin && (varFlReqNow.Status.Value = "Kladde" || varFlReqNow.Status.Value = "AfventerInfo"))),
+                                      !((Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe && (varFlReqNow.Status.Value = "Kladde" || varFlReqNow.Status.Value = "AfventerInfo")) || (IsAdmin && (varFlReqNow.Status.Value = "Kladde" || varFlReqNow.Status.Value = "AfventerInfo"))),
                                       Collect(colFlSaveErrors, { Where: "Request", Msg: "This request can no longer be changed." })
                                   );
                                   If(IsBlank(varFlRequestGuid), Set(varFlRequestGuid, Text(GUID())));
@@ -13603,7 +13606,7 @@ Screens:
                                 Set(varFlReqNow, If(!IsBlank(varFlRequestGuid), LookUp(FunctionalLocationRequests, RequestGuid = varFlRequestGuid)));
                                 If(
                                     !IsBlank(varFlReqNow) &&
-                                    !((Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe && (varFlReqNow.Status.Value = "Kladde")) || (IsAdmin && (varFlReqNow.Status.Value = "Kladde" || varFlReqNow.Status.Value = "AfventerInfo"))),
+                                    !((Lower(Coalesce(varFlReqNow.RequesterEmail, "")) = varFlMe && (varFlReqNow.Status.Value = "Kladde" || varFlReqNow.Status.Value = "AfventerInfo")) || (IsAdmin && (varFlReqNow.Status.Value = "Kladde" || varFlReqNow.Status.Value = "AfventerInfo"))),
                                     Collect(colFlSaveErrors, { Where: "Request", Msg: "This request can no longer be changed." })
                                 );
                                 If(IsBlank(varFlRequestGuid), Set(varFlRequestGuid, Text(GUID())));
@@ -14395,6 +14398,16 @@ Screens:
                             Set(varFlLoadFailed, false);
                             Set(varFlLoadSlow, false);
                             Set(varFlLoadStep, If(IsBlank(gblFlReqId), "Setting up a new request", "Finding the request"));
+                            Clear(colFlRows);
+                            Clear(colFlDeleted);
+                            Clear(colFlVals);
+                            Clear(colFlIssues);
+                            Clear(colFlIssuesRaw);
+                            Clear(colFlTabs);
+                            Clear(colFlDet);
+                            Clear(colFlClsDet);
+                            Clear(colFlPanelSnap);
+                            Clear(colFlPanelSnapVals);
                             If(false, ClearCollect(colFlRows, { RowGuid: "", RowNo: 0, SpId: 0, FL: "", Description: "", KksType: "", AssignedClass: "", Status: "", FirstIssue: "", FirstWarning: "", IssueCount: 0, WarningCount: 0, Pos: 0, FlBad: false, DescBad: false, Hint: "" }));
                 
                             If(false, ClearCollect(colFlVals, { RowGuid: "", Field: "", Value: "" }));
@@ -14482,7 +14495,7 @@ Screens:
                                     Set(varFlRequestGuid, ""),
                                     Set(varFlRequestNo, Coalesce(varFlReq.RequestNo, ""));
                                     Set(varFlStatus, Coalesce(varFlReq.Status.Value, "Kladde"));
-                                    Set(varFlCanEdit, ((Lower(Coalesce(varFlReq.RequesterEmail, "")) = varFlMe && (varFlStatus = "Kladde")) || (IsAdmin && (varFlStatus = "Kladde" || varFlStatus = "AfventerInfo"))));
+                                    Set(varFlCanEdit, ((Lower(Coalesce(varFlReq.RequesterEmail, "")) = varFlMe && (varFlStatus = "Kladde" || varFlStatus = "AfventerInfo")) || (IsAdmin && (varFlStatus = "Kladde" || varFlStatus = "AfventerInfo"))));
                                     Set(varFlViewOnly, !(Lower(Coalesce(gblFlMode, "")) = "edit" && varFlCanEdit));
                                     Clear(colFlDeleted);
                                     Set(varFlLoadStep, "Loading functional locations");

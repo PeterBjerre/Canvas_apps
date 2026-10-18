@@ -470,3 +470,72 @@ def test_fl_receipt_folder_is_provisioned():
     folder = f"{const['FOLDER_RECEIPTS']}/{const['FOLDER_FL_RECEIPTS']}"
     for sub in ("", "/Behandlet", "/Afvist"):
         assert f"'{folder}{sub}'" in ps1, folder + sub
+
+
+#==============================================================================
+# Det deployede flow er det samme som kilden (R2-005)
+#==============================================================================
+# flow/sap-ordre/ er det, der kopieres ind i designeren. Eksporten i
+# solution/ er det, der faktisk koerer. plannedDate gik tabt paa vejen: den
+# deployede ordre skrev UTC-datoen, saa en plan sat til midnat dansk tid
+# fik dagen foer.
+WORKFLOWS = os.path.join(ROOT, "solution", "BIOSAP", "src", "Workflows")
+
+
+def _deployed(name):
+    paths = glob.glob(os.path.join(WORKFLOWS, f"BioSap-VhPlan-{name}-*.json"))
+    if not paths:
+        pytest.skip(f"{name} er ikke i solution-eksporten")
+    with open(paths[0], encoding="utf-8-sig") as f:
+        return json.load(f)["properties"]["definition"]
+
+
+def _txt(name):
+    with open(os.path.join(FLOW, name), encoding="utf-8") as f:
+        return f.read().strip()
+
+
+def _merge_body(action):
+    return json.loads(action["inputs"]["parameters"]["parameters/body"])
+
+
+def test_deployed_order_flow_is_the_source():
+    d = _deployed("SapOrder")
+    trigger = next(iter(d["triggers"].values()))
+    assert trigger["conditions"][0]["expression"] == _txt("ordre-0-trigger.txt")
+    new = d["actions"]["Try"]["actions"]["Condition_New_Order"]
+    acts = new["actions"]
+    for action, snippet in (("Select_items", "ordre-1-select-items.json"),
+                            ("Select_operations", "ordre-2-select-operations.json"),
+                            ("Select_materials", "ordre-3-select-materials.json")):
+        assert acts[action]["inputs"]["select"] == load(FLOW, snippet), action
+    assert acts["Compose_order"]["inputs"] == load(FLOW, "ordre-4-compose-order.json")
+    assert "convertFromUtc" in acts["Compose_order"]["inputs"]["plan"]["plannedDate"]
+    assert _merge_body(acts["Set_SapOrderGuid"]) == load(FLOW, "ordre-5-merge-plan.json")
+    assert _merge_body(new["else"]["actions"]["Clear_SapOrderGuid"]) == \
+        load(FLOW, "ordre-6-merge-plan-reset.json")
+
+
+def _condition_text(node):
+    """Designerens betingelse som det udtryk, kvittering-2 er skrevet som."""
+    if "and" in node:
+        return "and(" + ",".join(_condition_text(n) for n in node["and"]) + ")"
+    a, b = node["equals"]
+    if b is True:
+        return a[1:]
+    b = b[1:] if isinstance(b, str) and b.startswith("@") else "'%s'" % b
+    return "equals(%s,%s)" % (a[1:], b)
+
+
+def test_deployed_receipt_flow_is_the_source():
+    d = _deployed("SapReceipt")
+    t = d["actions"]["Try"]["actions"]
+    assert t["Receipt_files"]["inputs"]["where"] == "@" + _txt("kvittering-0-filter.txt")
+    h = t["Each_receipt"]["actions"]["Handle_receipt"]["actions"]
+    assert h["Receipt"]["inputs"] == "@" + _txt("kvittering-1-compose.txt")
+    valid = h["Valid_receipt"]
+    squash = lambda s: re.sub(r"\s+", "", s)
+    assert squash(_condition_text(valid["expression"])) == squash(_txt("kvittering-2-betingelse.txt"))
+    each = valid["actions"]["Each_item"]["actions"]["Set_item_numbers"]
+    assert _merge_body(each) == load(FLOW, "kvittering-3-merge-item.json")
+    assert _merge_body(valid["actions"]["Set_plan_published"]) == load(FLOW, "kvittering-4-merge-plan.json")

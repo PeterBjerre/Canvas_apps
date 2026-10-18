@@ -524,9 +524,59 @@
                       }
                     },
                     "actions": {
+                      "Index_assigned": {
+                        "type": "If",
+                        "expression": {
+                          "greater": [
+                            "@length(outputs('Get_request_index')?['body/value'])",
+                            0
+                          ]
+                        },
+                        "actions": {
+                          "Patch_index_assigned": {
+                            "type": "OpenApiConnection",
+                            "runAfter": {},
+                            "inputs": {
+                              "host": {
+                                "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                "connectionName": "shared_sharepointonline",
+                                "operationId": "PatchItem"
+                              },
+                              "parameters": {
+                                "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                "table": "@parameters('MD_RequestIndex (orsted_shared_sharepointonline_9f0c6e07f15d4509a3ecab4d20b7fff7)')",
+                                "id": "@first(outputs('Get_request_index')?['body/value'])?['ID']",
+                                "item/Title": "@first(outputs('Get_request_index')?['body/value'])?['Title']",
+                                "item/Domain": {
+                                  "Value": "MaintenancePlan"
+                                },
+                                "item/RequesterEmail": "@first(outputs('Get_request_index')?['body/value'])?['RequesterEmail']",
+                                "item/Status": {
+                                  "Value": "UnderBehandling"
+                                },
+                                "item/StatusStep": 3,
+                                "item/LastActionBy": "Quality review",
+                                "item/LastActionOn": "@utcNow()",
+                                "item/AssignedToEmail": "@toLower(outputs('Final_approver'))",
+                                "item/AssignedToName": "@coalesce(actions('Resolve_primary')?['outputs']?['body']?['displayName'], actions('Resolve_secondary')?['outputs']?['body']?['displayName'], '')"
+                              },
+                              "authentication": "@parameters('$authentication')"
+                            }
+                          }
+                        },
+                        "runAfter": {},
+                        "else": {
+                          "actions": {}
+                        }
+                      },
                       "Start_and_wait_for_an_approval": {
                         "type": "OpenApiConnectionWebhook",
-                        "runAfter": {},
+                        "runAfter": {
+                          "Index_assigned": [
+                            "Succeeded",
+                            "Failed"
+                          ]
+                        },
                         "inputs": {
                           "host": {
                             "apiId": "/providers/Microsoft.PowerApps/apis/shared_approvals",
@@ -647,7 +697,9 @@
                                     },
                                     "item/StatusStep": 4,
                                     "item/LastActionBy": "Quality review",
-                                    "item/LastActionOn": "@utcNow()"
+                                    "item/LastActionOn": "@utcNow()",
+                                    "item/AssignedToEmail": "",
+                                    "item/AssignedToName": ""
                                   },
                                   "authentication": "@parameters('$authentication')"
                                 }
@@ -781,7 +833,9 @@
                                       },
                                       "item/StatusStep": 3,
                                       "item/LastActionBy": "Quality review",
-                                      "item/LastActionOn": "@utcNow()"
+                                      "item/LastActionOn": "@utcNow()",
+                                      "item/AssignedToEmail": "",
+                                      "item/AssignedToName": ""
                                     },
                                     "authentication": "@parameters('$authentication')"
                                   }
@@ -1004,6 +1058,89 @@
                   "emailMessage/Importance": "Normal"
                 },
                 "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Get_plan_after_error": {
+              "type": "OpenApiConnection",
+              "runAfter": {},
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "GetItem"
+                },
+                "parameters": {
+                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                  "table": "@parameters('BioSap-List-MaintenancePlans (orsted_BioSapListMaintenancePlans)')",
+                  "id": "@triggerBody()?['ID']"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Stage_still_claimed_by_this_run": {
+              "actions": {
+                "Release_stage_after_error": {
+                  "type": "OpenApiConnection",
+                  "runAfter": {},
+                  "inputs": {
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "connectionName": "shared_sharepointonline",
+                      "operationId": "HttpRequest"
+                    },
+                    "parameters": {
+                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                      "parameters/method": "POST",
+                      "parameters/uri": "_api/web/lists/GetByTitle('@{parameters('BioSap-List-MaintenancePlansName (orsted_BioSapListMaintenancePlansName)')}')/items(@{triggerBody()?['ID']})",
+                      "parameters/headers": {
+                        "Content-Type": "application/json;odata=verbose",
+                        "If-Match": "*",
+                        "X-HTTP-Method": "MERGE"
+                      },
+                      "parameters/body": "{\"__metadata\": {\"type\": \"@{parameters('BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)')}\"}, \"StageRunId\": \"\"}"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "runAfter": {
+                "Get_plan_after_error": [
+                  "Succeeded"
+                ]
+              },
+              "else": {
+                "actions": {}
+              },
+              "expression": {
+                "equals": [
+                  "@body('Get_plan_after_error')?['StageRunId']",
+                  "@workflow()?['run']?['name']"
+                ]
+              },
+              "type": "If"
+            },
+            "Terminate_failed": {
+              "type": "Terminate",
+              "runAfter": {
+                "Send_notification_to_development_team": [
+                  "Succeeded",
+                  "Failed",
+                  "Skipped",
+                  "TimedOut"
+                ],
+                "Stage_still_claimed_by_this_run": [
+                  "Succeeded",
+                  "Failed",
+                  "Skipped",
+                  "TimedOut"
+                ]
+              },
+              "inputs": {
+                "runStatus": "Failed",
+                "runError": {
+                  "code": "ApprovalStageFailed",
+                  "message": "The approval stage failed. Its stage lock was released if this run still held it, and the development team was notified."
+                }
               }
             }
           }
