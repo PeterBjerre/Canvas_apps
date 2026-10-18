@@ -68,7 +68,7 @@ def test_show_sits_right_of_the_summary_not_in_the_title_row():
     resumeet, lodret centreret - titelraekken er kun ikon og titel."""
     y, _ = _summary()
     top = _block(y, "conVhpPlanFoldTop", 20000)
-    assert _children(top) == ["imgVhpPlanFoldStatus", "txtVhpPlanFoldTitle"]
+    assert _children(top) == ["icoVhpPlanFoldStatus", "txtVhpPlanFoldTitle"]
     body = _block(y, "conVhpPlanFoldBody", 40000)
     assert _children(body) == ["txtVhpPlanFoldSummary", "btnVhpPlanShow"]
     head = body[:body.index("Children:")]

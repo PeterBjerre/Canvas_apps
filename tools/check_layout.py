@@ -2055,6 +2055,22 @@ def rule_16b(ctx):
                                 f"{ATTACHMENTS_CONTROL} fra doc_upload.picker")
 
 
+ICON_CONTROL = "ModernIcon@1.1.0"
+# Icon-kontrollens egenskaber efter Microsoft Learn ("Icon modern control
+# in canvas apps", den opdaterede kontrol). Ingen TabIndex (fjernet) og
+# ingen Style (omdoebt til IconStyle).
+ICON_PROPS = {
+    "AccessibleLabel", "BasePaletteColor", "BorderColor", "BorderStyle", "BorderThickness",
+    "ContentLanguage", "DisplayMode", "Fill", "Height", "Icon", "IconColor", "IconStyle",
+    "OnSelect", "PaddingBottom", "PaddingLeft", "PaddingRight", "PaddingTop",
+    "RadiusBottomLeft", "RadiusBottomRight", "RadiusTopLeft", "RadiusTopRight", "Rotation",
+    "Tooltip", "Visible", "Width", "X", "Y",
+    # Containerens egne egenskaber paa ethvert barn.
+    "AlignInContainer", "FillPortions", "LayoutMinHeight", "LayoutMinWidth",
+    "LayoutMaxHeight", "LayoutMaxWidth",
+}
+
+
 TABLIST_CONTROL = "ModernTabList@1.0.0"
 # Fanernes egenskaber efter Microsoft Learn ("Tab List modern control in
 # canvas apps", den opdaterede version). Ingen TabIndex, Fill,
@@ -2086,6 +2102,39 @@ SPINNER_PROPS = {
     "AlignInContainer", "FillPortions", "LayoutMinHeight", "LayoutMinWidth",
     "LayoutMaxHeight", "LayoutMaxWidth",
 }
+
+
+def rule_16i(ctx):
+    """Pynt-/statusikoner er ModernIcon@1.1.0 fra build_helpers.fluent_icon (issue #306)"""
+    # Versionen er Learns; en anden er ikke afproevet (jf. regel 16b og
+    # issue #165). Navnet starter med "ico" (som regel 33 for de andre
+    # typer), og etiketten maa ikke vaere tom (som regel 38): App checker
+    # melder AccessibleLabelNeeded paa pynt. Ikonet har intet OnSelect -
+    # klikbare ikoner er stadig Image/ModernButton (docs/38).
+    for p_, name, body in ctx.all_nodes:
+        ctl = (body.get("Control") or "").strip()
+        if ctl.split("@")[0] != "ModernIcon":
+            continue
+        props = body.get("Properties") or {}
+        if ctl != ICON_CONTROL:
+            ctx.problems.append(f"[16i] {name}: {ctl} - ikoner er {ICON_CONTROL} "
+                                f"fra build_helpers.fluent_icon")
+        for key in sorted(set(props) - ICON_PROPS):
+            ctx.problems.append(f"[16i] {name}: {ctl} - '{key}' er ikke en "
+                                f"dokumenteret Icon-egenskab")
+        if not re.match(r"ico[A-Z]", name):
+            ctx.problems.append(f"[16i] {name}: ModernIcon skal hedde ico...")
+        acc = props.get("AccessibleLabel")
+        v = None if acc is None else str(acc).strip().lstrip("=").strip()
+        if v is None or re.fullmatch(r'"\s*"', v):
+            ctx.problems.append(f"[16i] {name}: ModernIcon uden AccessibleLabel - "
+                                f"App checker melder AccessibleLabelNeeded")
+        on = str(props.get("OnSelect", "")).strip().lstrip("=").strip()
+        if on and on != "false":
+            ctx.problems.append(f"[16i] {name}: ModernIcon med OnSelect - klikbare "
+                                f"ikoner er ikke en del af #306")
+        if not str(props.get("Icon", "")).strip().lstrip("="):
+            ctx.problems.append(f"[16i] {name}: ModernIcon uden Icon")
 
 
 def rule_16t(ctx):
@@ -2681,6 +2730,7 @@ RULES = [
     Rule('16f', 'Gem/upload-bjaelken er ModernProgressBar@1.0.0, ubestemt (issue #305)', rule_16f),
     Rule('16k', 'Knapper er ModernButton - Classic/Button kun som gennemsigtigt klik-lag (issue #307)', rule_16k),
     Rule('33', 'Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4)', rule_33),
+    Rule('16i', 'Pynt-/statusikoner er ModernIcon@1.1.0 (issue #306)', rule_16i),
     Rule('18', 'Enhver Gallery skal have TabIndex', rule_18),
     Rule('19', 'AccessibleLabel maa ikke vaere kontrollens navn', rule_19),
     Rule('20', 'Flere UAFHAENGIGE hentninger i kaede -> Concurrent', rule_20),

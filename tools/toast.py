@@ -133,22 +133,21 @@ TOAST_H = 64
 EDGE = 24
 
 
-def _icon_svg():
-    import icons
-    from design_tokens import ref_hex
-    hx = lambda t: '" & %s & "' % ref_hex(t)
-    info = icons._RING + " M12 11v5.5M12 7.5v.01"
-    shapes = {
-        "Success": (icons.STATUS_READY, "state-ok-fg"),
-        "Warning": (icons.STATUS_AWAITING, "state-warn-fg"),
-        "Error": (icons.STATUS_REJECTED, "state-error-fg"),
-    }
-    branches = []
-    for kind, (path, tok) in shapes.items():
-        branches.append(f'"{kind}", "' + icons.svg(path, hx(tok), size=20) + '"')
-    default = '"' + icons.svg(info, hx("state-info-fg"), size=20) + '"'
-    body = f"Switch(IfError({VAR}.Kind, \"\"), " + ", ".join(branches) + f", {default})"
-    return f'"data:image/svg+xml;utf8," & EncodeUrl({body})'
+def _icon_fx():
+    """Toastens ikon (issue #306): Fluent-navnet og farven efter Kind.
+    Samme former som foer (icons.FLUENT): ring med flueben, udraabstegn,
+    kryds eller "i"."""
+    from build_helpers import fluent
+    from gen_screen import C_VALID_FG, C_WARN_FG, C_INVALID_FG, C_INFO_FG
+    kind = f'IfError({VAR}.Kind, "")'
+    shapes = (("Success", "ok", C_VALID_FG),
+              ("Warning", "awaiting", C_WARN_FG),
+              ("Error", "rejected", C_INVALID_FG))
+    name = (f"Switch({kind}, " + ", ".join(f'"{k}", {fluent(g)}' for k, g, _ in shapes)
+            + ", " + fluent("info") + ")")
+    color = (f"Switch({kind}, " + ", ".join(f'"{k}", {c}' for k, _, c in shapes)
+             + f", {C_INFO_FG})")
+    return name, color
 
 
 def controls(tag):
@@ -159,20 +158,12 @@ def controls(tag):
     appen."""
     from gen_screen import (Ctrl, C_MODAL_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
                             C_BORDER_ERROR, C_TRANSPARENT)
-    from build_helpers import group, text_ctrl, button, grow, ensure_hit
+    from build_helpers import group, text_ctrl, button, grow, ensure_hit, fluent_icon
     vis = VISIBLE
-    icon = Ctrl(f"img{tag}ToastIcon", "Image", props={
-        "AccessibleLabel": f'IfError({VAR}.Kind, "Message")',
-        "AlignInContainer": "AlignInContainer.Center",
-        "BorderStyle": "BorderStyle.None",
-        "BorderThickness": "0",
-        "Height": "20",
-        "Image": _icon_svg(),
-        "ImagePosition": "ImagePosition.Fit",
-        "OnSelect": "false",
-        "TabIndex": "0",
-        "Width": "20",
-    }, h=20)
+    icon_fx, icon_color = _icon_fx()
+    icon = fluent_icon(f"ico{tag}ToastIcon", icon_fx, icon_color,
+                       f'IfError({VAR}.Kind, "Message")', size=20)
+    icon.props["AlignInContainer"] = "AlignInContainer.Center"
     icon.props["LayoutMinWidth"] = "20"
     text = grow(text_ctrl(f"txt{tag}ToastText", f'IfError({VAR}.Text, "")', size=13,
                           color=C_TITLE, height=40, wrap="true",

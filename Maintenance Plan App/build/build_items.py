@@ -410,7 +410,7 @@ def build_items_rail():
              "If(IsBlank(ThisItem.ActivityType), 1, 0) + If(IsBlank(ThisItem.FunctionalLocation), 1, 0) + "
              "If(IfError(varVhpPlan.PlanType = \"Strategy\", false) && IsBlank(ThisItem.TasklistKey), 1, 0))")
     ITEM_OK = f"(ThisItem.Status <> \"invalid\" && {FIX_N} = 0)"
-    cardIcon = status_icon("imgVhpItemCardStatus", ITEM_OK, size=20)
+    cardIcon = status_icon("icoVhpItemCardStatus", ITEM_OK, size=20)
     cardIcon.props["AlignInContainer"] = "AlignInContainer.Center"
     cardStatus = text_ctrl(
         "txtVhpItemCardStatus",
