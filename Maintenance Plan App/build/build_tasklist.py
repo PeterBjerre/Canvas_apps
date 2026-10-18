@@ -599,6 +599,8 @@ def _attachments_modal():
     body = du.capped_body("conVhpAttBody",
                           [pick, limits, not_saved, actions, status, ro],
                           f"App.Height - 40 - 36 - {HEAD_H} - 12")
+    # Kontrollen fylder den plads, popuppen har tilbage (issue #344).
+    du.fit_picker(pick, body.children, 12)
     # X er den eneste vej ud - men ikke midt i en gemning.
     return _modal("VhpAtt", '"Documents · Operation " & varVhpAttOpNo', ATT_OPEN,
                   ATT_CLOSE, [body],

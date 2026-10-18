@@ -1969,8 +1969,12 @@ def _files_panel():
                      size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true")
     adder = group("conIbFileAdd", [hint, up], direction="Vertical", gap=8,
                   visible="IbCanAttach")
-    return group("conIbDetFiles", [state, picker, adder], direction="Vertical", gap=12,
-                 visible='varIbTab = "files"')
+    panel = group("conIbDetFiles", [state, picker, adder], direction="Vertical", gap=12,
+                  visible='varIbTab = "files"')
+    # Kontrollen fylder fanens flade (issue #344) - fanen er lige saa hoej
+    # som indholdsfladen (build_detail: Height = Parent.Height).
+    du.fit_picker(picker, panel.children, 12)
+    return panel
 
 
 FACT_VAL_H = 20

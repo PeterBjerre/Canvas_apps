@@ -732,11 +732,11 @@ Screens:
                                       IfError(
                                           Set(varEqSessionStart, DateAdd(Now(), -2, TimeUnit.Minutes));
                                           ClearCollect(colEqDupSrc, Filter(EquipmentItems, RequestGuid = varEqRequestGuid));
-                                          ForAll(
-                                              colEqDupSrc As R,
-                                              With(
-                                                  { n: Patch(
-                                                      EquipmentItems, Defaults(EquipmentItems), {
+                                          With(
+                                              { created: Patch(
+                                                  EquipmentItems,
+                                                  ForAll(colEqDupSrc, Defaults(EquipmentItems)),
+                                                  ForAll(colEqDupSrc As R, {
                                                       Description: R.Description,
                                                       Plant: R.Plant,
                                                       RequestType: R.RequestType,
@@ -753,8 +753,12 @@ Screens:
                                                       RowStatus: { Value: If(R.RowStatus.Value = "submitted", "valid", Coalesce(R.RowStatus.Value, "valid")) },
                                                       RequestGuid: "", RequestNo: "",
                                                       RequesterEmail: varEqMe, RequesterName: User().FullName
-                                                  }) },
-                                                  Patch(EquipmentItems, n, { RowId: n.ID, ItemKey: "EQ-" & Text(n.ID, "000000"),
+                                                  })
+                                              ) },
+                                              Patch(
+                                                  EquipmentItems,
+                                                  ForAll(created As n, { ID: n.ID }),
+                                                  ForAll(created As n, { RowId: n.ID, ItemKey: "EQ-" & Text(n.ID, "000000"),
                                                       AttachmentFolder: "TaskListDocuments/" & "EQ-" & Text(n.ID, "000000") })
                                               )
                                           );
@@ -4387,7 +4391,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =80 + 14 + (Min(0 + (If(attEqPicker.AttachmentsCount = 0, 112, 112 + Min(attEqPicker.AttachmentsCount, 4) * 36)) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varEqAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 44 - 14))
+                =80 + 14 + (Min(0 + (160 + Max(attEqPicker.AttachmentsCount, CountRows(varEqAttRow.Attachments)) * 44) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varEqAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 44 - 14))
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -4551,7 +4555,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =Min(0 + (If(attEqPicker.AttachmentsCount = 0, 112, 112 + Min(attEqPicker.AttachmentsCount, 4) * 36)) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varEqAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 44 - 14)
+                      =Min(0 + (160 + Max(attEqPicker.AttachmentsCount, CountRows(varEqAttRow.Attachments)) * 44) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varEqAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 44 - 14)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -4575,7 +4579,7 @@ Screens:
                         DisplayMode: |-
                             =If(!((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted")), DisplayMode.View, IfError(Coalesce(varEqAttBusy, false), false) || IsBlank(varEqAttRow), DisplayMode.Disabled, DisplayMode.Edit)
                         Height: |-
-                            =If(Self.AttachmentsCount = 0, 112, 112 + Min(Self.AttachmentsCount, 4) * 36)
+                            =Min(160 + Max(Self.AttachmentsCount, CountRows(varEqAttRow.Attachments)) * 44, Max(160, Parent.Height - (0 + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varEqAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0))))
                         Items: |-
                             =varEqAttRow.Attachments
                         MaxAttachmentSize: |-
@@ -11801,11 +11805,11 @@ Screens:
                         OnSelect: |-
                             =Set(varEqSaving, true);
                             IfError(
-                                ForAll(
-                                    Filter(colEqPaste, Ok) As P,
-                                    With(
-                                        { n: Patch(
-                                            EquipmentItems, Defaults(EquipmentItems), {
+                                With(
+                                    { created: Patch(
+                                        EquipmentItems,
+                                        ForAll(Filter(colEqPaste, Ok), Defaults(EquipmentItems)),
+                                        ForAll(Filter(colEqPaste, Ok) As P, {
                                                 Description: P.Description,
                                                 Plant: P.Plant,
                                                 RequestType: P.RequestType,
@@ -11822,8 +11826,12 @@ Screens:
                                                 RequestNo: Coalesce(varEqRequestNo, ""),
                                                 RequesterEmail: If((!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)), Lower(varEqIdx.RequesterEmail), varEqMe),
                                                 RequesterName: If((!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)), varEqIdx.RequesterName, User().FullName)
-                                            }) },
-                                        Patch(EquipmentItems, n, { RowId: n.ID, ItemKey: "EQ-" & Text(n.ID, "000000"),
+                                        })
+                                    ) },
+                                    Patch(
+                                        EquipmentItems,
+                                        ForAll(created As n, { ID: n.ID }),
+                                        ForAll(created As n, { RowId: n.ID, ItemKey: "EQ-" & Text(n.ID, "000000"),
                                             AttachmentFolder: "TaskListDocuments/" & "EQ-" & Text(n.ID, "000000") })
                                     )
                                 );
