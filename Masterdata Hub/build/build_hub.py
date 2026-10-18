@@ -19,10 +19,10 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_PRIMARY, C_NEUTRAL_BG, C_MUTED_BG, C_MODAL_BG, C_DIVIDER,
                         C_TRANSPARENT, SHELL_W, C_WARN_FG, C_WARN_BG, C_ROW_HOVER, C_WHITE)
 import layout_tokens as lay
-from build_helpers import (_sum_expr, row_rule, row_hit, text_input, text_ctrl, group, button, card, flow_row, top_bar,
-                           fit_button_width, text_px, ICON_W, grow, themed_dropdown, icon_on_mobile,
+from build_helpers import (row_rule, row_hit, text_input, text_ctrl, group, button, card, flow_row, top_bar,
+                           fit_button_width, text_px, ICON_W, grow, themed_dropdown,
                            confirm_modal, new_request_label, empty_state, skeleton_rows, ensure_hit, segmented,
-                           SEG_GAP, SEG_PAD)
+                           SEG_GAP, SEG_PAD, SEG_H, SEG_BTN_H)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET
 from design_tokens import theme_query, ref_hex, ref as _t
 import design_tokens as tok

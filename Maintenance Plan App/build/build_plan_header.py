@@ -2,18 +2,16 @@
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_MUTED, C_TITLE, C_REQUIRED, C_INFO_BG, SHELL_W, C_DISABLED_BG, C_DIVIDER,
-                        C_VALID_FG, C_VALID_BG, C_INVALID_FG, C_INVALID_BG, C_NEUTRAL_BG)
+                        C_VALID_FG, C_INVALID_FG, C_NEUTRAL_BG)
 import icons
-from design_tokens import ref_hex
 import build_help as bh
 import layout_tokens as lay
-from build_helpers import (child_name, text_min_height, text_ctrl, group, button, text_input, number_field, num_value,
-                           themed_dropdown, field_cell, col_width, badge, card, grow,
+from build_helpers import (child_name, text_ctrl, group, button, text_input, number_field, num_value,
+                           themed_dropdown, field_cell, col_width, card, grow,
                            row_n, text_px, fit_button_width, ICON_W, date_picker)
 # Sektionsoverskriften og dens trin-badge staar i build_helpers (issue #228),
 # saa Materials kan bruge samme overskrift som Item Editor.
-from build_helpers import section_header, step_badge  # noqa: F401
-from build_helpers import ghost, fit  # noqa: F401
+from build_helpers import section_header  # noqa: F401
 from build_helpers import fluent, fluent_icon
 
 DM_PLAN = "If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)"
@@ -414,8 +412,6 @@ def build_plan_header():
         "txtVhpPlanMeta",
         f"If(varVhpPlanCommitted, \"Plan created \" & Text(varVhpPlanCreatedAt, \"{lay.DATETIME_FMT}\"), \"\")",
         size=12, color=C_MUTED, height=24, wrap="false")
-    footerInfo = group("conVhpPlanFooterInfo", [planMeta], direction="Vertical",
-                       gap=0, justify="Center")
 
     btnSave = button(
         "btnVhpPlanSave", "If(varVhpPlanLocked, \"Edit\", \"Done\")",

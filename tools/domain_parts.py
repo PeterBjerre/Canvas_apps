@@ -47,18 +47,17 @@ sys.path.insert(0, HERE)
 
 from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_MUTED_BG, C_REQUIRED, C_PRIMARY, C_WHITE,
-                        C_TRANSPARENT, C_ROW_PRESSED, C_NEUTRAL_BG, C_NEUTRAL_FG, C_INFO_FG,
-                        C_INFO_BG, C_VALID_FG, C_VALID_BG, C_WARN_FG,
-                        C_WARN_BG, C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY, C_DIVIDER,
+                        C_TRANSPARENT, C_ROW_PRESSED, C_NEUTRAL_BG,
+                        C_MODAL_BG, C_PRIMARY_SOFT,
                         C_INVALID_FG)
 import layout_tokens as lay
 from progress_overlay import progress_overlay
 from layout_tokens import fits, if_below, below, at_least
 from build_helpers import (row_rule, ensure_hit, close_x, popup_head, validation_summary, tap_backdrop, text_ctrl, text_min_height, group, button, text_input,
-                           checkbox_theme, date_picker, fit_button_row,
+                           checkbox_theme, date_picker,
                            fit_button_width, number_field, num_value, themed_dropdown,
-                           card, field_cell, pin_widths, badge, top_bar, grow, flow_ok,
-                           flow_row, label_px, text_px, loading_overlay,
+                           card, field_cell, pin_widths, top_bar, grow, flow_ok,
+                           flow_row, label_px, text_px,
                            with_busy, confirm_modal, edit_button, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
                            ICON_W, icon_on_mobile, new_request_label, segmented, empty_state, breadcrumb,
                            request_actions, row_list)
@@ -1449,7 +1448,7 @@ def build_details(scope=None, extra=()):
     scope = LIST_SCOPE if scope is None else scope
     # Raekken, ruden viser. Den slaas op HVER gang - saa er den altid den,
     # der staar i samlingen, ogsaa efter en Gem.
-    row = f"LookUp(colDomRows, RowId = varDomDetailsId)"
+    row = "LookUp(colDomRows, RowId = varDomDetailsId)"
     # Positionen i den SORTEREDE og FILTREREDE liste, saa frem/tilbage
     # foelger det, brugeren faktisk ser. Power Fx har ingen IndexOf, men
     # i en faldende sortering er positionen antallet af raekker foran.
@@ -2517,7 +2516,7 @@ def build_list(slots, badge_head, search_placeholder):
     row_c = _compact_row(lay_, load_row_fx(), copy_row_fx(), delete_this_row_fx())
 
     gal_h = (f"Max(Min(CountRows({LIST_SCOPE}), "
-             + if_below("Desktop", str(GAL_ROWS_C), str(GAL_ROWS)) + f"), 1) * "
+             + if_below("Desktop", str(GAL_ROWS_C), str(GAL_ROWS)) + "), 1) * "
              + if_below("Desktop", str(ROW_H_C + 2), str(ROW_H + 2)))
     rule = row_rule("rctDomRowRule", if_below("Desktop", str(ROW_H_C), str(ROW_H)))
     gal = row_list("Dom", f"Sort({LIST_SCOPE}, RowId, SortOrder.Descending)",
@@ -2543,8 +2542,8 @@ def build_list(slots, badge_head, search_placeholder):
     # formularens knap. Measuring Points viste kun overskrifterne.
     empty = empty_state(
         "conDomRowsEmpty",
-        f'If(IsEmpty(colDomRows), "No rows yet - fill in the details and choose Add row.", '
-        f'"No rows match the search and filters.")',
+        'If(IsEmpty(colDomRows), "No rows yet - fill in the details and choose Add row.", '
+        '"No rows match the search and filters.")',
         "Add row", new_row_fx() if getattr(cfg, "ROW_PANEL_ENABLED", False)
         else ADD_ROW_FX[0] or "false", icon_key=cfg.APP_KEY,
         button_name="btnDomRowsEmptyAdd", action_icon="Add",
@@ -2664,7 +2663,7 @@ def _paste_preview_fx():
         "            )\n"
         "        )\n"
         "    )\n"
-        f")"
+        ")"
     )
 
 

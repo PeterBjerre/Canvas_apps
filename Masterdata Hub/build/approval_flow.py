@@ -24,7 +24,7 @@ from gen_screen import (Ctrl, C_OVERLAY, C_MODAL_BG, C_PRIMARY_SOFT, C_MUTED, C_
                         C_MUTED_BG, C_TRANSPARENT, C_PRIMARY, C_INFO_BG, C_INFO_FG,
                         C_WARN_FG, C_WARN_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_VALID_FG, C_VALID_BG,
                         C_INVALID_FG, C_INVALID_BG, C_CARD_BORDER, C_ROW_HOVER, C_ROW_PRESSED)
-from build_helpers import (group, text_ctrl, button, grow, spinner, row_hit, text_px,
+from build_helpers import (group, text_ctrl, grow, spinner, row_hit, text_px,
                            text_input, label_px, modern_badge, close_x)
 from build_helpers import fluent, fluent_icon
 from hub_config import DOMAINS
@@ -990,7 +990,7 @@ def build_popup():
     # stod som et tomt tabstop. Nu er det en moderne tekst uden tekst, som
     # Issue Boards aktivitetskort (txtIbActBg), med samme fyld, stiplede kant
     # og hjoerner (issue #161).
-    solid = f'ThisItem.Human && ThisItem.State <> "Pending"'
+    solid = 'ThisItem.Human && ThisItem.State <> "Pending"'
     row_bg = f"If(({d_or_x}) && {solid}, {C_MUTED_BG}, {C_TRANSPARENT})"
     card = text_ctrl(n("txt", "Card"), '""', size=lay.SIZE_MICRO,
                      height=f"If({_is('X')}, If(ThisItem.IsLast, {ROW_H - 4}, {ROW_H}), If({is_open}, {ROW_H - 4}, {ROW_H - 8}))",

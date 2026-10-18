@@ -44,7 +44,12 @@ download.
 """
 from gen_screen import Ctrl, C_MUTED, C_WARN_FG, stack_height
 import layout_tokens as lay
-from build_helpers import text_ctrl, button, fit_button_width, ICON_W, capped_body  # noqa: F401
+from build_helpers import text_ctrl, button, fit_button_width, ICON_W
+# capped_body genudsendes: domain_parts, material_parts og VH-planens
+# build_tasklist kalder du.capped_body. __all__ fortaeller pyflakes (som
+# ikke kender "# noqa"), at importen er bevidst.
+from build_helpers import capped_body
+__all__ = ["capped_body"]
 
 # Versionen er den, Studio selv skriver (Peter, issue #161). Regel 16b
 # afviser den klassiske kontrol og enhver anden version.

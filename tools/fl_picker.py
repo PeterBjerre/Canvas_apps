@@ -63,7 +63,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, C_CARD_BORDER, C_DISABLED_BG, C_MUTED
 import layout_tokens as lay
 from build_helpers import (button, group, grow, border_rule, input_theme,
-                           fit_button_width, text_ctrl, spinner)
+                           fit_button_width, spinner)
 import build_flsearch as fl
 
 PLACEHOLDER = f'"At least {fl.MIN_SEARCH_LEN} characters, e.g. SSV13 HFC"'

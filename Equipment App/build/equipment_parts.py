@@ -38,7 +38,6 @@ Dokumenttype og dokumentlink er IKKE felter: dokumenterne ligger i
 biblioteket (dokumentpopuppen), ikke som et link paa raekken - se
 Provision-EqMatLists.ps1. Cellen Documentation aabner popuppen.
 """
-import attflows
 import domain_config as cfg
 import domain_parts as dp
 from build_helpers import card
