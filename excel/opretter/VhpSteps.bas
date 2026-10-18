@@ -550,7 +550,17 @@ Public Function CreatePlan(ByVal sess As Object, ByVal order As Object, ByVal it
     VhpSap.SetText sess, IP01_SCHED_PERIOD, VhpUtil.JStr(hz, "period")
     VhpSap.SetText sess, IP01_SCHED_UNIT, VhpUtil.JStr(hz, "periodUnit")
     VhpSap.SetText sess, IP01_START_DATE, VhpMap.SapDate(VhpMap.StartDate(firstDue, cycle, unitText))
-    VhpSap.SelectItem sess, IP01_KEY_DATE
+    ' "Time - key date" kan SAP ikke ved cyklus i dage (DAY): den svarer med
+    ' dialogen "Key date scheduling not possible", som ellers blokerer resten
+    ' af skaermen (MP0142). Ved DAY beholdes SAP's standard (Time).
+    If UCase$(unitText) <> "DAY" Then
+        VhpSap.SelectItem sess, IP01_KEY_DATE
+        If VhpSap.HasPopup(sess) Then
+            AddStepWarning ctx, VhpUtil.JStr(plan, "planId") & VhpUtil.Dk(": SAP afviste 'Time - key date' (") & _
+                VhpSap.PopupText(sess) & VhpUtil.Dk("). Planen bruger SAP's standard.")
+            VhpSap.ClosePopups sess
+        End If
+    End If
 
     ' Sorteringsfeltet. sortField er SAP-noeglen (010, 020 ...) fra
     ' SortFieldList. Opslagets Id er IKKE noeglen: Id 10 er "Gas systems",
@@ -595,7 +605,7 @@ End Function
 ' Sorteringsfeltet paa fanen Sortering i IP01: id'et, eller tom streng.
 ' Foerst den kendte sti, ellers feltet RMIPM-PLAN_SORT fundet paa navn.
 Private Function SortFieldId(ByVal sess As Object) As String
-    Dim tab As Object
+    Dim sortTab As Object
     Dim o As Object
     Dim p As Long
 
@@ -605,11 +615,11 @@ Private Function SortFieldId(ByVal sess As Object) As String
     End If
 
     On Error Resume Next
-    Set tab = sess.FindById(IP01_TAB_SORT, False)
-    If Not tab Is Nothing Then
-        Set o = tab.FindByName("RMIPM-PLAN_SORT", "GuiComboBox")
-        If o Is Nothing Then Set o = tab.FindByName("RMIPM-PLAN_SORT", "GuiCTextField")
-        If o Is Nothing Then Set o = tab.FindByName("RMIPM-PLAN_SORT", "GuiTextField")
+    Set sortTab = sess.FindById(IP01_TAB_SORT, False)
+    If Not sortTab Is Nothing Then
+        Set o = sortTab.FindByName("RMIPM-PLAN_SORT", "GuiComboBox")
+        If o Is Nothing Then Set o = sortTab.FindByName("RMIPM-PLAN_SORT", "GuiCTextField")
+        If o Is Nothing Then Set o = sortTab.FindByName("RMIPM-PLAN_SORT", "GuiTextField")
     End If
     On Error GoTo 0
     If o Is Nothing Then Exit Function

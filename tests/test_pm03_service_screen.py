@@ -30,3 +30,19 @@ def test_ip01_finds_the_sort_field_by_name_and_does_not_stop_on_it():
     i = src.find("sortId = SortFieldId(sess)")
     assert i > 0 and "AddStepWarning" in src[i:i + 400]
     assert "VhpSap.SelectCombo(sess, IP01_SORT_FIELD" not in src
+
+
+def test_no_vba_variable_is_named_after_tab_or_spc():
+    # Tab og Spc er reserverede i VBA; "Dim tab" giver Syntax error ved Compile.
+    import glob
+    import re
+    for path in glob.glob(os.path.join(ROOT, "excel", "opretter", "*.bas")):
+        src = open(path, encoding="latin-1").read()
+        assert not re.search(r"(?im)^\s*(Dim|Private|Public)\s+(tab|spc)\b", src), path
+
+
+def test_ip01_skips_key_date_for_day_cycles():
+    src = open(os.path.join(ROOT, "excel", "opretter", "VhpSteps.bas"), encoding="latin-1").read()
+    i = src.find("VhpSap.SelectItem sess, IP01_KEY_DATE")
+    assert 'If UCase$(unitText) <> "DAY" Then' in src[i - 120:i]
+    assert "VhpSap.ClosePopups sess" in src[i:i + 500]
