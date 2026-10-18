@@ -33,15 +33,19 @@ def _prop(block, prop):
 def test_button_sits_right_of_the_key_tabs():
     y = _yaml()
     row = _block(y, "conKksTopRow", 200000)
-    assert row.index("- conKksKeys:") < row.index("- btnKksFlOpen:")
-    assert "LayoutJustifyContent.SpaceBetween" in row[:row.index("- conKksKeys:")]
-    btn = _block(y, "btnKksFlOpen")
-    assert '="Search Functional Locations"' in btn
+    # Issue #345: fanerne staar direkte i raekken, og et udregnet mellemrum
+    # skubber FL-knappen ud til hoejre (ingen indlejret conKksKeys).
+    assert (row.index("- btnKksKeyComponent:") < row.index("- conKksTopGap:")
+            < row.index("- btnKksFlOpen:"))
+    for name in ("btnKksFlOpen", "btnKksFlOpenNarrow"):
+        btn = _block(y, name)
+        assert '="Search Functional Locations"' in btn
 
 
 def test_opening_and_closing_touch_only_the_popup():
     y = _yaml()
     assert _prop(_block(y, "btnKksFlOpen"), "OnSelect") == "=Set(varKksFlOn, true)"
+    assert _prop(_block(y, "btnKksFlOpenNarrow"), "OnSelect") == "=Set(varKksFlOn, true)"
     assert _prop(_block(y, "btnKksFlClose"), "OnSelect") == "=Set(varKksFlOn, false)"
     modal = y[y.index("- conKksFlBackdrop:"):y.index("- imgKksLoading:")]
     # KKS-filtrene, den valgte kode og resultaterne saettes aldrig herfra.
