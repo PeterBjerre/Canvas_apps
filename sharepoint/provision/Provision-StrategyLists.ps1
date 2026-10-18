@@ -188,7 +188,7 @@ if (-not $SkipSeed -and (Test-Path $PackageSeedPath)) {
     # ville en forkert vaerdi blive liggende for evigt.
     $havePkg = @{}
     foreach ($it in (Get-PnPListItem -List 'MD_StrategyPackage' -PageSize 500)) {
-        $havePkg["$($it.FieldValues.StrategyKey)|$($it.FieldValues.PackageNo)"] = $it.Id
+        $havePkg["$($it.FieldValues.StrategyKey)|$($it.FieldValues.PackageNo)"] = $it
     }
 
     $pAdded = 0; $pUpdated = 0; $pSame = 0
@@ -206,13 +206,16 @@ if (-not $SkipSeed -and (Test-Path $PackageSeedPath)) {
             PackageText = $r.PackageText
             OffsetValue = [int]$r.OffsetValue
         }
-        $existingId = $havePkg["$($r.StrategyKey)|$($r.PackageNo)"]
-        if ($existingId) {
+        $existingItem = $havePkg["$($r.StrategyKey)|$($r.PackageNo)"]
+        if ($existingItem) {
+            $existingId = $existingItem.Id
             # En TAVS overskrivning er farlig: har nogen rettet direkte i
             # listen, ruller csv'en rettelsen tilbage, uden at det kan ses.
             # Derfor listes hvert felt, der faktisk aendrer sig - og med
             # -WhatIfOnly skrives det uden at der roeres ved noget.
-            $cur = (Get-PnPListItem -List 'MD_StrategyPackage' -Identity $existingId).FieldValues
+            # Raekken er allerede hentet ovenfor - intet ekstra kald pr. pakke.
+            # (Get-PnPListItem tager -Id, ikke -Identity.)
+            $cur = $existingItem.FieldValues
             $diff = @()
             foreach ($k in $vals.Keys) {
                 $now = $cur[$k]
