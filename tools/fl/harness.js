@@ -494,12 +494,18 @@ function originalValidate(o, rowsIn) {
 // ---------------------------------------------------------------------------
 // Kommandoer
 // ---------------------------------------------------------------------------
-function cmdPlan() {
-  const o = loadOriginals();
+// Hele planen, som den skrives til fl_rules.generated.json.
+function fullPlan(o) {
   const P = buildPlan(o);
   P.patterns = PAT;
   P.patternsJs = PAT_JS;
   P.fieldPatterns = FIELD_PFX;
+  return P;
+}
+
+function cmdPlan() {
+  const o = loadOriginals();
+  const P = fullPlan(o);
   fs.writeFileSync(OUT_PLAN, JSON.stringify(P, null, 1) + "\n", "utf8");
   console.log(`Skrev ${path.relative(ROOT, OUT_PLAN)}: ${P.classes.length} klasser, ${P.plan.length} tjek, ` +
               `${P.columns.length} kolonner, ${new Set(P.lists.map((l) => l.List)).size} lister.`);
@@ -528,9 +534,17 @@ function same(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
 function cmdTest() {
   const o = loadOriginals();
   const P = JSON.parse(fs.readFileSync(OUT_PLAN, "utf8"));
-  const fresh = buildPlan(o);
-  if (!same(fresh.plan, P.plan) || !same(fresh.columns, P.columns) || !same(fresh.lists, P.lists)) {
-    console.log("FEJL: fl_rules.generated.json er ikke i trit med html/*.js. Koer: node tools/fl/harness.js plan");
+  // HELE objektet (minus _kilde) - ikke kun plan/columns/lists (R2-042).
+  // Noeglerne (aggregate, component, br18, plants, functionKeys), klasse-
+  // hjaelpen og moenstrene laeses ogsaa af de kompilerede formler; glider
+  // de fra html/*.js, skal testen fejle, ikke appen bygges af den gamle JSON.
+  const fresh = fullPlan(o);
+  const strip = (p) => { const q = { ...p }; delete q._kilde; return q; };
+  if (!same(strip(fresh), strip(P))) {
+    const keys = [...new Set([...Object.keys(strip(fresh)), ...Object.keys(strip(P))])]
+      .filter((k) => !same(fresh[k], P[k]));
+    console.log("FEJL: fl_rules.generated.json er ikke i trit med html/*.js (" + keys.join(", ") +
+                "). Koer: node tools/fl/harness.js plan");
     process.exit(1);
   }
   let fail = 0;
