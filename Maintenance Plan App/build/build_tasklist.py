@@ -60,7 +60,7 @@ OPS_COLS = [
     ("COST", 80),
     ("MAT.GRP", 90),
     ("LONG TEXT", 170),
-    # Plads til fire pakke-piller (build_strategy.pkg_pills).
+    # Plads til syv smalle pakke-piller (build_strategy.pkg_pills).
     ("PACKAGES", PILLS_W),
     # Knapper, som Details og Docs i Equipments liste (issue #54). De
     # aabner materialerne og dokumenterne for NETOP denne operation.
