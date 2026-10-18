@@ -3202,7 +3202,7 @@ Screens:
                                   Control: ModernBadge@1.0.0
                                   Properties:
                                     AccessibleLabel: |-
-                                        =If(Self.Content = "Valid", "Step 1: valid", "Step 1: " & If(Self.Content = "Invalid", "invalid", "not complete yet"))
+                                        =If(VhpPlanValid, "Step 1: valid", "Step 1: not complete yet")
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -3214,11 +3214,11 @@ Screens:
                                     BorderThickness: |-
                                         =0
                                     Color: |-
-                                        =Switch(Self.Content, "Valid", C.'state-ok-fg', "Invalid", C.'state-error-fg', C.'text-muted')
+                                        =If(VhpPlanValid, C.'state-ok-fg', C.'text-muted')
                                     Content: |-
                                         =If(VhpPlanValid, "Valid", "")
                                     Fill: |-
-                                        =Switch(Self.Content, "Valid", C.'state-ok-bg', "Invalid", C.'state-error-bg', C.'state-neutral-bg')
+                                        =If(VhpPlanValid, C.'state-ok-bg', C.'state-neutral-bg')
                                     Font: |-
                                         =Font.'Segoe UI'
                                     FontWeight: |-
@@ -6066,7 +6066,18 @@ Screens:
                                         Control: ModernBadge@1.0.0
                                         Properties:
                                           AccessibleLabel: |-
-                                              =If(Self.Content = "Valid", "Step 2: valid", "Step 2: " & If(Self.Content = "Invalid", "invalid", "not complete yet"))
+                                              =If((VhpItemsValid && !(With(
+                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                  !IsBlank(varVhpActiveItemId) && (
+                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
+                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
+                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                  )
+                                              ))), "Step 2: valid", "Step 2: not complete yet")
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
@@ -6078,7 +6089,18 @@ Screens:
                                           BorderThickness: |-
                                               =0
                                           Color: |-
-                                              =Switch(Self.Content, "Valid", C.'state-ok-fg', "Invalid", C.'state-error-fg', C.'text-muted')
+                                              =If((VhpItemsValid && !(With(
+                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                  !IsBlank(varVhpActiveItemId) && (
+                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
+                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
+                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                  )
+                                              ))), C.'state-ok-fg', C.'text-muted')
                                           Content: |-
                                               =If((VhpItemsValid && !(With(
                                                   { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
@@ -6093,7 +6115,18 @@ Screens:
                                                   )
                                               ))), "Valid", "")
                                           Fill: |-
-                                              =Switch(Self.Content, "Valid", C.'state-ok-bg', "Invalid", C.'state-error-bg', C.'state-neutral-bg')
+                                              =If((VhpItemsValid && !(With(
+                                                  { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                  !IsBlank(varVhpActiveItemId) && (
+                                                      Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                      (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                      (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                      (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
+                                                      (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
+                                                      (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                      Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                  )
+                                              ))), C.'state-ok-bg', C.'state-neutral-bg')
                                           Font: |-
                                               =Font.'Segoe UI'
                                           FontWeight: |-
@@ -7234,7 +7267,18 @@ Screens:
                                               Control: ModernBadge@1.0.0
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    =If(Self.Content = "Valid", "Step 2: valid", "Step 2: " & If(Self.Content = "Invalid", "invalid", "not complete yet"))
+                                                    =If((VhpItemsValid && !(With(
+                                                        { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                        !IsBlank(varVhpActiveItemId) && (
+                                                            Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                            (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                            (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                            (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
+                                                            (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
+                                                            (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                            Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                        )
+                                                    ))), "Step 2: valid", LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status = "invalid", "Step 2: invalid", "Step 2: not complete yet")
                                                 Align: |-
                                                     =Align.Center
                                                 AlignInContainer: |-
@@ -7246,7 +7290,18 @@ Screens:
                                                 BorderThickness: |-
                                                     =0
                                                 Color: |-
-                                                    =Switch(Self.Content, "Valid", C.'state-ok-fg', "Invalid", C.'state-error-fg', C.'text-muted')
+                                                    =If((VhpItemsValid && !(With(
+                                                        { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                        !IsBlank(varVhpActiveItemId) && (
+                                                            Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                            (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                            (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                            (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
+                                                            (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
+                                                            (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                            Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                        )
+                                                    ))), C.'state-ok-fg', LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status = "invalid", C.'state-error-fg', C.'text-muted')
                                                 Content: |-
                                                     =If((VhpItemsValid && !(With(
                                                         { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
@@ -7261,7 +7316,18 @@ Screens:
                                                         )
                                                     ))), "Valid", LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status = "invalid", "Invalid", "")
                                                 Fill: |-
-                                                    =Switch(Self.Content, "Valid", C.'state-ok-bg', "Invalid", C.'state-error-bg', C.'state-neutral-bg')
+                                                    =If((VhpItemsValid && !(With(
+                                                        { it: LookUp(colVhpItems, ItemId = varVhpActiveItemId) },
+                                                        !IsBlank(varVhpActiveItemId) && (
+                                                            Trim(inpVhpItemShortText.Text & "") <> Trim(it.ShortText & "") ||
+                                                            (drpVhpItemMainWorkCenter.Selected.Value & "") <> (it.MainWorkCenter & "") ||
+                                                            (drpVhpItemActivityType.Selected.Value & "") <> (it.ActivityType & "") ||
+                                                            (!IsBlank(varVhpItemRevPick) && varVhpItemRevPick <> !IsBlank(it.Revision)) ||
+                                                            (!IsBlank(varVhpItemNfPick) && (varVhpItemNfPick.Value & "") <> (it.NonFlowUserStatus & "")) ||
+                                                            (cmbVhpItemFL.Selected.Code & "") <> (it.FunctionalLocation & "") ||
+                                                            Trim(inpVhpItemInitials.Text & "") <> Trim(it.Initials & "")
+                                                        )
+                                                    ))), C.'state-ok-bg', LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status = "invalid", C.'state-error-bg', C.'state-neutral-bg')
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 FontWeight: |-
@@ -10448,7 +10514,7 @@ Screens:
                                   Control: ModernBadge@1.0.0
                                   Properties:
                                     AccessibleLabel: |-
-                                        =If(Self.Content = "Valid", "Step 3: valid", "Step 3: " & If(Self.Content = "Invalid", "invalid", "not complete yet"))
+                                        =If(VhpOpsValid, "Step 3: valid", "Step 3: not complete yet")
                                     Align: |-
                                         =Align.Center
                                     AlignInContainer: |-
@@ -10460,11 +10526,11 @@ Screens:
                                     BorderThickness: |-
                                         =0
                                     Color: |-
-                                        =Switch(Self.Content, "Valid", C.'state-ok-fg', "Invalid", C.'state-error-fg', C.'text-muted')
+                                        =If(VhpOpsValid, C.'state-ok-fg', C.'text-muted')
                                     Content: |-
                                         =If(VhpOpsValid, "Valid", "")
                                     Fill: |-
-                                        =Switch(Self.Content, "Valid", C.'state-ok-bg', "Invalid", C.'state-error-bg', C.'state-neutral-bg')
+                                        =If(VhpOpsValid, C.'state-ok-bg', C.'state-neutral-bg')
                                     Font: |-
                                         =Font.'Segoe UI'
                                     FontWeight: |-
@@ -10704,14 +10770,10 @@ Screens:
                                   ="Task list sections"
                               AlignInContainer: |-
                                   =AlignInContainer.Start
-                              Alignment: |-
-                                  =TabListAlignment.Start
-                              Appearance: |-
-                                  =TabListAppearance.Underline
                               Color: |-
                                   =C.'text-primary'
                               Default: |-
-                                  =Switch(varVhpOpsTab, "ops", "Operations", "pkg", If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) >= 294, "Maintenance packages", "Packages"), "Operations")
+                                  ={Value: Switch(varVhpOpsTab, "ops", "Operations", "pkg", If(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) >= 294, "Maintenance packages", "Packages"), "Operations")}
                               Font: |-
                                   =Font.'Segoe UI'
                               Height: |-
