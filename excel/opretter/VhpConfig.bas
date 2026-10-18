@@ -143,7 +143,9 @@ Public Const IA05_COL_MATGROUP As String = "ctxtPLPOD-MATKL[37,"
 Public Const IA05_COL_VENDOR As String = "ctxtPLPOD-LIFNR[39,"
 
 ' PM03: ydelser fra modelydelsesspecifikationen
-Public Const IA05_BTN_SERVICES As String = "wnd[0]/tbar[1]/btn[13]"
+' Ydelsesskaermen aabnes af Enter paa operationen; knappen her henter
+' modelydelsesspecifikationen.
+Public Const IA05_SRV_MODELSPEC_BTN As String = "wnd[0]/tbar[1]/btn[13]"
 Public Const IA05_SRV_MODELSPEC As String = "wnd[1]/usr/ctxtRM11P-MUSTER_LV"
 Public Const IA05_SRV_MODELSPEC_OK As String = "wnd[1]/tbar[0]/btn[0]"
 Public Const IA05_SRV_TABLE As String = "wnd[0]/usr/subSERVICE:SAPLMLSP:0400/tblSAPLMLSPTC_VIEW"
