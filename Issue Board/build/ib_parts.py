@@ -72,13 +72,13 @@ HENTNING (issue #177)
 from gen_screen import (Ctrl, stack_height, C_INPUT_BORDER, C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_DIVIDER, C_INFO_BG,
                         C_INFO_FG, C_INVALID_FG, C_MUTED, C_MUTED_BG, C_MODAL_BG, C_OVERLAY,
                         C_PRIMARY, C_PRIMARY_SOFT, C_TITLE, C_TRANSPARENT, C_WARN_BG,
-                        C_WARN_FG)
+                        C_WARN_FG, C_VALID_FG, C_VALID_BG)
 from build_helpers import (empty_state, fluent, fluent_icon, skeleton_rows, ensure_hit, hit_size, button, card, checkbox_theme, concurrent, confirm_modal,
                            fit_button_width, group, icon_button, SEG_H, tab_list, tabs_w,
                            flow_row, grow, icon_on_mobile, label_row, loading_overlay, row_hit, row_rule,
                            tap_backdrop,
                            label_px, text_ctrl, text_input, text_min_height, text_px, themed_dropdown, top_bar,
-                           ICON_W, modern_badge)
+                           ICON_W, modern_badge, spinner)
 from permissions import IS_ADMIN, ADMIN_LIST, ADMIN_GROUP
 from design_tokens import ref as _t, ref_hex
 import icons
@@ -126,6 +126,13 @@ INIT_STATE = (
     "    Set(varIbUploading, false);\n"
     "    Set(varIbSelPeek, false);\n"
     "    Set(varIbPosting, false);\n"
+    '    Set(varIbPostStage, "");\n'
+    "    Set(varIbPostFor, -1);\n"
+    '    Set(varIbPostText, "");\n'
+    '    Set(varIbPostErr, "");\n'
+    "    Set(varIbPostInternal, false);\n"
+    "    Set(varIbPostAt, Now());\n"
+    "    Set(varIbPostTick, Now());\n"
     "    Set(varIbSyncing, false)\n"
     ")"
 )
@@ -1784,26 +1791,73 @@ def _run(action, payload, ok_fx, fail_text, busy="varIbBusy"):
 # raekken er skrevet. Saa saettes den samme raekke ind sidst i feeden - den
 # nyeste, altsaa i den rigtige raekkefoelge - uden at hente hele Activity
 # igen: intet blink, intet ekstra kald. Rollen er flowets egen regel (Admin,
-# naar en admin skriver paa en andens sag). Feltet toemmes foerst nu;
-# fejler kaldet, staar teksten der stadig.
+# naar en admin skriver paa en andens sag).
+#
+# VENTETIDEN STAAR I KOMMENTARFELTET (issue #370). Kaldet tager omkring 10
+# sekunder. Intet sloer over hele skaermen: feltet erstattes af et lille hjul
+# med en tekst, der skifter (varIbPostStage: "posting" -> "updating" ->
+# "done" eller "failed"). Resten af appen kan bruges imens. Teksten, sagen og
+# "intern" gemmes FOER kaldet (varIbPostText/-For/-Internal): svaret skrives
+# paa den sag, kommentaren hoerer til, ogsaa hvis man har aabnet en anden
+# imens - og feeden faar kun raekken, naar den samme sag stadig er aaben.
+# Feltet toemmes foerst ved succes; fejler kaldet, staar teksten der igen
+# (inpIbComment.Default) med Retry. Eget svar (varIbPostRes): Reopen eller
+# Archive imens maa ikke overskrive varIbRes under kommentaren.
+POSTING_HERE = ('varIbPostFor = varIbSelId && '
+                '(varIbPostStage = "posting" || varIbPostStage = "updating")')
+POST_FAILED_HERE = 'varIbPostFor = varIbSelId && varIbPostStage = "failed"'
+POST_DONE_HERE = 'varIbPostFor = varIbSelId && varIbPostStage = "done"'
+# Sekunder siden klik - timeren tmrIbPost flytter varIbPostTick.
+POST_SECS = "DateDiff(varIbPostAt, varIbPostTick, TimeUnit.Seconds)"
+POST_STAGE_TEXT = (
+    'If(varIbPostStage = "updating", "Updating activity...", '
+    f'{POST_SECS} >= 8, "Saving it to the issue...", '
+    f'{POST_SECS} >= 3, "Still posting, please wait...", '
+    'If(varIbPostInternal, "Adding internal note...", "Posting comment..."))'
+)
 POST_ROW = (
     '{ Kind: "Comment", Actor: "You", '
     f'Role: If({IS_ADMIN} && !IbSelMine, "Admin", "User"), '
-    "Body: Trim(inpIbComment.Text), At: Now(), "
-    f"Internal: varIbInternal && {IS_ADMIN}, IsSystem: false, "
+    "Body: varIbPostText, At: Now(), "
+    "Internal: varIbPostInternal, IsSystem: false, "
     'File: "", SizeKb: 0, Initial: false }'
 )
-POST = _run(
-    cfg.ACT_COMMENT,
-    f"{{ ticketId: varIbSelId, content: Trim(inpIbComment.Text), internal: varIbInternal && {IS_ADMIN} }}",
-    f"Collect(colIbActivity, {POST_ROW});\n"
-    "Reset(inpIbComment);\n"
-    "UpdateIf(colIbAll, Id = varIbSelId, { UpdatedOn: Now() });\n"
-    "Set(varIbSel, Patch(varIbSel, { UpdatedOn: Now() }));\n"
-    'Notify(If(varIbInternal, "Internal note added.", "Comment posted."), NotificationType.Success);\n'
-    "Set(varIbInternal, false);\n"
-    "Reset(chkIbInternal)",
-    "The comment could not be posted.", busy="varIbPosting")
+POST = (
+    "If(\n"
+    "    !varIbPosting && !IsBlank(Trim(inpIbComment.Text)),\n"
+    "    Set(varIbPostText, Trim(inpIbComment.Text));\n"
+    f"    Set(varIbPostInternal, varIbInternal && {IS_ADMIN});\n"
+    "    Set(varIbPostFor, varIbSelId);\n"
+    "    Set(varIbPostAt, Now());\n"
+    "    Set(varIbPostTick, Now());\n"
+    '    Set(varIbPostErr, "");\n'
+    '    Set(varIbPostStage, "posting");\n'
+    "    Set(varIbPosting, true);\n"
+    f"    Set(varIbPostRes, IfError({cfg.FLOW}.Run(\n"
+    f'        "{cfg.ACT_COMMENT}",\n'
+    "        JSON({ ticketId: varIbPostFor, content: varIbPostText, internal: varIbPostInternal })\n"
+    f"    ), {FALLBACK}));\n"
+    "    If(\n"
+    '        varIbPostRes.ok = "yes",\n'
+    '        Set(varIbPostStage, "updating");\n'
+    "        If(\n"
+    "            varIbSelId = varIbPostFor,\n"
+    f"            Collect(colIbActivity, {POST_ROW});\n"
+    "            Reset(inpIbComment);\n"
+    "            Set(varIbSel, Patch(varIbSel, { UpdatedOn: Now() }));\n"
+    "            Set(varIbInternal, false);\n"
+    "            Reset(chkIbInternal)\n"
+    "        );\n"
+    "        UpdateIf(colIbAll, Id = varIbPostFor, { UpdatedOn: Now() });\n"
+    "        Set(varIbPostAt, Now());\n"
+    "        Set(varIbPostTick, Now());\n"
+    '        Set(varIbPostStage, "done"),\n'
+    "        Set(varIbPostErr, varIbPostRes.message);\n"
+    '        Set(varIbPostStage, "failed")\n'
+    "    );\n"
+    "    Set(varIbPosting, false)\n"
+    ")"
+)
 
 REOPEN = _run(
     cfg.ACT_REOPEN, '{ ticketId: varIbSelId, reason: "" }',
@@ -2272,7 +2326,10 @@ def build_detail():
                           height=34, wrap="true",
                           visible=f"({act_loading}) || IfError(varIbActFailed, false)")
 
-    comment = text_input("inpIbComment", '""',
+    # Fejler kaldet, kommer teksten tilbage (issue #370): Default er den
+    # gemte tekst, saa laenge kommentaren paa DENNE sag er fejlet - ogsaa
+    # efter et skift til en anden sag og tilbage (open_ticket nulstiller).
+    comment = text_input("inpIbComment", f'If({POST_FAILED_HERE}, varIbPostText, "")',
                          placeholder=(f'If(varIbInternal, "Write an internal note for the administrators", '
                                       f'{IS_ADMIN} && !IbSelMine, "Write a reply to the reporter", '
                                       '"Write a comment for the administrators")'),
@@ -2304,13 +2361,50 @@ def build_detail():
                                 "DisplayMode.Disabled, DisplayMode.Edit)"))
     post.props["AlignInContainer"] = "AlignInContainer.End"
     composer = group("conIbComposer", [comment, internal, closed_hint, post], direction="Vertical",
-                     gap=8, visible="IbCanComment")
+                     gap=8, visible=f"IbCanComment && !({POSTING_HERE})")
+    # Mens kommentaren sendes (issue #370): feltet er skiftet ud med et lille
+    # hjul og en tekst, der viser, hvor langt den er. Kun her - intet sloer.
+    post_spin = spinner("spnIbPosting", "true", POST_STAGE_TEXT, width="Parent.Width", height=32,
+                        label=POST_STAGE_TEXT, size=lay.SIZE_BODY, weight="Semibold")
+    post_spin.props["LayoutMinWidth"] = "0"
+    post_note = text_ctrl("txtIbPostingNote",
+                          '"This usually takes about 10 seconds. You can keep using the app meanwhile."',
+                          size=lay.SIZE_SMALL, color=C_MUTED, height=34, wrap="true")
+    posting = group("conIbPosting", [post_spin, post_note], direction="Vertical", gap=4,
+                    fill=C_MUTED_BG, radius=10, pad=(12, 12, 12, 12),
+                    visible=f"IbCanComment && ({POSTING_HERE})")
+    # Sendt: en kort bekraeftelse over det tomme felt - timeren (tmrIbPost)
+    # fjerner den efter et par sekunder, og den gaar ogsaa, naar man skriver.
+    posted = text_ctrl("txtIbPosted",
+                       'If(varIbPostInternal, "Internal note added.", "Comment posted.")',
+                       size=lay.SIZE_BODY, weight="Semibold", color=C_VALID_FG, height=36,
+                       visible=f"IbCanComment && ({POST_DONE_HERE}) && IsBlank(inpIbComment.Text)",
+                       extra={"Fill": C_VALID_BG, "PaddingLeft": "12", "PaddingRight": "12",
+                              "VerticalAlign": "VerticalAlign.Middle", **lay.radius(10)})
+    # Fejlet: grunden og Retry. Teksten staar i feltet nedenunder igen.
+    retry_w = fit_button_width('"Retry"') + ICON_W
+    fail_msg = ('If(varIbPostInternal, "The internal note could not be added.", '
+                '"The comment could not be posted.") & " Your text is kept below." & '
+                'If(IsBlank(varIbPostErr), "", " " & Left(varIbPostErr, 200))')
+    fail_h = f"Max(36, {_lines_h(fail_msg, f'{DET_IN} - 20 - {retry_w} - 8', px=6.6)})"
+    fail_text = text_ctrl("txtIbPostFailed", fail_msg, size=lay.SIZE_SMALL, color=C_INVALID_FG,
+                          height=fail_h, wrap="true",
+                          extra={"VerticalAlign": "VerticalAlign.Middle"})
+    grow(fail_text)
+    retry = button("btnIbPostRetry", '"Retry"', POST, width=retry_w, height=36,
+                   icon="ArrowClockwise", accessible='"Retry posting the comment"',
+                   display_mode=("If(IsBlank(Trim(inpIbComment.Text)) || varIbPosting, "
+                                 "DisplayMode.Disabled, DisplayMode.Edit)"))
+    failed = group("conIbPostFailed", [fail_text, retry], direction="Horizontal", gap=8,
+                   height=f"({fail_h}) + 16", align_items="Center", fill=C_MUTED_BG, radius=10,
+                   pad=(8, 8, 8, 12), visible=f"IbCanComment && ({POST_FAILED_HERE})")
     archived_hint = text_ctrl("txtIbArchivedHint",
                               '"This issue is archived. Its history is kept, and comments are '
                               'closed."',
                               size=lay.SIZE_SMALL, color=C_MUTED, height=18,
                               visible=f"{SEL}.Archived")
-    activity = group("conIbDetActivity", [act_state, gal, composer, archived_hint],
+    activity = group("conIbDetActivity", [act_state, gal, posted, failed, posting, composer,
+                                          archived_hint],
                      direction="Vertical", gap=12, visible='IbSeeActivity && varIbTab = "activity"')
 
     # STABIL HOEJDE (issue #212). Toppen - status, fakta, handlingerne og
@@ -2367,11 +2461,34 @@ def build_delete():
                    foot=footer)]
 
 
+def _post_timer():
+    """Mens en kommentar sendes og lige efter (issue #370): hvert sekund
+    flyttes varIbPostTick, saa teksten ved hjulet kan skifte; "Comment
+    posted." staar i 2,5 sekunder. Taeller kun i de to tilstande."""
+    return Ctrl("tmrIbPost", "Timer", props={
+        "AutoPause": "false",
+        "AutoStart": "false",
+        "Duration": "1000",
+        "Height": "1",
+        "OnTimerEnd": ("Set(varIbPostTick, Now());\n"
+                       'If(\n    varIbPostStage = "done" &&\n'
+                       "    DateDiff(varIbPostAt, varIbPostTick, TimeUnit.Milliseconds) >= 2500,\n"
+                       '    Set(varIbPostStage, "")\n)'),
+        "Repeat": "true",
+        "Start": 'varIbPostStage = "posting" || varIbPostStage = "done"',
+        "Visible": "false",
+        "Width": "1",
+    }, h=1, vis="false")
+
+
 def build_loading():
     # Hentningen af listen har pladsholder-raekker (conIbSkeleton, M7);
     # hjulet daekker kun det, brugeren selv har sat i gang.
     # Gem og upload er en ubestemt Progress bar (issue #305); samme Visible.
-    return [*progress_overlay("imgIbBusy", "(varIbBusy || varIbPosting) && !varIbUploading",
+    # En kommentar har sin egen ventetilstand i kommentarfeltet (issue #370) -
+    # varIbPosting daekker ikke skaermen.
+    return [_post_timer(),
+            *progress_overlay("imgIbBusy", "varIbBusy && !varIbUploading",
                               "Sending, please wait"),
             *progress_overlay("imgIbUploading", "varIbUploading", "Saving files, please wait",
                               caption="Saving files...")]

@@ -28,7 +28,8 @@ OVERLAYS = {
     "ScreenFunctionalLocation.pa.yaml": [("imgFlSaving", "varFlSaving", None)],
     "ScreenVhPlan.pa.yaml": [("imgVhpSaving", "varVhpSaving", None)],
     "ScreenIssueBoard.pa.yaml": [
-        ("imgIbBusy", "(varIbBusy || varIbPosting) && !varIbUploading", None),
+        # Kommentaren har sin egen ventetilstand i kommentarfeltet (#370).
+        ("imgIbBusy", "varIbBusy && !varIbUploading", None),
         ("imgIbUploading", "varIbUploading", "Saving files..."),
     ],
 }

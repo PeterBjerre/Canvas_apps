@@ -530,7 +530,8 @@ def test_activity_shows_role_badges():
     assert 'Role: Switch(role, "Admin", "Admin", "System", "System", "User")' in P.LOAD_ACTIVITY
     assert '" (admin)"' not in P.LOAD_ACTIVITY
     # Interne noter kun for admin; Post comment laast, naar feltet er tomt.
-    assert "internal: varIbInternal && IsAdmin" in P.POST
+    assert "Set(varIbPostInternal, varIbInternal && IsAdmin)" in P.POST
+    assert "internal: varIbPostInternal" in P.POST
     assert ctrls["btnIbPost"].props["DisplayMode"].startswith("If(IsBlank(Trim(inpIbComment.Text))")
     assert ctrls["inpIbComment"].props["TriggerOutput"] == "TriggerOutput.Keypress"
 
@@ -822,7 +823,7 @@ def test_toolbar_reserves_its_full_width_and_height_at_every_size():
 
 def test_comment_is_added_locally_and_kept_on_failure():
     import ib_parts as P
-    ok, fail = P.POST.split("Notify(\"The comment could not be posted.")
+    ok, fail = P.POST.split("Set(varIbPostErr, varIbPostRes.message)")
     # Feeden faar raekken lokalt - ingen ny hentning af Activity.
     assert "Collect(colIbActivity, " in ok and "ClearCollect(colIbActFresh" not in P.POST
     assert ok.index("Collect(colIbActivity") < ok.index("Reset(inpIbComment)")
@@ -836,11 +837,12 @@ def test_refresh_never_empties_what_is_shown():
     assert "ClearCollect(colIbFresh," in P.SYNC
     assert P.SYNC.index("varIbSyncFailed,") < P.SYNC.index("ClearCollect(colIbAll, colIbFresh)")
     assert "If(!varIbActFailed, ClearCollect(colIbActivity, colIbActFresh)" in P.LOAD_ACTIVITY
-    # Ingen timer til hentningen. Den eneste timer er beskedens
-    # (tools/toast.py), der kun taeller, mens en besked er synlig.
+    # Ingen timer til hentningen. Timerne er beskedens (tools/toast.py),
+    # der kun taeller, mens en besked er synlig, og kommentarens (issue
+    # #370), der kun taeller, mens en kommentar sendes eller lige er sendt.
     text = open(os.path.join(ROOT, "BIO SAP App", "ScreenIssueBoard.pa.yaml"), encoding="utf-8").read()
-    assert text.count("Control: Timer") == 1
-    assert "tmrIbToast:" in text
+    assert text.count("Control: Timer") == 2
+    assert "tmrIbToast:" in text and "tmrIbPost:" in text
 
 
 def test_changes_update_the_open_issue_and_its_row_without_a_reload():
@@ -858,3 +860,39 @@ def test_changes_update_the_open_issue_and_its_row_without_a_reload():
     assert "If(IbSeeActivity," in P.AFTER_CHANGE and "colIbActFresh" in P.AFTER_CHANGE
     for fx in (P.REOPEN, P.ARCHIVE, P.UPLOAD_FILES):
         assert P.AFTER_CHANGE.replace("\n", "\n    ") in fx or P.AFTER_CHANGE in fx
+
+
+def test_comment_posting_is_shown_in_the_comment_area():
+    """Issue #370: ingen skaermdaekkende ventetilstand for en kommentar.
+    Feltet erstattes af et hjul med skiftende tekst; teksten toemmes kun ved
+    succes, kommer tilbage ved fejl, og der er en Retry-knap."""
+    import ib_parts as P
+    ctrls = {c.name: c for c in _walk_ctrls(P.build_detail())}
+    loading = {c.name: c for c in _walk_ctrls(P.build_loading())}
+    # Sloeret over hele skaermen gaelder ikke laengere kommentaren.
+    assert "varIbPosting" not in loading["imgIbBusy"].props["Visible"]
+    assert loading["tmrIbPost"].props["Start"] == 'varIbPostStage = "posting" || varIbPostStage = "done"'
+    # Hjulet og teksten staar i kommentarfeltets sted.
+    assert P.POSTING_HERE in ctrls["conIbPosting"].props["Visible"]
+    assert f"!({P.POSTING_HERE})" in ctrls["conIbComposer"].props["Visible"]
+    assert ctrls["spnIbPosting"].control.startswith("ModernSpinner")
+    for stage in ("Posting comment...", "Updating activity..."):
+        assert stage in ctrls["spnIbPosting"].props["Label"]
+    assert '"Comment posted."' in ctrls["txtIbPosted"].props["Text"]
+    # Raekkefoelgen i formlen: posting -> kald -> updating -> done / failed.
+    post = P.POST
+    assert post.index('"posting"') < post.index(".Run(") < post.index('"updating"') < post.index('"done"')
+    assert '"failed"' in post and "Notify(" not in post
+    # Intet dobbelt klik: formlen tjekker selv, og knapperne er laast.
+    assert post.startswith("If(\n    !varIbPosting")
+    assert "varIbPosting" in ctrls["btnIbPost"].props["DisplayMode"]
+    assert ctrls["btnIbPostRetry"].props["OnSelect"] == post
+    # Teksten kommer tilbage efter en fejl - og kaldet bruger den gemte tekst.
+    assert P.POST_FAILED_HERE in ctrls["inpIbComment"].props["Default"]
+    assert "varIbPostText" in ctrls["inpIbComment"].props["Default"]
+    assert "content: varIbPostText" in post and "Body: varIbPostText" in post
+    # Eget svar - en Reopen imens maa ikke overskrive det.
+    assert "varIbRes" not in post
+    # Svaret hoerer til den sag, kommentaren blev skrevet paa.
+    assert "UpdateIf(colIbAll, Id = varIbPostFor" in post
+    assert "varIbSelId = varIbPostFor" in post

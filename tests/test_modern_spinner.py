@@ -43,9 +43,13 @@ SPINNERS = {
         "spnVhpFlBusy": ("varVhpFlBusy", '"Searching..."'),
         "spnVhpVenBusy": ("varVhpVenBusy", '"Searching..."'),
     },
-    # Gem/upload er ModernProgressBar (issue #305, tests/test_modern_progress_bar.py)
-    # - Issue Board har derfor ingen hjul, men ingen drejende billeder heller.
-    "ScreenIssueBoard.pa.yaml": {},
+    # Gem/upload er ModernProgressBar (issue #305, tests/test_modern_progress_bar.py).
+    # Hjulet er kommentarens egen ventetilstand i kommentarfeltet (issue #370);
+    # det staar i en container, der kun vises, mens der sendes. Teksten skifter
+    # (tests/test_issue_board.py) - her tjekkes kun, at den ikke er tom.
+    "ScreenIssueBoard.pa.yaml": {
+        "spnIbPosting": ("true", None),
+    },
     "ScreenKks.pa.yaml": {
         "spnKksLoading": ("IfError(varKksLoading, false)", '""'),
         "spnKksFlBusy": ("varKksFlBusy", '"Searching..."'),
@@ -91,7 +95,10 @@ def test_every_spinner_is_modern_spinner_in_the_brand_color():
             block = _block(text, name)
             assert f"Control: {VERSION}" in block, name
             assert _prop(block, "BasePaletteColor") == "C.'color-brand-primary'", name
-            assert _prop(block, "Label") == label, name
+            if label is None:
+                assert _prop(block, "Label") not in (None, '""'), name
+            else:
+                assert _prop(block, "Label") == label, name
             if vis:
                 assert _prop(block, "Visible") == vis, name
             acc = _prop(block, "AccessibleLabel")
@@ -99,7 +106,7 @@ def test_every_spinner_is_modern_spinner_in_the_brand_color():
             for bad in ("Image", "TabIndex", "Fill", "SpinnerSize", "FontSize", "FontColor"):
                 assert _prop(block, bad) is None, (name, bad)
             total += 1
-    assert total == 14
+    assert total == 15
 
 
 def test_overlays_keep_the_scrim_and_center_the_wheel():
