@@ -187,6 +187,34 @@ try {
         if ($LASTEXITCODE -ne 0) { $global:LASTEXITCODE = 0 }
     }
 
+    # --- EXPORT.md: hvornaar og hvilken version (R2-094) -----------------
+    # docs/22 sagde ikke, hvor gammel eksporten i repoet er. Filen skrives
+    # her ved hver eksport, saa svaret staar ved siden af filerne.
+    if (-not $ReportOnly) {
+        $version = "?"
+        $solXml = Get-ChildItem -Path $outAbs -Recurse -Filter Solution.xml -ErrorAction SilentlyContinue |
+            Select-Object -First 1
+        if ($solXml) {
+            $m = Select-String -Path $solXml.FullName -Pattern '<Version>([^<]+)</Version>' | Select-Object -First 1
+            if ($m) { $version = $m.Matches[0].Groups[1].Value }
+        }
+        $envLabel = $env:CANVAS_ENV
+        if (-not $envLabel) { $envLabel = "standard (default_environment i tools/canvas_apps.json)" }
+        $lines = @(
+            "# Seneste solution-eksport",
+            "",
+            "Skrevet af tools/export_solution.ps1 ved hver eksport - ret ikke i haanden.",
+            "",
+            "| | |",
+            "|---|---|",
+            "| Dato | $(Get-Date -Format 'yyyy-MM-dd HH:mm') |",
+            "| Solution | $Solution |",
+            "| Version | $version |",
+            "| Miljoe | $envLabel |"
+        )
+        Set-Content -Path (Join-Path $outAbs "EXPORT.md") -Value $lines -Encoding utf8
+    }
+
     Write-Host ""
     if ($ReportOnly) {
         Write-Host "-ReportOnly: der er IKKE renset. Koer uden flaget, foer du committer." -ForegroundColor Yellow

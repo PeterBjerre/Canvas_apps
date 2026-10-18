@@ -9,6 +9,14 @@ references, tabeller — findes kun i browseren, indtil det bliver hentet ned.
 .\tools\export_solution.ps1 -Solution BIOSAP         # hent og rens
 ```
 
+## Seneste eksport
+
+[`solution/EXPORT.md`](../solution/EXPORT.md) siger, hvornår eksporten i
+repoet er hentet, og hvilken version af solutionen den er (i skrivende stund
+**1.1.0.8, 2026-10-13**). `export_solution.ps1` skriver filen ved hver
+eksport (dato, solution, `<Version>` fra `Solution.xml`, miljø), så svaret
+følger med filerne i samme commit.
+
 ## Hvad kæden gør
 
 ```

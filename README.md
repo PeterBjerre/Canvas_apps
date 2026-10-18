@@ -1,8 +1,9 @@
 # SAP masterdata – canvas apps og indmeldinger
 
 Canvas app og indmeldingsflow til SAP masterdata. **Én app:
-[`BIO SAP App/`](BIO%20SAP%20App)**, med seks skærme — hub, VH-plan,
-Equipments, Materials, Functional Location og KKS-opslaget. Sidebaren og
+[`BIO SAP App/`](BIO%20SAP%20App)**, med otte skærme — hub, VH-plan,
+Equipments, Materials, Measuring Points, Functional Location, KKS-opslaget
+og Issue Board. Sidebaren og
 hubben navigerer mellem skærmene. Se [`BIO SAP App/README.md`](BIO%20SAP%20App/README.md).
 
 De fem enkeltapps er udfaset (2026-10-01, [`docs/33`](docs/33-udfasning.md)).
@@ -16,7 +17,9 @@ af dem:
 | **Equipments** | [`Equipment App/`](Equipment%20App) | Indmelding af udstyr |
 | **Materials** | [`Material App/`](Material%20App) | Indmelding af reservedele |
 | **Functional Location** | [`Functional Location App/`](Functional%20Location%20App) | Functional Locations (SPOOL): KKS-syntaks, klasse og spool-felter pr. klasse. Reglerne er HTML-sidens JS (`html/*.js`) - se [`docs/31`](docs/31-functional-location-regler.md) |
+| **Measuring Points** | [`Measuring Point App/`](Measuring%20Point%20App) | Indmelding af målepunkter og tællere (issue #210). Kun en skærm i BIO SAP; bag feature-flaget `measuring_point` |
 | **KKS lookup** | [`KKS App/`](KKS%20App) | Opslag i KKS-vejledningen: funktions-, aggregat- og komponentnøgler. Kun en skærm i BIO SAP - den var aldrig en af de fem enkeltapps. Data i SharePoint; aggregat og komponent genbruger `MD_FLKey`. Se [`KKS App/README.md`](KKS%20App/README.md) |
+| **Issue Board** | [`Issue Board/`](Issue%20Board) | Fejl og ønsker fra test og drift (issue #114) — se [`docs/39`](docs/39-uat-github-issues.md). Kun en skærm i BIO SAP; bag feature-flaget `issue_board` |
 
 > **Equipments og Materials deler byggeklodser, men er to apps.** De var
 > engang den samme app med to konfigurationsfiler; nu skal de kunne to
@@ -175,21 +178,34 @@ $site = "https://<tenant>.sharepoint.com/sites/<site>"
 
 # Indekslisten bag landingssiden. -AddSampleRows giver fire prøverækker.
 .\sharepoint\provision\Provision-RequestIndex.ps1 -SiteUrl $site -AddSampleRows
+# Issue Board (IB_*-listerne)
+.\sharepoint\provision\Provision-IssueBoard.ps1               -SiteUrl $site
 
-# Domænernes lister
+# Domænernes lister (MaterialGroups FØR EqMatLists, MeasuringPointLists efter)
+.\sharepoint\provision\Provision-MaterialGroups.ps1           -SiteUrl $site
 .\sharepoint\provision\Provision-EqMatLists.ps1              -SiteUrl $site
+.\sharepoint\provision\Provision-MeasuringPointLists.ps1      -SiteUrl $site
 .\sharepoint\provision\Provision-FunctionalLocationLists.ps1 -SiteUrl $site
 .\sharepoint\provision\Provision-StrategyLists.ps1           -SiteUrl $site
 .\sharepoint\provision\Provision-TasklistLists.ps1           -SiteUrl $site
 .\sharepoint\provision\Provision-StandardTaskOperations.ps1  -SiteUrl $site
 .\sharepoint\provision\Provision-PlantList.ps1               -SiteUrl $site
+.\sharepoint\provision\Provision-SortFields.ps1              -SiteUrl $site
 .\sharepoint\provision\Provision-VHPlanColumns.ps1           -SiteUrl $site
 .\sharepoint\provision\Provision-VHPlanApproval.ps1          -SiteUrl $site
 .\sharepoint\provision\Provision-SapCreation.ps1             -SiteUrl $site
 .\sharepoint\provision\Provision-HelpText.ps1                -SiteUrl $site
 # KKS-opslaget (efter FunctionalLocationLists - MD_FLKey genbruges)
 .\sharepoint\provision\Provision-KksLists.ps1                 -SiteUrl $site -SeedMasterData
+
+# Standardoperationerne ud i Excel og tilbage (ikke en del af opsætningen)
+.\sharepoint\provision\Sync-StandardTaskOperations.ps1 -SiteUrl $site -Export -Path .\StandardOps.xlsx
 ```
+
+`-WhatIfOnly` viser, hvad et script ville ændre, uden at ændre noget. I dag
+tager IssueBoard, SortFields, StandardTaskOperations, StrategyLists,
+VHPlanColumns, VHPlanApproval, SapCreation og Sync-StandardTaskOperations
+den; de øvrige får den med R2-060.
 
 VH-planens egne lister (`MaintenancePlans`, `MaintenanceItems`,
 `TaskListMain` …) findes i forvejen; scripterne ovenfor tilføjer kolonner og

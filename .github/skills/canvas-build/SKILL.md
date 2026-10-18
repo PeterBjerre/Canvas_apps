@@ -181,7 +181,7 @@ alle tre er nu spærret af byggeriet. Hele forklaringen står i
 
 ### Sidebaren
 
-Alle fem apps har **den samme sidebar** til venstre: `tools/side_nav.py`,
+Alle skærme har **den samme sidebar** til venstre: `tools/side_nav.py`,
 efter HTML-sidens navigationsskinne (`html/shell.js` / `shell.css`). Logo,
 en knap der åbner og lukker den, et punkt pr. app (den, man står i, er
 markeret) og en fod med **Help**-kontakten (kun VH-plan) og **temaskiftet**.
@@ -234,7 +234,7 @@ markeret) og en fod med **Help**-kontakten (kun VH-plan) og **temaskiftet**.
 ```
 tools/gen_screen.py      DSL, højde-algebra, C_*-navnene der peger på tokens
 tools/build_helpers.py   byggeklodser: card, group, button_row, inputs, theme_button
-tools/side_nav.py        sidebaren - den samme i alle fem apps
+tools/side_nav.py        sidebaren - den samme på alle skærme
 tools/check_layout.py    layout-tjekket
 tools/domain_parts.py    Equipments og Materials' fælles byggeklodser
 tools/attflows.py        flow-kontrakten for dokumenter
