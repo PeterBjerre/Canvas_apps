@@ -474,7 +474,7 @@
                         ]
                       },
                       "type": "Compose",
-                      "inputs": "@toLower(coalesce(items('For_each_item')?['Author']?['Email'], ''))"
+                      "inputs": "@toLower(coalesce(triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email'], ''))"
                     },
                     "Creator_is_approver": {
                       "runAfter": {

@@ -116,13 +116,15 @@ Automate. Den ville derfor blive liggende åben hos 1. godkender, og et svar
 på den bagefter ville ikke blive brugt.
 
 **Undtagelsen:** systemgodkendelsen springes over for et item, når **den,
-der har oprettet itemet, er 1. eller 2. godkender** for itemets system.
+der indsendte planen, er 1. eller 2. godkender** for itemets system.
 
-"Oprettet itemet" er `Created By` på rækken i `MaintenanceItems`. Appen
-genopretter alle items ved hver gem (§6), så det er i praksis **den, der
-sidst gemte planen før Submit** – ikke nødvendigvis den, der startede den.
-Det er forsvarligt: gemmer og indsender en System Manager en plan, har
-vedkommende set den og står inde for den.
+"Den, der indsendte" er planens `SubmittedBy` (appen skriver den ved Submit);
+mangler den, bruges planens `Created By` (R2-083). Før brugte flowet itemets
+`Created By`, men siden D7 opdaterer appen items i stedet for at genskabe
+dem, så det var den, der *først* gemte itemet – også når en anden
+rekvirent senere redigerede og indsendte planen. Reglen er nu: gemmer og
+indsender en System Manager selv planen, har vedkommende set den og står
+inde for den.
 
 ## 5. Statusmodellen
 
