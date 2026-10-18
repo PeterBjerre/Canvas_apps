@@ -473,6 +473,22 @@ const FPF = new RegExp(PAT.fp);
 // ---------------------------------------------------------------------------
 // Originalen paa en liste raekker
 // ---------------------------------------------------------------------------
+// FL71 (R2-074): appens EGEN regel - een anmodning, eet vaerk. Originalen
+// har den ikke. Den laegges derfor oven paa BAADE originalen og den flade
+// plan, saa differentialtesten stadig sammenligner JS med JS, og
+// testmatrixen viser appens adfaerd. Teksten staar ogsaa i fl_validation.py
+// (PLANT_MIX_MSG), og beskeden er raekkens foerste (ROW_MSGS[0]).
+const PLANT_MIX_MSG = "More than one plant in the request - use one request per plant.";
+function appRules(o, rowsIn, out) {
+  const fls = rowsIn.map((r) => o.engine.normalizeFunctionalLocation(r.fl));
+  const plants = new Set(fls.filter((f) => f).map((f) => f.slice(0, 3)));
+  if (plants.size <= 1) return out;
+  return out.map((x, i) => {
+    if (!fls[i] || x.blocking.includes(PLANT_MIX_MSG)) return x;
+    return { ...x, status: "invalid", blocking: [PLANT_MIX_MSG, ...x.blocking] };
+  });
+}
+
 function originalValidate(o, rowsIn) {
   const { ctl } = o;
   ctl.state.rows = rowsIn.map((r, i) => ({
@@ -567,8 +583,8 @@ function cmdTest() {
       PP = { ...P, br18: P.br18.filter((r) => r.Key12 !== "UF") };
     }
     if (env === "noFunctionKeys") rd.functionKeySet = new Set();
-    const orig = originalValidate(o, rows);
-    const flat = flatValidate(rows, PP, o);
+    const orig = appRules(o, rows, originalValidate(o, rows));
+    const flat = appRules(o, rows, flatValidate(rows, PP, o));
     rd.br18ByAggregate = saved.br18; rd.functionKeySet = saved.fk;
     cases.forEach((c, i) => {
       n += 1;
@@ -613,8 +629,8 @@ function cmdTest() {
       if (rnd() < 0.2) fl = mutate(fl, rnd);
       rows.push({ fl, desc: pick(["", "Pumpe", "x".repeat(41), "Beskrivelse"]), vals });
     }
-    const a = originalValidate(o, rows);
-    const b = flatValidate(rows, P, o);
+    const a = appRules(o, rows, originalValidate(o, rows));
+    const b = appRules(o, rows, flatValidate(rows, P, o));
     for (let j = 0; j < rows.length; j += 1) {
       const x = a[j], y = b[j];
       if (!same([x.status, x.blocking, x.warnings, x.cls, x.kks], [y.status, y.blocking, y.warnings, y.cls, y.kks])
@@ -655,7 +671,8 @@ function cmdDoc() {
     const env = cases[0].env || "";
     if (env === "noBr18UF") { rd.br18ByAggregate = { ...saved.br18 }; delete rd.br18ByAggregate.UF; }
     if (env === "noFunctionKeys") rd.functionKeySet = new Set();
-    const out = originalValidate(o, cases.map((c) => ({ fl: c.fl, desc: c.desc === undefined ? "Pumpe" : c.desc, vals: c.vals || {} })));
+    const rowsG = cases.map((c) => ({ fl: c.fl, desc: c.desc === undefined ? "Pumpe" : c.desc, vals: c.vals || {} }));
+    const out = appRules(o, rowsG, originalValidate(o, rowsG));
     rd.br18ByAggregate = saved.br18; rd.functionKeySet = saved.fk;
     cases.forEach((c, i) => { res[c.id] = out[i]; });
   }

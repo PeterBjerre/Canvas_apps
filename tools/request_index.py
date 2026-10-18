@@ -195,6 +195,20 @@ def number_expr(prefix, id_expr):
     return f'"{prefix}-" & Text({id_expr}, "000000")'
 
 
+# Raekkens noegle har sit EGET praefiks (R2-073, D22): anmodning EQ-000012
+# og raekke EQR-000012 kan ikke forveksles i mails, admin-log og hubbens
+# soegning. Kun NYE raekker faar formatet - eksisterende raekker beholder
+# deres noegle (den er ogsaa mappenavn i AttachmentFolder og indgaar i
+# ItemGuid i MD_ApprovalLog). Flowene og opretteren bruger noeglen kun som
+# tekst (concat, sammenligning) og parser den ikke.
+ROW_SUFFIX = "R"
+
+
+def row_key(prefix, id_expr):
+    """Raekkenoeglen: praefiks + "R" + raekkens ID med seks cifre (EQR-000912)."""
+    return number_expr(prefix + ROW_SUFFIX, id_expr)
+
+
 def _check_stuck():
     by_step = {k for k, _l, st in STATUS if STUCK_STEPS[0] <= st <= STUCK_STEPS[1]}
     if by_step != set(STUCK_STATUSES):

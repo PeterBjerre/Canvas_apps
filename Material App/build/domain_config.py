@@ -36,7 +36,8 @@ SUBTITLE = "Report spare parts - supplier, price and stock."
 ROW_PANEL_ENABLED = True
 ROW_EDITOR_TAB_VAR = "varDomEditorTab"
 
-# Praefikset i noeglerne: MAT-000441.
+# Praefikset i noeglerne: anmodning MAT-000441, nye raekker MATR-000441
+# (request_index.row_key, R2-073).
 PREFIX = "MAT"
 
 DOMAIN = "Material"
@@ -139,6 +140,16 @@ SECTIONS = [
         ("ReplacedMaterialNo", "Replaced material no.", "text", None),
     ]),
 ]
+
+# SAP-FELTLAENGDER (R2-038, opt-in)
+# --------------------------------
+# { kolonne: maks. antal tegn } for tekstfelter, der har en kortere
+# SAP-laengde end listens 255. Feltet faar MaxLength, og Gem og Paste rows
+# afviser en laengere vaerdi (tools/domain_parts.py). Laengderne er
+# SAP-standard og ikke efterproevet mod Oersteds SAP. Beskrivelsen (40) er
+# faelles og staar i domain_parts.TEXT_MAX.
+MAX_LEN = {"ManufacturerPartNo": 40, "StorageBin": 10, "StockUnit": 3, "PriceUnit": 3,
+           "ReplacedMaterialNo": 18, "MaintenanceOrderNo": 12}
 
 # Kolonner appen LAESER, men formularen ikke skriver (issue #204):
 #

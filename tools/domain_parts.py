@@ -66,9 +66,13 @@ from build_helpers import (row_rule, ensure_hit, close_x, popup_head, validation
 SAVING_VAR = "varDomSaving"
 
 # Appens "Data row limit" (Studio -> Settings). Standard er 500. Rammer
-# raekkespejlet det, mangler de aeldste raekker - taelleren siger det.
+# raekkespejlet det, mangler de aeldste raekker - txtDomRowsCap under
+# tabellen og en advarsel ved Save/Submit siger det (R2-041).
 # Haeves graensen i Studio (maks 2000), skal tallet her foelge med.
 ROW_LIMIT = 500
+ROWS_CAPPED = f"CountRows(colDomRows) >= {ROW_LIMIT}"
+ROWS_CAP_MSG = (f"Only the newest {ROW_LIMIT} rows are shown - "
+                "older rows are not included when you submit.")
 # Bekraeftelsen foer Submit.
 CONFIRM_VAR = "varDomConfirmSubmit"
 # Listen over kladde-raekker efter Submit (UX-review M4, validation_summary).
@@ -139,6 +143,32 @@ _unknown = sorted(c for c in SP_CHOICE
 if _unknown:
     raise SystemExit("domain_config.SP_CHOICE naevner felter, der ikke er et "
                      "'choice'-felt i SECTIONS: %s" % ", ".join(_unknown))
+# SAP-FELTLAENGDER (R2-038). Beskrivelsen er SAP's korttekst (40 tegn) i
+# alle domaener; cfg.MAX_LEN giver tekstfelter med en kortere SAP-laengde
+# end listens 255 (opt-in - felter uden laengde genereres uaendret).
+# MaxLength stopper kun tastaturet: Gem og Paste rows tjekker laengden
+# ogsaa, saa en indsat, kopieret eller gammel vaerdi ikke gaar igennem.
+TEXT_MAX = 40
+
+# DECIMALTAL HAR FAST KULTUR (R2-075). "dec"-felter tastes som tekst og
+# parses og vises i en-US - som resten af appens tal (layout_tokens.
+# num_text). Foer fulgte de brugerens sprog, og "1.000" betoed tusind for
+# een bruger og een for en anden. Feltet siger det i pladsholderen, og et
+# komma stoppes ved gem, saa "1,5" ikke stiltiende bliver 15.
+DEC_LANG = "en-US"
+DEC_FMT = "0.###"
+DEC_PLACEHOLDER = '"Use . as decimal separator"'
+
+
+def dec_value(v):
+    """Tekstens tal i appens faste kultur (R2-075)."""
+    return f'Value(Trim({v}), "{DEC_LANG}")'
+MAX_LEN = dict(getattr(cfg, "MAX_LEN", {}))
+_unknown = sorted(c for c in MAX_LEN
+                  if c not in {f for f, _l, k, _ch in FIELDS if k == "text"})
+if _unknown:
+    raise SystemExit("domain_config.MAX_LEN naevner felter, der ikke er et "
+                     "'text'-felt i SECTIONS: %s" % ", ".join(_unknown))
 _READ_COLS = {c for c, _l, _k, _ch in getattr(cfg, "READ_FIELDS", [])}
 _unknown = sorted(set(EXTRA_PATCH) - _READ_COLS)
 if _unknown:
@@ -335,6 +365,9 @@ def submit_press_fx():
                     f"Set({CONFIRM_VAR}, true)")
     if getattr(cfg, "ROW_PANEL_ENABLED", False):
         open_confirm = f"Set({CONFIRM_VAR}, true)"
+    open_confirm = (f"If(\n    {PLANT_MIX},\n"
+                    f"    Notify({PLANT_MIX_MSG}, NotificationType.Warning),\n"
+                    "    " + open_confirm.replace("\n", "\n    ") + "\n)")
     if not HOOKS["submit_guard"]:
         return open_confirm
     before, blocked, message = HOOKS["submit_guard"]
@@ -346,6 +379,16 @@ def submit_press_fx():
             f"    Notify({message}, NotificationType.Warning),\n"
             f"    {open_confirm}\n"
             ")")
+
+
+# EET VAERK PR. ANMODNING (R2-074, Peters beslutning). SAP-opretteren koerer
+# pr. vaerk, og MD_RequestIndex.Plant og hubbens vaerkfilter har eet vaerk.
+# Submit stoppes derfor, naar de faerdige raekker har mere end eet vaerk -
+# baade foer bekraeftelsen (submit_press_fx) og i selve send_fx.
+PLANT_MIX = 'CountRows(Distinct(Filter(colDomRows, Status = "valid"), Plant)) > 1'
+PLANT_MIX_MSG = ('"A request can only cover one plant. The rows have plants " & '
+                 'Concat(Distinct(Filter(colDomRows, Status = "valid"), Plant), Value, ", ") & '
+                 '" - split them into one request per plant."')
 
 
 # En ny anmodnings "session": raekker uden GUID, oprettet fra nu af, hoerer til
@@ -371,7 +414,7 @@ def duplicate_fx():
         if c not in seen:
             seen.add(c)
             copy.append(f"                    {c}: R.{c},")
-    key = f'"{cfg.PREFIX}-" & Text(n.ID, "000000")'
+    key = ri.row_key(cfg.PREFIX, "n.ID")
     return (
         "If(\n"
         "    IsBlank(varDomRequestGuid),\n"
@@ -537,6 +580,7 @@ def _input_for(col, kind, choices, required_formula="false"):
         # sender Value(...) til Number-kolonnen. Variablen er TEKST, saa
         # "ikke udfyldt" kan skelnes fra 0.
         return text_input(name, v, max_length=20, display_mode=DM_ROW,
+                          placeholder=DEC_PLACEHOLDER,
                           onchange=f"Set({v}, Self.Text)")
     if kind == "long":
         # ttype="Multiline" -> Type: TextInputType.Multiline. Det er den
@@ -570,7 +614,7 @@ def _input_for(col, kind, choices, required_formula="false"):
             "OnUncheck": f"Set({v}, false)",
             "Width": "Parent.Width",
         }), h=36)
-    c = text_input(name, v, max_length=255, display_mode=DM_ROW,
+    c = text_input(name, v, max_length=MAX_LEN.get(col, 255), display_mode=DM_ROW,
                    required_formula=required_formula,
                    onchange=f"Set({v}, Self.Text)")
     return c
@@ -697,7 +741,7 @@ def _patch_value(col, kind):
         # Tekstfeltets indhold ind i en Number-kolonne. Tom tekst skal
         # vaere Blank() og ikke 0: 0 er en maaling, tom er "ikke udfyldt".
         return (f'If(IsBlank(Trim(Coalesce({v}, ""))), Blank(), '
-                f'IfError(Value(Trim({v})), Blank()))')
+                f'IfError({dec_value(v)}, Blank()))')
     return v
 
 
@@ -755,7 +799,7 @@ def _collect_rows(source):
         elif kind == "dec":
             # Tallet som TEKST, saa formularens tekstfelt kan vise det
             # praecis som det staar - og tom betyder tom (issue #210).
-            v = f'If(IsBlank(R.{col}), "", Text(R.{col}))'
+            v = f'If(IsBlank(R.{col}), "", Text(R.{col}, "{DEC_FMT}", "{DEC_LANG}"))'
         elif kind == "bool":
             v = f"Coalesce(R.{col}, false)"
         elif kind == "num":
@@ -1030,7 +1074,7 @@ def save_row_fx(status="valid", required=(), always=()):
         f"            RequesterEmail: If({AS_ADMIN}, Lower(varDomIdx.RequesterEmail), varDomMe),",
         f"            RequesterName: If({AS_ADMIN}, varDomIdx.RequesterName, User().FullName)",
     ]
-    key = f'"{cfg.PREFIX}-" & Text(varDomSpRow.ID, "000000")'
+    key = ri.row_key(cfg.PREFIX, "varDomSpRow.ID")
 
     if status == "draft":
         guard = 'IsBlank(Trim(Coalesce(varDomFText, "")))'
@@ -1046,7 +1090,7 @@ def save_row_fx(status="valid", required=(), always=()):
     # Rettigheden staar ogsaa i selve handlingen, ikke kun i UI'et.
     extra = (f"    {AS_ADMIN} && !{perm.IS_ADMIN},\n"
              f"    {DENIED_OTHER},\n")
-    for cond, text in always:
+    for cond, text in length_rules() + list(always):
         extra += f'    {cond},\n    Notify("{text}", NotificationType.Warning),\n'
     if status != "draft":
         for cond, text in required:
@@ -1138,6 +1182,23 @@ def save_row_fx(status="valid", required=(), always=()):
         "    )\n"
         ")"
     )
+
+
+def length_rules():
+    """For lange tekster (R2-038) - gaelder baade kladde og faerdig raekke,
+    i samme form som save_row_fx's always."""
+    rules = [(f'Len(Trim(Coalesce(varDomFText, ""))) > {TEXT_MAX}',
+              f"{cfg.TEXT_LABEL} can have at most {TEXT_MAX} characters.")]
+    for col, label, _k, _ch in FIELDS:
+        if col in MAX_LEN:
+            rules.append((f'Len(Trim(Coalesce({_var(col)}, ""))) > {MAX_LEN[col]}',
+                          f"{label} can have at most {MAX_LEN[col]} characters."))
+    # Decimaltal: komma er ikke decimaltegn i en-US (R2-075).
+    for col, label, kind, _ch in FIELDS:
+        if kind == "dec":
+            rules.append((f'"," in Coalesce({_var(col)}, "")',
+                          f"{label}: use . as decimal separator."))
+    return rules
 
 
 def row_complete_fx(required=()):
@@ -1611,7 +1672,9 @@ def send_fx(submit):
         owner_name="Coalesce(varDomIdx.RequesterName, User().FullName)",
         current="varDomIdx",
         short_text=ri.rows_text(cfg.TITLE, f"CountRows({rows})"),
-        plant=f"First({rows}).Plant", item_count=f"CountRows({rows})")
+        # Den AELDSTE raekkes vaerk (laveste ID), saa vaerdien ikke skifter,
+        # naar en raekke tilfoejes (R2-074). Ved Submit er der kun eet.
+        plant=f"First(Sort({rows}, RowId)).Plant", item_count=f"CountRows({rows})")
     # En admin, der indsender en andens anmodning, logges (tools/admin_log.py).
     admin_submit_log = ""
     if submit:
@@ -1660,10 +1723,18 @@ def send_fx(submit):
             "            )\n"
             "        );\n")
 
+    plant_guard = ""
+    if submit:
+        plant_guard = (f"    {PLANT_MIX},\n"
+                       f"    Notify({PLANT_MIX_MSG}, NotificationType.Warning),\n")
     return (
         "If(\n"
         f"    CountRows({rows}) = 0,\n"
         f'    Notify("{empty}", NotificationType.Warning),\n'
+        + plant_guard +
+        "\n"
+        # Raekkeloftet (R2-041): advar, men stop ikke.
+        f'    If({ROWS_CAPPED}, Notify("{ROWS_CAP_MSG}", NotificationType.Warning));\n'
         "\n"
         # Indeksraekken slaas op FRISK, foer der skrives: den er grundraekken
         # i Patch (samme ene opslag som foer) og afgoer, om brugeren maa.
@@ -1925,7 +1996,7 @@ def field_grid_cell(col, required=False, visible=None, width=CELL_W):
 def text_cell(width=CELL_W):
     """Raekkens tekst (Title) - kraevet, ogsaa paa en kladde."""
     return grid_cell("conDomText", cfg.TEXT_LABEL,
-                     text_input("inpDomText", "varDomFText", max_length=40,
+                     text_input("inpDomText", "varDomFText", max_length=TEXT_MAX,
                                 placeholder=cfg.TEXT_PLACEHOLDER,
                                 required_formula=REQUIRED, display_mode=DM_ROW,
                                 onchange="Set(varDomFText, Self.Text)"),
@@ -2573,6 +2644,10 @@ def build_list(slots, badge_head, search_placeholder):
         f"Set({FIX_VAR}, false)", closable=not panel_on)
     parts = [head, table, empty] + _submit_parts()
     parts.insert(1 if not panel_on else 3, fix)
+    # Raekkeloftet (R2-041): under tabellen, kun naar det er ramt.
+    cap = text_ctrl("txtDomRowsCap", f'"{ROWS_CAP_MSG}"', size=13, color=C_WARN_FG,
+                    height=if_below("Tablet", 40, 20), wrap="true", visible=ROWS_CAPPED)
+    parts.insert(parts.index(table) + 1, cap)
     return card("conDomRowsCard", parts)
 
 
@@ -2631,6 +2706,14 @@ def paste_schema():
 
 def _paste_preview_fx():
     cols = paste_cols()
+    # For lange celler (R2-038): linjen er roed, med en note, og taeller
+    # ikke med i "Add N rows".
+    too_long = []
+    for i, (c, l) in enumerate(cols):
+        n = TEXT_MAX if c == cfg.C_TEXT else MAX_LEN.get(c)
+        if n and c != "Plant":
+            too_long.append((f'Len(IfError(Trim(Index(c, {i + 1}).Value), "")) > {n}',
+                             f"{l} longer than {n} characters"))
     cells = ",\n".join(
         f"                    {c}: IfError(Trim(Index(c, {i + 1}).Value), \"\")"
         for i, (c, _l) in enumerate(cols) if c != "Plant")
@@ -2652,10 +2735,12 @@ def _paste_preview_fx():
         "                        Line: 0,\n"
         "                        Plant: Coalesce(plant, p),\n"
         + cells.replace("                    ", "                        ") + ",\n"
-        "                        Ok: !IsBlank(IfError(Trim(Index(c, 1).Value), \"\")) && (IsBlank(p) || !IsBlank(plant)),\n"
+        "                        Ok: !IsBlank(IfError(Trim(Index(c, 1).Value), \"\")) && (IsBlank(p) || !IsBlank(plant))"
+        + "".join(f" && !({t})" for t, _n in too_long) + ",\n"
         "                        Note: If(\n"
         "                            IsBlank(IfError(Trim(Index(c, 1).Value), \"\")), \"" + cfg.TEXT_LABEL + " is missing\",\n"
         "                            !IsBlank(p) && IsBlank(plant), \"Unknown plant \" & p,\n"
+        + "".join(f"                            {t}, \"{n}\",\n" for t, n in too_long) +
         "                            \"Ready\"\n"
         "                        )\n"
         "                    }\n"
@@ -2676,7 +2761,7 @@ def _paste_add_fx():
             copy.append(f"                    {col}: If(IsBlank(P.{col}), Blank(), {{ Value: P.{col} }}),")
         else:
             copy.append(f"                    {col}: P.{col},")
-    key = f'"{cfg.PREFIX}-" & Text(n.ID, "000000")'
+    key = ri.row_key(cfg.PREFIX, "n.ID")
     return (
         "IfError(\n"
         # Samlet skrivning, som ved Duplicate (regel 15, issue #342).
