@@ -321,6 +321,10 @@ Fælles for dem:
 - **Timeout** `P14D` på *Wait*. Ved timeout: påmindelse, og `StageRunId`
   tømmes. Så starter samme flow forfra. De items, der nåede at blive
   godkendt, står i loggen og sendes ikke igen.
+- **Fejl:** `Catch` sender fejlmailen, læser planen igen og tømmer
+  `StageRunId`, hvis det stadig er denne kørsels id (en nyere kørsel kan
+  have taget trinnet). Derefter `Terminate` med status *Failed*. Uden det
+  stod spærren for evigt efter en fejl, og trinnet kunne aldrig køre igen.
 - **Indeksrækken:** hvert flow opdaterer `MD_RequestIndex` og sætter
   `AssignedToEmail` (§10).
 - **Ejer:** en servicekonto eller et solution-flow med connection

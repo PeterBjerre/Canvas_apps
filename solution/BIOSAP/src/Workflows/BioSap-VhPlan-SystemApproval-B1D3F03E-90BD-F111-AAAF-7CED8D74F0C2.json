@@ -1231,6 +1231,87 @@
                   "connectionName": "shared_office365"
                 }
               }
+            },
+            "Get_plan_after_error": {
+              "type": "OpenApiConnection",
+              "runAfter": {},
+              "inputs": {
+                "parameters": {
+                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                  "table": "@parameters('BioSap-List-MaintenancePlans (orsted_BioSapListMaintenancePlans)')",
+                  "id": "@triggerBody()?['ID']"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "GetItem",
+                  "connectionName": "shared_sharepointonline"
+                }
+              }
+            },
+            "Stage_still_claimed_by_this_run": {
+              "actions": {
+                "Release_stage_after_error": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                      "parameters/method": "POST",
+                      "parameters/uri": "_api/web/lists/GetByTitle('@{parameters('BioSap-List-MaintenancePlansName (orsted_BioSapListMaintenancePlansName)')}')/items(@{triggerBody()?['ID']})",
+                      "parameters/headers": {
+                        "Content-Type": "application/json;odata=verbose",
+                        "If-Match": "*",
+                        "X-HTTP-Method": "MERGE"
+                      },
+                      "parameters/body": "{\"__metadata\": {\"type\": \"@{parameters('BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)')}\"}, \"StageRunId\": \"\"}"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "operationId": "HttpRequest",
+                      "connectionName": "shared_sharepointonline"
+                    }
+                  },
+                  "runAfter": {}
+                }
+              },
+              "runAfter": {
+                "Get_plan_after_error": [
+                  "Succeeded"
+                ]
+              },
+              "else": {
+                "actions": {}
+              },
+              "expression": {
+                "equals": [
+                  "@body('Get_plan_after_error')?['StageRunId']",
+                  "@workflow()?['run']?['name']"
+                ]
+              },
+              "type": "If"
+            },
+            "Terminate_failed": {
+              "type": "Terminate",
+              "runAfter": {
+                "Send_notification_to_development_team": [
+                  "Succeeded",
+                  "Failed",
+                  "Skipped",
+                  "TimedOut"
+                ],
+                "Stage_still_claimed_by_this_run": [
+                  "Succeeded",
+                  "Failed",
+                  "Skipped",
+                  "TimedOut"
+                ]
+              },
+              "inputs": {
+                "runStatus": "Failed",
+                "runError": {
+                  "code": "ApprovalStageFailed",
+                  "message": "The approval stage failed. Its stage lock was released if this run still held it, and the development team was notified."
+                }
+              }
             }
           },
           "runAfter": {

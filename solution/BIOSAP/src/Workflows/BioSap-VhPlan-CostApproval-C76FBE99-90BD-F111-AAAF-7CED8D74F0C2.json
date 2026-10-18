@@ -1249,6 +1249,89 @@
                 },
                 "authentication": "@parameters('$authentication')"
               }
+            },
+            "Get_plan_after_error": {
+              "type": "OpenApiConnection",
+              "runAfter": {},
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "GetItem"
+                },
+                "parameters": {
+                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                  "table": "@parameters('BioSap-List-MaintenancePlans (orsted_BioSapListMaintenancePlans)')",
+                  "id": "@triggerBody()?['ID']"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Stage_still_claimed_by_this_run": {
+              "actions": {
+                "Release_stage_after_error": {
+                  "type": "OpenApiConnection",
+                  "runAfter": {},
+                  "inputs": {
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "connectionName": "shared_sharepointonline",
+                      "operationId": "HttpRequest"
+                    },
+                    "parameters": {
+                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                      "parameters/method": "POST",
+                      "parameters/uri": "_api/web/lists/GetByTitle('@{parameters('BioSap-List-MaintenancePlansName (orsted_BioSapListMaintenancePlansName)')}')/items(@{triggerBody()?['ID']})",
+                      "parameters/headers": {
+                        "Content-Type": "application/json;odata=verbose",
+                        "If-Match": "*",
+                        "X-HTTP-Method": "MERGE"
+                      },
+                      "parameters/body": "{\"__metadata\": {\"type\": \"@{parameters('BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)')}\"}, \"StageRunId\": \"\"}"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "runAfter": {
+                "Get_plan_after_error": [
+                  "Succeeded"
+                ]
+              },
+              "else": {
+                "actions": {}
+              },
+              "expression": {
+                "equals": [
+                  "@body('Get_plan_after_error')?['StageRunId']",
+                  "@workflow()?['run']?['name']"
+                ]
+              },
+              "type": "If"
+            },
+            "Terminate_failed": {
+              "type": "Terminate",
+              "runAfter": {
+                "Send_notification_to_development_team": [
+                  "Succeeded",
+                  "Failed",
+                  "Skipped",
+                  "TimedOut"
+                ],
+                "Stage_still_claimed_by_this_run": [
+                  "Succeeded",
+                  "Failed",
+                  "Skipped",
+                  "TimedOut"
+                ]
+              },
+              "inputs": {
+                "runStatus": "Failed",
+                "runError": {
+                  "code": "ApprovalStageFailed",
+                  "message": "The approval stage failed. Its stage lock was released if this run still held it, and the development team was notified."
+                }
+              }
             }
           }
         },
