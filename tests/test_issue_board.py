@@ -449,16 +449,18 @@ def test_detail_popup_hierarchy_and_single_close():
         assert b.control == "Image"
         assert b.props["AccessibleLabel"] == label == b.props["Tooltip"]
     assert ctrls["btnIbDetClose"].props["OnSelect"] == "Set(varIbDetailOn, false)"
-    # Status, prioritet, Application og Section som maerker/vaerdier - ingen
-    # lang streng med skilletegn.
-    assert [k.name for k in ctrls["conIbDetMeta"].children] == ["conIbDetBadges", "conIbDetWhere"]
+    # Status som maerke under titlen; prioritet, Application og Section
+    # under Issue information (issue #369) - ingen lang streng med
+    # skilletegn.
+    assert [k.name for k in ctrls["conIbDetMeta"].children] == ["bdgIbDetStatus"]
     assert "&" not in ctrls["txtIbDetApp"].props["Text"]
     # Fanerne er centreret og har samme stoerrelse.
     assert ctrls["conIbDetTabs"].props["LayoutJustifyContent"] == "LayoutJustifyContent.Center"
     assert len({ctrls[n].props["Width"] for n in ("btnIbTabDetails", "btnIbTabActivity",
                                                    "btnIbTabFiles")}) == 1
     top = [k.name for k in ctrls["conIbDetTop"].children]
-    order = ["conIbDetMeta", "conIbDetFacts", "conIbDetActions", "conIbDetRule", "conIbDetTabs"]
+    order = ["conIbDetMeta", "conIbDetInfo", "conIbDetFacts", "conIbDetActions", "conIbDetRule",
+             "conIbDetTabs"]
     assert [b for b in top if b in order] == order
     assert "Scroll" not in ctrls["conIbDetTop"].props["LayoutOverflowY"]
     content = ctrls["conIbDetContent"]
