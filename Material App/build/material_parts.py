@@ -192,7 +192,7 @@ MIN_MAX_MSG = "Min stock must be less than or equal to max stock."
 # moenster som mp_parts._not_a_number).
 PRICE = dp._var("Price")
 PRICE_BAD = (f'!IsBlank(Trim(Coalesce({PRICE}, ""))) && '
-             f'IsBlank(IfError(Value(Trim({PRICE})), Blank()))')
+             f'IsBlank(IfError({dp.dec_value(PRICE)}, Blank()))')
 PRICE_MSG = "Price must be a number, not text."
 
 

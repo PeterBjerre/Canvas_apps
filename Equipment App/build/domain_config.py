@@ -33,7 +33,8 @@ TITLE = "Equipments"
 SUBTITLE = "Create, change and delete equipment"
 ROW_PANEL_ENABLED = True
 
-# Praefikset i noeglerne: EQ-000912.
+# Praefikset i noeglerne: anmodning EQ-000912, nye raekker EQR-000912
+# (request_index.row_key, R2-073).
 PREFIX = "EQ"
 
 # Domaeneteksten i MD_RequestIndex. SKAL vaere ordret den samme som i
@@ -106,7 +107,7 @@ FL_FIELD = "FunctionalLocation"
 # equipment_parts.FORM_ORDER.
 SECTIONS = [
     ("What should happen", [
-        ("RequestType", "Status", "text", None),
+        ("RequestType", "Request type", "text", None),
     ]),
     ("Master data", [
         ("EquipmentCategory", "Equipment type", "text", None),
@@ -130,6 +131,15 @@ SECTIONS = [
         ("WarrantyEnd", "Warranty to", "date", None),
     ]),
 ]
+
+# SAP-FELTLAENGDER (R2-038, opt-in)
+# --------------------------------
+# { kolonne: maks. antal tegn } for tekstfelter, der har en kortere
+# SAP-laengde end listens 255. Feltet faar MaxLength, og Gem og Paste rows
+# afviser en laengere vaerdi (tools/domain_parts.py). Laengderne er
+# SAP-standard og ikke efterproevet mod Oersteds SAP. Beskrivelsen (40) er
+# faelles og staar i domain_parts.TEXT_MAX.
+MAX_LEN = {"Manufacturer": 30, "TypeDesignation": 20, "SerialNumber": 30}
 
 # FELTER, DER KUN LAESES (issue #94)
 # ----------------------------------

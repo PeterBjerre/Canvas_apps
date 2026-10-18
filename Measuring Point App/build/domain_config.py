@@ -47,7 +47,8 @@ ROW_PANEL_ENABLED = True
 # dokumentrude, ingen Documentation-celle og ingen Documents-knap.
 DOCS_ENABLED = False
 
-# Praefikset i noeglerne og i anmodningsnummeret: MP-000123.
+# Praefikset i noeglerne: anmodning MP-000123, nye raekker MPR-000123
+# (request_index.row_key, R2-073).
 PREFIX = "MP"
 
 # Domaeneteksten i MD_RequestIndex. SKAL vaere ordret den samme som i
@@ -129,6 +130,15 @@ SECTIONS = [
         ("Remarks", "Remarks", "long", None),
     ]),
 ]
+
+# SAP-FELTLAENGDER (R2-038, opt-in)
+# --------------------------------
+# { kolonne: maks. antal tegn } for tekstfelter, der har en kortere
+# SAP-laengde end listens 255. Feltet faar MaxLength, og Gem og Paste rows
+# afviser en laengere vaerdi (tools/domain_parts.py). Laengderne er
+# SAP-standard og ikke efterproevet mod Oersteds SAP. Beskrivelsen (40) er
+# faelles og staar i domain_parts.TEXT_MAX.
+MAX_LEN = {"MeasuringPoint": 12, "Characteristic": 30}
 
 # FELTER, DER KUN LAESES
 # ----------------------
