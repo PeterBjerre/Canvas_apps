@@ -1,12 +1,19 @@
 # VH-planens mails
 
-Skabelonen ligger i
-[`../flow/email-plan-submitted.html`](../flow/email-plan-submitted.html).
+**Kilden er flowet.** Mailens HTML står inline i
+`BioSap-EmailNotification-NewPlanCreated`, handlingen
+`Compose-EmailContent` (`solution/BIOSAP/src/Workflows/`). Den separate
+skabelon `flow/email-plan-submitted.html` er slettet (R2-053, beslutning
+(b)): den var allerede en anden end flowets, og en rettelse i den nåede
+aldrig ud i en mail. `PlanPublished` og `ToMasterData` har deres egen kopi
+af samme opbygning; de tre VH-godkendelsesflows sender korte
+`<p>`-mails. Hvilke mails der findes, og hvordan de ser ud i dag, står i
+[Mailene i forløbet](#mailene-i-forløbet).
 
-Den startede som mailen, når en plan sendes til oprettelse. Nu er den
-**fælles for alle VH-planens mails** i godkendelsesflowet
-([`32-godkendelsesflow.md`](32-godkendelsesflow.md)). Mailene adskiller sig
-kun ved tre tokens – se [Samme skabelon i alle mails](#samme-skabelon-i-alle-mails).
+Det fælles child flow til alle mailene, som denne side tidligere beskrev,
+er **ikke bygget og bygges ikke nu**. Genopbygges VH-flowene en dag, er det
+stedet at samle mailene (beslutning (a)) – se
+[Hvis mailene skal samles](#hvis-mailene-skal-samles).
 
 ## Hvad der er anderledes
 
@@ -31,21 +38,18 @@ gang.
 
 ## Felterne
 
-Tokens i skabelonen er skrevet `{{Navn}}`. Erstat hvert af dem med dynamisk
-indhold. `{{Headline}}`, `{{Banner}}` og `{{ButtonText}}` afhænger af,
-hvilken mail der sendes – se [Samme skabelon i alle mails](#samme-skabelon-i-alle-mails).
+Felterne er herunder skrevet `{{Navn}}` – i flowet står det tilsvarende
+udtryk (`triggerBody()?['…']`, `outputs('…')`) direkte i HTML'en.
 
 ### Fra `MaintenancePlans`
 
-I child flowet `BioSap-VhPlan-SendMail` kommer planen fra et *Get item* på
-`PlanId`, ikke fra en trigger. Udtrykkene nedenfor skrevet med
-`triggerOutputs()` bliver dermed til `body('Get_plan')`.
+I `NewPlanCreated` kommer planen fra triggeren (`triggerBody()`).
 
 | Token | Kolonne | Bemærkning |
 |---|---|---|
 | `{{PlanID}}` | `PlanID` | fx `MP-0039` |
 | `{{PlanText}}` | `Title` | |
-| `{{Status}}` | udtryk | I ord, ud fra `Status` og `ApprovalStage` – se [`{{Status}}`](#status) |
+| `{{Status}}` | udtryk | I ord, ud fra `Status` og `ApprovalStage` – se [Statusordet](#statusordet) |
 | `{{Plant}}` | `PlantsInitial Value` | |
 | `{{Cycle}}` | `Cycle` | |
 | `{{Unit}}` | `Unit Value` | |
@@ -140,36 +144,43 @@ overskriften — resten virker uden.
 Én pr. mail – se tabellen i næste afsnit. Plannummeret står først, så
 mailen kan søges frem.
 
-## Samme skabelon i alle mails
+## Mailene i forløbet
 
-### Hvilke mails
+Teksterne er kopieret fra flowene (`solution/BIOSAP/src/Workflows/`); alle
+er engelske (issue #162, `tools/check_language.py`).
 
-| Mail | Sendes af | Til | Emne | `{{Headline}}` | `{{Banner}}` | `{{ButtonText}}` |
-|---|---|---|---|---|---|---|
-| **Sendt til godkendelse** | `BioSap-EmailNotification-NewPlanCreated` (findes – ny brødtekst) | Rekvirenten | `VH-plan MP0068 sendt til godkendelse - SSV` | Sendt til godkendelse | Info: "Du får besked, når planen er godkendt eller sendt retur." | Åbn planen i appen |
-| **Sendt retur** | F1, F2 eller F3, når mindst ét svar er *Send retur* | Rekvirenten | `VH-plan MP0068 sendt retur - ret og indsend igen` | Sendt retur | Advarsel med kommentarerne pr. item | Ret planen i appen |
-| **Påmindelse** | F1, F2 eller F3 ved timeout (`P14D`) | Den godkender, der ikke har svaret | `Påmindelse: VH-plan MP0068 venter på din godkendelse` | Venter på din godkendelse | Info: sendt dato, og at der svares i Teams → *Approvals* eller i mailen fra Power Automate | Åbn planen i appen |
-| **Klar til oprettelse i SAP** | F4 `BioSap-VhPlan-ToMasterData` (ny) | `sapvedligehold@orsted.com` | `VH-plan MP0068 klar til oprettelse i SAP - SSV` | Klar til oprettelse i SAP | Succes: hvem der godkendte system, omkostning og kvalitet | Åbn planen i appen |
-| **Oprettet i SAP** | `BioSap-EmailNotification-PlanPublished` (ny brødtekst, R2-019) | Rekvirenten, cc sidste redaktør | `Maintenance plan MP0068 created in SAP (12345678) - SSV` | Created in SAP | Succes: SAP-plannummeret | Open the plan in the app |
+| Mail | Sendes af (handling) | Til | Emne | Overskrift | Udseende i dag |
+|---|---|---|---|---|---|
+| **Submitted for approval** | `BioSap-EmailNotification-NewPlanCreated` (`Send_an_email_(V2)-EmailRequestor`) | Rekvirenten | `Maintenance plan MP0068 submitted for approval - SSV` | *Submitted for approval* – "The plan has been submitted for approval. You will be notified when the plan is approved or returned." | Fuld skabelon: header, nøgletal, items, operationer, knap og fodnote |
+| **Returned** | F1, F2, F3 (`Send_returned_mail`), når mindst ét svar er *Send retur* | Rekvirenten | `Maintenance plan MP0068 returned - correct it and submit again` | "Maintenance plan MP0068 (…) was returned by the system approval:" + kommentarerne + "Correct the plan in the app and submit it again." | Kort `<p>`-mail: ingen header, knap eller fodnote |
+| **Reminder** | F1, F2, F3 (`Send_reminder`) ved timeout (`P14D`) | Den godkender, der ikke har svaret | `Reminder: maintenance plan MP0068 is waiting for your approval` | "The system approval of item '…' (…) in maintenance plan MP0068 has not been answered. Respond in Teams under Approvals or in the email from Power Automate." | Kort `<p>`-mail |
+| **Ready for creation in SAP** | F4 `BioSap-VhPlan-ToMasterData` (`Send_to_master_data`) | `BioSap-MasterDataEmail` | `Maintenance plan MP0068 ready for creation in SAP - SSV` | *Ready for creation in SAP* | Skabelonens header, stamdata og items; knap, ingen fodnote |
+| **Created in SAP** | `BioSap-EmailNotification-PlanPublished` (`Send_an_email_(V2)-EmailRequestor`) | Rekvirenten, cc sidste redaktør | `Maintenance plan MP0068 created in SAP (12345678) - SSV` | *Created in SAP* – SAP-plannummeret | Fuld skabelon med knap og fodnote |
 
-*Oprettet i SAP* er bygget (R2-019): flowet henter `MD_RequestIndex`-rækken
+Retur-mailene siger "returned by the system approval" (F1), "… cost
+approval" (F2) og "… quality review" (F3).
+
+**Tilbage i flowene** (Power Automate, ikke denne side): knappen "Open … in
+the app" og fodnoten "This email was sent automatically …" mangler i
+*Returned*, *Reminder* og (fodnoten) *Ready for creation in SAP*.
+
+*Created in SAP* er bygget (R2-019): flowet henter `MD_RequestIndex`-rækken
 **før** mailen (`Get_request_index`), så knappen kan pege på `AppUrl` – uden
 række peger den på `BioSap-SiteUrl`. Datoen vises som `dd-MM-yyyy` i dansk tid
-(`-`, hvis den mangler), og al fritekst escapes som i *Sendt til godkendelse*.
+(`-`, hvis den mangler), og al fritekst escapes som i *Submitted for approval*.
 Spærren `RequesterNotified`, loggen (`Stage = SapCreated`) og indeksopdateringen
 kører bagefter som før. Testen er `tests/test_vh_plan_published_mail.py`.
 
 **Selve godkendelsesanmodningen bruger ikke skabelonen.** Den sendes af
 Approvals-connectoren, hvis *Details* kun forstår Markdown – ikke HTML.
-Godkenderen får den i Teams og som Power Automate-mail. Påmindelsen er den
-eneste mail, godkenderen får fra skabelonen.
+Godkenderen får den i Teams og som Power Automate-mail. *Reminder* er den
+eneste anden mail, godkenderen får fra flowene.
 
-### Ét child flow i stedet for fem kopier
+### Hvis mailene skal samles
 
-Skabelonen er 250 linjer HTML. Kopieres den ind i fem flows, glider de fra
-hinanden ved første rettelse. Byg i stedet **ét child flow** i solution
-BIO SAP, `BioSap-VhPlan-SendMail`, med trigger *Manually trigger a flow* og
-tre input:
+Skabelonen er 250 linjer HTML, og den står i dag i tre flows. Genopbygges
+VH-flowene, kan de samles i **ét child flow** i solution BIO SAP (forslag,
+ikke bygget), med trigger *Manually trigger a flow* og tre input:
 
 | Input | Eksempel |
 |---|---|
@@ -183,27 +194,44 @@ Child flowet henter planen, items, operationer, indeksrækken og (for
 De andre flows kalder det med **Run a Child Flow**. Child flows kræver, at
 begge flows ligger i en solution – det gør de i BIO SAP.
 
-### `{{Status}}`
+### Statusordet
 
-Viser forløbet i ord, ikke den rå kolonneværdi:
+Viser forløbet i ord, ikke den rå kolonneværdi. Udtrykket i
+`NewPlanCreated`:
 
 ```
-if(equals(body('Get_plan')?['Status']?['Value'], 'Returned'), 'Sendt retur',
-if(equals(body('Get_plan')?['Status']?['Value'], 'Published'), 'Oprettet i SAP',
-if(equals(body('Get_plan')?['Status']?['Value'], 'Ready for creation in SAP'), 'Klar til oprettelse i SAP',
-if(equals(body('Get_plan')?['Status']?['Value'], 'In Progress'),
-   concat('Til godkendelse - ',
-     if(equals(body('Get_plan')?['ApprovalStage']?['Value'], 'System'), 'system',
-     if(equals(body('Get_plan')?['ApprovalStage']?['Value'], 'Cost'), 'omkostning', 'kvalitet'))),
-'Kladde'))))
+if(equals(triggerBody()?['Status/Value'], 'Returned'), 'Returned',
+if(equals(triggerBody()?['Status/Value'], 'Published'), 'Created in SAP',
+if(equals(triggerBody()?['Status/Value'], 'Ready for creation in SAP'), 'Ready for creation in SAP',
+if(equals(triggerBody()?['Status/Value'], 'In Progress'),
+   concat('In approval - ',
+     if(equals(triggerBody()?['ApprovalStage/Value'], 'System'), 'system',
+     if(equals(triggerBody()?['ApprovalStage/Value'], 'Cost'), 'cost', 'quality'))),
+'Draft'))))
 ```
+
+### Statusord i mail og i appen
+
+Mailen og hubben bruger ikke de samme ord. Hubben viser
+`MD_RequestIndex.Status` med etiketten fra `tools/request_index.py`
+(`STATUS`); trinnene står i [`32-godkendelsesflow.md`](32-godkendelsesflow.md) §4.
+
+| `MaintenancePlans.Status` (+ `ApprovalStage`) | Statusord i mailen | `MD_RequestIndex.Status` | Etiket i hubben (`request_index.STATUS`) |
+|---|---|---|---|
+| `Draft` | Draft | `Kladde` | Draft |
+| `In Progress` (`System`) | In approval - system | `Indsendt` → `UnderBehandling` | Submitted → In progress |
+| `In Progress` (`Cost`) | In approval - cost | `UnderBehandling` | In progress |
+| `In Progress` (`Quality`) | In approval - quality | `UnderBehandling` | In progress |
+| `Returned` | Returned | `AfventerInfo` | Awaiting info |
+| `Ready for creation in SAP` | Ready for creation in SAP | `KlarTilSAP` | Ready for SAP |
+| `Published` | Created in SAP | `OprettetISAP` | Created in SAP |
 
 ### Bannerne
 
 Tre farver. Hvert banner er en hel `<tr>`, som sættes ind i stedet for
 `{{Banner}}`. Titel og tekst er `TITEL` og `TEKST` nedenfor.
 
-**Info** (blå) – *Sendt til godkendelse*, *Påmindelse*:
+**Info** (blå) – *Submitted for approval*, *Reminder*:
 
 ```html
 <tr><td style="padding:18px 24px 18px 24px;">
@@ -217,15 +245,15 @@ Tre farver. Hvert banner er en hel `<tr>`, som sættes ind i stedet for
 </td></tr>
 ```
 
-**Advarsel** (rav) – *Sendt retur*: samme opbygning med
+**Advarsel** (rav) – *Returned*: samme opbygning med
 `background-color:#fdf4e3;border-left:4px solid #b7791f` og titelfarven
 `#7a4f0e`.
 
-**Succes** (grøn) – *Klar til oprettelse i SAP*, *Oprettet i SAP*: samme
+**Succes** (grøn) – *Ready for creation in SAP*, *Created in SAP*: samme
 opbygning med `background-color:#e7f5ec;border-left:4px solid #2f855a` og
 titelfarven `#1f5e3d`.
 
-### Kommentarerne i *Sendt retur*
+### Kommentarerne i *Returned*
 
 `TEKST` bygges af de `Return`-rækker i `MD_ApprovalLog`, der hører til
 planen og er nyere end `SubmittedOn`. Samme mønster som item-rækkerne: en
@@ -241,7 +269,7 @@ Kommentaren er fri tekst fra godkenderen. Den **escapes**, før den sættes
 ind i HTML'en – ellers kan et `<` i en kommentar ødelægge resten af mailen.
 Det samme gælder `ItemText`, hvis korttekster kan indeholde `<` eller `&`.
 
-### Godkenderne i *Klar til oprettelse i SAP*
+### Godkenderne i *Ready for creation in SAP*
 
 `TEKST` er én linje pr. trin fra `MD_ApprovalLog`, fx
 "System 8 – PKBJE · Omkostning – ikke nødvendig · Kvalitet (ASV) – PKBJE".

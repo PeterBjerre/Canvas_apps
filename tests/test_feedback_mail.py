@@ -293,11 +293,24 @@ def test_request_link_only_when_it_is_https():
         _well_formed(html)
 
 
+def _plan_mail_html():
+    """VH-planens mail, som BioSap-EmailNotification-NewPlanCreated faktisk
+    sender (Compose-EmailContent). Flowet er kilden; den separate skabelon
+    flow/email-plan-submitted.html er slettet (R2-053)."""
+    path, = glob.glob(os.path.join(FLOWS, "BioSap-EmailNotification-NewPlanCreated-*.json"))
+    flow = json.load(open(path, encoding="utf-8-sig"))
+    acts = flow["properties"]["definition"]["actions"]
+    for name, a in _actions(acts):
+        if name == "Compose-EmailContent":
+            return a["inputs"]
+    raise AssertionError("Compose-EmailContent findes ikke i NewPlanCreated")
+
+
 def test_mail_reuses_the_plan_mail_styling():
     """Samme farver, typografi og opbygning som VH-planens mails
-    (flow/email-plan-submitted.html): tabeller, inline styles, Outlook-sikkert."""
+    (NewPlanCreated): tabeller, inline styles, Outlook-sikkert."""
     html, _ = _mail("Hi", REQUEST)
-    tpl = open(os.path.join(ROOT, "flow", "email-plan-submitted.html"), encoding="utf-8").read()
+    tpl = _plan_mail_html()
     for token in ("#eef2f6", "#12405f", "#8fc4e5", "#d7dee8", "#24313f", "#6b7b8c",
                   "#1a6ea8", "#8494a5", "#e4e9f0", "Segoe UI,Arial,Helvetica,sans-serif",
                   'role="presentation"', 'bgcolor="#1a6ea8"'):
