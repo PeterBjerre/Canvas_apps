@@ -45,16 +45,19 @@ python3 tools/build.py           # det samme i én proces
 | PowerShell 7 (`pwsh`) med PnP.PowerShell 2.x+ — virker **ikke** i Windows PowerShell 5.1 (`Connect-PnPOnline` findes ikke dér) | `sharepoint/provision/*.ps1`, `sharepoint/inspect/*.ps1` |
 | pac CLI | `tools/export_solution.ps1` (hentes med `dnx`, hvis den mangler) |
 
-**Tjek en ny pc i én kommando** (også Windows — CI kan ikke køre i
-Ørsteds repo, fordi hostede runnere er slået fra):
+**Tjek en ny pc i én kommando** (også Windows). CI kører på GitHub
+(`PeterBjerre/Canvas_apps`); i Ørsteds interne kopi er hostede runnere slået
+fra, og dér er `tools/doctor.py` erstatningen:
 
 ```powershell
 python tools\doctor.py          # forudsætninger, byg, git-tjek, tests
 python tools\doctor.py --fix    # sletter desuden gamle filer fra før udfasningen
 ```
 
-Den gør det samme som `.github/workflows/build.yml` og siger præcis,
-hvad der mangler (Python-pakker, Node, PowerShell 7, PnP.PowerShell).
+Den gør det samme som `.github/workflows/build.yml`, fejler de samme steder
+(også på ucommittet `.pa.yaml`) og siger præcis, hvad der mangler
+(Python-pakker, jsonschema, Node, .NET/`dnx`, `pac`, PowerShell 7,
+PnP.PowerShell).
 
 Status på kendte fund og den prioriterede plan står i [`REVIEW.md`](REVIEW.md).
 

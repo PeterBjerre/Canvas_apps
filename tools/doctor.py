@@ -1,18 +1,22 @@
 # -*- coding: utf-8 -*-
 """
 Er maskinen klar til at bygge og teste lokalt? Een kommando, ogsaa paa
-Windows - CI kan ikke koere i Oersteds repo (hostede runnere er slaaet fra).
+Windows. CI koerer paa GitHub (PeterBjerre/Canvas_apps); i Oersteds interne
+kopi er hostede runnere slaaet fra, og dér er det her erstatningen.
 
     python tools/doctor.py           # tjek forudsaetninger, byg, test
     python tools/doctor.py --fix     # slet desuden gamle filer i de
                                      # udfasede apps' mapper
     python tools/doctor.py --no-build   # kun forudsaetningerne
 
-Den goer det samme som .github/workflows/build.yml: byg alle apps og koer
-alle tjek, kraev at det committede .pa.yaml er det builderne laver, og koer
-testene. Foer det tjekker den det, der plejer at fejle paa en ny pc:
-Python-version, PyYAML/pytest, Node, gamle filer fra foer udfasningen og
-PowerShell 7 med PnP.PowerShell (til sharepoint/*.ps1).
+Den goer det samme som .github/workflows/build.yml og FEJLER de samme
+steder: byg alle apps og koer alle tjek, kraev at det committede .pa.yaml er
+det builderne laver (FEJL, som CI's git diff --exit-code), og koer testene.
+Foer det tjekker den det, der plejer at fejle paa en ny pc:
+Python-version, PyYAML/pytest (FEJL), jsonschema/openpyxl, Node, .NET 10
+(dnx), pac, gamle filer fra foer udfasningen og PowerShell 7 med
+PnP.PowerShell (NB - de bruges ikke af byggeriet, men af deploy, eksport og
+sharepoint/*.ps1).
 """
 import argparse
 import os
@@ -56,6 +60,34 @@ def check_packages():
                f'"{sys.executable}" -m pip install -r requirements.txt')
     else:
         report(OK, "PyYAML og pytest er installeret")
+    # Ikke kraevet af byggeriet, men uden dem springes noget over i stilhed:
+    # uden jsonschema springer test_example_matches_schema over (importorskip).
+    for mod, pkg, why in (
+            ("jsonschema", "jsonschema", "SAP-ordrens eksempler efterproeves ikke mod skemaet"),
+            ("openpyxl", "openpyxl", "Excel-vaerktoejerne (fx seed-generatorerne) kan ikke koere")):
+        try:
+            __import__(mod)
+        except ImportError:
+            report(WARN, f"{pkg} mangler - {why}",
+                   f'"{sys.executable}" -m pip install -r requirements.txt')
+
+
+def check_dotnet():
+    """canvas_mcp.py (deploy til Studio) koerer MCP-serveren med dnx."""
+    if shutil.which("dnx") or shutil.which("dotnet"):
+        report(OK, ".NET findes (dnx/dotnet)")
+    else:
+        report(WARN, ".NET 10 / dnx mangler - canvas_mcp.py deploy virker ikke",
+               "winget install Microsoft.DotNet.SDK.10  - se docs/21-mcp-uden-vscode.md")
+
+
+def check_pac():
+    """tools/export_solution.ps1 bruger pac (Power Platform CLI)."""
+    if shutil.which("pac"):
+        report(OK, "pac (Power Platform CLI) findes")
+    else:
+        report(WARN, "pac mangler - tools/export_solution.ps1 henter den med dnx, hvis .NET findes",
+               "dotnet tool install --global Microsoft.PowerApps.CLI.Tool")
 
 
 def check_node():
@@ -131,8 +163,9 @@ def run_build():
                            cwd=ROOT, capture_output=True, text=True)
         changed = [l[3:] for l in r.stdout.splitlines() if l.strip()]
         if changed:
-            report(WARN, "Builderne aendrede committede .pa.yaml - commit dem med "
-                         "din aendring (ellers er de ude af trit med kilden):",
+            # FEJL, ikke NB: CI fejler paa praecis det her (git diff --exit-code).
+            report(FAIL, "Det committede output er ikke det, builderne laver - CI "
+                         "fejler paa det samme. Commit .pa.yaml med din aendring:",
                    "\n".join(changed))
         else:
             report(OK, "Det committede .pa.yaml er det, builderne laver")
@@ -156,6 +189,8 @@ def main():
     check_python()
     check_packages()
     check_node()
+    check_dotnet()
+    check_pac()
     check_stale(a.fix)
     check_powershell()
 

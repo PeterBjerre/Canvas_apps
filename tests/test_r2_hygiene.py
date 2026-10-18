@@ -27,6 +27,40 @@ def _read(*parts):
 
 
 # ---------------------------------------------------------------------------
+# R2-089: doctor fejler, hvor CI fejler.
+# ---------------------------------------------------------------------------
+def test_doctor_fails_on_uncommitted_yaml(monkeypatch):
+    import doctor
+
+    class R:
+        def __init__(self, rc=0, out=""):
+            self.returncode, self.stdout = rc, out
+
+    def fake_run(cmd, *a, **k):
+        if "status" in cmd:
+            return R(0, " M BIO SAP App/ScreenX.pa.yaml\n")
+        return R(0)
+
+    monkeypatch.setattr(doctor.subprocess, "run", fake_run)
+    monkeypatch.setattr(doctor.shutil, "which", lambda n: "/usr/bin/" + n)
+    monkeypatch.setattr(doctor, "results", [])
+    with io.StringIO() as buf:
+        import contextlib
+        with contextlib.redirect_stdout(buf):
+            doctor.run_build()
+        assert "[FEJL]" in buf.getvalue()
+    assert doctor.FAIL in doctor.results
+
+
+def test_doctor_warns_without_dotnet(monkeypatch, capsys):
+    import doctor
+    monkeypatch.setattr(doctor.shutil, "which", lambda n: None)
+    monkeypatch.setattr(doctor, "results", [])
+    doctor.check_dotnet()
+    assert ".NET 10 / dnx mangler - canvas_mcp.py deploy virker ikke" in capsys.readouterr().out
+
+
+# ---------------------------------------------------------------------------
 # R2-090: een koersel pr. PR-push, og et nyt push annullerer det gamle.
 # ---------------------------------------------------------------------------
 def test_build_workflow_runs_once_per_push():
