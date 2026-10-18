@@ -4477,7 +4477,7 @@ Screens:
                                                 Color: |-
                                                     =If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                                 Default: |-
-                                                    =LookUp(colVhpSortFieldOptions As _dd, _dd.Value = (LookUp(colVhpSortFieldOptions, Value = varVhpPlan.SortField).Value))
+                                                    =LookUp(colVhpSortFieldOptions As _dd, _dd.Name = (LookUp(colVhpSortFieldOptions, Value = varVhpPlan.SortField).Name))
                                                 DisplayMode: |-
                                                     =If((If(varVhpViewOnly, DisplayMode.View, If((If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
@@ -4487,7 +4487,7 @@ Screens:
                                                 Height: |-
                                                     =36
                                                 ItemDisplayText: |-
-                                                    =ThisItem.Value
+                                                    =ThisItem.Name
                                                 Items: |-
                                                     =colVhpSortFieldOptions
                                                 LayoutMinWidth: |-

@@ -97,6 +97,11 @@ Public Function SelfTestPure() As String
     Check "NumberFromStatus S param ikke tal", VhpMap.NumberFromStatus("S", "Task list 50012345 saved", "A", 4), "50012345"
     Check "NumberFromStatus minDigits", VhpMap.NumberFromStatus("S", "Item 12 saved", "12", 3), ""
     Check "NumberFromStatus E", VhpMap.NumberFromStatus("E", "Plan 10001234 locked", "10001234", 3), ""
+    Check "SortKey 010", VhpMap.SortKey("010"), "010"
+    Check "SortKey 10", VhpMap.SortKey("10"), "010"
+    Check "SortKey med tekst", VhpMap.SortKey("235 SKS Sec. 6 (Installation work)"), "235"
+    Check "SortKey beskrivelse", VhpMap.SortKey("Boiler Control Category A"), ""
+    Check "SortKey tom", VhpMap.SortKey(""), ""
 
     Set c = VhpMap.ObjectListEntries("SSV13 HFC10; SSV13 HFC20AT002;; SSV13 HFC10")
     Check "Objektliste ny app, antal", c.Count, 2
@@ -251,7 +256,7 @@ Private Function SampleOrderJson(ByVal valid As Boolean) As String
     s = "{'kind':'vhplan-sap-order','version':1,'orderGuid':'3f2b8c1e-9d4a-4e6b-8a7c-5d1e2f3a4b5c'," & _
         "'createdOn':'2026-10-02T08:42:33Z','environment':'DEV','site':null," & _
         "'plan':{'spId':138,'planId':'MP0133','title':'SSV kulm\u00f8ller','plant':'SSV','strategyKey':null," & _
-        "'cycle':1,'unit':'WK','plannedDate':'2027-09-20','sortField':'Boiler Control Category A','sortFieldId':3}," & _
+        "'cycle':1,'unit':'WK','plannedDate':'2027-09-20','sortField':'080','sortFieldId':3}," & _
         "'items':[{'spId':185,'itemId':'MI0179','title':'HFC kulm\u00f8lle 1','longText':'<p>Tekst</p>'," & _
         "'functionalLocation':'" & IIf(valid, "SSV13 HFC10", "") & "','objectList':'SSV13 HFC20AT002','orderType':'ZPRE'," & _
         "'activityType':'101 - Maintenance','mainWorkCenter':'SSVSUP','priority':'Yellow (default)'," & _

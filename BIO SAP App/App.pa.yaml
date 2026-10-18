@@ -1828,13 +1828,13 @@ App:
 
       colVhpPlantCodes = Sort(ForAll(PlantList As R, { Value: R.Title }), Value);
 
-      colVhpSortFieldOptions = Sort(ForAll(SortFieldList As R, { Id: R.ID, Value: R.Title }), Value);
+      colVhpSortFieldOptions = Sort(ForAll(SortFieldList As R, { Id: R.ID, Value: R.Title, Name: Trim(R.Title & " " & R.SortFieldDescription) }), Value);
 
       colVhpActivityTypeOptions = Sort(ForAll(MaintenanceActivityTypeList As R, { Id: R.ID, Value: R.Title }), Value);
 
       colVhpPlanStatusOptions = Choices(MaintenanceItems.Status);
 
-      colVhpUnitOptions = Choices(MaintenancePlans.Unit);
+      colVhpUnitOptions = Filter(Choices(MaintenancePlans.Unit), Value <> "DAY");
 
       colVhpRevisionOptions = Choices(MaintenanceItems.RevisionMark);
 

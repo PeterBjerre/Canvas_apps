@@ -339,8 +339,12 @@ Private Function ValidatePlan(ByVal order As Object, ByVal lk As Object) As Obje
         End If
     End If
 
-    If Not VhpUtil.JHas(plan, "sortField") And Not VhpUtil.JHas(plan, "sortFieldId") Then
+    If Len(VhpUtil.JStr(plan, "sortField")) = 0 Then
         AddWarning res, VhpUtil.Dk("Planen har intet sorteringsfelt og oprettes uden.")
+    ElseIf Len(VhpMap.SortKey(VhpUtil.JStr(plan, "sortField"))) = 0 Then
+        AddWarning res, VhpUtil.Dk("Sorteringsfeltet '") & VhpUtil.JStr(plan, "sortField") & _
+            VhpUtil.Dk("' er ikke en SAP-n{oe}gle (fx 010). Det v{ae}lges p{aa} teksten i SAP; " & _
+            "k{oe}r Provision-SortFields.ps1, s{aa} SortFieldList har n{oe}glerne.")
     End If
 
     '--- Items ----------------------------------------------------------------
