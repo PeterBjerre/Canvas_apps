@@ -36,6 +36,15 @@
         "api": {
           "name": "shared_office365"
         }
+      },
+      "shared_office365users": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapOffice365UsersConn"
+        },
+        "api": {
+          "name": "shared_office365users"
+        }
       }
     },
     "definition": {
@@ -677,9 +686,93 @@
                           "type": "Compose",
                           "inputs": "@if(empty(outputs('Initials')), '', toLower(concat(outputs('Initials'), '@', parameters('BioSap-EmailDomain (orsted_BioSapEmailDomain)'))))"
                         },
-                        "FingerprintRaw": {
+                        "Initials_alt": {
                           "runAfter": {
                             "Approver_email": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "Compose",
+                          "inputs": "@if(equals(length(body('Filter_approver_rows')), 0), '', if(equals(first(body('Filter_approver_rows'))?['Approver1Absent'], true), trim(coalesce(first(body('Filter_approver_rows'))?['Approver1'], '')), trim(coalesce(first(body('Filter_approver_rows'))?['Approver2'], ''))))"
+                        },
+                        "Approver_email_alt": {
+                          "runAfter": {
+                            "Initials_alt": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "Compose",
+                          "inputs": "@if(empty(outputs('Initials_alt')), '', toLower(concat(outputs('Initials_alt'), '@', parameters('BioSap-EmailDomain (orsted_BioSapEmailDomain)'))))"
+                        },
+                        "Resolve_primary": {
+                          "runAfter": {
+                            "Approver_email_alt": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "parameters": {
+                              "id": "@outputs('Approver_email')"
+                            },
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365users",
+                              "operationId": "UserProfile_V2",
+                              "connectionName": "shared_office365users"
+                            },
+                            "retryPolicy": {
+                              "type": "none"
+                            }
+                          }
+                        },
+                        "Resolve_secondary": {
+                          "runAfter": {
+                            "Resolve_primary": [
+                              "Failed"
+                            ]
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "parameters": {
+                              "id": "@outputs('Approver_email_alt')"
+                            },
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365users",
+                              "operationId": "UserProfile_V2",
+                              "connectionName": "shared_office365users"
+                            },
+                            "retryPolicy": {
+                              "type": "none"
+                            }
+                          }
+                        },
+                        "Resolved_email": {
+                          "runAfter": {
+                            "Resolve_primary": [
+                              "Succeeded",
+                              "Failed"
+                            ],
+                            "Resolve_secondary": [
+                              "Succeeded",
+                              "Failed",
+                              "Skipped"
+                            ]
+                          },
+                          "type": "Compose",
+                          "inputs": "@toLower(coalesce(actions('Resolve_primary')?['outputs']?['body']?['mail'], actions('Resolve_primary')?['outputs']?['body']?['userPrincipalName'], actions('Resolve_secondary')?['outputs']?['body']?['mail'], actions('Resolve_secondary')?['outputs']?['body']?['userPrincipalName'], ''))"
+                        },
+                        "Resolved_initials": {
+                          "runAfter": {
+                            "Resolved_email": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "Compose",
+                          "inputs": "@if(equals(actions('Resolve_secondary')?['status'], 'Succeeded'), outputs('Initials_alt'), outputs('Initials'))"
+                        },
+                        "FingerprintRaw": {
+                          "runAfter": {
+                            "Resolved_initials": [
                               "Succeeded"
                             ]
                           },
@@ -722,8 +815,8 @@
                               "itemText": "@items('For_each_unit')?['itemText']",
                               "sysNo": "@items('For_each_unit')?['sysNo']",
                               "fingerprint": "@outputs('Fingerprint')",
-                              "approver": "@outputs('Approver_email')",
-                              "initials": "@toUpper(outputs('Initials'))",
+                              "approver": "@outputs('Resolved_email')",
+                              "initials": "@toUpper(outputs('Resolved_initials'))",
                               "done": "@greater(length(body('Filter_prev_rows')), 0)"
                             }
                           }

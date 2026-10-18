@@ -229,6 +229,8 @@ SVC = {
     "shared_powerbi": "orsted_BioSapPowerBIConn",
     "shared_approvals": "orsted_BioSapApprovalsConn",
     "shared_office365": "orsted_BioSapOutlookConn",
+    # R2-084 pkt. 3: godkenderen slaas op i Entra (2. godkender som reserve).
+    "shared_office365users": "orsted_BioSapOffice365UsersConn",
 }
 
 

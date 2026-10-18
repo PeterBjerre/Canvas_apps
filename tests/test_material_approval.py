@@ -26,6 +26,8 @@ SVC = {
     "shared_powerbi": "orsted_BioSapPowerBIConn",
     "shared_approvals": "orsted_BioSapApprovalsConn",
     "shared_office365": "orsted_BioSapOutlookConn",
+    # R2-084 pkt. 3: godkenderen slaas op i Entra (2. godkender som reserve).
+    "shared_office365users": "orsted_BioSapOffice365UsersConn",
 }
 
 
@@ -96,6 +98,7 @@ def _patches(name, table):
 def test_both_flows_run_as_the_service_account():
     for name, apis in ((RESOLVE, ["shared_powerbi", "shared_sharepointonline"]),
                        (APPROVAL, ["shared_approvals", "shared_office365",
+                                   "shared_office365users",
                                    "shared_powerbi", "shared_sharepointonline"])):
         refs = _flow(name)["properties"]["connectionReferences"]
         assert sorted(refs) == apis, name
