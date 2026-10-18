@@ -152,9 +152,12 @@ OP_FIELDS = [
     ("CostElement", "OP.CostElem"),
     ("MaterialGroup", "OP.MaterialGroup"),
     ("ServiceNo", "OP.ServiceNo"),
-    # Dokumenterne er vedhaeftninger paa raekken (issue #300). Antallet
-    # kommer med i SAMME hentning som operationen - intet kald pr. raekke.
-    ("FileCount", "CountRows(OP.Attachments)"),
+    # Dokumenterne er vedhaeftninger paa raekken (issue #300). Attachments
+    # kan ikke laeses i en ForAll over listen - compile: "The specified
+    # column is not accessible in this context" (#336). Antallet er derfor
+    # ukendt (blankt tal), til Docs-popuppen har hentet raekken
+    # (build_attflows.open_fx) eller dokumenterne er gemt (on_ok).
+    ("FileCount", "If(false, 0)"),
     ("SpId", "OP.ID"),
 ]
 

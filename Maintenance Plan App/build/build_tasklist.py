@@ -137,6 +137,11 @@ MG_CLOSE = 'Set(varVhpMgOpNo, "")'
 # noget, der ikke er et heltal fra 1 til 9999, afvises, og feltet viser
 # igen det gamle. "10" gemmes som "0010". OnChange koerer foerst, naar
 # feltet forlades, ikke ved hvert tastetryk.
+
+def docs_label(count):
+    """ "Docs (n)", naar antallet er kendt; ellers "Docs" (#336)."""
+    return f'With({{ n: {count} }}, If(IsBlank(n), "Docs", "Docs (" & Text(n) & ")"))'
+
 def op_no_change(row, after=""):
     new_no = 'Text(n, "0000")'
     return (
@@ -735,7 +740,7 @@ def _op_detail_modal():
     mats = button("btnVhpOpMMat", f'"Materials (" & Text(CountRows(Filter(colVhpMaterials, ItemId = varVhpActiveItemId && '
                   f'OperationNo = varVhpOpMNo))) & ")"', "Set(varVhpMatOpNo, varVhpOpMNo)",
                   width=fit_button_width('"Materials (00)"'), height=32)
-    docs = button("btnVhpOpMDocs", f'"Docs (" & Text(Coalesce({OPM}.FileCount, 0)) & ")"',
+    docs = button("btnVhpOpMDocs", docs_label(f"{OPM}.FileCount"),
                   att.open_fx("varVhpOpMNo"),
                   width=fit_button_width('"Docs (00)"'), height=32)
     rem = button("btnVhpOpMRemove", '"Remove"',
@@ -1205,9 +1210,9 @@ def build_tasklist_section():
         accessible='"Materials for operation " & ThisItem.OperationNo')
     btnOpDocs = button(
         # Dokumenterne er vedhaeftninger paa operationens raekke (issue
-        # #300) og hentes foerst, naar popuppen aabnes. Antallet hentes med
-        # operationen (FileCount, build_load) - som "Materials (n)".
-        "btnVhpOpDocs", '"Docs (" & Text(Coalesce(ThisItem.FileCount, 0)) & ")"',
+        # #300) og hentes foerst, naar popuppen aabnes. Antallet kendes
+        # foerst derefter (FileCount, #336) - indtil da blot "Docs".
+        "btnVhpOpDocs", docs_label("ThisItem.FileCount"),
         att.open_fx("ThisItem.OperationNo"), width=w["DOCS"], height=32,
         accessible='"Documents for operation " & ThisItem.OperationNo')
     for b_ in (btnOpMat, btnOpDocs):
