@@ -734,8 +734,9 @@ def _op_detail_modal():
     mats = button("btnVhpOpMMat", f'"Materials (" & Text(CountRows(Filter(colVhpMaterials, ItemId = varVhpActiveItemId && '
                   f'OperationNo = varVhpOpMNo))) & ")"', "Set(varVhpMatOpNo, varVhpOpMNo)",
                   width=fit_button_width('"Materials (00)"'), height=32)
-    docs = button("btnVhpOpMDocs", '"Docs"', att.open_fx("varVhpOpMNo"),
-                  width=fit_button_width('"Docs"'), height=32)
+    docs = button("btnVhpOpMDocs", f'"Docs (" & Text(Coalesce({OPM}.FileCount, 0)) & ")"',
+                  att.open_fx("varVhpOpMNo"),
+                  width=fit_button_width('"Docs (00)"'), height=32)
     rem = button("btnVhpOpMRemove", '"Remove"',
                  "RemoveIf(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo);\n"
                  'Set(varVhpOpMNo, "")', danger=True, width=fit_button_width('"Remove"'), height=32)
@@ -1202,8 +1203,9 @@ def build_tasklist_section():
         accessible='"Materials for operation " & ThisItem.OperationNo')
     btnOpDocs = button(
         # Dokumenterne er vedhaeftninger paa operationens raekke (issue
-        # #300) og hentes foerst, naar popuppen aabnes - derfor intet antal.
-        "btnVhpOpDocs", '"Docs"',
+        # #300) og hentes foerst, naar popuppen aabnes. Antallet hentes med
+        # operationen (FileCount, build_load) - som "Materials (n)".
+        "btnVhpOpDocs", '"Docs (" & Text(Coalesce(ThisItem.FileCount, 0)) & ")"',
         att.open_fx("ThisItem.OperationNo"), width=w["DOCS"], height=32,
         accessible='"Documents for operation " & ThisItem.OperationNo')
     for b_ in (btnOpMat, btnOpDocs):
