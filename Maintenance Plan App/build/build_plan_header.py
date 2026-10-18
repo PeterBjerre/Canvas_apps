@@ -347,9 +347,10 @@ def build_plan_header():
                              required_formula=REQ_PLAN, display_mode=DM_PLAN,
                              onchange=(f'If(!varVhpViewOnly && !IsBlank({PL}) && '
                                        f'!StartsWith(Upper(Self.Text), Upper({PL}) & " "), Reset(Self))'))
+    # Listen viser noegle og beskrivelse; Selected.Value er SAP-noeglen.
     drpSortField = themed_dropdown("drpVhpSortField", "colVhpSortFieldOptions",
-                            "LookUp(colVhpSortFieldOptions, Value = varVhpPlan.SortField).Value",
-                            display_mode=DM_PLAN)
+                            "LookUp(colVhpSortFieldOptions, Value = varVhpPlan.SortField).Name",
+                            display_mode=DM_PLAN, display_col="Name")
     # Tal som tekst uden spin-pile (UX-review T10); enheden er dropdown'en
     # ved siden af. Mindst 1 tjekkes ved gem (se nedenfor).
     numCycle = number_field("inpVhpCycle", "varVhpPlan.Cycle", required_formula=REQ_CYCLE,

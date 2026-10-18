@@ -126,7 +126,7 @@ glider de fra hinanden.
 | `plan.plannedDate` (første forfald) | IP01 startdato | **én cyklus før** (som det gamle `ResolvePlanStartDate`) |
 | `plan.callHorizon`, `schedulingPeriod`, `schedulingPeriodUnit` | kaldshorisont, planlægningsperiode | appens værdier (CallHorizonMatrix); mangler de, opslag på `cycle` + `unit` i arket *Opslag* |
 | `plan.plant` | værk, arbejdsplanprofil | opslag (`SSV` → `2804`, `PMSSV`) |
-| `plan.sortField(Id)` | sorteringsfelt | Id, Id med nuller, ellers teksten |
+| `plan.sortField` | sorteringsfelt | SAP-nøglen fra `SortFieldList.Title` (tre cifre, fx 010; `Provision-SortFields.ps1`). Er det en beskrivelse fra før, vælges den på teksten. Opslagets Id bruges ikke: Id 10 er ikke nøgle 010 |
 | `items[].title` | IP04 kort tekst og IA05 beskrivelse | 40 tegn |
 | `items[].objectList` | IP04 objektliste | FL før `" - "`, delt ved `;` (ny app) eller `|||` (gammel) |
 | `items[].activityType` | ILART | tre første tegn |

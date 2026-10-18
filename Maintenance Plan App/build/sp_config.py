@@ -240,9 +240,12 @@ def named_formulas():
         f"Sort({_forall(L_PLANTS, [('Value', 'R.Title')])}, Value)")
 
     # Id baeres med, saa gem kan skrive opslaget uden at slaa op i
-    # listen (REVIEW.md B7).
+    # listen (REVIEW.md B7). Title er SAP's noegle (010, 020 ...), som
+    # ordren sender videre; Name er det, dropdown'en viser
+    # (Provision-SortFields.ps1).
+    sort_name = 'Trim(R.Title & " " & R.SortFieldDescription)'
     add("colVhpSortFieldOptions",
-        f"Sort({_forall(L_SORTFIELDS, [('Id', 'R.ID'), ('Value', 'R.Title')])}, Value)")
+        f"Sort({_forall(L_SORTFIELDS, [('Id', 'R.ID'), ('Value', 'R.Title'), ('Name', sort_name)])}, Value)")
 
     # Id baeres med. Gem skal skrive { Id, Value } i opslagskolonnen, og
     # slog det foer op i SharePoint EEN GANG PR. ITEM inde i et ForAll -
@@ -253,7 +256,8 @@ def named_formulas():
 
     # --- valgkolonner: Choices() giver allerede { Value } ---
     add("colVhpPlanStatusOptions", f"Choices({L_ITEMS}.Status)")
-    add("colVhpUnitOptions",       f"Choices({L_PLANS}.Unit)")
+    # DAY kan ikke vaelges som cyklusenhed (Peter 2026-10-18).
+    add("colVhpUnitOptions",       f"Filter(Choices({L_PLANS}.Unit), Value <> \"DAY\")")
     add("colVhpRevisionOptions",   f"Choices({L_ITEMS}.RevisionMark)")
 
     # NON FLOW USER STATUS (issue #112). Valgene ER SharePoint-kolonnen

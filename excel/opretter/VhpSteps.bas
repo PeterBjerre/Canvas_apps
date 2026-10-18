@@ -467,7 +467,6 @@ Public Function CreatePlan(ByVal sess As Object, ByVal order As Object, ByVal it
     Dim hz As Object
     Dim j As Long
     Dim dec As String
-    Dim sortId As String
     Dim sortText As String
 
     Set plan = VhpUtil.JObj(order, "plan")
@@ -534,13 +533,14 @@ Public Function CreatePlan(ByVal sess As Object, ByVal order As Object, ByVal it
     VhpSap.SetText sess, IP01_START_DATE, VhpMap.SapDate(VhpMap.StartDate(firstDue, cycle, unitText))
     VhpSap.SelectItem sess, IP01_KEY_DATE
 
-    ' Sorteringsfeltet. Det gamle script satte opslagets Id som noegle. Her
-    ' proeves Id'et, Id'et med nuller foran og til sidst teksten.
-    sortId = VhpUtil.JStr(plan, "sortFieldId")
+    ' Sorteringsfeltet. sortField er SAP-noeglen (010, 020 ...) fra
+    ' SortFieldList. Opslagets Id er IKKE noeglen: Id 10 er "Gas systems",
+    ' noegle 010 er "Power tools". En aeldre ordre med beskrivelsen i stedet
+    ' for noeglen vaelges paa teksten i SAP's liste.
     sortText = VhpUtil.JStr(plan, "sortField")
-    If Len(sortId) > 0 Or Len(sortText) > 0 Then
+    If Len(sortText) > 0 Then
         VhpSap.SelectItem sess, IP01_TAB_SORT
-        If VhpSap.SelectCombo(sess, IP01_SORT_FIELD, SortKeys(sortId), sortText) Then
+        If VhpSap.SelectCombo(sess, IP01_SORT_FIELD, Array(VhpMap.SortKey(sortText)), sortText) Then
             VhpSap.Focus sess, IP01_SORT_FIELD
         Else
             AddStepWarning ctx, VhpUtil.JStr(plan, "planId") & VhpUtil.Dk(": sorteringsfeltet '") & sortText & _
@@ -554,16 +554,6 @@ Public Function CreatePlan(ByVal sess As Object, ByVal order As Object, ByVal it
 
     CreatePlan = SaveAndReadNumber(sess, what, 3, _
         VhpUtil.Dk(" Se i IP03, om planen blev oprettet, f{oe}r den k{oe}res igen."))
-End Function
-
-Private Function SortKeys(ByVal sortId As String) As Variant
-    If Len(sortId) = 0 Then
-        SortKeys = Array("")
-    ElseIf VhpUtil.IsAllDigits(sortId) Then
-        SortKeys = Array(sortId, Format$(CLng(sortId), "000"), Format$(CLng(sortId), "00"))
-    Else
-        SortKeys = Array(sortId)
-    End If
 End Function
 
 '==============================================================================

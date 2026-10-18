@@ -115,6 +115,18 @@ Public Function VendorNo(ByVal s As String) As String
     VendorNo = out
 End Function
 
+' Sorteringsfeltets SAP-noegle (RMIPM-PLAN_SORT) med tre cifre: "10" ->
+' "010", "010 Power tools" -> "010". En beskrivelse uden noegle (en raekke i
+' SortFieldList fra foer Provision-SortFields.ps1) giver "".
+Public Function SortKey(ByVal s As String) As String
+    Dim lead As String
+
+    s = Trim$(s)
+    lead = s
+    If InStr(s, " ") > 0 Then lead = Left$(s, InStr(s, " ") - 1)
+    If VhpUtil.IsAllDigits(lead) And Len(lead) <= 3 Then SortKey = Format$(CLng(lead), "000")
+End Function
+
 '==============================================================================
 ' Cyklus og datoer
 '==============================================================================
