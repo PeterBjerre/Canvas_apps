@@ -709,6 +709,38 @@ OPM_OPEN = "!IsBlank(varVhpOpMNo)"
 OPM = "LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo)"
 
 
+# LONG TEXT PAA EEN LINJE (issue #361)
+#
+# Long text-knappen i operationsraekken braekkede om paa flere linjer, naar
+# teksten var lang eller indeholdt linjeskift - saa blev raekken hoejere end
+# de andre. Knappen (ModernButton) har ingen Wrap-egenskab, saa udsnittet
+# skal selv vaere kort nok til at staa paa een linje: linjeskift bliver til
+# mellemrum (Trim samler dem), og teksten afkortes med "...".
+#
+# Kolonnen er 170 px. Minus knappens luft (2 x 16), ikonet med mellemrum
+# (ICON_W) og "..." er der ca. 105 px til teksten. 12 tegn i 12 px Segoe UI
+# Semibold er ca. 100 px - ogsaa naar SAP-teksten staar med store bogstaver.
+LT_PREVIEW_CHARS = 12
+
+
+def longtext_preview(op, chars):
+    """Long text-knappens tekst: "Add text..." uden tekst, ellers de foerste
+    `chars` tegn paa een linje med "..." efter, naar der er mere."""
+    return (
+        "With(\n"
+        "    {\n"
+        f"        lt: Trim(Substitute(Substitute(Coalesce({op}.LongText, \"\"), "
+        "Char(13), \" \"), Char(10), \" \"))\n"
+        "    },\n"
+        "    If(\n"
+        "        IsBlank(lt),\n"
+        "        \"Add text...\",\n"
+        f"        If(Len(lt) > {chars}, Left(lt, {chars}) & \"...\", lt)\n"
+        "    )\n"
+        ")"
+    )
+
+
 def _op_detail_modal():
     """En operationslinje i en popup - kun i smalle skaerme, hvor tabellen
     med femten kolonner ikke kan laeses. Samme felter som tabellens vigtigste
@@ -770,8 +802,7 @@ def _op_detail_modal():
     matgrp = matgrp_button("btnVhpOpMMatGrp", OPM, "varVhpOpMNo", MODAL_CW)
     longtext = button(
         "btnVhpOpMLongText",
-        (f'If(IsBlank(Trim(Coalesce({OPM}.LongText, ""))), "Add text...", '
-         f'Left({OPM}.LongText, 24) & If(Len({OPM}.LongText) > 24, "..."))'),
+        longtext_preview(OPM, 24),
         ('Set(varVhpLongTextTarget, "op");\n'
          'Set(varVhpLongTextItemId, varVhpActiveItemId);\n'
          'Set(varVhpLongTextOpNo, varVhpOpMNo);\n'
@@ -1168,13 +1199,7 @@ def build_tasklist_section():
     # viser den linje, man klikkede paa, og ikke den forrige.
     btnOpLongText = button(
         "btnVhpOpLongText",
-        (
-            "If(\n"
-            "    IsBlank(Trim(Coalesce(ThisItem.LongText, \"\"))),\n"
-            "    \"Add text...\",\n"
-            "    Left(ThisItem.LongText, 16) & If(Len(ThisItem.LongText) > 16, \"...\")\n"
-            ")"
-        ),
+        longtext_preview("ThisItem", LT_PREVIEW_CHARS),
         (
             "Set(varVhpLongTextTarget, \"op\");\n"
             "Set(varVhpLongTextItemId, ThisItem.ItemId);\n"
@@ -1188,6 +1213,8 @@ def build_tasklist_section():
                       "DisplayMode.Disabled, DisplayMode.Edit)"),
         accessible='"Edit long text for operation " & ThisItem.OperationNo')
     mark_done(btnOpLongText, "!IsBlank(Trim(Coalesce(ThisItem.LongText, \"\")))")
+    # Samme 12 px som de andre knapper i raekken (Vendor, Materials, Docs).
+    btnOpLongText.props["Size"] = "12"
 
     # Pakkerne vises som piller (designforslaget), og et klik slaar en pakke
     # til eller fra paa linjen. Matricen under fanen Packages er den samme
