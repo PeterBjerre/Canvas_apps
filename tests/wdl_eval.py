@@ -98,6 +98,10 @@ def _parse_ts(ts):
 
 
 def _convert_from_utc(ts, tz, fmt="o"):
+    # Som Power Automate: en tid uden Z/offset afvises (InvalidTemplate).
+    # SharePoints datokolonner kan komme uden Z, fx 2027-10-18T00:00:00.0000000.
+    if not re.search(r"(Z|[+-]\d\d:\d\d)$", str(ts)):
+        raise ValueError("convertFromUtc expects a UTC date time, got %r" % ts)
     dt = _parse_ts(ts).astimezone(ZoneInfo(_TZ[tz]))
     return dt.isoformat() if fmt == "o" else _fmt(dt, fmt)
 
@@ -105,6 +109,7 @@ def _convert_from_utc(ts, tz, fmt="o"):
 FUNCS.update({
     "convertFromUtc": _convert_from_utc,
     "formatDateTime": lambda ts, fmt="o": _fmt(_parse_ts(ts), fmt),
+    "endsWith": lambda s, x: _str(s).lower().endswith(_str(x).lower()),
     "join": lambda a, sep: sep.join(_str(x) for x in a),
     "createArray": lambda *a: list(a),
     "utcNow": lambda: datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
