@@ -22,14 +22,27 @@ saa de to ikke kan glide fra hinanden, og laeser:
 Det RETTER intet. En hemmelighed, der er committet, skal roteres - at
 slette den fra filen bagefter hjaelper ikke, historikken husker den.
 Exitkode 1, hvis der er fund. Vaerdien skrives aldrig ud.
+
+UD OVER INLINE_PATTERNS (R2-026, R2-025)
+---------------------------------------
+  * ASSIGN: en tildeling af en hemmelighed i kode - `$ClientSecret = "..."`
+    i .ps1, `Const API_KEY = "..."` i .bas, `password: '...'` i YAML.
+  * scrub_text fra scrub_solution.py paa tekstformater (.json, .xml, .md,
+    .yml, .yaml, .txt): de samme navne-regler (clientsecret, x-apikey ...),
+    som renser solution/, gaelder nu ogsaa uden for den. Henvisninger som
+    @{parameters('k')} er stadig ikke et fund.
+  * Personlige firmaadresser i schema/, flow/, html/, docs/ og
+    sharepoint/ (udtraek og seed). Repoet er offentligt; brug roller eller
+    pseudonymer (user12@example.invalid).
 """
 import os
+import re
 import subprocess
 import sys
 import zipfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from scrub_solution import INLINE_PATTERNS  # noqa: E402
+from scrub_solution import INLINE_PATTERNS, scrub_text  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -51,10 +64,44 @@ def tracked_files():
         return files
 
 
-def scan_bytes(data):
+# En hemmelighed tildelt i kode. Vaerdien skal vaere en lang, tegnsaets-
+# agtig streng i anfoerselstegn; en henvisning ($env:X, @{parameters()})
+# rammer ikke.
+ASSIGN = re.compile(
+    r"(?i)\b(client_?secret|api[-_]?key|x-apikey|password|pwd|token|sas)\w*"
+    r"\s*(?:=|:)\s*[\"'][A-Za-z0-9+/=_\-~.]{16,}[\"']")
+
+# Tekstformater, hvor navne-reglerne fra scrub_solution giver mening.
+SCRUB_EXT = (".json", ".xml", ".md", ".yml", ".yaml", ".txt")
+
+# Personlige firmaadresser. Kun i de mapper, hvor data og eksempler bor -
+# ikke i kildekode, hvor domaenet kan staa i en kommentar.
+EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@orsted\.(?:com|dk)\b", re.I)
+EMAIL_DIRS = ("schema/", "flow/", "html/", "docs/", "sharepoint/inspect/out/",
+              "sharepoint/seed/")
+# Faelles funktionspostkasser er ikke persondata. Brugerne skal kunne se
+# dem (hjaelpeteksten, mailskabelonen), saa de maa staa.
+SHARED_MAILBOXES = ("sapvedligehold@",)
+
+
+def personal_emails(text):
+    return [m.group(0) for m in EMAIL.finditer(text)
+            if not m.group(0).lower().startswith(SHARED_MAILBOXES)]
+
+
+def scan_bytes(data, name=""):
     """Navnene paa de moenstre, der rammer. Aldrig selve vaerdien."""
     text = data.decode("latin-1")
-    return sorted({label for rx, label in INLINE_PATTERNS if rx.search(text)})
+    labels = {label for rx, label in INLINE_PATTERNS if rx.search(text)}
+    if ASSIGN.search(text):
+        labels.add("tildeling af en hemmelighed")
+    low = name.lower().replace("\\", "/")
+    if low.endswith(SCRUB_EXT):
+        _new, hits = scrub_text(text, name)
+        labels.update(hits)
+    if low.startswith(EMAIL_DIRS) and personal_emails(text):
+        labels.add("personlig firmaadresse (offentligt repo)")
+    return sorted(labels)
 
 
 def scan_file(rel):
@@ -69,13 +116,13 @@ def scan_file(rel):
         try:
             with zipfile.ZipFile(path) as z:
                 for member in z.namelist():
-                    for label in scan_bytes(z.read(member)):
+                    for label in scan_bytes(z.read(member), member):
                         hits.append((f"{rel} [{member}]", label))
         except zipfile.BadZipFile:
             pass
         return hits
     with open(path, "rb") as f:
-        return [(rel, label) for label in scan_bytes(f.read())]
+        return [(rel, label) for label in scan_bytes(f.read(), rel)]
 
 
 def main():

@@ -27,8 +27,61 @@ def _read(*parts):
 
 
 # ---------------------------------------------------------------------------
+# R2-026: check_secrets ser ogsaa tildelinger og navngivne felter uden for
+# solution/ - ikke kun de fire inline-moenstre.
+# ---------------------------------------------------------------------------
+def test_secret_check_finds_a_client_secret_assignment_in_powershell():
+    import check_secrets
+    hits = check_secrets.scan_bytes(b'$ClientSecret = "' + b"A" * 32 + b'"', "x.ps1")
+    assert hits, "en client secret i en .ps1 gik forbi"
+
+
+def test_secret_check_finds_an_api_key_constant_in_vba():
+    import check_secrets
+    assert check_secrets.scan_bytes(b'Const API_KEY = "' + b"C" * 32 + b'"', "x.bas")
+
+
+def test_secret_check_finds_a_named_secret_field_in_json():
+    import check_secrets
+    assert check_secrets.scan_bytes(b'{"x-apikey": "' + b"B" * 32 + b'"}', "flow/x.json")
+
+
+def test_secret_check_allows_a_parameter_reference():
+    import check_secrets
+    assert check_secrets.scan_bytes(b'"x-apikey": "@{parameters(\'k\')}"', "flow/x.json") == []
+
+
+def test_secret_check_finds_a_personal_address_in_a_sample(tmp_path):
+    import check_secrets
+    data = b'{"RequesterEmail": "jane.doe@orsted.com"}'
+    assert check_secrets.scan_bytes(data, "sharepoint/inspect/out/sample-X.json")
+    # ... men ikke i kildekode, og ikke den faelles postkasse.
+    assert check_secrets.scan_bytes(data, "tools/x.py") == []
+    assert check_secrets.scan_bytes(b"Ask sapvedligehold@orsted.com", "docs/x.md") == []
+
+
+# ---------------------------------------------------------------------------
 # R2-025: ingen persondata i det offentlige repo.
 # ---------------------------------------------------------------------------
+PERSONAL = re.compile(r"[A-Za-z0-9._%+-]+@orsted\.(?:com|dk)", re.I)
+
+
+def test_no_personal_addresses_in_data_and_docs():
+    import check_secrets
+    bad = []
+    for rel in check_secrets.tracked_files():
+        low = rel.replace("\\", "/").lower()
+        if not low.startswith(check_secrets.EMAIL_DIRS) or low == "docs/43-review-2026-10.md":
+            continue
+        path = os.path.join(ROOT, rel)
+        if not os.path.isfile(path):
+            continue
+        text = open(path, "rb").read().decode("latin-1")
+        if check_secrets.personal_emails(text):
+            bad.append(rel)
+    assert not bad, bad
+
+
 def test_admin_users_table_is_gone_from_the_lookups():
     assert '"ADMIN_USERS"' not in _read("html", "lookups.generated.js")
     rules = json.load(open(os.path.join(ROOT, "Functional Location App", "build",
