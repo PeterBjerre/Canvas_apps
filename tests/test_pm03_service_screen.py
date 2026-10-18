@@ -22,3 +22,11 @@ def test_ip01_stops_clearly_when_no_free_item_is_found():
     src = open(os.path.join(ROOT, "excel", "opretter", "VhpSteps.bas"), encoding="latin-1").read()
     i = src.find('VhpSap.Fnd(sess, IP01_ITEM_GRID).SelectedRows = "0"')
     assert "If Not VhpSap.Exists(sess, IP01_ITEM_GRID) Then" in src[i - 600:i]
+
+
+def test_ip01_finds_the_sort_field_by_name_and_does_not_stop_on_it():
+    src = open(os.path.join(ROOT, "excel", "opretter", "VhpSteps.bas"), encoding="latin-1").read()
+    assert 'FindByName("RMIPM-PLAN_SORT", "GuiComboBox")' in src
+    i = src.find("sortId = SortFieldId(sess)")
+    assert i > 0 and "AddStepWarning" in src[i:i + 400]
+    assert "VhpSap.SelectCombo(sess, IP01_SORT_FIELD" not in src

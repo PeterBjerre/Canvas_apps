@@ -471,6 +471,7 @@ Public Function CreatePlan(ByVal sess As Object, ByVal order As Object, ByVal it
     Dim j As Long
     Dim dec As String
     Dim sortText As String
+    Dim sortId As String
 
     Set plan = VhpUtil.JObj(order, "plan")
     what = "IP01 " & VhpUtil.JStr(plan, "planId")
@@ -551,8 +552,15 @@ Public Function CreatePlan(ByVal sess As Object, ByVal order As Object, ByVal it
     sortText = VhpUtil.JStr(plan, "sortField")
     If Len(sortText) > 0 Then
         VhpSap.SelectItem sess, IP01_TAB_SORT
-        If VhpSap.SelectCombo(sess, IP01_SORT_FIELD, Array(VhpMap.SortKey(sortText)), sortText) Then
-            VhpSap.Focus sess, IP01_SORT_FIELD
+        ' Feltets placering paa fanen varierer (underskaermen er ikke altid
+        ' 8012/0113), saa det findes paa sit navn. Findes det ikke, saettes det
+        ' i IP02 bagefter, og planen gemmes alligevel.
+        sortId = SortFieldId(sess)
+        If Len(sortId) = 0 Then
+            AddStepWarning ctx, VhpUtil.JStr(plan, "planId") & VhpUtil.Dk(": sorteringsfeltet blev ikke fundet p{aa} fanen [") & _
+                VhpSap.ScreenInfo(sess) & VhpUtil.Dk("]. S{ae}t det til ") & VhpMap.SortKey(sortText) & VhpUtil.Dk(" i IP02.")
+        ElseIf SetSortField(sess, sortId, sortText) Then
+            VhpSap.Focus sess, sortId
         Else
             AddStepWarning ctx, VhpUtil.JStr(plan, "planId") & VhpUtil.Dk(": sorteringsfeltet '") & sortText & _
                 VhpUtil.Dk("' kunne ikke v{ae}lges i SAP. S{ae}t det i IP02.")
@@ -577,6 +585,46 @@ End Function
 ' nogen skal se efter i SAP, foer planen koeres igen: SAP kan have gemt ved
 ' en advarsel, eller ej. Ellers kunne den samme position blive oprettet to
 ' gange, eller et aarstal fra advarslen blive planens nummer.
+' Sorteringsfeltet paa fanen Sortering i IP01: id'et, eller tom streng.
+' Foerst den kendte sti, ellers feltet RMIPM-PLAN_SORT fundet paa navn.
+Private Function SortFieldId(ByVal sess As Object) As String
+    Dim tab As Object
+    Dim o As Object
+    Dim p As Long
+
+    If VhpSap.Exists(sess, IP01_SORT_FIELD) Then
+        SortFieldId = IP01_SORT_FIELD
+        Exit Function
+    End If
+
+    On Error Resume Next
+    Set tab = sess.FindById(IP01_TAB_SORT, False)
+    If Not tab Is Nothing Then
+        Set o = tab.FindByName("RMIPM-PLAN_SORT", "GuiComboBox")
+        If o Is Nothing Then Set o = tab.FindByName("RMIPM-PLAN_SORT", "GuiCTextField")
+        If o Is Nothing Then Set o = tab.FindByName("RMIPM-PLAN_SORT", "GuiTextField")
+    End If
+    On Error GoTo 0
+    If o Is Nothing Then Exit Function
+
+    ' Id'et er absolut (/app/con[0]/ses[0]/wnd[0]/...); sessionen vil have
+    ' det fra wnd[0].
+    SortFieldId = o.Id
+    p = InStr(1, SortFieldId, "wnd[")
+    If p > 0 Then SortFieldId = Mid$(SortFieldId, p)
+End Function
+
+' Saetter sorteringsfeltet: en liste vaelges paa noeglen (eller teksten),
+' et tekstfelt faar noeglen skrevet ind.
+Private Function SetSortField(ByVal sess As Object, ByVal id As String, ByVal sortText As String) As Boolean
+    If VhpSap.Fnd(sess, id).Type = "GuiComboBox" Then
+        SetSortField = VhpSap.SelectCombo(sess, id, Array(VhpMap.SortKey(sortText)), sortText)
+    Else
+        VhpSap.SetText sess, id, VhpMap.SortKey(sortText)
+        SetSortField = True
+    End If
+End Function
+
 Private Function SaveAndReadNumber(ByVal sess As Object, ByVal what As String, ByVal minDigits As Long, _
                                    ByVal checkHint As String) As String
     Dim t As String
