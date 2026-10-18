@@ -64,17 +64,6 @@ C_HELP_KEY    = "HelpKey"     # Title, omdoebt
 # listen uden at laese hinandens tekster.
 HELP_APP      = "MaintenancePlan"
 
-# --- landingssiden --------------------------------------------------------
-# VH-plan-appen aabnes af hubbens VHP-flise som en SELVSTAENDIG app, ikke
-# som en skaerm i den. Back() kan derfor ikke foere tilbage - der skal et
-# Launch til. LaunchTarget.Replace, saa det sker i den fane, brugeren
-# staar i; ellers faar man en fane pr. klik.
-#
-# Samme id som apps.hub.app_id i tools/canvas_apps.json. build_all.py
-# tjekker, at de to ikke glider fra hinanden.
-# Kommer fra tools/canvas_apps.json via env_config - se der for hvorfor.
-HUB_URL = env.hub_url()
-
 # --- kolonnenavne der IKKE er selvindlysende -------------------------------
 # MainWorkCenters er oprettet fra Excel, saa de interne navne er field_1 og
 # field_2. Visningsnavnet paa field_1 er 'Description' med 33 efterfoelgende
@@ -564,9 +553,10 @@ WORKING_COLLECTIONS = [
      {"ItemId": 0, "LineId": 0, "MaterialNo": '""', "Description": '""',
       "Unit": '""', "Quantity": 0, "OperationNo": '""', "Selected": "false"}),
     # De AELDRE dokumentraekker i MD_TasklistAttachment (foer issue #300).
-    # De hentes og gemmes uaendret, saa en gemning ikke sletter dem, men
-    # dokumentruden viser dem ikke: nye filer er vedhaeftninger paa
-    # operationens raekke i TaskListMain (build_attflows.py).
+    # De hentes, men gemningen skriver og sletter dem ikke laengere
+    # (R2-071), og dokumentruden viser dem ikke: nye filer er vedhaeftninger
+    # paa operationens raekke i TaskListMain (build_attflows.py). Raekkerne
+    # er et mellemlager, til en migrering er besluttet.
     # OperationsKey er ";0010;0020;" ligesom PackagesKey -
     # tomt (";") betyder at dokumentet hoerer til hele planen og ikke til
     # en bestemt operation.
@@ -600,7 +590,7 @@ WORKING_COLLECTIONS = [
     ("colVhpAdmOld", {"ID": 0, "ItemID": '""', "Title": '""', "ItemDescription": '""',
                       "FunctionalLocation": '""', "ObjectList": '""'}),
     ("colVhpSpOps", {"ID": 0, "TaskItemID": '""'}),
-    # colVhpOldMats/colVhpOldAtts (de gamle materiale- og dokumentraekker)
+    # colVhpOldMats (de gamle materialeraekker)
     # og colVhpSpItemRows/colVhpSpOpRows (planens items og operationer)
     # er HELE SharePoint-raekker, som Patch og Remove bruger direkte
     # (R2-007). De faar deres type fra listen og staar derfor ikke her.

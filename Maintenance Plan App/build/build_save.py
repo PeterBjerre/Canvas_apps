@@ -40,10 +40,13 @@ samme model som FL-appen (Functional Location App/build/fl_save.py):
      ved med at passe (D7). Foer blev alle items slettet og oprettet
      forfra, med nyt ID og ny noegle hver gang.
   5. Operationer - samme model som items.
-  6. Materialer og dokumentraekker skrives forfra, men de GAMLE raekker
-     slettes foerst, naar de nye er skrevet.
+  6. Materialer skrives forfra, men de GAMLE raekker slettes foerst, naar
+     de nye er skrevet. De aeldre dokumentraekker (MD_TasklistAttachment)
+     roeres ikke laengere (R2-071): dokumenter er vedhaeftninger paa
+     operationens raekke (issue #300/#323), og de gamle raekker er et
+     mellemlager, der kun laeses (build_load), til en migrering er besluttet.
   7. Oprydning - KUN naar alt ovenfor lykkedes: operationer og items, der
-     ikke laengere er i appen, og de gamle materiale- og dokumentraekker.
+     ikke laengere er i appen, og de gamle materialeraekker.
      En fejl giver altsaa i vaerste fald en raekke for meget, aldrig et
      tab (foer: slet foerst, skriv bagefter).
   8. Status og landingssiden.
@@ -494,8 +497,8 @@ def _step_items():
         "        ForAll(colVhpSpItemRows As I, { ID: I.ID, ItemID: I.ItemID, "
         "Sceq: !IsBlank(I.SCEqFL) || !IsBlank(I.SCEqOL) })\n"
         "    );\n"
-        # De eksisterende foerst i oversaettelsen: operationerne,
-        # materialerne og dokumenterne slaar op i den.
+        # De eksisterende foerst i oversaettelsen: operationerne og
+        # materialerne slaar op i den.
         "    ClearCollect(\n"
         "        colVhpSavedItems,\n"
         "        ForAll(\n"
@@ -654,8 +657,12 @@ def _step_ops():
 
 
 def _step_materials():
-    """6a. Materialer. De gamle raekkers ID huskes, og de slettes foerst i
-    oprydningen - efter de nye er skrevet."""
+    """6. Materialer. De gamle raekkers ID huskes, og de slettes foerst i
+    oprydningen - efter de nye er skrevet.
+
+    Raekkerne faar derfor nyt ID ved hvert gem (R2-071). Det er accepteret:
+    intet slaar et materiale op paa ID - SAP-ordren og indlaesningen gaar
+    paa PlanKey/ItemKey/TaskItemID - og en plan har faa materialer."""
     return _step("Materials", (
         # Hele raekkerne: oprydningen fjerner dem direkte (R2-007).
         f"    ClearCollect(colVhpOldMats, Filter({cfg.L_MATERIALS}, PlanKey = varVhpPlanKey));\n"
@@ -690,45 +697,12 @@ def _step_materials():
         "    )"))
 
 
-def _step_attachments():
-    """6b. Dokumentraekker. OperationsKey er ';0010;0020;'; tom (';')
-    betyder hele itemet. UploadStatus skrives som Pending - flowet roerer
-    aldrig listen (docs/18-materialer-og-attachments.md).
-
-    Mappen i biblioteket er opkaldt efter ItemKey, og den er nu STABIL:
-    et item beholder sin noegle ved hvert gem (trin 4)."""
-    return _step("Documents", (
-        f"    ClearCollect(colVhpOldAtts, Filter({cfg.L_ATTACHMENTS}, PlanKey = varVhpPlanKey));\n"
-        "    With(\n"
-        "        { srcAtt: Filter(colVhpAttachments As AT, !IsBlank(AT.FileName)) },\n"
-        "        If(\n"
-        "            CountRows(srcAtt) > 0,\n"
-        "            Patch(\n"
-        f"                {cfg.L_ATTACHMENTS},\n"
-        f"                ForAll(srcAtt, Defaults({cfg.L_ATTACHMENTS})),\n"
-        "                ForAll(\n"
-        "                    srcAtt As AT,\n"
-        "                    {\n"
-        f"                        {cfg.C_FILE_NAME}: AT.FileName,\n"
-        "                        PlanKey: varVhpPlanKey,\n"
-        "                        ItemKey: LookUp(colVhpSavedItems, LocalId = AT.ItemId).ItemKey,\n"
-        "                        OperationsKey: Coalesce(AT.OperationsKey, \";\"),\n"
-        "                        FileSize: AT.FileSize,\n"
-        "                        FileUrl: AT.FileUrl,\n"
-        "                        UploadStatus: { Value: Coalesce(AT.Status, \"Pending\") }\n"
-        "                    }\n"
-        "                )\n"
-        "            )\n"
-        "        )\n"
-        "    )"))
-
-
 def _step_cleanup():
     """7. Oprydning - foerst naar alt er skrevet (D8).
 
     Hvad der skal vaek, afgoeres i hukommelsen paa samlinger af planens
-    EGNE raekker, hentet med et delegerbart filter i trin 4, 5, 6a og 6b
-    (colVhpSpItemRows, colVhpSpOpRows, colVhpOldMats, colVhpOldAtts), og
+    EGNE raekker, hentet med et delegerbart filter i trin 4, 5 og 6
+    (colVhpSpItemRows, colVhpSpOpRows, colVhpOldMats), og
     raekkerne fjernes direkte med Remove(liste, <raekker>). Ikke
     With({ex: Filter(liste, ...)}): den scope-variabel har kun de foerste
     500/2.000 raekker af listen, og planens raekker ud over loftet blev
@@ -737,10 +711,9 @@ def _step_cleanup():
     def rm(lst, rows):
         return f"    Remove({lst}, {rows})"
     return _step("Clean-up", ";\n".join([
-        # Materialerne og dokumenterne skrives altid paa ny (trin 6), saa
-        # alle de gamle raekker gaar.
+        # Materialerne skrives altid paa ny (trin 6), saa alle de gamle
+        # raekker gaar. De aeldre dokumentraekker roeres ikke (R2-071).
         rm(cfg.L_MATERIALS, "colVhpOldMats"),
-        rm(cfg.L_ATTACHMENTS, "colVhpOldAtts"),
         # Operationer foer items: en operation peger paa sit item.
         rm(cfg.L_TASKS, "Filter(colVhpSpOpRows, !(ID in colVhpSavedOps.SpId))"),
         rm(cfg.L_ITEMS, "Filter(colVhpSpItemRows, !(ID in colVhpSavedItems.SpId))"),
@@ -903,7 +876,6 @@ def save_action():
         _when_ok(_step_items()),
         _when_ok(_step_ops()),
         _when_ok(_step_materials()),
-        _when_ok(_step_attachments()),
         _when_ok(_step_cleanup()),
         _when_ok(_step_notes()),
         _when_ok(_step_status()),

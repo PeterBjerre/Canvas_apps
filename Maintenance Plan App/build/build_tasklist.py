@@ -560,8 +560,8 @@ def _materials_modal():
 # selv filerne; "Save documents" gemmer dem med een Patch.
 #
 # De aeldre dokumentraekker i MD_TasklistAttachment (colVhpAttachments,
-# OperationsKey ";0010;0020;") hentes og gemmes som foer, saa gemningen
-# ikke sletter dem - men de vises ikke i ruden.
+# OperationsKey ";0010;0020;") hentes, men gemningen roerer dem ikke
+# laengere (R2-071) - og de vises ikke i ruden.
 
 
 # Maa der laegges op og fjernes? Ikke i View-tilstand (issue #134).

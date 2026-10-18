@@ -93,3 +93,19 @@ def test_blank_unit_is_written_as_blank():
     f = build_save.plan_fields()
     assert "Unit: If(IsBlank(varVhpPlan.Unit), Blank(), { Value: varVhpPlan.Unit })" in f
     assert "Cycle: varVhpPlan.Cycle" in f
+
+
+# --- R2-071: de gamle dokumentraekker laeses, men skrives/slettes ikke -------
+def test_save_does_not_touch_old_document_rows():
+    fx = build_save.save_action()
+    assert "MD_TasklistAttachment" not in fx
+    assert "colVhpOldAtts" not in fx
+    assert not hasattr(build_save, "_step_attachments")
+
+
+def test_old_document_rows_are_still_read():
+    assert "Filter(MD_TasklistAttachment, PlanKey = varVhpPlanKey)" in build_load.load_block()
+
+
+def test_hub_url_dead_code_is_gone():
+    assert not hasattr(cfg, "HUB_URL")
