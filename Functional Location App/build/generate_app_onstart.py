@@ -84,6 +84,9 @@ def _function_keys():
             "FlFunctionKeys =\n    %s;" % (len(keys), body))
 
 
+# Felterne med en DATE-regel (FL34, DD.MM.YYYY): datovaelger (issue #356).
+DATE_FIELDS = {r["Field"] for r in R["plan"] if r["Chk"] == "DATE"}
+
 # Listerne, der kun har vaerdien X (Atex, TRM assignment): afkrydsning.
 X_LISTS = {lid for lid in {r["List"] for r in R["lists"]}
            if [r["Value"] for r in R["lists"] if r["List"] == lid] == ["X"]}
@@ -94,10 +97,14 @@ def editor_kind(col):
       ro     skrivebeskyttet (StrIndicator, ABC Indic. ...)
       check  afkrydsning, gemmer X eller intet (X-listerne og
              "<klasse> assignment")
+      date   datovaelger, gemmer teksten DD.MM.YYYY (felter med en
+             DATE-regel, FL34: Warranty Start/End - issue #356)
       list   dropdown mod listen
       text   tekst med maks.-laengde"""
     if not col["Editable"]:
         return "ro"
+    if col["Field"] in DATE_FIELDS:
+        return "date"
     if col["List"] in X_LISTS or (not col["List"] and col["Field"].endswith(" ASSIGNMENT")):
         return "check"
     if col["List"]:

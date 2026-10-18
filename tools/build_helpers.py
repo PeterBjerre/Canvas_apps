@@ -2471,7 +2471,7 @@ def number_field(name, default, required_formula="false", width="Parent.Width", 
 
 def date_picker(name, default_date, required_formula="false",
                 width="Parent.Width", height=36, display_mode=None,
-                onchange=None, label=None, placeholder=f'"{lay.DATE_PICKER_PLACEHOLDER}"'):
+                onchange=None, label=None, placeholder=None, fmt=None):
     """Datovaelger - med SAMME kant- og baggrundsregel som de andre felter.
 
     Den var bygget i haanden inde i domain_parts.py og havde en FAST graa
@@ -2482,7 +2482,14 @@ def date_picker(name, default_date, required_formula="false",
     DefaultDate SAETTER datoen. SelectedDate LAESER den og kan ikke
     skrives - "Unknown property 'SelectedDate' for control type
     'ModernDatePicker'". Det er derfor OnChange laeser Self.SelectedDate,
-    mens DefaultDate faar variablen."""
+    mens DefaultDate faar variablen.
+
+    fmt: et andet format end det faelles (layout_tokens.DATE_PICKER_FMT) -
+    kun hvor den gemte tekst har sit eget format (FL's Warranty, DD.MM.YYYY,
+    issue #356). Pladsholderen viser saa samme moenster."""
+    fmt = fmt or lay.DATE_PICKER_FMT
+    if placeholder is None:
+        placeholder = f'"{lay.DATE_PICKER_PLACEHOLDER if fmt == lay.DATE_PICKER_FMT else fmt}"'
     props = {
         "AccessibleLabel": label if label else f'"{name}"',
         "BorderColor": border_rule("IsBlank(Self.SelectedDate)", required_formula),
@@ -2490,7 +2497,7 @@ def date_picker(name, default_date, required_formula="false",
         "BorderThickness": "1",
         "DefaultDate": default_date,
         # Faelles format for alle datovaelgere (issue #235)
-        "Format": f'"{lay.DATE_PICKER_FMT}"',
+        "Format": f'"{fmt}"',
         "Height": str(height),
         "LayoutMinWidth": "0",
         "Placeholder": placeholder,
