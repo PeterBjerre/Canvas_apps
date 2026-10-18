@@ -67,6 +67,10 @@ try {
             if (-not $envName) { $envName = $cfg.default_environment }
             if ($envName -and $cfg.environments.$envName) {
                 $Environment = $cfg.environments.$envName.environment_id
+                # test/prod staar som skabeloner med <pladsholdere> (R2-061).
+                if ($Environment -notmatch '^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$') {
+                    throw "Miljoeet '$envName' er en skabelon - environment_id er ikke udfyldt i tools/canvas_apps.json"
+                }
             }
         }
     }

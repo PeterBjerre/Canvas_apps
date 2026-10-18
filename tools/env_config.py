@@ -28,7 +28,9 @@ HVILKET MILJOE
 --------------
 Miljoeet vaelges af CANVAS_ENV i omgivelserne, ellers af
 default_environment i canvas_apps.json. tools/build_all.py --env <navn>
-saetter CANVAS_ENV for de byggescripts, den starter.
+og tools/canvas_mcp.py --env <navn> saetter CANVAS_ENV for de byggescripts,
+de starter. default_environment er dev, saa en kommando uden --env (fx
+'canvas_mcp.py deploy --app biosap --clean') rammer DEV som altid.
 
 Det er dén ALM-gevinst, spoergsmaalet om miljoevariabler egentlig var ude
 efter (se docs/26-designtokens.md): at kunne bygge mod et andet miljoe
@@ -36,6 +38,7 @@ uden at rette i koden - og uden et opslag ved opstart.
 """
 import json
 import os
+import re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG = os.path.join(ROOT, "tools", "canvas_apps.json")
@@ -68,6 +71,26 @@ def env_names():
     return sorted(_CFG.get("environments", {}))
 
 
+# SKABELONER (R2-061). test og prod staar i canvas_apps.json som blokke med
+# PLADSHOLDERE ("<...>") i stedet for id'er, indtil miljoeerne findes. Et
+# miljoe med en pladsholder kan ikke vaelges - hverken til byg, deploy
+# eller eksport - saa en halvfaerdig blok aldrig naar Studio.
+_GUID = re.compile(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-"
+                   r"[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
+
+def placeholders(env):
+    """Felterne i et miljoes blok, der endnu ikke er udfyldt."""
+    bad = []
+    if not _GUID.match(str(env.get("environment_id") or "")):
+        bad.append("environment_id")
+    for key, a in sorted((env.get("apps") or {}).items()):
+        aid = a.get("app_id")
+        if aid is not None and not _GUID.match(str(aid)):
+            bad.append("apps.%s.app_id" % key)
+    return bad
+
+
 def resolve(name=None):
     """Det valgte miljoe, som en flad record.
 
@@ -92,6 +115,12 @@ def resolve(name=None):
             "Ukendt miljoe '%s'. Kendte: %s\n"
             "Miljoeerne staar i tools/canvas_apps.json under 'environments'."
             % (name, ", ".join(env_names())))
+    bad = placeholders(envs[name])
+    if bad:
+        raise SystemExit(
+            "Miljoeet '%s' er en skabelon - id'erne er ikke udfyldt endnu:\n  %s\n"
+            "Udfyld dem i tools/canvas_apps.json (se _kommentar), naar miljoeet "
+            "findes." % (name, "\n  ".join(bad)))
     out = dict(envs[name])
     out["name"] = name
     out["mcp_package_args"] = _CFG.get("mcp_package_args")
@@ -230,4 +259,11 @@ if __name__ == "__main__":
     print("miljoe:", ENV_NAME, "(%s)" % ENV.get("_navn", ""))
     print("id:    ", ENV_ID)
     for k in sorted(APPS):
-        print("  %-10s %-24s %s" % (k, APPS[k]["navn"], app_id(k) or "(intet id)"))
+        print("  %-10s %-24s %s" % (k, APPS[k].get("navn", ""), app_id(k) or "(intet id)"))
+    print("")
+    print("alle miljoeer (standard: %s):" % _CFG.get("default_environment"))
+    for n in env_names():
+        e = _CFG["environments"][n]
+        bad = placeholders(e)
+        print("  %-6s %-40s %s" % (n, e.get("_navn", ""),
+                                   "SKABELON - ikke udfyldt" if bad else e["environment_id"]))
