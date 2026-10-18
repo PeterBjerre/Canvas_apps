@@ -368,10 +368,34 @@ CWF = {k: (f"({CW[k]} + {UNIT})" if GROW_UNITS[k] == 1 else f"({CW[k]} + {GROW_U
        for k in CW}
 # REQUESTER er altid brugeren selv i "My requests" - saa er kolonnen 0 bred
 # og skjult, og TEXT faar dens plads. Summen af bredderne er den samme.
+#
+# OGSAA MELLEMRUMMET (issue #372). En skjult kontrol fylder intet i en
+# vandret container - heller ikke det GAP, der stod efter den. Foer fik
+# TEXT kun kolonnens bredde, saa alt efter REQUESTER rykkede GAP (16 px)
+# til venstre i "My requests", mens godkendelsespillen (btnMdRowApproval,
+# placeret med X) blev staaende: "System" stak ud over pillens venstre
+# kant. Nu faar TEXT ogsaa mellemrummet, og kolonnerne efter REQUESTER
+# staar paa samme x i begge visninger. col_x() er den ENE beregning af en
+# kolonnes x, som alt med fast X i raekken bruger.
 MINE = 'varMdView = "mine"'
 _REQ_W = CWF["REQUESTER"]
-CWF["TEXT"] = f"({CWF['TEXT']} + If({MINE}, {_REQ_W}, 0))"
+CWF["TEXT"] = f"({CWF['TEXT']} + If({MINE}, {_REQ_W} + {GAP}, 0))"
 CWF["REQUESTER"] = f"If({MINE}, 0, {_REQ_W})"
+# Mellemrummet EFTER hver kolonne, som containeren faktisk tegner det.
+COL_GAP = {k: (f"If({MINE}, 0, {GAP})" if k == "REQUESTER" else str(GAP)) for k in CW}
+
+
+def col_x(key):
+    """Kolonnens venstre kant i raekken (issue #372): raekkens padding plus
+    bredde og mellemrum for hver kolonne foer den - de samme tal, som
+    raekkens container laegger kolonnerne ud efter, i baade "All
+    requests" og "My requests"."""
+    parts = [str(ROW_PAD)]
+    for k, _w in COLS:
+        if k == key:
+            return " + ".join(parts)
+        parts += [CWF[k], COL_GAP[k]]
+    raise KeyError(key)
 
 # Sorteringsoverskrifterne er knapper, og en knap har indre luft til
 # venstre. Cellerne under dem faar den samme luft, saa teksten staar lige
@@ -1354,9 +1378,10 @@ def build_list():
                   f'"Open " & ThisItem.{COL_NO} & " - " & ' + SHORT_TEXT,
                   "Parent.TemplateWidth", "Parent.TemplateHeight - 1")
     hit.props["Tooltip"] = WHEN_AGO
-    strip_x = (f"{ROW_PAD} + {CWF['REQUEST']} + {GAP} + {CWF['TEXT']} + {GAP} + {CWF['PLANT']} + {GAP} + "
-               f"{CWF['REQUESTER']} + {GAP}")
-    tl_x = (f"{strip_x} + {CWF['APPROVAL']} + {GAP} + {CWF['STATUS']} + {GAP} + {CWF['UPDATED']} + {GAP}")
+    # Pillen og ikonerne staar paa kolonnernes x - samme beregning som
+    # raekkens container, i begge visninger (col_x, issue #372).
+    strip_x = col_x("APPROVAL")
+    tl_x = col_x("ACTIONS")
     timeline = _image("imgMdRowTimeline", _svg_uri(_icon_svg(ICON_HISTORY, _hx("text-muted"), size=ACTION_GLYPH, box=TL_W)), TL_W,
                       TL_W, onselect=approval_flow.timeline_fx(),
                       label=f'"Activity for " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
