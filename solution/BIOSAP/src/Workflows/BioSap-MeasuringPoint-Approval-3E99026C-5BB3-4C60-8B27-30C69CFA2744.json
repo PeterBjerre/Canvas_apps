@@ -64,7 +64,7 @@
             "schemaName": "orsted_BioSapErrorNotifiers"
           }
         },
-        " BioSap-EmailDomain (orsted_BioSapEmailDomain)": {
+        "BioSap-EmailDomain (orsted_BioSapEmailDomain)": {
           "defaultValue": "orsted.com",
           "type": "String",
           "metadata": {
@@ -439,7 +439,7 @@
                     },
                     "Creator_email": {
                       "type": "Compose",
-                      "inputs": "@if(empty(outputs('Creator_initials')), '', toLower(concat(outputs('Creator_initials'), '@', parameters(' BioSap-EmailDomain (orsted_BioSapEmailDomain)'))))",
+                      "inputs": "@if(empty(outputs('Creator_initials')), '', toLower(concat(outputs('Creator_initials'), '@', parameters('BioSap-EmailDomain (orsted_BioSapEmailDomain)'))))",
                       "runAfter": {
                         "Creator_initials": [
                           "Succeeded"
@@ -772,7 +772,7 @@
                         },
                         "Approver_email": {
                           "type": "Compose",
-                          "inputs": "@if(empty(outputs('Initials')), '', toLower(concat(outputs('Initials'), '@', parameters(' BioSap-EmailDomain (orsted_BioSapEmailDomain)'))))",
+                          "inputs": "@if(empty(outputs('Initials')), '', toLower(concat(outputs('Initials'), '@', parameters('BioSap-EmailDomain (orsted_BioSapEmailDomain)'))))",
                           "runAfter": {
                             "Initials": [
                               "Succeeded"

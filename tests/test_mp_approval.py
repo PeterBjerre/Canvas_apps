@@ -464,7 +464,7 @@ def test_the_prodos_creator_is_the_plants_row_in_md_approver():
     assert creator("AVV") == "xyz"          # 1. godkender fravaerende
     assert creator("HEV") == ""             # ingen raekke for vaerket
     email = _find("Creator_email")["inputs"]
-    assert "parameters(' BioSap-EmailDomain (orsted_BioSapEmailDomain)')" in email
+    assert "parameters('BioSap-EmailDomain (orsted_BioSapEmailDomain)')" in email
 
 
 def test_a_counter_is_requested_once_and_only_while_it_is_missing():

@@ -278,7 +278,7 @@ def test_the_approver_email_is_initials_plus_the_domain_parameter():
     }
     fx = acts["Approver_email"]["inputs"]
     # Domaenet er en miljoevariabel, ikke en konstant i flowet.
-    assert "parameters(' BioSap-EmailDomain (orsted_BioSapEmailDomain)')" in fx
+    assert "parameters('BioSap-EmailDomain (orsted_BioSapEmailDomain)')" in fx
     assert fx.startswith("@if(empty(outputs('Initials')), ''")
 
 

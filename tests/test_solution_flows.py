@@ -132,3 +132,22 @@ def test_every_run_after_names_a_sibling_and_names_are_unique():
                     assert dep in acts, "%s: %s -> %s" % (os.path.basename(path), n, dep)
         dup = {n for n in names if names.count(n) > 1}
         assert not dup, "%s: %s" % (os.path.basename(path), dup)
+
+
+def test_parameter_names_have_no_stray_spaces():
+    """R2-084 pkt. 5: ' BioSap-EmailDomain (...)' med foranstillet mellemrum
+    knaekkede copy/paste af udtryk mellem flows."""
+    for path in FLOWS:
+        for name in _load(path)["properties"]["definition"]["parameters"]:
+            assert name == name.strip(), "%s: %r" % (os.path.basename(path), name)
+
+
+def test_outlook_runs_as_the_service_connection():
+    """R2-084 pkt. 4: DelayFlows fejlmail sendes med den delte forbindelse,
+    ikke som den bruger, der startede flowet."""
+    for name in ("BioSap-DelayFlow",):
+        path, = glob.glob(os.path.join(SRC, "Workflows", name + "-*.json"))
+        refs = _load(path)["properties"]["connectionReferences"]
+        for ref in refs.values():
+            if ref["api"]["name"] == "shared_office365":
+                assert ref["runtimeSource"] == "embedded"
