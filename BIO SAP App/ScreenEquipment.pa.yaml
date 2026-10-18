@@ -758,8 +758,8 @@ Screens:
                                               Patch(
                                                   EquipmentItems,
                                                   ForAll(created As n, { ID: n.ID }),
-                                                  ForAll(created As n, { RowId: n.ID, ItemKey: "EQ-" & Text(n.ID, "000000"),
-                                                      AttachmentFolder: "TaskListDocuments/" & "EQ-" & Text(n.ID, "000000") })
+                                                  ForAll(created As n, { RowId: n.ID, ItemKey: "EQR-" & Text(n.ID, "000000"),
+                                                      AttachmentFolder: "TaskListDocuments/" & "EQR-" & Text(n.ID, "000000") })
                                               )
                                           );
                                           Set(varEqRequestGuid, "");
@@ -935,6 +935,8 @@ Screens:
                                       CountRows(Filter(colEqRows, Status <> "submitted")) = 0,
                                       Set(gblToast, { Text: "There are no rows to save.", Kind: "Warning", At: Now() }); true,
                                   
+                                      If(CountRows(colEqRows) >= 500, Set(gblToast, { Text: "Only the newest 500 rows are shown - older rows are not included when you submit.", Kind: "Warning", At: Now() }); true);
+                                  
                                       Set(
                                           varEqIdx,
                                           If(!IsBlank(varEqRequestGuid), LookUp(MD_RequestIndex, RequestGuid = varEqRequestGuid))
@@ -965,7 +967,7 @@ Screens:
                                                       RequesterEmail: Coalesce(varEqIdx.RequesterEmail, varEqMe),
                                                       RequesterName: Coalesce(varEqIdx.RequesterName, User().FullName),
                                                       ShortText: "Equipments: " & With({ _c: CountRows(Filter(colEqRows, Status <> "submitted")) }, Text(_c) & If(_c = 1, " row", " rows")),
-                                                      Plant: First(Filter(colEqRows, Status <> "submitted")).Plant,
+                                                      Plant: First(Sort(Filter(colEqRows, Status <> "submitted"), RowId)).Plant,
                                                       ItemCount: CountRows(Filter(colEqRows, Status <> "submitted")),
                                                       AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=equipment&reqid=" & varEqRequestGuid,
                                                       LastActionOn: Now(),
@@ -1138,7 +1140,11 @@ Screens:
                               LayoutMinWidth: |-
                                   =If(LayoutRank < 2, 40, 186)
                               OnSelect: |-
-                                  =Set(varEqConfirmSubmit, true)
+                                  =If(
+                                      CountRows(Distinct(Filter(colEqRows, Status = "valid"), Plant)) > 1,
+                                      Set(gblToast, { Text: "A request can only cover one plant. The rows have plants " & Concat(Distinct(Filter(colEqRows, Status = "valid"), Plant), Value, ", ") & " - split them into one request per plant.", Kind: "Warning", At: Now() }); true,
+                                      Set(varEqConfirmSubmit, true)
+                                  )
                               RadiusBottomLeft: |-
                                   =R.input
                               RadiusBottomRight: |-
@@ -1304,7 +1310,7 @@ Screens:
                                  Status = Lower(drpEqStatusFilter.Selected.Value)),
                                 (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
                                  Plant = drpEqPlantFilter.Selected.Value)
-                            )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 158, 58)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(961, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)), 18, 0)), 0) + If(IsEmpty(Filter(
+                            )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 158, 58)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(972, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)), 18, 0)), 0) + If(CountRows(colEqRows) >= 500, 14 + (If(LayoutRank < 2, 40, 20)), 0) + If(IsEmpty(Filter(
                                 colEqRows,
                                 (IsBlank(Trim(inpEqSearch.Text)) || Trim(inpEqSearch.Text) in Description || Trim(inpEqSearch.Text) in FunctionalLocation || Trim(inpEqSearch.Text) in SerialNumber || Trim(inpEqSearch.Text) in EquipmentNumber),
                                 (IsBlank(drpEqStatusFilter.Selected.Value) || drpEqStatusFilter.Selected.Value = "All status" ||
@@ -1761,7 +1767,7 @@ Screens:
                                        Status = Lower(drpEqStatusFilter.Selected.Value)),
                                       (IsBlank(drpEqPlantFilter.Selected.Value) || drpEqPlantFilter.Selected.Value = "All plants" ||
                                        Plant = drpEqPlantFilter.Selected.Value)
-                                  )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 158, 58)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(961, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)), 18, 0)
+                                  )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 158, 58)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(972, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)), 18, 0)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Start
                               LayoutDirection: |-
@@ -1815,13 +1821,13 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 3
                                     Width: |-
-                                        =If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(961, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))
+                                        =If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(972, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))
                                   Children:
                                     - txtEqHeadStatus:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="VALIDATION"
+                                              ="STATUS"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -1847,7 +1853,7 @@ Screens:
                                           Size: |-
                                               =T.micro
                                           Text: |-
-                                              ="VALIDATION"
+                                              ="STATUS"
                                           Width: |-
                                               =99
                                           Wrap: |-
@@ -1856,7 +1862,7 @@ Screens:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="STATUS"
+                                              ="REQUEST TYPE"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -1882,9 +1888,9 @@ Screens:
                                           Size: |-
                                               =T.micro
                                           Text: |-
-                                              ="STATUS"
+                                              ="REQUEST TYPE"
                                           Width: |-
-                                              =90 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5
+                                              =101 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5
                                           Wrap: |-
                                               =false
                                     - txtEqHead1:
@@ -1919,7 +1925,7 @@ Screens:
                                           Text: |-
                                               ="DESCRIPTION"
                                           Width: |-
-                                              =130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5
+                                              =130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5
                                           Wrap: |-
                                               =false
                                     - txtEqHead2:
@@ -1954,7 +1960,7 @@ Screens:
                                           Text: |-
                                               ="FUNCTIONAL LOCATION"
                                           Width: |-
-                                              =154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5
+                                              =154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5
                                           Wrap: |-
                                               =false
                                     - txtEqHead3:
@@ -1989,7 +1995,7 @@ Screens:
                                           Text: |-
                                               ="TYPE"
                                           Width: |-
-                                              =110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5
+                                              =110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5
                                           Wrap: |-
                                               =false
                                     - txtEqHead4:
@@ -2024,7 +2030,7 @@ Screens:
                                           Text: |-
                                               ="PLANT"
                                           Width: |-
-                                              =70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5
+                                              =70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5
                                           Wrap: |-
                                               =false
                                     - txtEqHeadActions:
@@ -2131,7 +2137,7 @@ Screens:
                                     TemplateSize: |-
                                         =If(LayoutRank < 3, 156, 56)
                                     Width: |-
-                                        =(If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(961, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18
+                                        =(If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(972, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18
                                     WrapCount: |-
                                         =1
                                   Children:
@@ -2200,7 +2206,7 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =90 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5
+                                              =101 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -2239,11 +2245,11 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5
+                                              =130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (99) + 6 + (90 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6
+                                              =0 + 0 + 0 + (99) + 6 + (101 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 156, 56)) - 2) - 0 - 0) - (20)) / 2
                                     - txtEqCell2:
@@ -2278,11 +2284,11 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5
+                                              =154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (99) + 6 + (90 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6
+                                              =0 + 0 + 0 + (99) + 6 + (101 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 156, 56)) - 2) - 0 - 0) - (20)) / 2
                                     - txtEqCell3:
@@ -2317,11 +2323,11 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5
+                                              =110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (99) + 6 + (90 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6
+                                              =0 + 0 + 0 + (99) + 6 + (101 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 156, 56)) - 2) - 0 - 0) - (20)) / 2
                                     - txtEqCell4:
@@ -2356,11 +2362,11 @@ Screens:
                                           Visible: |-
                                               =LayoutRank >= 3
                                           Width: |-
-                                              =70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5
+                                              =70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5
                                           Wrap: |-
                                               =false
                                           X: |-
-                                              =0 + 0 + 0 + (99) + 6 + (90 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6
+                                              =0 + 0 + 0 + (99) + 6 + (101 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6 + (110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 156, 56)) - 2) - 0 - 0) - (20)) / 2
                                     - btnEqRowDocs:
@@ -2415,7 +2421,7 @@ Screens:
                                           Width: |-
                                               =126
                                           X: |-
-                                              =0 + 0 + 0 + (99) + 6 + (90 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + 10 + 0
+                                              =0 + 0 + 0 + (99) + 6 + (101 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6 + (110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6 + 10 + 0
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 156, 56)) - 2) - 0 - 0) - (H.hit)) / 2 + 0 + (((H.hit) - 0 - 0) - (30)) / 2
                                     - btnEqRowOpen:
@@ -2486,7 +2492,7 @@ Screens:
                                           Width: |-
                                               =64
                                           X: |-
-                                              =0 + 0 + 0 + (99) + 6 + (90 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + 10 + 0 + (126) + 4
+                                              =0 + 0 + 0 + (99) + 6 + (101 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6 + (110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6 + 10 + 0 + (126) + 4
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 156, 56)) - 2) - 0 - 0) - (H.hit)) / 2 + 0 + (((H.hit) - 0 - 0) - (30)) / 2
                                     - btnEqRowMore:
@@ -2535,7 +2541,7 @@ Screens:
                                           Width: |-
                                               =64
                                           X: |-
-                                              =0 + 0 + 0 + (99) + 6 + (90 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 961) / 5) + 6 + 10 + 0 + (126) + 4 + (64) + 4
+                                              =0 + 0 + 0 + (99) + 6 + (101 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6 + (130 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6 + (154 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6 + (110 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6 + (70 + Max(0, (((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)) - 972) / 5) + 6 + 10 + 0 + (126) + 4 + (64) + 4
                                           Y: |-
                                               =0 + 0 + ((((If(LayoutRank < 3, 156, 56)) - 2) - 0 - 0) - (H.hit)) / 2 + 0 + (((H.hit) - 0 - 0) - (30)) / 2
                                     - txtEqRowKeyC:
@@ -2572,7 +2578,7 @@ Screens:
                                           Visible: |-
                                               =LayoutRank < 3
                                           Width: |-
-                                              =Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(961, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 0) - 10 - 10)) - ((89) + 8) - 2)
+                                              =Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(972, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 0) - 10 - 10)) - ((89) + 8) - 2)
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -2609,7 +2615,7 @@ Screens:
                                           Width: |-
                                               =89
                                           X: |-
-                                              =0 + 10 + 0 + 0 + (Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(961, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 0) - 10 - 10)) - ((89) + 8) - 2)) + 8
+                                              =0 + 10 + 0 + 0 + (Max(0, (((((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(972, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 0) - 10 - 10)) - ((89) + 8) - 2)) + 8
                                           Y: |-
                                               =0 + 8 + 0 + 0 + (((22) - 0 - 0) - (22)) / 2
                                     - txtEqRowMetaC:
@@ -2644,7 +2650,7 @@ Screens:
                                           Visible: |-
                                               =LayoutRank < 3
                                           Width: |-
-                                              =(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(961, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 0) - 10 - 10
+                                              =(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(972, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 0) - 10 - 10
                                           Wrap: |-
                                               =false
                                           X: |-
@@ -2844,11 +2850,44 @@ Screens:
                                           TabIndex: |-
                                               =0
                                           Width: |-
-                                              =(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(961, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 0)
+                                              =(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(972, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) - 2 * 2 - 0)
                                           X: |-
                                               =0
                                           Y: |-
                                               =If(LayoutRank < 3, 156, 56) - 1
+                        - txtEqRowsCap:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Only the newest 500 rows are shown - older rows are not included when you submit."
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'state-warn-fg'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =If(LayoutRank < 2, 40, 20)
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =T.body
+                              Text: |-
+                                  ="Only the newest 500 rows are shown - older rows are not included when you submit."
+                              Visible: |-
+                                  =CountRows(colEqRows) >= 500
+                              Wrap: |-
+                                  =true
                         - conEqRowsEmpty:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -3405,6 +3444,8 @@ Screens:
                                       CountRows(Filter(colEqRows, Status <> "submitted")) = 0,
                                       Set(gblToast, { Text: "There are no rows to save.", Kind: "Warning", At: Now() }); true,
                                   
+                                      If(CountRows(colEqRows) >= 500, Set(gblToast, { Text: "Only the newest 500 rows are shown - older rows are not included when you submit.", Kind: "Warning", At: Now() }); true);
+                                  
                                       Set(
                                           varEqIdx,
                                           If(!IsBlank(varEqRequestGuid), LookUp(MD_RequestIndex, RequestGuid = varEqRequestGuid))
@@ -3435,7 +3476,7 @@ Screens:
                                                       RequesterEmail: Coalesce(varEqIdx.RequesterEmail, varEqMe),
                                                       RequesterName: Coalesce(varEqIdx.RequesterName, User().FullName),
                                                       ShortText: "Equipments: " & With({ _c: CountRows(Filter(colEqRows, Status <> "submitted")) }, Text(_c) & If(_c = 1, " row", " rows")),
-                                                      Plant: First(Filter(colEqRows, Status <> "submitted")).Plant,
+                                                      Plant: First(Sort(Filter(colEqRows, Status <> "submitted"), RowId)).Plant,
                                                       ItemCount: CountRows(Filter(colEqRows, Status <> "submitted")),
                                                       AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=equipment&reqid=" & varEqRequestGuid,
                                                       LastActionOn: Now(),
@@ -3604,7 +3645,11 @@ Screens:
                               LayoutMinWidth: |-
                                   =0
                               OnSelect: |-
-                                  =Set(varEqConfirmSubmit, true)
+                                  =If(
+                                      CountRows(Distinct(Filter(colEqRows, Status = "valid"), Plant)) > 1,
+                                      Set(gblToast, { Text: "A request can only cover one plant. The rows have plants " & Concat(Distinct(Filter(colEqRows, Status = "valid"), Plant), Value, ", ") & " - split them into one request per plant.", Kind: "Warning", At: Now() }); true,
+                                      Set(varEqConfirmSubmit, true)
+                                  )
                               RadiusBottomLeft: |-
                                   =R.input
                               RadiusBottomRight: |-
@@ -7982,7 +8027,7 @@ Screens:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Status"
+                                              ="Request type"
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -8008,7 +8053,7 @@ Screens:
                                           Size: |-
                                               =T.body
                                           Text: |-
-                                              ="Status"
+                                              ="Request type"
                                           Width: |-
                                               =Parent.Width
                                           Wrap: |-
@@ -8017,7 +8062,7 @@ Screens:
                                         Control: ModernTextInput
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Status"
+                                              ="Request type"
                                           Appearance: |-
                                               =If((If(varEqViewOnly || varEqRowStatus = "submitted", DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                           BasePaletteColor: |-
@@ -9782,7 +9827,7 @@ Screens:
                                           LayoutMinWidth: |-
                                               =0
                                           MaxLength: |-
-                                              =255
+                                              =30
                                           OnChange: |-
                                               =Set(varEqFManufacturer, Self.Text)
                                           Placeholder: |-
@@ -9895,7 +9940,7 @@ Screens:
                                           LayoutMinWidth: |-
                                               =0
                                           MaxLength: |-
-                                              =255
+                                              =20
                                           OnChange: |-
                                               =Set(varEqFTypeDesignation, Self.Text)
                                           Placeholder: |-
@@ -10008,7 +10053,7 @@ Screens:
                                           LayoutMinWidth: |-
                                               =0
                                           MaxLength: |-
-                                              =255
+                                              =30
                                           OnChange: |-
                                               =Set(varEqFSerialNumber, Self.Text)
                                           Placeholder: |-
@@ -11066,13 +11111,23 @@ Screens:
                                   // Add row / Update row (UX-review F2): faerdig, naar kravene er opfyldt,
                                   // ellers kladde. Kun beskrivelsen kraeves for at gemme.
                                   If(
-                                      (!IsBlank(Trim(Coalesce(varEqFText, ""))) && !IsBlank(varEqFPlant)),
+                                      (!IsBlank(Trim(Coalesce(varEqFText, ""))) && !IsBlank(varEqFPlant) && !(IsBlank(Trim(Coalesce(varEqFEquipmentCategory, "")))) && !(IsBlank(Trim(Coalesce(varEqFFunctionalLocation, ""))))),
                                       Set(varEqValidated, true);
                                       If(
                                           IsBlank(Trim(Coalesce(varEqFText, ""))) || IsBlank(varEqFPlant),
                                           Set(gblToast, { Text: "Description and Plant are required.", Kind: "Warning", At: Now() }); true,
                                           (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)) && !IsAdmin,
                                           Set(gblToast, { Text: "You can only change your own requests.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varEqFText, ""))) > 40,
+                                          Set(gblToast, { Text: "Description can have at most 40 characters.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varEqFManufacturer, ""))) > 30,
+                                          Set(gblToast, { Text: "Manufacturer can have at most 30 characters.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varEqFTypeDesignation, ""))) > 20,
+                                          Set(gblToast, { Text: "Type designation can have at most 20 characters.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varEqFSerialNumber, ""))) > 30,
+                                          Set(gblToast, { Text: "Serial number can have at most 30 characters.", Kind: "Warning", At: Now() }); true,
+                                          !IsBlank(varEqFWarrantyStart) && !IsBlank(varEqFWarrantyEnd) && varEqFWarrantyEnd < varEqFWarrantyStart,
+                                          Set(gblToast, { Text: "Warranty to must be on or after warranty from.", Kind: "Warning", At: Now() }); true,
                                       
                                           Set(varEqAdmNew, IsBlank(varEqActiveRowId));
                                           Set(
@@ -11083,7 +11138,7 @@ Screens:
                                                           Table(
                                                           { f: "Description", a: Text(o.Description), b: Text(varEqFText) },
                                                           { f: "Plant", a: Text(o.Plant), b: Text(varEqFPlant) },
-                                                          { f: "Status", a: Text(o.RequestType), b: Text(varEqFRequestType) },
+                                                          { f: "Request type", a: Text(o.RequestType), b: Text(varEqFRequestType) },
                                                           { f: "Equipment type", a: Text(o.EquipmentCategory), b: Text(varEqFEquipmentCategory) },
                                                           { f: "Manufacturer", a: Text(o.Manufacturer), b: Text(varEqFManufacturer) },
                                                           { f: "Type designation", a: Text(o.TypeDesignation), b: Text(varEqFTypeDesignation) },
@@ -11152,8 +11207,8 @@ Screens:
                                                   varEqSpRow,
                                                   {
                                                       RowId: varEqSpRow.ID,
-                                                      ItemKey: "EQ-" & Text(varEqSpRow.ID, "000000"),
-                                                      AttachmentFolder: "TaskListDocuments/" & "EQ-" & Text(varEqSpRow.ID, "000000")
+                                                      ItemKey: "EQR-" & Text(varEqSpRow.ID, "000000"),
+                                                      AttachmentFolder: "TaskListDocuments/" & "EQR-" & Text(varEqSpRow.ID, "000000")
                                                   }
                                               )
                                           );
@@ -11166,8 +11221,8 @@ Screens:
                                                       RequestGuid: varEqRequestGuid,
                                                       Stage: "Admin",
                                                       Decision: "AdminEdit",
-                                                      Detail: Left(If(varEqAdmNew, "New row " & Coalesce(varEqSpRow.ItemKey, "EQ-" & Text(varEqSpRow.ID, "000000")), varEqAdmDiff), 255),
-                                                      Comment: If(varEqAdmNew, "New row " & Coalesce(varEqSpRow.ItemKey, "EQ-" & Text(varEqSpRow.ID, "000000")), varEqAdmDiff),
+                                                      Detail: Left(If(varEqAdmNew, "New row " & Coalesce(varEqSpRow.ItemKey, "EQR-" & Text(varEqSpRow.ID, "000000")), varEqAdmDiff), 255),
+                                                      Comment: If(varEqAdmNew, "New row " & Coalesce(varEqSpRow.ItemKey, "EQR-" & Text(varEqSpRow.ID, "000000")), varEqAdmDiff),
                                                       DecidedByEmail: Lower(User().Email),
                                                       DecidedOn: Now()
                                                   });
@@ -11279,6 +11334,16 @@ Screens:
                                           Set(gblToast, { Text: "Description is required - also on a draft.", Kind: "Warning", At: Now() }); true,
                                           (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)) && !IsAdmin,
                                           Set(gblToast, { Text: "You can only change your own requests.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varEqFText, ""))) > 40,
+                                          Set(gblToast, { Text: "Description can have at most 40 characters.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varEqFManufacturer, ""))) > 30,
+                                          Set(gblToast, { Text: "Manufacturer can have at most 30 characters.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varEqFTypeDesignation, ""))) > 20,
+                                          Set(gblToast, { Text: "Type designation can have at most 20 characters.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varEqFSerialNumber, ""))) > 30,
+                                          Set(gblToast, { Text: "Serial number can have at most 30 characters.", Kind: "Warning", At: Now() }); true,
+                                          !IsBlank(varEqFWarrantyStart) && !IsBlank(varEqFWarrantyEnd) && varEqFWarrantyEnd < varEqFWarrantyStart,
+                                          Set(gblToast, { Text: "Warranty to must be on or after warranty from.", Kind: "Warning", At: Now() }); true,
                                       
                                           Set(varEqAdmNew, IsBlank(varEqActiveRowId));
                                           Set(
@@ -11289,7 +11354,7 @@ Screens:
                                                           Table(
                                                           { f: "Description", a: Text(o.Description), b: Text(varEqFText) },
                                                           { f: "Plant", a: Text(o.Plant), b: Text(varEqFPlant) },
-                                                          { f: "Status", a: Text(o.RequestType), b: Text(varEqFRequestType) },
+                                                          { f: "Request type", a: Text(o.RequestType), b: Text(varEqFRequestType) },
                                                           { f: "Equipment type", a: Text(o.EquipmentCategory), b: Text(varEqFEquipmentCategory) },
                                                           { f: "Manufacturer", a: Text(o.Manufacturer), b: Text(varEqFManufacturer) },
                                                           { f: "Type designation", a: Text(o.TypeDesignation), b: Text(varEqFTypeDesignation) },
@@ -11358,8 +11423,8 @@ Screens:
                                                   varEqSpRow,
                                                   {
                                                       RowId: varEqSpRow.ID,
-                                                      ItemKey: "EQ-" & Text(varEqSpRow.ID, "000000"),
-                                                      AttachmentFolder: "TaskListDocuments/" & "EQ-" & Text(varEqSpRow.ID, "000000")
+                                                      ItemKey: "EQR-" & Text(varEqSpRow.ID, "000000"),
+                                                      AttachmentFolder: "TaskListDocuments/" & "EQR-" & Text(varEqSpRow.ID, "000000")
                                                   }
                                               )
                                           );
@@ -11372,8 +11437,8 @@ Screens:
                                                       RequestGuid: varEqRequestGuid,
                                                       Stage: "Admin",
                                                       Decision: "AdminEdit",
-                                                      Detail: Left(If(varEqAdmNew, "New row " & Coalesce(varEqSpRow.ItemKey, "EQ-" & Text(varEqSpRow.ID, "000000")), varEqAdmDiff), 255),
-                                                      Comment: If(varEqAdmNew, "New row " & Coalesce(varEqSpRow.ItemKey, "EQ-" & Text(varEqSpRow.ID, "000000")), varEqAdmDiff),
+                                                      Detail: Left(If(varEqAdmNew, "New row " & Coalesce(varEqSpRow.ItemKey, "EQR-" & Text(varEqSpRow.ID, "000000")), varEqAdmDiff), 255),
+                                                      Comment: If(varEqAdmNew, "New row " & Coalesce(varEqSpRow.ItemKey, "EQR-" & Text(varEqSpRow.ID, "000000")), varEqAdmDiff),
                                                       DecidedByEmail: Lower(User().Email),
                                                       DecidedOn: Now()
                                                   });
@@ -11471,8 +11536,8 @@ Screens:
                                               )
                                           );
                                       
-                                          Set(varEqInfo, "Saved as draft row " & LookUp(colEqRows, RowId = varEqActiveRowId).ItemKey & " - " & Trim(If(IsBlank(varEqFPlant), "Plant is required to submit the row.", "")));
-                                          Set(gblToast, { Text: "Saved as draft row " & LookUp(colEqRows, RowId = varEqActiveRowId).ItemKey & " - " & Trim(If(IsBlank(varEqFPlant), "Plant is required to submit the row.", "")), Kind: "Warning", At: Now() });
+                                          Set(varEqInfo, "Saved as draft row " & LookUp(colEqRows, RowId = varEqActiveRowId).ItemKey & " - " & Trim(If(IsBlank(varEqFPlant), "Plant is required to submit the row.", "") & If(IsBlank(Trim(Coalesce(varEqFEquipmentCategory, ""))), "Equipment type is required. ", "") & If(IsBlank(Trim(Coalesce(varEqFFunctionalLocation, ""))), "A functional location is required. ", "")));
+                                          Set(gblToast, { Text: "Saved as draft row " & LookUp(colEqRows, RowId = varEqActiveRowId).ItemKey & " - " & Trim(If(IsBlank(varEqFPlant), "Plant is required to submit the row.", "") & If(IsBlank(Trim(Coalesce(varEqFEquipmentCategory, ""))), "Equipment type is required. ", "") & If(IsBlank(Trim(Coalesce(varEqFFunctionalLocation, ""))), "A functional location is required. ", "")), Kind: "Warning", At: Now() });
                                           Set(varEqEditorOpen, false),
                                       
                                           Set(varEqInfo, "Save failed: " & FirstError.Message);
@@ -11953,7 +12018,7 @@ Screens:
                         Size: |-
                             =T.body
                         Text: |-
-                            ="Copy the cells in Excel and paste them here, one row per line. The rows are added as drafts. Columns in this order: " & Concat(["Description", "Plant", "Status", "Equipment type", "Manufacturer", "Type designation", "Serial number", "Functional location", "Class data", "Room coordinates", "Placement text"], Value, ", ")
+                            ="Copy the cells in Excel and paste them here, one row per line. The rows are added as drafts. Columns in this order: " & Concat(["Description", "Plant", "Request type", "Equipment type", "Manufacturer", "Type designation", "Serial number", "Functional location", "Class data", "Room coordinates", "Placement text"], Value, ", ")
                         Wrap: |-
                             =true
                   - inpEqPaste:
@@ -12154,10 +12219,14 @@ Screens:
                                                     ClassData: IfError(Trim(Index(c, 9).Value), ""),
                                                     RoomCoordinates: IfError(Trim(Index(c, 10).Value), ""),
                                                     Placement: IfError(Trim(Index(c, 11).Value), ""),
-                                                    Ok: !IsBlank(IfError(Trim(Index(c, 1).Value), "")) && (IsBlank(p) || !IsBlank(plant)),
+                                                    Ok: !IsBlank(IfError(Trim(Index(c, 1).Value), "")) && (IsBlank(p) || !IsBlank(plant)) && !(Len(IfError(Trim(Index(c, 1).Value), "")) > 40) && !(Len(IfError(Trim(Index(c, 5).Value), "")) > 30) && !(Len(IfError(Trim(Index(c, 6).Value), "")) > 20) && !(Len(IfError(Trim(Index(c, 7).Value), "")) > 30),
                                                     Note: If(
                                                         IsBlank(IfError(Trim(Index(c, 1).Value), "")), "Description is missing",
                                                         !IsBlank(p) && IsBlank(plant), "Unknown plant " & p,
+                                                        Len(IfError(Trim(Index(c, 1).Value), "")) > 40, "Description longer than 40 characters",
+                                                        Len(IfError(Trim(Index(c, 5).Value), "")) > 30, "Manufacturer longer than 30 characters",
+                                                        Len(IfError(Trim(Index(c, 6).Value), "")) > 20, "Type designation longer than 20 characters",
+                                                        Len(IfError(Trim(Index(c, 7).Value), "")) > 30, "Serial number longer than 30 characters",
                                                         "Ready"
                                                     )
                                                 }
@@ -12236,8 +12305,8 @@ Screens:
                                     Patch(
                                         EquipmentItems,
                                         ForAll(created As n, { ID: n.ID }),
-                                        ForAll(created As n, { RowId: n.ID, ItemKey: "EQ-" & Text(n.ID, "000000"),
-                                            AttachmentFolder: "TaskListDocuments/" & "EQ-" & Text(n.ID, "000000") })
+                                        ForAll(created As n, { RowId: n.ID, ItemKey: "EQR-" & Text(n.ID, "000000"),
+                                            AttachmentFolder: "TaskListDocuments/" & "EQR-" & Text(n.ID, "000000") })
                                     )
                                 );
                                 If(
@@ -13090,6 +13159,10 @@ Screens:
                             If(
                                 CountRows(Filter(colEqRows, Status = "valid")) = 0,
                                 Set(gblToast, { Text: "There are no completed rows to submit.", Kind: "Warning", At: Now() }); true,
+                                CountRows(Distinct(Filter(colEqRows, Status = "valid"), Plant)) > 1,
+                                Set(gblToast, { Text: "A request can only cover one plant. The rows have plants " & Concat(Distinct(Filter(colEqRows, Status = "valid"), Plant), Value, ", ") & " - split them into one request per plant.", Kind: "Warning", At: Now() }); true,
+                            
+                                If(CountRows(colEqRows) >= 500, Set(gblToast, { Text: "Only the newest 500 rows are shown - older rows are not included when you submit.", Kind: "Warning", At: Now() }); true);
                             
                                 Set(
                                     varEqIdx,
@@ -13121,7 +13194,7 @@ Screens:
                                                 RequesterEmail: Coalesce(varEqIdx.RequesterEmail, varEqMe),
                                                 RequesterName: Coalesce(varEqIdx.RequesterName, User().FullName),
                                                 ShortText: "Equipments: " & With({ _c: CountRows(Filter(colEqRows, Status = "valid")) }, Text(_c) & If(_c = 1, " row", " rows")),
-                                                Plant: First(Filter(colEqRows, Status = "valid")).Plant,
+                                                Plant: First(Sort(Filter(colEqRows, Status = "valid"), RowId)).Plant,
                                                 ItemCount: CountRows(Filter(colEqRows, Status = "valid")),
                                                 AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=equipment&reqid=" & varEqRequestGuid,
                                                 LastActionOn: Now(),

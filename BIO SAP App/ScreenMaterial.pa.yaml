@@ -508,7 +508,7 @@ Screens:
                                                   Supplier: Coalesce(R.Supplier, ""),
                                                   SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                   DeliveringTime: R.DeliveringTime,
-                                                  Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                  Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                   PriceUnit: Coalesce(R.PriceUnit, ""),
                                                   StockUnit: Coalesce(R.StockUnit, ""),
                                                   IsStockItem: Coalesce(R.IsStockItem, false),
@@ -552,7 +552,7 @@ Screens:
                                                       Supplier: Coalesce(R.Supplier, ""),
                                                       SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                       DeliveringTime: R.DeliveringTime,
-                                                      Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                      Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                       PriceUnit: Coalesce(R.PriceUnit, ""),
                                                       StockUnit: Coalesce(R.StockUnit, ""),
                                                       IsStockItem: Coalesce(R.IsStockItem, false),
@@ -594,7 +594,7 @@ Screens:
                                                       Supplier: Coalesce(R.Supplier, ""),
                                                       SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                       DeliveringTime: R.DeliveringTime,
-                                                      Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                      Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                       PriceUnit: Coalesce(R.PriceUnit, ""),
                                                       StockUnit: Coalesce(R.StockUnit, ""),
                                                       IsStockItem: Coalesce(R.IsStockItem, false),
@@ -827,8 +827,8 @@ Screens:
                                               Patch(
                                                   MaterialItems,
                                                   ForAll(created As n, { ID: n.ID }),
-                                                  ForAll(created As n, { RowId: n.ID, ItemKey: "MAT-" & Text(n.ID, "000000"),
-                                                      AttachmentFolder: "TaskListDocuments/" & "MAT-" & Text(n.ID, "000000") })
+                                                  ForAll(created As n, { RowId: n.ID, ItemKey: "MATR-" & Text(n.ID, "000000"),
+                                                      AttachmentFolder: "TaskListDocuments/" & "MATR-" & Text(n.ID, "000000") })
                                               )
                                           );
                                           Set(varMatRequestGuid, "");
@@ -887,7 +887,7 @@ Screens:
                                                           Supplier: Coalesce(R.Supplier, ""),
                                                           SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                           DeliveringTime: R.DeliveringTime,
-                                                          Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                          Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                           PriceUnit: Coalesce(R.PriceUnit, ""),
                                                           StockUnit: Coalesce(R.StockUnit, ""),
                                                           IsStockItem: Coalesce(R.IsStockItem, false),
@@ -931,7 +931,7 @@ Screens:
                                                               Supplier: Coalesce(R.Supplier, ""),
                                                               SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                               DeliveringTime: R.DeliveringTime,
-                                                              Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                              Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                               PriceUnit: Coalesce(R.PriceUnit, ""),
                                                               StockUnit: Coalesce(R.StockUnit, ""),
                                                               IsStockItem: Coalesce(R.IsStockItem, false),
@@ -973,7 +973,7 @@ Screens:
                                                               Supplier: Coalesce(R.Supplier, ""),
                                                               SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                               DeliveringTime: R.DeliveringTime,
-                                                              Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                              Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                               PriceUnit: Coalesce(R.PriceUnit, ""),
                                                               StockUnit: Coalesce(R.StockUnit, ""),
                                                               IsStockItem: Coalesce(R.IsStockItem, false),
@@ -1061,6 +1061,8 @@ Screens:
                                       CountRows(Filter(colMatRows, Status <> "submitted")) = 0,
                                       Set(gblToast, { Text: "There are no rows to save.", Kind: "Warning", At: Now() }); true,
                                   
+                                      If(CountRows(colMatRows) >= 500, Set(gblToast, { Text: "Only the newest 500 rows are shown - older rows are not included when you submit.", Kind: "Warning", At: Now() }); true);
+                                  
                                       Set(
                                           varMatIdx,
                                           If(!IsBlank(varMatRequestGuid), LookUp(MD_RequestIndex, RequestGuid = varMatRequestGuid))
@@ -1091,7 +1093,7 @@ Screens:
                                                       RequesterEmail: Coalesce(varMatIdx.RequesterEmail, varMatMe),
                                                       RequesterName: Coalesce(varMatIdx.RequesterName, User().FullName),
                                                       ShortText: "Materials: " & With({ _c: CountRows(Filter(colMatRows, Status <> "submitted")) }, Text(_c) & If(_c = 1, " row", " rows")),
-                                                      Plant: First(Filter(colMatRows, Status <> "submitted")).Plant,
+                                                      Plant: First(Sort(Filter(colMatRows, Status <> "submitted"), RowId)).Plant,
                                                       ItemCount: CountRows(Filter(colMatRows, Status <> "submitted")),
                                                       AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=material&reqid=" & varMatRequestGuid,
                                                       LastActionOn: Now(),
@@ -1139,7 +1141,7 @@ Screens:
                                                           Supplier: Coalesce(R.Supplier, ""),
                                                           SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                           DeliveringTime: R.DeliveringTime,
-                                                          Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                          Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                           PriceUnit: Coalesce(R.PriceUnit, ""),
                                                           StockUnit: Coalesce(R.StockUnit, ""),
                                                           IsStockItem: Coalesce(R.IsStockItem, false),
@@ -1183,7 +1185,7 @@ Screens:
                                                               Supplier: Coalesce(R.Supplier, ""),
                                                               SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                               DeliveringTime: R.DeliveringTime,
-                                                              Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                              Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                               PriceUnit: Coalesce(R.PriceUnit, ""),
                                                               StockUnit: Coalesce(R.StockUnit, ""),
                                                               IsStockItem: Coalesce(R.IsStockItem, false),
@@ -1225,7 +1227,7 @@ Screens:
                                                               Supplier: Coalesce(R.Supplier, ""),
                                                               SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                               DeliveringTime: R.DeliveringTime,
-                                                              Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                              Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                               PriceUnit: Coalesce(R.PriceUnit, ""),
                                                               StockUnit: Coalesce(R.StockUnit, ""),
                                                               IsStockItem: Coalesce(R.IsStockItem, false),
@@ -1312,7 +1314,11 @@ Screens:
                                   =If(
                                       CountRows(Filter(Filter(colMatRows, Status = "valid" && (Upper(Trim(Coalesce(StrategicPart, ""))) in ["YES", "JA", "Y", "TRUE", "1"])), IsBlank(Trim(Coalesce(ObjectList, Coalesce(FunctionalLocation, "")))))) > 0,
                                       Set(gblToast, { Text: "A strategic row needs at least one functional location before it can be submitted.", Kind: "Warning", At: Now() }); true,
+                                      If(
+                                      CountRows(Distinct(Filter(colMatRows, Status = "valid"), Plant)) > 1,
+                                      Set(gblToast, { Text: "A request can only cover one plant. The rows have plants " & Concat(Distinct(Filter(colMatRows, Status = "valid"), Plant), Value, ", ") & " - split them into one request per plant.", Kind: "Warning", At: Now() }); true,
                                       Set(varMatConfirmSubmit, true)
+                                  )
                                   )
                               RadiusBottomLeft: |-
                                   =R.input
@@ -1479,7 +1485,7 @@ Screens:
                                  Status = Lower(drpMatStatusFilter.Selected.Value)),
                                 (IsBlank(drpMatPlantFilter.Selected.Value) || drpMatPlantFilter.Selected.Value = "All plants" ||
                                  Plant = drpMatPlantFilter.Selected.Value)
-                            )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 158, 58)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(1136, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)), 18, 0)), 0) + If(IsEmpty(Filter(
+                            )), If(LayoutRank < 3, 5, 8)), 1) * If(LayoutRank < 3, 158, 58)) + If(((If(LayoutRank < 3, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18), Max(1136, ((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)) - 4 - 18)))) + 4 + 18) > (((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36)), 18, 0)), 0) + If(CountRows(colMatRows) >= 500, 14 + (If(LayoutRank < 2, 40, 20)), 0) + If(IsEmpty(Filter(
                                 colMatRows,
                                 (IsBlank(Trim(inpMatSearch.Text)) || Trim(inpMatSearch.Text) in MaterialDescription || Trim(inpMatSearch.Text) in FunctionalLocation || Trim(inpMatSearch.Text) in ObjectList || Trim(inpMatSearch.Text) in ManufacturerPartNo || Trim(inpMatSearch.Text) in Supplier || Trim(inpMatSearch.Text) in CreatedMaterialNo),
                                 (IsBlank(drpMatStatusFilter.Selected.Value) || drpMatStatusFilter.Selected.Value = "All status" ||
@@ -3620,6 +3626,39 @@ Screens:
                                               =0
                                           Y: |-
                                               =If(LayoutRank < 3, 156, 56) - 1
+                        - txtMatRowsCap:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Only the newest 500 rows are shown - older rows are not included when you submit."
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'state-warn-fg'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =If(LayoutRank < 2, 40, 20)
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =T.body
+                              Text: |-
+                                  ="Only the newest 500 rows are shown - older rows are not included when you submit."
+                              Visible: |-
+                                  =CountRows(colMatRows) >= 500
+                              Wrap: |-
+                                  =true
                         - conMatRowsEmpty:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -4196,6 +4235,8 @@ Screens:
                                       CountRows(Filter(colMatRows, Status <> "submitted")) = 0,
                                       Set(gblToast, { Text: "There are no rows to save.", Kind: "Warning", At: Now() }); true,
                                   
+                                      If(CountRows(colMatRows) >= 500, Set(gblToast, { Text: "Only the newest 500 rows are shown - older rows are not included when you submit.", Kind: "Warning", At: Now() }); true);
+                                  
                                       Set(
                                           varMatIdx,
                                           If(!IsBlank(varMatRequestGuid), LookUp(MD_RequestIndex, RequestGuid = varMatRequestGuid))
@@ -4226,7 +4267,7 @@ Screens:
                                                       RequesterEmail: Coalesce(varMatIdx.RequesterEmail, varMatMe),
                                                       RequesterName: Coalesce(varMatIdx.RequesterName, User().FullName),
                                                       ShortText: "Materials: " & With({ _c: CountRows(Filter(colMatRows, Status <> "submitted")) }, Text(_c) & If(_c = 1, " row", " rows")),
-                                                      Plant: First(Filter(colMatRows, Status <> "submitted")).Plant,
+                                                      Plant: First(Sort(Filter(colMatRows, Status <> "submitted"), RowId)).Plant,
                                                       ItemCount: CountRows(Filter(colMatRows, Status <> "submitted")),
                                                       AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=material&reqid=" & varMatRequestGuid,
                                                       LastActionOn: Now(),
@@ -4274,7 +4315,7 @@ Screens:
                                                           Supplier: Coalesce(R.Supplier, ""),
                                                           SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                           DeliveringTime: R.DeliveringTime,
-                                                          Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                          Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                           PriceUnit: Coalesce(R.PriceUnit, ""),
                                                           StockUnit: Coalesce(R.StockUnit, ""),
                                                           IsStockItem: Coalesce(R.IsStockItem, false),
@@ -4318,7 +4359,7 @@ Screens:
                                                               Supplier: Coalesce(R.Supplier, ""),
                                                               SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                               DeliveringTime: R.DeliveringTime,
-                                                              Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                              Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                               PriceUnit: Coalesce(R.PriceUnit, ""),
                                                               StockUnit: Coalesce(R.StockUnit, ""),
                                                               IsStockItem: Coalesce(R.IsStockItem, false),
@@ -4360,7 +4401,7 @@ Screens:
                                                               Supplier: Coalesce(R.Supplier, ""),
                                                               SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                               DeliveringTime: R.DeliveringTime,
-                                                              Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                              Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                               PriceUnit: Coalesce(R.PriceUnit, ""),
                                                               StockUnit: Coalesce(R.StockUnit, ""),
                                                               IsStockItem: Coalesce(R.IsStockItem, false),
@@ -4443,7 +4484,11 @@ Screens:
                                   =If(
                                       CountRows(Filter(Filter(colMatRows, Status = "valid" && (Upper(Trim(Coalesce(StrategicPart, ""))) in ["YES", "JA", "Y", "TRUE", "1"])), IsBlank(Trim(Coalesce(ObjectList, Coalesce(FunctionalLocation, "")))))) > 0,
                                       Set(gblToast, { Text: "A strategic row needs at least one functional location before it can be submitted.", Kind: "Warning", At: Now() }); true,
+                                      If(
+                                      CountRows(Distinct(Filter(colMatRows, Status = "valid"), Plant)) > 1,
+                                      Set(gblToast, { Text: "A request can only cover one plant. The rows have plants " & Concat(Distinct(Filter(colMatRows, Status = "valid"), Plant), Value, ", ") & " - split them into one request per plant.", Kind: "Warning", At: Now() }); true,
                                       Set(varMatConfirmSubmit, true)
+                                  )
                                   )
                               RadiusBottomLeft: |-
                                   =R.input
@@ -10150,7 +10195,7 @@ Screens:
                                                 LayoutMinWidth: |-
                                                     =0
                                                 MaxLength: |-
-                                                    =255
+                                                    =10
                                                 OnChange: |-
                                                     =Set(varMatFStorageBin, Self.Text)
                                                 Placeholder: |-
@@ -10426,7 +10471,7 @@ Screens:
                                                 LayoutMinWidth: |-
                                                     =0
                                                 MaxLength: |-
-                                                    =255
+                                                    =18
                                                 OnChange: |-
                                                     =Set(varMatFReplacedMaterialNo, Self.Text)
                                                 Placeholder: |-
@@ -10891,7 +10936,7 @@ Screens:
                                                 LayoutMinWidth: |-
                                                     =0
                                                 MaxLength: |-
-                                                    =255
+                                                    =40
                                                 OnChange: |-
                                                     =Set(varMatFManufacturerPartNo, Self.Text)
                                                 Placeholder: |-
@@ -11638,7 +11683,7 @@ Screens:
                                                 OnChange: |-
                                                     =Set(varMatFPrice, Self.Text)
                                                 Placeholder: |-
-                                                    =""
+                                                    ="Use . as decimal separator"
                                                 RadiusBottomLeft: |-
                                                     =R.input
                                                 RadiusBottomRight: |-
@@ -11747,7 +11792,7 @@ Screens:
                                                 LayoutMinWidth: |-
                                                     =0
                                                 MaxLength: |-
-                                                    =255
+                                                    =3
                                                 OnChange: |-
                                                     =Set(varMatFPriceUnit, Self.Text)
                                                 Placeholder: |-
@@ -11860,7 +11905,7 @@ Screens:
                                                 LayoutMinWidth: |-
                                                     =0
                                                 MaxLength: |-
-                                                    =255
+                                                    =3
                                                 OnChange: |-
                                                     =Set(varMatFStockUnit, Self.Text)
                                                 Placeholder: |-
@@ -12461,7 +12506,7 @@ Screens:
                                                 LayoutMinWidth: |-
                                                     =0
                                                 MaxLength: |-
-                                                    =255
+                                                    =12
                                                 OnChange: |-
                                                     =Set(varMatFMaintenanceOrderNo, Self.Text)
                                                 Placeholder: |-
@@ -12751,7 +12796,7 @@ Screens:
                                                                         Supplier: Coalesce(R.Supplier, ""),
                                                                         SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                                         DeliveringTime: R.DeliveringTime,
-                                                                        Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                                        Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                                         PriceUnit: Coalesce(R.PriceUnit, ""),
                                                                         StockUnit: Coalesce(R.StockUnit, ""),
                                                                         IsStockItem: Coalesce(R.IsStockItem, false),
@@ -12795,7 +12840,7 @@ Screens:
                                                                             Supplier: Coalesce(R.Supplier, ""),
                                                                             SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                                             DeliveringTime: R.DeliveringTime,
-                                                                            Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                                            Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                                             PriceUnit: Coalesce(R.PriceUnit, ""),
                                                                             StockUnit: Coalesce(R.StockUnit, ""),
                                                                             IsStockItem: Coalesce(R.IsStockItem, false),
@@ -12837,7 +12882,7 @@ Screens:
                                                                             Supplier: Coalesce(R.Supplier, ""),
                                                                             SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                                             DeliveringTime: R.DeliveringTime,
-                                                                            Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                                            Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                                             PriceUnit: Coalesce(R.PriceUnit, ""),
                                                                             StockUnit: Coalesce(R.StockUnit, ""),
                                                                             IsStockItem: Coalesce(R.IsStockItem, false),
@@ -14629,9 +14674,25 @@ Screens:
                                           Set(gblToast, { Text: "Material description and Plant are required.", Kind: "Warning", At: Now() }); true,
                                           (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)) && !IsAdmin,
                                           Set(gblToast, { Text: "You can only change your own requests.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varMatFText, ""))) > 40,
+                                          Set(gblToast, { Text: "Material description can have at most 40 characters.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varMatFManufacturerPartNo, ""))) > 40,
+                                          Set(gblToast, { Text: "Manufacturer part no. can have at most 40 characters.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varMatFPriceUnit, ""))) > 3,
+                                          Set(gblToast, { Text: "Price unit can have at most 3 characters.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varMatFStockUnit, ""))) > 3,
+                                          Set(gblToast, { Text: "Stock unit can have at most 3 characters.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varMatFStorageBin, ""))) > 10,
+                                          Set(gblToast, { Text: "Storage bin can have at most 10 characters.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varMatFMaintenanceOrderNo, ""))) > 12,
+                                          Set(gblToast, { Text: "Maintenance order no. can have at most 12 characters.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varMatFReplacedMaterialNo, ""))) > 18,
+                                          Set(gblToast, { Text: "Replaced material no. can have at most 18 characters.", Kind: "Warning", At: Now() }); true,
+                                          "," in Coalesce(varMatFPrice, ""),
+                                          Set(gblToast, { Text: "Price: use . as decimal separator.", Kind: "Warning", At: Now() }); true,
                                           Coalesce(varMatFIsStockItem, false) && !IsBlank(varMatFMinStock) && !IsBlank(varMatFMaxStock) && varMatFMinStock > varMatFMaxStock,
                                           Set(gblToast, { Text: "Min stock must be less than or equal to max stock.", Kind: "Warning", At: Now() }); true,
-                                          !IsBlank(Trim(Coalesce(varMatFPrice, ""))) && IsBlank(IfError(Value(Trim(varMatFPrice)), Blank())),
+                                          !IsBlank(Trim(Coalesce(varMatFPrice, ""))) && IsBlank(IfError(Value(Trim(varMatFPrice), "en-US"), Blank())),
                                           Set(gblToast, { Text: "Price must be a number, not text.", Kind: "Warning", At: Now() }); true,
                                       
                                           Set(varMatAdmNew, IsBlank(varMatActiveRowId));
@@ -14689,7 +14750,7 @@ Screens:
                                                   Supplier: Trim(Coalesce(varMatFSupplier, "")),
                                                   SupplierPartNo: Trim(Coalesce(varMatFSupplierPartNo, "")),
                                                   DeliveringTime: varMatFDeliveringTime,
-                                                  Price: If(IsBlank(Trim(Coalesce(varMatFPrice, ""))), Blank(), IfError(Value(Trim(varMatFPrice)), Blank())),
+                                                  Price: If(IsBlank(Trim(Coalesce(varMatFPrice, ""))), Blank(), IfError(Value(Trim(varMatFPrice), "en-US"), Blank())),
                                                   PriceUnit: Trim(Coalesce(varMatFPriceUnit, "")),
                                                   StockUnit: Trim(Coalesce(varMatFStockUnit, "")),
                                                   IsStockItem: Coalesce(varMatFIsStockItem, false),
@@ -14732,8 +14793,8 @@ Screens:
                                                   varMatSpRow,
                                                   {
                                                       RowId: varMatSpRow.ID,
-                                                      ItemKey: "MAT-" & Text(varMatSpRow.ID, "000000"),
-                                                      AttachmentFolder: "TaskListDocuments/" & "MAT-" & Text(varMatSpRow.ID, "000000")
+                                                      ItemKey: "MATR-" & Text(varMatSpRow.ID, "000000"),
+                                                      AttachmentFolder: "TaskListDocuments/" & "MATR-" & Text(varMatSpRow.ID, "000000")
                                                   }
                                               )
                                           );
@@ -14746,8 +14807,8 @@ Screens:
                                                       RequestGuid: varMatRequestGuid,
                                                       Stage: "Admin",
                                                       Decision: "AdminEdit",
-                                                      Detail: Left(If(varMatAdmNew, "New row " & Coalesce(varMatSpRow.ItemKey, "MAT-" & Text(varMatSpRow.ID, "000000")), varMatAdmDiff), 255),
-                                                      Comment: If(varMatAdmNew, "New row " & Coalesce(varMatSpRow.ItemKey, "MAT-" & Text(varMatSpRow.ID, "000000")), varMatAdmDiff),
+                                                      Detail: Left(If(varMatAdmNew, "New row " & Coalesce(varMatSpRow.ItemKey, "MATR-" & Text(varMatSpRow.ID, "000000")), varMatAdmDiff), 255),
+                                                      Comment: If(varMatAdmNew, "New row " & Coalesce(varMatSpRow.ItemKey, "MATR-" & Text(varMatSpRow.ID, "000000")), varMatAdmDiff),
                                                       DecidedByEmail: Lower(User().Email),
                                                       DecidedOn: Now()
                                                   });
@@ -14777,7 +14838,7 @@ Screens:
                                                           Supplier: Coalesce(R.Supplier, ""),
                                                           SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                           DeliveringTime: R.DeliveringTime,
-                                                          Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                          Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                           PriceUnit: Coalesce(R.PriceUnit, ""),
                                                           StockUnit: Coalesce(R.StockUnit, ""),
                                                           IsStockItem: Coalesce(R.IsStockItem, false),
@@ -14821,7 +14882,7 @@ Screens:
                                                               Supplier: Coalesce(R.Supplier, ""),
                                                               SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                               DeliveringTime: R.DeliveringTime,
-                                                              Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                              Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                               PriceUnit: Coalesce(R.PriceUnit, ""),
                                                               StockUnit: Coalesce(R.StockUnit, ""),
                                                               IsStockItem: Coalesce(R.IsStockItem, false),
@@ -14863,7 +14924,7 @@ Screens:
                                                               Supplier: Coalesce(R.Supplier, ""),
                                                               SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                               DeliveringTime: R.DeliveringTime,
-                                                              Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                              Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                               PriceUnit: Coalesce(R.PriceUnit, ""),
                                                               StockUnit: Coalesce(R.StockUnit, ""),
                                                               IsStockItem: Coalesce(R.IsStockItem, false),
@@ -14904,9 +14965,25 @@ Screens:
                                           Set(gblToast, { Text: "Material description is required - also on a draft.", Kind: "Warning", At: Now() }); true,
                                           (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)) && !IsAdmin,
                                           Set(gblToast, { Text: "You can only change your own requests.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varMatFText, ""))) > 40,
+                                          Set(gblToast, { Text: "Material description can have at most 40 characters.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varMatFManufacturerPartNo, ""))) > 40,
+                                          Set(gblToast, { Text: "Manufacturer part no. can have at most 40 characters.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varMatFPriceUnit, ""))) > 3,
+                                          Set(gblToast, { Text: "Price unit can have at most 3 characters.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varMatFStockUnit, ""))) > 3,
+                                          Set(gblToast, { Text: "Stock unit can have at most 3 characters.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varMatFStorageBin, ""))) > 10,
+                                          Set(gblToast, { Text: "Storage bin can have at most 10 characters.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varMatFMaintenanceOrderNo, ""))) > 12,
+                                          Set(gblToast, { Text: "Maintenance order no. can have at most 12 characters.", Kind: "Warning", At: Now() }); true,
+                                          Len(Trim(Coalesce(varMatFReplacedMaterialNo, ""))) > 18,
+                                          Set(gblToast, { Text: "Replaced material no. can have at most 18 characters.", Kind: "Warning", At: Now() }); true,
+                                          "," in Coalesce(varMatFPrice, ""),
+                                          Set(gblToast, { Text: "Price: use . as decimal separator.", Kind: "Warning", At: Now() }); true,
                                           Coalesce(varMatFIsStockItem, false) && !IsBlank(varMatFMinStock) && !IsBlank(varMatFMaxStock) && varMatFMinStock > varMatFMaxStock,
                                           Set(gblToast, { Text: "Min stock must be less than or equal to max stock.", Kind: "Warning", At: Now() }); true,
-                                          !IsBlank(Trim(Coalesce(varMatFPrice, ""))) && IsBlank(IfError(Value(Trim(varMatFPrice)), Blank())),
+                                          !IsBlank(Trim(Coalesce(varMatFPrice, ""))) && IsBlank(IfError(Value(Trim(varMatFPrice), "en-US"), Blank())),
                                           Set(gblToast, { Text: "Price must be a number, not text.", Kind: "Warning", At: Now() }); true,
                                       
                                           Set(varMatAdmNew, IsBlank(varMatActiveRowId));
@@ -14964,7 +15041,7 @@ Screens:
                                                   Supplier: Trim(Coalesce(varMatFSupplier, "")),
                                                   SupplierPartNo: Trim(Coalesce(varMatFSupplierPartNo, "")),
                                                   DeliveringTime: varMatFDeliveringTime,
-                                                  Price: If(IsBlank(Trim(Coalesce(varMatFPrice, ""))), Blank(), IfError(Value(Trim(varMatFPrice)), Blank())),
+                                                  Price: If(IsBlank(Trim(Coalesce(varMatFPrice, ""))), Blank(), IfError(Value(Trim(varMatFPrice), "en-US"), Blank())),
                                                   PriceUnit: Trim(Coalesce(varMatFPriceUnit, "")),
                                                   StockUnit: Trim(Coalesce(varMatFStockUnit, "")),
                                                   IsStockItem: Coalesce(varMatFIsStockItem, false),
@@ -15007,8 +15084,8 @@ Screens:
                                                   varMatSpRow,
                                                   {
                                                       RowId: varMatSpRow.ID,
-                                                      ItemKey: "MAT-" & Text(varMatSpRow.ID, "000000"),
-                                                      AttachmentFolder: "TaskListDocuments/" & "MAT-" & Text(varMatSpRow.ID, "000000")
+                                                      ItemKey: "MATR-" & Text(varMatSpRow.ID, "000000"),
+                                                      AttachmentFolder: "TaskListDocuments/" & "MATR-" & Text(varMatSpRow.ID, "000000")
                                                   }
                                               )
                                           );
@@ -15021,8 +15098,8 @@ Screens:
                                                       RequestGuid: varMatRequestGuid,
                                                       Stage: "Admin",
                                                       Decision: "AdminEdit",
-                                                      Detail: Left(If(varMatAdmNew, "New row " & Coalesce(varMatSpRow.ItemKey, "MAT-" & Text(varMatSpRow.ID, "000000")), varMatAdmDiff), 255),
-                                                      Comment: If(varMatAdmNew, "New row " & Coalesce(varMatSpRow.ItemKey, "MAT-" & Text(varMatSpRow.ID, "000000")), varMatAdmDiff),
+                                                      Detail: Left(If(varMatAdmNew, "New row " & Coalesce(varMatSpRow.ItemKey, "MATR-" & Text(varMatSpRow.ID, "000000")), varMatAdmDiff), 255),
+                                                      Comment: If(varMatAdmNew, "New row " & Coalesce(varMatSpRow.ItemKey, "MATR-" & Text(varMatSpRow.ID, "000000")), varMatAdmDiff),
                                                       DecidedByEmail: Lower(User().Email),
                                                       DecidedOn: Now()
                                                   });
@@ -15052,7 +15129,7 @@ Screens:
                                                           Supplier: Coalesce(R.Supplier, ""),
                                                           SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                           DeliveringTime: R.DeliveringTime,
-                                                          Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                          Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                           PriceUnit: Coalesce(R.PriceUnit, ""),
                                                           StockUnit: Coalesce(R.StockUnit, ""),
                                                           IsStockItem: Coalesce(R.IsStockItem, false),
@@ -15096,7 +15173,7 @@ Screens:
                                                               Supplier: Coalesce(R.Supplier, ""),
                                                               SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                               DeliveringTime: R.DeliveringTime,
-                                                              Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                              Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                               PriceUnit: Coalesce(R.PriceUnit, ""),
                                                               StockUnit: Coalesce(R.StockUnit, ""),
                                                               IsStockItem: Coalesce(R.IsStockItem, false),
@@ -15138,7 +15215,7 @@ Screens:
                                                               Supplier: Coalesce(R.Supplier, ""),
                                                               SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                               DeliveringTime: R.DeliveringTime,
-                                                              Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                              Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                               PriceUnit: Coalesce(R.PriceUnit, ""),
                                                               StockUnit: Coalesce(R.StockUnit, ""),
                                                               IsStockItem: Coalesce(R.IsStockItem, false),
@@ -16263,10 +16340,17 @@ Screens:
                                                     Remarks: IfError(Trim(Index(c, 13).Value), ""),
                                                     MaintenanceOrderNo: IfError(Trim(Index(c, 14).Value), ""),
                                                     ReplacedMaterialNo: IfError(Trim(Index(c, 15).Value), ""),
-                                                    Ok: !IsBlank(IfError(Trim(Index(c, 1).Value), "")) && (IsBlank(p) || !IsBlank(plant)),
+                                                    Ok: !IsBlank(IfError(Trim(Index(c, 1).Value), "")) && (IsBlank(p) || !IsBlank(plant)) && !(Len(IfError(Trim(Index(c, 1).Value), "")) > 40) && !(Len(IfError(Trim(Index(c, 5).Value), "")) > 40) && !(Len(IfError(Trim(Index(c, 8).Value), "")) > 3) && !(Len(IfError(Trim(Index(c, 9).Value), "")) > 3) && !(Len(IfError(Trim(Index(c, 10).Value), "")) > 10) && !(Len(IfError(Trim(Index(c, 14).Value), "")) > 12) && !(Len(IfError(Trim(Index(c, 15).Value), "")) > 18),
                                                     Note: If(
                                                         IsBlank(IfError(Trim(Index(c, 1).Value), "")), "Material description is missing",
                                                         !IsBlank(p) && IsBlank(plant), "Unknown plant " & p,
+                                                        Len(IfError(Trim(Index(c, 1).Value), "")) > 40, "Material description longer than 40 characters",
+                                                        Len(IfError(Trim(Index(c, 5).Value), "")) > 40, "Manufacturer part no. longer than 40 characters",
+                                                        Len(IfError(Trim(Index(c, 8).Value), "")) > 3, "Price unit longer than 3 characters",
+                                                        Len(IfError(Trim(Index(c, 9).Value), "")) > 3, "Stock unit longer than 3 characters",
+                                                        Len(IfError(Trim(Index(c, 10).Value), "")) > 10, "Storage bin longer than 10 characters",
+                                                        Len(IfError(Trim(Index(c, 14).Value), "")) > 12, "Maintenance order no. longer than 12 characters",
+                                                        Len(IfError(Trim(Index(c, 15).Value), "")) > 18, "Replaced material no. longer than 18 characters",
                                                         "Ready"
                                                     )
                                                 }
@@ -16349,8 +16433,8 @@ Screens:
                                     Patch(
                                         MaterialItems,
                                         ForAll(created As n, { ID: n.ID }),
-                                        ForAll(created As n, { RowId: n.ID, ItemKey: "MAT-" & Text(n.ID, "000000"),
-                                            AttachmentFolder: "TaskListDocuments/" & "MAT-" & Text(n.ID, "000000") })
+                                        ForAll(created As n, { RowId: n.ID, ItemKey: "MATR-" & Text(n.ID, "000000"),
+                                            AttachmentFolder: "TaskListDocuments/" & "MATR-" & Text(n.ID, "000000") })
                                     )
                                 );
                                 If(
@@ -16373,7 +16457,7 @@ Screens:
                                                 Supplier: Coalesce(R.Supplier, ""),
                                                 SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                 DeliveringTime: R.DeliveringTime,
-                                                Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                 PriceUnit: Coalesce(R.PriceUnit, ""),
                                                 StockUnit: Coalesce(R.StockUnit, ""),
                                                 IsStockItem: Coalesce(R.IsStockItem, false),
@@ -16417,7 +16501,7 @@ Screens:
                                                     Supplier: Coalesce(R.Supplier, ""),
                                                     SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                     DeliveringTime: R.DeliveringTime,
-                                                    Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                    Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                     PriceUnit: Coalesce(R.PriceUnit, ""),
                                                     StockUnit: Coalesce(R.StockUnit, ""),
                                                     IsStockItem: Coalesce(R.IsStockItem, false),
@@ -16459,7 +16543,7 @@ Screens:
                                                     Supplier: Coalesce(R.Supplier, ""),
                                                     SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                     DeliveringTime: R.DeliveringTime,
-                                                    Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                    Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                     PriceUnit: Coalesce(R.PriceUnit, ""),
                                                     StockUnit: Coalesce(R.StockUnit, ""),
                                                     IsStockItem: Coalesce(R.IsStockItem, false),
@@ -16883,7 +16967,7 @@ Screens:
                                                     Supplier: Coalesce(R.Supplier, ""),
                                                     SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                     DeliveringTime: R.DeliveringTime,
-                                                    Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                    Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                     PriceUnit: Coalesce(R.PriceUnit, ""),
                                                     StockUnit: Coalesce(R.StockUnit, ""),
                                                     IsStockItem: Coalesce(R.IsStockItem, false),
@@ -16927,7 +17011,7 @@ Screens:
                                                         Supplier: Coalesce(R.Supplier, ""),
                                                         SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                         DeliveringTime: R.DeliveringTime,
-                                                        Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                        Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                         PriceUnit: Coalesce(R.PriceUnit, ""),
                                                         StockUnit: Coalesce(R.StockUnit, ""),
                                                         IsStockItem: Coalesce(R.IsStockItem, false),
@@ -16969,7 +17053,7 @@ Screens:
                                                         Supplier: Coalesce(R.Supplier, ""),
                                                         SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                         DeliveringTime: R.DeliveringTime,
-                                                        Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                        Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                         PriceUnit: Coalesce(R.PriceUnit, ""),
                                                         StockUnit: Coalesce(R.StockUnit, ""),
                                                         IsStockItem: Coalesce(R.IsStockItem, false),
@@ -17305,6 +17389,10 @@ Screens:
                             If(
                                 CountRows(Filter(colMatRows, Status = "valid")) = 0,
                                 Set(gblToast, { Text: "There are no completed rows to submit.", Kind: "Warning", At: Now() }); true,
+                                CountRows(Distinct(Filter(colMatRows, Status = "valid"), Plant)) > 1,
+                                Set(gblToast, { Text: "A request can only cover one plant. The rows have plants " & Concat(Distinct(Filter(colMatRows, Status = "valid"), Plant), Value, ", ") & " - split them into one request per plant.", Kind: "Warning", At: Now() }); true,
+                            
+                                If(CountRows(colMatRows) >= 500, Set(gblToast, { Text: "Only the newest 500 rows are shown - older rows are not included when you submit.", Kind: "Warning", At: Now() }); true);
                             
                                 Set(
                                     varMatIdx,
@@ -17336,7 +17424,7 @@ Screens:
                                                 RequesterEmail: Coalesce(varMatIdx.RequesterEmail, varMatMe),
                                                 RequesterName: Coalesce(varMatIdx.RequesterName, User().FullName),
                                                 ShortText: "Materials: " & With({ _c: CountRows(Filter(colMatRows, Status = "valid")) }, Text(_c) & If(_c = 1, " row", " rows")),
-                                                Plant: First(Filter(colMatRows, Status = "valid")).Plant,
+                                                Plant: First(Sort(Filter(colMatRows, Status = "valid"), RowId)).Plant,
                                                 ItemCount: CountRows(Filter(colMatRows, Status = "valid")),
                                                 AppUrl: "https://apps.powerapps.com/play/e/e0f8f822-d16a-e878-ba4e-fb42bc617e47/a/17f6f493-203d-40a1-9fe4-2c99b04b85a5?domain=material&reqid=" & varMatRequestGuid,
                                                 LastActionOn: Now(),
@@ -17394,7 +17482,7 @@ Screens:
                                                     Supplier: Coalesce(R.Supplier, ""),
                                                     SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                     DeliveringTime: R.DeliveringTime,
-                                                    Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                    Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                     PriceUnit: Coalesce(R.PriceUnit, ""),
                                                     StockUnit: Coalesce(R.StockUnit, ""),
                                                     IsStockItem: Coalesce(R.IsStockItem, false),
@@ -17438,7 +17526,7 @@ Screens:
                                                         Supplier: Coalesce(R.Supplier, ""),
                                                         SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                         DeliveringTime: R.DeliveringTime,
-                                                        Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                        Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                         PriceUnit: Coalesce(R.PriceUnit, ""),
                                                         StockUnit: Coalesce(R.StockUnit, ""),
                                                         IsStockItem: Coalesce(R.IsStockItem, false),
@@ -17480,7 +17568,7 @@ Screens:
                                                         Supplier: Coalesce(R.Supplier, ""),
                                                         SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                         DeliveringTime: R.DeliveringTime,
-                                                        Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                        Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                         PriceUnit: Coalesce(R.PriceUnit, ""),
                                                         StockUnit: Coalesce(R.StockUnit, ""),
                                                         IsStockItem: Coalesce(R.IsStockItem, false),
@@ -18121,7 +18209,7 @@ Screens:
                                             Supplier: Coalesce(R.Supplier, ""),
                                             SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                             DeliveringTime: R.DeliveringTime,
-                                            Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                            Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                             PriceUnit: Coalesce(R.PriceUnit, ""),
                                             StockUnit: Coalesce(R.StockUnit, ""),
                                             IsStockItem: Coalesce(R.IsStockItem, false),
@@ -18165,7 +18253,7 @@ Screens:
                                                 Supplier: Coalesce(R.Supplier, ""),
                                                 SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                 DeliveringTime: R.DeliveringTime,
-                                                Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                 PriceUnit: Coalesce(R.PriceUnit, ""),
                                                 StockUnit: Coalesce(R.StockUnit, ""),
                                                 IsStockItem: Coalesce(R.IsStockItem, false),
@@ -18207,7 +18295,7 @@ Screens:
                                                 Supplier: Coalesce(R.Supplier, ""),
                                                 SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                                 DeliveringTime: R.DeliveringTime,
-                                                Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                                Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                                 PriceUnit: Coalesce(R.PriceUnit, ""),
                                                 StockUnit: Coalesce(R.StockUnit, ""),
                                                 IsStockItem: Coalesce(R.IsStockItem, false),
@@ -18258,7 +18346,7 @@ Screens:
                                         Supplier: Coalesce(R.Supplier, ""),
                                         SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                         DeliveringTime: R.DeliveringTime,
-                                        Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                        Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                         PriceUnit: Coalesce(R.PriceUnit, ""),
                                         StockUnit: Coalesce(R.StockUnit, ""),
                                         IsStockItem: Coalesce(R.IsStockItem, false),
@@ -18302,7 +18390,7 @@ Screens:
                                             Supplier: Coalesce(R.Supplier, ""),
                                             SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                             DeliveringTime: R.DeliveringTime,
-                                            Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                            Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                             PriceUnit: Coalesce(R.PriceUnit, ""),
                                             StockUnit: Coalesce(R.StockUnit, ""),
                                             IsStockItem: Coalesce(R.IsStockItem, false),
@@ -18344,7 +18432,7 @@ Screens:
                                             Supplier: Coalesce(R.Supplier, ""),
                                             SupplierPartNo: Coalesce(R.SupplierPartNo, ""),
                                             DeliveringTime: R.DeliveringTime,
-                                            Price: If(IsBlank(R.Price), "", Text(R.Price)),
+                                            Price: If(IsBlank(R.Price), "", Text(R.Price, "0.###", "en-US")),
                                             PriceUnit: Coalesce(R.PriceUnit, ""),
                                             StockUnit: Coalesce(R.StockUnit, ""),
                                             IsStockItem: Coalesce(R.IsStockItem, false),
