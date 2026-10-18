@@ -7,6 +7,29 @@ Traekker SPOOL-arkets vaerdilister og opslagstabeller ud til seed-CSV.
         -> sharepoint/seed/MD_FLValueList.csv   dropdown-vaerdier
         -> sharepoint/seed/MD_FLKey.csv         klassebestemmelsens opslag
 
+    python3 tools/extract_spool_lists.py <xlsm> --write-js
+        -> html/lookups.generated.js            FL_LOOKUPS (R2-076)
+
+    python3 tools/extract_spool_lists.py <xlsm> --check-js
+        sammenligner arket med den committede html/lookups.generated.js
+        tabel for tabel; exit 1 ved forskel. Intet skrives.
+
+FL_LOOKUPS FRA ARKET (R2-076)
+------------------------------
+lookups.generated.js er SPOOL-arkets navngivne tabeller (alle ark, i
+arkets raekkefoelge): {"sheet", "headers", "rows"}, alle vaerdier som
+tekst. Filen blev foer skrevet af Windows PowerShell 5.1 (ConvertTo-Json)
+og er her efterlignet byte for byte: BOM, CRLF, PowerShells indrykning og
+JavaScriptSerializers escaping (& < > som \\u0026 \\u003c \\u003e).
+format_lookups_js(json.loads(<filen>)) giver filen igen
+(tests/test_lookups_generator.py), saa en forskel efter --write-js
+skyldes arket, ikke formatet.
+
+Kaeden: arket -> --write-js -> lookups.generated.js -> node
+tools/fl/harness.js plan (appens regler) og seed (MD_FLKey.csv), og
+gen_kks_seed.py --check / harness.js test som tjek af, at de er i trit
+(docs/31 PX5/AQ8).
+
 HVORFOR TO LISTER OG IKKE EEN
 ------------------------------
 De to slags data bruges forskellige steder. Vaerdilisterne fylder en
@@ -81,15 +104,148 @@ def _clean(v):
     return str(v).strip()
 
 
+# ---------------------------------------------------------------------------
+# html/lookups.generated.js (R2-076)
+# ---------------------------------------------------------------------------
+JS_OUT = os.path.join(ROOT, "html", "lookups.generated.js")
+JS_PREFIX = "window.FL_LOOKUPS = "
+
+
+def _cell_text(v):
+    """Cellens vaerdi som tekst, som PowerShell skrev den: tom celle -> "",
+    et helt tal uden ",0"."""
+    if v is None:
+        return ""
+    if isinstance(v, bool):
+        return "True" if v else "False"
+    if isinstance(v, float) and v.is_integer():
+        return str(int(v))
+    return str(v)
+
+
+def lookups_from_workbook(wb):
+    """{tabelnavn: {"sheet", "headers", "rows"}} i arkets raekkefoelge.
+    Helt tomme raekker (fx en tabels tomme indtastningsraekke) udelades."""
+    out = {}
+    for ws in wb.worksheets:
+        for name in ws.tables:
+            cells = [[_cell_text(c.value) for c in r] for r in ws[ws.tables[name].ref]]
+            out[name] = {"sheet": ws.title, "headers": cells[0],
+                         "rows": [r for r in cells[1:] if any(r)]}
+    return out
+
+
+def _js_string(s):
+    """En JSON-streng med JavaScriptSerializers escaping."""
+    out = ['"']
+    for ch in s:
+        o = ord(ch)
+        if ch == '"':
+            out.append('\\"')
+        elif ch == "\\":
+            out.append("\\\\")
+        elif ch in "<>&'" or o < 0x20:
+            out.append({"\b": "\\b", "\f": "\\f", "\n": "\\n", "\r": "\\r",
+                        "\t": "\\t"}.get(ch) or "\\u%04x" % o)
+        else:
+            out.append(ch)
+    out.append('"')
+    return "".join(out)
+
+
+def _ps_json(v, col):
+    """PowerShell 5.1's ConvertTo-Json-indrykning: et objekts/listes indhold
+    staar 4 tegn inde i forhold til kolonnen, hvor '{' / '[' staar, og den
+    lukkende parentes staar i samme kolonne som den aabnende. En tom liste
+    er '[', en tom linje og ']'."""
+    pad = " " * (col + 4)
+    if isinstance(v, dict):
+        parts = []
+        for k, x in v.items():
+            head = _js_string(k) + ":  "
+            parts.append(pad + head + _ps_json(x, col + 4 + len(head)))
+        return "{\r\n" + ",\r\n".join(parts) + "\r\n" + " " * col + "}"
+    if isinstance(v, list):
+        if not v:
+            return "[\r\n\r\n" + " " * col + "]"
+        return ("[\r\n" + ",\r\n".join(pad + _ps_json(x, col + 4) for x in v)
+                + "\r\n" + " " * col + "]")
+    return _js_string(str(v))
+
+
+def format_lookups_js(lookups, eol="\r\n"):
+    """Hele lookups.generated.js som bytes (UTF-8 med BOM). PowerShell skrev
+    CRLF; .gitattributes (eol=lf) kan give LF i en checkout - eol foelger
+    derfor den fil, der ligger der (js_eol)."""
+    text = JS_PREFIX + _ps_json(lookups, 0) + ";\r\n"
+    if eol != "\r\n":
+        text = text.replace("\r\n", eol)
+    return b"\xef\xbb\xbf" + text.encode("utf-8")
+
+
+def js_eol(path=JS_OUT):
+    """Linjeskiftet i den eksisterende fil (CRLF, hvis den ikke findes)."""
+    try:
+        with open(path, "rb") as f:
+            head = f.read(4096)
+    except OSError:
+        return "\r\n"
+    return "\r\n" if b"\r\n" in head or b"\n" not in head else "\n"
+
+
+def read_lookups_js(path=JS_OUT):
+    import json
+    with open(path, encoding="utf-8-sig") as f:
+        t = f.read()
+    return json.loads(t[t.index("{"):t.rindex("}") + 1])
+
+
+def check_js(lookups, path=JS_OUT):
+    """Forskellene mellem arket og den committede fil, tabel for tabel."""
+    old = read_lookups_js(path)
+    diffs = []
+    for name in list(old) + [n for n in lookups if n not in old]:
+        if name not in lookups:
+            diffs.append("%s: findes i lookups.generated.js, ikke i arket" % name)
+        elif name not in old:
+            diffs.append("%s: findes i arket, ikke i lookups.generated.js" % name)
+        elif lookups[name] != old[name]:
+            a, b = old[name], lookups[name]
+            what = [k for k in ("sheet", "headers") if a.get(k) != b.get(k)]
+            if a["rows"] != b["rows"]:
+                what.append("rows (%d i filen, %d i arket)" % (len(a["rows"]), len(b["rows"])))
+            diffs.append("%s: %s" % (name, ", ".join(what)))
+    if list(old) != list(lookups) and not diffs:
+        diffs.append("tabellernes raekkefoelge er en anden")
+    return diffs
+
+
 def main():
-    if len(sys.argv) < 2:
-        sys.exit("brug: extract_spool_lists.py <sti til .xlsm>")
-    path = sys.argv[1]
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    flags = {a for a in sys.argv[1:] if a.startswith("--")}
+    if len(args) != 1 or flags - {"--write-js", "--check-js"}:
+        sys.exit("brug: extract_spool_lists.py <sti til .xlsm> [--write-js | --check-js]")
+    path = args[0]
     if not os.path.exists(path):
         sys.exit("findes ikke: %s" % path)
 
     import openpyxl
     wb = openpyxl.load_workbook(path, data_only=True)
+
+    if "--check-js" in flags:
+        diffs = check_js(lookups_from_workbook(wb))
+        for d in diffs:
+            print("  " + d)
+        print("lookups.generated.js er i trit med arket." if not diffs else
+              "%d tabel(ler) afviger fra arket." % len(diffs))
+        sys.exit(1 if diffs else 0)
+    if "--write-js" in flags:
+        data = format_lookups_js(lookups_from_workbook(wb), js_eol())
+        with open(JS_OUT, "wb") as f:
+            f.write(data)
+        print("Skrev %s (%d bytes). Koer nu: node tools/fl/harness.js plan "
+              "&& node tools/fl/harness.js seed" % (os.path.relpath(JS_OUT, ROOT), len(data)))
+        return
 
     # ---- vaerdilister ----------------------------------------------------
     values = []

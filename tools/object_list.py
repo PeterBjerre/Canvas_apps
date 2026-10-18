@@ -37,10 +37,9 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from gen_screen import (Ctrl, C_MUTED, C_TRANSPARENT, C_CARD_BORDER, C_TITLE)
-import layout_tokens as lay
+from gen_screen import (Ctrl, C_MUTED, C_TRANSPARENT)
 from build_helpers import (group, text_ctrl, button, grow, fit_button_width,
-                           text_px, label_px)
+                           label_px)
 
 # Adskilleren i ObjectList - den samme som MaintenanceItems bruger.
 SEP = "; "

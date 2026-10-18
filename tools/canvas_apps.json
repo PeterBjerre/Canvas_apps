@@ -13,6 +13,12 @@
     "AT TILFOEJE ET MILJOE er en blok mere under 'environments'. Byg mod",
     "det med:   python3 tools/build_all.py --env prod",
     "",
+    "test og prod staar som SKABELONER (R2-061): <...> er pladsholdere,",
+    "ikke vaerdier, og et miljoe med en pladsholder kan ikke vaelges (byg,",
+    "deploy og eksport stopper). Udfyld environment_id og biosap.app_id,",
+    "naar miljoeet findes; features staar alle false, indtil listerne og",
+    "flowene er provisioneret dér. Uden --env er miljoeet stadig dev.",
+    "",
     "environment_id og app_id staar i Studio-URL'en:",
     "  https://make.powerapps.com/e/<environment_id>/canvas/?action=edit&app-id=...%2Fapps%2F<app_id>",
     "App-id'et staar IKKE i solution-eksporten. Det Id, der staar i en",
@@ -214,6 +220,40 @@
     }
   },
   "environments": {
+    "test": {
+      "_navn": "<TEST-miljoe - findes ikke endnu>",
+      "environment_id": "<test-environment-id>",
+      "environment_category": "prod",
+      "features": {
+        "issue_board": false,
+        "material_approval": false,
+        "measuring_point": false,
+        "measuring_point_approval": false
+      },
+      "apps": {
+        "biosap": {
+          "navn": "BIO SAP (test)",
+          "app_id": "<test-biosap-app-id>"
+        }
+      }
+    },
+    "prod": {
+      "_navn": "<PROD-miljoe - afventer IT>",
+      "environment_id": "<prod-environment-id>",
+      "environment_category": "prod",
+      "features": {
+        "issue_board": false,
+        "material_approval": false,
+        "measuring_point": false,
+        "measuring_point_approval": false
+      },
+      "apps": {
+        "biosap": {
+          "navn": "BIO SAP",
+          "app_id": "<prod-biosap-app-id>"
+        }
+      }
+    },
     "dev": {
       "_navn": "Bioenergy Solutions DEV, solution BIO SAP",
       "environment_id": "e0f8f822-d16a-e878-ba4e-fb42bc617e47",

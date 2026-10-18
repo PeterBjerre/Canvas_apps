@@ -48,7 +48,7 @@ sendes uaendret som ren tekst og escapes i flowet.
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import Ctrl, C_OVERLAY, C_MODAL_BG, C_PRIMARY_SOFT, C_MUTED, C_TITLE, child_name
-from gen_screen import C_DISABLED_BG, C_DIVIDER, C_INPUT_BG, C_INPUT_FG, C_PRIMARY, C_TRANSPARENT, FONT
+from gen_screen import C_DISABLED_BG, C_DIVIDER, C_INPUT_BG, C_INPUT_FG, C_PRIMARY, C_TRANSPARENT
 from design_tokens import ref as _t, ref_hex
 from build_helpers import (group, text_ctrl, button, text_input,
                            fit_button_width, grow, row_hit, ICON_W, ensure_hit,

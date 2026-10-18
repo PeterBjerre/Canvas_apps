@@ -28,6 +28,14 @@ Her sammenlignes TRAEET i stedet:
 En egenskab, serveren har fjernet, er normalisering og taelles ikke. En
 egenskab, serveren har med en ANDEN vaerdi, er en fejl.
 
+App.pa.yaml (OnStart, Formulas, OnError ...) sammenlignes af compare_app
+paa samme maade, egenskab for egenskab (R2-092).
+
+compare(..., strict=True) bruges FOER et deploy (canvas_mcp, R2-065) til at
+sammenligne to af SERVERENS udgaver - sidste deploy mod nu. Dér er
+normaliseringen ens paa begge sider, saa ogsaa en egenskab, der kun findes
+paa den ene side, er en aendring, nogen har lavet i Studio.
+
     python3 tools/deploy_verify.py <bygget.pa.yaml> <server.pa.yaml>
 """
 import re
@@ -69,8 +77,16 @@ def tree(path):
     return nodes, kids
 
 
-def compare(built_path, server_path, limit=40):
-    """Liste af fund. Tom liste = Studio har praecis det byggede trae."""
+def _limit(found, limit):
+    return found[:limit] + (["... og %d mere" % (len(found) - limit)]
+                            if len(found) > limit else [])
+
+
+def compare(built_path, server_path, limit=40, strict=False):
+    """Liste af fund. Tom liste = Studio har praecis det byggede trae.
+
+    strict: ogsaa en egenskab, der kun findes paa den ene side, er et fund
+    (to serverudgaver mod hinanden - se modulets docstring)."""
     a, ak = tree(built_path)
     b, bk = tree(server_path)
     found = []
@@ -107,8 +123,36 @@ def compare(built_path, server_path, limit=40):
                              "        bygget: %s\n        Studio: %s"
                              % (n, key, str(pa[key]).strip()[:120],
                                 str(pb[key]).strip()[:120]))
-    return found[:limit] + (["... og %d mere" % (len(found) - limit)]
-                            if len(found) > limit else [])
+        if strict:
+            for key in sorted(set(pa) ^ set(pb)):
+                where = "kun i den nye udgave" if key in pb else "fjernet"
+                found.append("%s.%s: %s" % (n, key, where))
+    return _limit(found, limit)
+
+
+def app_props(path):
+    """App.Properties fra en App.pa.yaml (tom dict, hvis den mangler)."""
+    doc = yaml.safe_load(open(path, encoding="utf-8")) or {}
+    return ((doc.get("App") or {}).get("Properties")) or {}
+
+
+def compare_app(built_path, server_path, limit=40, strict=False):
+    """App.pa.yaml: har hver egenskab, begge sider har, samme vaerdi?
+
+    Skaermenes trae efterproevede ikke app-niveauet, hvor temaformlen C,
+    colMd*-skemaerne og OnError bor (R2-092). Samme regel som compare: en
+    egenskab, serveren har fjernet, er normalisering - medmindre strict."""
+    pa, pb = app_props(built_path), app_props(server_path)
+    found = []
+    for key in sorted(set(pa) & set(pb)):
+        if _norm_value(pa[key]) != _norm_value(pb[key]):
+            found.append("App.%s: Studio har en anden vaerdi\n"
+                         "        bygget: %s\n        Studio: %s"
+                         % (key, str(pa[key]).strip()[:120], str(pb[key]).strip()[:120]))
+    if strict:
+        for key in sorted(set(pa) ^ set(pb)):
+            found.append("App.%s: %s" % (key, "kun i den nye udgave" if key in pb else "fjernet"))
+    return _limit(found, limit)
 
 
 def blank_screen(built_path, out_path):
@@ -134,7 +178,8 @@ def blank_screen(built_path, out_path):
 if __name__ == "__main__":
     if len(sys.argv) != 3:
         sys.exit(__doc__)
-    res = compare(sys.argv[1], sys.argv[2])
+    fn = compare_app if sys.argv[1].endswith("App.pa.yaml") else compare
+    res = fn(sys.argv[1], sys.argv[2])
     for r in res:
         print("  " + r)
     print("Samme trae." if not res else "%d fund." % len(res))

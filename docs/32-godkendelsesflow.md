@@ -69,8 +69,8 @@ flowchart TD
   C -- "alle items godkendt<br/>eller under grænsen" --> Q
   Q -- "Godkend" --> RS
   RS --> PB
-  S -- "mindst ét item sendt retur" --> RT
-  C -- "mindst ét item sendt retur" --> RT
+  S -- "mindst ét item returneret" --> RT
+  C -- "mindst ét item returneret" --> RT
   Q -- "Send retur" --> RT
   RT -- "rettet, Submit igen" --> S
 ```
@@ -161,6 +161,34 @@ læses kun af flowene og appens statusbanner.
 Tekst og tal frem for Person og Lookup, af samme grund som i resten af
 datamodellen (`02-datamodel-sharepoint.md`): de kan filtreres delegerbart og
 bruges i trigger conditions.
+
+### "Plan-id" – to id-rum (R2-095)
+
+Ordet *plan-id* bruges om to forskellige ting. Inden for hvert lag er det
+konsekvent, men ikke på tværs:
+
+- **Nøglen**: forretningsnøglen `MP0133` (`MaintenancePlans.PlanID`). Den
+  ser brugeren, og den står i ordren og i opretteren.
+- **SharePoint-ID'et**: rækkens tal-id i `MaintenancePlans` (`ID`, fx 68).
+  Det bruger flowene til at slå op.
+
+| Liste.kolonne | Type | Id-rum | Skrives af |
+|---|---|---|---|
+| `MaintenancePlans.PlanID` | Text | **nøglen** (`MP0133`) | appen, ved første gem |
+| `MaintenanceItems.MaintenancePlanNo` | Lookup → `PlanID` | **nøglen** (opslagets `Value`; `Id` er SharePoint-ID'et) | appen |
+| `TaskListMain.MaintenancePlanID` | Lookup → `PlanID` | **nøglen** (som ovenfor) | appen |
+| `MD_TasklistMaterial.PlanKey` | Text | **nøglen** | appen (`varVhpPlanKey`) |
+| `MD_TasklistAttachment.PlanKey` | Text | **nøglen** | appen (`varVhpPlanKey`) |
+| `MD_ApprovalLog.PlanId` | Number | **SharePoint-ID'et** | flowene F1–F4 og PlanPublished (`triggerBody()?['ID']`) |
+| `VHP_NoteToSelf.PlanId` | Number | **SharePoint-ID'et** | appen (`varVhpPlanSpId`) |
+| `MD_RequestIndex.SourceItemId` | Number | **SharePoint-ID'et** | appen (`tools/request_index.py`); flowene finder rækken med `SourceItemId eq <ID>` |
+| Ordren: `plan.planId` / `plan.spId` | string / integer | nøglen / SharePoint-ID'et | ordre-flowet (`schema/vhplan-sap-order.schema.json`) |
+| Opretteren: `OrderKey`, lås og "Oprettet"-opslag | – | **nøglen** | `excel/opretter/VhpRun.bas` |
+
+Et `Filter(MD_ApprovalLog, PlanId = varVhpPlanKey)` er altså tomt uden at
+fejle – loggen skal slås op med `varVhpPlanSpId`. En omdøbning af
+`MD_ApprovalLog.PlanId` til `PlanSpId` (ny kolonne + flows) giver kun mening,
+hvis loggen alligevel røres (R2-032).
 
 ### Godkendelsen følger itemet – `ItemGuid`
 
@@ -261,7 +289,7 @@ mail til `BioSap-ErrorNotifiers`.
 | Kolonne | Type | Bemærkning |
 |---|---|---|
 | `RequestGuid` | Text Ⓘ | |
-| `PlanId` | Number Ⓘ | |
+| `PlanId` | Number Ⓘ | **SharePoint-ID'et** på planen, ikke nøglen `MP0133` (se "Plan-id" ovenfor) |
 | `Stage` | Text Ⓘ | `System`, `Cost`, `Quality`, `SapCreated` |
 | `ItemGuid` | Text Ⓘ | Itemets identitet (§6). Tom for `Quality` og `SapCreated` |
 | `ItemText` | Text | Itemets korttekst og FL, til visning |
@@ -373,14 +401,15 @@ Fælles for dem:
   connection references (`orsted_BioSapPowerBIConn` findes allerede til
   Power BI).
 
-**Mails.** Alle mails i forløbet – sendt til godkendelse, sendt retur,
-påmindelse, klar til oprettelse i SAP og oprettet i SAP – bruger den samme
-HTML-skabelon, `flow/email-plan-submitted.html`, og sendes af ét child
-flow, `BioSap-VhPlan-SendMail`. Flowene nedenfor kalder det med planens
-`ID` og mailtypen. Hvilken mail der sendes hvornår, og til hvem, står i
-[`17-flow-email.md`](17-flow-email.md#samme-skabelon-i-alle-mails). Selve
+**Mails.** Hvert flow sender sine egne mails (*Submitted for approval*,
+*Returned*, *Reminder*, *Ready for creation in SAP*, *Created in SAP*);
+der er intet fælles child flow (R2-053, beslutning (b)). Mailens HTML står
+inline i `BioSap-EmailNotification-NewPlanCreated` (`Compose-EmailContent`),
+og `PlanPublished` og `ToMasterData` har samme opbygning. Hvilken mail der
+sendes hvornår, til hvem og med hvilket emne, står i
+[`17-flow-email.md`](17-flow-email.md#mailene-i-forløbet). Selve
 godkendelsesanmodningerne sendes af Approvals-connectoren og bruger ikke
-skabelonen.
+den HTML.
 
 ### 7.1 F1 `BioSap-VhPlan-SystemApproval` – pr. item
 
@@ -486,9 +515,10 @@ Flowet findes allerede. Det trigges af `Status = Published` og et udfyldt
 anden. Den sidste redaktør er ikke længere på cc (R2-048): efter
 kvitteringsflowets MERGE er det servicekontoen.
 
-**Det har ingen spærre.** Triggeren kører hvert minut, og enhver senere
-ændring af en publiceret plan opfylder betingelsen igen, så rekvirenten får
-mailen igen. Det rettes med samme mønster som `NewPlanCreated`:
+**Spærren er indført.** Uden den kørte triggeren hvert minut, og enhver
+senere ændring af en publiceret plan opfyldte betingelsen igen, så
+rekvirenten fik mailen igen. Flowet bruger nu samme mønster som
+`NewPlanCreated`:
 
 ```
 @and(
@@ -498,8 +528,8 @@ mailen igen. Det rettes med samme mønster som `NewPlanCreated`:
 )
 ```
 
-og et `Update item` / HTTP-kald til sidst, der sætter
-`RequesterNotified = true`. I samme omgang: log i `MD_ApprovalLog`
+og et HTTP-kald til sidst, der sætter `RequesterNotified = true`. I samme
+omgang: log i `MD_ApprovalLog`
 (`Stage = SapCreated`) og indeksrækken → `OprettetISAP`,
 `SapObjectNo = SAPNum`, `IsOpen = false`.
 
@@ -636,10 +666,10 @@ ved `System`, men de spørger ikke igen om det, der allerede er godkendt:
 |---|---|
 | System | itemet er nyt, eller dets FL eller systemnummer er ændret. Ellers logges `Skipped` "Approved earlier" (§7.1) |
 | Cost | itemet er nyt, eller dets total er **højere** end det godkendte beløb (§7.2) |
-| Quality | altid – det er ét svar for hele planen og er aldrig givet, når planen er sendt retur |
+| Quality | altid – det er ét svar for hele planen og er aldrig givet, når planen er returneret |
 
-Så går en plan, der blev sendt retur i Quality, direkte videre til Quality,
-når intet item er ændret, og en plan, der blev sendt retur i System, sender
+Så går en plan, der blev returneret i Quality, direkte videre til Quality,
+når intet item er ændret, og en plan, der blev returneret i System, sender
 kun det returnerede item (og nye eller ændrede items) til godkendelse igen.
 
 ## 10. Hubben

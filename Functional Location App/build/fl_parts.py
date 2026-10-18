@@ -33,12 +33,10 @@ import layout_tokens as lay
 from progress_overlay import progress_overlay
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least, below
 import icons
-import display_text as dt
 from build_helpers import (C_INPUT_BORDER, ensure_hit, checkbox_theme, new_request_label, request_actions, breadcrumb, text_ctrl, group, button, text_input, themed_dropdown, card, date_picker,
-                           pin_widths, top_bar, grow, badge, fit_button_width, row_rule, mark_done,
-                           loading_overlay, with_busy, confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
-                           ICON_W, text_px, stable_scrim, icon_button, icon_heading, editor_footer,
-                           close_x)
+                           pin_widths, top_bar, grow, fit_button_width, row_rule, mark_done,
+                           with_busy, confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
+                           ICON_W, text_px, stable_scrim, icon_button, icon_heading, editor_footer)
 
 NARROW = below("Tablet")
 

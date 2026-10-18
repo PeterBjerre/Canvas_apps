@@ -2,15 +2,15 @@
 import display_text as dt
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
-                        C_PRIMARY, C_WHITE, C_MODAL_BG, C_PRIMARY_SOFT,
+from gen_screen import (Ctrl, C_CARD_BG, C_MUTED,
+                        C_MODAL_BG, C_PRIMARY_SOFT,
                         C_INVALID_FG, C_DIVIDER, C_TRANSPARENT, SHELL_W)
 import layout_tokens as lay
 import icons
 from build_helpers import (ensure_hit, popup_head, empty_state, checkbox_theme, table_surface, flow_row, text_ctrl,
                            group, button, text_input, number_field, num_value, themed_dropdown,
                            field_cell, card, pin_widths, grow, row_hit,
-                           fit_button_width, fit_button_row, ICON_W, ICON_SAVE, flow_ok, mark_done,
+                           fit_button_width, ICON_W, flow_ok, mark_done,
                            tab_list, tabs_w)
 from build_plan_header import section_header, help_panel, section_footer
 
@@ -21,7 +21,7 @@ import build_help as bh
 from build_strategy import build_strategy_body, IS_STRATEGY, pkg_pills, PILLS_W
 import sp_config as cfg
 from design_tokens import ref_hex
-from layout_tokens import SCROLLBAR_W, fits, TWO_COL_MIN, below, at_least, if_below
+from layout_tokens import SCROLLBAR_W, fits, TWO_COL_MIN, below, at_least
 
 # HTML kender ikke RGBA(). ref_hex giver den SAMME token som hex.
 MUT_HEX = ref_hex("text-muted")
@@ -773,8 +773,8 @@ def _op_detail_modal():
                     f'"Duration: " & {lay.num_text(OPM + ".DurationHours")} & " h   Work center: " & '
                     f'Coalesce({OPM}.MainWorkCenter, "-")', size=13, color=C_MUTED, height=20,
                     wrap="false")
-    mats = button("btnVhpOpMMat", f'"Materials (" & Text(CountRows(Filter(colVhpMaterials, ItemId = varVhpActiveItemId && '
-                  f'OperationNo = varVhpOpMNo))) & ")"', "Set(varVhpMatOpNo, varVhpOpMNo)",
+    mats = button("btnVhpOpMMat", '"Materials (" & Text(CountRows(Filter(colVhpMaterials, ItemId = varVhpActiveItemId && '
+                  'OperationNo = varVhpOpMNo))) & ")"', "Set(varVhpMatOpNo, varVhpOpMNo)",
                   width=fit_button_width('"Materials (00)"'), height=32)
     docs = button("btnVhpOpMDocs", docs_label(f"{OPM}.FileCount"),
                   att.open_fx("varVhpOpMNo"),

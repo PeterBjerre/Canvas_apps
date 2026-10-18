@@ -69,21 +69,20 @@ HENTNING (issue #177)
     Refresh. Ingen timer. Listerne hentes i en midlertidig samling, saa en
     fejlet hentning aldrig toemmer det, der staar.
 """
-from gen_screen import (Ctrl, stack_height, C_INPUT_BORDER, C_APP_BG, C_CARD_BG, C_CARD_BORDER, C_DIVIDER, C_INFO_BG,
+from gen_screen import (Ctrl, stack_height, C_INPUT_BORDER, C_CARD_BG, C_CARD_BORDER, C_DIVIDER, C_INFO_BG,
                         C_INFO_FG, C_INVALID_FG, C_MUTED, C_MUTED_BG, C_MODAL_BG, C_OVERLAY,
                         C_PRIMARY, C_PRIMARY_SOFT, C_TITLE, C_TRANSPARENT, C_WARN_BG,
                         C_WARN_FG, C_VALID_FG, C_VALID_BG)
 from build_helpers import (empty_state, fluent, fluent_icon, skeleton_rows, ensure_hit, hit_size, button, card, checkbox_theme, concurrent, confirm_modal,
                            fit_button_width, group, icon_button, SEG_H, tab_list, tabs_w,
-                           flow_row, grow, icon_on_mobile, label_row, loading_overlay, row_hit, row_rule,
+                           flow_row, grow, icon_on_mobile, label_row, row_hit, row_rule,
                            tap_backdrop,
                            label_px, text_ctrl, text_input, text_min_height, text_px, themed_dropdown, top_bar,
                            ICON_W, modern_badge, spinner)
 from permissions import IS_ADMIN, ADMIN_LIST, ADMIN_GROUP
-from design_tokens import ref as _t, ref_hex
+from design_tokens import ref as _t
 import icons
 import status_chip as sc
-import display_text as dt
 import layout_tokens as lay
 from progress_overlay import progress_overlay
 from layout_tokens import SHELL_W, below, at_least, if_below
@@ -2218,7 +2217,7 @@ def build_detail():
                             extra={"Fill": C_INFO_BG, "PaddingLeft": "12", "PaddingRight": "12",
                                    "PaddingTop": "8", **lay.radius(10)})
     retest = text_ctrl("txtIbDetRetest",
-                       f'"This issue is ready for retest. Please try it again - if the problem is '
+                       '"This issue is ready for retest. Please try it again - if the problem is '
                        'still there, select Reopen."',
                        size=lay.SIZE_SMALL, color=C_WARN_FG, height=34, wrap="true",
                        visible=f'IbSelMine && {SEL}.Status = "{cfg.STATUS_RETEST}" && !{SEL}.Archived',

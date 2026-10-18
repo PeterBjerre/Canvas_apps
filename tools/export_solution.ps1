@@ -67,6 +67,10 @@ try {
             if (-not $envName) { $envName = $cfg.default_environment }
             if ($envName -and $cfg.environments.$envName) {
                 $Environment = $cfg.environments.$envName.environment_id
+                # test/prod staar som skabeloner med <pladsholdere> (R2-061).
+                if ($Environment -notmatch '^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$') {
+                    throw "Miljoeet '$envName' er en skabelon - environment_id er ikke udfyldt i tools/canvas_apps.json"
+                }
             }
         }
     }
@@ -181,6 +185,34 @@ try {
     if (Get-Command git -ErrorAction SilentlyContinue) {
         & git rm --cached --quiet --ignore-unmatch -- "$OutputDirectory/**/*.msapp" 2>$null
         if ($LASTEXITCODE -ne 0) { $global:LASTEXITCODE = 0 }
+    }
+
+    # --- EXPORT.md: hvornaar og hvilken version (R2-094) -----------------
+    # docs/22 sagde ikke, hvor gammel eksporten i repoet er. Filen skrives
+    # her ved hver eksport, saa svaret staar ved siden af filerne.
+    if (-not $ReportOnly) {
+        $version = "?"
+        $solXml = Get-ChildItem -Path $outAbs -Recurse -Filter Solution.xml -ErrorAction SilentlyContinue |
+            Select-Object -First 1
+        if ($solXml) {
+            $m = Select-String -Path $solXml.FullName -Pattern '<Version>([^<]+)</Version>' | Select-Object -First 1
+            if ($m) { $version = $m.Matches[0].Groups[1].Value }
+        }
+        $envLabel = $env:CANVAS_ENV
+        if (-not $envLabel) { $envLabel = "standard (default_environment i tools/canvas_apps.json)" }
+        $lines = @(
+            "# Seneste solution-eksport",
+            "",
+            "Skrevet af tools/export_solution.ps1 ved hver eksport - ret ikke i haanden.",
+            "",
+            "| | |",
+            "|---|---|",
+            "| Dato | $(Get-Date -Format 'yyyy-MM-dd HH:mm') |",
+            "| Solution | $Solution |",
+            "| Version | $version |",
+            "| Miljoe | $envLabel |"
+        )
+        Set-Content -Path (Join-Path $outAbs "EXPORT.md") -Value $lines -Encoding utf8
     }
 
     Write-Host ""

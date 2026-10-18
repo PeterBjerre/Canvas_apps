@@ -3,7 +3,7 @@ import display_text as dt
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_MUTED, C_TRANSPARENT, C_DIVIDER, C_MODAL_BG,
-                        C_PRIMARY_SOFT, C_OVERLAY, C_PRIMARY, C_WHITE)
+                        C_PRIMARY_SOFT, C_PRIMARY, C_WHITE)
 import layout_tokens as lay
 from layout_tokens import at_least, if_below
 from build_helpers import popup_head, tap_backdrop, text_ctrl, group, button, text_input, grow, ICON_SAVE, checkbox_theme, table_surface, flat_button

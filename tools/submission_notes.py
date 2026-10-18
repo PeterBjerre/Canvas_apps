@@ -39,8 +39,8 @@ Save draft og flowene roerer dem ikke.
 """
 import layout_tokens as lay
 from layout_tokens import below
-from gen_screen import (Ctrl, C_OVERLAY, C_MODAL_BG, C_PRIMARY_SOFT, C_MUTED, C_TITLE,
-                        C_CARD_BORDER, C_PRIMARY)
+from gen_screen import (C_OVERLAY, C_MODAL_BG, C_PRIMARY_SOFT, C_MUTED,
+                        C_CARD_BORDER)
 from build_helpers import group, text_ctrl, button, text_input, fit_button_width, popup_head
 import permissions as perm
 

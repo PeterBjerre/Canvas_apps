@@ -2,19 +2,18 @@
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_MUTED, C_INFO_FG,
-                        C_INFO_BG, C_VALID_FG, C_VALID_BG, C_INVALID_FG,
-                        C_INVALID_BG, C_NEUTRAL_BG, C_NEUTRAL_FG, C_INPUT_BG, SHELL_W,
+                        C_INFO_BG, C_VALID_FG, C_INVALID_FG,
+                        C_INPUT_BG, SHELL_W,
                         EDITOR_W, RAIL_W, SPLIT_GAP, C_TRANSPARENT, C_MODAL_BG,
                         C_PRIMARY_SOFT, C_PRIMARY, C_MUTED_BG, C_WARN_FG)
 from design_tokens import ref_hex
 import layout_tokens as lay
 import icons
-import status_chip as sc
 from layout_tokens import if_below, at_least, below, fits, TWO_COL_MIN
 from build_helpers import (empty_state, checkbox_theme, row_hit, text_ctrl, group, button,
-                           button_row, text_input, themed_dropdown, label_row,
+                           text_input, themed_dropdown, label_row,
                            field_cell, col_width, card, HINTS_ON, grow,
-                           fit_button_width, column_grid, ICON_SAVE, ICON_W,
+                           fit_button_width, column_grid, ICON_W,
                            mark_done, segmented, border_rule, row_n)
 from build_plan_header import section_header, help_panel, section_footer, status_icon
 from build_helpers import ensure_hit, popup_head

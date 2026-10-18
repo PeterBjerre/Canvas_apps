@@ -338,8 +338,8 @@ Planen sættes til *Published* til sidst. Fejler et item, er planen stadig
 `SAPNum`, sender `BioSap-EmailNotification-PlanPublished` mailen til
 rekvirenten (docs/17, *Oprettet i SAP*). Er `SapWarnings` udfyldt, står
 advarslerne i mailen under *To be added manually in SAP*, og
-`BioSap-MasterDataEmail` kommer på Cc. Har det flow ikke fået spærren fra docs/32 (afsnit 7.5), sender
-det mailen igen ved hver senere ændring af planen.
+`BioSap-MasterDataEmail` kommer på Cc. Spærren fra docs/32 (afsnit 7.5) er
+indført (`RequesterNotified`), så mailen sendes én gang.
 
 ### 4. Nej og fejl: Afvist og en mail
 

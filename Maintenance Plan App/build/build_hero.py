@@ -5,8 +5,8 @@ from gen_screen import (Ctrl, SHELL_W, C_PRIMARY, C_CARD_BORDER, C_VALID_FG, C_M
                         C_DIVIDER, C_MODAL_BG, C_PRIMARY_SOFT, stack_height)
 import layout_tokens as lay
 import permissions as perm
-from build_helpers import (ensure_hit, group, fit_button_width, popup_head, text_ctrl, text_px,
-                           flow_row, page_icon, PAGE_ICON, ICON_W, top_bar, grow,
+from build_helpers import (ensure_hit, group, fit_button_width, popup_head, text_ctrl,
+                           ICON_W, top_bar, grow,
                            button, confirm_modal, edit_button, delete_modal, tap_backdrop,
                            new_request_label, new_request_widths, ghost, with_fix_count,
                            SUBMIT_FIX_LONGEST, breadcrumb, CRUMB_H)

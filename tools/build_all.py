@@ -6,9 +6,9 @@ Bygger alle canvas apps i repoet og efterregner layoutet.
 
     python3 tools/build_all.py --app equipment
 
-Raekkefoelgen: PowerShell-, solution- og hemmelighedstjek (kun fuld
-bygning), farvevagten, FL-reglerne mod html/*.js (kraever Node), saa pr.
-app generate -> assemble -> check_layout, og til sidst datakilde-, sprog-
+Raekkefoelgen: PowerShell-, VBA-, lint- (pyflakes), solution- og
+hemmelighedstjek (kun fuld bygning), farvevagten, FL-reglerne mod
+html/*.js (kraever Node), saa pr. app generate -> assemble -> check_layout, og til sidst datakilde-, sprog-
 og hjaelpetekst-tjekket over ALLE skaerme.
 
 De faelles moduler ligger i tools/ i een udgave; hver app-mappes build/
@@ -121,6 +121,28 @@ def _py(cmd, cwd=None):
         return _run_here(cmd, cwd)
     sys.stdout.flush()
     return subprocess.run([sys.executable] + list(cmd), cwd=cwd)
+
+def check_pyflakes():
+    """pyflakes over tools/*.py og */build/*.py. 0 = rent.
+
+    pyflakes kender ikke "# noqa": en bevidst ubrugt import (genudsendelse
+    til et andet modul) skal bruges eller staa i __all__."""
+    import glob
+    try:
+        from pyflakes import api, reporter
+    except ImportError:
+        print("pyflakes mangler - koer: pip install -r requirements.txt")
+        return 1
+    files = sorted(glob.glob(os.path.join(ROOT, "tools", "*.py"))
+                   + glob.glob(os.path.join(ROOT, "*", "build", "*.py")))
+    sys.stdout.flush()
+    n = sum(api.checkPath(f, reporter._makeDefaultReporter()) for f in files)
+    if n:
+        print("\npyflakes har %d fund - ret dem (slet ubrugte imports, "
+              "definer manglende navne)." % n)
+        return 1
+    return 0
+
 
 def build_dirs():
     return [(app, os.path.join(ROOT, app, "build")) for app, _ in APPS]
@@ -296,6 +318,13 @@ def main(argv=None):
         r = _py([os.path.join(ROOT, "tools", "check_vba.py")])
         if r.returncode:
             return r.returncode
+
+        # LINT-PORTEN (R2-063). Ubrugte imports og udefinerede navne kom
+        # tilbage efter oprydningen i C11 (82 fund, bl.a. NameError-faelder
+        # i build_hub), fordi intet tjek stoppede dem. Nu stopper byggeriet.
+        r = check_pyflakes()
+        if r:
+            return r
 
         # Og solution-eksporten: baerer den en hemmelighed?
         #

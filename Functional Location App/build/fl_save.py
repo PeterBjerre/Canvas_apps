@@ -164,8 +164,8 @@ def save_fx(status="Kladde", step=1, notify=True):
     # den tilbage (tools/permissions.py).
     kept = (f'Coalesce(varFlReqNow.Status.Value, "{status}")' if status == ri.DRAFT
             else f'"{status}"')
-    new_rows = f'Filter(colFlRows, Status <> "draft" && !(RowGuid in colFlSp.RowGuid))'
-    old_rows = f'Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid)'
+    new_rows = 'Filter(colFlRows, Status <> "draft" && !(RowGuid in colFlSp.RowGuid))'
+    old_rows = 'Filter(colFlRows, Status <> "draft" && RowGuid in colFlSp.RowGuid)'
     return f"""Clear(colFlSaveErrors);
 // 0. Hovedet, som det staar i SharePoint nu: grundraekken i trin 1 og
 //    rettigheden i selve handlingen (tools/permissions.py).
