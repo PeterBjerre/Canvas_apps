@@ -42,7 +42,54 @@ Antallet pr. skærm skrives ud af `build/check_combined.py` ved hvert build
   først, når man går til den. VH-planen er én skærm som i dag. Den blev
   prøvet delt i to, men det er droppet.
 - **De navngivne formler** (opslagslister, FL-regler) evalueres dovent. Et
-  domæne, man ikke åbner, koster ingenting.
+  domæne, man ikke åbner, koster ingen datahentning – men teksten i
+  `App.Formulas` parses og bindes ved hver start. Se næste afsnit.
+
+### Måling: `App.Formulas` og opstartstiden (R2-047) – *Peters skridt*
+
+`App.Formulas` er ca. 255.000 tegn i 104 navngivne formler. 76 % er
+statiske tabeller, som kun FL-skærmen bruger, plus logoet som base64
+(målt med `combined.split_formulas` på den byggede `App.pa.yaml`):
+
+| Formel | Tegn | Kilde |
+|---|---:|---|
+| `colFlPlan` | 80.331 | `Functional Location App/build/` (`html/*.js`, docs/31) |
+| `colFlColumns` | 73.622 | samme |
+| `FlFunctionKeys` | 25.572 | samme |
+| `colFlLists` | 14.198 | samme |
+| `AppLogo` | 11.447 | `tools/side_nav.py` (base64-PNG) |
+
+Doven evaluering gælder værdien, ikke parsing og binding. Om det koster
+mærkbar tid, kan kun måles i Studio/Play – derfor er intet flyttet endnu.
+
+**Målingen (Peter):**
+
+1. Publicér den nuværende app. Åbn den i Play i et privat vindue med
+   Monitor (Studio → *Advanced tools → Monitor*) eller *Performance
+   insights*, og notér tiden fra start til hubbens første render
+   (`ScreenMdHub` `OnVisible` færdig / galleriet tegnet). Gentag 5 gange
+   (kold start) og tag medianen.
+2. Byg en midlertidig kopi uden de fire FL-formler og `AppLogo` (slet
+   dem i en kopi af `App.pa.yaml`, eller byg med `features` uden FL),
+   publicér den i et testmiljø, og mål på samme måde.
+3. Skriv begge medianer (ms) og forskellen her i README'en.
+
+**Plan, hvis forskellen er over 300 ms:** flyt `colFlPlan`,
+`colFlColumns`, `FlFunctionKeys` og `colFlLists` til en SharePoint-liste
+(`MD_FLRule`, seedet af byggeren fra `html/*.js` – samme mønster som
+`MD_KksFunctionKey`), og hent dem i FL-skærmens klargøring
+(`build_screens.build_functionallocation`, `mark_step` "Loading
+functional locations"). `AppLogo` lægges som medie i appen i stedet for
+base64 i en formel. Mål: `App.Formulas` under 60 KB, FL-reglerne
+efterprøvet mod `html/*.js` som i dag. Listen skal provisioneres, før
+appen bygges med den.
+
+**Under 300 ms:** intet flyttes; målingen noteres her, så spørgsmålet
+ikke tages op igen.
+
+| Dato | Med FL-formler (ms) | Uden (ms) | Forskel | Beslutning |
+|---|---:|---:|---:|---|
+| – | – | – | – | afventer måling |
 
 ## Hvad der er anderledes end i de fem apps
 
