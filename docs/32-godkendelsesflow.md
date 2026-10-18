@@ -151,6 +151,34 @@ Tekst og tal frem for Person og Lookup, af samme grund som i resten af
 datamodellen (`02-datamodel-sharepoint.md`): de kan filtreres delegerbart og
 bruges i trigger conditions.
 
+### "Plan-id" – to id-rum (R2-095)
+
+Ordet *plan-id* bruges om to forskellige ting. Inden for hvert lag er det
+konsekvent, men ikke på tværs:
+
+- **Nøglen**: forretningsnøglen `MP0133` (`MaintenancePlans.PlanID`). Den
+  ser brugeren, og den står i ordren og i opretteren.
+- **SharePoint-ID'et**: rækkens tal-id i `MaintenancePlans` (`ID`, fx 68).
+  Det bruger flowene til at slå op.
+
+| Liste.kolonne | Type | Id-rum | Skrives af |
+|---|---|---|---|
+| `MaintenancePlans.PlanID` | Text | **nøglen** (`MP0133`) | appen, ved første gem |
+| `MaintenanceItems.MaintenancePlanNo` | Lookup → `PlanID` | **nøglen** (opslagets `Value`; `Id` er SharePoint-ID'et) | appen |
+| `TaskListMain.MaintenancePlanID` | Lookup → `PlanID` | **nøglen** (som ovenfor) | appen |
+| `MD_TasklistMaterial.PlanKey` | Text | **nøglen** | appen (`varVhpPlanKey`) |
+| `MD_TasklistAttachment.PlanKey` | Text | **nøglen** | appen (`varVhpPlanKey`) |
+| `MD_ApprovalLog.PlanId` | Number | **SharePoint-ID'et** | flowene F1–F4 og PlanPublished (`triggerBody()?['ID']`) |
+| `VHP_NoteToSelf.PlanId` | Number | **SharePoint-ID'et** | appen (`varVhpPlanSpId`) |
+| `MD_RequestIndex.SourceItemId` | Number | **SharePoint-ID'et** | appen (`tools/request_index.py`); flowene finder rækken med `SourceItemId eq <ID>` |
+| Ordren: `plan.planId` / `plan.spId` | string / integer | nøglen / SharePoint-ID'et | ordre-flowet (`schema/vhplan-sap-order.schema.json`) |
+| Opretteren: `OrderKey`, lås og "Oprettet"-opslag | – | **nøglen** | `excel/opretter/VhpRun.bas` |
+
+Et `Filter(MD_ApprovalLog, PlanId = varVhpPlanKey)` er altså tomt uden at
+fejle – loggen skal slås op med `varVhpPlanSpId`. En omdøbning af
+`MD_ApprovalLog.PlanId` til `PlanSpId` (ny kolonne + flows) giver kun mening,
+hvis loggen alligevel røres (R2-032).
+
 ### Godkendelsen følger itemet – `ItemGuid`
 
 **Det er itemet, der godkendes, ikke FL'en.** Et nyt item skal altid
@@ -250,7 +278,7 @@ mail til `BioSap-ErrorNotifiers`.
 | Kolonne | Type | Bemærkning |
 |---|---|---|
 | `RequestGuid` | Text Ⓘ | |
-| `PlanId` | Number Ⓘ | |
+| `PlanId` | Number Ⓘ | **SharePoint-ID'et** på planen, ikke nøglen `MP0133` (se "Plan-id" ovenfor) |
 | `Stage` | Text Ⓘ | `System`, `Cost`, `Quality`, `SapCreated` |
 | `ItemGuid` | Text Ⓘ | Itemets identitet (§6). Tom for `Quality` og `SapCreated` |
 | `ItemText` | Text | Itemets korttekst og FL, til visning |
