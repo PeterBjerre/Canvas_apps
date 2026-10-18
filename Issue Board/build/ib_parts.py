@@ -72,7 +72,7 @@ from gen_screen import (Ctrl, stack_height, C_INPUT_BORDER, C_APP_BG, C_CARD_BG,
                         C_INFO_FG, C_INVALID_FG, C_MUTED, C_MUTED_BG, C_MODAL_BG, C_OVERLAY,
                         C_PRIMARY, C_PRIMARY_SOFT, C_TITLE, C_TRANSPARENT, C_WARN_BG,
                         C_WARN_FG)
-from build_helpers import (empty_state, skeleton_rows, ensure_hit, hit_size, button, card, checkbox_theme, concurrent, confirm_modal,
+from build_helpers import (empty_state, fluent, fluent_icon, skeleton_rows, ensure_hit, hit_size, button, card, checkbox_theme, concurrent, confirm_modal,
                            fit_button_width, group, icon_button, SEG_H, tab_list, tabs_w,
                            flow_row, grow, icon_on_mobile, label_row, loading_overlay, row_hit, row_rule,
                            tap_backdrop,
@@ -707,18 +707,10 @@ def build_filters():
     # om for hvert tegn.
     search.props["TriggerOutput"] = "TriggerOutput.Delayed"
     grow(search, 0)
-    col = '" & %s & "' % ref_hex("text-muted")
-    glyph = icons.svg("M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z M20 20l-4-4", col, size=20)
-    ico = Ctrl("imgIbSearchIcon", "Image", props={
-        "AccessibleLabel": '"Search"',
-        "AlignInContainer": "AlignInContainer.Center",
-        "BorderStyle": "BorderStyle.None", "BorderThickness": "0",
-        "Height": "20",
-        "Image": f'"data:image/svg+xml;utf8," & EncodeUrl("{glyph}")',
-        "ImagePosition": "ImagePosition.Fit",
-        "LayoutMinWidth": "20",
-        "OnSelect": "false", "TabIndex": "0", "Width": "20",
-    }, h=20)
+    # Lupen er Fluents "Search" (issue #306) - pynt ved feltet, ingen klik.
+    ico = fluent_icon("icoIbSearchIcon", fluent("search"), C_MUTED, '"Search"', size=20)
+    ico.props["AlignInContainer"] = "AlignInContainer.Center"
+    ico.props["LayoutMinWidth"] = "20"
     # Issue #301: vandret er soegefeltet hoejst SEARCH_W bredt - kun paa en
     # smal Desktop giver det efter (ned til SEARCH_MIN), saa listerne kan
     # staa paa samme linje. Under hinanden faar det hele linjen. Bredden er

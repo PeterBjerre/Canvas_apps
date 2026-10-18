@@ -515,6 +515,7 @@ layoutfejl bor:
 | 16f | Gem/upload-bjaelken er ModernProgressBar@1.0.0, ubestemt (issue #305) |
 | 16k | Knapper er ModernButton - Classic/Button kun som gennemsigtigt klik-lag (issue #307) |
 | 33 | Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4) |
+| 16i | Pynt-/statusikoner er ModernIcon@1.1.0 (issue #306) |
 | 18 | Enhver Gallery skal have TabIndex |
 | 19 | AccessibleLabel maa ikke vaere kontrollens navn |
 | 20 | Flere UAFHAENGIGE hentninger i kaede -> Concurrent |
