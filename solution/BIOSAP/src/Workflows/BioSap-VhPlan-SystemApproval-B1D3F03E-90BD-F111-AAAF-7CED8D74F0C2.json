@@ -838,8 +838,8 @@
                                 "inputs": {
                                   "parameters": {
                                     "emailMessage/To": "@outputs('Final_approver')",
-                                    "emailMessage/Subject": "@concat('Reminder: maintenance plan ', triggerBody()?['PlanID'], ' is waiting for your approval')",
-                                    "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">The system approval of item '@{items('For_each_item')?['Title']}' (@{outputs('FL')}) in maintenance plan @{triggerBody()?['PlanID']} has not been answered. Respond in Teams under Approvals or in the email from Power Automate.</p>",
+                                    "emailMessage/Subject": "@concat('Approval request for maintenance plan ', triggerBody()?['PlanID'], ' expired without a response')",
+                                    "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">The system approval request for item '@{items('For_each_item')?['Title']}' (@{outputs('FL')}) in maintenance plan @{triggerBody()?['PlanID']} expired after 14 days without a response and can no longer be answered. A new request will be sent to you shortly, unless the plan has been returned in the meantime - respond to the new one in Teams under Approvals.</p>",
                                     "emailMessage/Importance": "Normal"
                                   },
                                   "host": {
