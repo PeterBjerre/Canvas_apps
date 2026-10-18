@@ -67,10 +67,27 @@ def test_builder_bruger_faelles_format():
     assert ctrl.props["Placeholder"] == f'"{lay.DATE_PICKER_PLACEHOLDER}"'
 
 
+# Eneste undtagelse: FL's Warranty Start/End gemmes som tekst DD.MM.YYYY
+# (FL34), og datovaelgeren viser dem i samme form (issue #356).
+FL_WARRANTY_FMT = "dd.mm.yyyy"
+
+
+def _expected_fmt(screen, name):
+    if screen == "ScreenFunctionalLocation.pa.yaml" and name.startswith("dteFl"):
+        return FL_WARRANTY_FMT
+    return lay.DATE_PICKER_FMT
+
+
+def test_builder_kan_faa_eget_format():
+    ctrl = date_picker("dteTest", "varTest", fmt=FL_WARRANTY_FMT)
+    assert ctrl.props["Format"] == f'"{FL_WARRANTY_FMT}"'
+    assert ctrl.props["Placeholder"] == f'"{FL_WARRANTY_FMT}"'
+
+
 def test_alle_genererede_datovaelgere_bruger_faelles_format():
     pickers = _pickers()
     assert pickers, "ingen datovaelgere fundet - testen leder forkert"
     for screen, name, props in pickers:
-        assert props.get("Format") == f'="{lay.DATE_PICKER_FMT}"', (screen, name, props.get("Format"))
-        assert props.get("Placeholder") == f'="{lay.DATE_PICKER_PLACEHOLDER}"', (
-            screen, name, props.get("Placeholder"))
+        fmt = _expected_fmt(screen, name)
+        assert props.get("Format") == f'="{fmt}"', (screen, name, props.get("Format"))
+        assert props.get("Placeholder") == f'="{fmt}"', (screen, name, props.get("Placeholder"))
