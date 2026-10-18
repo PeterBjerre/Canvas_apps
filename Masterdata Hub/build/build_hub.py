@@ -31,6 +31,7 @@ import approval_flow
 import submission_notes as sn
 import permissions as perm
 import request_delete as rd
+import admin_log as alog
 import display_text as dt
 import request_index as ri
 import status_chip as sc
@@ -463,8 +464,10 @@ GAL_ROWS_C = 7
 ROW_H_M = 62
 GAL_ROWS_M = 8
 STRIP_Y_C = 70
-WHEN_FX = ("With(\n    { d: DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) },\n"
-           "    If(d <= 0, \"Today\", If(d = 1, \"Yesterday\", Text(d) & \" days ago\"))\n)")
+# R2-079: uden LastActionOn stod der " days ago" i tooltip og skaermlaeser.
+WHEN_FX = ("If(\n    IsBlank(ThisItem.LastActionOn), \"No date\",\n"
+           "    With(\n    { d: DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days) },\n"
+           "    If(d <= 0, \"Today\", If(d = 1, \"Yesterday\", Text(d) & \" days ago\"))\n))")
 
 _AGE = "DateDiff(ThisItem.LastActionOn, Now(), TimeUnit.Days)"
 STUCK = f"ThisItem.IsOpen && ThisItem.Status.Value in {STUCK_IN} && {_AGE} > {ri.STUCK_DAYS}"
@@ -969,8 +972,8 @@ def build_filters():
                         width=str(SEARCH_W), ttype="Search",
                         label='"Search number, text or plant"',
                         onchange="Set(varMdSearch, Self.Text);\n" + SAVE_HUB)
-    shown = scope_count('varMdDomain = "" || Domain = varMdDomain')
-    count = text_ctrl("txtMdTotal", f'{shown} & " requests"',
+    shown_pred = 'varMdDomain = "" || Domain = varMdDomain'
+    count = text_ctrl("txtMdTotal", scope_count_words(shown_pred),
                       size=12, color=C_MUTED, height=36, align="Right", width=110, wrap="false")
     tail = ";" + chr(10) + SCOPE_REFRESH + ";" + chr(10) + SAVE_HUB
     status_track = segmented(
@@ -1090,7 +1093,7 @@ def build_filters():
             b.props["Layout"] = f"If({is_short}, ButtonLayout.TextOnly, {on_layout})"
     # Kort trin: kun tallet. "requests" er der ikke plads til paa en smal
     # tablet, og tallet staar lige efter "All".
-    count.props["Text"] = f'{shown} & If({is_short}, "", " requests")'
+    count.props["Text"] = scope_count_words(shown_pred, is_short)
 
     # Soegefeltet tager det, de andre efterlader - mellem SEARCH_MIN og
     # SEARCH_W - og er aldrig grunden til, at raekken ikke passer.
@@ -1182,11 +1185,7 @@ def build_closed_peek():
                     'If(varMdView = "mine", "My requests", "Whole department")',
                     size=11, color=C_MUTED, height=18, wrap="false")
 
-    icon = _image("imgMdPeekDomain",
-                  _svg_uri(_domain_switch(
-                      lambda d: _icon_svg(d["icon"], _hx(d["token"]), size=20,
-                                          mirror=d.get("mirror", False)), '""')),
-                  20, 20, label=DOMAIN_LABEL)
+    icon = _image("imgMdPeekDomain", ICON_SMALL, 20, 20, label=DOMAIN_LABEL)
     icon.props["X"] = "8"
     icon.props["Y"] = str((PEEK_ROW_H - 20) // 2)
     line1 = text_ctrl("txtMdPeekNo",
@@ -1365,6 +1364,55 @@ def _tile_icon_svg(d, size=32):
             f"fill='{c}' fill-opacity='0.12'/>" + _dglyph(d, c, x=pad, y=pad, size=18) + "</svg>")
 
 
+# IKONERNE REGNES EEN GANG - IKKE PR. RAEKKE (R2-081, B10)
+#
+# Raekken byggede og URL-kodede op til otte SVG'er pr. raekke (domaene,
+# aktivitet, note, edit, delete - bred og kompakt), 14 raekker ad gangen og
+# igen ved scroll og hvert tema- eller filterskift. Ikonerne afhaenger kun
+# af domaenet og temaet. Nu staar de i den navngivne formel MdIcons (App.
+# Formulas, generate_hub_onstart.FORMULAS) som { Key, Uri } med URI'en
+# faerdigkodet; raekken slaar op med Key. En navngiven formel regnes igen,
+# naar temaet (C) skifter - ikke pr. raekke. Statuschippen og
+# godkendelsesstriben har raekkens egne data og bliver i raekken.
+ICONS = "MdIcons"
+
+
+def _icon_rows():
+    rows = []
+    for d in DOMAINS:
+        rows.append((f"tile:{d['key']}", _svg_uri('"' + _tile_icon_svg(d) + '"')))
+        rows.append((f"small:{d['key']}", _svg_uri(_icon_svg(
+            d["icon"], _hx(d["token"]), size=20, mirror=d.get("mirror", False)))))
+    act = dict(size=ACTION_GLYPH, box=TL_W)
+    rows += [
+        ("timeline", _svg_uri(_icon_svg(ICON_HISTORY, _hx("text-muted"), **act))),
+        ("note", _svg_uri(_icon_svg(ICON_NOTE, _hx("text-muted"), **act))),
+        ("edit", _svg_uri(_icon_svg(EDIT_ICON, _hx("text-muted"), **act))),
+        # Deaktiveret: samme ikon, falmet (icons.DISABLED_OPACITY)
+        ("edit-off", _svg_uri(_icon_svg(EDIT_ICON, _hx("text-muted"),
+                                        opacity=icons.DISABLED_OPACITY, **act))),
+        ("delete", _svg_uri(_icon_svg(icons.DELETE, _hx("state-error-fg"), **act))),
+        ("close", _svg_uri(_icon_svg(icons.ARCHIVE, _hx("text-muted"), **act))),
+    ]
+    return rows
+
+
+def icons_formula():
+    """MdIcons til App.Formulas (R2-081)."""
+    body = ",\n".join(f'    {{ Key: "{k}", Uri: {u} }}' for k, u in _icon_rows())
+    return ("// HUBBENS IKONER. Genereret af Masterdata Hub/build/build_hub.py - ret ikke her.\n"
+            f"{ICONS} = Table(\n{body}\n);")
+
+
+def icon(key_expr):
+    """Ikonets URI fra MdIcons. key_expr er et Power Fx-tekstudtryk."""
+    return f"LookUp({ICONS}, Key = {key_expr}).Uri"
+
+
+ICON_TILE = icon('"tile:" & ThisItem.Domain.Value')
+ICON_SMALL = icon('"small:" & ThisItem.Domain.Value')
+
+
 def build_list():
     head = group("conMdListHead",
                  [(_sort_head(i, t, CWF[t]) if t in SORT_COLS else
@@ -1377,10 +1425,7 @@ def build_list():
 
     # REQUEST (UX-review, hub): domaenets ikon i en tonet firkant, nummeret
     # og domaenets navn som anden linje - een kolonne i stedet for tre.
-    dom_icon = _image("imgMdRowDomain",
-                      _svg_uri(_domain_switch(
-                          lambda d: '"' + _tile_icon_svg(d) + '"', '""')),
-                      32, 32, label=DOMAIN_LABEL)
+    dom_icon = _image("imgMdRowDomain", ICON_TILE, 32, 32, label=DOMAIN_LABEL)
     no_txt = text_ctrl("txtMdRowNo", f"ThisItem.{COL_NO}", size=13, weight="Semibold",
                        height=20, wrap="false", width=f"{CWF['REQUEST']} - 42 - {HEAD_PAD}")
     dom_txt = text_ctrl("txtMdRowDomain", _domain_switch(lambda d: f'"{d["name"]}"', '"?"'),
@@ -1434,7 +1479,8 @@ def build_list():
 
     act = _open_action()
     edit_btn, del_btn = _owner_buttons(_open_action("edit"), "")
-    actions = [edit_btn, del_btn]
+    close_btn = _close_button("")
+    actions = [edit_btn, del_btn, close_btn]
 
     row = group("conMdRow", [dom, main, plant, req, approval, stat, when],
                 direction="Horizontal", gap=GAP, height="Parent.TemplateHeight - 1",
@@ -1460,14 +1506,16 @@ def build_list():
     # raekkens container, i begge visninger (col_x, issue #372).
     strip_x = col_x("APPROVAL")
     tl_x = col_x("ACTIONS")
-    timeline = _image("imgMdRowTimeline", _svg_uri(_icon_svg(ICON_HISTORY, _hx("text-muted"), size=ACTION_GLYPH, box=TL_W)), TL_W,
+    timeline = _image("imgMdRowTimeline", icon('"timeline"'), TL_W,
                       TL_W, onselect=approval_flow.timeline_fx(),
                       label=f'"Activity for " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
     ensure_hit(timeline)
     timeline.props["X"] = if_below("Wide", f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {HIT_W}", tl_x)
     timeline.props["Y"] = if_below("Wide", "8", "(Parent.TemplateHeight - 1 - Self.Height) / 2")
+    # Luk (R2-021) staar paa Deletes plads: de to vises aldrig paa samme
+    # raekke (Delete: Kladde/AfventerInfo; Luk: indsendt).
     for i, b in enumerate(actions):
-        b.props["X"] = f"{tl_x} + {TL_W} + 12 + {i * 40}"
+        b.props["X"] = f"{tl_x} + {TL_W} + 12 + {min(i, 1) * 40}"
         b.props["Y"] = "(Parent.TemplateHeight - 1 - Self.Height) / 2"
         b.props["Visible"] = f"{at_least('Wide')} && ({b.props['Visible']})"
     strip = approval_flow.strip_hits(
@@ -1476,22 +1524,23 @@ def build_list():
                  "zone": "(Parent.TemplateWidth - 24) / 4"})
     compact_row, compact_strip = _compact_row(act)
     c_edit, c_del = _owner_buttons(_open_action("edit"), "C")
-    c_actions = [c_edit, c_del]
+    c_close = _close_button("C")
+    c_actions = [c_edit, c_del, c_close]
     for i, b in enumerate(c_actions):
-        b.props["X"] = f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {TL_W} - 8 - 80 + {i * 40}"
+        b.props["X"] = f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {TL_W} - 8 - 80 + {min(i, 1) * 40}"
         b.props["Y"] = "6"
         b.props["Visible"] = f"{at_least('Desktop')} && {below('Wide')} && ({b.props['Visible']})"
     for b in (*actions, *c_actions, timeline):
         icons.hit_radius(b.props)
     # Edit saetter selv hover/tryk - ingen, naar den er deaktiveret (#138).
-    for b in (del_btn, c_del):
+    for b in (del_btn, c_del, close_btn, c_close):
         b.props["HoverFill"] = C_ROW_HOVER
         b.props["PressedFill"] = C_ROW_HOVER
     c_base = f"Parent.Width - {SCROLLBAR_W} - {ROW_PAD} - {TL_W} - 8 - 80"
     # NOTE-IKONET (issue #115): kun naar planen har en note, brugeren maa
     # se. Bred: efter Edit/Delete. Kompakt: foran Edit. Under Desktop:
     # foran Activity, som er det eneste ikon dér.
-    notes = _image("imgMdRowNotes", _svg_uri(_icon_svg(ICON_NOTE, _hx("text-muted"), size=ACTION_GLYPH, box=TL_W)), TL_W, TL_W,
+    notes = _image("imgMdRowNotes", icon('"note"'), TL_W, TL_W,
                    onselect=sn.hub_open_fx("ThisItem"),
                    label=f'"View notes for " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
     notes.props["Tooltip"] = f'"{sn.TIP}"'
@@ -1578,12 +1627,9 @@ def _owner_buttons(act, suffix):
     # En VH-plan, der er sendt retur, kan ejeren rette og indsende igen.
     can_edit = perm.may_change_row("ThisItem", "varMdMe")
     edit = _image("btnMdRowEdit" + suffix,
-                  _svg_uri(f"If(\n    {can_edit},\n    "
-                           + _icon_svg(EDIT_ICON, _hx("text-muted"), size=ACTION_GLYPH, box=TL_W)
-                           + ",\n    "
-                           # Deaktiveret: samme ikon, falmet (icons.DISABLED_OPACITY)
-                           + _icon_svg(EDIT_ICON, _hx("text-muted"), size=ACTION_GLYPH, box=TL_W,
-                                       opacity=icons.DISABLED_OPACITY) + "\n)"),
+                  # Deaktiveret: samme ikon, falmet (MdIcons "edit-off").
+                  f"If(\n    {can_edit},\n    {icon(chr(34) + 'edit' + chr(34))},\n    "
+                  f"{icon(chr(34) + 'edit-off' + chr(34))}\n)",
                   TL_W, TL_W, onselect=act, label=f'"Edit " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
     ensure_hit(edit)
     edit.props["DisplayMode"] = f"If({can_edit}, DisplayMode.Edit, DisplayMode.Disabled)"
@@ -1597,16 +1643,84 @@ def _owner_buttons(act, suffix):
     edit.props["FocusedBorderThickness"] = f"If({can_edit}, 2, 0)"
     edit.props["TabIndex"] = f"If({can_edit}, 0, -1)"
     edit.props["Tooltip"] = f'If({can_edit}, "Edit request", {EDIT_LOCKED_TIP})'
-    dele = _image("btnMdRowDelete" + suffix,
-                  _svg_uri(_icon_svg(icons.DELETE, _hx("state-error-fg"), size=ACTION_GLYPH, box=TL_W)),
+    dele = _image("btnMdRowDelete" + suffix, icon('"delete"'),
                   TL_W, TL_W, onselect="Set(varMdDelItem, ThisItem);\nSet(varMdDeleteOpen, true)",
                   label=f'"Delete " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
     ensure_hit(dele)
     edit.props["Visible"] = own
     # Delete KUN paa en kladde (UX-review, hub): den roede skraldespand stod
     # paa alle raekker, ogsaa indsendte, og var raekkens staerkeste farve.
-    dele.props["Visible"] = f'({own}) && ThisItem.Status.Value = "{ri.DRAFT}"'
+    # R2-079: en admin maa ogsaa slette i AfventerInfo - samme regel som
+    # domaeneskaermene (request_delete.may_delete, permissions.ADMIN_STATUSES).
+    admin_more = [st for st in perm.ADMIN_STATUSES if st != ri.DRAFT]
+    dele.props["Visible"] = (f'({own}) && (ThisItem.Status.Value = "{ri.DRAFT}" || '
+                             f'({perm.IS_ADMIN} && ' + " || ".join(
+                                 f'ThisItem.Status.Value = "{st}"' for st in admin_more) + "))")
     return edit, dele
+
+
+# LUK EN ANMODNING (R2-021)
+#
+# Kun VH-planen lukkes af et flow. Equipment, Material, Measuring Point og
+# FL naaede aldrig "Created in SAP"/IsOpen = false, saa hubbens Open-liste
+# voksede med faerdige anmodninger. En admin lukker dem nu her: ikonet
+# staar paa Deletes plads i raekken (samme stoerrelse, hover og fokus), og
+# bekraeftelsen er Deletes popup med to valg. Kun indeksraekken skrives
+# (request_index.close_record) - domaenets egne raekker roeres ikke - og
+# lukningen logges i MD_ApprovalLog (admin_log.CLOSE), saa Activity viser
+# hvem og hvornaar.
+CLOSE_OPEN = "varMdCloseOpen"
+
+
+def _close_button(suffix):
+    b = _image("btnMdRowClose" + suffix, icon('"close"'), TL_W, TL_W,
+               onselect=f"Set(varMdCloseItem, ThisItem);\nSet({CLOSE_OPEN}, true)",
+               label=f'"Close " & ThisItem.{COL_NO}', hover=C_ROW_HOVER)
+    ensure_hit(b)
+    b.props["Tooltip"] = '"Mark created in SAP or cancel"'
+    b.props["Visible"] = perm.may_close("ThisItem")
+    return b
+
+
+def _close_fx(status):
+    """Luk den friske indeksraekke varMdCloseIdx med status (R2-021)."""
+    idx = "varMdCloseIdx"
+    done = {ri.CREATED: "Request marked as created in SAP.",
+            ri.CANCELLED: "Request cancelled."}[status]
+    log = alog.write(f"{idx}.RequestGuid", f"{idx}.{COL_NO}", alog.CLOSE,
+                     alog.closed(f"{idx}.Status.Value", status), 8)
+    return (
+        f"Set({idx}, LookUp('{LIST}', ID = varMdCloseItem.ID));\n"
+        "If(\n"
+        f"    IsBlank({idx}),\n    {rd.GONE},\n"
+        f"    !{perm.may_close(idx)},\n"
+        '    Notify("This request can no longer be closed here.", NotificationType.Warning),\n'
+        f"    Patch({LIST}, {idx}, {ri.close_record(status, 'varMdMe', 4)});\n"
+        "    If(\n"
+        f"        !IsEmpty(Errors({LIST})),\n"
+        '        Notify("The request could not be closed: " & '
+        f"First(Errors({LIST})).Message, NotificationType.Error),\n"
+        f"{log};\n"
+        f"        {SCOPE_REFRESH};\n"
+        f'        Notify("{done}", NotificationType.Success)\n'
+        "    )\n"
+        ")")
+
+
+def build_close_modal():
+    """Bekraeftelsen bag luk-ikonet: Deletes popup (confirm_modal) med to
+    knapper - "Cancel request" (roed, som Delete) og "Mark created in SAP"."""
+    parts = confirm_modal(
+        "MdClose", CLOSE_OPEN, "Close request",
+        f'"Close " & varMdCloseItem.{COL_NO} & "? It leaves the open list. Only the hub '
+        'entry changes; the request itself is not edited."',
+        "Mark created in SAP", _close_fx(ri.CREATED), "btnMdCloseCreated", icon="CheckmarkCircle")
+    cancel = button("btnMdCloseCancelled", '"Cancel request"',
+                    f"Set({CLOSE_OPEN}, false);\n{_close_fx(ri.CANCELLED)}", danger=True,
+                    width=fit_button_width('"Cancel request"') + ICON_W, height=36, icon="Dismiss")
+    footer = parts[1].children[2]
+    footer.children.insert(0, cancel)
+    return parts
 
 
 def build_delete_modal():
@@ -1637,11 +1751,7 @@ def build_delete_modal():
 
 def _compact_row(act):
     """Card row below Desktop: the essentials; the approval strip and the row itself open the details."""
-    dom_icon = _image("imgMdRowDomainC",
-                      _svg_uri(_domain_switch(
-                          lambda d: _icon_svg(d["icon"], _hx(d["token"]), size=20,
-                                              mirror=d.get("mirror", False)), '""')), 20, 20,
-                      label=DOMAIN_LABEL)
+    dom_icon = _image("imgMdRowDomainC", ICON_SMALL, 20, 20, label=DOMAIN_LABEL)
     no = grow(text_ctrl("txtMdRowNoC", f"ThisItem.{COL_NO}", size=14, weight="Semibold",
                         height=22, wrap="false"))
     st_icon = sc.status_chip("imgMdRowStatusC", "ThisItem.Status.Value", sc.REQUEST,

@@ -22,8 +22,11 @@ import display_text as dt
 # hente dovent. Nu er der een formel, og det er temaet: C. Se
 # tools/design_tokens.py for hvorfor farven hoerer hjemme i en navngiven
 # formel og ikke i hver enkelt kontrol.
+# MdIcons (R2-081): raekkernes ikoner, regnet een gang pr. tema.
+import build_hub
 FORMULAS = (tok.formula() + "\n\n" + lay.formula() + "\n\n" + perm.formula() + "\n\n" +
-            dt.formula() + "\n\n" + perm.approver_formula())
+            dt.formula() + "\n\n" + perm.approver_formula() + "\n\n" +
+            build_hub.icons_formula())
 
 # Samlingen bag SaveData skal have et kendt skema, foer Coalesce kan laese
 # .Dark - samme moenster som arbejdssamlingerne i de tre andre apps.
