@@ -181,6 +181,17 @@ RULES = [
      "        Char(10)\n"
      "    ),\n"
      "    \"\"\n)"),
+    # OPERATIONENS KORTE TEKST (R2-009). SAP-ordrekontrakten kraever den
+    # (schema/vhplan-sap-order.schema.json: shortText, minLength 1), men en
+    # manuel operation starter tom. Kun operationer paa items, der gemmes.
+    ("Ops", "op_text",
+     _per_row(
+         "Filter(\n"
+         "    colVhpOperations,\n"
+         "    ItemId in VhpSaveableItems.ItemId && IsBlank(Trim(OperationShortText))\n"
+         ")",
+         REF + " & \", operation \" & OperationNo &\n"
+         "    \": fill in the operation short text - SAP requires one.\"")),
     ("Ops", "material_group",
      _per_row(
          "Filter(\n"
