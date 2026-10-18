@@ -447,7 +447,9 @@ Samme trigger condition med `ApprovalStage = 'Quality'`.
 ```
 
 Mailen fra [`17-flow-email.md`](17-flow-email.md) (*"VH-plan … sendt til
-oprettelse"*) til `BioSap-MasterDataEmail`. Sætter `MasterDataNotified = true`.
+oprettelse"*) til `BioSap-MasterDataEmail`. Sætter `MasterDataNotified = true`
+**efter** mailen (R2-051), så en fejlet mail sendes ved næste kørsel. Item- og
+godkendelseslinjerne escapes.
 
 Den må **ikke** bruge `InitialEmailSent`. Den kolonne ejes af det
 eksisterende flow `BioSap-EmailNotification-NewPlanCreated`, som ved
