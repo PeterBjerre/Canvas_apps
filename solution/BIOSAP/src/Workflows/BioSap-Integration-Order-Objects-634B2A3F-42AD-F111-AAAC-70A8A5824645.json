@@ -36,6 +36,13 @@
           "metadata": {
             "schemaName": "orsted_BioSapWOCClientSecret"
           }
+        },
+        "BioSap-WOC-ApiKey (orsted_BioSapWocApiKey)": {
+          "defaultValue": "***REDACTED***",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapWocApiKey"
+          }
         }
       },
       "triggers": {
@@ -220,7 +227,7 @@
                 "headers": {
                   "Authorization": "Bearer @{variables('BearerToken')}",
                   "Content-Type": "application/json",
-                  "x-apikey": "***REDACTED***"
+                  "x-apikey": "@parameters('BioSap-WOC-ApiKey (orsted_BioSapWocApiKey)')"
                 }
               },
               "runtimeConfiguration": {
@@ -287,7 +294,7 @@
               "type": "SetVariable",
               "inputs": {
                 "name": "BearerToken",
-                "value": "***REDACTED***"
+                "value": "@body('Parse_JSON_BearerToken')?['access_token']"
               }
             }
           },
