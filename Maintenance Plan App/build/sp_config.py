@@ -243,8 +243,9 @@ def named_formulas():
     # listen (REVIEW.md B7). Title er SAP's noegle (010, 020 ...), som
     # ordren sender videre; Name er det, dropdown'en viser
     # (Provision-SortFields.ps1).
+    sort_name = 'Trim(R.Title & " " & R.SortFieldDescription)'
     add("colVhpSortFieldOptions",
-        f"Sort({_forall(L_SORTFIELDS, [('Id', 'R.ID'), ('Value', 'R.Title'), ('Name', 'Trim(R.Title & \" \" & R.SortFieldDescription)')])}, Value)")
+        f"Sort({_forall(L_SORTFIELDS, [('Id', 'R.ID'), ('Value', 'R.Title'), ('Name', sort_name)])}, Value)")
 
     # Id baeres med. Gem skal skrive { Id, Value } i opslagskolonnen, og
     # slog det foer op i SharePoint EEN GANG PR. ITEM inde i et ForAll -
