@@ -38,6 +38,13 @@ Screens:
               Set(varIbUploading, false);
               Set(varIbSelPeek, false);
               Set(varIbPosting, false);
+              Set(varIbPostStage, "");
+              Set(varIbPostFor, -1);
+              Set(varIbPostText, "");
+              Set(varIbPostErr, "");
+              Set(varIbPostInternal, false);
+              Set(varIbPostAt, Now());
+              Set(varIbPostTick, Now());
               Set(varIbSyncing, false)
           );
           If(
@@ -11665,7 +11672,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =Max(160, Min(App.Height - 32 - 36 - (Max(44, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36)) - 96 - 132 - 30) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))) - 12 - (49 + (If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 22, 22 + 6 + 20)) + 8 + (If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 39, 2 * 39 + 12)) + If(IbCanReopen || IbCanEdit || IbCanManage, 8 + (Max(44, H.hit) + 2 * 3), 0) + If(varIbSelPeek, 8 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 8 + (34), 0)) - 12, Max(200, (0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)), (If(IbSeeActivity, 0 + If((varIbActBusy && IsEmpty(colIbActivity)) || IfError(varIbActFailed, false), 0 + (34), 0) + If(!IsEmpty(colIbActivity), 12 + (Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40))), 0) + If(IbCanComment, 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0) + If(varIbSel.Archived, 12 + (18), 0), 0)), (0 + If(varIbFilesBusy || IfError(varIbFilesFailed, false) || CountRows(If(varIbFilesFor = varIbSelId, varIbFiles, FirstN(varIbFiles, 0))) = 0, 0 + (20), 0) + 12 + (160 + Max(attIbFiles.AttachmentsCount, CountRows(If(varIbFilesFor = varIbSelId, varIbFiles, FirstN(varIbFiles, 0)))) * 44) + If(IbCanAttach, 12 + (78), 0)))))
+                      =Max(160, Min(App.Height - 32 - 36 - (Max(44, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36)) - 96 - 132 - 30) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))) - 12 - (49 + (If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 22, 22 + 6 + 20)) + 8 + (If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 39, 2 * 39 + 12)) + If(IbCanReopen || IbCanEdit || IbCanManage, 8 + (Max(44, H.hit) + 2 * 3), 0) + If(varIbSelPeek, 8 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 8 + (34), 0)) - 12, Max(200, (0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)), (If(IbSeeActivity, 0 + If((varIbActBusy && IsEmpty(colIbActivity)) || IfError(varIbActFailed, false), 0 + (34), 0) + If(!IsEmpty(colIbActivity), 12 + (Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40))), 0) + If(IbCanComment && (varIbPostFor = varIbSelId && varIbPostStage = "done") && IsBlank(inpIbComment.Text), 12 + (36), 0) + If(IbCanComment && (varIbPostFor = varIbSelId && varIbPostStage = "failed"), 12 + ((Max(36, With({ t: If(varIbPostInternal, "The internal note could not be added.", "The comment could not be posted.") & " Your text is kept below." & If(IsBlank(varIbPostErr), "", " " & Left(varIbPostErr, 200)) }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 20 - 97 - 8) / 6.6, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + 16), 0) + If(IbCanComment && (varIbPostFor = varIbSelId && (varIbPostStage = "posting" || varIbPostStage = "updating")), 12 + (62 + If(true, 0 + (32), 0)), 0) + If(IbCanComment && !(varIbPostFor = varIbSelId && (varIbPostStage = "posting" || varIbPostStage = "updating")), 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0) + If(varIbSel.Archived, 12 + (18), 0), 0)), (0 + If(varIbFilesBusy || IfError(varIbFilesFailed, false) || CountRows(If(varIbFilesFor = varIbSelId, varIbFiles, FirstN(varIbFiles, 0))) = 0, 0 + (20), 0) + 12 + (160 + Max(attIbFiles.AttachmentsCount, CountRows(If(varIbFilesFor = varIbSelId, varIbFiles, FirstN(varIbFiles, 0)))) * 44) + If(IbCanAttach, 12 + (78), 0)))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -12706,6 +12713,320 @@ Screens:
                                         =12
                                     Y: |-
                                         =30
+                        - txtIbPosted:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  =Self.Text
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'state-ok-fg'
+                              Fill: |-
+                                  =C.'state-ok-bg'
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =36
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =12
+                              PaddingRight: |-
+                                  =12
+                              PaddingTop: |-
+                                  =0
+                              RadiusBottomLeft: |-
+                                  =R.input
+                              RadiusBottomRight: |-
+                                  =R.input
+                              RadiusTopLeft: |-
+                                  =R.input
+                              RadiusTopRight: |-
+                                  =R.input
+                              Size: |-
+                                  =T.body
+                              Text: |-
+                                  =If(varIbPostInternal, "Internal note added.", "Comment posted.")
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Visible: |-
+                                  =IbCanComment && (varIbPostFor = varIbSelId && varIbPostStage = "done") && IsBlank(inpIbComment.Text)
+                              Wrap: |-
+                                  =false
+                        - conIbPostFailed:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              Fill: |-
+                                  =C.'bg-muted'
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =(Max(36, With({ t: If(varIbPostInternal, "The internal note could not be added.", "The comment could not be posted.") & " Your text is kept below." & If(IsBlank(varIbPostErr), "", " " & Left(varIbPostErr, 200)) }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 20 - 97 - 8) / 6.6, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + 16
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Center
+                              LayoutDirection: |-
+                                  =LayoutDirection.Horizontal
+                              LayoutGap: |-
+                                  =8
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              PaddingBottom: |-
+                                  =8
+                              PaddingLeft: |-
+                                  =12
+                              PaddingRight: |-
+                                  =8
+                              PaddingTop: |-
+                                  =8
+                              RadiusBottomLeft: |-
+                                  =R.input
+                              RadiusBottomRight: |-
+                                  =R.input
+                              RadiusTopLeft: |-
+                                  =R.input
+                              RadiusTopRight: |-
+                                  =R.input
+                              Visible: |-
+                                  =IbCanComment && (varIbPostFor = varIbSelId && varIbPostStage = "failed")
+                              Width: |-
+                                  =Parent.Width
+                            Children:
+                              - txtIbPostFailed:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =Self.Text
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'state-error-fg'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    FillPortions: |-
+                                        =0
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =Max(36, With({ t: If(varIbPostInternal, "The internal note could not be added.", "The comment could not be posted.") & " Your text is kept below." & If(IsBlank(varIbPostErr), "", " " & Left(varIbPostErr, 200)) }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 20 - 97 - 8) / 6.6, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))
+                                    LayoutMinWidth: |-
+                                        =0
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =T.small
+                                    Text: |-
+                                        =If(varIbPostInternal, "The internal note could not be added.", "The comment could not be posted.") & " Your text is kept below." & If(IsBlank(varIbPostErr), "", " " & Left(varIbPostErr, 200))
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =Max(0, (((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 18 - 18)) - 18) - 12 - 8) - ((97) + 8) - 2)
+                                    Wrap: |-
+                                        =true
+                              - btnIbPostRetry:
+                                  Control: ModernButton
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="Retry posting the comment"
+                                    Align: |-
+                                        =Align.Center
+                                    AlignInContainer: |-
+                                        =AlignInContainer.Center
+                                    Appearance: |-
+                                        =ButtonAppearance.Outline
+                                    BorderColor: |-
+                                        =C.'border-input'
+                                    BorderThickness: |-
+                                        =1
+                                    Color: |-
+                                        =C.'text-primary'
+                                    DisplayMode: |-
+                                        =If(IsBlank(Trim(inpIbComment.Text)) || varIbPosting, DisplayMode.Disabled, DisplayMode.Edit)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =36
+                                    Icon: |-
+                                        ="ArrowClockwise"
+                                    Layout: |-
+                                        =ButtonLayout.IconBefore
+                                    OnSelect: |-
+                                        =If(
+                                            !varIbPosting && !IsBlank(Trim(inpIbComment.Text)),
+                                            Set(varIbPostText, Trim(inpIbComment.Text));
+                                            Set(varIbPostInternal, varIbInternal && IsAdmin);
+                                            Set(varIbPostFor, varIbSelId);
+                                            Set(varIbPostAt, Now());
+                                            Set(varIbPostTick, Now());
+                                            Set(varIbPostErr, "");
+                                            Set(varIbPostStage, "posting");
+                                            Set(varIbPosting, true);
+                                            Set(varIbPostRes, IfError('BioSap-IssueBoard-Submit'.Run(
+                                                "comment",
+                                                JSON({ ticketId: varIbPostFor, content: varIbPostText, internal: varIbPostInternal })
+                                            ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }));
+                                            If(
+                                                varIbPostRes.ok = "yes",
+                                                Set(varIbPostStage, "updating");
+                                                If(
+                                                    varIbSelId = varIbPostFor,
+                                                    Collect(colIbActivity, { Kind: "Comment", Actor: "You", Role: If(IsAdmin && !IbSelMine, "Admin", "User"), Body: varIbPostText, At: Now(), Internal: varIbPostInternal, IsSystem: false, File: "", SizeKb: 0, Initial: false });
+                                                    Reset(inpIbComment);
+                                                    Set(varIbSel, Patch(varIbSel, { UpdatedOn: Now() }));
+                                                    Set(varIbInternal, false);
+                                                    Reset(chkIbInternal)
+                                                );
+                                                UpdateIf(colIbAll, Id = varIbPostFor, { UpdatedOn: Now() });
+                                                Set(varIbPostAt, Now());
+                                                Set(varIbPostTick, Now());
+                                                Set(varIbPostStage, "done"),
+                                                Set(varIbPostErr, varIbPostRes.message);
+                                                Set(varIbPostStage, "failed")
+                                            );
+                                            Set(varIbPosting, false)
+                                        )
+                                    RadiusBottomLeft: |-
+                                        =R.input
+                                    RadiusBottomRight: |-
+                                        =R.input
+                                    RadiusTopLeft: |-
+                                        =R.input
+                                    RadiusTopRight: |-
+                                        =R.input
+                                    Size: |-
+                                        =T.input
+                                    Text: |-
+                                        ="Retry"
+                                    VerticalAlign: |-
+                                        =VerticalAlign.Middle
+                                    Width: |-
+                                        =97
+                        - conIbPosting:
+                            Control: GroupContainer
+                            Variant: AutoLayout
+                            Properties:
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              DropShadow: |-
+                                  =DropShadow.None
+                              Fill: |-
+                                  =C.'bg-muted'
+                              FillPortions: |-
+                                  =0
+                              Height: |-
+                                  =62 + If(true, 0 + (32), 0)
+                              LayoutAlignItems: |-
+                                  =LayoutAlignItems.Stretch
+                              LayoutDirection: |-
+                                  =LayoutDirection.Vertical
+                              LayoutGap: |-
+                                  =4
+                              LayoutMinWidth: |-
+                                  =0
+                              LayoutOverflowX: |-
+                                  =LayoutOverflow.Hide
+                              LayoutOverflowY: |-
+                                  =LayoutOverflow.Hide
+                              PaddingBottom: |-
+                                  =12
+                              PaddingLeft: |-
+                                  =12
+                              PaddingRight: |-
+                                  =12
+                              PaddingTop: |-
+                                  =12
+                              RadiusBottomLeft: |-
+                                  =R.input
+                              RadiusBottomRight: |-
+                                  =R.input
+                              RadiusTopLeft: |-
+                                  =R.input
+                              RadiusTopRight: |-
+                                  =R.input
+                              Visible: |-
+                                  =IbCanComment && (varIbPostFor = varIbSelId && (varIbPostStage = "posting" || varIbPostStage = "updating"))
+                              Width: |-
+                                  =Parent.Width
+                            Children:
+                              - spnIbPosting:
+                                  Control: ModernSpinner@1.1.0
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        =If(varIbPostStage = "updating", "Updating activity...", DateDiff(varIbPostAt, varIbPostTick, TimeUnit.Seconds) >= 8, "Saving it to the issue...", DateDiff(varIbPostAt, varIbPostTick, TimeUnit.Seconds) >= 3, "Still posting, please wait...", If(varIbPostInternal, "Adding internal note...", "Posting comment..."))
+                                    BasePaletteColor: |-
+                                        =C.'color-brand-primary'
+                                    Color: |-
+                                        =C.'text-primary'
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    FontWeight: |-
+                                        =FontWeight.Semibold
+                                    Height: |-
+                                        =32
+                                    Label: |-
+                                        =If(varIbPostStage = "updating", "Updating activity...", DateDiff(varIbPostAt, varIbPostTick, TimeUnit.Seconds) >= 8, "Saving it to the issue...", DateDiff(varIbPostAt, varIbPostTick, TimeUnit.Seconds) >= 3, "Still posting, please wait...", If(varIbPostInternal, "Adding internal note...", "Posting comment..."))
+                                    LayoutMinWidth: |-
+                                        =0
+                                    Size: |-
+                                        =T.body
+                                    Visible: |-
+                                        =true
+                                    Width: |-
+                                        =Parent.Width
+                              - txtIbPostingNote:
+                                  Control: ModernText
+                                  Properties:
+                                    AccessibleLabel: |-
+                                        ="This usually takes about 10 seconds. You can keep using the app meanwhile."
+                                    BorderStyle: |-
+                                        =BorderStyle.None
+                                    BorderThickness: |-
+                                        =0
+                                    Color: |-
+                                        =C.'text-muted'
+                                    Fill: |-
+                                        =RGBA(0, 0, 0, 0)
+                                    Font: |-
+                                        =Font.'Segoe UI'
+                                    Height: |-
+                                        =34
+                                    PaddingBottom: |-
+                                        =0
+                                    PaddingLeft: |-
+                                        =0
+                                    PaddingRight: |-
+                                        =0
+                                    PaddingTop: |-
+                                        =0
+                                    Size: |-
+                                        =T.small
+                                    Text: |-
+                                        ="This usually takes about 10 seconds. You can keep using the app meanwhile."
+                                    Wrap: |-
+                                        =true
                         - conIbComposer:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -12731,7 +13052,7 @@ Screens:
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Visible: |-
-                                  =IbCanComment
+                                  =IbCanComment && !(varIbPostFor = varIbSelId && (varIbPostStage = "posting" || varIbPostStage = "updating"))
                               Width: |-
                                   =Parent.Width
                             Children:
@@ -12753,7 +13074,7 @@ Screens:
                                     Color: |-
                                         =C.'input-fg'
                                     Default: |-
-                                        =""
+                                        =If(varIbPostFor = varIbSelId && varIbPostStage = "failed", varIbPostText, "")
                                     Fill: |-
                                         =C.'input-bg'
                                     Font: |-
@@ -12868,23 +13189,40 @@ Screens:
                                     Layout: |-
                                         =ButtonLayout.IconBefore
                                     OnSelect: |-
-                                        =Set(varIbPosting, true);
-                                        Set(varIbRes, IfError('BioSap-IssueBoard-Submit'.Run(
-                                            "comment",
-                                            JSON({ ticketId: varIbSelId, content: Trim(inpIbComment.Text), internal: varIbInternal && IsAdmin })
-                                        ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }));
-                                        If(
-                                            varIbRes.ok = "yes",
-                                            Collect(colIbActivity, { Kind: "Comment", Actor: "You", Role: If(IsAdmin && !IbSelMine, "Admin", "User"), Body: Trim(inpIbComment.Text), At: Now(), Internal: varIbInternal && IsAdmin, IsSystem: false, File: "", SizeKb: 0, Initial: false });
-                                            Reset(inpIbComment);
-                                            UpdateIf(colIbAll, Id = varIbSelId, { UpdatedOn: Now() });
-                                            Set(varIbSel, Patch(varIbSel, { UpdatedOn: Now() }));
-                                            Set(gblToast, { Text: If(varIbInternal, "Internal note added.", "Comment posted."), Kind: "Success", At: Now() });
-                                            Set(varIbInternal, false);
-                                            Reset(chkIbInternal),
-                                            Set(gblToast, { Text: "The comment could not be posted. " & varIbRes.message, Kind: "Error", At: Now() }); true
-                                        );
-                                        Set(varIbPosting, false)
+                                        =If(
+                                            !varIbPosting && !IsBlank(Trim(inpIbComment.Text)),
+                                            Set(varIbPostText, Trim(inpIbComment.Text));
+                                            Set(varIbPostInternal, varIbInternal && IsAdmin);
+                                            Set(varIbPostFor, varIbSelId);
+                                            Set(varIbPostAt, Now());
+                                            Set(varIbPostTick, Now());
+                                            Set(varIbPostErr, "");
+                                            Set(varIbPostStage, "posting");
+                                            Set(varIbPosting, true);
+                                            Set(varIbPostRes, IfError('BioSap-IssueBoard-Submit'.Run(
+                                                "comment",
+                                                JSON({ ticketId: varIbPostFor, content: varIbPostText, internal: varIbPostInternal })
+                                            ), { ok: "no", message: FirstError.Message, ticketno: "", ticketid: "" }));
+                                            If(
+                                                varIbPostRes.ok = "yes",
+                                                Set(varIbPostStage, "updating");
+                                                If(
+                                                    varIbSelId = varIbPostFor,
+                                                    Collect(colIbActivity, { Kind: "Comment", Actor: "You", Role: If(IsAdmin && !IbSelMine, "Admin", "User"), Body: varIbPostText, At: Now(), Internal: varIbPostInternal, IsSystem: false, File: "", SizeKb: 0, Initial: false });
+                                                    Reset(inpIbComment);
+                                                    Set(varIbSel, Patch(varIbSel, { UpdatedOn: Now() }));
+                                                    Set(varIbInternal, false);
+                                                    Reset(chkIbInternal)
+                                                );
+                                                UpdateIf(colIbAll, Id = varIbPostFor, { UpdatedOn: Now() });
+                                                Set(varIbPostAt, Now());
+                                                Set(varIbPostTick, Now());
+                                                Set(varIbPostStage, "done"),
+                                                Set(varIbPostErr, varIbPostRes.message);
+                                                Set(varIbPostStage, "failed")
+                                            );
+                                            Set(varIbPosting, false)
+                                        )
                                     RadiusBottomLeft: |-
                                         =R.input
                                     RadiusBottomRight: |-
@@ -13630,6 +13968,32 @@ Screens:
                                   =VerticalAlign.Middle
                               Width: |-
                                   =201
+      - tmrIbPost:
+          Control: Timer
+          Properties:
+            AutoPause: |-
+                =false
+            AutoStart: |-
+                =false
+            Duration: |-
+                =1000
+            Height: |-
+                =1
+            OnTimerEnd: |-
+                =Set(varIbPostTick, Now());
+                If(
+                    varIbPostStage = "done" &&
+                    DateDiff(varIbPostAt, varIbPostTick, TimeUnit.Milliseconds) >= 2500,
+                    Set(varIbPostStage, "")
+                )
+            Repeat: |-
+                =true
+            Start: |-
+                =varIbPostStage = "posting" || varIbPostStage = "done"
+            Visible: |-
+                =false
+            Width: |-
+                =1
       - imgIbBusy:
           Control: Image
           Properties:
@@ -13656,7 +14020,7 @@ Screens:
             TabIndex: |-
                 =0
             Visible: |-
-                =IfError((varIbBusy || varIbPosting) && !varIbUploading, false)
+                =IfError(varIbBusy && !varIbUploading, false)
             Width: |-
                 =App.Width
             X: |-
@@ -13679,7 +14043,7 @@ Screens:
             Thickness: |-
                 =ProgressThickness.Large
             Visible: |-
-                =IfError((varIbBusy || varIbPosting) && !varIbUploading, false)
+                =IfError(varIbBusy && !varIbUploading, false)
             Width: |-
                 =Min(320, App.Width - 32)
             X: |-
