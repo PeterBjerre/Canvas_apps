@@ -20,6 +20,7 @@ statusværdierne findes i `MaintenancePlans.Status`, og at parenteserne går op.
 | `ordre-4-compose-order.json` | A: *Compose order* |
 | `ordre-5-merge-plan.json` | A: gem ordren på planen |
 | `ordre-6-merge-plan-reset.json` | A: nulstil, når planen trækkes tilbage |
+| `ordre-7-select-strategy-packages.json` | A: strategiens pakker |
 | `kvittering-0-filter.txt` | B: kun kvitteringsfiler |
 | `kvittering-1-compose.txt` | B: læs kvitteringen |
 | `kvittering-2-betingelse.txt` | B: er kvitteringen gyldig? |
@@ -85,6 +86,8 @@ Try
       Select       Select items                           ordre-1
       Select       Select operations                      ordre-2
       Select       Select materials                       ordre-3
+      Get items    Get items StrategyPackage              MD_StrategyPackage
+      Select       Select strategy packages               ordre-7
       Compose      Compose order                          ordre-4
       Create file  Create file                            /SAP-oprettelse/Til oprettelse
       Send an HTTP request to SharePoint  Set SapOrderGuid     ordre-5
@@ -159,6 +162,12 @@ operationer. 5000 er grænsen for én forespørgsel.
 | Select items | `body('Get_items_MaintenanceItems')?['value']` | `ordre-1-select-items.json` |
 | Select operations | `body('Get_items_TaskListMain')?['value']` | `ordre-2-select-operations.json` |
 | Select materials | `body('Get_items_TasklistMaterial')?['value']` | `ordre-3-select-materials.json` |
+| Select strategy packages | `body('Get_items_StrategyPackage')?['value']` | `ordre-7-select-strategy-packages.json` |
+
+**Get items StrategyPackage** henter strategiens pakker: *List Name*
+`MD_StrategyPackage` (listens navn, der er ingen miljøvariabel), *Filter Query*
+`StrategyKey eq '@{coalesce(triggerBody()?['StrategyKey'], '')}'`, *Order By*
+`PackageNo`, *Top Count* 5000. En plan uden strategi får ingen pakker.
 
 Skift *Map* til teksttilstand (ikonet til højre for *Map*) og sæt hele filen
 ind. Derefter *Compose* **Compose order** med `ordre-4-compose-order.json` som
