@@ -1009,6 +1009,80 @@
                             },
                             "authentication": "@parameters('$authentication')"
                           }
+                        },
+                        "Index_returned_no_approver": {
+                          "type": "If",
+                          "expression": {
+                            "greater": [
+                              "@length(outputs('Get_request_index')?['body/value'])",
+                              0
+                            ]
+                          },
+                          "actions": {
+                            "Patch_index_returned_no_approver": {
+                              "type": "OpenApiConnection",
+                              "runAfter": {},
+                              "inputs": {
+                                "host": {
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                  "connectionName": "shared_sharepointonline",
+                                  "operationId": "PatchItem"
+                                },
+                                "parameters": {
+                                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                  "table": "@parameters('MD_RequestIndex (orsted_shared_sharepointonline_9f0c6e07f15d4509a3ecab4d20b7fff7)')",
+                                  "id": "@first(outputs('Get_request_index')?['body/value'])?['ID']",
+                                  "item/Title": "@first(outputs('Get_request_index')?['body/value'])?['Title']",
+                                  "item/Domain": {
+                                    "Value": "MaintenancePlan"
+                                  },
+                                  "item/RequesterEmail": "@first(outputs('Get_request_index')?['body/value'])?['RequesterEmail']",
+                                  "item/Status": {
+                                    "Value": "AfventerInfo"
+                                  },
+                                  "item/StatusStep": 3,
+                                  "item/LastActionBy": "Quality review",
+                                  "item/LastActionOn": "@utcNow()",
+                                  "item/AssignedToEmail": "",
+                                  "item/AssignedToName": ""
+                                },
+                                "authentication": "@parameters('$authentication')"
+                              }
+                            }
+                          },
+                          "runAfter": {
+                            "Set_plan_returned_no_approver": [
+                              "Succeeded"
+                            ]
+                          },
+                          "else": {
+                            "actions": {}
+                          }
+                        },
+                        "Send_returned_mail_no_approver": {
+                          "type": "OpenApiConnection",
+                          "runAfter": {
+                            "Index_returned_no_approver": [
+                              "Succeeded",
+                              "Failed",
+                              "Skipped"
+                            ]
+                          },
+                          "inputs": {
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                              "connectionName": "shared_office365",
+                              "operationId": "SendEmailV2"
+                            },
+                            "parameters": {
+                              "emailMessage/To": "@coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterEmail'], triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email'])",
+                              "emailMessage/Cc": "@if(equals(toLower(coalesce(triggerBody()?['SubmittedBy'], '')), toLower(coalesce(coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterEmail'], triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email']), ''))), '', coalesce(triggerBody()?['SubmittedBy'], ''))",
+                              "emailMessage/Subject": "@concat('Maintenance plan ', triggerBody()?['PlanID'], ' returned - correct it and submit again')",
+                              "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">Maintenance plan @{triggerBody()?['PlanID']} (@{replace(replace(replace(coalesce(triggerBody()?['Title'], ''), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}) was returned by the quality review:</p><p style=\"font-family: Arial, sans-serif;\">The quality approver for the plant is not in MD_Approver or Office 365.</p><p style=\"font-family: Arial, sans-serif;\">Correct the plan in the app and submit it again.</p>",
+                              "emailMessage/Importance": "Normal"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
                         }
                       }
                     }

@@ -103,3 +103,32 @@ def test_scrub_finds_nothing():
         text = open(path, encoding="utf-8-sig").read()
         _new, hits = scrub_solution.scrub_text(text, path)
         assert hits == [], "%s: %s" % (path, hits)
+
+
+def _containers(acts):
+    yield acts
+    for a in acts.values():
+        if "actions" in a:
+            yield from _containers(a["actions"])
+        if "else" in a:
+            yield from _containers(a["else"].get("actions", {}))
+        for case in a.get("cases", {}).values():
+            yield from _containers(case.get("actions", {}))
+        if "default" in a:
+            yield from _containers(a["default"].get("actions", {}))
+
+
+def test_every_run_after_names_a_sibling_and_names_are_unique():
+    """En handledt JSON-rettelse maa ikke efterlade en runAfter, der peger
+    ud af sit scope, eller to handlinger med samme navn - begge afvises
+    foerst ved import."""
+    for path in FLOWS:
+        d = _load(path)["properties"]["definition"]
+        names = []
+        for acts in _containers(d["actions"]):
+            names.extend(acts)
+            for n, a in acts.items():
+                for dep in (a.get("runAfter") or {}):
+                    assert dep in acts, "%s: %s -> %s" % (os.path.basename(path), n, dep)
+        dup = {n for n in names if names.count(n) > 1}
+        assert not dup, "%s: %s" % (os.path.basename(path), dup)

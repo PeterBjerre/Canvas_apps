@@ -326,7 +326,10 @@ Fælles for dem:
   næste flow.
 - **Send retur:** sendte mindst ét item retur, bliver `Status = Returned`,
   `ApprovalStage` tømmes, `ReturnComment` får én linje pr. returneret item,
-  og rekvirenten får mail.
+  og rekvirenten får mail. Det gælder også grenene "ingen items" og
+  "ingen godkender" (R2-028): de sætter indekset til `AfventerInfo`/3 og
+  mailer ejeren; ved manglende godkender får `BioSap-ErrorNotifiers` mail
+  derudover.
 - **Timeout** `P14D` på *Wait*. Ved timeout: påmindelse, og `StageRunId`
   tømmes. Så starter samme flow forfra. De items, der nåede at blive
   godkendt, står i loggen og sendes ikke igen.

@@ -1235,6 +1235,77 @@
                         "connectionName": "shared_sharepointonline"
                       }
                     }
+                  },
+                  "Index_returned_no_items": {
+                    "actions": {
+                      "Patch_index_returned_no_items": {
+                        "type": "OpenApiConnection",
+                        "inputs": {
+                          "parameters": {
+                            "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                            "table": "@parameters('MD_RequestIndex (orsted_shared_sharepointonline_9f0c6e07f15d4509a3ecab4d20b7fff7)')",
+                            "id": "@first(outputs('Get_request_index')?['body/value'])?['ID']",
+                            "item/Title": "@first(outputs('Get_request_index')?['body/value'])?['Title']",
+                            "item/RequesterEmail": "@first(outputs('Get_request_index')?['body/value'])?['RequesterEmail']",
+                            "item/Domain": {
+                              "Value": "MaintenancePlan"
+                            },
+                            "item/Status": {
+                              "Value": "AfventerInfo"
+                            },
+                            "item/StatusStep": 3,
+                            "item/LastActionOn": "@utcNow()",
+                            "item/LastActionBy": "System approval",
+                            "item/AssignedToEmail": "",
+                            "item/AssignedToName": ""
+                          },
+                          "host": {
+                            "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                            "operationId": "PatchItem",
+                            "connectionName": "shared_sharepointonline"
+                          }
+                        }
+                      }
+                    },
+                    "runAfter": {
+                      "Return_no_items": [
+                        "Succeeded"
+                      ]
+                    },
+                    "else": {
+                      "actions": {}
+                    },
+                    "expression": {
+                      "greater": [
+                        "@length(outputs('Get_request_index')?['body/value'])",
+                        0
+                      ]
+                    },
+                    "type": "If"
+                  },
+                  "Send_returned_mail_no_items": {
+                    "runAfter": {
+                      "Index_returned_no_items": [
+                        "Succeeded",
+                        "Failed",
+                        "Skipped"
+                      ]
+                    },
+                    "type": "OpenApiConnection",
+                    "inputs": {
+                      "parameters": {
+                        "emailMessage/To": "@coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterEmail'], triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email'])",
+                        "emailMessage/Cc": "@if(equals(toLower(coalesce(triggerBody()?['SubmittedBy'], '')), toLower(coalesce(coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterEmail'], triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email']), ''))), '', coalesce(triggerBody()?['SubmittedBy'], ''))",
+                        "emailMessage/Subject": "@concat('Maintenance plan ', triggerBody()?['PlanID'], ' returned - correct it and submit again')",
+                        "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">Maintenance plan @{triggerBody()?['PlanID']} (@{replace(replace(replace(coalesce(triggerBody()?['Title'], ''), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}) was returned by the system approval:</p><p style=\"font-family: Arial, sans-serif;\">The plan has no items.</p><p style=\"font-family: Arial, sans-serif;\">Correct the plan in the app and submit it again.</p>",
+                        "emailMessage/Importance": "Normal"
+                      },
+                      "host": {
+                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                        "operationId": "SendEmailV2",
+                        "connectionName": "shared_office365"
+                      }
+                    }
                   }
                 }
               },
