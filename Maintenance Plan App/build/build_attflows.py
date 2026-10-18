@@ -40,5 +40,12 @@ class VhPlanPane(attflows.Pane):
         return (f"Set(varVhpAttOpNo, {op_no});\n"
                 + self.load_fx(f"{ACTIVE_OP}.SpId"))
 
+    def on_ok(self):
+        # Docs-knappen viser antallet (colVhpOperations.FileCount). Raekken
+        # er hentet igen, foer on_ok koerer, saa den har de gemte filer.
+        res = self.row_var + "Saved"
+        return (f"UpdateIf(colVhpOperations, SpId = {res}.ID, "
+                f"{{ FileCount: CountRows({self.row_var}.Attachments) }});")
+
 
 PANE = VhPlanPane()
