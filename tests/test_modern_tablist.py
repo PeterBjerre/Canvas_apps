@@ -32,17 +32,13 @@ TABS = {
         "tabVhpOps": ("varVhpOpsTab", {"ops": ("Operations",),
                                        "pkg": ("Maintenance packages", "Packages")}),
     },
-    "ScreenMdHub.pa.yaml": {
-        "tabMdFltView": ("varMdView", {"mine": ("My requests", "Mine"),
-                                       "queue": ("All requests", "All")}),
-        "tabMdViewM": ("varMdView", {"mine": ("My",), "queue": ("All",)}),
-    },
 }
+# Issue #371: hubbens My requests | All requests er igen en segmenteret
+# skinne som Open/Closed/All (tests/test_hub_all_requests.py).
 # De knapper, fanerne afloeser.
 GONE = ("btnIbScopeAll", "btnIbScopeMine", "btnIbScopeAssigned", "btnIbStateOpen",
         "btnIbStateClosed", "btnIbStateArchived", "conIbScope:", "conIbState:",
-        "btnVhpTabOps", "btnVhpTabPkg", "conVhpOpsTabBar",
-        "conMdFltView", "btnMdViewMineM", "btnMdViewAllM")
+        "btnVhpTabOps", "btnVhpTabPkg", "conVhpOpsTabBar")
 
 
 def _read(screen):
@@ -91,7 +87,7 @@ def test_every_tab_row_is_a_modern_tab_list_on_the_same_variable():
                         "FontColor", "BorderRadius", "Text", "OnSelect"):
                 assert _prop(b, bad) is None, (name, bad)
             total += 1
-    assert total == 5
+    assert total == 3
 
 
 def test_old_tab_buttons_are_gone():
@@ -111,14 +107,6 @@ def test_packages_tab_only_on_a_strategy_plan():
     b = _block(_read("ScreenVhPlan.pa.yaml"), "tabVhpOps")
     assert "PlanType = \"Strategy\"" in _prop(b, "Visible")
     assert "PlanType = \"Strategy\"" in _prop(b, "Items")
-
-
-def test_hub_tabs_still_clear_the_domain_and_refresh():
-    text = _read("ScreenMdHub.pa.yaml")
-    for name in ("tabMdFltView", "tabMdViewM"):
-        change = _prop(_block(text, name), "OnChange")
-        assert 'Set(varMdDomain, "")' in change, name
-        assert "ClearCollect(colMdScope" in change and "SaveData(colAppPrefs" in change, name
 
 
 def test_fl_class_tabs_are_kept_as_a_gallery():
