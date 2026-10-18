@@ -239,8 +239,14 @@ Learn ikke dokumenterer for typen (fx `TabIndex`, `Fill`, `Tooltip`).
 | IB | `conIbScope` (`btnIbScopeAll/Mine/Assigned`) | `tabIbScope` – All issues · My issues · Assigned to me (kun admin); smalt: All · Mine · Assigned | `varIbScope` = all/mine/assigned |
 | IB | `conIbState` (`btnIbStateOpen/Closed/Archived`) | `tabIbState` – Open · Closed · Archived | `varIbState` = open/closed/archived |
 | VHP | `conVhpOpsTabBar` (`btnVhpTabOps/Pkg`) | `tabVhpOps` – Operations · Maintenance packages (smalt: Packages); kun på en strategiplan | `varVhpOpsTab` = ops/pkg |
-| Hub | `conMdFltView` (`conMdFltViewMine/Dept`) | `tabMdFltView` – My requests · All requests (kort trin: Mine · All) | `varMdView` = mine/queue |
-| Hub (telefon) | `btnMdViewMineM`, `btnMdViewAllM` | `tabMdViewM` – My · All | `varMdView` = mine/queue |
+| Hub | `conMdFltView` (`conMdFltViewMine/Dept`) | ~~`tabMdFltView`~~ – rullet tilbage i #371, se nedenfor | `varMdView` = mine/queue |
+| Hub (telefon) | `btnMdViewMineM`, `btnMdViewAllM` | ~~`tabMdViewM`~~ – rullet tilbage i #371, se nedenfor | `varMdView` = mine/queue |
+
+**Hubbens My requests · All requests (#371):** igen en segmenteret skinne,
+den samme `build_helpers.segmented` som Open · Closed · All ved siden af
+(`conMdFltView` med `conMdFltViewMine/All`; på telefonen `conMdViewM` med
+`conMdViewMMine/All`, "My" · "All" uden flueben). Fanerne var for
+anonyme ved siden af statusskinnen. Variablen og genindlæsningen er uændrede.
 
 Tooltips pr. knap ("Show the issues you reported" osv.) er væk: Tab list
 har ingen `Tooltip` og kun én `AccessibleLabel` for hele rækken. Fanernes

@@ -22,7 +22,7 @@ import layout_tokens as lay
 from build_helpers import (_sum_expr, row_rule, row_hit, text_input, text_ctrl, group, button, card, flow_row, top_bar,
                            fit_button_width, text_px, ICON_W, grow, themed_dropdown, icon_on_mobile,
                            confirm_modal, new_request_label, empty_state, skeleton_rows, ensure_hit, segmented,
-                           tab_list, tabs_w)
+                           SEG_GAP, SEG_PAD)
 from hub_config import LIST, COL_NO, DOMAINS, STATUS, STATUS_ICON, APP_TARGET
 from design_tokens import theme_query, ref_hex, ref as _t
 import design_tokens as tok
@@ -496,19 +496,30 @@ def build_bar():
 
 
 def _view_switch():
-    """Mobile: My | All i topbjaelken. Fra Tablet er vaelgeren fanerne i
-    build_filters (tabMdFltView).
+    """Mobile: My | All i topbjaelken. Fra Tablet er vaelgeren skinnen i
+    build_filters (conMdFltView).
 
-    Issue #303: faner (build_helpers.tab_list) i stedet for to knapper -
-    samme variabel og vaerdier (varMdView = "mine"/"queue"), og et skift
-    rydder domaenet, genindlaeser og gemmer filtrene som foer."""
+    Issue #371: den samme segmenterede skinne (build_helpers.segmented) som
+    Open/Closed/All og desktoppens My requests | All requests - i dens korte
+    form: 12 pt og uden flueben, saa den passer i topbjaelken. Samme
+    variabel og vaerdier (varMdView = "mine"/"queue"), og et klik rydder
+    domaenet, genindlaeser og gemmer filtrene som foer."""
     size = 12
-    tabs = (("mine", "My"), ("queue", "All"))
-    t = tab_list("tabMdViewM", "varMdView", [(k, f'"{s}"') for k, s in tabs],
-                 label="View my requests or all requests",
-                 width=tabs_w([s for _k, s in tabs], size), size=size,
-                 tail='Set(varMdDomain, "");\n' + SCOPE_REFRESH + ";\n" + SAVE_HUB,
-                 visible=below("Tablet"))
+    t = segmented(
+        "conMdViewM",
+        [(sfx, txt, f'varMdView = "{key}"',
+          f'Set(varMdView, "{key}"); Set(varMdDomain, "");\n' + SCOPE_REFRESH + ";\n" + SAVE_HUB,
+          None)
+         for sfx, txt, key in (("Mine", "My", "mine"), ("All", "All", "queue"))],
+        label="View requests", fit=True)
+    for b in t.children:
+        w = text_px(b.props["Text"].strip('"'), size) + 20
+        b.props["Width"] = b.props["LayoutMinWidth"] = str(w)
+        b.props["Size"] = str(size)
+        b.props["Layout"] = "ButtonLayout.TextOnly"
+    t.props["Width"] = str(sum(int(b.props["Width"]) for b in t.children) + SEG_GAP + 2 * SEG_PAD)
+    t.props["AlignInContainer"] = "AlignInContainer.Center"
+    t.vis = below("Tablet")
     return [t]
 
 MENU_W = 290
@@ -896,28 +907,28 @@ def build_filters():
               '"Show closed requests - the (i) button lists the latest"'),
              ("All", "All", "all", None))],
         label="Status", fit=True)
-    # Issue #303: My requests | All requests er faner (build_helpers.tab_list)
-    # - samme variabel og vaerdier (varMdView = "mine"/"queue"), og et skift
-    # rydder stadig domaenet, genindlaeser og gemmer filtrene. Den korte
-    # tekst ("Mine" | "All") vaelges med is_short, som foerst kendes nedenfor
-    # (VIEW_SHORT erstattes dér).
+    # Issue #371: My requests | All requests er igen en segmenteret skinne -
+    # den SAMME build_helpers.segmented som Open/Closed/All ved siden af, saa
+    # de to vaelgere ser ens ud og krymper ens (fuld 13 pt med flueben,
+    # kompakt 12 pt, kort 12 pt uden flueben og "Mine" | "All"). Pladsen i
+    # raekken er uaendret (til hoejre, foer antallet). Samme variabel og
+    # vaerdier (varMdView = "mine"/"queue"): et klik rydder domaenet,
+    # genindlaeser og gemmer filtrene som foer (issue #303's faner).
     # Issue #276: "Department" hedder "All requests" (kun teksten; vaerdien
     # er stadig "queue"), og den korte form er "All".
-    view_tabs = (("mine", "My requests", "Mine"), ("queue", "All requests", "All"))
-    view_track = tab_list(
-        "tabMdFltView", "varMdView",
-        [(key, f'If(VIEW_SHORT, "{short}", "{txt}")') for key, txt, short in view_tabs],
-        label="View requests", width=0, tail='Set(varMdDomain, "")' + tail)
-    view_track.props["AlignInContainer"] = "AlignInContainer.Center"
-    _FLT_LV[view_track.name] = {
-        k: (tabs_w([s if k == "short" else t for _k, t, s in view_tabs], FLT_SIZE[k]), None, None)
-        for k in FLT_LEVELS}
-    # Skinnen krymper med de andre knapper: fuld (13 pt, flueben), kompakt
+    view_track = segmented(
+        "conMdFltView",
+        [(sfx, txt, f'varMdView = "{key}"',
+          f'Set(varMdView, "{key}"); Set(varMdDomain, "")' + tail, None)
+         for sfx, txt, key in (("Mine", "My requests", "mine"),
+                               ("All", "All requests", "queue"))],
+        label="View requests", fit=True)
+    # Skinnerne krymper med de andre knapper: fuld (13 pt, flueben), kompakt
     # (12 pt) og kort (12 pt uden flueben). Knapperne faar deres formler,
     # naar lvl() kendes (nedenfor).
-    seg_short = {}
+    seg_short = {"My requests": "Mine", "All requests": "All"}
     seg_w = {}                                   # knapnavn -> {trin: bredde}
-    for t in (status_track,):
+    for t in (status_track, view_track):
         per = {k: 0 for k in FLT_LEVELS}
         for b in t.children:
             txt = b.props["Text"].strip('"')
@@ -985,14 +996,9 @@ def build_filters():
             c.props["Size"] = lvl(*(FLT_SIZE[k] for k in FLT_LEVELS))
         if c.name in _FLT_TIP:
             c.props["Tooltip"] = f'If({is_short}, {_FLT_TIP[c.name]}, "")'
-    # Fanerne: kort tekst paa det korteste trin, og aldrig smallere end
-    # deres tekst (de ruller ikke).
-    for k in ("Items", "Default"):
-        view_track.props[k] = view_track.props[k].replace("VIEW_SHORT", is_short)
-    view_track.props["LayoutMinWidth"] = view_track.props["Width"]
     # Segmenterne foelger skinnen: smallere og 12 pt paa de smalle trin, og
     # uden flueben paa det korteste.
-    for t in (status_track,):
+    for t in (status_track, view_track):
         for b in t.children:
             ws = seg_w[b.name]
             w = lvl(*(ws[k] for k in FLT_LEVELS))
