@@ -315,6 +315,8 @@ def test_mail_only_goes_to_the_reporter_on_three_events():
     assert mails == ["Send_mail_to_reporter"]
     to = actions["Send_mail_to_reporter"]["inputs"]["parameters"]["emailMessage/To"]
     assert "ReporterEmail" in to
+    # R2-080: Created By foerst, ReporterEmail kun som reserve (raekker fra foer #193).
+    assert "outputs('Ticket')?['Author']?['Email'], outputs('Ticket')?['ReporterEmail']" in to
     setters = [n for n, a in actions.items()
                if a.get("type") == "SetVariable" and a["inputs"]["name"] == "MailSubject"]
     assert sorted(setters) == ["Reply_subject", "Status_subject"]
@@ -896,3 +898,21 @@ def test_comment_posting_is_shown_in_the_comment_area():
     # Svaret hoerer til den sag, kommentaren blev skrevet paa.
     assert "UpdateIf(colIbAll, Id = varIbPostFor" in post
     assert "varIbSelId = varIbPostFor" in post
+
+
+def test_reporter_is_decided_on_created_by():
+    """R2-080: rapportoeren afgoeres paa Created By (Author), ikke paa den
+    klient-skrevne ReporterEmail, som brugeren selv kan rette i listen."""
+    import wdl_eval
+    actions = dict(_walk(_flow()["properties"]["definition"]["actions"]))
+    rule = "coalesce(outputs('Ticket')?['Author']?['Email'], outputs('Ticket')?['ReporterEmail'], '')"
+    assert rule in actions["Is_reporter"]["inputs"]
+    assert "ReporterEmail'], '')" not in json.dumps(actions).replace(rule, "")
+    for ticket, caller, expected in (
+            ({"Author": {"Email": "A@x.test"}, "ReporterEmail": "b@x.test"}, "a@x.test", True),
+            ({"Author": {"Email": "A@x.test"}, "ReporterEmail": "b@x.test"}, "b@x.test", False),
+            ({"ReporterEmail": "B@x.test"}, "b@x.test", True)):
+        acts = {"Ticket": {"type": "Compose", "inputs": ticket},
+                "Caller": {"type": "Compose", "inputs": caller},
+                "Is_reporter": actions["Is_reporter"]}
+        assert wdl_eval.run(acts, list(acts), {}, {}).outputs["Is_reporter"] is expected

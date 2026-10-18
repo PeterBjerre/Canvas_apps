@@ -352,7 +352,7 @@
                     "operationMetadataId": "fcca633a-a608-5fb6-bffc-b57e5685f790"
                   },
                   "type": "Compose",
-                  "inputs": "@equals(toLower(coalesce(outputs('Ticket')?['ReporterEmail'], '')), outputs('Caller'))"
+                  "inputs": "@equals(toLower(coalesce(outputs('Ticket')?['Author']?['Email'], outputs('Ticket')?['ReporterEmail'], '')), outputs('Caller'))"
                 },
                 "Current_status": {
                   "runAfter": {
@@ -1623,7 +1623,7 @@
                         "Accept": "application/json;odata=nometadata",
                         "Content-Type": "application/json;odata=nometadata"
                       },
-                      "parameters/body": "{\"logonName\": \"i:0#.f|membership|@{toLower(coalesce(outputs('Ticket')?['ReporterEmail'], ''))}\"}"
+                      "parameters/body": "{\"logonName\": \"i:0#.f|membership|@{toLower(coalesce(outputs('Ticket')?['Author']?['Email'], outputs('Ticket')?['ReporterEmail'], ''))}\"}"
                     },
                     "authentication": "@parameters('$authentication')"
                   }
@@ -2000,7 +2000,7 @@
                       "operationId": "SendEmailV2"
                     },
                     "parameters": {
-                      "emailMessage/To": "@{toLower(coalesce(outputs('Ticket')?['ReporterEmail'], ''))}",
+                      "emailMessage/To": "@{toLower(coalesce(outputs('Ticket')?['Author']?['Email'], outputs('Ticket')?['ReporterEmail'], ''))}",
                       "emailMessage/Subject": "@{variables('MailSubject')}",
                       "emailMessage/Body": "<div style=\"font-family: Segoe UI, Arial, sans-serif; font-size: 14px\">@{variables('MailBody')}</div>",
                       "emailMessage/Importance": "Normal"
