@@ -2071,6 +2071,24 @@ ICON_PROPS = {
 }
 
 
+TABLIST_CONTROL = "ModernTabList@1.0.0"
+# Fanernes egenskaber efter Microsoft Learn ("Tab List modern control in
+# canvas apps", den opdaterede version). Ingen TabIndex, Fill,
+# BasePaletteColor eller Tooltip - og ingen af de gamle Font*-navne
+# (FontColor, FontSize, ...) eller BorderRadius.
+TABLIST_PROPS = {
+    "AccessibleLabel", "Align", "Alignment", "Appearance", "BorderColor", "BorderStyle",
+    "BorderThickness", "Color", "ContentLanguage", "Default", "DisplayMode", "Font",
+    "FontWeight", "Height", "Italic", "Items", "OnChange", "OnSelect", "PaddingBottom",
+    "PaddingLeft", "PaddingRight", "PaddingTop", "RadiusBottomLeft", "RadiusBottomRight",
+    "RadiusTopLeft", "RadiusTopRight", "Size", "Strikethrough", "Underline", "Visible",
+    "Width", "X", "Y",
+    # Containerens egne egenskaber paa ethvert barn.
+    "AlignInContainer", "FillPortions", "LayoutMinHeight", "LayoutMinWidth",
+    "LayoutMaxHeight", "LayoutMaxWidth",
+}
+
+
 SPINNER_CONTROL = "ModernSpinner@1.1.0"
 # Spinnerens egenskaber efter Microsoft Learn (den opdaterede Spinner,
 # "Spinner modern control in canvas apps"). Ingen SpinnerSize, Fill eller
@@ -2117,6 +2135,24 @@ def rule_16i(ctx):
                                 f"ikoner er ikke en del af #306")
         if not str(props.get("Icon", "")).strip().lstrip("="):
             ctx.problems.append(f"[16i] {name}: ModernIcon uden Icon")
+
+
+def rule_16t(ctx):
+    """Faner er ModernTabList@1.0.0 med Learns egenskaber (issue #303)"""
+    # Alle faner kommer fra build_helpers.tab_list. Versionen er den, Learns
+    # YAML-eksempel skriver; en anden er ikke afproevet (jf. regel 16b og
+    # issue #165). En udokumenteret egenskab giver "Unknown property" i
+    # compile - foerst efter en hel runde gennem Studio.
+    for p_, name, body in ctx.all_nodes:
+        ctl = (body.get("Control") or "").strip()
+        if ctl.split("@")[0] != "ModernTabList":
+            continue
+        if ctl != TABLIST_CONTROL:
+            ctx.problems.append(f"[16t] {name}: {ctl} - faner er {TABLIST_CONTROL} "
+                                f"fra build_helpers.tab_list")
+        for key in sorted(set(body.get("Properties") or {}) - TABLIST_PROPS):
+            ctx.problems.append(f"[16t] {name}: {ctl} - '{key}' er ikke en "
+                                f"dokumenteret Tab list-egenskab")
 
 
 # Et animeret SVG-hjul er en DREJNING: CSS (spinner_svg: rotate(360deg))
@@ -2240,7 +2276,8 @@ def rule_33(ctx):
               "ModernDatePicker": "dte", "Classic/DropDown": "drp",
               "ModernCombobox": "cmb", "ModernCheckbox": "chk",
               "ModernToggle": "tgl", "ModernAttachments": "att",
-              "ModernProgressBar": "prg", "ModernBadge": "bdg", "ModernSpinner": "spn"}
+              "ModernTabList": "tab", "ModernProgressBar": "prg", "ModernBadge": "bdg",
+              "ModernSpinner": "spn"}
     for p_, name, body in all_nodes:
         want = PREFIX.get((body.get("Control") or "").strip().split("@")[0])
         if want and not re.match(want + r"[A-Z]", name):
@@ -2515,8 +2552,8 @@ def rule_38(ctx):
     # 10), og GroupContainer, Timer og HtmlViewer meldes ikke.
     kinds = ("Image", "Rectangle", "ModernText", "ModernButton", "ModernTextInput",
              "ModernNumberInput", "ModernDropdown", "ModernCombobox", "ModernCheckbox",
-             "ModernDatePicker", "ModernToggle", "ModernAttachments", "ModernSpinner",
-             "ModernProgressBar", "ModernBadge", "Gallery")
+             "ModernDatePicker", "ModernToggle", "ModernAttachments", "ModernTabList",
+             "ModernSpinner", "ModernProgressBar", "ModernBadge", "Gallery")
     for _p, name, body in ctx.all_nodes:
         ctl = (body.get("Control") or "").strip().split("@")[0]
         if ctl not in kinds:
@@ -2688,6 +2725,7 @@ RULES = [
     Rule('22', 'Concurrent med en indbyrdes afhaengighed', rule_22),
     Rule('16', 'Ingen Classic/DropDown', rule_16),
     Rule('16b', 'Kun ModernAttachments@1.3.0 til filer (issue #161)', rule_16b),
+    Rule('16t', 'Faner er ModernTabList@1.0.0 med Learns egenskaber (issue #303)', rule_16t),
     Rule('16c', 'Hjul er ModernSpinner@1.1.0 - aldrig et animeret billede (issue #302)', rule_16c),
     Rule('16f', 'Gem/upload-bjaelken er ModernProgressBar@1.0.0, ubestemt (issue #305)', rule_16f),
     Rule('16k', 'Knapper er ModernButton - Classic/Button kun som gennemsigtigt klik-lag (issue #307)', rule_16k),

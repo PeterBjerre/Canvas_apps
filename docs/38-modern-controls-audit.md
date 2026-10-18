@@ -12,6 +12,7 @@ Undtagelser, som Peter har godkendt bagefter: ModernAttachments@1.3.0,
 ModernSpinner@1.1.0 (#302), ModernProgressBar@1.0.0 (#305) og
 ModernIcon@1.1.0 (#306) — se "byttet" nederst i oversigten — samt
 ModernBadge@1.0.0 (#304, #161 delt i #302–#307) — se "Mærker" nedenfor.
+Desuden ModernTabList@1.0.0 (#303), se *Faner*.
 
 ## Hvad er ændret
 
@@ -219,6 +220,41 @@ anderledes ud end vores 1,8 px-streg.
 | Fejlikonet i "Opening request" `img*LoadIcon` | 5 | Hører til ventekortet, som #302 (ModernSpinner) byggede om: hjulet blev `spn…LoadIcon`, fejl-(!) blev et billede. Ikke rørt af #306. Kan byttes til `ErrorCircle` senere. |
 | `imgFlClsBlock`, `imgMdRowActionsZone` | 2 | Ikke ikoner: tom trykflade/hover-zone. |
 
+### Faner — byttet til ModernTabList@1.0.0 (#303)
+
+Alle faner bygges af `build_helpers.tab_list`. Fanerne læser og sætter den
+**samme variabel** som de knapper, de afløser: `Default` er teksten for
+variablens værdi, og `OnChange` oversætter den valgte tekst tilbage og
+sætter variablen kun, når den faktisk skifter. Filtrering, ruder og
+genindlæsning læser variablen som før. `Appearance` er
+`TabListAppearance.Underline` (stregen under den valgte fane – ikke kun en
+farve), `Color` er `text-primary` (læsbar i lys og mørk tilstand). Fanerne
+ruller ikke (Learn), så hver række har en kort tekst, når kortet er for
+smalt til de lange. Regel 16t afviser en anden version og enhver egenskab,
+Learn ikke dokumenterer for typen (fx `TabIndex`, `Fill`, `Tooltip`).
+
+| Skærm | Før | Efter | Variabel (uændret) |
+|---|---|---|---|
+| IB | `conIbScope` (`btnIbScopeAll/Mine/Assigned`) | `tabIbScope` – All issues · My issues · Assigned to me (kun admin); smalt: All · Mine · Assigned | `varIbScope` = all/mine/assigned |
+| IB | `conIbState` (`btnIbStateOpen/Closed/Archived`) | `tabIbState` – Open · Closed · Archived | `varIbState` = open/closed/archived |
+| VHP | `conVhpOpsTabBar` (`btnVhpTabOps/Pkg`) | `tabVhpOps` – Operations · Maintenance packages (smalt: Packages); kun på en strategiplan | `varVhpOpsTab` = ops/pkg |
+| Hub | `conMdFltView` (`conMdFltViewMine/Dept`) | `tabMdFltView` – My requests · All requests (kort trin: Mine · All) | `varMdView` = mine/queue |
+| Hub (telefon) | `btnMdViewMineM`, `btnMdViewAllM` | `tabMdViewM` – My · All | `varMdView` = mine/queue |
+
+Tooltips pr. knap ("Show the issues you reported" osv.) er væk: Tab list
+har ingen `Tooltip` og kun én `AccessibleLabel` for hele rækken. Fanernes
+tekst siger det samme.
+
+**Bevidst beholdt** (fanerækker, der ikke kan byttes sikkert):
+
+| Skærm | Kontrol | Grund |
+|---|---|---|
+| FL | `galFlTabs` (klassefaner, Gallery med `btnFlTab`) | Hver fane har klassens hjælpetekst som tooltip (FL65) – Tab list har ingen `Tooltip`. Antallet af klasser er ubegrænset, og Tab list ruller ikke; galleriet ruller vandret. Teksten har tælleren ("ALL (12)"), som ville ændre `Items` ved hver validering. Kræver en Tab list med tooltip og rulning – eller at hjælpeteksten vises et andet sted. |
+| Hub | `conMdFltStatus` (Open · Closed · All) | Ikke nævnt i #303. "Closed" har sin egen tooltip, der peger på (i)-knappen ved siden af; Tab list har ingen tooltip. Kan byttes, hvis tooltippen må gå. |
+| IB (sagens popup) | `conIbDetTabs` (`btnIbTabDetails/Activity/Files`) | Ikke nævnt i #303. Tæller i fanens tekst og en fane kun for rapportør/admin – Tab list kan det (som `tabIbScope`), men "Attachments" henter filerne ved klik og hører under dokumentarbejdet (#300/#323). Næste kandidat. |
+| Material/Eq/MP | `conDomEditorTabs` (Details · Objects · Documents) | Ikke nævnt i #303. "Documents" åbner dokumentruden, som bygges om i #323. |
+| Material/Eq/MP, VHP | `conDom*Seg`, `conVhpItemRevisionSeg`, `conVhpItemNonFlowSeg` | Ikke faner, men feltværdier (Yes/No, None/ZBOW) i en formular. Kandidat til ModernRadio/ModernToggle, ikke Tab list. |
+
 ### Gem og upload — byttet til ModernProgressBar@1.0.0 (#305)
 
 Gem-, send- og uploadsløret viste det samme hjul som indlæsningen (til
@@ -257,12 +293,15 @@ Bevidst **ikke** byttet:
 ## Versioner og egenskaber
 
 - Kun `ModernAttachments@1.3.0`, `ModernSpinner@1.1.0`, `ModernIcon@1.1.0`
-  (#306, Learns YAML-eksempler), `ModernProgressBar@1.0.0` (#305) og
-  `ModernBadge@1.0.0` (#304) har en
+  (#306, Learns YAML-eksempler), `ModernProgressBar@1.0.0` (#305),
+  `ModernBadge@1.0.0` (#304) og `ModernTabList@1.0.0` (#303) har en
   eksplicit version i YAML'en (indtil #161 var det `Attachments@2.3.0`).
   Badge-versionen er den, Learns YAML-eksempel skriver; den er ikke set i
   Peters Studio endnu. De øvrige moderne kontroller står uden `@`-version
   (Studio vælger sin egen).
+- `ModernTabList@1.0.0` (#303) er versionen i Microsoft Learns
+  YAML-eksempel for den opdaterede Tab list (med `Appearance`, `Default`,
+  `Alignment`, `Color`/`Size`). Den er ikke set i Peters Studio endnu.
 - Ingen af de omdøbte/fjernede egenskaber fra Microsoft Learn's
   *Recent updates to modern controls* findes i appen: ingen `FontColor`,
   `FontSize`, `FontItalic`, `BorderRadius`, `Weight`, `AcceptsFocus` eller
@@ -282,7 +321,6 @@ Modern controls**, at typen findes og deployer, før den tages i brug.
 
 | Kontrol | Kunne erstatte | Bemærkning |
 |---|---|---|
-| ModernTabList | faner (`galFlTabs`, VHP's ops/pkg-knapper, IB's scope/state) | |
 | ModernLink | evt. links, der i dag er knapper | |
 | ModernToggle, ModernRadio | par af Primary/Outline-knapper som vælgere | |
 | ModernTable (preview) | simple læselister | Preview: ikke til kritiske lister. |
@@ -290,8 +328,8 @@ Modern controls**, at typen findes og deployer, før den tages i brug.
 ## Resterende arbejde
 
 1. Peter bekræfter, hvilke kandidater hans Studio kender.
-2. Derefter, én type ad gangen: ~~spinnere → ModernSpinner~~ (#302), faner →
-   ModernTabList (`btn*FbSubject` → ModernButton er gjort i #307).
+2. Derefter, én type ad gangen: ~~spinnere → ModernSpinner~~ (#302), ~~faner →
+   ModernTabList~~ (#303) og ~~`btn*FbSubject` → ModernButton~~ (#307).
 3. Rækkelag, sidebar, slør, Gallery, Timer og HtmlViewer bliver, til
    Microsoft giver ModernButton en styrbar flade eller en moderne
    erstatning går GA.
