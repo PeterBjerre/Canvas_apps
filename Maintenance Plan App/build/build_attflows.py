@@ -37,8 +37,12 @@ class VhPlanPane(attflows.Pane):
         """Docs-knappen: aabn popuppen for operationen og hent dens raekke
         i TaskListMain (LookUp paa SpId). En ny operation har SpId 0 -
         saa er raekken Blank, og ruden siger, at planen skal gemmes."""
+        # Antallet paa Docs-knappen kan ikke hentes med operationen (#336);
+        # det skrives her, naar raekken alligevel er hentet.
         return (f"Set(varVhpAttOpNo, {op_no});\n"
-                + self.load_fx(f"{ACTIVE_OP}.SpId"))
+                + self.load_fx(f"{ACTIVE_OP}.SpId") + ";\n"
+                + f"If(!IsBlank({self.row_var}), UpdateIf(colVhpOperations, SpId = {self.row_var}.ID, "
+                  f"{{ FileCount: CountRows({self.row_var}.Attachments) }}))")
 
     def on_ok(self):
         # Docs-knappen viser antallet (colVhpOperations.FileCount). Raekken
