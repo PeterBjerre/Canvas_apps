@@ -384,17 +384,24 @@ def duplicate_fx():
         # samlingen beholder listens typer (valg er stadig poster).
         "        " + SESSION_FX + ";\n"
         f"        ClearCollect(colDomDupSrc, Filter({cfg.L_ROWS}, RequestGuid = varDomRequestGuid));\n"
-        "        ForAll(\n"
-        "            colDomDupSrc As R,\n"
-        "            With(\n"
-        "                { n: Patch(\n"
-        f"                    {cfg.L_ROWS}, Defaults({cfg.L_ROWS}), {{\n"
+        # Een Patch med tabeller opretter alle kopierne, en til giver dem
+        # RowId, ItemKey og mappe ud fra de nye ID'er - ingen skrivning
+        # inde i ForAll (regel 15, issue #342).
+        "        With(\n"
+        "            { created: Patch(\n"
+        f"                {cfg.L_ROWS},\n"
+        f"                ForAll(colDomDupSrc, Defaults({cfg.L_ROWS})),\n"
+        "                ForAll(colDomDupSrc As R, {\n"
         + "\n".join(copy) + "\n"
         '                    RowStatus: { Value: If(R.RowStatus.Value = "submitted", "valid", Coalesce(R.RowStatus.Value, "valid")) },\n'
         '                    RequestGuid: "", RequestNo: "",\n'
         "                    RequesterEmail: varDomMe, RequesterName: User().FullName\n"
-        "                }) },\n"
-        f"                Patch({cfg.L_ROWS}, n, {{ RowId: n.ID, ItemKey: {key},\n"
+        "                })\n"
+        "            ) },\n"
+        "            Patch(\n"
+        f"                {cfg.L_ROWS},\n"
+        "                ForAll(created As n, { ID: n.ID }),\n"
+        f"                ForAll(created As n, {{ RowId: n.ID, ItemKey: {key},\n"
         f'                    AttachmentFolder: "{attflows.LIBRARY}/" & {key} }})\n'
         "            )\n"
         "        );\n"
@@ -2673,11 +2680,12 @@ def _paste_add_fx():
     key = f'"{cfg.PREFIX}-" & Text(n.ID, "000000")'
     return (
         "IfError(\n"
-        "    ForAll(\n"
-        "        Filter(colDomPaste, Ok) As P,\n"
-        "        With(\n"
-        "            { n: Patch(\n"
-        f"                {cfg.L_ROWS}, Defaults({cfg.L_ROWS}), {{\n"
+        # Samlet skrivning, som ved Duplicate (regel 15, issue #342).
+        "    With(\n"
+        "        { created: Patch(\n"
+        f"            {cfg.L_ROWS},\n"
+        f"            ForAll(Filter(colDomPaste, Ok), Defaults({cfg.L_ROWS})),\n"
+        "            ForAll(Filter(colDomPaste, Ok) As P, {\n"
         + "\n".join(copy) + "\n"
         '                    RowStatus: { Value: "draft" },\n'
         # Ogsaa ejerens raekker hoerer til den aabne anmodning (R2-002).
@@ -2685,8 +2693,12 @@ def _paste_add_fx():
         '                    RequestNo: Coalesce(varDomRequestNo, ""),\n'
         f"                    RequesterEmail: If({AS_ADMIN}, Lower(varDomIdx.RequesterEmail), varDomMe),\n"
         f"                    RequesterName: If({AS_ADMIN}, varDomIdx.RequesterName, User().FullName)\n"
-        "                }) },\n"
-        f"            Patch({cfg.L_ROWS}, n, {{ RowId: n.ID, ItemKey: {key},\n"
+        "            })\n"
+        "        ) },\n"
+        "        Patch(\n"
+        f"            {cfg.L_ROWS},\n"
+        "            ForAll(created As n, { ID: n.ID }),\n"
+        f"            ForAll(created As n, {{ RowId: n.ID, ItemKey: {key},\n"
         f'                AttachmentFolder: "{attflows.LIBRARY}/" & {key} }})\n'
         "        )\n"
         "    );\n"
