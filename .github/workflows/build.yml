@@ -2,9 +2,17 @@
 # det, builderne laver. Samme kommando som lokalt: python3 tools/build_all.py
 name: build
 
+# push kun paa main: et push til en PR-gren koeres af pull_request, saa det
+# ikke koerer to gange (R2-090). Et nyt push annullerer den forrige koersel
+# paa samme gren.
 on:
   push:
+    branches: [main]
   pull_request:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:

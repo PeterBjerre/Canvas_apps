@@ -27,6 +27,19 @@ def _read(*parts):
 
 
 # ---------------------------------------------------------------------------
+# R2-090: een koersel pr. PR-push, og et nyt push annullerer det gamle.
+# ---------------------------------------------------------------------------
+def test_build_workflow_runs_once_per_push():
+    wf = yaml.safe_load(_read(".github", "workflows", "build.yml"))
+    on = wf.get("on", wf.get(True))
+    assert on["push"] == {"branches": ["main"]}
+    assert "pull_request" in on
+    assert wf["concurrency"]["cancel-in-progress"] is True
+    assert "github.ref" in wf["concurrency"]["group"]
+    assert list(wf["jobs"]) == ["build"]
+
+
+# ---------------------------------------------------------------------------
 # R2-091: unpack_msapp skriver aldrig uden for <navn>.src.
 # ---------------------------------------------------------------------------
 def test_unpack_msapp_rejects_paths_outside_the_folder(tmp_path):
