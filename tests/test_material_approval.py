@@ -421,6 +421,19 @@ def test_a_requested_row_is_not_a_decision():
     assert 'Decision <> "Requested"' in apf.open_fx()
 
 
+def test_a_timeout_row_is_not_a_decision():
+    # R2-031: VH-flowene skriver "Timeout", naar ingen svarer i tide. Den
+    # nyeste raekke pr. item maa kun vaere et svar - ellers stod trinnet
+    # som "Approved" i striben efter en timeout.
+    assert "Timeout" not in apf.DECIDED and "Requested" not in apf.DECIDED
+    for stage in ("System", "Cost", "Quality"):
+        assert "Decision in " + apf.DECIDED_IN in apf.latest("L", stage), stage
+    assert "Decision in " + apf.DECIDED_IN in apf._vh_strip("ThisItem")
+    # Popuppens tidslinje viser den som "No answer", ikke "Returned".
+    rows = apf._decision_rows("T", "colMdAprLog", timeline=True)
+    assert '"Timeout", "Pending"' in rows and '"Timeout", "No answer"' in rows
+
+
 def test_the_plan_strip_is_unchanged():
     # Materials gren er lagt VED SIDEN AF VH-planens, ikke ind i den.
     vh = apf._vh_strip("ThisItem")

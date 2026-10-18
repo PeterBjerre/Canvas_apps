@@ -49,6 +49,22 @@ _STEP = {k: step for k, _label, step in STATUS}
 DRAFT = "Kladde"
 SUBMITTED = "Indsendt"
 
+# LUKNING I HUBBEN (R2-021). Kun VH-planen lukkes af et flow
+# (PlanPublished). For Equipment, Material, Measuring Point og FL markerer
+# en admin anmodningen som oprettet i SAP eller annulleret fra hubben
+# (close_record). "Afvist" bliver i STATUS: SharePoint-valget findes, og
+# der staar afviste raekker i listen, som hubben skal kunne vise - men
+# ingen skriver den (docs/32 §2 beslutning 4: godkendere sender kun retur).
+CREATED = "OprettetISAP"
+CANCELLED = "Annulleret"
+CLOSE_STATUSES = (CREATED, CANCELLED)
+# Fra hvilke statusser en admin maa lukke: indsendt og ikke en kladde.
+# Kladde og AfventerInfo slettes i stedet (permissions.ADMIN_STATUSES).
+CLOSABLE_FROM = ("Indsendt", "UnderBehandling", "KlarTilSAP")
+# VH-planen lukkes af sit SAP-flow og har sin egen plan-liste, som hubben
+# ikke retter - derfor ikke her.
+CLOSE_DOMAINS = ("FunctionalLocation", "Equipment", "MeasuringPoint", "Material")
+
 # "STUCK" (UX-review 2026-10): en anmodning staar fast, naar NOGEN ANDEN
 # skal handle og ingen har gjort det i STUCK_DAYS dage. Det er Indsendt,
 # UnderBehandling og AfventerInfo - ikke Kladde (brugerens egen) og ikke
@@ -127,7 +143,8 @@ def record(domain, app_key, status, *, request_no, guid, me, short_text,
         st,
         sstep,
         # Apperne skriver kun Kladde og Indsendt - begge er aabne. Flows,
-        # der lukker en anmodning, saetter IsOpen selv.
+        # der lukker en anmodning, saetter IsOpen selv; hubbens admin-
+        # lukning bruger close_record().
         "IsOpen: true",
         f"RequestGuid: {guid}",
         f"RequesterEmail: {owner or me}",
@@ -140,6 +157,25 @@ def record(domain, app_key, status, *, request_no, guid, me, short_text,
         fields.append(f"SourceItemId: {source_id}")
     fields += [
         f'AppUrl: "{url}?{DOMAIN_PARAM}={app_key}&reqid=" & {guid}',
+        "LastActionOn: Now()",
+        f"LastActionBy: {me}",
+    ]
+    pad = " " * indent
+    return "{\n" + ",\n".join(pad + "    " + f for f in fields) + "\n" + pad + "}"
+
+
+def close_record(status, me, indent=0):
+    """Feltet til Patch, naar en admin lukker en anmodning i hubben (R2-021):
+    Status og StatusStep (via step()), IsOpen = false og hvem/hvornaar.
+    status er Python-tekst: CREATED eller CANCELLED. me: Power Fx-udtryk
+    for brugerens e-mail."""
+    if status not in CLOSE_STATUSES:
+        raise KeyError("close_record: '%s' lukker ikke en anmodning. Kendte: %s"
+                       % (status, ", ".join(CLOSE_STATUSES)))
+    fields = [
+        f'Status: {{ Value: "{status}" }}',
+        f"StatusStep: {step(status)}",
+        "IsOpen: false",
         "LastActionOn: Now()",
         f"LastActionBy: {me}",
     ]

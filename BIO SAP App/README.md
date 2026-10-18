@@ -33,8 +33,8 @@ Antallet pr. skærm skrives ud af `build/check_combined.py` ved hvert build
 ## Hvorfor den ikke bliver langsom
 
 - **`App.OnStart` henter ingen data og kender intet domæne.** Den har kun
-  temaet og hubbens fire variabler, så appen starter omtrent som hubben i
-  dag.
+  temaet og samlingernes skemaer; hubbens filtre sætter skærmen selv
+  (R2-044), så appen starter omtrent som hubben i dag.
 - **Hvert domæne klargøres først, når dets skærm åbnes.** Den OnStart, et
   domæne havde som selvstændig app, kører i skærmens `OnVisible` første gang,
   skærmen vises. Kommer man tilbage, sker der ingenting.
@@ -42,7 +42,54 @@ Antallet pr. skærm skrives ud af `build/check_combined.py` ved hvert build
   først, når man går til den. VH-planen er én skærm som i dag. Den blev
   prøvet delt i to, men det er droppet.
 - **De navngivne formler** (opslagslister, FL-regler) evalueres dovent. Et
-  domæne, man ikke åbner, koster ingenting.
+  domæne, man ikke åbner, koster ingen datahentning – men teksten i
+  `App.Formulas` parses og bindes ved hver start. Se næste afsnit.
+
+### Måling: `App.Formulas` og opstartstiden (R2-047) – *Peters skridt*
+
+`App.Formulas` er ca. 255.000 tegn i 104 navngivne formler. 76 % er
+statiske tabeller, som kun FL-skærmen bruger, plus logoet som base64
+(målt med `combined.split_formulas` på den byggede `App.pa.yaml`):
+
+| Formel | Tegn | Kilde |
+|---|---:|---|
+| `colFlPlan` | 80.331 | `Functional Location App/build/` (`html/*.js`, docs/31) |
+| `colFlColumns` | 73.622 | samme |
+| `FlFunctionKeys` | 25.572 | samme |
+| `colFlLists` | 14.198 | samme |
+| `AppLogo` | 11.447 | `tools/side_nav.py` (base64-PNG) |
+
+Doven evaluering gælder værdien, ikke parsing og binding. Om det koster
+mærkbar tid, kan kun måles i Studio/Play – derfor er intet flyttet endnu.
+
+**Målingen (Peter):**
+
+1. Publicér den nuværende app. Åbn den i Play i et privat vindue med
+   Monitor (Studio → *Advanced tools → Monitor*) eller *Performance
+   insights*, og notér tiden fra start til hubbens første render
+   (`ScreenMdHub` `OnVisible` færdig / galleriet tegnet). Gentag 5 gange
+   (kold start) og tag medianen.
+2. Byg en midlertidig kopi uden de fire FL-formler og `AppLogo` (slet
+   dem i en kopi af `App.pa.yaml`, eller byg med `features` uden FL),
+   publicér den i et testmiljø, og mål på samme måde.
+3. Skriv begge medianer (ms) og forskellen her i README'en.
+
+**Plan, hvis forskellen er over 300 ms:** flyt `colFlPlan`,
+`colFlColumns`, `FlFunctionKeys` og `colFlLists` til en SharePoint-liste
+(`MD_FLRule`, seedet af byggeren fra `html/*.js` – samme mønster som
+`MD_KksFunctionKey`), og hent dem i FL-skærmens klargøring
+(`build_screens.build_functionallocation`, `mark_step` "Loading
+functional locations"). `AppLogo` lægges som medie i appen i stedet for
+base64 i en formel. Mål: `App.Formulas` under 60 KB, FL-reglerne
+efterprøvet mod `html/*.js` som i dag. Listen skal provisioneres, før
+appen bygges med den.
+
+**Under 300 ms:** intet flyttes; målingen noteres her, så spørgsmålet
+ikke tages op igen.
+
+| Dato | Med FL-formler (ms) | Uden (ms) | Forskel | Beslutning |
+|---|---:|---:|---:|---|
+| – | – | – | – | afventer måling |
 
 ## Hvad der er anderledes end i de fem apps
 
@@ -101,24 +148,31 @@ fra en af de fem enkeltapps — skriver den `AppUrl` =
    `.github/skills/canvas-build/SKILL.md`, "Datakilder skal findes i appen
    først"). Det er foreningsmængden af de fem appers:
 
-   *SharePoint-lister (21):* `CallHorizonMatrix`, `EquipmentItems`,
-   `FunctionalLocationItems`, `FunctionalLocationRequests`, `MD_FLKey`,
-   `MD_HelpText`, `MD_KksFunctionKey`,
+   *SharePoint-lister (25):* `CallHorizonMatrix`, `EquipmentItems`,
+   `FunctionalLocationItems`, `FunctionalLocationRequests`, `MD_ApprovalLog`,
+   `MD_Approver`, `MD_FLKey`, `MD_HelpText`, `MD_KksFunctionKey`,
    `MD_RequestIndex`, `MD_StandardTaskOperations`, `MD_Strategy`,
    `MD_StrategyPackage`, `MD_TasklistAttachment`, `MD_TasklistMaterial`,
    `MainWorkCenters`, `MaintenanceActivityTypeList`, `MaintenanceItems`,
    `MaintenancePlans`, `MaterialItems`, `PlantList`, `SortFieldList`,
-   `TaskListMain`
+   `TaskListMain`, `UserAndGroups`, `VHP_NoteToSelf`
 
-   *Flows (4):* `BioSap-DeleteSubmittedAttachments`,
+   `UserAndGroups` (admins: `IsAdmin`, `tools/permissions.py`),
+   `MD_Approver`, `MD_ApprovalLog` og `VHP_NoteToSelf` er **faste**
+   datakilder: hubben, VH-planen, Equipment, Material og Measuring Point
+   bruger dem, uanset hvilke features der er slået til (R2-078).
+
+   *Flows (5):* `BioSap-DeleteSubmittedAttachments`,
    `BioSap-GetSubmittedAttachments`, `BioSap-Integration-FunctionalLocations`,
-   `BioSap-TaskListAttachment`
+   `BioSap-SendFeedbackMail`, `BioSap-TaskListAttachment`
+
+   *Kun med Measuring Point slået til (`features.measuring_point`):*
+   listerne `MeasuringPointItems` og `MD_MpCharacteristic`.
 
    *Kun med Issue Board slået til (issue #114):* listerne `IB_Tickets`,
    `IB_TicketComments`, `IB_AppSections` og flowet
-   `BioSap-IssueBoard-Submit` samt `UserAndGroups` (admins).
-   (`BioSap-IssueBoard-OnCreated` udløses af SharePoint og er ingen
-   datakilde.)
+   `BioSap-IssueBoard-Submit`. (`BioSap-IssueBoard-OnCreated` udløses af
+   SharePoint og er ingen datakilde.) Kun `IB_*` følger flaget.
 3. **Sæt app-id'et** under `biosap` i `tools/canvas_apps.json`. Det står i
    Studio-URL'en (`…%2Fapps%2F<app_id>`).
 4. **Deploy:**

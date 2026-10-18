@@ -102,7 +102,7 @@ Deploy til Studio (af brugeren):
   - Låste felter er `DisplayMode.View`, ikke Disabled.
   - Validering vises først ved Validate/Save/Submit.
   - Statusetiketter er på engelsk; de gemte værdier er uændrede (Kladde, Indsendt …).
-- **BIO SAP:** nye hub-variabler (`varMd*`) skal stå i `HUB_OWN` i `BIO SAP App/build/check_combined.py`.
+- **BIO SAP:** variabler og samlinger uden domænetag (fx `gbl*` delt af alle skærme) skal stå i `SHARED` i `BIO SAP App/build/check_combined.py`; hubbens `varMd*`/`colMd*` har tagget `Md` og kræver intet.
 
 ## Power Apps-begrænsninger, vi har ramt
 

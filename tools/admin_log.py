@@ -7,7 +7,7 @@ allerede viser (Masterdata Hub/build/approval_flow.timeline_fx). En
 admin-raekke har
 
     Stage           "Admin"
-    Decision        "AdminEdit" eller "AdminDelete"
+    Decision        "AdminEdit", "AdminDelete" eller "AdminClose"
     DecidedByEmail  adminens e-mail       (hvem)
     DecidedOn       Now()                 (hvornaar)
     Comment         "Felt: gammel -> ny; ..." (hvad - hele teksten)
@@ -22,12 +22,14 @@ hubbens strip (approval_flow.LOG_REFRESH) og godkendelsestrinene ser
 heller ikke raekken.
 
 En admin i sin EGEN anmodning er en almindelig aendring og logges ikke
-(tools/permissions.as_admin).
+(tools/permissions.as_admin). Undtagelse: "AdminClose" (R2-021) - kun en
+admin kan lukke en anmodning i hubben, saa lukningen logges altid.
 """
 LIST = "MD_ApprovalLog"
 STAGE = "Admin"
 EDIT = "AdminEdit"
 DELETE = "AdminDelete"
+CLOSE = "AdminClose"
 ARROW = "→"
 
 
@@ -83,6 +85,13 @@ def join(*parts):
     """Saml flere tekststykker med '; ' og spring de tomme over."""
     rows = ", ".join(f"{{ t: {p} }}" for p in parts)
     return f'Concat(Filter(Table({rows}), !IsBlank(t)), t, "; ")'
+
+
+def closed(old_status, new_status):
+    """'Status: <foer> -> Created in SAP' (eller Cancelled) - R2-021.
+    new_status er Python-tekst (request_index.CLOSE_STATUSES)."""
+    import display_text as dt
+    return f'"Status: " & {dt.status(old_status)} & " {ARROW} {dt.status_label(new_status)}"'
 
 
 def submitted(old_status):
