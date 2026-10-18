@@ -301,9 +301,9 @@ ligesom `BioSap-SiteUrl`, `BioSap-List-MaintenancePlans` og
 | Miljøvariabel | Værdi |
 |---|---|
 | `BioSap-EmailDomain` | `orsted.com` |
-| `BioSap-List-Approver`, `BioSap-List-ApprovalLog` | Listenavnene |
+| `MD_Approver`, `MD_ApprovalLog` (Data source-variabler `orsted_shared_sharepointonline_…`) | Listerne. De to String-variabler `BioSap-List-Approver`/`BioSap-List-ApprovalLog` bruges af ingen flows og kan slettes i miljøet (R2-033) |
 | `BioSap-MasterDataEmail` | `sapvedligehold@orsted.com` – Master Datas fælles postkasse (§7.4) |
-| `BioSap-PowerBI-WorkspaceId`, `BioSap-PowerBI-DatasetId` | Se §8. ObjectList-flowet har dem skrevet direkte ind; her bliver de variabler, så TEST og PROD kan pege et andet sted hen |
+| `BioSap-PowerBI-WorkspaceId`, `BioSap-PowerBI-DatasetId` | Se §8. Miljøvariabler (`orsted_BioSapPowerBIWorkspaceId`, `orsted_BioSapPowerBIDatasetId`) i de fire godkendelsesflows (VH System, Material System/ResolveApprovers, MP) siden R2-033, så TEST og PROD kan pege et andet sted hen. Værdien sættes i hvert miljø. ObjectList- og Vendor-flowene har dem stadig skrevet direkte ind |
 
 ## 7. Flowene
 
