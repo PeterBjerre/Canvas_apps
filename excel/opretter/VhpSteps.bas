@@ -227,7 +227,6 @@ End Function
 ' PM03: ydelsen fra modelydelsesspecifikationen, med timerne som maengde.
 Private Sub AddService(ByVal sess As Object, ByVal op As Object, ByVal rowIndex As Long, _
                        ByVal ctx As Object, ByVal what As String)
-    Dim vis As Long
     Dim svc As Object
     Dim serviceNo As String
     Dim found As Long
@@ -238,10 +237,14 @@ Private Sub AddService(ByVal sess As Object, ByVal op As Object, ByVal rowIndex 
     End If
     serviceNo = VhpUtil.JStr(svc, "serviceNo")
 
-    ' Knappen virker paa den linje, markoeren staar i.
-    vis = VisibleOperationRow(sess, rowIndex)
-    VhpSap.Focus sess, IA05_OP_TABLE & "/" & IA05_COL_SHORTTEXT & vis & "]"
-    VhpSap.Press sess, IA05_BTN_SERVICES
+    ' Enter paa en ny PM03-operation aabner selv ydelsesskaermen (SAPLMLSP).
+    ' Derfra hentes modelydelsesspecifikationen med knappen, som i det gamle
+    ' script. Operationstabellen findes ikke her, saa der roeres ikke ved den.
+    If Not VhpSap.Exists(sess, IA05_SRV_TABLE) Then
+        Err.Raise ERR_SAP, "VhpSteps", what & VhpUtil.Dk(": SAP aabnede ikke ydelsessk{ae}rmen efter Enter [") & _
+            VhpSap.ScreenInfo(sess) & "]. " & VhpSap.StatusText(sess)
+    End If
+    VhpSap.Press sess, IA05_SRV_MODELSPEC_BTN
     VhpSap.SetText sess, IA05_SRV_MODELSPEC, CStr(ctx("serviceSpec"))
     VhpSap.Press sess, IA05_SRV_MODELSPEC_OK
     VhpSap.FailOnError sess, what & VhpUtil.Dk(" (ydelser)")
