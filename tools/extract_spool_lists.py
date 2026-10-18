@@ -173,10 +173,24 @@ def _ps_json(v, col):
     return _js_string(str(v))
 
 
-def format_lookups_js(lookups):
-    """Hele lookups.generated.js som bytes (UTF-8 med BOM, CRLF)."""
+def format_lookups_js(lookups, eol="\r\n"):
+    """Hele lookups.generated.js som bytes (UTF-8 med BOM). PowerShell skrev
+    CRLF; .gitattributes (eol=lf) kan give LF i en checkout - eol foelger
+    derfor den fil, der ligger der (js_eol)."""
     text = JS_PREFIX + _ps_json(lookups, 0) + ";\r\n"
+    if eol != "\r\n":
+        text = text.replace("\r\n", eol)
     return b"\xef\xbb\xbf" + text.encode("utf-8")
+
+
+def js_eol(path=JS_OUT):
+    """Linjeskiftet i den eksisterende fil (CRLF, hvis den ikke findes)."""
+    try:
+        with open(path, "rb") as f:
+            head = f.read(4096)
+    except OSError:
+        return "\r\n"
+    return "\r\n" if b"\r\n" in head or b"\n" not in head else "\n"
 
 
 def read_lookups_js(path=JS_OUT):
@@ -226,7 +240,7 @@ def main():
               "%d tabel(ler) afviger fra arket." % len(diffs))
         sys.exit(1 if diffs else 0)
     if "--write-js" in flags:
-        data = format_lookups_js(lookups_from_workbook(wb))
+        data = format_lookups_js(lookups_from_workbook(wb), js_eol())
         with open(JS_OUT, "wb") as f:
             f.write(data)
         print("Skrev %s (%d bytes). Koer nu: node tools/fl/harness.js plan "

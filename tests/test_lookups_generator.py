@@ -28,7 +28,7 @@ KEY_TABLES = ("ClassDeterminationComponentKey", "ClassDeterminationAggregateKey"
 def test_format_reproduces_committed_file_byte_for_byte():
     with open(esl.JS_OUT, "rb") as f:
         committed = f.read()
-    assert esl.format_lookups_js(esl.read_lookups_js()) == committed
+    assert esl.format_lookups_js(esl.read_lookups_js(), esl.js_eol()) == committed
 
 
 def test_js_string_escaping():
