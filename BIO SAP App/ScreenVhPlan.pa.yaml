@@ -12078,12 +12078,17 @@ Screens:
                                                 RadiusTopRight: |-
                                                     =R.input
                                                 Size: |-
-                                                    =T.input
+                                                    =T.small
                                                 Text: |-
-                                                    =If(
-                                                        IsBlank(Trim(Coalesce(ThisItem.LongText, ""))),
-                                                        "Add text...",
-                                                        Left(ThisItem.LongText, 16) & If(Len(ThisItem.LongText) > 16, "...")
+                                                    =With(
+                                                        {
+                                                            lt: Trim(Substitute(Substitute(Coalesce(ThisItem.LongText, ""), Char(13), " "), Char(10), " "))
+                                                        },
+                                                        If(
+                                                            IsBlank(lt),
+                                                            "Add text...",
+                                                            If(Len(lt) > 12, Left(lt, 12) & "...", lt)
+                                                        )
                                                     )
                                                 VerticalAlign: |-
                                                     =VerticalAlign.Middle
@@ -16871,7 +16876,16 @@ Screens:
                         Size: |-
                             =T.input
                         Text: |-
-                            =If(IsBlank(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).LongText, ""))), "Add text...", Left(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).LongText, 24) & If(Len(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).LongText) > 24, "..."))
+                            =With(
+                                {
+                                    lt: Trim(Substitute(Substitute(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).LongText, ""), Char(13), " "), Char(10), " "))
+                                },
+                                If(
+                                    IsBlank(lt),
+                                    "Add text...",
+                                    If(Len(lt) > 24, Left(lt, 24) & "...", lt)
+                                )
+                            )
                         VerticalAlign: |-
                             =VerticalAlign.Middle
                         Width: |-
