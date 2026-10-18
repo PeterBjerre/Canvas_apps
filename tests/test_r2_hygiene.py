@@ -27,6 +27,43 @@ def _read(*parts):
 
 
 # ---------------------------------------------------------------------------
+# R2-025: ingen persondata i det offentlige repo.
+# ---------------------------------------------------------------------------
+def test_admin_users_table_is_gone_from_the_lookups():
+    assert '"ADMIN_USERS"' not in _read("html", "lookups.generated.js")
+    rules = json.load(open(os.path.join(ROOT, "Functional Location App", "build",
+                                        "fl_rules.generated.json"), encoding="utf-8"))
+    assert "ADMIN_USERS" not in rules.get("lookupsHeaders", {})
+
+
+def test_approver_seeds_hold_placeholders_not_initials():
+    import csv
+    for name in ("MD_Approver.csv", "MD_Approver_MeasuringPoint.csv"):
+        rows = list(csv.DictReader(open(os.path.join(ROOT, "sharepoint", "seed", name),
+                                        encoding="utf-8-sig")))
+        assert rows
+        for r in rows:
+            assert r["Approver1"] == "APPR1" and r["Approver2"] == "APPR2", (name, r)
+            assert not re.search(r"\b[A-Z]{5}\b", r["Notes"].replace("PRODOS", "")), (name, r)
+
+
+def test_schema_examples_carry_no_person_or_environment():
+    for name in ("example-sap-order.json", "example-fl-sap-order.json"):
+        text = _read("schema", name)
+        assert "Rekvirent Eksempel" in text and "rekvirent@example.com" in text
+        assert not re.search(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/a/", text)
+
+
+def test_extract_script_takes_no_data_by_default_and_pseudonymises():
+    ps = _read("sharepoint", "inspect", "Export-ListSchema.ps1")
+    assert "[switch] $IncludeData" in ps
+    assert "$WithData = $IncludeData -and -not $NoData" in ps
+    assert "@example.invalid" in ps
+    # Proeveraekkerne skrives forst efter pseudonymiseringen.
+    assert ps.index("Convert-SampleValue $k") < ps.index('"sample-$safe.json"')
+
+
+# ---------------------------------------------------------------------------
 # R2-060: -WhatIfOnly i alle scripts, og hjaelperne i _Common.psm1 skriver
 # ikke i et toerloeb.
 # ---------------------------------------------------------------------------

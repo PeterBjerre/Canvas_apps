@@ -114,29 +114,6 @@
                                       ]
                                   ]
                      },
-    "ADMIN_USERS":  {
-                        "sheet":  "Setup",
-                        "headers":  [
-                                        "ADMIN USERS"
-                                    ],
-                        "rows":  [
-                                     [
-                                         "Peter Bjerre"
-                                     ],
-                                     [
-                                         "Uffe Sønderskov"
-                                     ],
-                                     [
-                                         "Nils Lachmann"
-                                     ],
-                                     [
-                                         "Tom Storm Steffensen"
-                                     ],
-                                     [
-                                         "Gitte Heldt"
-                                     ]
-                                 ]
-                    },
     "Table7":  {
                    "sheet":  "Setup",
                    "headers":  [

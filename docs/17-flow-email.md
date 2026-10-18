@@ -149,7 +149,7 @@ mailen kan søges frem.
 | **Sendt til godkendelse** | `BioSap-EmailNotification-NewPlanCreated` (findes – ny brødtekst) | Rekvirenten | `VH-plan MP0068 sendt til godkendelse - SSV` | Sendt til godkendelse | Info: "Du får besked, når planen er godkendt eller sendt retur." | Åbn planen i appen |
 | **Sendt retur** | F1, F2 eller F3, når mindst ét svar er *Send retur* | Rekvirenten | `VH-plan MP0068 sendt retur - ret og indsend igen` | Sendt retur | Advarsel med kommentarerne pr. item | Ret planen i appen |
 | **Påmindelse** | F1, F2 eller F3 ved timeout (`P14D`) | Den godkender, der ikke har svaret | `Påmindelse: VH-plan MP0068 venter på din godkendelse` | Venter på din godkendelse | Info: sendt dato, og at der svares i Teams → *Approvals* eller i mailen fra Power Automate | Åbn planen i appen |
-| **Klar til oprettelse i SAP** | F4 `BioSap-VhPlan-ToMasterData` (ny) | `sapvedligehold@orsted.com` | `VH-plan MP0068 klar til oprettelse i SAP - SSV` | Klar til oprettelse i SAP | Succes: hvem der godkendte system, omkostning og kvalitet | Åbn planen i appen |
+| **Klar til oprettelse i SAP** | F4 `BioSap-VhPlan-ToMasterData` (ny) | Master Datas fælles postkasse (`BioSap-MasterDataEmail`) | `VH-plan MP0068 klar til oprettelse i SAP - SSV` | Klar til oprettelse i SAP | Succes: hvem der godkendte system, omkostning og kvalitet | Åbn planen i appen |
 | **Oprettet i SAP** | `BioSap-EmailNotification-PlanPublished` (ny brødtekst, R2-019) | Rekvirenten, cc sidste redaktør | `Maintenance plan MP0068 created in SAP (12345678) - SSV` | Created in SAP | Succes: SAP-plannummeret | Open the plan in the app |
 
 *Oprettet i SAP* er bygget (R2-019): flowet henter `MD_RequestIndex`-rækken
@@ -244,7 +244,7 @@ Det samme gælder `ItemText`, hvis korttekster kan indeholde `<` eller `&`.
 ### Godkenderne i *Klar til oprettelse i SAP*
 
 `TEKST` er én linje pr. trin fra `MD_ApprovalLog`, fx
-"System 8 – PKBJE · Omkostning – ikke nødvendig · Kvalitet (ASV) – PKBJE".
+"System 8 – ABCDE · Omkostning – ikke nødvendig · Kvalitet (ASV) – ABCDE".
 Master Data kan så se, at planen har været hele vejen igennem, uden at åbne
 appen.
 
