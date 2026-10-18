@@ -184,7 +184,8 @@ def test_the_mail_lists_what_to_add_manually():
     assert ("<li>Material 4711 on operation 0020 - add in IA06</li>"
             "<li>Text &lt;b&gt;&amp;&lt;/b&gt;</li>") in html
     assert "Master Data adds what is listed" in html
-    assert cc == "svc@example.test;" + MD_MAIL
+    # R2-048: servicekontoen (Editor) er ikke laengere paa Cc.
+    assert cc == MD_MAIL
 
 
 @pytest.mark.parametrize("warnings", [None, "", "  \n "])
@@ -193,4 +194,4 @@ def test_without_warnings_the_section_is_gone(warnings):
     assert "To be added manually in SAP" not in html
     assert "<li>" not in html
     assert "Nothing more is needed from you." in html
-    assert cc == "svc@example.test"
+    assert cc == ""

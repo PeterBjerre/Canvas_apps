@@ -702,7 +702,7 @@
                                     ],
                                     "WebhookApprovalCreationInput/title": "@concat('System approval - ', triggerBody()?['PlanID'], ' - ', coalesce(items('For_each_item')?['Title'], ''))",
                                     "WebhookApprovalCreationInput/assignedTo": "@outputs('Final_approver')",
-                                    "WebhookApprovalCreationInput/details": "@concat('**Plan:** ', triggerBody()?['PlanID'], ' - ', coalesce(triggerBody()?['Title'], ''), '\n\n**Plant:** ', coalesce(triggerBody()?['PlantsInitial/Value'], ''), '\n\n**Item:** ', coalesce(items('For_each_item')?['Title'], ''), '\n\n**Functional location:** ', outputs('FL'), '\n\n**System:** ', outputs('SysNo'), '\n\n**Description:** ', coalesce(items('For_each_item')?['ItemDescription'], ''), '\n\n**Requester:** ', coalesce(triggerBody()?['Author/DisplayName'], ''))",
+                                    "WebhookApprovalCreationInput/details": "@concat('**Plan:** ', triggerBody()?['PlanID'], ' - ', coalesce(triggerBody()?['Title'], ''), '\n\n**Plant:** ', coalesce(triggerBody()?['PlantsInitial/Value'], ''), '\n\n**Item:** ', coalesce(items('For_each_item')?['Title'], ''), '\n\n**Functional location:** ', outputs('FL'), '\n\n**System:** ', outputs('SysNo'), '\n\n**Description:** ', coalesce(items('For_each_item')?['ItemDescription'], ''), '\n\n**Requester:** ', coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterName'], triggerBody()?['Author/DisplayName'], ''))",
                                     "WebhookApprovalCreationInput/itemLink": "@coalesce(first(outputs('Get_request_index')?['body/value'])?['AppUrl'], parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)'))",
                                     "WebhookApprovalCreationInput/itemLinkDescription": "Open the plan in the app",
                                     "WebhookApprovalCreationInput/enableNotifications": true,
@@ -1103,7 +1103,8 @@
                             "type": "OpenApiConnection",
                             "inputs": {
                               "parameters": {
-                                "emailMessage/To": "@triggerBody()?['Author/Email']",
+                                "emailMessage/To": "@coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterEmail'], triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email'])",
+                                "emailMessage/Cc": "@if(equals(toLower(coalesce(triggerBody()?['SubmittedBy'], '')), toLower(coalesce(coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterEmail'], triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email']), ''))), '', coalesce(triggerBody()?['SubmittedBy'], ''))",
                                 "emailMessage/Subject": "@concat('Maintenance plan ', triggerBody()?['PlanID'], ' returned - correct it and submit again')",
                                 "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">Maintenance plan @{triggerBody()?['PlanID']} (@{triggerBody()?['Title']}) was returned by the system approval:</p><p style=\"font-family: Arial, sans-serif; white-space: pre-line;\">@{replace(replace(replace(outputs('Return_comment'), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</p><p style=\"font-family: Arial, sans-serif;\">Correct the plan in the app and submit it again.</p>",
                                 "emailMessage/Importance": "Normal"

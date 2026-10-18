@@ -175,10 +175,10 @@
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
                 },
                 "parameters": {
-                  "emailMessage/To": "@triggerBody()?['Author/Email']",
+                  "emailMessage/To": "@coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterEmail'], triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email'])",
                   "emailMessage/Subject": "@concat('Maintenance plan ', triggerBody()?['PlanID'], ' created in SAP (', triggerBody()?['SAPNum'], ') - ', coalesce(triggerBody()?['PlantsInitial/Value'], ''))",
                   "emailMessage/Body": "@outputs('Compose-EmailContent')",
-                  "emailMessage/Cc": "@if(empty(trim(coalesce(triggerBody()?['SapWarnings'], ''))), triggerOutputs()?['body/Editor/Email'], concat(coalesce(triggerOutputs()?['body/Editor/Email'], ''), ';', parameters('BioSap-MasterDataEmail (orsted_BioSapMasterDataEmail)')))",
+                  "emailMessage/Cc": "@if(empty(if(equals(toLower(coalesce(triggerBody()?['SubmittedBy'], '')), toLower(coalesce(coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterEmail'], triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email']), ''))), '', coalesce(triggerBody()?['SubmittedBy'], ''))), if(empty(trim(coalesce(triggerBody()?['SapWarnings'], ''))), '', parameters('BioSap-MasterDataEmail (orsted_BioSapMasterDataEmail)')), if(empty(if(empty(trim(coalesce(triggerBody()?['SapWarnings'], ''))), '', parameters('BioSap-MasterDataEmail (orsted_BioSapMasterDataEmail)'))), if(equals(toLower(coalesce(triggerBody()?['SubmittedBy'], '')), toLower(coalesce(coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterEmail'], triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email']), ''))), '', coalesce(triggerBody()?['SubmittedBy'], '')), concat(if(equals(toLower(coalesce(triggerBody()?['SubmittedBy'], '')), toLower(coalesce(coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterEmail'], triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email']), ''))), '', coalesce(triggerBody()?['SubmittedBy'], '')), ';', if(empty(trim(coalesce(triggerBody()?['SapWarnings'], ''))), '', parameters('BioSap-MasterDataEmail (orsted_BioSapMasterDataEmail)')))))",
                   "emailMessage/Importance": "Normal"
                 },
                 "authentication": "@parameters('$authentication')"

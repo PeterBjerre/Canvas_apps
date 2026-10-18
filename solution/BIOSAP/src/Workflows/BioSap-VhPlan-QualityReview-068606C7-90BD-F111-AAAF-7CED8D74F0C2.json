@@ -587,7 +587,7 @@
                             "approvalType": "CustomResponse",
                             "WebhookApprovalCreationInput/title": "@concat('Quality review - ', triggerBody()?['PlanID'], ' - ', coalesce(triggerBody()?['PlantsInitial/Value'], ''))",
                             "WebhookApprovalCreationInput/assignedTo": "@outputs('Final_approver')",
-                            "WebhookApprovalCreationInput/details": "@concat('**Plan:** ', triggerBody()?['PlanID'], ' - ', coalesce(triggerBody()?['Title'], ''), '\n\n**Plant:** ', coalesce(triggerBody()?['PlantsInitial/Value'], ''), '\n\n**Items:**\n', join(body('Select_item_lines'), decodeUriComponent('%0A')), '\n\n**Requester:** ', coalesce(triggerBody()?['Author/DisplayName'], ''))",
+                            "WebhookApprovalCreationInput/details": "@concat('**Plan:** ', triggerBody()?['PlanID'], ' - ', coalesce(triggerBody()?['Title'], ''), '\n\n**Plant:** ', coalesce(triggerBody()?['PlantsInitial/Value'], ''), '\n\n**Items:**\n', join(body('Select_item_lines'), decodeUriComponent('%0A')), '\n\n**Requester:** ', coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterName'], triggerBody()?['Author/DisplayName'], ''))",
                             "WebhookApprovalCreationInput/responseOptions": [
                               "Approve",
                               "Return"
@@ -866,7 +866,8 @@
                                   "operationId": "SendEmailV2"
                                 },
                                 "parameters": {
-                                  "emailMessage/To": "@triggerBody()?['Author/Email']",
+                                  "emailMessage/To": "@coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterEmail'], triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email'])",
+                                  "emailMessage/Cc": "@if(equals(toLower(coalesce(triggerBody()?['SubmittedBy'], '')), toLower(coalesce(coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterEmail'], triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email']), ''))), '', coalesce(triggerBody()?['SubmittedBy'], ''))",
                                   "emailMessage/Subject": "@concat('Maintenance plan ', triggerBody()?['PlanID'], ' returned - correct it and submit again')",
                                   "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">Maintenance plan @{triggerBody()?['PlanID']} (@{triggerBody()?['Title']}) was returned by the quality review:</p><p style=\"font-family: Arial, sans-serif; white-space: pre-line;\">@{replace(replace(replace(outputs('Return_comment'), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</p><p style=\"font-family: Arial, sans-serif;\">Correct the plan in the app and submit it again.</p>",
                                   "emailMessage/Importance": "Normal"

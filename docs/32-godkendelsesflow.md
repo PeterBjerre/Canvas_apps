@@ -450,7 +450,9 @@ stående som kvittering for indsendelsen. Mailens tekst bør dog rettes til
 
 Flowet findes allerede. Det trigges af `Status = Published` og et udfyldt
 `SAPNum` og sender *"Bio Sap: Maintenance Plan Published"* til rekvirenten
-(`Author`) med den sidste redaktør på cc.
+(ejeren i `MD_RequestIndex`, R2-049) med indsenderen på cc, når det er en
+anden. Den sidste redaktør er ikke længere på cc (R2-048): efter
+kvitteringsflowets MERGE er det servicekontoen.
 
 **Det har ingen spærre.** Triggeren kører hvert minut, og enhver senere
 ændring af en publiceret plan opfylder betingelsen igen, så rekvirenten får

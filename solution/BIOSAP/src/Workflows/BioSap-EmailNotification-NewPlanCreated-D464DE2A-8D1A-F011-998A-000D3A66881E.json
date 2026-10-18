@@ -213,7 +213,8 @@
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
                 },
                 "parameters": {
-                  "emailMessage/To": "@triggerBody()?['Author/Email']",
+                  "emailMessage/To": "@coalesce(first(outputs('Get_AppUrl_based_on_environment')?['body/value'])?['RequesterEmail'], triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email'])",
+                  "emailMessage/Cc": "@if(equals(toLower(coalesce(triggerBody()?['SubmittedBy'], '')), toLower(coalesce(coalesce(first(outputs('Get_AppUrl_based_on_environment')?['body/value'])?['RequesterEmail'], triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email']), ''))), '', coalesce(triggerBody()?['SubmittedBy'], ''))",
                   "emailMessage/Subject": "@concat('Maintenance plan ', triggerBody()?['PlanID'], ' submitted for approval - ', coalesce(triggerBody()?['PlantsInitial/Value'], ''))",
                   "emailMessage/Body": "@outputs('Compose-EmailContent')",
                   "emailMessage/Importance": "Normal"
