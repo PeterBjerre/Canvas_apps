@@ -10,7 +10,8 @@ import icons
 from build_helpers import (ensure_hit, empty_state, checkbox_theme, table_surface, flow_row, text_ctrl,
                            group, button, text_input, number_field, num_value, themed_dropdown,
                            field_cell, card, pin_widths, grow, row_hit,
-                           fit_button_width, fit_button_row, ICON_W, ICON_SAVE, flow_ok, mark_done)
+                           fit_button_width, fit_button_row, ICON_W, ICON_SAVE, flow_ok, mark_done,
+                           tab_list, tabs_w)
 from build_plan_header import section_header, help_panel, section_footer
 
 # Talfeltets vaerdi (UX-review T10): heltal, Blank() ved tomt felt eller ikke-tal.
@@ -316,9 +317,11 @@ TOTALS_ON = ("IfError(!IsBlank(varVhpActiveItemId) && "
 #
 # Maintenance packages vises KUN paa en strategiplan - en tidsplan har ingen
 # pakker at allokere til. Materials og Attachments vises altid.
+# (noegle, tekst, kort tekst, betingelse). Den korte tekst bruges, naar
+# kortet er for smalt til de lange: fanerne ruller ikke (Learn).
 TABS = [
-    ("ops", "Operations", None),
-    ("pkg", "Maintenance packages", IS_STRATEGY),
+    ("ops", "Operations", "Operations", None),
+    ("pkg", "Maintenance packages", "Packages", IS_STRATEGY),
 ]
 
 
@@ -327,30 +330,22 @@ def _tab_on(key):
 
 
 def _tab_bar():
-    kids = []
-    for key, label, cond in TABS:
-        on = _tab_on(key)
-        b = button(f"btnVhpTab{key.capitalize()}", f'"{label}"',
-                   f'Set(varVhpOpsTab, "{key}")', width=168, height=34)
-        b.props["Appearance"] = f"If({on}, ButtonAppearance.Primary, ButtonAppearance.Outline)"
-        b.props["BasePaletteColor"] = C_PRIMARY
-        b.props["Color"] = f"If({on}, {C_WHITE}, {C_TITLE})"
-        b.props["BorderColor"] = C_CARD_BORDER
-        b.props["BorderThickness"] = "1"
-        b.props["Size"] = "13"
-        if cond:
-            b.vis = f"IfError({cond}, false)"
-        kids.append(b)
-    # Enten een linje, eller een fane pr. linje - build_helpers.flow_row.
-    # wrap_row_height() regnede med hoejst to linjer; paa en smal skaerm
-    # blev det fire, og de to nederste faner var klippet vaek.
-    return flow_row("conVhpOpsTabBar", kids, OPS_CW, gap=6)
+    """Fanerne (issue #303): EEN ModernTabList (build_helpers.tab_list) i
+    stedet for to Primary/Outline-knapper. Samme variabel og vaerdier
+    (varVhpOpsTab = "ops"/"pkg"); ruderne (OPS_PANE_ON/PKG_PANE_ON) laeser
+    den som foer."""
+    roomy = f"{OPS_CW} >= {tabs_w([t for _k, t, _s, _c in TABS])}"
+    tabs = []
+    for key, text, short, cond in TABS:
+        fx = f'"{text}"' if text == short else f'If({roomy}, "{text}", "{short}")'
+        tabs.append((key, fx) + ((f"IfError({cond}, false)",) if cond else ()))
+    return tab_list("tabVhpOps", "varVhpOpsTab", tabs, label="Task list sections",
+                    width=OPS_CW)
 
 
 def _tab_bar_if_strategy():
     bar = _tab_bar()
     bar.vis = f"IfError({IS_STRATEGY}, false)"
-    bar.props["Visible"] = bar.vis
     return bar
 
 
