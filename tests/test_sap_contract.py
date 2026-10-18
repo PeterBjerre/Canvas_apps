@@ -199,7 +199,7 @@ def test_order_trigger_and_reset():
 # Noegler i opretterens egne Dictionaries (opslagene i arket Opslag). De er
 # ikke en del af kontrakten.
 INTERNAL = {"sapPlant", "profile", "serviceSpec", "horizon", "period", "periodUnit",
-            "serviceNo", "matGroup"}
+            "serviceNo", "matGroup", "source"}
 
 J_CALL = re.compile(r'\bJ(?:Str|Num|Lng|Bool|Obj|List|Has)\(\s*[^,()]+(?:\([^()]*\))?\s*,\s*"(\w+)"')
 
@@ -539,3 +539,19 @@ def test_deployed_receipt_flow_is_the_source():
     each = valid["actions"]["Each_item"]["actions"]["Set_item_numbers"]
     assert _merge_body(each) == load(FLOW, "kvittering-3-merge-item.json")
     assert _merge_body(valid["actions"]["Set_plan_published"]) == load(FLOW, "kvittering-4-merge-plan.json")
+
+
+def test_order_carries_the_apps_call_horizon():
+    """R2-054: ordren baerer appens kaldshorisont og periode, og opretteren
+    bruger dem foer arket Opslag (VhpOrder.PlanHorizon)."""
+    plan = load(FLOW, "ordre-4-compose-order.json")["plan"]
+    assert plan["callHorizon"] == "@triggerBody()?['CallHorizon0']"
+    assert plan["schedulingPeriodUnit"] == "@triggerBody()?['SchedulingPeriodUnit']?['Value']"
+    text = open(os.path.join(RUNNER, "VhpOrder.bas"), encoding="utf-8").read()
+    body = text[text.index("Public Function PlanHorizon"):]
+    body = body[:body.index("End Function")]
+    assert 'JHas(plan, "callHorizon")' in body
+    assert "VhpLookup.Horizon(lk, cycle, unitText)" in body
+    steps = open(os.path.join(RUNNER, "VhpSteps.bas"), encoding="utf-8").read()
+    assert "VhpOrder.PlanHorizon(plan, " in steps
+    assert "VhpLookup.Horizon(" not in steps

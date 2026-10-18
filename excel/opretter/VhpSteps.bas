@@ -481,9 +481,13 @@ Public Function CreatePlan(ByVal sess As Object, ByVal order As Object, ByVal it
     If Not VhpUtil.TryParseYmd(VhpUtil.JStr(plan, "plannedDate"), firstDue) Then
         Err.Raise ERR_SAP, "VhpSteps", what & VhpUtil.Dk(": ugyldig dato for f{oe}rste forfald.")
     End If
-    Set hz = VhpLookup.Horizon(ctx("lookups"), cycle, unitText)
+    ' Appens kaldshorisont og periode, ellers Opslag (VhpOrder.PlanHorizon).
+    Set hz = VhpOrder.PlanHorizon(plan, ctx("lookups"), cycle, unitText)
     If hz Is Nothing Then
-        Err.Raise ERR_SAP, "VhpSteps", what & VhpUtil.Dk(": kaldshorisont mangler i Opslag.")
+        Err.Raise ERR_SAP, "VhpSteps", what & VhpUtil.Dk(": kaldshorisont mangler (hverken fra appen eller i Opslag).")
+    End If
+    If Len(VhpUtil.JStr(hz, "period")) = 0 Then
+        Err.Raise ERR_SAP, "VhpSteps", what & VhpUtil.Dk(": planl{ae}gningsperiode mangler (hverken fra appen eller i Opslag).")
     End If
 
     VhpSap.StartTransaction sess, TX_PLAN
