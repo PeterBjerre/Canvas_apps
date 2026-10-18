@@ -69,3 +69,11 @@ def test_draft_save_of_returned_plan_heals_index():
     st = build_save._step_status()
     i = st.index('varVhpPlanRec.Status.Value = "Returned"')
     assert 'Status: { Value: "AfventerInfo" }' in st[i:]
+
+
+# --- R2-037: en raekke uden noegle stopper ikke noegleserien ----------------
+def test_offset_skips_rows_without_key():
+    off = build_save._offset("MaintenanceItems", "ItemID", "MI")
+    assert 'Filter(MaintenanceItems, StartsWith(ItemID, "MI"))' in off
+    # Sidste vaern: et nummer, der ikke er et tal, stopper stadig.
+    assert "IsNumeric(Mid(r.ItemID, 3))" in off

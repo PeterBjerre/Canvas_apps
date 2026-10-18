@@ -18,9 +18,12 @@ kapløbstilstand - to samtidige indsendelser kan ikke faa samme noegle.
 
 Offsettet staar i AppSettings, men KUN for DEV. I stedet for at gaette paa 0
 i TEST og PROD udledes det af data: nyeste raekkes ID minus dens eget nummer.
-Det er selvkorrigerende og miljoeuafhaengigt. Kan det ikke udledes
-(tom liste, eller et nummer der ikke er et tal), bruges 0 for en tom liste
-og ellers stoppes der - en forkert noegleserie er vaerre end en fejlbesked.
+Det er selvkorrigerende og miljoeuafhaengigt. Kun raekker, hvis noegle
+starter med praefikset, taeller med (R2-037): en raekke, et afbrudt gem
+efterlod uden noegle, stopper ikke laengere serien for alle. Kan det ikke
+udledes (ingen raekke med noegle, eller et nummer der ikke er et tal),
+bruges 0 for en liste uden noegler og ellers stoppes der - en forkert
+noegleserie er vaerre end en fejlbesked.
 
 REKKEFOELGEN OG SIKKERHED (REVIEW.md D7, D8)
 -------------------------------------------
@@ -191,12 +194,21 @@ RESP = f"If({AS_ADMIN}, {RESP_OTHER}, varVhpMe)"
 def _offset(list_name, key_field, prefix):
     """Offsettet mellem SharePoints ID og forretningsnoeglen.
 
-    Udledt af den nyeste raekke i stedet for af AppSettings, som kun har
-    vaerdier for DEV. 0 paa en tom liste - saa starter serien paa ID.
-    Blank, naar nummeret ikke er et tal: saa stopper gemningen."""
+    Udledt af den nyeste raekke MED NOEGLE i stedet for af AppSettings, som
+    kun har vaerdier for DEV. 0, naar ingen raekke har en noegle - saa
+    starter serien paa ID. Blank, naar nummeret ikke er et tal: saa stopper
+    gemningen.
+
+    D17/R2-037: nye raekker faar noeglen i et SEPARAT Patch (trin 3-5).
+    Afbrydes gemningen imellem, staar den nyeste raekke uden noegle. Foer
+    gav det Blank her, og saa kunne INGEN gemme nogen plan, foer nogen
+    rettede raekken i haanden. Filteret springer den slags raekker over;
+    StartsWith er delegerbar mod en SharePoint-tekstkolonne, saa det koerer
+    i SharePoint. IsNumeric er stadig sidste vaern."""
     return (
         f"With(\n"
-        f"        {{ r: First(Sort({list_name}, ID, SortOrder.Descending)) }},\n"
+        f"        {{ r: First(Sort(Filter({list_name}, StartsWith({key_field}, \"{prefix}\")), "
+        f"ID, SortOrder.Descending)) }},\n"
         f"        If(\n"
         f"            IsBlank(r.ID), 0,\n"
         f"            IsNumeric(Mid(r.{key_field}, {len(prefix) + 1})),\n"
