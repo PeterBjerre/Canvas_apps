@@ -543,12 +543,12 @@ def missing_modal():
         body.h = _lines_h(ref, text_w)
         blocks.append(group(f"conVhpMissing{name[len('txtVhpMissing'):]}", [h, body],
                             direction="Vertical", gap=4, visible=f"!IsBlank({ref})"))
-    # Hovedet (titel + Close, 32) og introen; ingen bund (issue #237).
-    fixed = 32 + 38 + 2 * 12 + 2 * MODAL_PAD
+    # Hovedet (titel + X, 44) og introen; ingen bund (issue #237, #343).
+    fixed = lay.HIT_TOUCH + 38 + 2 * 12 + 2 * MODAL_PAD
     natural = stack_height(blocks, 12)
     body = group("conVhpMissingBody", blocks, direction="Vertical", gap=12,
                  height=f"Max(0, Min({natural}, App.Height - 40 - {fixed}))", overflow_y="Scroll")
-    # EEN Close, oeverst til hoejre og uden for det, der scroller (#237).
+    # EET X, oeverst til hoejre og uden for det, der scroller (#237, #343).
     head = popup_head("conVhpMissingHead", title, "btnVhpMissingClose", MISSING_CLOSE)
     modal = group("conVhpMissingModal", [head, intro, body], direction="Vertical", gap=12,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,

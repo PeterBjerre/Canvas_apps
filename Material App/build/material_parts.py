@@ -72,7 +72,7 @@ from gen_screen import C_MUTED, C_INVALID_FG, C_MODAL_BG, C_PRIMARY_SOFT, C_REQU
 import doc_upload as du
 from build_helpers import (text_ctrl, group, button, text_input, card, grow, segmented,
                            section_header, tap_backdrop, confirm_modal, text_min_height,
-                           fit_button_width, text_px, label_px)
+                           fit_button_width, text_px, label_px, popup_head)
 from layout_tokens import if_below, fits
 
 CELL_W = dp.CELL_W
@@ -458,13 +458,11 @@ def _po_popup():
                            height=text_min_height(lay.SIZE_CARD_TITLE), wrap="false"))
     # Close tager teksten med, ogsaa hvis OnChange ikke naaede at koere
     # (feltet havde stadig fokus), saa intet skrevet gaar tabt.
-    close = button("btnDomPoClose", '"Close"',
-                   f"If(!{READ_ONLY}, Set({PO}, inpDomPoText.Text));\n"
-                   f"Set({PO_OPEN}, false)",
-                   width=84, height=32, accessible='"Close the purchase order text"')
-    close.props["LayoutMinWidth"] = "84"
-    head = group("conDomPoHead", [title, close], direction="Horizontal", gap=12,
-                 align_items="Center")
+    # X oeverst til hoejre (issue #343).
+    head = popup_head("conDomPoHead", title, "btnDomPoClose",
+                      f"If(!{READ_ONLY}, Set({PO}, inpDomPoText.Text));\n"
+                      f"Set({PO_OPEN}, false)",
+                      accessible='"Close the purchase order text"')
     hint = text_ctrl(
         "txtDomPoHint",
         f'If({READ_ONLY}, "Read only - this row cannot be changed.", '
@@ -576,13 +574,10 @@ def _objects_popup():
         f'"Functional locations · " & Coalesce({OBJ_REC}.ItemKey, "")',
         size=lay.SIZE_CARD_TITLE, weight="Semibold",
         height=text_min_height(lay.SIZE_CARD_TITLE), wrap="false"))
-    close = button("btnDomObjPopClose", '"Close"', close_objects_fx(),
-                   width=84, height=32,
-                   accessible='"Close the functional locations"',
-                   display_mode=f"If({dp.FL_BUSY_VAR}, DisplayMode.Disabled, DisplayMode.Edit)")
-    close.props["LayoutMinWidth"] = "84"
-    head = group("conDomObjPopHead", [title, close], direction="Horizontal", gap=12,
-                 align_items="Center")
+    # X oeverst til hoejre (issue #343) - ikke mens en soegning koerer.
+    head = popup_head("conDomObjPopHead", title, "btnDomObjPopClose", close_objects_fx(),
+                      accessible='"Close the functional locations"',
+                      mode=f"If({dp.FL_BUSY_VAR}, DisplayMode.Disabled, DisplayMode.Edit)")
     hint = text_ctrl(
         "txtDomObjPopHint",
         f'If({OBJ_EDIT}, "Search with at least {MIN_FL_LEN} characters, pick a result '

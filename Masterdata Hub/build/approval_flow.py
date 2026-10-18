@@ -25,7 +25,7 @@ from gen_screen import (Ctrl, C_OVERLAY, C_MODAL_BG, C_PRIMARY_SOFT, C_MUTED, C_
                         C_WARN_FG, C_WARN_BG, C_NEUTRAL_FG, C_NEUTRAL_BG, C_VALID_FG, C_VALID_BG,
                         C_INVALID_FG, C_INVALID_BG, C_CARD_BORDER, C_ROW_HOVER, C_ROW_PRESSED)
 from build_helpers import (group, text_ctrl, button, grow, spinner, row_hit, text_px,
-                           text_input, label_px, modern_badge)
+                           text_input, label_px, modern_badge, close_x)
 from build_helpers import fluent, fluent_icon
 from hub_config import DOMAINS
 from design_tokens import ref_hex
@@ -1095,9 +1095,10 @@ def build_popup():
     no_badge = number_badge(n("bdg", "No"))
     spacer = grow(text_ctrl(n("txt", "HeadGap"), '""', size=lay.SIZE_MICRO, height=20,
                             accessible='"Spacer"'))
-    btnClose = button(n("btn", "Close"), '"Close"', CLOSE, width=84, height=32)
+    # X oeverst til hoejre, som i de andre popupper (issue #343).
+    btnClose = close_x(n("btn", "Close"), CLOSE)
     head = group(n("con", "Head"), [title, no_badge, spacer, btnClose], direction="Horizontal",
-                 gap=10, height=32, align_items="Center")
+                 gap=10, height=lay.HIT_TOUCH, align_items="Center")
     sub = text_ctrl(
         n("txt", "Sub"),
         f'If({IS_TIMELINE}, {META_FX}, {R}.ShortText & "  ·  Plant " & {R}.Plant & "  ·  " & '
@@ -1118,7 +1119,7 @@ def build_popup():
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(POP_PAD, POP_PAD, POP_PAD, POP_PAD), width=POP_W, drop_shadow="ExtraBold",
                   align_in_container="Center")
-    modal.props["Height"] = (f"{2 * POP_PAD + 32 + 2 * 10} + If({busy}, 110, 20 + 10 + {gh}) + "
+    modal.props["Height"] = (f"{2 * POP_PAD + lay.HIT_TOUCH + 2 * 10} + If({busy}, 110, 20 + 10 + {gh}) + "
                              f"If({note_vis}, {note_h} + 10, 0)")
     backdrop = group(n("con", "Backdrop"), [modal], direction="Vertical", gap=0,
                      height="App.Height", width="App.Width", fill=C_OVERLAY, visible=OPEN,
