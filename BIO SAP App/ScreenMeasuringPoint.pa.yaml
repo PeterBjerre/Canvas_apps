@@ -775,11 +775,11 @@ Screens:
                                       IfError(
                                           Set(varMpSessionStart, DateAdd(Now(), -2, TimeUnit.Minutes));
                                           ClearCollect(colMpDupSrc, Filter(MeasuringPointItems, RequestGuid = varMpRequestGuid));
-                                          ForAll(
-                                              colMpDupSrc As R,
-                                              With(
-                                                  { n: Patch(
-                                                      MeasuringPointItems, Defaults(MeasuringPointItems), {
+                                          With(
+                                              { created: Patch(
+                                                  MeasuringPointItems,
+                                                  ForAll(colMpDupSrc, Defaults(MeasuringPointItems)),
+                                                  ForAll(colMpDupSrc As R, {
                                                       Description: R.Description,
                                                       Plant: R.Plant,
                                                       FunctionalLocation: R.FunctionalLocation,
@@ -805,8 +805,12 @@ Screens:
                                                       RowStatus: { Value: If(R.RowStatus.Value = "submitted", "valid", Coalesce(R.RowStatus.Value, "valid")) },
                                                       RequestGuid: "", RequestNo: "",
                                                       RequesterEmail: varMpMe, RequesterName: User().FullName
-                                                  }) },
-                                                  Patch(MeasuringPointItems, n, { RowId: n.ID, ItemKey: "MP-" & Text(n.ID, "000000"),
+                                                  })
+                                              ) },
+                                              Patch(
+                                                  MeasuringPointItems,
+                                                  ForAll(created As n, { ID: n.ID }),
+                                                  ForAll(created As n, { RowId: n.ID, ItemKey: "MP-" & Text(n.ID, "000000"),
                                                       AttachmentFolder: "TaskListDocuments/" & "MP-" & Text(n.ID, "000000") })
                                               )
                                           );
@@ -14049,11 +14053,11 @@ Screens:
                         OnSelect: |-
                             =Set(varMpSaving, true);
                             IfError(
-                                ForAll(
-                                    Filter(colMpPaste, Ok) As P,
-                                    With(
-                                        { n: Patch(
-                                            MeasuringPointItems, Defaults(MeasuringPointItems), {
+                                With(
+                                    { created: Patch(
+                                        MeasuringPointItems,
+                                        ForAll(Filter(colMpPaste, Ok), Defaults(MeasuringPointItems)),
+                                        ForAll(Filter(colMpPaste, Ok) As P, {
                                                 Description: P.Description,
                                                 Plant: P.Plant,
                                                 FunctionalLocation: P.FunctionalLocation,
@@ -14074,8 +14078,12 @@ Screens:
                                                 RequestNo: Coalesce(varMpRequestNo, ""),
                                                 RequesterEmail: If((!IsBlank(varMpRequestGuid) && !IsBlank(varMpIdx) && varMpIdx.RequestGuid = varMpRequestGuid && !(Lower(Coalesce(varMpIdx.RequesterEmail, "")) = varMpMe)), Lower(varMpIdx.RequesterEmail), varMpMe),
                                                 RequesterName: If((!IsBlank(varMpRequestGuid) && !IsBlank(varMpIdx) && varMpIdx.RequestGuid = varMpRequestGuid && !(Lower(Coalesce(varMpIdx.RequesterEmail, "")) = varMpMe)), varMpIdx.RequesterName, User().FullName)
-                                            }) },
-                                        Patch(MeasuringPointItems, n, { RowId: n.ID, ItemKey: "MP-" & Text(n.ID, "000000"),
+                                        })
+                                    ) },
+                                    Patch(
+                                        MeasuringPointItems,
+                                        ForAll(created As n, { ID: n.ID }),
+                                        ForAll(created As n, { RowId: n.ID, ItemKey: "MP-" & Text(n.ID, "000000"),
                                             AttachmentFolder: "TaskListDocuments/" & "MP-" & Text(n.ID, "000000") })
                                     )
                                 );

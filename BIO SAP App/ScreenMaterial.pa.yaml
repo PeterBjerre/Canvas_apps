@@ -789,11 +789,11 @@ Screens:
                                       IfError(
                                           Set(varMatSessionStart, DateAdd(Now(), -2, TimeUnit.Minutes));
                                           ClearCollect(colMatDupSrc, Filter(MaterialItems, RequestGuid = varMatRequestGuid));
-                                          ForAll(
-                                              colMatDupSrc As R,
-                                              With(
-                                                  { n: Patch(
-                                                      MaterialItems, Defaults(MaterialItems), {
+                                          With(
+                                              { created: Patch(
+                                                  MaterialItems,
+                                                  ForAll(colMatDupSrc, Defaults(MaterialItems)),
+                                                  ForAll(colMatDupSrc As R, {
                                                       MaterialDescription: R.MaterialDescription,
                                                       Plant: R.Plant,
                                                       Manufacturer: R.Manufacturer,
@@ -822,8 +822,12 @@ Screens:
                                                       RowStatus: { Value: If(R.RowStatus.Value = "submitted", "valid", Coalesce(R.RowStatus.Value, "valid")) },
                                                       RequestGuid: "", RequestNo: "",
                                                       RequesterEmail: varMatMe, RequesterName: User().FullName
-                                                  }) },
-                                                  Patch(MaterialItems, n, { RowId: n.ID, ItemKey: "MAT-" & Text(n.ID, "000000"),
+                                                  })
+                                              ) },
+                                              Patch(
+                                                  MaterialItems,
+                                                  ForAll(created As n, { ID: n.ID }),
+                                                  ForAll(created As n, { RowId: n.ID, ItemKey: "MAT-" & Text(n.ID, "000000"),
                                                       AttachmentFolder: "TaskListDocuments/" & "MAT-" & Text(n.ID, "000000") })
                                               )
                                           );
@@ -13544,7 +13548,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + (Min(0 + (If(attMatPicker.AttachmentsCount = 0, 112, 112 + Min(attMatPicker.AttachmentsCount, 4) * 36)) + If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varMatAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varMatDocsId) && !(!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 32 - 14))
+                            =0 + (Min(0 + (160 + Max(attMatPicker.AttachmentsCount, CountRows(varMatAttRow.Attachments)) * 44) + If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varMatAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varMatDocsId) && !(!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 32 - 14))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -13597,7 +13601,7 @@ Screens:
                                     DisplayMode: |-
                                         =If(!((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted")), DisplayMode.View, IfError(Coalesce(varMatAttBusy, false), false) || IsBlank(varMatAttRow), DisplayMode.Disabled, DisplayMode.Edit)
                                     Height: |-
-                                        =If(Self.AttachmentsCount = 0, 112, 112 + Min(Self.AttachmentsCount, 4) * 36)
+                                        =Min(160 + Max(Self.AttachmentsCount, CountRows(varMatAttRow.Attachments)) * 44, Max(160, Parent.Height - (0 + If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varMatAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varMatDocsId) && !(!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (18), 0))))
                                     Items: |-
                                         =varMatAttRow.Attachments
                                     MaxAttachmentSize: |-
@@ -15844,11 +15848,11 @@ Screens:
                         OnSelect: |-
                             =Set(varMatSaving, true);
                             IfError(
-                                ForAll(
-                                    Filter(colMatPaste, Ok) As P,
-                                    With(
-                                        { n: Patch(
-                                            MaterialItems, Defaults(MaterialItems), {
+                                With(
+                                    { created: Patch(
+                                        MaterialItems,
+                                        ForAll(Filter(colMatPaste, Ok), Defaults(MaterialItems)),
+                                        ForAll(Filter(colMatPaste, Ok) As P, {
                                                 MaterialDescription: P.MaterialDescription,
                                                 Plant: P.Plant,
                                                 Manufacturer: P.Manufacturer,
@@ -15869,8 +15873,12 @@ Screens:
                                                 RequestNo: Coalesce(varMatRequestNo, ""),
                                                 RequesterEmail: If((!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)), Lower(varMatIdx.RequesterEmail), varMatMe),
                                                 RequesterName: If((!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)), varMatIdx.RequesterName, User().FullName)
-                                            }) },
-                                        Patch(MaterialItems, n, { RowId: n.ID, ItemKey: "MAT-" & Text(n.ID, "000000"),
+                                        })
+                                    ) },
+                                    Patch(
+                                        MaterialItems,
+                                        ForAll(created As n, { ID: n.ID }),
+                                        ForAll(created As n, { RowId: n.ID, ItemKey: "MAT-" & Text(n.ID, "000000"),
                                             AttachmentFolder: "TaskListDocuments/" & "MAT-" & Text(n.ID, "000000") })
                                     )
                                 );

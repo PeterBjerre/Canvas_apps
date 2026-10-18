@@ -1,6 +1,6 @@
 ﻿# SharePoint-lister bag VH-plan appen
 
-Udtrukket 2026-10-18 07:24 fra https://orsted.sharepoint.com/teams/BioSAPDev/
+Udtrukket 2026-10-18 15:24 fra https://orsted.sharepoint.com/teams/BioSAPDev/
 
 | Liste | Raekker | Kolonner |
 |---|---:|---:|
@@ -18,8 +18,8 @@ Udtrukket 2026-10-18 07:24 fra https://orsted.sharepoint.com/teams/BioSAPDev/
 | `KYV Standard Tasklist` | 20 | 42 |
 | `LubricationTaskTypeList` | 2 | 6 |
 | `MaintenanceActivityTypeList` | 7 | 7 |
-| `MaintenanceItems` | 74 | 36 |
-| `MaintenancePlans` | 51 | 40 |
+| `MaintenanceItems` | 75 | 36 |
+| `MaintenancePlans` | 52 | 40 |
 | `MainWorkCenters` | 53 | 8 |
 | `MaterialItems` | 7 | 44 |
 | `MD_ApprovalLog` | 25 | 18 |
@@ -29,10 +29,10 @@ Udtrukket 2026-10-18 07:24 fra https://orsted.sharepoint.com/teams/BioSAPDev/
 | `MD_KksFunctionKey` | 2913 | 9 |
 | `MD_MaterialGroup` | 53 | 10 |
 | `MD_MpCharacteristic` | 7 | 12 |
-| `MD_RequestIndex` | 37 | 24 |
+| `MD_RequestIndex` | 38 | 24 |
 | `MD_StandardTaskOperations` | 173 | 32 |
-| `MD_Strategy` | 53 | 11 |
-| `MD_StrategyPackage` | 3 | 14 |
+| `MD_Strategy` | 65 | 11 |
+| `MD_StrategyPackage` | 238 | 14 |
 | `MD_TasklistAttachment` | 1 | 13 |
 | `MD_TasklistMaterial` | 9 | 14 |
 | `MeasuringPointItems` | 0 | 43 |
@@ -42,7 +42,7 @@ Udtrukket 2026-10-18 07:24 fra https://orsted.sharepoint.com/teams/BioSAPDev/
 | `SSV Standard Tasklist` | 32 | 42 |
 | `StandardStrategyList` | 3 | 6 |
 | `StandardTaskList` | 3 | 12 |
-| `TaskListMain` | 378 | 32 |
+| `TaskListMain` | 384 | 32 |
 | `UserAndGroups` | 7 | 7 |
 | `Vendors` | 20 | 7 |
 | `VHP_NoteToSelf` | 1 | 10 |
@@ -457,7 +457,7 @@ Udtrukket 2026-10-18 07:24 fra https://orsted.sharepoint.com/teams/BioSAPDev/
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MaintenanceItems`  -  74 raekker
+## `MaintenanceItems`  -  75 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -498,7 +498,7 @@ Udtrukket 2026-10-18 07:24 fra https://orsted.sharepoint.com/teams/BioSAPDev/
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MaintenancePlans`  -  51 raekker
+## `MaintenancePlans`  -  52 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -719,7 +719,7 @@ Udtrukket 2026-10-18 07:24 fra https://orsted.sharepoint.com/teams/BioSAPDev/
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MD_RequestIndex`  -  37 raekker
+## `MD_RequestIndex`  -  38 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -785,7 +785,7 @@ Udtrukket 2026-10-18 07:24 fra https://orsted.sharepoint.com/teams/BioSAPDev/
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MD_Strategy`  -  53 raekker
+## `MD_Strategy`  -  65 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -801,7 +801,7 @@ Udtrukket 2026-10-18 07:24 fra https://orsted.sharepoint.com/teams/BioSAPDev/
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MD_StrategyPackage`  -  3 raekker
+## `MD_StrategyPackage`  -  238 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -810,7 +810,7 @@ Udtrukket 2026-10-18 07:24 fra https://orsted.sharepoint.com/teams/BioSAPDev/
 | `PackageNo` | PackageNo | Number | x |  |  |
 | `ShortCode` | ShortCode | Text |  |  |  |
 | `CycleLength` | CycleLength | Number |  |  |  |
-| `CycleUnit` | CycleUnit | Choice |  |  | valg: H, DAY, WK, MON, YR, COUNT |
+| `CycleUnit` | CycleUnit | Choice |  |  | valg: H, D, DAY, WK, MON, YR, COUNT |
 | `Hierarchy` | Hierarchy | Number |  |  |  |
 | `PackageText` | PackageText | Text |  |  |  |
 | `OffsetValue` | OffsetValue | Number |  |  |  |
@@ -1049,7 +1049,7 @@ Udtrukket 2026-10-18 07:24 fra https://orsted.sharepoint.com/teams/BioSAPDev/
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `TaskListMain`  -  378 raekker
+## `TaskListMain`  -  384 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|

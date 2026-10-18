@@ -124,7 +124,7 @@ glider de fra hinanden.
 | `plan.title` | IP01 planens tekst | 40 tegn |
 | `plan.cycle` + `unit` | IP01 cyklus | `1` + `WK` |
 | `plan.plannedDate` (første forfald) | IP01 startdato | **én cyklus før** (som det gamle `ResolvePlanStartDate`) |
-| `plan.cycle` + `unit` | kaldshorisont, planlægningsperiode | opslag i arket *Opslag* |
+| `plan.callHorizon`, `schedulingPeriod`, `schedulingPeriodUnit` | kaldshorisont, planlægningsperiode | appens værdier (CallHorizonMatrix); mangler de, opslag på `cycle` + `unit` i arket *Opslag* |
 | `plan.plant` | værk, arbejdsplanprofil | opslag (`SSV` → `2804`, `PMSSV`) |
 | `plan.sortField(Id)` | sorteringsfelt | Id, Id med nuller, ellers teksten |
 | `items[].title` | IP04 kort tekst og IA05 beskrivelse | 40 tegn |
