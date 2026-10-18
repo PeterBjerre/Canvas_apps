@@ -130,6 +130,8 @@ def test_settings_are_complete():
 def lo():
     import vba_lo
     if not vba_lo.available():
+        if vba_lo.required():
+            pytest.fail("LibreOffice/python3-uno mangler, men VBA_LO_REQUIRED=1")
         pytest.skip("LibreOffice/python3-uno findes ikke")
     pure = [os.path.join(RUNNER, m) for m in
             ("VhpUtil.bas", "VhpMap.bas", "VhpItf.bas", "VhpFl.bas", "VhpTest.bas")]
