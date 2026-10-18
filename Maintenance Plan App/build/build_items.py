@@ -233,6 +233,9 @@ def _copy_record(collection, alias, indent):
         elif k == "SpId":
             # En kopi er en NY raekke - den maa ikke opdatere originalen.
             fields.append("SpId: 0")
+        elif k == "FileCount":
+            # Dokumenterne haenger paa originalens raekke - kopien har ingen.
+            fields.append("FileCount: 0")
         else:
             fields.append(f"{k}: {alias}.{k}")
     return "{\n" + pad + "    " + (",\n" + pad + "    ").join(fields) + "\n" + pad + "}"

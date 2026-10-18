@@ -6246,6 +6246,7 @@ Screens:
                                                                   CostElement: SRC.CostElement,
                                                                   MaterialGroup: SRC.MaterialGroup,
                                                                   ServiceNo: SRC.ServiceNo,
+                                                                  FileCount: 0,
                                                                   SpId: 0
                                                               }
                                                           )
@@ -12235,7 +12236,7 @@ Screens:
                                                 Size: |-
                                                     =T.small
                                                 Text: |-
-                                                    ="Docs"
+                                                    ="Docs (" & Text(Coalesce(ThisItem.FileCount, 0)) & ")"
                                                 VerticalAlign: |-
                                                     =VerticalAlign.Middle
                                                 Width: |-
@@ -16828,11 +16829,11 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =If(((Min(620, App.Width - 40) - 36)) >= (137) + (72) + (89) + 16, 32, (32) + 8 + (32) + 8 + (32))
+                            =If(((Min(620, App.Width - 40) - 36)) >= (137) + (106) + (89) + 16, 32, (32) + 8 + (32) + 8 + (32))
                         LayoutAlignItems: |-
-                            =If(((Min(620, App.Width - 40) - 36)) >= (137) + (72) + (89) + 16, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
+                            =If(((Min(620, App.Width - 40) - 36)) >= (137) + (106) + (89) + 16, LayoutAlignItems.Center, LayoutAlignItems.Stretch)
                         LayoutDirection: |-
-                            =If(((Min(620, App.Width - 40) - 36)) >= (137) + (72) + (89) + 16, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                            =If(((Min(620, App.Width - 40) - 36)) >= (137) + (106) + (89) + 16, LayoutDirection.Horizontal, LayoutDirection.Vertical)
                         LayoutGap: |-
                             =8
                         LayoutMinWidth: |-
@@ -16870,7 +16871,7 @@ Screens:
                               Layout: |-
                                   =ButtonLayout.TextOnly
                               LayoutMinWidth: |-
-                                  =If(((Min(620, App.Width - 40) - 36)) >= (137) + (72) + (89) + 16, 137, 0)
+                                  =If(((Min(620, App.Width - 40) - 36)) >= (137) + (106) + (89) + 16, 137, 0)
                               OnSelect: |-
                                   =Set(varVhpMatOpNo, varVhpOpMNo)
                               RadiusBottomLeft: |-
@@ -16893,7 +16894,7 @@ Screens:
                             Control: ModernButton
                             Properties:
                               AccessibleLabel: |-
-                                  ="Docs"
+                                  ="Docs (" & Text(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).FileCount, 0)) & ")"
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
@@ -16915,7 +16916,7 @@ Screens:
                               Layout: |-
                                   =ButtonLayout.TextOnly
                               LayoutMinWidth: |-
-                                  =If(((Min(620, App.Width - 40) - 36)) >= (137) + (72) + (89) + 16, 72, 0)
+                                  =If(((Min(620, App.Width - 40) - 36)) >= (137) + (106) + (89) + 16, 106, 0)
                               OnSelect: |-
                                   =Set(varVhpAttOpNo, varVhpOpMNo);
                                   With(
@@ -16933,11 +16934,11 @@ Screens:
                               Size: |-
                                   =T.input
                               Text: |-
-                                  ="Docs"
+                                  ="Docs (" & Text(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).FileCount, 0)) & ")"
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
-                                  =72
+                                  =106
                         - btnVhpOpMRemove:
                             Control: ModernButton
                             Properties:
@@ -16964,7 +16965,7 @@ Screens:
                               Layout: |-
                                   =ButtonLayout.TextOnly
                               LayoutMinWidth: |-
-                                  =If(((Min(620, App.Width - 40) - 36)) >= (137) + (72) + (89) + 16, 89, 0)
+                                  =If(((Min(620, App.Width - 40) - 36)) >= (137) + (106) + (89) + 16, 89, 0)
                               OnSelect: |-
                                   =RemoveIf(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo);
                                   Set(varVhpOpMNo, "")
@@ -18110,6 +18111,7 @@ Screens:
                                           true,
                                           Set(gblToast, { Text: "The documents could not be saved. " & FirstError.Message, Kind: "Error", At: Now() }); true,
                                           Set(varVhpAttRow, LookUp(TaskListMain, ID = varVhpAttRowSaved.ID));
+                                          UpdateIf(colVhpOperations, SpId = varVhpAttRowSaved.ID, { FileCount: CountRows(varVhpAttRow.Attachments) });
                                           Reset(attVhpAttPicker);
                                           Set(gblToast, { Text: "Documents saved.", Kind: "Success", At: Now() }); true
                                       );
@@ -25311,7 +25313,7 @@ Screens:
                             Clear(colVhpAttachments);
                             If(false, ClearCollect(colVhpItems, { ItemId: 0, ShortText: "", FunctionalLocation: "", FlDescription: "", MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "", OrstedResponsible: "", Initials: "", LongText: "", NonFlowUserStatus: "", TasklistKey: "", TasklistName: "", Status: "", SpId: 0 }));
                 
-                            If(false, ClearCollect(colVhpOperations, { ItemId: 0, OperationNo: "", OperationShortText: "", WorkHours: 0, Persons: 0, DurationHours: 0, MainWorkCenter: "", Vendor: "", LongText: "", PackagesKey: ";", Selected: false, ControlKey: "", Cost: 0, UnitCost: 0, Currency: "", CostElement: 0, MaterialGroup: "", ServiceNo: "", SpId: 0 }));
+                            If(false, ClearCollect(colVhpOperations, { ItemId: 0, OperationNo: "", OperationShortText: "", WorkHours: 0, Persons: 0, DurationHours: 0, MainWorkCenter: "", Vendor: "", LongText: "", PackagesKey: ";", Selected: false, ControlKey: "", Cost: 0, UnitCost: 0, Currency: "", CostElement: 0, MaterialGroup: "", ServiceNo: "", FileCount: 0, SpId: 0 }));
                 
                             If(false, ClearCollect(colVhpFl, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" }));
                 
@@ -25613,6 +25615,7 @@ Screens:
                                                             CostElement: OP.CostElem,
                                                             MaterialGroup: OP.MaterialGroup,
                                                             ServiceNo: OP.ServiceNo,
+                                                            FileCount: CountRows(OP.Attachments),
                                                             SpId: OP.ID
                                                         }
                                                     )
