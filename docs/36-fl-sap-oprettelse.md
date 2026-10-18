@@ -98,7 +98,8 @@ Porten er lavet fra `FL indberetninger udgave SPOOL V3.xlsm` (i
 | En karakteristik, der ikke fandtes, blev kun skrevet i Debug-vinduet | Advarsel i kvitteringen og under *Detaljer* | Så nogen ser det |
 | Gem uden besked blev regnet for gemt | Se efter i IL03, før rækken regnes for gemt | Kvitteringen må ikke sige "oprettet" om noget, der ikke er |
 | IL02 brugte altid strukturindikator KKS | IL02 bruger rækkens egen (KKS, KKSKV, KKSKA) | Samme som IL01 |
-| Garantidato som Excel-dato | `YYYYMMDD` laves om til `DD.MM.YYYY` | Appen skriver kun `DD.MM.YYYY` (docs/31, FL34, issue #166), som går uændret til SAP. Konverteringen er bevaret for ældre anmodninger med `YYYYMMDD` |
+| Garantidato som Excel-dato | `YYYYMMDD` laves om til `DD.MM.YYYY` | Appen skriver kun `DD.MM.YYYY` (docs/31, FL34, issue #166). Til SAP skrives datoen i indstillingen *Datoformat i SAP* (standard `dd.mm.yyyy`, altså uændret; R2-059). Konverteringen er bevaret for ældre anmodninger med `YYYYMMDD` |
+| "already exists" som tekst | Teksten, eller beskednøglen `FL_MSG_EXISTS_KEY`, når den er kendt | Teksten kræver engelsk logon. Opretteren stopper før SAP, hvis sproget ikke er *SAP-sprog* (`EN`), så en FL, der findes, ikke fejler i IL01 i stedet for at blive ændret i IL02 (R2-059) |
 
 **Et tomt felt bliver også tomt i SAP**, som i SPOOL. Ved IL02 betyder det, at
 en værdi, der står i SAP, men ikke i anmodningen, bliver slettet. *Detaljer*

@@ -549,7 +549,7 @@ Public Function CreatePlan(ByVal sess As Object, ByVal order As Object, ByVal it
     VhpSap.SetText sess, IP01_HORIZON_QUALIFIER, CStr(ctx("horizonQualifier"))
     VhpSap.SetText sess, IP01_SCHED_PERIOD, VhpUtil.JStr(hz, "period")
     VhpSap.SetText sess, IP01_SCHED_UNIT, VhpUtil.JStr(hz, "periodUnit")
-    VhpSap.SetText sess, IP01_START_DATE, VhpMap.SapDate(VhpMap.StartDate(firstDue, cycle, unitText))
+    VhpSap.SetText sess, IP01_START_DATE, VhpMap.SapDate(VhpMap.StartDate(firstDue, cycle, unitText), CStr(ctx("dateFormat")))
     ' "Time - key date" kan SAP ikke ved cyklus i dage (DAY): den svarer med
     ' dialogen "Key date scheduling not possible", som ellers blokerer resten
     ' af skaermen (MP0142). Ved DAY beholdes SAP's standard (Time).
@@ -586,7 +586,7 @@ Public Function CreatePlan(ByVal sess As Object, ByVal order As Object, ByVal it
 
     ConfirmSave ctx, VhpUtil.Dk("Planen ") & VhpUtil.JStr(plan, "planId") & " (" & title & VhpUtil.Dk(") er udfyldt i SAP med ") & _
         itemNos.Count & VhpUtil.Dk(" position(er), cyklus ") & cycleText & " " & unitText & _
-        VhpUtil.Dk(" og startdato ") & VhpMap.SapDate(VhpMap.StartDate(firstDue, cycle, unitText)) & "."
+        VhpUtil.Dk(" og startdato ") & VhpMap.SapDate(VhpMap.StartDate(firstDue, cycle, unitText), CStr(ctx("dateFormat"))) & "."
 
     CreatePlan = SaveAndReadNumber(sess, what, 3, _
         VhpUtil.Dk(" Se i IP03, om planen blev oprettet, f{oe}r den k{oe}res igen."))

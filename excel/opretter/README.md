@@ -159,6 +159,8 @@ Det vigtigste:
 | Produktionssystemer | `GP1` | DEV- og TEST-ordrer kan ikke oprettes her, PROD-ordrer kun her |
 | Bekræft hvert gem | `Ja` | Sæt til `Nej`, når I stoler på opretteren |
 | Decimaltegn i SAP | `,` | Som i SAP-brugerprofilen |
+| Datoformat i SAP | `dd.mm.yyyy` | Som i SAP-brugerprofilen (SU3), fx `mm/dd/yyyy`. Startdatoen (IP01) og garantidatoerne (FL) skrives sådan. *Nøgledato (IA05)* skrives i hånden i samme format (R2-059) |
+| SAP-sprog | `EN` | Logon-sproget. Er SAP logget på med et andet, stopper opretteren før SAP med beskeden *Log på med engelsk*. *Test SAP* viser sproget. Tom = intet tjek (R2-059) |
 
 ### Rettelser i koden
 

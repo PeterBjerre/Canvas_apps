@@ -90,6 +90,10 @@ Public Const SET_TASKLIST_TYPE As String = "TaskListType"
 Public Const SET_PM02_MATGROUP As String = "Pm02MatGroup"
 Public Const SET_DECIMAL_SEP As String = "DecimalSep"
 Public Const SET_PLAN_CATEGORY As String = "PlanCategory"
+' SAP-brugerens datoformat og logon-sprog (R2-059). Begge staar i SAP-
+' brugerprofilen (SU3) og er ikke noedvendigvis de samme for alle.
+Public Const SET_DATE_FORMAT As String = "DateFormat"
+Public Const SET_SAP_LANGUAGE As String = "SapLanguage"
 
 '--- Fejlnumre ----------------------------------------------------------------
 ' SAP svarede med en fejl. Intet blev gemt i det trin.
@@ -302,8 +306,13 @@ Public Const TX_FL_CHANGE As String = "/nIL02"
 Public Const TX_FL_DISPLAY As String = "/nIL03"
 
 ' Statuslinjen i IL01, naar maerket findes: "Functional location <FL> already
-' exists" (SPOOL sammenligner hele teksten). Engelsk logon som i dag.
+' exists" (SPOOL sammenligner hele teksten). Teksten kraever engelsk logon -
+' opretteren stopper foer SAP, hvis sproget ikke er SapLanguage (R2-059).
 Public Const FL_MSG_EXISTS As String = "already exists"
+' Samme besked som noegle (klasse/nummer, fx "IL/053"), sproguafhaengig. Tom,
+' indtil den er set i SAP (VhpSap.StatusMsgKey efter IL01 paa en FL, der
+' findes); saa bruges den foer teksten (R2-059).
+Public Const FL_MSG_EXISTS_KEY As String = ""
 
 '--- Indgangsbilledet (FillMasterdataFields) ----------------------------------
 Public Const IL01_FL As String = "wnd[0]/usr/txtIFLOS-STRNO"
@@ -437,6 +446,8 @@ Public Function DefaultSetting(ByVal key As String) As String
         Case SET_PM02_MATGROUP: DefaultSetting = "B08.06"
         Case SET_DECIMAL_SEP: DefaultSetting = ","
         Case SET_PLAN_CATEGORY: DefaultSetting = "PM"
+        Case SET_DATE_FORMAT: DefaultSetting = "dd.mm.yyyy"
+        Case SET_SAP_LANGUAGE: DefaultSetting = "EN"
         Case Else: DefaultSetting = vbNullString
     End Select
 End Function

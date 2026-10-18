@@ -533,10 +533,10 @@ Private Sub PreviewPlan(ByVal ws As Worksheet, ByVal path As String, ByVal order
     If VhpUtil.TryParseYmd(VhpUtil.JStr(plan, "plannedDate"), firstDue) Then
         Pair ws, r, VhpUtil.Dk("F{oe}rste forfald"), VhpMap.SapDate(firstDue)
         If isStrat Then
-            Pair ws, r, VhpUtil.Dk("Startdato i SAP"), VhpMap.SapDate(VhpStrategy.StartDate(order, firstDue)) & _
+            Pair ws, r, VhpUtil.Dk("Startdato i SAP"), VhpMap.SapDate(VhpStrategy.StartDate(order, firstDue), VhpConfig.Setting(SET_DATE_FORMAT)) & _
                 VhpUtil.Dk("  (den korteste pakke f{oe}r f{oe}rste forfald)")
         Else
-            Pair ws, r, VhpUtil.Dk("Startdato i SAP"), VhpMap.SapDate(VhpMap.StartDate(firstDue, cycle, unitText)) & _
+            Pair ws, r, VhpUtil.Dk("Startdato i SAP"), VhpMap.SapDate(VhpMap.StartDate(firstDue, cycle, unitText), VhpConfig.Setting(SET_DATE_FORMAT)) & _
                 VhpUtil.Dk("  (en cyklus f{oe}r f{oe}rste forfald)")
         End If
     End If
@@ -688,9 +688,9 @@ Private Sub PreviewFl(ByVal ws As Worksheet, ByVal path As String, ByVal order A
         Pair ws, r, "Rum", VhpFl.FieldValue(row, FLF_ROOM)
         Pair ws, r, "ABC", VhpFl.FieldValue(row, FLF_ABC)
         Pair ws, r, "Sorteringsfelt", VhpFl.FieldValue(row, FLF_SORTFIELD)
-        warranty = VhpFl.SapDateText(VhpFl.FieldValue(row, FLF_WARRANTY_START))
+        warranty = VhpFl.SapDateText(VhpFl.FieldValue(row, FLF_WARRANTY_START), VhpConfig.Setting(SET_DATE_FORMAT))
         If Len(VhpFl.FieldValue(row, FLF_WARRANTY_END)) > 0 Then
-            warranty = warranty & "  " & ChrW$(8211) & "  " & VhpFl.SapDateText(VhpFl.FieldValue(row, FLF_WARRANTY_END))
+            warranty = warranty & "  " & ChrW$(8211) & "  " & VhpFl.SapDateText(VhpFl.FieldValue(row, FLF_WARRANTY_END), VhpConfig.Setting(SET_DATE_FORMAT))
         End If
         Pair ws, r, "Garanti", warranty
         If cls = "KAB" Then Pair ws, r, "Overordnet FL", VhpFl.FieldValue(row, FLF_SUPERIOR)
@@ -1049,7 +1049,9 @@ Private Sub BuildSettings()
         Array(SET_TASKLIST_TYPE, "Arbejdsplantype", "A = generel arbejdsplan"), _
         Array(SET_PM02_MATGROUP, "Varegruppe ved PM02 uden varegruppe", VhpUtil.Dk("Det gamle regneark brugte altid B08.06.")), _
         Array(SET_DECIMAL_SEP, "Decimaltegn i SAP", VhpUtil.Dk("Som i SAP-brugerprofilen (System > Brugerprofil > Egne data > Standardv{ae}rdier).")), _
-        Array(SET_PLAN_CATEGORY, "Plankategori", ""))
+        Array(SET_PLAN_CATEGORY, "Plankategori", ""), _
+        Array(SET_DATE_FORMAT, "Datoformat i SAP", VhpUtil.Dk("Som i SAP-brugerprofilen (SU3), fx dd.mm.yyyy, mm/dd/yyyy eller yyyy-mm-dd. N{oe}gledatoen skrives i samme format.")), _
+        Array(SET_SAP_LANGUAGE, "SAP-sprog", VhpUtil.Dk("Logon-sproget, opretteren kr{ae}ver (EN). Den genkender SAP's beskeder p{aa} engelsk. Tom = intet tjek.")))
 
     If Not TableExists(ws, LO_SETTINGS) Then
         ws.Range("A3:D3").Value = Array(VhpUtil.Dk("N{oe}gle"), "Indstilling", VhpUtil.Dk("V{ae}rdi"), "Forklaring")

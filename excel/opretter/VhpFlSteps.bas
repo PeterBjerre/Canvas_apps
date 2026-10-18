@@ -79,7 +79,7 @@ Private Function OpenFunctionalLocation(ByVal sess As Object, ByVal row As Objec
     VhpSap.SetText sess, IL01_STRIND, strInd
     VhpSap.Enter sess
 
-    If InStr(1, VhpSap.StatusText(sess), FL_MSG_EXISTS, vbTextCompare) > 0 Then
+    If FlExistsMessage(sess) Then
         VhpSap.StartTransaction sess, TX_FL_CHANGE
         VhpSap.SetText sess, IL02_FL, fl
         VhpSap.SetText sess, IL02_STRIND, strInd
@@ -110,13 +110,25 @@ Private Function FillGeneral(ByVal sess As Object, ByVal row As Object) As Strin
     VhpSap.SetText sess, FL_SERIAL, VhpFl.FieldValue(row, FLF_SERIAL)
 End Function
 
+' Siger statuslinjen efter IL01, at FL'en findes? Beskednoeglen foerst, naar
+' den kendes (sproguafhaengig), ellers teksten (engelsk logon, R2-059).
+Private Function FlExistsMessage(ByVal sess As Object) As Boolean
+    If Len(FL_MSG_EXISTS_KEY) > 0 Then
+        If StrComp(VhpSap.StatusMsgKey(sess), FL_MSG_EXISTS_KEY, vbTextCompare) = 0 Then
+            FlExistsMessage = True
+            Exit Function
+        End If
+    End If
+    FlExistsMessage = (InStr(1, VhpSap.StatusText(sess), FL_MSG_EXISTS, vbTextCompare) > 0)
+End Function
+
 Private Sub FillLocation(ByVal sess As Object, ByVal row As Object, ByVal fl As String)
     VhpSap.SelectItem sess, FL_TAB_LOCATION
     VhpSap.SetText sess, FL_ROOM, VhpFl.FieldValue(row, FLF_ROOM)
     VhpSap.SetText sess, FL_ABC, VhpFl.FieldValue(row, FLF_ABC)
     VhpSap.SetText sess, FL_SORTFIELD, VhpFl.FieldValue(row, FLF_SORTFIELD)
-    VhpSap.SetText sess, FL_WARRANTY_START, VhpFl.SapDateText(VhpFl.FieldValue(row, FLF_WARRANTY_START))
-    VhpSap.SetText sess, FL_WARRANTY_END, VhpFl.SapDateText(VhpFl.FieldValue(row, FLF_WARRANTY_END))
+    VhpSap.SetText sess, FL_WARRANTY_START, VhpFl.SapDateText(VhpFl.FieldValue(row, FLF_WARRANTY_START), VhpConfig.Setting(SET_DATE_FORMAT))
+    VhpSap.SetText sess, FL_WARRANTY_END, VhpFl.SapDateText(VhpFl.FieldValue(row, FLF_WARRANTY_END), VhpConfig.Setting(SET_DATE_FORMAT))
     VhpSap.SetChecked sess, FL_WARRANTY_INHERIT, True
     VhpSap.SetChecked sess, FL_WARRANTY_PASSON, True
     VhpSap.Enter sess

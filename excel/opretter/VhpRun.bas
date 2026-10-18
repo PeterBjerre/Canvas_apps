@@ -46,6 +46,7 @@ Public Sub CreateOrders(ByVal paths As Collection)
     Dim nCheck As Long
     Dim nSkip As Long
     Dim msg As String
+    Dim langMsg As String
 
     If paths Is Nothing Then Exit Sub
     If paths.Count = 0 Then
@@ -61,10 +62,28 @@ Public Sub CreateOrders(ByVal paths As Collection)
     VhpFiles.EnsureSubfolders root
     Set lk = VhpLookup.Load()
 
+    ' Datoformatet skal kunne bruges, foer noget skrives i SAP (R2-059).
+    If Not VhpMap.IsSapDateFormat(VhpConfig.Setting(SET_DATE_FORMAT)) Then
+        MsgBox VhpUtil.Dk("Indstillingen Datoformat i SAP er '") & VhpConfig.Setting(SET_DATE_FORMAT) & _
+            VhpUtil.Dk("'. Skriv den som i SAP-brugerprofilen (SU3), fx dd.mm.yyyy eller mm/dd/yyyy."), _
+            vbExclamation, VHP_APP_NAME
+        Exit Sub
+    End If
+
     On Error GoTo NoSap
     Set sess = VhpSap.Connect(VhpConfig.Setting(SET_SAP_SYSTEM), VhpConfig.Setting(SET_SAP_CLIENT), _
                               VhpConfig.SettingIsYes(SET_NEW_SESSION), createdNew)
     On Error GoTo 0
+
+    ' Logon-sproget: opretteren genkender SAP's beskeder paa engelsk.
+    langMsg = LanguageProblem(sess)
+    If Len(langMsg) > 0 Then
+        Application.StatusBar = False
+        If createdNew Then VhpSap.CloseSession sess
+        VhpUi.LogLine "", langMsg
+        MsgBox langMsg, vbExclamation, VHP_APP_NAME
+        Exit Sub
+    End If
 
     mProdConfirmed = False
     VhpUi.LogLine "", VhpUtil.Dk("Start: ") & paths.Count & VhpUtil.Dk(" ordre(r), SAP ") & _
@@ -104,6 +123,29 @@ NoSap:
     Application.StatusBar = False
     MsgBox Err.Description, vbExclamation, VHP_APP_NAME
 End Sub
+
+' "" = sproget er i orden. Ellers beskeden til brugeren (R2-059). SAP's
+' tekster ("already exists") og loggens beskeder forventes paa det sprog,
+' indstillingen SapLanguage siger (EN). Med dansk logon ville en FL, der
+' findes, ikke blive genkendt, og IL01 fejle i stedet for IL02.
+Private Function LanguageProblem(ByVal sess As Object) As String
+    Dim wanted As String
+    Dim actual As String
+
+    wanted = UCase$(Trim$(VhpConfig.Setting(SET_SAP_LANGUAGE)))
+    If Len(wanted) = 0 Then Exit Function
+    actual = VhpSap.LanguageOf(sess)
+    If Len(actual) = 0 Then
+        VhpUi.LogLine "", VhpUtil.Dk("SAP-sproget kunne ikke l{ae}ses. Der forts{ae}ttes som ") & wanted & "."
+        Exit Function
+    End If
+    If VhpMap.SameSapLanguage(actual, wanted) Then Exit Function
+
+    LanguageProblem = VhpUtil.Dk("SAP er logget p{aa} med sproget ") & actual & _
+        VhpUtil.Dk(", men opretteren kr{ae}ver ") & wanted & "." & vbLf & vbLf & _
+        VhpUtil.Dk("Log p{aa} med ") & IIf(wanted = "EN", "engelsk (EN)", wanted) & _
+        VhpUtil.Dk(" i SAP Logon, og pr{oe}v igen. Opretteren genkender SAP's beskeder p{aa} det sprog. Intet er oprettet.")
+End Function
 
 ' ProcessOrder og VhpFlRun.ProcessFlOrder fanger selv fejlene fra SAP. Det her
 ' er nettet under: en fejl, ingen havde forudset (en fil, OneDrive holder
@@ -752,6 +794,7 @@ Private Function BuildContext(ByVal order As Object, ByVal lk As Object) As Obje
     ctx.Add "profile", VhpUtil.JStr(plantRec, "profile")
     ctx.Add "serviceSpec", VhpUtil.JStr(plantRec, "serviceSpec")
     ctx.Add "keyDate", VhpConfig.Setting(SET_KEY_DATE)
+    ctx.Add "dateFormat", VhpConfig.Setting(SET_DATE_FORMAT)
     ctx.Add "itfPath", VhpConfig.Setting(SET_ITF_PATH)
     ctx.Add "decimalSep", VhpConfig.Setting(SET_DECIMAL_SEP)
     ctx.Add "pm02MatGroup", VhpConfig.Setting(SET_PM02_MATGROUP)
@@ -776,15 +819,20 @@ Public Sub TestConnection()
     Dim sess As Object
     Dim createdNew As Boolean
     Dim sysName As String
+    Dim langMsg As String
 
     On Error GoTo Failed
     Set sess = VhpSap.Connect(VhpConfig.Setting(SET_SAP_SYSTEM), VhpConfig.Setting(SET_SAP_CLIENT), False, createdNew)
     sysName = VhpSap.SystemName(sess)
+    langMsg = LanguageProblem(sess)
     MsgBox VhpUtil.Dk("Forbindelsen virker.") & vbLf & vbLf & _
         "System: " & sysName & IIf(VhpConfig.IsProductionSystem(sysName), VhpUtil.Dk(" (PRODUKTION)"), " (test)") & vbLf & _
         "Klient: " & VhpSap.ClientOf(sess) & vbLf & _
         VhpUtil.Dk("Bruger: ") & sess.Info.User & vbLf & _
-        "Transaktion: " & sess.Info.Transaction, vbInformation, VHP_APP_NAME
+        "Sprog: " & VhpSap.LanguageOf(sess) & vbLf & _
+        "Transaktion: " & sess.Info.Transaction & _
+        IIf(Len(langMsg) > 0, vbLf & vbLf & langMsg, ""), _
+        IIf(Len(langMsg) > 0, vbExclamation, vbInformation), VHP_APP_NAME
     Exit Sub
 
 Failed:

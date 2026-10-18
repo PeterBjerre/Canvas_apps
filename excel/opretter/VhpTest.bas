@@ -84,6 +84,21 @@ Public Function SelfTestPure() As String
     Check "StartDate DAY", Format$(VhpMap.StartDate(DateSerial(2027, 1, 1), 20, "DAY"), "yyyy-mm-dd"), "2026-12-12"
     Check "StartDate H", Format$(VhpMap.StartDate(DateSerial(2027, 1, 1), 1, "H"), "yyyy-mm-dd"), "2027-01-01"
     Check "SapDate", VhpMap.SapDate(DateSerial(2026, 3, 1)), "01.03.2026"
+    Check "SapDate dd.mm.yyyy", VhpMap.SapDate(DateSerial(2026, 3, 1), "dd.mm.yyyy"), "01.03.2026"
+    Check "SapDate mm/dd/yyyy", VhpMap.SapDate(DateSerial(2026, 3, 1), "mm/dd/yyyy"), "03/01/2026"
+    Check "SapDate YYYY-MM-DD", VhpMap.SapDate(DateSerial(2026, 3, 1), "YYYY-MM-DD"), "2026-03-01"
+    Check "IsSapDateFormat dd.mm.yyyy", VhpMap.IsSapDateFormat("dd.mm.yyyy"), True
+    Check "IsSapDateFormat MM/DD/YYYY", VhpMap.IsSapDateFormat("MM/DD/YYYY"), True
+    Check "IsSapDateFormat yyyy.mm.dd", VhpMap.IsSapDateFormat("yyyy.mm.dd"), True
+    Check "IsSapDateFormat yy", VhpMap.IsSapDateFormat("dd.mm.yy"), False
+    Check "IsSapDateFormat blandet", VhpMap.IsSapDateFormat("dd.mm/yyyy"), False
+    Check "IsSapDateFormat dd dd", VhpMap.IsSapDateFormat("dd.dd.yyyy"), False
+    Check "IsSapDateFormat tom", VhpMap.IsSapDateFormat(""), False
+    Check "SameSapLanguage EN", VhpMap.SameSapLanguage("en", "EN"), True
+    Check "SameSapLanguage E", VhpMap.SameSapLanguage("E", "EN"), True
+    Check "SameSapLanguage DA", VhpMap.SameSapLanguage("DA", "EN"), False
+    Check "SameSapLanguage K", VhpMap.SameSapLanguage("K", "EN"), False
+    Check "SameSapLanguage tom", VhpMap.SameSapLanguage("", "EN"), False
     Check "SapNumber komma", VhpMap.SapNumber(1.5, ","), "1,5"
     Check "SapNumber heltal", VhpMap.SapNumber(49400, ","), "49400"
     Check "SapNumber punktum", VhpMap.SapNumber(0.25, "."), "0.25"
@@ -146,6 +161,8 @@ Public Function SelfTestPure() As String
     Check "Fl dato YYYYMMDD", VhpFl.SapDateText("20281231"), "31.12.2028"
     Check "Fl dato DD.MM.YYYY", VhpFl.SapDateText(" 01.01.2026 "), "01.01.2026"
     Check "Fl dato tom", VhpFl.SapDateText(""), ""
+    Check "Fl dato mm/dd/yyyy", VhpFl.SapDateText("31.12.2028", "mm/dd/yyyy"), "12/31/2028"
+    Check "Fl dato YYYYMMDD til yyyy-mm-dd", VhpFl.SapDateText("20281231", "yyyy-mm-dd"), "2028-12-31"
     Check "Fl dato gyldig skuddag", VhpFl.IsFlDate("29.02.2024"), True
     Check "Fl dato ugyldig skuddag", VhpFl.IsFlDate("20230229"), False
     Check "Fl dato ISO afvist", VhpFl.IsFlDate("2024-12-31"), False

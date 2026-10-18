@@ -318,13 +318,19 @@ End Sub
 ' Rene funktioner (ogsaa i LibreOffice)
 '==============================================================================
 
-' Garantidatoen til SAP: DD.MM.YYYY. Appen skriver kun DD.MM.YYYY (docs/31,
-' FL34, issue #166); YYYYMMDD kommer kun fra aeldre anmodninger og laves om
-' her. Andet gives videre, som det er - valideringen har sagt fra.
-Public Function SapDateText(ByVal s As String) As String
+' Garantidatoen til SAP i SAP-brugerens format (fmt, indstillingen
+' DateFormat; tom = DD.MM.YYYY, R2-059). Appen skriver kun DD.MM.YYYY
+' (docs/31, FL34, issue #166); YYYYMMDD kommer kun fra aeldre anmodninger.
+' Andet gives videre, som det er - valideringen har sagt fra.
+Public Function SapDateText(ByVal s As String, Optional ByVal fmt As String = "") As String
+    Dim f As String
+    f = fmt                     ' se VhpMap.SapDate
     s = Trim$(s)
     If Len(s) = 8 And VhpUtil.IsAllDigits(s) Then
-        SapDateText = Mid$(s, 7, 2) & "." & Mid$(s, 5, 2) & "." & Left$(s, 4)
+        SapDateText = VhpMap.SapDateParts(Mid$(s, 7, 2), Mid$(s, 5, 2), Left$(s, 4), f)
+    ElseIf Len(s) = 10 And Mid$(s, 3, 1) = "." And Mid$(s, 6, 1) = "." And _
+           VhpUtil.IsAllDigits(Left$(s, 2) & Mid$(s, 4, 2) & Right$(s, 4)) Then
+        SapDateText = VhpMap.SapDateParts(Left$(s, 2), Mid$(s, 4, 2), Right$(s, 4), f)
     Else
         SapDateText = s
     End If
