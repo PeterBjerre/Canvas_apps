@@ -267,7 +267,7 @@ mail til `BioSap-ErrorNotifiers`.
 | `ItemText` | Text | Itemets korttekst og FL, til visning |
 | `Fingerprint` | Text | Det, der blev godkendt: `SystemNo|FL` for `System`. Tom for de andre |
 | `Amount` | Number | Beløbet, der blev godkendt, for `Cost` |
-| `Decision` | Text | `Approve`, `Return`, `Skipped` |
+| `Decision` | Text | `Approve`, `Return`, `Skipped`, `Timeout` (ingen svar inden for 14 dage), `Requested` (Material/MP: spurgt, ikke afgjort) |
 | `Detail` | Text | Fx systemet, beløbet eller grunden til `Skipped` |
 | `DecidedByEmail` / `DecidedOn` | Text / DateTime | |
 | `Comment` | Note | |
@@ -281,6 +281,26 @@ sender noget videre (§7.3).
 `Skipped` logges også, med grunden i `Detail` ("opretter er 2. godkender
 for system 7", "184.200 kr."). Så kan man bagefter se, *hvorfor* et item ikke blev
 godkendt af nogen. Appen kan vise loggen pr. item.
+
+**`Title` er kørslens id, ikke en læsbar titel (R2-084 pkt. 6).** Flowene
+skriver `workflow()?['run']?['name']` i `Title` og bruger den som nøgle:
+`Title eq '<run>'` finder én kørsels rækker (Material/MP's `Return_rows`,
+spærren mod dobbeltkørsel). Ret den ikke i hånden. Skal `Title` en dag være
+læsbar ("MP0068 System"), skal nøglen først flyttes til en ny kolonne
+`RunId` (provisionering + flowene).
+
+**Én kørsel ad gangen i Material/MP (R2-084 pkt. 2).** De to flows startes af
+appen (Request-trigger) og kan derfor ikke have concurrency 1 – det ville
+stille alle anmodninger i kø bag en ventende godkendelse. I stedet stopper en
+kørsel (*Cancelled*), hvis en anden kørsel inden for det seneste døgn har
+`Requested`-rækker for samme `RequestGuid`, som ikke er afgjort. Vinduet er
+kort, så en kørsel, der endte i `Catch`, ikke spærrer en ny indsendelse.
+
+**`LastActionBy` i indekset (R2-084 pkt. 7).** Appen skriver brugerens
+e-mail; flowene skriver en etiket (`System approval`, `Cost approval`,
+`Quality review`, `SAP`, `PRODOS/SRO counter`). Hubben skelner på `@`
+(`approval_flow._by`). Filtre på "min sidste handling" skal derfor bruge
+e-mail og vil aldrig ramme flowenes rækker – det er bevidst.
 
 ### Parametre
 

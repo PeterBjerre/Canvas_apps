@@ -466,10 +466,72 @@
                         ]
                       }
                     },
+                    "Decided_rows": {
+                      "runAfter": {
+                        "Get_log": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Query",
+                      "inputs": {
+                        "from": "@outputs('Get_log')?['body/value']",
+                        "where": "@contains(createArray('Approve', 'Return', 'Timeout', 'Skipped'), item()?['Decision'])"
+                      }
+                    },
+                    "Decided_keys": {
+                      "runAfter": {
+                        "Decided_rows": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Select",
+                      "inputs": {
+                        "from": "@body('Decided_rows')",
+                        "select": "@concat(item()?['Title'], '|', item()?['ItemGuid'])"
+                      }
+                    },
+                    "Running_rows": {
+                      "runAfter": {
+                        "Decided_keys": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Query",
+                      "inputs": {
+                        "from": "@outputs('Get_log')?['body/value']",
+                        "where": "@and(equals(item()?['Decision'], 'Requested'), not(equals(item()?['Title'], outputs('RunName'))), not(contains(body('Decided_keys'), concat(item()?['Title'], '|', item()?['ItemGuid']))), greater(string(coalesce(item()?['DecidedOn'], '')), addDays(utcNow(), -1)))"
+                      }
+                    },
+                    "Already_running": {
+                      "runAfter": {
+                        "Running_rows": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "If",
+                      "expression": {
+                        "greater": [
+                          "@length(body('Running_rows'))",
+                          0
+                        ]
+                      },
+                      "actions": {
+                        "Stop_already_running": {
+                          "runAfter": {},
+                          "type": "Terminate",
+                          "inputs": {
+                            "runStatus": "Cancelled"
+                          }
+                        }
+                      },
+                      "else": {
+                        "actions": {}
+                      }
+                    },
                     "For_each_row": {
                       "foreach": "@body('Strategic_rows')",
                       "runAfter": {
-                        "Get_log": [
+                        "Already_running": [
                           "Succeeded"
                         ]
                       },
