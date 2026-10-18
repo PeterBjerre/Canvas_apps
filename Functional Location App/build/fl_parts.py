@@ -1425,9 +1425,10 @@ def _paste_add_fx():
     return (
         f"With(\n    {{ lines: {PASTE_LINES} }},\n"
         "    RemoveIf(colFlRows, SpId = 0 && IsBlank(FL) && IsBlank(Description));\n"
-        "    ForAll(\n"
-        "        Sequence(CountRows(lines)),\n"
-        "        Collect(colFlRows, { RowGuid: Text(GUID()), RowNo: varFlNextRowNo + Value - 1, SpId: 0, "
+        # Een Collect med hele tabellen, ikke en pr. linje (regel 15, issue #342).
+        "    Collect(\n"
+        "        colFlRows,\n"
+        "        ForAll(Sequence(CountRows(lines)), { RowGuid: Text(GUID()), RowNo: varFlNextRowNo + Value - 1, SpId: 0, "
         f"FL: {norm_fl(cell.format(i=1))}, Description: Trim({cell.format(i=2)}), "
         'KksType: "", AssignedClass: "", Status: "draft", FirstIssue: "", FirstWarning: "", '
         'IssueCount: 0, WarningCount: 0, Pos: 0, FlBad: false, DescBad: false, Hint: "" })\n'
