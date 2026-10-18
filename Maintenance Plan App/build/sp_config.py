@@ -112,17 +112,21 @@ C_FILE_NAME   = "FileName"
 C_ITEM_PLAN = "MaintenancePlanNo"   # opslag i L_ITEMS
 C_TASK_PLAN = "MaintenancePlanID"   # opslag i L_TASKS
 PLAN_KEY_REF = 'Coalesce(varVhpPlanKey, "-")'
+# Gemningen (build_save) maaler mod en REN global variabel, ikke mod et
+# funktionsudtryk: build_save._step_plan saetter den til PLAN_KEY_REF, saa
+# snart planens noegle er kendt (review R2-007).
+PLAN_KEY_Q = "varVhpPlanKeyQ"
 
 
-def plan_cond(lst):
+def plan_cond(lst, key=PLAN_KEY_REF):
     """Betingelsen <raekken hoerer til planen> for items eller operationer."""
     col = {L_ITEMS: C_ITEM_PLAN, L_TASKS: C_TASK_PLAN}[lst]
-    return f"{col}.Value = {PLAN_KEY_REF}"
+    return f"{col}.Value = {key}"
 
 
-def plan_rows(lst):
+def plan_rows(lst, key=PLAN_KEY_REF):
     """Filter(<items eller operationer>, <hoerer til planen>) - delegerbart."""
-    return f"Filter({lst}, {plan_cond(lst)})"
+    return f"Filter({lst}, {plan_cond(lst, key)})"
 
 
 # ---------------------------------------------------------------------------
@@ -592,7 +596,9 @@ WORKING_COLLECTIONS = [
     ("colVhpAdmOld", {"ID": 0, "ItemID": '""', "Title": '""', "ItemDescription": '""',
                       "FunctionalLocation": '""', "ObjectList": '""'}),
     ("colVhpSpOps", {"ID": 0, "TaskItemID": '""'}),
-    ("colVhpOldMats", {"ID": 0}),
-    ("colVhpOldAtts", {"ID": 0}),
+    # colVhpOldMats/colVhpOldAtts (de gamle materiale- og dokumentraekker)
+    # og colVhpSpItemRows/colVhpSpOpRows (planens items og operationer)
+    # er HELE SharePoint-raekker, som Patch og Remove bruger direkte
+    # (R2-007). De faar deres type fra listen og staar derfor ikke her.
     ("colVhpSaveErrors", {"Where": '""', "Msg": '""'}),
 ]
