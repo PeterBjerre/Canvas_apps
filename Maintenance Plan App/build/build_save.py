@@ -766,6 +766,10 @@ def _step_status():
         f"            Patch({cfg.L_PLANS}, varVhpPlanRec, "
         f"{{ Status: {{ Value: \"{PLAN_STATUS_SUBMITTED}\" }}, "
         "ApprovalStage: { Value: \"System\" }, SubmittedOn: Now(), StageRunId: \"\", "
+        # Kvitteringsmailen (flowet NewPlanCreated) sendes, naar flaget er
+        # falsk, og flowet saetter det selv. Nulstilles ved HVER indsendelse,
+        # saa en genindsendt plan efter Return ogsaa faar kvittering (R2-050).
+        "InitialEmailSent: false, "
         # Note to approver og hvem der indsendte (issue #115) - kun her,
         # saa Save draft og flowene aldrig overskriver noten.
         f"{sn.COL_APPROVER}: varVhpNoteApprover, {sn.COL_BY}: varVhpMe }})\n"

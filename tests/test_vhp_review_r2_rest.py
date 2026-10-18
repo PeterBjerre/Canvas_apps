@@ -77,3 +77,12 @@ def test_offset_skips_rows_without_key():
     assert 'Filter(MaintenanceItems, StartsWith(ItemID, "MI"))' in off
     # Sidste vaern: et nummer, der ikke er et tal, stopper stadig.
     assert "IsNumeric(Mid(r.ItemID, 3))" in off
+
+
+# --- R2-050: Submit nulstiller InitialEmailSent -----------------------------
+def test_submit_resets_initial_email_flag():
+    st = build_save._step_status()
+    i = st.index('Status: { Value: "In Progress" }')
+    assert "InitialEmailSent: false" in st[i:st.index("varVhpFlow", i)]
+    # Kun ved Submit - Save draft roerer ikke flaget.
+    assert st.count("InitialEmailSent") == 1
