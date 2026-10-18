@@ -1,6 +1,6 @@
 ﻿# SharePoint-lister bag VH-plan appen
 
-Udtrukket 2026-10-15 14:06 fra https://orsted.sharepoint.com/teams/BioSAPDEV
+Udtrukket 2026-10-18 07:24 fra https://orsted.sharepoint.com/teams/BioSAPDev/
 
 | Liste | Raekker | Kolonner |
 |---|---:|---:|
@@ -9,8 +9,8 @@ Udtrukket 2026-10-15 14:06 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `AVV Standard Tasklist` | 37 | 43 |
 | `CallHorizonMatrix` | 16 | 10 |
 | `EquipmentItems` | 4 | 34 |
-| `FunctionalLocationItems` | 1 | 21 |
-| `FunctionalLocationRequests` | 1 | 17 |
+| `FunctionalLocationItems` | 2 | 21 |
+| `FunctionalLocationRequests` | 2 | 17 |
 | `HEV Standard Tasklist` | 30 | 42 |
 | `IB_AppSections` | 87 | 13 |
 | `IB_TicketComments` | 9 | 20 |
@@ -18,7 +18,7 @@ Udtrukket 2026-10-15 14:06 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `KYV Standard Tasklist` | 20 | 42 |
 | `LubricationTaskTypeList` | 2 | 6 |
 | `MaintenanceActivityTypeList` | 7 | 7 |
-| `MaintenanceItems` | 73 | 36 |
+| `MaintenanceItems` | 74 | 36 |
 | `MaintenancePlans` | 51 | 40 |
 | `MainWorkCenters` | 53 | 8 |
 | `MaterialItems` | 7 | 44 |
@@ -27,13 +27,14 @@ Udtrukket 2026-10-15 14:06 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `MD_FLKey` | 6733 | 9 |
 | `MD_HelpText` | 51 | 11 |
 | `MD_KksFunctionKey` | 2913 | 9 |
+| `MD_MaterialGroup` | 53 | 10 |
 | `MD_MpCharacteristic` | 7 | 12 |
-| `MD_RequestIndex` | 36 | 24 |
-| `MD_StandardTaskOperations` | 176 | 32 |
+| `MD_RequestIndex` | 37 | 24 |
+| `MD_StandardTaskOperations` | 173 | 32 |
 | `MD_Strategy` | 53 | 11 |
 | `MD_StrategyPackage` | 3 | 14 |
 | `MD_TasklistAttachment` | 1 | 13 |
-| `MD_TasklistMaterial` | 7 | 14 |
+| `MD_TasklistMaterial` | 9 | 14 |
 | `MeasuringPointItems` | 0 | 43 |
 | `PlantList` | 8 | 6 |
 | `SKV Standard Tasklist` | 31 | 42 |
@@ -41,7 +42,7 @@ Udtrukket 2026-10-15 14:06 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `SSV Standard Tasklist` | 32 | 42 |
 | `StandardStrategyList` | 3 | 6 |
 | `StandardTaskList` | 3 | 12 |
-| `TaskListMain` | 369 | 32 |
+| `TaskListMain` | 378 | 32 |
 | `UserAndGroups` | 7 | 7 |
 | `Vendors` | 20 | 7 |
 | `VHP_NoteToSelf` | 1 | 10 |
@@ -213,7 +214,7 @@ Udtrukket 2026-10-15 14:06 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `FunctionalLocationItems`  -  1 raekker
+## `FunctionalLocationItems`  -  2 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -239,7 +240,7 @@ Udtrukket 2026-10-15 14:06 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `FunctionalLocationRequests`  -  1 raekker
+## `FunctionalLocationRequests`  -  2 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -456,7 +457,7 @@ Udtrukket 2026-10-15 14:06 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MaintenanceItems`  -  73 raekker
+## `MaintenanceItems`  -  74 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -686,6 +687,21 @@ Udtrukket 2026-10-15 14:06 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
+## `MD_MaterialGroup`  -  53 raekker
+
+| Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
+|---|---|---|:-:|:-:|---|
+| `Title` | **MaterialGroup** | Text | x | x |  |
+| `MaterialGroupDescription` | MaterialGroupDescription | Text |  |  |  |
+| `Description2` | Description2 | Text |  |  |  |
+| `CategoryDescription` | CategoryDescription | Note |  |  |  |
+| `SearchWords` | SearchWords | Text |  |  |  |
+| `ID` | ID | Counter |  |  | skrivebeskyttet |
+| `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
+| `Created` | Created | DateTime |  |  | skrivebeskyttet |
+| `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+| `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
+
 ## `MD_MpCharacteristic`  -  7 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
@@ -703,7 +719,7 @@ Udtrukket 2026-10-15 14:06 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MD_RequestIndex`  -  36 raekker
+## `MD_RequestIndex`  -  37 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -732,7 +748,7 @@ Udtrukket 2026-10-15 14:06 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MD_StandardTaskOperations`  -  176 raekker
+## `MD_StandardTaskOperations`  -  173 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -822,7 +838,7 @@ Udtrukket 2026-10-15 14:06 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MD_TasklistMaterial`  -  7 raekker
+## `MD_TasklistMaterial`  -  9 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -1033,7 +1049,7 @@ Udtrukket 2026-10-15 14:06 fra https://orsted.sharepoint.com/teams/BioSAPDEV
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `TaskListMain`  -  369 raekker
+## `TaskListMain`  -  378 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
