@@ -12,6 +12,7 @@ med ikoner; aabnet viser den teksterne ved siden af.
     | [ik] |              | [ik]  BIO SAP          |
     |  >>  |              |  <<                    |
     |  ^   |              |  ^    Masterdata Hub   |
+    | ---- |              |  MASTER DATA           |   <- afsnit (issue #368)
     |  o   |              |  o    Functional ...   |
     | |=   |              | |=    VH-plan    <- markeret: den app, man er i
     |  ..  |              |  ..   ...              |
@@ -32,6 +33,15 @@ HVAD DER ER TAGET MED FRA HTML-SIDEN
     med den lukkede bredde (tools/layout_tokens.py, NAV_W).
   * Foden med en streg over. HTML-siden har soegning og taethed dér; her
     staar Help- og temakontakten, som foer stod i topbjaelken.
+
+AFSNIT (issue #368)
+-------------------
+Hubben staar alene oeverst. Resten er delt i afsnit (nav_sections i
+tools/canvas_apps.json): MASTER DATA, REFERENCE, ISSUES & TESTING. I det
+aabne panel (og mobilens menu, som er det samme panel) staar en lille,
+daempet overskrift i versaler over hvert afsnit - en tekst, ikke et punkt,
+saa den kan ikke klikkes. Den lukkede skinne har ikke plads til tekst;
+dér skiller en tynd streg afsnittene.
 
 HVAD DER ER ANDERLEDES
 ----------------------
@@ -86,7 +96,7 @@ SCREENS (de fem enkelte apps) er intet aendret.
 """
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_screen import Ctrl, C_SURFACE, C_DIVIDER, C_MUTED_BG, C_PRIMARY, C_TITLE
+from gen_screen import Ctrl, C_SURFACE, C_DIVIDER, C_MUTED_BG, C_PRIMARY, C_TITLE, C_MUTED
 from design_tokens import ref_hex, theme_query, TRANSPARENT, FLAG_SVG
 from build_helpers import group, theme_button, help_toggle, text_ctrl, grow, THEME_TOGGLE_H, page_icon
 import layout_tokens as lay
@@ -109,6 +119,54 @@ BRAND_H = 44
 # Teksterne og raekkefoelgen staar i tools/canvas_apps.json (nav_label,
 # nav_order) - app-listen er eet sted.
 ITEMS = [(k, env.APPS[k]["nav_label"], icons.path(k)) for k in env.NAV_ORDER]
+
+# AFSNIT (issue #368): {noegle: overskrift} fra nav_sections i
+# tools/canvas_apps.json. Hubben har intet afsnit og staar alene oeverst.
+# Et afsnits punkter skal staa samlet i nav_order - ellers ville samme
+# overskrift staa to gange.
+SECTION = dict(env.NAV_SECTION)
+
+
+def _check_sections():
+    seen, last = set(), None
+    for k in env.NAV_ORDER:
+        sec = SECTION.get(k)
+        if sec != last and sec in seen:
+            raise SystemExit("side_nav: afsnittet '%s' staar ikke samlet i nav_order" % sec)
+        if sec is not None:
+            seen.add(sec)
+        last = sec
+
+
+_check_sections()
+
+# Overskriften: lille, versaler, daempet farve - som en etiket, ikke et punkt.
+SECTION_SIZE = 11
+# Den lukkede skinne har ikke plads til tekst - en tynd streg skiller afsnittene.
+SECTION_RULE_PAD = 5
+
+
+def _slug(title):
+    return "".join(ch for ch in title.title() if ch.isalnum())
+
+
+def _section_header(p, suffix, w, title, is_open):
+    """Overskriften over et afsnit. Ikke klikbar: en Label (ModernText) i
+    panelet, en streg (en tom container med fyld) i skinnen."""
+    name = f"con{p}NavSec{_slug(title)}{suffix}"
+    if not is_open:
+        rule = group(f"con{p}NavSecRule{_slug(title)}", [], direction="Horizontal", height=1,
+                     width=w - 24, fill=C_DIVIDER, align_in_container="Center")
+        return group(name, [rule], gap=0, width=w, align_items="Center",
+                     pad=(SECTION_RULE_PAD, 0, SECTION_RULE_PAD, 0))
+    # Venstrekanten flugter med ikonerne i punkterne under den.
+    label = text_ctrl(f"txt{p}NavSec{_slug(title)}", f'"{title.upper()}"',
+                      size=SECTION_SIZE, color=C_MUTED, weight="Semibold",
+                      width=w - (lay.NAV_W - ICON_PX) // 2 - 8,
+                      accessible=f'"{title}"')
+    return group(name, [label], gap=0, width=w, align_items="Start",
+                 pad=(10, 0, 2, (lay.NAV_W - ICON_PX) // 2))
+
 
 # DEN SAMLEDE APP: {noegle: skaermnavn}. None = de fem enkelte apps, hvor
 # et punkt er Launch() af en anden app. Saettes med use_screens().
@@ -346,9 +404,14 @@ def _column(p, suffix, w, current, is_open, help_on, help_action):
                         w, ITEM_H, f"Set({OPEN}, true)", '"Expand menu"',
                         tooltip='"Expand menu"')
     items = []
+    last_sec = None
     for key, label, icon in ITEMS:
         if (key not in SCREENS) if SCREENS is not None else not env.app_id(key):
             continue
+        sec = SECTION.get(key)
+        if sec is not None and sec != last_sec:
+            items.append(_section_header(p, suffix, w, sec, is_open))
+        last_sec = sec
         cur = key == current
         tok = icons.token(key)
         items.append(_image(

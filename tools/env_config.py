@@ -158,6 +158,10 @@ def _app_enabled(key):
 # og BIO SAP App - app-listen stod foer syv steder (REVIEW.md C6).
 APP_ORDER = [k for k in (_CFG.get("apps") or {}) if _app_enabled(k)]
 NAV_ORDER = [k for k in (_CFG.get("nav_order") or []) if k in APP_ORDER]
+# Sidebarens afsnit (issue #368): {app-noegle: overskrift}. En noegle uden
+# afsnit (hubben) staar alene.
+NAV_SECTION = {k: sec["title"] for sec in (_CFG.get("nav_sections") or [])
+               for k in sec["apps"]}
 
 
 def folder(key):
