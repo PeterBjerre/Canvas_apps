@@ -48,16 +48,19 @@ python3 tools/build.py           # det samme i én proces
 | PowerShell 7 (`pwsh`) med PnP.PowerShell 2.x+ — virker **ikke** i Windows PowerShell 5.1 (`Connect-PnPOnline` findes ikke dér) | `sharepoint/provision/*.ps1`, `sharepoint/inspect/*.ps1` |
 | pac CLI | `tools/export_solution.ps1` (hentes med `dnx`, hvis den mangler) |
 
-**Tjek en ny pc i én kommando** (også Windows — CI kan ikke køre i
-Ørsteds repo, fordi hostede runnere er slået fra):
+**Tjek en ny pc i én kommando** (også Windows). CI kører på GitHub
+(`PeterBjerre/Canvas_apps`); i Ørsteds interne kopi er hostede runnere slået
+fra, og dér er `tools/doctor.py` erstatningen:
 
 ```powershell
 python tools\doctor.py          # forudsætninger, byg, git-tjek, tests
 python tools\doctor.py --fix    # sletter desuden gamle filer fra før udfasningen
 ```
 
-Den gør det samme som `.github/workflows/build.yml` og siger præcis,
-hvad der mangler (Python-pakker, Node, PowerShell 7, PnP.PowerShell).
+Den gør det samme som `.github/workflows/build.yml`, fejler de samme steder
+(også på ucommittet `.pa.yaml`) og siger præcis, hvad der mangler
+(Python-pakker, jsonschema, Node, .NET/`dnx`, `pac`, PowerShell 7,
+PnP.PowerShell).
 
 Status på kendte fund og den prioriterede plan står i [`REVIEW.md`](REVIEW.md).
 
@@ -117,6 +120,7 @@ HTML-komponenten brugt der hvor den faktisk hjælper.
 | `sharepoint/provision/Provision-RequestIndex.ps1` | `MD_RequestIndex` — den fælles indeksliste bag landingssiden |
 | `sharepoint/provision/Provision-VHPlanApproval.ps1` | Godkendelsesflowets fase 1: kolonner på `MaintenancePlans`, `MD_Approver`, `MD_ApprovalLog`, grænsen i `AppSettings` — se `docs/32` |
 | `sharepoint/provision/Provision-SapCreation.ps1` | Biblioteket `SAP-oprettelse` og kolonnerne til numrene fra SAP — se `docs/34` |
+| `sharepoint/provision/Provision-AdminLists.ps1` | `UserAndGroups` og rettighederne på admin-/godkenderlisterne, `MD_ApprovalLog` og `SAP-oprettelse` — se `docs/32` §6 |
 | `sharepoint/github/Send-IssueBoardToGitHub.ps1` | Opretter GitHub-issues fra de Issue Board-sager, en admin har sat til Triaged — se `docs/39` |
 | `sharepoint/seed/*.csv` | Masterdata: strategier, pakker, hjælpetekster, godkendere, FL-nøgler |
 | `schema/vhplan-sap-order.schema.json`, `vhplan-sap-receipt.schema.json` | Ordren til opretteren og kvitteringen tilbage, med eksempler |
@@ -200,12 +204,14 @@ $site = "https://<tenant>.sharepoint.com/sites/<site>"
 
 # Standardoperationerne ud i Excel og tilbage (ikke en del af opsætningen)
 .\sharepoint\provision\Sync-StandardTaskOperations.ps1 -SiteUrl $site -Export -Path .\StandardOps.xlsx
+
+# Til sidst: rettigheder paa admin-, godkender- og logliste og SAP-oprettelse
+# (R2-024, R2-032). Koer foerst med -WhatIfOnly.
+.\sharepoint\provision\Provision-AdminLists.ps1 -SiteUrl $site -FlowAccount <servicekonto> -MaintainerGroup "Master Data"
 ```
 
-`-WhatIfOnly` viser, hvad et script ville ændre, uden at ændre noget. I dag
-tager IssueBoard, SortFields, StandardTaskOperations, StrategyLists,
-VHPlanColumns, VHPlanApproval, SapCreation og Sync-StandardTaskOperations
-den; de øvrige får den med R2-060.
+Alle scripts tager `-WhatIfOnly`: et tørløb, der kun skriver, hvad der ville
+ske (`Set-MdWhatIf` i `_Common.psm1`).
 
 VH-planens egne lister (`MaintenancePlans`, `MaintenanceItems`,
 `TaskListMain` …) findes i forvejen; scripterne ovenfor tilføjer kolonner og

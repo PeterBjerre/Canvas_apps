@@ -64,7 +64,18 @@ def entries(z):
         yield info, info.filename.replace("\\", "/")
 
 
+def unsafe(rel):
+    """En sti, der kan pege uden for <navn>.src: '..'-led, absolut sti eller
+    et drevbogstav. Kilden er egne eksporter, men en manipuleret .msapp maa
+    ikke kunne skrive andre steder paa disken (REVIEW D6, R2-091)."""
+    parts = rel.split("/")
+    return (".." in parts or rel.startswith("/")
+            or (len(rel) > 1 and rel[1] == ":"))
+
+
 def wanted(rel):
+    if unsafe(rel):
+        return False
     low = rel.lower()
     if os.path.basename(low) in SKIP_NAMES:
         return False
@@ -111,10 +122,15 @@ def unpack_one(msapp, report):
     written = 0
     with zipfile.ZipFile(msapp) as z:
         name = app_name(z)
+        root = os.path.abspath(out)
         for info, rel in entries(z):
+            if unsafe(rel):
+                raise SystemExit("%s: ugyldig sti i zip: %s" % (msapp, rel))
             if not wanted(rel):
                 continue
             dest = os.path.join(out, *rel.split("/"))
+            if os.path.commonpath([root, os.path.abspath(dest)]) != root:
+                raise SystemExit("%s: ugyldig sti i zip: %s" % (msapp, rel))
             os.makedirs(os.path.dirname(dest), exist_ok=True)
             with io.open(dest, "w", encoding="utf-8", newline="\n") as fh:
                 fh.write(as_text(z.read(info)))

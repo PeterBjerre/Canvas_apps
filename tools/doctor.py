@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 """
 Er maskinen klar til at bygge og teste lokalt? Een kommando, ogsaa paa
-Windows - CI kan ikke koere i Oersteds repo (hostede runnere er slaaet fra).
+Windows. CI koerer paa GitHub (PeterBjerre/Canvas_apps); i Oersteds interne
+kopi er hostede runnere slaaet fra, og dér er det her erstatningen.
 
     python tools/doctor.py           # tjek forudsaetninger, byg, test
     python tools/doctor.py --fix     # slet desuden gamle filer i de
                                      # udfasede apps' mapper
     python tools/doctor.py --no-build   # kun forudsaetningerne
 
-Den goer det samme som .github/workflows/build.yml: byg alle apps og koer
-alle tjek, kraev at det committede .pa.yaml er det builderne laver, og koer
-testene. Foer det tjekker den det, der plejer at fejle paa en ny pc:
-Python-version, PyYAML/pytest/pyflakes, Node, gamle filer fra foer
-udfasningen, PowerShell 7 med PnP.PowerShell (til sharepoint/*.ps1),
-dnx/pac (til deploy og solution-eksport) og linjeskift i git.
+Den goer det samme som .github/workflows/build.yml og FEJLER de samme
+steder: byg alle apps og koer alle tjek, kraev at det committede .pa.yaml er
+det builderne laver (FEJL, som CI's git diff --exit-code), og koer testene.
+Foer det tjekker den det, der plejer at fejle paa en ny pc:
+Python-version, PyYAML/pytest/pyflakes (FEJL), jsonschema/openpyxl, Node,
+gamle filer fra foer udfasningen, PowerShell 7 med PnP.PowerShell (til
+sharepoint/*.ps1), dnx/pac (til deploy og solution-eksport) og linjeskift i git.
 """
 import argparse
 import os
@@ -57,6 +59,16 @@ def check_packages():
                f'"{sys.executable}" -m pip install -r requirements.txt')
     else:
         report(OK, "PyYAML, pytest og pyflakes er installeret")
+    # Ikke kraevet af byggeriet, men uden dem springes noget over i stilhed:
+    # uden jsonschema springer test_example_matches_schema over (importorskip).
+    for mod, pkg, why in (
+            ("jsonschema", "jsonschema", "SAP-ordrens eksempler efterproeves ikke mod skemaet"),
+            ("openpyxl", "openpyxl", "Excel-vaerktoejerne (fx seed-generatorerne) kan ikke koere")):
+        try:
+            __import__(mod)
+        except ImportError:
+            report(WARN, f"{pkg} mangler - {why}",
+                   f'"{sys.executable}" -m pip install -r requirements.txt')
 
 
 def check_node():
@@ -173,8 +185,9 @@ def run_build():
                            cwd=ROOT, capture_output=True, text=True)
         changed = [l[3:] for l in r.stdout.splitlines() if l.strip()]
         if changed:
-            report(WARN, "Builderne aendrede committede .pa.yaml - commit dem med "
-                         "din aendring (ellers er de ude af trit med kilden):",
+            # FEJL, ikke NB: CI fejler paa praecis det her (git diff --exit-code).
+            report(FAIL, "Det committede output er ikke det, builderne laver - CI "
+                         "fejler paa det samme. Commit .pa.yaml med din aendring:",
                    "\n".join(changed))
         else:
             report(OK, "Det committede .pa.yaml er det, builderne laver")

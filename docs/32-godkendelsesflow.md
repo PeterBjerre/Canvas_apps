@@ -39,7 +39,7 @@ hvem der svarede hvad og hvornår.
 | 5 | Omkostning godkendes af **én person**. Kvalitet godkendes **pr. værk** | Rækkerne `COST` og værkskoderne i `MD_Approver` (§6) |
 | 6 | Den, der udfylder appen, **er rekvirenten**. Er det ikke System Manageren, skal **System Manageren for systemet** godkende. Systemet bestemmes af Functional Location og slås op i en **Power BI semantisk model** | Nyt første trin: systemgodkendelse. Rekvirenten er planens opretter; der kommer ikke et ekstra felt |
 | 7 | **Systemgodkendelse og omkostningsgodkendelse sker pr. item** | Én godkendelse pr. item, ikke pr. plan. Omkostningen er summen af det enkelte items operationer |
-| 8 | System Managerne står i en **SharePoint-liste** med **1. og 2. godkender** som initialer. **1. godkender godkender**. E-mailen er initialer + `@orsted.com`. Indholdet ligger i `flow/systemgodkendere.md`: systemnummer 1–16 | Power BI-modellen giver kun FL → systemnummer. Listen giver systemnummer → godkendere |
+| 8 | System Managerne står i en **SharePoint-liste** med **1. og 2. godkender** som initialer. **1. godkender godkender**. E-mailen er initialer + `@` + miljøvariablen `BioSap-EmailDomain`. Indholdet ligger i SharePoint-listen `MD_Approver` (ikke i git – repoet er offentligt): systemnummer 1–16 | Power BI-modellen giver kun FL → systemnummer. Listen giver systemnummer → godkendere |
 | 9 | Alle priser i `TaskListMain` er i **DKK** | Ingen omregning |
 | 10 | Opslaget sker i **samme Power BI-datasæt som ObjectList-flowet**, i tabellen **`'Functional Locations'`**, og systemnummeret er **`Plant Section Key`** (fx `008`) | Workspace, datasæt, forbindelse, tabel og kolonne er kendt (§8) |
 | 11 | **2. godkender bruges ved fravær** (mulighed B) | Ny kolonne `Approver1Absent` i listen (§4) |
@@ -237,7 +237,8 @@ fordi rækken dér bliver erstattet ved næste gem.
 
 ### `MD_Approver` *(ny liste)* – alle godkendere i én tabel
 
-Udgangspunktet er tabellen i `flow/systemgodkendere.md`. Kolonnen
+Udgangspunktet er Master Datas oversigt over systemgodkendere. Den ligger i
+selve listen i SharePoint – ikke i git, fordi repoet er offentligt (R2-025). Kolonnen
 *Systemnummer* bliver en **nøgle**, der kan være tre ting. Hvilken slags
 række det er, ses af nøglen selv:
 
@@ -250,17 +251,25 @@ række det er, ses af nøglen selv:
 | Kolonne | Type | Bemærkning |
 |---|---|---|
 | `Title` → `ApproverKey` | Text Ⓘ, unik | Nøglen ovenfor. Tekst, også for systemnumrene, så de sammenlignes med modellens værdi uden typeomregning |
-| `Approver1` | Text | Initialer, fx `MAXJE` |
+| `Approver1` | Text | Initialer, fx `ABCDE` |
 | `Approver2` | Text | Initialer |
 | `Approver1Absent` | Yes/No | Ja → godkendelser går til 2. godkender (§4). Standard Nej |
 | `Notes` | Text | Fri tekst. Bruges ikke af flowet |
 
 **Startindhold:** [`sharepoint/seed/MD_Approver.csv`](../sharepoint/seed/MD_Approver.csv),
-25 rækker. Under test står **`PKBJE` som 1. og 2. godkender på alle
-rækker**. `Notes` har de rigtige systemgodkendere fra
-`flow/systemgodkendere.md` ("Drift: MAXJE / PEVAN"), så de kan sættes
-tilbage i listen, når flowet er testet. Værkerne og `COST` har ingen
-udpegede godkendere endnu.
+25 rækker med pladsholderne `APPR1`/`APPR2` som 1. og 2. godkender. Repoet
+er offentligt, så rigtige initialer står kun i listen i SharePoint (R2-025);
+seedet tilføjer kun rækker, der mangler, og rører aldrig de rækker, der er
+sat i hånden. Til et nyt miljø: læg en CSV med de rigtige godkendere uden for
+git og giv den med `-SeedPath`. Under test i DEV står testgodkenderen som 1.
+og 2. godkender på alle rækker. Værkerne og `COST` har ingen udpegede
+godkendere endnu.
+
+**Hvem må rette godkenderne:** kun sitets Owners og Master Data
+(`-MaintainerGroup`). `Provision-AdminLists.ps1` giver Members Read på
+`MD_Approver` og `UserAndGroups` (R2-024) – ellers kunne enhver med
+Contribute på sitet gøre sig selv til godkender for et system eller til
+admin.
 
 Så gælder reglerne i §4 – 1. godkender, 2. ved fravær – for alle tre trin,
 og der er ét sted at vedligeholde godkendere. Systemnumre og værkskoder kan
@@ -270,7 +279,7 @@ ikke forveksles, fordi de ene er tal og de andre bogstaver.
 rækker for samme system eller værk.
 
 Master Data står **ikke** i tabellen. Mailen til dem går til teamets
-fælles postkasse, `sapvedligehold@orsted.com`, som ikke kan skrives som
+fælles postkasse, som ikke kan skrives som
 initialer. Adressen står i miljøvariablen `BioSap-MasterDataEmail`.
 
 Flowet laver e-mailen som
@@ -300,7 +309,27 @@ mail til `BioSap-ErrorNotifiers`.
 | `DecidedByEmail` / `DecidedOn` | Text / DateTime | |
 | `Comment` | Note | |
 
-Brugerne har **kun læseadgang**. Flowene skriver med en serviceforbindelse.
+**Rettigheder (besluttet, R2-032).** Appen skriver selv to slags rækker som
+brugeren: admin-loggen (`AdminEdit`/`AdminDelete`, `tools/admin_log.py`) og
+"Counter created" (`Stage = Counter`, Measuring Point). Brugerne kan derfor
+ikke have ren læseadgang. Modellen er:
+
+| Hvem | Rettighed på `MD_ApprovalLog` |
+|---|---|
+| Members | Contribute med *Read access: All items* og *Create and Edit access: Create items and edit items that were created by the user* – en bruger kan oprette rækker og rette sine egne, aldrig flowenes |
+| Owners, flowenes servicekonto | Full Control (ikke bundet af "kun egne") |
+
+`Provision-AdminLists.ps1 -FlowAccount <servicekonto>` sætter det (kør først
+med `-WhatIfOnly`).
+
+Det er stadig ikke nok alene: en bruger kan *oprette* en række med
+`Stage = System`, `Decision = Approve` for en vilkårlig plan. Kvalitetsflowets
+værn (`Filter_sys_ok`/`Filter_cost_ok`, §7.3) tæller derfor kun `System`- og
+`Cost`-rækker, hvis `Author` er flowenes servicekonto – miljøvariablen
+`BioSap-ServiceAccountEmail`. Er variablen tom, er tjekket slået fra (som før).
+`Author` sættes af SharePoint og kan ikke skrives af appen, så det er den
+eneste "hvem", der ikke kan forfalskes.
+
 Det er vigtigt, fordi SharePoint-connectoren i appen kører som brugeren: en
 bruger med skriveadgang til `MaintenancePlans` kan i princippet selv sætte
 `ApprovalStage = Quality`. Kvalitetsflowet tjekker derfor loggen, før det
@@ -350,7 +379,8 @@ ligesom `BioSap-SiteUrl`, `BioSap-List-MaintenancePlans` og
 |---|---|
 | `BioSap-EmailDomain` | `orsted.com` |
 | `MD_Approver`, `MD_ApprovalLog` (Data source-variabler `orsted_shared_sharepointonline_…`) | Listerne. De to String-variabler `BioSap-List-Approver`/`BioSap-List-ApprovalLog` bruges af ingen flows og kan slettes i miljøet (R2-033) |
-| `BioSap-MasterDataEmail` | `sapvedligehold@orsted.com` – Master Datas fælles postkasse (§7.4) |
+| `BioSap-MasterDataEmail` | Master Datas fælles postkasse (§7.4) |
+| `BioSap-ServiceAccountEmail` | Flowenes servicekonto. Kvalitetsflowet stoler kun på `System`/`Cost`-rækker i `MD_ApprovalLog`, som den konto har oprettet (se `MD_ApprovalLog` ovenfor). Tom = tjekket er slået fra |
 | `BioSap-PowerBI-WorkspaceId`, `BioSap-PowerBI-DatasetId` | Se §8. Miljøvariabler (`orsted_BioSapPowerBIWorkspaceId`, `orsted_BioSapPowerBIDatasetId`) i de fire godkendelsesflows (VH System, Material System/ResolveApprovers, MP) siden R2-033, så TEST og PROD kan pege et andet sted hen. Værdien sættes i hvert miljø. ObjectList- og Vendor-flowene har dem stadig skrevet direkte ind |
 
 ## 7. Flowene
@@ -714,15 +744,15 @@ trinnet forfra.)
 | 4 | Appen: `ApprovalStage` ved Submit, statusbanner, låsning, `Returned` | |
 | 5 | F2 og F3, derefter F1 | F1 afhænger af fase 2 |
 
-### Test med `PKBJE` på alle rækker
+### Test med samme testgodkender på alle rækker
 
-Så længe alle rækker har `PKBJE` som godkender, gælder undtagelsen i §4 for
-**alle** items, som `PKBJE` selv opretter: systemgodkendelsen springes over
+Så længe alle rækker har testgodkenderen som godkender, gælder undtagelsen i §4 for
+**alle** items, som testgodkenderen selv opretter: systemgodkendelsen springes over
 med "opretter er 1. godkender". Omkostning og kvalitet har ingen undtagelse
-og lander hos `PKBJE` som forventet.
+og lander hos testgodkenderen som forventet.
 
 Systemgodkendelsen testes derfor ved, at **en anden bruger** gemmer og
-indsender testplanen. Så går alle tre trin til `PKBJE`. Testplanen bør
+indsender testplanen. Så går alle tre trin til testgodkenderen. Testplanen bør
 have:
 
 | Item | Tester |
@@ -733,13 +763,13 @@ have:
 | FL fra et andet værk end planens | Planen sendes retur med forklaring |
 | *Copy item* af et godkendt item, med samme FL | Kopien skal godkendes; originalen genbruges |
 
-Derefter samme plan indsendt af `PKBJE` selv (undtagelsen), én runde med
+Derefter samme plan indsendt af testgodkenderen selv (undtagelsen), én runde med
 `Approver1Absent = Ja` på en række (2. godkender), og én *Send retur* for at
 se, at kun ændrede items sendes igen.
 
-Mailen til Master Data går til `sapvedligehold@orsted.com` fra første
-test. Skal teamet ikke have testmails, sættes miljøvariablen i DEV til
-`pkbje@orsted.com`.
+Mailen til Master Data går til den fælles postkasse (`BioSap-MasterDataEmail`)
+fra første test. Skal teamet ikke have testmails, sættes miljøvariablen i DEV
+til testgodkenderens egen adresse.
 
 ### Fase 1 – sådan køres scriptet
 

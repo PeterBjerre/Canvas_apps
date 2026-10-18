@@ -240,8 +240,9 @@ def test_the_prodos_creator_is_a_row_per_plant_in_the_approver_table():
     keys = sorted(r["ApproverKey"] for r in rows)
     assert keys == ["PRODOS-ASV", "PRODOS-AVV", "PRODOS-HEV", "PRODOS-KYV",
                     "PRODOS-SKV", "PRODOS-SSV"]
-    # Start: Peter, som han staar i det eksisterende seed.
-    assert {r["Approver1"] for r in rows} == {"PKBJE"}
+    # Start: en pladsholder. Repoet er offentligt, saa rigtige initialer
+    # staar kun i SharePoint-listen (R2-025).
+    assert {r["Approver1"] for r in rows} == {"APPR1"}
 
 
 def test_the_characteristic_seed_has_a_unit_on_every_row():

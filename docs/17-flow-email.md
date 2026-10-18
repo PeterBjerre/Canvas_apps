@@ -282,7 +282,7 @@ Det samme gælder `ItemText`, hvis korttekster kan indeholde `<` eller `&`.
 ### Godkenderne i *Ready for creation in SAP*
 
 `TEKST` er én linje pr. trin fra `MD_ApprovalLog`, fx
-"System 8 – PKBJE · Omkostning – ikke nødvendig · Kvalitet (ASV) – PKBJE".
+"System 8 – ABCDE · Omkostning – ikke nødvendig · Kvalitet (ASV) – ABCDE".
 Master Data kan så se, at planen har været hele vejen igennem, uden at åbne
 appen.
 

@@ -129,7 +129,6 @@ Deploy til Studio (af brugeren):
    ```bash
    python3 tools/build_all.py
    python3 -m pytest -q tests
-   git checkout -- '*.pyc'        # byggeriet sletter trackede .pyc-filer
    ```
 5. **Commit kun de filer, du bevidst har ændret.** Se `git status`:
    - Står `sharepoint/*.ps1`, `sharepoint/provision/_Common.psm1`, `sharepoint/seed/*.csv` eller `tools/*.ps1` som ændrede, er det kun linjeskift. De må aldrig committes.

@@ -62,26 +62,9 @@ $ErrorActionPreference = 'Stop'
 # Login og de faelles hjaelpefunktioner (REVIEW.md E8).
 Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
 Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId
+Set-MdWhatIf $WhatIfOnly
 
-function Add-Col {
-    param([string]$List, [string]$Name, [string]$Type, [string]$Description,
-          [switch]$Indexed)
-    if (Get-PnPField -List $List -Identity $Name -ErrorAction SilentlyContinue) {
-        Write-Host "    = $Name findes allerede" -ForegroundColor DarkGray
-        return
-    }
-    if ($WhatIfOnly) {
-        Write-Host "    ? ville oprette $Name ($Type)" -ForegroundColor Yellow
-        return
-    }
-    Add-PnPField -List $List -DisplayName $Name -InternalName $Name -Type $Type `
-                 -AddToDefaultView | Out-Null
-    $v = @{}
-    if ($Description) { $v.Description = $Description }
-    if ($Indexed)     { $v.Indexed = $true }
-    if ($v.Count) { Set-PnPField -List $List -Identity $Name -Values $v }
-    Write-Host "    + $Name ($Type)" -ForegroundColor Green
-}
+# Kolonnerne oprettes med New-MdField fra _Common.psm1 (toerloeb: Set-MdWhatIf).
 
 function Add-Choices {
     # Sikrer, at alle oenskede valg findes paa en EKSISTERENDE Choice-kolonne,
@@ -113,9 +96,9 @@ function Add-Choices {
 
 # ---------------------------------------------------------------------------
 Write-Host "`n=== TaskListMain ===" -ForegroundColor Cyan
-Add-Col 'TaskListMain' 'OperationNo' Number -Indexed `
+New-MdField 'TaskListMain' 'OperationNo' Number -Indexed `
     -Description 'SAP-operationsnummer: 10, 20, 30. Bestemmer ogsaa raekkefoelgen. Erstatter Index.'
-Add-Col 'TaskListMain' 'PackagesKey' Text `
+New-MdField 'TaskListMain' 'PackagesKey' Text `
     -Description 'Pakkeallokering for strategiplaner, fx ";1;3;5;". Sentinel i begge ender, saa ";1;" aldrig matcher inde i ";12;".'
 
 Write-Host "`n=== MaintenancePlans ===" -ForegroundColor Cyan
@@ -127,11 +110,11 @@ Write-Host "`n=== MaintenancePlans ===" -ForegroundColor Cyan
 # En udfyldt StrategyKey betyder samtidig, at planen ER en strategiplan.
 # MaintenancePlans.PlanType kan ikke bruges til det: dens eneste valgvaerdi
 # er "PM".
-Add-Col 'MaintenancePlans' 'StrategyKey' Text -Indexed `
+New-MdField 'MaintenancePlans' 'StrategyKey' Text -Indexed `
     -Description 'SAP-strateginoegle fra MD_Strategy, fx 128. Udfyldt = strategiplan (IP42), tom = single cycle (IP41).'
 
 Write-Host "`n=== MaintenanceItems ===" -ForegroundColor Cyan
-Add-Col 'MaintenanceItems' 'OrstedResponsibleEmail' Text -Indexed `
+New-MdField 'MaintenanceItems' 'OrstedResponsibleEmail' Text -Indexed `
     -Description 'Samme person som OrstedResponsible, men som indekseret tekst. Person-kolonner kan ikke filtreres delegerbart.'
 
 # Non Flow User Status (issue #112). Kolonnen FINDES (valg: ZBOW); her

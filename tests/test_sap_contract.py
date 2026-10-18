@@ -367,7 +367,7 @@ def test_fl_sap_columns_come_from_the_sap_script():
         ps1 = f.read()
     for lst, col in sorted(_fl_flow_columns()):
         if col.startswith("Sap"):
-            assert re.search(r"Add-Col\s+'%s'\s+'%s'" % (lst, col), ps1), (lst, col)
+            assert re.search(r"New-MdField\s+'%s'\s+'%s'" % (lst, col), ps1), (lst, col)
 
 
 def test_fl_status_values_are_known():

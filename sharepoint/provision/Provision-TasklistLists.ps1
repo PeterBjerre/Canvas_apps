@@ -30,6 +30,9 @@
 .PARAMETER SiteUrl
     Sitet listerne skal ligge paa.
 
+.PARAMETER WhatIfOnly
+    Toerloeb: vis hvad der ville ske, aendr intet (R2-060).
+
 .EXAMPLE
     .\Provision-TasklistLists.ps1 -SiteUrl "https://orsted.sharepoint.com/teams/BioSAPDEV"
 
@@ -42,6 +45,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)][string] $SiteUrl,
+    [switch] $WhatIfOnly,
     [string] $ClientId = $env:PNP_CLIENT_ID
 )
 
@@ -50,6 +54,7 @@ $ErrorActionPreference = 'Stop'
 # Login og de faelles hjaelpefunktioner (REVIEW.md E8).
 Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
 Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId
+Set-MdWhatIf $WhatIfOnly
 
 # ---------------------------------------------------------------------------
 # MD_TasklistMaterial - een raekke pr. materialelinje
@@ -60,8 +65,9 @@ New-MdList -Title 'MD_TasklistMaterial' `
 
 # Title er materialenummeret. Saa viser standardvisningen noget brugbart,
 # og der er ikke en tom Title-kolonne, nogen skal huske at ignorere.
-Set-PnPField -List 'MD_TasklistMaterial' -Identity 'Title' `
-    -Values @{ Title = 'MaterialNo'; Required = $true }
+if (-not $WhatIfOnly) {
+    Set-PnPField -List 'MD_TasklistMaterial' -Identity 'Title' -Values @{ Title = 'MaterialNo'; Required = $true }
+}
 
 # Noeglerne. Indekseret, fordi appen filtrerer paa dem hver gang en plan
 # aabnes. Graensen for hvor mange raekker der behandles lokalt er 500 som
@@ -88,8 +94,9 @@ Write-Host "`nMD_TasklistAttachment" -ForegroundColor Cyan
 New-MdList -Title 'MD_TasklistAttachment' `
     -Description 'Dokumenter til arbejdsplanen. Skrives af VH-plan appen.'
 
-Set-PnPField -List 'MD_TasklistAttachment' -Identity 'Title' `
-    -Values @{ Title = 'FileName'; Required = $true }
+if (-not $WhatIfOnly) {
+    Set-PnPField -List 'MD_TasklistAttachment' -Identity 'Title' -Values @{ Title = 'FileName'; Required = $true }
+}
 
 New-MdField 'MD_TasklistAttachment' 'PlanKey' Text -Indexed
 New-MdField 'MD_TasklistAttachment' 'ItemKey' Text -Indexed
@@ -122,8 +129,12 @@ New-MdField 'TaskListMain' 'MaterialGroup' Text
 # Dokumenterne paa en operation er SharePoint-vedhaeftninger paa dens
 # raekke (issue #300) - appen gemmer dem selv med Patch. Det er SharePoints
 # standard, men slaas til her, saa ingen kan have slaaet det fra.
-Set-PnPList -Identity 'TaskListMain' -EnableAttachments $true | Out-Null
-Write-Host "    ~ vedhaeftninger slaaet til paa TaskListMain" -ForegroundColor Green
+if ($WhatIfOnly) {
+    Write-Host "    ? ville slaa vedhaeftninger til paa TaskListMain" -ForegroundColor Yellow
+} else {
+    Set-PnPList -Identity 'TaskListMain' -EnableAttachments $true | Out-Null
+    Write-Host "    ~ vedhaeftninger slaaet til paa TaskListMain" -ForegroundColor Green
+}
 
 # ---------------------------------------------------------------------------
 # Ydelsesnummeret (PM03)
@@ -151,7 +162,7 @@ $SERVICES = @{
     'XSVEJ' = @{ ServiceNo = '3000050'; MaterialGroup = 'B08.04' }   # Svejsning
 }
 $filled = 0
-foreach ($it in (Get-PnPListItem -List 'MD_StandardTaskOperations' -PageSize 500)) {
+foreach ($it in $(if (Test-MdList 'MD_StandardTaskOperations') { Get-PnPListItem -List 'MD_StandardTaskOperations' -PageSize 500 })) {
     $fv = $it.FieldValues
     if (([string]$fv.ControlKey).Trim().ToUpper() -ne 'PM03') { continue }
     $wc = ([string]$fv.WorkCenter).Trim().ToUpper()
@@ -162,11 +173,14 @@ foreach ($it in (Get-PnPListItem -List 'MD_StandardTaskOperations' -PageSize 500
     if ([string]::IsNullOrWhiteSpace([string]$fv.ServiceNo))     { $vals.ServiceNo = $svc.ServiceNo }
     if ([string]::IsNullOrWhiteSpace([string]$fv.MaterialGroup)) { $vals.MaterialGroup = $svc.MaterialGroup }
     if ($vals.Count) {
-        Set-PnPListItem -List 'MD_StandardTaskOperations' -Identity $it.Id -Values $vals | Out-Null
+        if (-not $WhatIfOnly) {
+            Set-PnPListItem -List 'MD_StandardTaskOperations' -Identity $it.Id -Values $vals | Out-Null
+        }
         $filled++
     }
 }
-Write-Host "    $filled PM03-linje(r) fik ydelsesnummer/varegruppe" -ForegroundColor Green
+$verb = if ($WhatIfOnly) { 'ville faa' } else { 'fik' }
+Write-Host "    $filled PM03-linje(r) $verb ydelsesnummer/varegruppe" -ForegroundColor Green
 
 Write-Host "`nFaerdig." -ForegroundColor Green
 Write-Host "Naeste skridt: koer sharepoint/inspect/Export-ListSchema.ps1 igen," -ForegroundColor Gray
