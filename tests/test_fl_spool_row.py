@@ -173,7 +173,8 @@ def test_manufacturer_and_warranty_open_the_side_panel():
     assert "Select(btnFlVerify)" in _prop("inpFlPanelMfrVal", "OnChange")
     assert "colFlIssues" in _prop("inpFlPanelMfrVal", "BorderColor")
     assert "colFlIssues" in _prop("txtFlPanelWarIssue", "Text")
-    assert "DD.MM.YYYY" in _prop("inpFlPanelWarVal", "Placeholder")
+    # Warranty-datoerne er en datovaelger i DD.MM.YYYY (issue #356).
+    assert _prop("dteFlPanelWarVal", "Placeholder") == '"dd.mm.yyyy"'
     for gone in ("conFlPopModal", "conFlPopBackdrop", "btnFlPopClose"):
         assert _ctrl(gone) is None, gone
     assert "varFlPop" not in _text()

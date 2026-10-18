@@ -34,7 +34,7 @@ from progress_overlay import progress_overlay
 from layout_tokens import SCROLLBAR_W, GALLERY_RESERVE, at_least, below
 import icons
 import display_text as dt
-from build_helpers import (C_INPUT_BORDER, ensure_hit, checkbox_theme, new_request_label, request_actions, breadcrumb, text_ctrl, group, button, text_input, themed_dropdown, card,
+from build_helpers import (C_INPUT_BORDER, ensure_hit, checkbox_theme, new_request_label, request_actions, breadcrumb, text_ctrl, group, button, text_input, themed_dropdown, card, date_picker,
                            pin_widths, top_bar, grow, badge, fit_button_width, row_rule, mark_done,
                            loading_overlay, with_busy, confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
                            ICON_W, text_px, stable_scrim, icon_button, icon_heading, editor_footer,
@@ -214,40 +214,36 @@ class Cols:
     """Kolonnebredderne for Classes-tabellen - de SAMME udtryk i
     overskriften og i raekken, saa de altid flugter (check_layout regel 29).
 
-    Raekken maa aldrig blive bredere end tabellen - saa kommer der en
-    vandret scrollbar, og Open ryger ud over kanten:
+    #, Functional Location og Description er RAEKKERNES (issue #356):
+    bredde, mellemrum og synlighed kommer fra V_SPEC, saa de samme felter
+    staar lige under hinanden i Rows og Classes. Resten foelger efter:
       - de to midterste kolonner skjules, naar Info ikke kan faa 160 px ved
         siden af dem;
-      - Functional Location og Description deler PAIR_MAX, men krymper
-        sammen ned til PAIR_MIN, foer Info kommer under VAL_MIN;
-      - under Tablet skjules # (raekkenummeret), og act_narrow er
-        handlingsknappens bredde dér."""
+      - Info faar resten, mindst VAL_MIN;
+      - er tabellen bredere end kortet (smal skaerm), scroller den vandret
+        i kortet - som Rows. Intet klippes eller laegges oven i hinanden."""
 
-    def __init__(self, mid, act_w, act_narrow=None):
+    def __init__(self, mid, act_w, lead, gap):
         self.mid = mid                      # [(navn, overskrift, bredde)]
-        self.act = (f"If({NARROW}, {act_narrow}, {act_w})" if act_narrow is not None
-                    else str(act_w))
-        full = (28 + PAIR_MAX + sum(w for _n, _l, w in mid) + act_w
-                + GAP * (4 + len(mid)))
-        self.show_mid = f"({ROWS_W}) >= {full} + 160"
-        self.show_no = at_least("Tablet")
-        mid_sum = sum(w + GAP for _n, _l, w in mid)
-        # Alt andet end parret: #, midten, handlingen, Info-minimum og
-        # de tre mellemrum mellem FL, Description, Info og handlingen.
-        self.others = (f"If({self.show_no}, {28 + GAP}, 0) + {self.act} + "
-                       f"If({self.show_mid}, {mid_sum}, 0) + {VAL_MIN} + {3 * GAP}")
-        self.pmax = f"If({NARROW}, 190, {PAIR_MAX})"
-        self.pair = f"Min({self.pmax}, Max(If({NARROW}, 100, {PAIR_MIN}), ({ROWS_W}) - ({self.others})))"
-        self.fl = f"({self.pair}) * 160 / ({self.pmax})"
-        self.desc = f"({self.pair}) * 140 / ({self.pmax})"
-        # Resten - regnet af det samme udtryk, ikke af galleriets Parent.Width.
-        self.rest = f"Max(48, ({ROWS_W}) - ({self.others}) + {VAL_MIN} - ({self.pair}))"
+        self.lead = lead                    # Rows' #, FL og Description
+        self.gap = gap
+        self.act = str(act_w)
+        mid_sum = sum(w + gap for _n, _l, w in mid)
+        # #, FL, Description og mellemrummene efter dem; Info-Open-mellemrum
+        # og Open. Det, der er tilbage, deles af midten og Info.
+        before = " + ".join(f"If({vis}, {w} + {gap}, 0)" if vis is not None
+                            else f"({w}) + {gap}" for _n, _l, w, vis in lead)
+        after = f"{gap} + {act_w}"
+        free = f"({ROWS_W}) - ({before}) - ({after})"
+        self.show_mid = f"({free}) >= {mid_sum} + 160"
+        self.rest = f"Max({VAL_MIN}, ({free}) - If({self.show_mid}, {mid_sum}, 0))"
+        # Tabellens bredde: kortets, eller mere, naar # + FL + Description
+        # + Info-minimum + Open ikke kan staa i det (vandret scroll).
+        self.width = f"Max({ROWS_W}, ({before}) + {VAL_MIN} + {after})"
 
     def spec(self, rest_name, rest_label, act_name, act_label):
         """(navn, overskrift, bredde, synlig) i raekkefoelge."""
-        return ([("No", "#", 28, self.show_no),
-                 ("Fl", "Functional Location", self.fl, None),
-                 ("Desc", "Description", self.desc, None)]
+        return (list(self.lead)
                 + [(n, l, w, self.show_mid) for n, l, w in self.mid]
                 + [(rest_name, rest_label, self.rest, None),
                    (act_name, act_label, self.act, None)])
@@ -893,8 +889,12 @@ def build_rows():
 # ---------------------------------------------------------------------------
 # Klassefanerne (functional-location.html:77-81, FL28 og FL60)
 # ---------------------------------------------------------------------------
-CCOLS = Cols([("Str", "StrIndicator", 76), ("Cls", "Class", 96)], act_w=72)
+# #, Functional Location og Description bruger Rows' bredder (V_SPEC) og
+# mellemrum (VGAP), saa kolonnerne flugter med Rows ovenover (issue #356).
+CCOLS = Cols([("Str", "StrIndicator", 76), ("Cls", "Class", 96)], act_w=72,
+             lead=V_SPEC[:3], gap=VGAP)
 C_SPEC = CCOLS.spec("Info", "Info", "Open", "Edit")
+C_GAL_W = f"({CCOLS.width}) + {SCROLLBAR_W} + {GALLERY_RESERVE}"
 
 # Faneindholdet: ALL = alle klasser, sorteret paa klasse og saa FL (renderClassTabs
 # :1661-1664); en klasse = dens raekker sorteret paa FL (:1487).
@@ -952,7 +952,7 @@ def build_classes():
                      '"Compact view - Edit opens the class data of the row."',
                      size=12, color=C_MUTED, height=18, wrap="false", visible=HAS_CLASSES)
 
-    head = table_head("conFlClsHead", C_SPEC)
+    head = table_head("conFlClsHead", C_SPEC, gap=VGAP, width=C_GAL_W)
     head.props["Visible"] = HAS_CLASSES
     head.vis = HAS_CLASSES
 
@@ -982,13 +982,21 @@ def build_classes():
                    accessible='"Edit class data of " & ThisItem.FL')
     cells = _cells(C_SPEC, [no, fl, desc, strc, clsc, info, open_])
     gal = table_gallery("galFlClassRows", '"Rows in the selected class"', VIEW_POS, VIEW_N,
-                        cells, "conFlCRow", visible=HAS_CLASSES)
+                        cells, "conFlCRow", visible=HAS_CLASSES, gap=VGAP, width=C_GAL_W)
+    # Vandret scroll, naar tabellen er bredere end kortet - som Rows'
+    # conFlTable (issue #356).
+    c_wide = f"({ROWS_W}) < ({CCOLS.width})"
+    table = group("conFlClsTable", [head, divider("conFlClsRule", HAS_CLASSES, width=C_GAL_W), gal],
+                  direction="Vertical", gap=10, overflow_x="Scroll", align_items="Start",
+                  visible=HAS_CLASSES)
+    table.props["Height"] = f"{table.props['Height']} + If({c_wide}, {SCROLLBAR_W}, 0)"
+    table.h = table.props["Height"]
     empty = text_ctrl("txtFlNoClassRows",
                       '"No classified rows yet - a row appears here once its Functional Location is valid."',
                       size=13, color=C_MUTED, height=20, wrap="false",
                       visible=f"!({HAS_CLASSES})")
     return card("conFlClassesCard",
-                [title, tabs, note, head, divider("conFlClsRule", HAS_CLASSES), gal, empty],
+                [title, tabs, note, table, empty],
                 gap=10)
 
 
@@ -1025,6 +1033,27 @@ DD_ITEMS = """Ungroup(
 FORM_COLS = lay.if_below("Tablet", "1", "2")
 TILE_H = 86
 TILE_GAP = 16
+
+# Datofelternes format (issue #356): Warranty Start/End GEMMES som tekst
+# DD.MM.YYYY (FL34, fl_validation.date_bad), og datovaelgeren viser dem i
+# samme form - ikke appens faelles dd-mm-yyyy (layout_tokens.DATE_FMT).
+FL_DATE_FMT = "dd.mm.yyyy"
+
+
+def date_of_text(v):
+    """Den gemte tekst DD.MM.YYYY som dato - tom eller ugyldig: ingen dato
+    (feltets besked siger saa "Use DD.MM.YYYY.")."""
+    bad = V.date_bad("wv").replace(chr(10), " ")
+    return (f"With({{ wv: Trim({v}) }}, If(IsBlank(wv) || {bad}, Blank(), "
+            f"Date(Value(Right(wv, 4)), Value(Mid(wv, 4, 2)), Value(Left(wv, 2)))))")
+
+
+def text_of_date(d):
+    """Datoen som tekst DD.MM.YYYY - bygget af tallene, saa sprog og
+    landeformat aldrig aendrer den gemte vaerdi. Ingen dato: tom."""
+    return (f'If(IsBlank({d}), "", Text(Day({d}), "00") & "." & '
+            f'Text(Month({d}), "00") & "." & Text(Year({d}), "0000"))')
+
 
 # En kort hjaelp under feltet, naar det ikke har en besked. KKS type og
 # Assigned class har ingen (issue #308) - de regnes stadig af KKS-koden.
@@ -1070,12 +1099,19 @@ def field_grid(tag, section_test, label, source="colFlDet", set_fx=_set_detail, 
                     size=12, color=C_MUTED, weight="Semibold", height=18, wrap="false")
     txt = text_input(f"inpFl{tag}Val", "ThisItem.Value", width=w, display_mode=DM_EDIT,
                      label="ThisItem.Column",
-                     placeholder='If(ThisItem.Field = "WARRANTY START" || ThisItem.Field = "WARRANTY END", '
-                                 '"DD.MM.YYYY", "")',
                      onchange=set_fx("Self.Text"))
     txt.props["MaxLength"] = "If(ThisItem.MaxLen > 0, ThisItem.MaxLen, 4000)"
     txt.props["BorderColor"] = _field_border("!IsBlank(ThisItem.Issue)", "!IsBlank(ThisItem.Value)")
     txt.vis = 'ThisItem.Kind = "text"'
+    # Datofelterne (Warranty Start/End): appens datovaelger (issue #356).
+    # Vaerdien gemmes stadig som tekst DD.MM.YYYY i colFlVals - samme felt,
+    # samme validering (FL34) - kun editoren er en kalender.
+    dte = date_picker(f"dteFl{tag}Val", date_of_text("ThisItem.Value"), width=w,
+                      display_mode=DM_EDIT, label="ThisItem.Column",
+                      onchange=set_fx(text_of_date("Self.SelectedDate")),
+                      fmt=FL_DATE_FMT)
+    dte.props["BorderColor"] = _field_border("!IsBlank(ThisItem.Issue)", "!IsBlank(ThisItem.Value)")
+    dte.vis = 'ThisItem.Kind = "date"'
     dd = themed_dropdown(f"drpFl{tag}Val", DD_ITEMS,
                          f"LookUp({DD_ITEMS}, Upper(Value) = Upper(ThisItem.Value)).Value",
                          width=w, display_mode=DM_EDIT, label="ThisItem.Column")
@@ -1100,7 +1136,7 @@ def field_grid(tag, section_test, label, source="colFlDet", set_fx=_set_detail, 
     issue = text_ctrl(f"txtFl{tag}Issue", f"Coalesce(ThisItem.Issue, {FIELD_HELP})",
                       size=12, color=f"If(IsBlank(ThisItem.Issue), {C_MUTED}, {C_INVALID_FG})",
                       height=18, wrap="false")
-    tile = group(f"conFl{tag}Tile", [lbl, txt, dd, chk, ro, issue], direction="Vertical", gap=2,
+    tile = group(f"conFl{tag}Tile", [lbl, txt, dte, dd, chk, ro, issue], direction="Vertical", gap=2,
                  width="Parent.TemplateWidth", height="Parent.TemplateHeight",
                  pad=(0, TILE_GAP, 10, 0))
     if live:
