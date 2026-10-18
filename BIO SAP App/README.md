@@ -148,7 +148,8 @@ fra en af de fem enkeltapps — skriver den `AppUrl` =
    `.github/skills/canvas-build/SKILL.md`, "Datakilder skal findes i appen
    først"). Det er foreningsmængden af de fem appers:
 
-   *SharePoint-lister (25):* `CallHorizonMatrix`, `EquipmentItems`,
+   *SharePoint-lister (26):* `AppSettings` (VH-planens omkostningsgrænse,
+   R2-082), `CallHorizonMatrix`, `EquipmentItems`,
    `FunctionalLocationItems`, `FunctionalLocationRequests`, `MD_ApprovalLog`,
    `MD_Approver`, `MD_FLKey`, `MD_HelpText`, `MD_KksFunctionKey`,
    `MD_RequestIndex`, `MD_StandardTaskOperations`, `MD_Strategy`,

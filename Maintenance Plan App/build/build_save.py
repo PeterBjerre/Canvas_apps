@@ -18,9 +18,12 @@ kapløbstilstand - to samtidige indsendelser kan ikke faa samme noegle.
 
 Offsettet staar i AppSettings, men KUN for DEV. I stedet for at gaette paa 0
 i TEST og PROD udledes det af data: nyeste raekkes ID minus dens eget nummer.
-Det er selvkorrigerende og miljoeuafhaengigt. Kan det ikke udledes
-(tom liste, eller et nummer der ikke er et tal), bruges 0 for en tom liste
-og ellers stoppes der - en forkert noegleserie er vaerre end en fejlbesked.
+Det er selvkorrigerende og miljoeuafhaengigt. Kun raekker, hvis noegle
+starter med praefikset, taeller med (R2-037): en raekke, et afbrudt gem
+efterlod uden noegle, stopper ikke laengere serien for alle. Kan det ikke
+udledes (ingen raekke med noegle, eller et nummer der ikke er et tal),
+bruges 0 for en liste uden noegler og ellers stoppes der - en forkert
+noegleserie er vaerre end en fejlbesked.
 
 REKKEFOELGEN OG SIKKERHED (REVIEW.md D7, D8)
 -------------------------------------------
@@ -37,10 +40,13 @@ samme model som FL-appen (Functional Location App/build/fl_save.py):
      ved med at passe (D7). Foer blev alle items slettet og oprettet
      forfra, med nyt ID og ny noegle hver gang.
   5. Operationer - samme model som items.
-  6. Materialer og dokumentraekker skrives forfra, men de GAMLE raekker
-     slettes foerst, naar de nye er skrevet.
+  6. Materialer skrives forfra, men de GAMLE raekker slettes foerst, naar
+     de nye er skrevet. De aeldre dokumentraekker (MD_TasklistAttachment)
+     roeres ikke laengere (R2-071): dokumenter er vedhaeftninger paa
+     operationens raekke (issue #300/#323), og de gamle raekker er et
+     mellemlager, der kun laeses (build_load), til en migrering er besluttet.
   7. Oprydning - KUN naar alt ovenfor lykkedes: operationer og items, der
-     ikke laengere er i appen, og de gamle materiale- og dokumentraekker.
+     ikke laengere er i appen, og de gamle materialeraekker.
      En fejl giver altsaa i vaerste fald en raekke for meget, aldrig et
      tab (foer: slet foerst, skriv bagefter).
   8. Status og landingssiden.
@@ -80,7 +86,7 @@ kilden afklares foerst - ikke gaettes her.
 import display_text as dt
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from build_helpers import button, ICON_SAVE, ICON_SUBMIT
+from build_helpers import button, with_busy, ICON_SAVE, ICON_SUBMIT
 import sp_config as cfg
 import messages as msg
 import admin_log as alog
@@ -131,6 +137,8 @@ PLAN_STATUS_DRAFT = "Draft"
 PLAN_STATUS_SUBMITTED = "In Progress"
 # Sat af godkendelsesflowene ved Send retur (docs/32 §5).
 PLAN_STATUS_RETURNED = "Returned"
+# Indeksets status for en returneret plan (build_load.AWAITING).
+IDX_STATUS_AWAITING = "AfventerInfo"
 
 # PRIORITETEN regnes, den vaelges ikke - samme regel som den gamle app
 # (solution/BIOSAP/.../orsted_biosapmaintenanceplans_ba408.src, Priority-
@@ -168,6 +176,13 @@ SAVE_BUTTON = "btnVhpSaveDraft"
 # Indeksraekken, som den staar i SharePoint, naar gemningen starter
 # (_step_keys). Den er grundraekken i trin 8 og afgoer rettigheden.
 IDX_NOW = "varVhpIdxNow"
+# Status, rettigheden regnes paa - SAMME sandhed som indlaesningen
+# (build_load.IDX_STATUS): staar planen selv i Returned, er det
+# AfventerInfo, uanset hvad indeksraekken siger. Ellers kunne en returneret
+# plan aabnes i Edit, men ikke gemmes, naar indekset haltede (R2-036).
+# varVhpFlow saettes ved indlaesning og i _step_status.
+IDX_STATUS_NOW = (f'If(varVhpFlow.Status = "{PLAN_STATUS_RETURNED}", '
+                  f'"{IDX_STATUS_AWAITING}", {IDX_NOW}.Status.Value)')
 # Planhovedet, som det staar i SharePoint, foer trin 3 skriver det.
 PLAN_NOW = "varVhpPlanNow"
 # Gemmer en admin en andens anmodning? Saa bevares ejeren (tools/permissions.py).
@@ -182,12 +197,21 @@ RESP = f"If({AS_ADMIN}, {RESP_OTHER}, varVhpMe)"
 def _offset(list_name, key_field, prefix):
     """Offsettet mellem SharePoints ID og forretningsnoeglen.
 
-    Udledt af den nyeste raekke i stedet for af AppSettings, som kun har
-    vaerdier for DEV. 0 paa en tom liste - saa starter serien paa ID.
-    Blank, naar nummeret ikke er et tal: saa stopper gemningen."""
+    Udledt af den nyeste raekke MED NOEGLE i stedet for af AppSettings, som
+    kun har vaerdier for DEV. 0, naar ingen raekke har en noegle - saa
+    starter serien paa ID. Blank, naar nummeret ikke er et tal: saa stopper
+    gemningen.
+
+    D17/R2-037: nye raekker faar noeglen i et SEPARAT Patch (trin 3-5).
+    Afbrydes gemningen imellem, staar den nyeste raekke uden noegle. Foer
+    gav det Blank her, og saa kunne INGEN gemme nogen plan, foer nogen
+    rettede raekken i haanden. Filteret springer den slags raekker over;
+    StartsWith er delegerbar mod en SharePoint-tekstkolonne, saa det koerer
+    i SharePoint. IsNumeric er stadig sidste vaern."""
     return (
         f"With(\n"
-        f"        {{ r: First(Sort({list_name}, ID, SortOrder.Descending)) }},\n"
+        f"        {{ r: First(Sort(Filter({list_name}, StartsWith({key_field}, \"{prefix}\")), "
+        f"ID, SortOrder.Descending)) }},\n"
         f"        If(\n"
         f"            IsBlank(r.ID), 0,\n"
         f"            IsNumeric(Mid(r.{key_field}, {len(prefix) + 1})),\n"
@@ -232,8 +256,15 @@ def plan_fields():
         f"{PLAN_NOW}.Status.Value = \"{PLAN_STATUS_RETURNED}\"), {PLAN_NOW}.Status, "
         f"{{ Value: \"{PLAN_STATUS_DRAFT}\" }}),\n"
         "            PlantsInitial: { Value: varVhpPlan.Plant },\n"
+        # En strategiplan (IP42) har ingen cyklus og enhed: Plan Header
+        # saetter Cycle 0 og Unit "" (build_plan_header). Cycle 0 er et
+        # gyldigt tal; en tom Unit skrives som Blank() og ikke som valget
+        # { Value: "" }, som ikke findes i Choice-kolonnen (R2-070). Om
+        # SharePoint tager en tom Unit paa den paakraevede kolonne, er ikke
+        # efterproevet i Studio - SAP-ordren kraever kun unit paa en
+        # enkeltcyklusplan (schema/vhplan-sap-order.schema.json).
         "            Cycle: varVhpPlan.Cycle,\n"
-        "            Unit: { Value: varVhpPlan.Unit },\n"
+        "            Unit: If(IsBlank(varVhpPlan.Unit), Blank(), { Value: varVhpPlan.Unit }),\n"
         "            PlannedDate: Date(\n"
         "                varVhpPlan.FirstCallYear, varVhpPlan.FirstCallMonth, varVhpPlan.FirstCallDay\n"
         "            ),\n"
@@ -262,6 +293,9 @@ def item_fields(key=None):
         "{\n"
         + (f"                ItemID: {key},\n" if key else "") +
         "                Title: IT.ShortText,\n"
+        # Itemets identitet paa tvaers af gem (docs/32 §6, R2-034) -
+        # godkendelsesflowene logger den i MD_ApprovalLog.ItemGuid.
+        "                ItemGuid: IT.ItemGuid,\n"
         # Vaerdien er SharePoints egen (New/Change/Deleted) - se build_load.
         "                Status: { Value: Coalesce(varVhpPlan.Status, \"New\") },\n"
         "                MaintenancePlanNo: { Id: varVhpPlanSpId, Value: varVhpPlanKey },\n"
@@ -360,7 +394,7 @@ def _step_keys():
         # Rettigheden i selve handlingen - ikke kun i UI'et.
         "    If(\n"
         f"        !IsBlank({IDX_NOW}) &&\n"
-        f"        !{perm.may_change(IDX_NOW + '.RequesterEmail', IDX_NOW + '.Status.Value', 'varVhpMe', resubmit=True)},\n"
+        f"        !{perm.may_change(IDX_NOW + '.RequesterEmail', IDX_STATUS_NOW, 'varVhpMe', resubmit=True)},\n"
         "        Collect(colVhpSaveErrors, {\n"
         "            Where: \"Request\",\n"
         "            Msg: \"This request can no longer be changed.\"\n"
@@ -463,8 +497,8 @@ def _step_items():
         "        ForAll(colVhpSpItemRows As I, { ID: I.ID, ItemID: I.ItemID, "
         "Sceq: !IsBlank(I.SCEqFL) || !IsBlank(I.SCEqOL) })\n"
         "    );\n"
-        # De eksisterende foerst i oversaettelsen: operationerne,
-        # materialerne og dokumenterne slaar op i den.
+        # De eksisterende foerst i oversaettelsen: operationerne og
+        # materialerne slaar op i den.
         "    ClearCollect(\n"
         "        colVhpSavedItems,\n"
         "        ForAll(\n"
@@ -623,8 +657,12 @@ def _step_ops():
 
 
 def _step_materials():
-    """6a. Materialer. De gamle raekkers ID huskes, og de slettes foerst i
-    oprydningen - efter de nye er skrevet."""
+    """6. Materialer. De gamle raekkers ID huskes, og de slettes foerst i
+    oprydningen - efter de nye er skrevet.
+
+    Raekkerne faar derfor nyt ID ved hvert gem (R2-071). Det er accepteret:
+    intet slaar et materiale op paa ID - SAP-ordren og indlaesningen gaar
+    paa PlanKey/ItemKey/TaskItemID - og en plan har faa materialer."""
     return _step("Materials", (
         # Hele raekkerne: oprydningen fjerner dem direkte (R2-007).
         f"    ClearCollect(colVhpOldMats, Filter({cfg.L_MATERIALS}, PlanKey = varVhpPlanKey));\n"
@@ -659,45 +697,12 @@ def _step_materials():
         "    )"))
 
 
-def _step_attachments():
-    """6b. Dokumentraekker. OperationsKey er ';0010;0020;'; tom (';')
-    betyder hele itemet. UploadStatus skrives som Pending - flowet roerer
-    aldrig listen (docs/18-materialer-og-attachments.md).
-
-    Mappen i biblioteket er opkaldt efter ItemKey, og den er nu STABIL:
-    et item beholder sin noegle ved hvert gem (trin 4)."""
-    return _step("Documents", (
-        f"    ClearCollect(colVhpOldAtts, Filter({cfg.L_ATTACHMENTS}, PlanKey = varVhpPlanKey));\n"
-        "    With(\n"
-        "        { srcAtt: Filter(colVhpAttachments As AT, !IsBlank(AT.FileName)) },\n"
-        "        If(\n"
-        "            CountRows(srcAtt) > 0,\n"
-        "            Patch(\n"
-        f"                {cfg.L_ATTACHMENTS},\n"
-        f"                ForAll(srcAtt, Defaults({cfg.L_ATTACHMENTS})),\n"
-        "                ForAll(\n"
-        "                    srcAtt As AT,\n"
-        "                    {\n"
-        f"                        {cfg.C_FILE_NAME}: AT.FileName,\n"
-        "                        PlanKey: varVhpPlanKey,\n"
-        "                        ItemKey: LookUp(colVhpSavedItems, LocalId = AT.ItemId).ItemKey,\n"
-        "                        OperationsKey: Coalesce(AT.OperationsKey, \";\"),\n"
-        "                        FileSize: AT.FileSize,\n"
-        "                        FileUrl: AT.FileUrl,\n"
-        "                        UploadStatus: { Value: Coalesce(AT.Status, \"Pending\") }\n"
-        "                    }\n"
-        "                )\n"
-        "            )\n"
-        "        )\n"
-        "    )"))
-
-
 def _step_cleanup():
     """7. Oprydning - foerst naar alt er skrevet (D8).
 
     Hvad der skal vaek, afgoeres i hukommelsen paa samlinger af planens
-    EGNE raekker, hentet med et delegerbart filter i trin 4, 5, 6a og 6b
-    (colVhpSpItemRows, colVhpSpOpRows, colVhpOldMats, colVhpOldAtts), og
+    EGNE raekker, hentet med et delegerbart filter i trin 4, 5 og 6
+    (colVhpSpItemRows, colVhpSpOpRows, colVhpOldMats), og
     raekkerne fjernes direkte med Remove(liste, <raekker>). Ikke
     With({ex: Filter(liste, ...)}): den scope-variabel har kun de foerste
     500/2.000 raekker af listen, og planens raekker ud over loftet blev
@@ -706,10 +711,9 @@ def _step_cleanup():
     def rm(lst, rows):
         return f"    Remove({lst}, {rows})"
     return _step("Clean-up", ";\n".join([
-        # Materialerne og dokumenterne skrives altid paa ny (trin 6), saa
-        # alle de gamle raekker gaar.
+        # Materialerne skrives altid paa ny (trin 6), saa alle de gamle
+        # raekker gaar. De aeldre dokumentraekker roeres ikke (R2-071).
         rm(cfg.L_MATERIALS, "colVhpOldMats"),
-        rm(cfg.L_ATTACHMENTS, "colVhpOldAtts"),
         # Operationer foer items: en operation peger paa sit item.
         rm(cfg.L_TASKS, "Filter(colVhpSpOpRows, !(ID in colVhpSavedOps.SpId))"),
         rm(cfg.L_ITEMS, "Filter(colVhpSpItemRows, !(ID in colVhpSavedItems.SpId))"),
@@ -742,6 +746,10 @@ def _step_status():
         f"            Patch({cfg.L_PLANS}, varVhpPlanRec, "
         f"{{ Status: {{ Value: \"{PLAN_STATUS_SUBMITTED}\" }}, "
         "ApprovalStage: { Value: \"System\" }, SubmittedOn: Now(), StageRunId: \"\", "
+        # Kvitteringsmailen (flowet NewPlanCreated) sendes, naar flaget er
+        # falsk, og flowet saetter det selv. Nulstilles ved HVER indsendelse,
+        # saa en genindsendt plan efter Return ogsaa faar kvittering (R2-050).
+        "InitialEmailSent: false, "
         # Note to approver og hvem der indsendte (issue #115) - kun her,
         # saa Save draft og flowene aldrig overskriver noten.
         f"{sn.COL_APPROVER}: varVhpNoteApprover, {sn.COL_BY}: varVhpMe }})\n"
@@ -750,10 +758,14 @@ def _step_status():
         "        Set(varVhpFlow, { Status: varVhpPlanRec.Status.Value, "
         "Stage: varVhpPlanRec.ApprovalStage.Value, ReturnComment: \"\" })\n"
         "    );\n"
-        # Hubben laeser KUN indeksraekken.
+        # Hubben laeser KUN indeksraekken. En returneret plan, der gemmes
+        # som kladde, staar i AfventerInfo - ogsaa naar indekset haltede
+        # bagefter, saa det heler ved foerste gem (R2-036).
         "    If(\n"
         "        varVhpSubmitting,\n"
         f"    {_index_patch(ri.SUBMITTED, NOTE_FLAG)},\n"
+        f"        varVhpPlanRec.Status.Value = \"{PLAN_STATUS_RETURNED}\",\n"
+        f"    {_index_patch(IDX_STATUS_AWAITING)},\n"
         f"    {_index_patch(ri.DRAFT)}\n"
         "    );\n"
         # Det, der nu staar i SharePoint - konflikttjekket (trin 2) maaler
@@ -795,10 +807,12 @@ def _step_notes():
         "    )"))
 
 
-def _admin_log():
+def _admin_log(submitting="varVhpSubmitting"):
     """Admin i en andens plan: planhovedet foer/efter (varVhpPlanNow mod
     varVhpPlanRec - begge som de staar i SharePoint), items foer (colVhpAdmOld)
-    mod det gemte, og Submit (tools/admin_log.py)."""
+    mod det gemte, og Submit (tools/admin_log.py). submitting er udtrykket
+    for "det var en indsendelse" - i save_action en kopi af flaget, som
+    allerede er nulstillet (R2-035)."""
     P, N = PLAN_NOW, "varVhpPlanRec"
     header = alog.diff([
         ("Plan text", f"{P}.Title", f"{N}.Title"),
@@ -823,7 +837,7 @@ def _admin_log():
         "            )\n        ),\n        !IsBlank(Value)\n    ),\n    Value,\n    \"; \"\n)")
     added = (f'With({{ k: CountRows(Filter({SAVEABLE_ITEMS}, !(SpId in colVhpAdmOld.ID))) }}, '
              'If(k > 0, ' + dt.plural("k", "item") + ' & " added", ""))')
-    status = f'If(varVhpSubmitting, {alog.submitted(IDX_NOW + ".Status.Value")}, "")'
+    status = f'If({submitting}, {alog.submitted(IDX_NOW + ".Status.Value")}, "")'
     comment = alog.join(header, items, added, status)
     return (f"If(\n    {AS_ADMIN},\n    With(\n        {{ c: {comment} }},\n"
             "        If(\n            !IsBlank(c),\n"
@@ -833,20 +847,28 @@ def _admin_log():
 
 def save_action():
     """Hele gemningen. Om det er Save draft eller Submit, afgoer
-    varVhpSubmitting - den nulstilles, naar gemningen er faerdig."""
+    varVhpSubmitting.
+
+    FLAGET NULSTILLES FOERST I BESKEDEN (R2-035). Beskeden laeser en kopi
+    (sub), og flaget er falsk, foer der vises eller logges noget - ogsaa
+    hvis noget i beskeden fejler. Stod det til sidst, kunne et flag, der
+    blev haengende, faa naeste "Save draft" til at indsende planen."""
     detail = 'First(colVhpSaveErrors).Where & ": " & First(colVhpSaveErrors).Msg'
     report = (
-        "If(\n"
+        "With(\n"
+        "    { sub: varVhpSubmitting },\n"
+        "    Set(varVhpSubmitting, false);\n"
+        "    If(\n"
         f"    {OK},\n"
         # Save-trinnet er groent, saa laenge planen er den samme - se
         # VhpStateJson i sp_config.py.
         "    Set(varVhpSavedJson, VhpStateJson);\n"
-        + _admin_log() + ";\n"
-        f"    If(varVhpSubmitting, {msg.submitted('varVhpPlanKey')}, {msg.saved('varVhpPlanKey')}),\n"
-        f"    If(varVhpSubmitting, {msg.failed('Submit', detail)}, {msg.failed('Save', detail)})\n"
+        + _admin_log("sub") + ";\n"
+        f"    If(sub, {msg.submitted('varVhpPlanKey')}, {msg.saved('varVhpPlanKey')}),\n"
+        f"    If(sub, {msg.failed('Submit', detail)}, {msg.failed('Save', detail)})\n"
+        "    )\n"
         ")")
-    body = ";\n".join([
-        "Set(varVhpSaving, true)",
+    steps = ";\n".join([
         "Clear(colVhpSaveErrors)",
         _step_keys(),
         _when_ok(_step_conflict()),
@@ -854,15 +876,13 @@ def save_action():
         _when_ok(_step_items()),
         _when_ok(_step_ops()),
         _when_ok(_step_materials()),
-        _when_ok(_step_attachments()),
         _when_ok(_step_cleanup()),
         _when_ok(_step_notes()),
         _when_ok(_step_status()),
         report,
-        # EET sted spinneren slukkes og tilstanden nulstilles.
-        "Set(varVhpSubmitting, false)",
-        "Set(varVhpSaving, false)",
     ])
+    # Spinneren taendes og slukkes eet sted (A12, tools/build_helpers.with_busy).
+    body = with_busy("varVhpSaving", steps)
     return (
         "If(\n"
         f"    !varVhpPlanCommitted || {SAVEABLE_COUNT} = 0,\n"
@@ -890,8 +910,10 @@ def save_action():
 # selve gemningen: et tomt item taeller ikke med, saa knappen bliver ikke
 # aktiv af det item, appen selv aabnede med.
 #
-# Submit gaar ogsaa gennem den her knap (Select). Submit kan kun trykkes,
-# naar planen kan indsendes - og saa er den her knap altid aktiv.
+# Submit gaar ogsaa gennem den her knap (Select). Select paa en DEAKTIVERET
+# knap koerer ikke dens OnSelect, og popuppen kan staa aaben, mens
+# tilstanden aendrer sig - derfor tjekker popuppens Submit knappens
+# DisplayMode, foer flaget saettes (SUBMIT_FX, R2-035).
 DRAFT_DM = ("If(\n"
             f"    varVhpViewOnly || varVhpSaving || !varVhpPlanCommitted || {SAVEABLE_COUNT} = 0,\n"
             "    DisplayMode.Disabled,\n"
@@ -908,7 +930,8 @@ def save_buttons(can_submit):
 
     Submit aabner popuppen med noterne; foerst "Submit" dér indsender: den
     saetter noterne og varVhpSubmitting og vaelger Save draft-knappen.
-    Select koerer knappens OnSelect, efter popuppens egen formel er faerdig.
+    Select koerer knappens OnSelect, efter popuppens egen formel er faerdig
+    - men kun, naar knappen er aktiv (SUBMIT_FX).
 
     Returnerer (Save draft, Submit, [popup])."""
     btnDraft = button(SAVE_BUTTON, "\"Save draft\"", save_action(),
@@ -938,6 +961,15 @@ NOTES_OPEN_VIEW = ("Set(varVhpNotesEdit, false);\n" + "".join(f"Reset({c});\n" f
 VHP_OWNER = 'Coalesce(varVhpOwnerEmail, varVhpMe)'
 NOTES_HAVE = '(!IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf))'
 
+# Popuppens Submit. Flaget saettes KUN, naar Save draft-knappen er aktiv:
+# Select paa en deaktiveret knap koerer ikke OnSelect, og saa blev
+# varVhpSubmitting staaende, og naeste "Save draft" indsendte planen (R2-035).
+SUBMIT_FX = (
+    f"If(\n    {SAVE_BUTTON}.DisplayMode = DisplayMode.Edit,\n"
+    f"    Set(varVhpSubmitting, true);\n    Select({SAVE_BUTTON}),\n"
+    '    Notify("The plan cannot be submitted right now - save it first.", NotificationType.Warning)\n'
+    ")")
+
 
 def notes_popup():
     edit = NOTES_EDIT
@@ -959,6 +991,6 @@ def notes_popup():
         submit_fx=("Set(varVhpNoteApprover, inpVhpNoteA.Text);\n"
                    "Set(varVhpNoteSelf, If(" + perm.is_owner(VHP_OWNER, "varVhpMe") +
                    ", inpVhpNoteS.Text, varVhpNoteSelf));\n"
-                   f"Set(varVhpSubmitting, true);\nSelect({SAVE_BUTTON})"),
+                   + SUBMIT_FX),
         submit_name="btnVhpSubmitConfirm")
     return ctrls

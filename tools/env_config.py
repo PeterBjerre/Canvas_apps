@@ -11,7 +11,6 @@ Det samme miljoe-id og de samme app-id'er stod FIRE steder:
     Equipment App/build/domain_config.py          HUB_URL
     Material App/build/domain_config.py           HUB_URL
     tools/request_index.py                        AppUrl (den samlede app)
-    Maintenance Plan App/build/sp_config.py       HUB_URL
 
 Det var erkendt, og loesningen var check_app_ids() i build_all.py: 60
 linjer, der laeste hub_config.py med import og de tre andre med REGEX -

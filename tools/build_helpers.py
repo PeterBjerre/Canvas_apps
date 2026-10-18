@@ -54,9 +54,6 @@ def concurrent(*formulas, indent=0):
     return "Concurrent(\n%s\n%s)" % (body, " " * indent)
 
 
-# Alle feltforklaringer ser paa den samme variabel.
-HINTS_ON = "IfError(varVhpShowHints, false)"
-
 # Braekpunktet, hvor et to-kolonne-felt stables lodret, staar i
 # tools/layout_tokens.py. Det er en CONTAINER-graense og ikke en
 # enhedsklasse: et smalt kort stabler sine felter, ogsaa paa en bred
@@ -2804,7 +2801,8 @@ def col_width(container_w, cols, gap=20):
 
 
 def field_cell(name, label_text, input_ctrl, required=False, hint_text=None, width=None,
-               container_w=SHELL_W, fill_portions_formula=None, cols=2, gap=20):
+               container_w=SHELL_W, fill_portions_formula=None, cols=2, gap=20,
+               hints_on=None):
     """Et felt med label over.
 
     fill_portions_formula=None betyder braekpunktet: feltet vokser kun,
@@ -2815,19 +2813,27 @@ def field_cell(name, label_text, input_ctrl, required=False, hint_text=None, wid
 
     cols er antallet af felter, der skal staa side om side i raekken (brug
     samme tal i row_n/two_col_row), saa bredden bliver ens for alle celler
-    i raekken."""
-    # Alle feltforklaringer styres af EEN variabel, varVhpShowHints, slaaet
-    # til og fra i hero-kortet. Foer havde hvert felt sit eget i-ikon - 21
-    # knapper for at vise 21 linjer er en knap for meget pr. linje.
+    i raekken.
+
+    hints_on er Visible-udtrykket for hint_text - appens EGEN til/fra-
+    kontakt (VH-plan: build_help.HINTS_ON). Den skal gives sammen med
+    hint_text: her stod VH-planens varVhpShowHints som fast vaerdi, saa et
+    hint i en anden app tavst ville laese VH's variabel (C12, R2-093)."""
+    # VH-planens feltforklaringer styres af EEN variabel, slaaet til og fra
+    # i hero-kortet. Foer havde hvert felt sit eget i-ikon - 21 knapper for
+    # at vise 21 linjer er en knap for meget pr. linje.
     #
     # Hoejdealgebraen taeller kun synlige boern med, saa linjerne koster
     # ingen plads, naar de er slaaet fra.
     w = width or col_width(container_w, cols, gap)
     kids = [label_row(name, label_text, required=required, cell_w=w), input_ctrl]
     if hint_text is not None:
+        if hints_on is None:
+            raise ValueError("field_cell(%s): hint_text kraever hints_on - appens egen "
+                             "til/fra-kontakt for feltforklaringer." % name)
         kids.append(text_ctrl(child_name("txt", name, "Hint"), hint_text, size=12, color=C_MUTED,
                               height=32, wrap="true",
-                              visible=HINTS_ON))
+                              visible=hints_on))
     # SKAERMLAESEREN SKAL HOERE ETIKETTEN, IKKE KONTROLNAVNET
     #
     # De fire inputbyggere saetter AccessibleLabel til kontrollens eget

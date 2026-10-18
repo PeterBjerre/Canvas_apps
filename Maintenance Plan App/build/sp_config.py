@@ -64,16 +64,21 @@ C_HELP_KEY    = "HelpKey"     # Title, omdoebt
 # listen uden at laese hinandens tekster.
 HELP_APP      = "MaintenancePlan"
 
-# --- landingssiden --------------------------------------------------------
-# VH-plan-appen aabnes af hubbens VHP-flise som en SELVSTAENDIG app, ikke
-# som en skaerm i den. Back() kan derfor ikke foere tilbage - der skal et
-# Launch til. LaunchTarget.Replace, saa det sker i den fane, brugeren
-# staar i; ellers faar man en fane pr. klik.
-#
-# Samme id som apps.hub.app_id i tools/canvas_apps.json. build_all.py
-# tjekker, at de to ikke glider fra hinanden.
-# Kommer fra tools/canvas_apps.json via env_config - se der for hvorfor.
-HUB_URL = env.hub_url()
+# --- omkostningsgraensen (docs/32 §9, R2-082) -------------------------------
+# Graensen, over hvilken et item skal omkostningsgodkendes. Den staar i
+# AppSettings, een raekke PR. MILJOE (Provision-VHPlanApproval.ps1), og
+# BioSap-VhPlan-CostApproval laeser den samme raekke. Appen viser den kun
+# som information under operationernes total - flowet regner selv.
+L_SETTINGS      = "AppSettings"
+COST_OPTION     = "CostApprovalThresholdDkk"
+# Flowets reserve, naar raekken mangler.
+COST_DEFAULT    = 300000
+# Miljoeet, som det staar i AppSettings.Environment (DEV/TEST/PROD).
+SETTINGS_ENVS   = ("DEV", "TEST", "PROD")
+SETTINGS_ENV    = env.ENV_NAME.upper()
+if SETTINGS_ENV not in SETTINGS_ENVS:
+    raise SystemExit("sp_config: miljoeet '%s' findes ikke i AppSettings.Environment (%s)."
+                     % (env.ENV_NAME, ", ".join(SETTINGS_ENVS)))
 
 # --- kolonnenavne der IKKE er selvindlysende -------------------------------
 # MainWorkCenters er oprettet fra Excel, saa de interne navne er field_1 og
@@ -228,6 +233,13 @@ def named_formulas():
     # saa det er eet delegeret kald.
     #
     # Body er en Note-kolonne (ren tekst). Heading er tom paa hints.
+    # Omkostningsgraensen for DETTE miljoe. Dovent og cachet som de andre
+    # navngivne formler; Option og Environment er Choice, og = mod en
+    # konstant paa .Value delegeres til SharePoint (R2-082).
+    add("VhpCostThreshold",
+        f'Coalesce(LookUp({L_SETTINGS}, Option.Value = "{COST_OPTION}" && '
+        f'Environment.Value = "{SETTINGS_ENV}").Value, {COST_DEFAULT})',
+        "Omkostningsgraensen (kr.) fra AppSettings for miljoeet - kun visning.")
     add("colVhpHelp",
         _forall(f'Filter({L_HELP}, AppArea.Value = "{HELP_APP}")',
                 [("Key", f"R.{C_HELP_KEY}"),
@@ -525,7 +537,11 @@ WORKING_COLLECTIONS = [
       "TasklistKey": '""', "TasklistName": '""', "Status": '""',
       # Raekkens ID i MaintenanceItems; 0 = ikke gemt endnu. Gem opdaterer
       # et item med SpId i stedet for at oprette det igen (REVIEW.md D7).
-      "SpId": 0}),
+      "SpId": 0,
+      # Itemets identitet paa tvaers af gem (MaintenanceItems.ItemGuid,
+      # docs/32 §6). Dannes ved Add/Copy item og ved indlaesning af et item
+      # uden; godkendelserne i MD_ApprovalLog peger paa den (R2-034).
+      "ItemGuid": '""'}),
     ("colVhpOperations",
      {"ItemId": 0, "OperationNo": '""', "OperationShortText": '""', "WorkHours": 0,
       # Persons er SAP's "No." (ANZZL). DurationHours regnes af de to og
@@ -560,9 +576,10 @@ WORKING_COLLECTIONS = [
      {"ItemId": 0, "LineId": 0, "MaterialNo": '""', "Description": '""',
       "Unit": '""', "Quantity": 0, "OperationNo": '""', "Selected": "false"}),
     # De AELDRE dokumentraekker i MD_TasklistAttachment (foer issue #300).
-    # De hentes og gemmes uaendret, saa en gemning ikke sletter dem, men
-    # dokumentruden viser dem ikke: nye filer er vedhaeftninger paa
-    # operationens raekke i TaskListMain (build_attflows.py).
+    # De hentes, men gemningen skriver og sletter dem ikke laengere
+    # (R2-071), og dokumentruden viser dem ikke: nye filer er vedhaeftninger
+    # paa operationens raekke i TaskListMain (build_attflows.py). Raekkerne
+    # er et mellemlager, til en migrering er besluttet.
     # OperationsKey er ";0010;0020;" ligesom PackagesKey -
     # tomt (";") betyder at dokumentet hoerer til hele planen og ikke til
     # en bestemt operation.
@@ -596,7 +613,7 @@ WORKING_COLLECTIONS = [
     ("colVhpAdmOld", {"ID": 0, "ItemID": '""', "Title": '""', "ItemDescription": '""',
                       "FunctionalLocation": '""', "ObjectList": '""'}),
     ("colVhpSpOps", {"ID": 0, "TaskItemID": '""'}),
-    # colVhpOldMats/colVhpOldAtts (de gamle materiale- og dokumentraekker)
+    # colVhpOldMats (de gamle materialeraekker)
     # og colVhpSpItemRows/colVhpSpOpRows (planens items og operationer)
     # er HELE SharePoint-raekker, som Patch og Remove bruger direkte
     # (R2-007). De faar deres type fra listen og staar derfor ikke her.

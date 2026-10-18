@@ -381,7 +381,7 @@ def build_plan_header():
     def cell(name, label, ctrl, hint, required=False):
         return field_cell(name, label, ctrl, required=required, width=FC_CELL,
                           container_w=CW, fill_portions_formula="0",
-                          hint_text=bh.hint(hint))
+                          hint_text=bh.hint(hint), hints_on=bh.HINTS_ON)
 
 
     cellStrategy = cell("conVhpCellStrategy", "Maintenance strategy", drpStrategy, "Strategy")
