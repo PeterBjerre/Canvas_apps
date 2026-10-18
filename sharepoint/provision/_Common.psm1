@@ -67,7 +67,23 @@ function New-MdField {
         [string]$List, [string]$Name, [string]$Type,
         [string[]]$Choices, [switch]$Indexed, [switch]$Required, [switch]$Unique
     )
-    if (Get-PnPField -List $List -Identity $Name -ErrorAction SilentlyContinue) {
+    $f = Get-PnPField -List $List -Identity $Name -ErrorAction SilentlyContinue
+    if ($f -and $Choices) {
+        # Feltet findes: tilfoej de valg, der mangler (R2-012). Listerne fra
+        # foer et nyt valg (fx RowStatus 'draft', issue #204) fik det ellers
+        # aldrig. Eksisterende valg og deres raekkefoelge beholdes; nye
+        # saettes bagefter. Get-PnPField henter ikke .Choices - kun
+        # SchemaXml (samme som Add-Choices i Provision-VHPlanColumns.ps1).
+        $current = [string[]]@(([xml]$f.SchemaXml).Field.CHOICES.CHOICE | Where-Object { $_ })
+        $missing = [string[]]@($Choices | Where-Object { $current -notcontains $_ })
+        if ($missing.Count) {
+            $union = [string[]]($current + $missing)
+            Set-PnPField -List $List -Identity $Name -Values @{ Choices = $union }
+            Write-Host "    ~ $Name (choices +$($missing -join ', +'))" -ForegroundColor Green
+        } else {
+            Write-Host "    = $Name" -ForegroundColor DarkGray
+        }
+    } elseif ($f) {
         Write-Host "    = $Name" -ForegroundColor DarkGray
     } else {
         $p = @{ List = $List; DisplayName = $Name; InternalName = $Name; Type = $Type }

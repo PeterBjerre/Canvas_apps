@@ -9,7 +9,9 @@ Ukendte funktioner giver en fejl - testen maa ikke gaette.
 """
 import json
 import re
+from datetime import datetime, timezone
 from urllib.parse import unquote
+from zoneinfo import ZoneInfo
 
 _TOKEN = re.compile(r"\s*(?:(?P<str>'(?:[^']|'')*')|(?P<num>-?\d+(?:\.\d+)?)"
                     r"|(?P<name>[A-Za-z_][A-Za-z0-9_]*)|(?P<op>\?\[|[(),\[\]]))")
@@ -34,15 +36,17 @@ def _tokens(src):
 
 
 class _Ctx:
-    def __init__(self, trigger_body, headers, outputs, item=None):
+    def __init__(self, trigger_body, headers, outputs, item=None, parameters=None):
         self.trigger_body = trigger_body
         self.headers = headers
         self.outputs = outputs
         # item() - elementet i en Query, en Select eller en loekke.
         self.item = item
+        # parameters('Navn (schemaName)') - flowets miljoevariabler.
+        self.parameters = parameters or {}
 
     def with_item(self, item):
-        return _Ctx(self.trigger_body, self.headers, self.outputs, item)
+        return _Ctx(self.trigger_body, self.headers, self.outputs, item, self.parameters)
 
 
 def _min(*a):
@@ -75,6 +79,41 @@ FUNCS = {
     "contains": lambda c, x: x in (c or ()),
     "string": lambda x: _str(x),
 }
+
+
+# Kun de tidszoner og .NET-formater, flowene bruger.
+_TZ = {"Romance Standard Time": "Europe/Copenhagen", "UTC": "UTC"}
+_NET = (("yyyy", "%Y"), ("MM", "%m"), ("dd", "%d"), ("HH", "%H"), ("mm", "%M"))
+
+
+def _fmt(dt, fmt):
+    for net, py in _NET:
+        fmt = fmt.replace(net, py)
+    return dt.strftime(fmt)
+
+
+def _parse_ts(ts):
+    dt = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+
+
+def _convert_from_utc(ts, tz, fmt="o"):
+    # Som Power Automate: en tid uden Z/offset afvises (InvalidTemplate).
+    # SharePoints datokolonner kan komme uden Z, fx 2027-10-18T00:00:00.0000000.
+    if not re.search(r"(Z|[+-]\d\d:\d\d)$", str(ts)):
+        raise ValueError("convertFromUtc expects a UTC date time, got %r" % ts)
+    dt = _parse_ts(ts).astimezone(ZoneInfo(_TZ[tz]))
+    return dt.isoformat() if fmt == "o" else _fmt(dt, fmt)
+
+
+FUNCS.update({
+    "convertFromUtc": _convert_from_utc,
+    "formatDateTime": lambda ts, fmt="o": _fmt(_parse_ts(ts), fmt),
+    "endsWith": lambda s, x: _str(s).lower().endswith(_str(x).lower()),
+    "join": lambda a, sep: sep.join(_str(x) for x in a),
+    "createArray": lambda *a: list(a),
+    "utcNow": lambda: datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+})
 
 
 def _str(x):
@@ -160,11 +199,17 @@ class _Parser:
         if name == "triggerBody":
             return self.ctx.trigger_body
         if name == "triggerOutputs":
-            return {"headers": self.ctx.headers, "body": self.ctx.trigger_body}
+            # SharePoint-triggeren svarer ogsaa paa stier: ['body/Editor/Email'].
+            body = self.ctx.trigger_body
+            flat = {"body/" + k: v for k, v in (body or {}).items()} \
+                if isinstance(body, dict) else {}
+            return dict(flat, headers=self.ctx.headers, body=body)
         if name in ("outputs", "body"):
             return self.ctx.outputs[args[0]]
         if name == "item":
             return self.ctx.item
+        if name == "parameters":
+            return self.ctx.parameters[args[0]]
         if name not in FUNCS:
             raise NotImplementedError("WDL-funktion %s" % name)
         return FUNCS[name](*args)
@@ -233,13 +278,13 @@ def _select(action, ctx):
     return [value(action["inputs"]["select"], ctx.with_item(it)) for it in src]
 
 
-def run(actions, names, trigger_body, headers):
+def run(actions, names, trigger_body, headers, parameters=None):
     """Koer handlingerne names i raekkefoelge; returner outputs.
 
     Compose er sit input. Query og Select faar deres element bundet til
     item(), som i flowet - saa et filter eller et opslag kan koeres paa en
     eksempelraekke uden at skrive dets logik om i Python."""
-    ctx = _Ctx(trigger_body, headers, {})
+    ctx = _Ctx(trigger_body, headers, {}, parameters=parameters)
     for n in names:
         a = actions[n]
         if a.get("type") == "Query":

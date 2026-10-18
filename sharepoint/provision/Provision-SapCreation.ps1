@@ -30,6 +30,10 @@
         SapOrderFile    Text - ordrefilens navn, til fejlsoegning
         SapCreatedOn    DateTime - hvornaar kvitteringen blev laest
         SapCreatedBy    Text - initialerne paa den, der oprettede planen
+        SapWarnings     Note, ren tekst - kvitteringens advarsler, een pr.
+                        linje: det, opretteren ikke kunne oprette, fx
+                        materialer, der skal tilfoejes i IA06. Vises i
+                        mailen "Created in SAP" (R2-018).
 
     MaintenanceItems
         SapItemNo       Text, indekseret - vedligeholdspositionens nummer.
@@ -144,6 +148,17 @@ Add-Col 'MaintenancePlans' 'SapCreatedOn' DateTime `
     -Description 'Hvornaar kvitteringen fra VH-plan Opretter blev laest.'
 Add-Col 'MaintenancePlans' 'SapCreatedBy' Text `
     -Description 'Initialerne paa den, der oprettede planen i SAP.'
+# Note, ikke Text: en plan kan have mange advarsler, og de er laengere end
+# 255 tegn tilsammen. Ren tekst - flowet skriver een advarsel pr. linje.
+if ($WhatIfOnly) {
+    if (-not (Get-PnPField -List 'MaintenancePlans' -Identity 'SapWarnings' -ErrorAction SilentlyContinue)) {
+        Write-Host "    ? ville oprette SapWarnings (Note, ren tekst)" -ForegroundColor Yellow
+    }
+} else {
+    New-MdNoteField 'MaintenancePlans' 'SapWarnings' 6
+    Set-PnPField -List 'MaintenancePlans' -Identity 'SapWarnings' `
+        -Values @{ Description = 'Kvitteringens advarsler, een pr. linje - fx materialer, der skal tilfoejes i IA06. Skrives af kvitteringsflowet.' }
+}
 
 Write-Host "`n=== MaintenanceItems ===" -ForegroundColor Cyan
 Add-Col 'MaintenanceItems' 'SapItemNo' Text -Indexed `

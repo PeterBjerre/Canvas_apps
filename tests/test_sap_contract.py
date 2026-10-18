@@ -310,6 +310,56 @@ def test_fl_flows_write_known_columns():
     assert not missing, missing
 
 
+# Kolonner, SharePoint selv har paa enhver liste.
+_SP_BUILTIN = {"ID", "Title", "Created", "Modified", "Author", "Editor"}
+
+
+def _fl_flow_columns():
+    """(liste, kolonne) for hver kolonne, FL-flowenes snippets laeser eller
+    skriver paa de to FL-lister: MERGE-noeglerne og triggerBody()/
+    body('Get_request')/item()-opslagene."""
+    def text(name):
+        with open(os.path.join(FLOW, name), encoding="utf-8") as f:
+            return f.read()
+
+    req, row = set(), set()
+    for name in ("fl-ordre-3-merge-request.json", "fl-ordre-4-merge-request-reset.json",
+                 "fl-kvittering-4-merge-request.json"):
+        req |= set(load(FLOW, name))
+    row |= set(load(FLOW, "fl-kvittering-3-merge-row.json"))
+    for name in ("fl-ordre-0-trigger.txt", "fl-ordre-2-compose-order.json",
+                 "fl-kvittering-2-betingelse.txt"):
+        req |= set(re.findall(r"(?:triggerBody\(\)|body\('Get_request'\))\?\['(\w+)'\]", text(name)))
+    row |= set(re.findall(r"item\(\)\?\['(\w+)'\]", text("fl-ordre-1-select-rows.json")))
+    return ({("FunctionalLocationRequests", c) for c in req - _SP_BUILTIN} |
+            {("FunctionalLocationItems", c) for c in row - _SP_BUILTIN})
+
+
+def test_fl_flow_columns_are_provisioned():
+    """R2-013: SAP-kolonnerne manglede paa FL-listerne i DEV, og intet
+    sagde det. Hver kolonne, FL-ordre- og kvitteringsflowet bruger, skal
+    oprettes af et provisioneringsscript - uafhaengigt af schema.md, som er
+    et udtraek og kan vaere aeldre end scriptet."""
+    import check_datasources as cds
+    cols = _fl_flow_columns()
+    sap = {c for _l, c in cols if c.startswith("Sap")}
+    assert {"SapOrderGuid", "SapOrderFile", "SapCreatedOn", "SapCreatedBy",
+            "SapResult", "SapMessage"} <= sap, sorted(sap)
+    missing = sorted(cols - cds.provisioned_columns())
+    assert not missing, missing
+
+
+def test_fl_sap_columns_come_from_the_sap_script():
+    """SAP-kolonnerne paa FL-listerne hoerer til Provision-SapCreation.ps1
+    (docs/36 §3): det script er det, docs beder Peter koere."""
+    with open(os.path.join(ROOT, "sharepoint", "provision", "Provision-SapCreation.ps1"),
+              encoding="utf-8-sig") as f:
+        ps1 = f.read()
+    for lst, col in sorted(_fl_flow_columns()):
+        if col.startswith("Sap"):
+            assert re.search(r"Add-Col\s+'%s'\s+'%s'" % (lst, col), ps1), (lst, col)
+
+
 def test_fl_status_values_are_known():
     """FL-anmodningernes status er MD_RequestIndex-ordforraadet
     (tools/request_index.py). En stavefejl giver en betingelse, der aldrig

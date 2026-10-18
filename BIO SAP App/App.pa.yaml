@@ -2089,6 +2089,22 @@ App:
                   { m: Concat(
                       Filter(
                           colVhpOperations,
+                          ItemId in VhpSaveableItems.ItemId && IsBlank(Trim(OperationShortText))
+                      ),
+                      With(
+                          { rid: ItemId },
+                          With(
+                              { ir: LookUp(colVhpItems, ItemId = rid) },
+                              "Item " & Text(CountRows(Filter(colVhpItems, ItemId <= rid))) &
+                                  If(IsBlank(Trim(ir.ShortText)), "", " (" & Trim(ir.ShortText) & ")")
+                          ) & ", operation " & OperationNo &
+                              ": fill in the operation short text - SAP requires one."
+                      ),
+                      Char(10)
+                  ) },
+                  { m: Concat(
+                      Filter(
+                          colVhpOperations,
                           Upper(Trim(Coalesce(ControlKey, ""))) = "PM02" &&
                           IsBlank(Trim(Coalesce(MaterialGroup, "")))
                       ),

@@ -31,8 +31,8 @@ statusværdierne findes i `MaintenancePlans.Status`, og at parenteserne går op.
 1. **Bibliotek og kolonner.** Kør
    [`Provision-SapCreation.ps1`](../sharepoint/provision/Provision-SapCreation.ps1)
    mod sitet. Det opretter biblioteket `SAP-oprettelse` med mapperne og
-   kolonnerne `SapOrderGuid`, `SapOrderFile`, `SapCreatedOn`, `SapCreatedBy`
-   (MaintenancePlans) og `SapItemNo` (MaintenanceItems). Sæt rettighederne,
+   kolonnerne `SapOrderGuid`, `SapOrderFile`, `SapCreatedOn`, `SapCreatedBy`,
+   `SapWarnings` (MaintenancePlans) og `SapItemNo` (MaintenanceItems). Sæt rettighederne,
    se [Rettigheder](#rettigheder).
 2. **Miljøvariabler.** Tre nye i solution BIO SAP:
 
@@ -52,7 +52,8 @@ statusværdierne findes i `MaintenancePlans.Status`, og at parenteserne går op.
 
    Disse findes i forvejen og bruges også: `BioSap-SiteUrl`,
    `BioSap-List-MaintenancePlans`, `BioSap-List-MaintenanceItems`,
-   `BioSap-List-TaskListMain` og `BioSap-ErrorNotifiers`.
+   `BioSap-List-TaskListMain`, `BioSap-ErrorNotifiers` og
+   `BioSap-MasterDataEmail` (kvitteringsflowets Cc ved afviste kørsler).
 3. **Forbindelser og ejer.** Som de andre BioSap-flows: connection references
    `orsted_BioSapSharePointConn` og `orsted_BioSapOutlookConn`, og en
    servicekonto som ejer, ikke en navngiven bruger.
@@ -296,6 +297,13 @@ Betingelsen tjekker:
 
 ### 3. Ja: skriv numrene — planen til sidst
 
+0. **Advarslerne** (R2-018): *Select* **Warning lines** fra
+   `coalesce(outputs('Receipt')?['warnings'], createArray())`, hver advarsel
+   JSON-escapet (`\` og `"`, linjeskift og tab bliver til mellemrum), og
+   *Compose* **Warnings json** = `join(body('Warning_lines'), '\n')`.
+   *Each item* kører efter den. MERGE'en i punkt 2 skriver resultatet i
+   `SapWarnings` (Note, ren tekst, én advarsel pr. linje) – også når listen
+   er tom, så en ny kørsel rydder gamle advarsler.
 1. *Apply to each* **Each item** over `outputs('Receipt')?['items']` med
    *Send an HTTP request to SharePoint* **Set item numbers**:
    - *Uri* `_api/web/lists(guid'@{parameters('BioSap-List-MaintenanceItems (orsted_BioSapListMaintenanceItems)')}')/items(@{items('Each_item')?['spId']})`
@@ -311,7 +319,9 @@ Betingelsen tjekker:
 Planen sættes til *Published* til sidst. Fejler et item, er planen stadig
 *Ready*, og kvitteringen kan køres igen. Når planen er *Published* med et
 `SAPNum`, sender `BioSap-EmailNotification-PlanPublished` mailen til
-rekvirenten. Har det flow ikke fået spærren fra docs/32 (afsnit 7.5), sender
+rekvirenten (docs/17, *Oprettet i SAP*). Er `SapWarnings` udfyldt, står
+advarslerne i mailen under *To be added manually in SAP*, og
+`BioSap-MasterDataEmail` kommer på Cc. Har det flow ikke fået spærren fra docs/32 (afsnit 7.5), sender
 det mailen igen ved hver senere ændring af planen.
 
 ### 4. Nej og fejl: Afvist og en mail
@@ -320,9 +330,13 @@ det mailen igen ved hver senere ændring af planen.
 *Send an email (V2)* til `BioSap-ErrorNotifiers`:
 
 - *Subject*: `VH-plan Opretter: kvittering afvist - @{items('Each_receipt')?['{FilenameWithExtension}']}`
-- *Body*: kvitteringens `planId`, `state`, `sapSystem` og `orderGuid`, planens
-  `SapOrderGuid` og `Status`, og `FlowRunHistoryLink`. Så kan modtageren se,
-  hvilket tjek der fejlede.
+- *Body*: kvitteringens `planId`, `state`, `sapPlanNo`, `sapSystem` (og det
+  forventede `BioSap-SapSystem`), `orderGuid`, `lastError` og `warnings`,
+  planens `SapOrderGuid` og `Status`, og `FlowRunHistoryLink`. Så kan
+  modtageren se, hvilket tjek der fejlede. Alle værdier escapes.
+- *Cc*: `BioSap-MasterDataEmail`, når `state` er `Partial`, `NeedsCheck` eller
+  `Failed` – opretteren har selv meldt en ufuldstændig kørsel, og det er
+  Master Data, der skal handle (docs/34, 5 og 8). Ellers tom.
 
 **Efter scopet**, stadig i løkken: samme *Move file* til *Afvist* og en mail
 med filnavnet og `FlowRunHistoryLink`. Begge med *Configure run after*:
