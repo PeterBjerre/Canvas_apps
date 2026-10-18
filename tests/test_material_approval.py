@@ -291,7 +291,7 @@ def test_every_log_row_is_the_system_stage_with_no_plan_id():
         # tage Materials' raekker med.
         assert "item/PlanId" not in p
         assert p["item/RequestGuid"] == "@outputs('RequestGuid')"
-        assert p["item/Decision"] in ("Approve", "Return", "Requested")
+        assert p["item/Decision"] in ("Approve", "Return", "Requested", "Timeout")  # Timeout: R2-030
 
 
 def test_an_open_unit_is_logged_as_requested_so_progress_can_be_counted():
@@ -355,7 +355,7 @@ def test_the_mails_come_from_the_service_account():
     mails = [a for _n, a in _actions(_definition(APPROVAL)["actions"])
              if _op(a) == "SendEmailV2"]
     # Rekvirenten faar baade et nej og et ja - og udviklerne en fejl.
-    assert len(mails) == 3
+    assert len(mails) == 4   # + Send_reminder ved timeout (R2-030)
     for m in mails:
         assert m["inputs"]["host"]["connectionName"] == "shared_office365"
 

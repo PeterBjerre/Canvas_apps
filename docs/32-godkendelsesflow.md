@@ -646,6 +646,14 @@ samme flow, med små bogstaver):
 godkendes eller er klar til SAP, og når et VH-trin afleveres til det næste
 (`Patch_index_progress`) – det næste trins flow skriver sin egen godkender.
 
+**Timeout i Material og MP (R2-030).** Svarer en godkender ikke inden for
+14 dage, logger `BioSap-Material-SystemApproval`/`BioSap-MeasuringPoint-Approval`
+en `Timeout`-række pr. ubesvaret række ("No answer from … within 14 days"),
+godkenderen får besked om, at anmodningen er udløbet, og anmodningen sendes
+**retur** til rekvirenten (indeks `AfventerInfo`/3) med forklaringen. Ved
+genindsendelse spørges godkenderen igen. (VH-flowene starter i stedet
+trinnet forfra.)
+
 ## 11. Rækkefølge
 
 | Fase | Indhold | Hvorfor i den rækkefølge |

@@ -1095,6 +1095,67 @@
                               }
                             }
                           }
+                        },
+                        "For_each_my_unit_timeout": {
+                          "foreach": "@body('My_units')",
+                          "runAfter": {
+                            "Start_and_wait_for_an_approval": [
+                              "TimedOut"
+                            ]
+                          },
+                          "type": "Foreach",
+                          "runtimeConfiguration": {
+                            "concurrency": {
+                              "repetitions": 1
+                            }
+                          },
+                          "actions": {
+                            "Log_timeout": {
+                              "type": "OpenApiConnection",
+                              "inputs": {
+                                "parameters": {
+                                  "item/Title": "@outputs('RunName')",
+                                  "item/RequestGuid": "@outputs('RequestGuid')",
+                                  "item/Stage": "System",
+                                  "item/ItemGuid": "@items('For_each_my_unit_timeout')?['itemGuid']",
+                                  "item/ItemText": "@items('For_each_my_unit_timeout')?['itemText']",
+                                  "item/Fingerprint": "@items('For_each_my_unit_timeout')?['fingerprint']",
+                                  "item/DecidedOn": "@utcNow()",
+                                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                  "table": "MD_ApprovalLog",
+                                  "item/Decision": "Timeout",
+                                  "item/Detail": "@concat('No answer from ', items('For_each_approver'), ' within 14 days')",
+                                  "item/DecidedByEmail": "system"
+                                },
+                                "host": {
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                  "operationId": "PostItem",
+                                  "connectionName": "shared_sharepointonline"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "Send_reminder": {
+                          "runAfter": {
+                            "For_each_my_unit_timeout": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "parameters": {
+                              "emailMessage/To": "@items('For_each_approver')",
+                              "emailMessage/Subject": "@concat('Approval request for material request ', coalesce(outputs('RequestNo'), ''), ' expired without a response')",
+                              "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">The approval request for material request @{coalesce(outputs('RequestNo'), '')} expired after 14 days without a response and can no longer be answered. The request has been returned to the requester, who can correct it and submit it again - you will then get a new request.</p>",
+                              "emailMessage/Importance": "Normal"
+                            },
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                              "operationId": "SendEmailV2",
+                              "connectionName": "shared_office365"
+                            }
+                          }
                         }
                       }
                     },
@@ -1115,7 +1176,8 @@
                       },
                       "runAfter": {
                         "For_each_approver": [
-                          "Succeeded"
+                          "Succeeded",
+                          "TimedOut"
                         ]
                       }
                     },
@@ -1128,7 +1190,7 @@
                       "type": "Query",
                       "inputs": {
                         "from": "@outputs('Get_log_results')?['body/value']",
-                        "where": "@and(equals(item()?['Decision'], 'Return'), equals(item()?['Title'], outputs('RunName')))"
+                        "where": "@and(or(equals(item()?['Decision'], 'Return'), equals(item()?['Decision'], 'Timeout')), equals(item()?['Title'], outputs('RunName')))"
                       }
                     },
                     "Any_return": {
