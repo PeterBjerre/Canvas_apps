@@ -1,7 +1,7 @@
 and(
   endsWith(toLower(items('Each_receipt')?['{FilenameWithExtension}']), '.kvittering.json'),
   equals(outputs('Receipt')?['kind'], 'fl-sap-receipt'),
-  equals(outputs('Receipt')?['state'], 'Created'),
+  or(equals(outputs('Receipt')?['state'], 'Created'), equals(outputs('Receipt')?['state'], 'Partial')),
   equals(outputs('Receipt')?['orderGuid'], body('Get_request')?['SapOrderGuid']),
   contains(createArray('Indsendt', 'UnderBehandling', 'KlarTilSAP'), body('Get_request')?['Status']?['Value']),
   equals(outputs('Receipt')?['sapSystem'], parameters('BioSap-SapSystem (orsted_BioSapSapSystem)'))

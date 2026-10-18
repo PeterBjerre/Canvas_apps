@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://orsted.example/schemas/fl-sap-receipt-1.json",
   "title": "Functional Location - kvittering fra oprettelsen i SAP",
-  "description": "Skrives af SAP Opretter. Under koerslen ligger den som '<ordrefil>.status.json' ved siden af ordren og opdateres efter HVER functional location, SAP har gemt. Naar alle raekker er gemt, skrives den med state = Created i mappen Kvitteringer/FL, og flowet BioSap-FL-SapReceipt skriver resultatet tilbage paa raekkerne og saetter anmodningen til OprettetISAP. Se docs/36-fl-sap-oprettelse.md.",
+  "description": "Skrives af SAP Opretter. Under koerslen ligger den som '<ordrefil>.status.json' ved siden af ordren og opdateres efter HVER functional location, SAP har gemt. Naar alle raekker er gemt, skrives den med state = Created i mappen Kvitteringer/FL, og flowet BioSap-FL-SapReceipt skriver resultatet tilbage paa raekkerne og saetter anmodningen til OprettetISAP. Efter en koersel, hvor nogle raekker er gemt og andre fejlede, skrives den med state = Partial (R2-057): flowet skriver de gemte raekkers resultat og de fejlende raekkers lastError (SapResult = Failed) og holder anmodningen aaben (UnderBehandling), til en ny koersel skriver Created. Se docs/36-fl-sap-oprettelse.md.",
   "type": "object",
   "required": [
     "kind",
@@ -45,7 +45,7 @@
         "Failed",
         "Created"
       ],
-      "description": "InProgress: en koersel er i gang. Partial: nogle raekker er gemt, andre fejlede - ret og koer igen. Failed: ingen raekker er gemt. Created: alle raekker er gemt i SAP."
+      "description": "InProgress: en koersel er i gang. Partial: nogle raekker er gemt, andre fejlede - ret og koer igen; skrives ogsaa som kvittering (R2-057). Failed: ingen raekker er gemt. Created: alle raekker er gemt i SAP."
     },
     "sapSystem": {
       "type": [
@@ -133,7 +133,7 @@
               "string",
               "null"
             ],
-            "description": "Hvorfor raekken ikke blev gemt i sidste koersel"
+            "description": "Hvorfor raekken ikke blev gemt i sidste koersel. En Partial-kvittering skriver den i raekkens SapMessage."
           }
         }
       }
