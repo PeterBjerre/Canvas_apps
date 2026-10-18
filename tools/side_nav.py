@@ -358,9 +358,6 @@ def _column(p, suffix, w, current, is_open, help_on, help_action):
             CLOSE if cur else _launch(key, current),
             f'"{label}' + (' (current app)"' if cur else '"'),
             tooltip=None if is_open else f'"{label}"', hover=not cur))
-    top = group(f"con{p}NavTop{suffix}", [brand, toggle] + items, gap=2, width=w,
-                align_items="Start")
-
     foot_kids = [group(f"con{p}NavRule{suffix}", [], direction="Horizontal", height=1,
                        width=w - 20, fill=C_DIVIDER)]
     if help_on is not None:
@@ -374,11 +371,29 @@ def _column(p, suffix, w, current, is_open, help_on, help_action):
     foot = group(f"con{p}NavFoot{suffix}", foot_kids, gap=10, width=w, align_items="Start",
                  pad=(0, 0, 0, (lay.NAV_W - THEME_TOGGLE_H) // 2))
 
+    # PUNKTERNE STAAR FAST OEVERST (issue #363). Foer havde listen sin
+    # fulde hoejde (en sum af punkterne), og skinnen klippede det, der ikke
+    # var plads til. Paa en lav skaerm (Teams paa en baerbar, H.hit = 44)
+    # var skinnen hoejere end App.Height, og saa kunne browseren rulle den
+    # klippede skinne - fx naar fokus landede i foden - og de nederste
+    # punkter stod pludselig oeverst. Nu faar listen RESTEN af hoejden -
+    # skinnens hoejde minus polstring, mellemrum og foden, regnet ud som et
+    # udtryk (ikke FillPortions, se check_layout regel 9) - og foden har sin
+    # faste hoejde. Skinnen er derfor aldrig hoejere end
+    # skaermen; mangler der plads, ruller listen inden i sig selv, men
+    # raekkefoelgen er den samme paa alle skaerme, og kun det aktive punkt
+    # er markeret.
+    # border: skinnens ramme (1 px) tager ogsaa plads, oeverst og nederst.
+    pt, pb, col_gap, border = 13, 15, 12, 1
+    top = group(f"con{p}NavTop{suffix}", [brand, toggle] + items, gap=2, width=w,
+                align_items="Start", overflow_y="Scroll",
+                height=f"Max({ITEM_H}, Parent.Height - {pt + pb + col_gap + 2 * border} - ({foot.h}))")
+
     # Kanten til hoejre er containerens egen ramme, skubbet 1 px ud over
     # skaermens top, venstre og bund, saa kun hoejrekanten ses.
-    col = group(f"con{p}Nav{suffix}", [top, foot], gap=12, height="App.Height + 2",
+    col = group(f"con{p}Nav{suffix}", [top, foot], gap=col_gap, height="App.Height + 2",
                 width=w + 1, fill=C_SURFACE, border_color=C_DIVIDER,
-                border_thickness=1, pad=(13, 0, 15, 0), align_items="Start",
+                border_thickness=border, pad=(pt, 0, pb, 0), align_items="Start",
                 justify="SpaceBetween",
                 drop_shadow="Bold" if is_open else "None",
                 visible=OPEN if is_open else lay.NAV_ON)
