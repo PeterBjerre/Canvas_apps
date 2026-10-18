@@ -146,6 +146,9 @@ C_INFO_FG = _t("state-info-fg")
 C_INFO_BG = _t("state-info-bg")
 C_NEUTRAL_FG = _t("state-neutral-fg")
 C_NEUTRAL_BG = _t("state-neutral-bg")
+# Valgt pakke-pille paa VH-planens operationslinjer (designforslaget).
+C_VIOLET_FG = _t("state-violet-fg")
+C_VIOLET_BG = _t("state-violet-bg")
 
 FONT = "Font.'Segoe UI'"
 

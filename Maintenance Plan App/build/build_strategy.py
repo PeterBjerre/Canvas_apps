@@ -26,8 +26,9 @@ INVARIANT: PackagesKey er aldrig tom - en operation uden pakker har ";".
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_MUTED, C_DIVIDER, C_VALID_FG, C_INVALID_FG,
-                        C_TRANSPARENT, SHELL_W)
-from build_helpers import text_ctrl, group, button, button_row, checkbox_theme
+                        C_TRANSPARENT, SHELL_W, C_TITLE, C_INPUT_BORDER, C_BORDER_ERROR,
+                        C_VIOLET_FG, C_VIOLET_BG)
+from build_helpers import text_ctrl, group, button, button_row, checkbox_theme, flat_button
 from build_plan_header import help_panel
 
 IS_STRATEGY = "(varVhpPlan.PlanType = \"Strategy\")"
@@ -88,6 +89,105 @@ def _pkg_cell_gallery(name, template, items=PKGS_SORTED, template_size=CELL_W, h
             "WrapCount": "1",
         },
         children=[template], h=height)
+
+
+# PAKKE-PILLERNE (designforslaget "BIO SAP UX-review", VH-mockup)
+# ------------------------------------------------------------------
+# Operationslinjen viser strategiens pakker som piller - 1M 3M 6M 12M - og
+# et klik slaar pakken til eller fra paa netop den operation. Valgt: lys
+# violet flade, violet kant og tekst. Ikke valgt: ingen flade, graa kant og
+# daempet tekst. Har operationen INGEN pakke, er kanterne roede - det samme
+# signal som "(none)" i roedt foer.
+#
+# Pillen er en ModernButton (regel 16k): Primary med BasePaletteColor er
+# fladen, ligesom det valgte segment i segmented(). Allokeringen skrives i
+# PackagesKey paa samme maade som matricen (chkVhpPkgCell) - matricen og
+# pillerne er to visninger af den samme streng.
+PILL_W = 40
+PILL_H = 28
+PILL_PAD = 2
+PILL_SLOT = PILL_W + 2 * PILL_PAD
+# Fire piller uden scroll - som i designforslaget. Strategier med flere
+# pakker (5-12) scroller vandret i cellen; matricen viser dem alle.
+PILL_FIT = 4
+PILLS_W = PILL_FIT * PILL_SLOT
+
+
+def pkg_pills(prefix, op_no, key, width=PILLS_W):
+    """Pillerne for een operation. op_no og key er Power Fx-udtryk for
+    operationens nummer og PackagesKey, set fra der hvor galleriet staar
+    (raekken i operationstabellen eller popup'en)."""
+    sel = "ThisItem.Sel"
+    none = "ThisItem.NoPkg"
+    pill = flat_button(
+        f"btn{prefix}Pill", "ThisItem.ShortCode",
+        (
+            "If(!varVhpViewOnly,\n"
+            "    With(\n"
+            "        { pkg: Text(ThisItem.PackageNo), op: ThisItem.OpNo, was: ThisItem.Sel },\n"
+            "        UpdateIf(\n"
+            "            colVhpOperations,\n"
+            "            ItemId = varVhpActiveItemId && OperationNo = op,\n"
+            "            {\n"
+            "                PackagesKey:\n"
+            "                    If(\n"
+            "                        was,\n"
+            "                        Substitute(Coalesce(PackagesKey, \";\"), \";\" & pkg & \";\", \";\"),\n"
+            "                        Coalesce(PackagesKey, \";\") & pkg & \";\"\n"
+            "                    )\n"
+            "            }\n"
+            "        )\n"
+            "    )\n"
+            ")"
+        ),
+        accessible=(f'"Package " & ThisItem.ShortCode & " on operation " & ThisItem.OpNo & '
+                    f'If({sel}, ", selected", ", not selected")'),
+        height=PILL_H, width=PILL_W, color=f"If({sel}, {C_VIOLET_FG}, {C_MUTED})",
+        appearance="Outline", align="Center", size=12, weight="Semibold",
+        border=(f"If({sel}, {C_VIOLET_FG}, {none}, {C_BORDER_ERROR}, {C_INPUT_BORDER})", 1),
+        radius=PILL_H // 2,
+        tooltip=('ThisItem.ShortCode & " - " & Text(ThisItem.CycleLength) & " " & ThisItem.CycleUnit'))
+    pill.props["Appearance"] = f"If({sel}, ButtonAppearance.Primary, ButtonAppearance.Outline)"
+    pill.props["BasePaletteColor"] = C_VIOLET_BG
+    pill.props["AlignInContainer"] = "AlignInContainer.Center"
+    pill.props["LayoutMinWidth"] = str(PILL_W)
+    slot = group(f"con{prefix}PillSlot", [pill], direction="Horizontal", gap=0, height=PILL_H,
+                 align_items="Center", justify="Center", width="Parent.TemplateWidth")
+    items = (
+        "With(\n"
+        f"    {{ op: {op_no}, k: Coalesce({key}, \";\") }},\n"
+        "    ForAll(\n"
+        f"        {PKGS_SORTED} As P,\n"
+        "        {\n"
+        "            PackageNo: P.PackageNo, ShortCode: P.ShortCode,\n"
+        "            CycleLength: P.CycleLength, CycleUnit: P.CycleUnit, OpNo: op,\n"
+        "            Sel: \";\" & Text(P.PackageNo) & \";\" in k,\n"
+        "            NoPkg: Len(k) <= 1\n"
+        "        }\n"
+        "    )\n"
+        ")"
+    )
+    gal_h = PILL_H + 2 * PILL_PAD
+    return Ctrl(
+        f"gal{prefix}Pills", "Gallery", variant="Horizontal",
+        props={
+            "AccessibleLabel": f'"Maintenance packages for operation " & {op_no}',
+            "BorderStyle": "BorderStyle.None",
+            "Fill": C_TRANSPARENT,
+            "FillPortions": "0",
+            "Height": str(gal_h),
+            "Items": items,
+            "LayoutMinWidth": "0",
+            "LoadingSpinner": "LoadingSpinner.None",
+            "Selectable": "false",
+            "ShowScrollbar": f"CountRows({PKGS}) > {PILL_FIT}",
+            "TabIndex": "0",
+            "TemplatePadding": str(PILL_PAD),
+            "TemplateSize": str(PILL_W),
+            "Width": str(width),
+            "WrapCount": "1",
+        },
+        children=[slot], h=gal_h)
 
 
 def build_strategy_body():
