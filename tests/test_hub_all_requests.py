@@ -38,7 +38,7 @@ def test_tab_says_all_requests_and_keeps_the_queue_logic():
     on = b[b.index("OnChange:"):]
     assert '"All requests", "queue"' in on and '"My requests", "mine"' in on
     assert "Set(varMdView, k)" in on and 'Set(varMdDomain, "")' in on
-    assert _prop(b, "Default").startswith('Switch(varMdView, "mine", ')
+    assert _prop(b, "Default").startswith('{Value: Switch(varMdView, "mine", ')
 
 
 def test_all_requests_tab_list_shrinks_with_the_filter_row():

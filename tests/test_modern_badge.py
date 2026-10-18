@@ -115,10 +115,11 @@ def test_status_colors_are_unchanged():
     """Hvert maerke har samme farvepar pr. status som teksten foer."""
     vhp = _read("ScreenVhPlan.pa.yaml")
     b = _block(vhp, "bdgVhpPlanHeadBadge")
-    assert _prop(b, "Fill") == ("Switch(Self.Content, \"Valid\", C.'state-ok-bg', \"Invalid\", "
-                                "C.'state-error-bg', C.'state-neutral-bg')")
-    assert _prop(b, "Color") == ("Switch(Self.Content, \"Valid\", C.'state-ok-fg', \"Invalid\", "
-                                 "C.'state-error-fg', C.'text-muted')")
+    # Uden Self.Content (#331): farven vaelges af samme betingelse som teksten.
+    assert _prop(b, "Fill") == "If(VhpPlanValid, C.'state-ok-bg', C.'state-neutral-bg')"
+    assert _prop(b, "Color") == "If(VhpPlanValid, C.'state-ok-fg', C.'text-muted')"
+    for screen in ("ScreenVhPlan.pa.yaml", "ScreenIssueBoard.pa.yaml"):
+        assert "Self.Content" not in _read(screen), screen
     ib = _read("ScreenIssueBoard.pa.yaml")
     pri = _block(ib, "bdgIbDetPriority")
     assert "\"Urgent\", C.'state-error-bg'" in _prop(pri, "Fill")
