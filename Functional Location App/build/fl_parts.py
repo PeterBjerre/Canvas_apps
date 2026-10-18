@@ -63,6 +63,23 @@ def add_row_fx():
             "Set(varFlNextRowNo, varFlNextRowNo + 1)")
 
 
+# RAEKKELOFT (R2-043). Gem henter anmodningens raekker med eet Filter, og
+# det materialiseres kun op til appens data row limit (500, maks 2000). Over
+# loftet ville LookUp mod de hentede raekker ikke finde de sidste, og de
+# ville blive oprettet igen. Derfor stopper Add row og Paste rows ved
+# MAX_ROWS - under graensen, saa der er luft.
+MAX_ROWS = 400
+MAX_ROWS_MSG = f"Max {MAX_ROWS} rows per request - split it into more requests."
+
+
+def capped_add_row_fx():
+    """Add row - men ikke over MAX_ROWS (R2-043)."""
+    return (f"If(\n    CountRows(colFlRows) >= {MAX_ROWS},\n"
+            f'    Notify("{MAX_ROWS_MSG}", NotificationType.Error),\n'
+            "    " + add_row_fx().replace("\n", "\n    ") + ";\n"
+            "    " + REVERIFY.replace("\n", "\n    ") + "\n)")
+
+
 # FL62: validering er AUTOMATISK (issue #77) - der er ingen Verify-knap.
 # Formlen staar KUN i den skjulte btnFlVerify (build_rows), og hver
 # aendring - ny raekke, rettet felt, slettet raekke, indlaest anmodning -
@@ -890,7 +907,7 @@ def build_rows():
     count = grow(text_ctrl("txtFlRowsCount",
                            f'Text({S.READY}) & " of " & Text(CountRows(colFlRows)) & " valid"',
                            size=13, color=C_MUTED, height=20, wrap="false"))
-    add = _fit(button("btnFlAddRow", '"Add row"', add_row_fx() + ";\n" + REVERIFY,
+    add = _fit(button("btnFlAddRow", '"Add row"', capped_add_row_fx(),
                       display_mode=DM_EDIT, icon="Add", primary=True), icon=True)
     paste = _fit(button("btnFlPasteRows", '"Paste rows"', PASTE_OPEN,
                         display_mode=DM_EDIT, icon=icons.FLUENT["paste"],
@@ -1341,6 +1358,11 @@ def _paste_add_fx():
     cell = 'IfError(Index(Split(Index(lines, Value).Value, Char(9)), {i}).Value, "")'
     return (
         f"With(\n    {{ lines: {PASTE_LINES} }},\n"
+        # Raekkeloftet (R2-043): de tomme, ugemte raekker fjernes alligevel
+        # og taeller ikke med. Over loftet bliver popuppen staaende.
+        "If(\n"
+        f"    CountRows(Filter(colFlRows, !(SpId = 0 && IsBlank(FL) && IsBlank(Description)))) + CountRows(lines) > {MAX_ROWS},\n"
+        f'    Notify("{MAX_ROWS_MSG}", NotificationType.Error),\n'
         "    RemoveIf(colFlRows, SpId = 0 && IsBlank(FL) && IsBlank(Description));\n"
         # Een Collect med hele tabellen, ikke en pr. linje (regel 15, issue #342).
         "    Collect(\n"
@@ -1352,9 +1374,10 @@ def _paste_add_fx():
         "    );\n"
         "    Set(varFlNextRowNo, varFlNextRowNo + CountRows(lines));\n"
         '    Notify(Text(CountRows(lines)) & " rows added. Check the messages on each row.", '
-        "NotificationType.Success)\n"
-        ");\n"
-        'Set(varFlPasteOpen, false);\nSet(varFlPasteText, "");\n' + REVERIFY)
+        "NotificationType.Success);\n"
+        '    Set(varFlPasteOpen, false);\n    Set(varFlPasteText, "");\n'
+        "    " + REVERIFY.replace("\n", "\n    ") + "\n"
+        ")\n)")
 
 
 def build_paste():
