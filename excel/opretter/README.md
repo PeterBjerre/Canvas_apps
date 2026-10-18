@@ -38,9 +38,17 @@ biblioteket *SAP-oprettelse*. Kopiér den til din pc, fx til *Dokumenter*, og
 åbn kopien. Så arbejder I ikke i den samme fil på samme tid. Kommer der en ny
 version, kopierer du den igen.
 
-Viser Excel en **rød** bjælke om, at makroer er blokeret: luk filen, højreklik
-på den → *Egenskaber* → sæt flueben i *Fjern blokering* → *OK*, og åbn den
-igen. Ved en **gul** bjælke: tryk *Aktivér indhold*.
+Projektmappen skal være **signeret** med teamets kodesigneringscertifikat
+(R2-058). Er udgiveren betroet (IT udruller certifikatet som *Betroet
+udgiver*), åbner den med makroer uden bjælker, også når IT kun tillader
+signerede makroer. Står der, at udgiveren ikke er betroet, så spørg den, der
+vedligeholder opretteren – tryk ikke bare *Aktivér*.
+
+*Indtil filen er signeret* (midlertidigt): viser Excel en **rød** bjælke om,
+at makroer er blokeret, så luk filen, højreklik på den → *Egenskaber* → sæt
+flueben i *Fjern blokering* → *OK*, og åbn den igen. Ved en **gul** bjælke:
+tryk *Aktivér indhold*. Gør det kun med filen fra biblioteket
+*SAP-oprettelse*.
 
 **4. Tjek, at det virker.** På arket *Start*:
 
@@ -135,6 +143,21 @@ bagefter. Læg den færdige fil øverst i biblioteket *SAP-oprettelse* og sig ti
 teamet, at der er en ny version. Filen har sine egne rettigheder: teamet kan
 kun læse den (docs/35, *Rettigheder*).
 
+**Signér hver ny version** (R2-058) – en ændring i modulerne fjerner
+signaturen:
+
+```powershell
+.\Build-Opretter.ps1 -From "...\SAP Opretter.xlsm" -SignThumbprint <aftryk> -TimestampUrl <IT's tidsstempeltjeneste>
+```
+
+Det kræver et kodesigneringscertifikat fra IT i dit certifikatlager,
+`signtool.exe` (Windows SDK) og Office' *Subject Interface Packages* for VBA
+(`msosipx.dll`, registreret). Uden dem: åbn filen, *Alt+F11* → *Funktioner* →
+*Digital signatur* → *Vælg* → gem. IT skal udrulle certifikatet som *Betroet
+udgiver* til teamet. Kan det ikke lade sig gøre, er det næstbedste, at IT gør
+en mappe til *Placering, der er tillid til* (gruppepolitik), og at teamet
+åbner filen derfra – ikke at hver bruger fjerner blokeringen.
+
 ### Arket Opslag
 
 Det SAP-specifikke, appen ikke ved noget om:
@@ -156,7 +179,7 @@ Det vigtigste:
 | Indstilling | Standard | Bemærk |
 |---|---|---|
 | SAP-system | `GQ1` | `GP1` i drift |
-| Produktionssystemer | `GP1` | DEV- og TEST-ordrer kan ikke oprettes her, PROD-ordrer kun her |
+| Produktionssystemer | `GP1` | DEV- og TEST-ordrer kan ikke oprettes her, PROD-ordrer kun her. **Fast i koden** (`VhpConfig.DefaultSetting`, R2-058): arket viser værdien, men en rettelse dér bruges ikke. Ændres i koden og bygges ind i en ny version |
 | Bekræft hvert gem | `Ja` | Sæt til `Nej`, når I stoler på opretteren |
 | Decimaltegn i SAP | `,` | Som i SAP-brugerprofilen |
 | Datoformat i SAP | `dd.mm.yyyy` | Som i SAP-brugerprofilen (SU3), fx `mm/dd/yyyy`. Startdatoen (IP01) og garantidatoerne (FL) skrives sådan. *Nøgledato (IA05)* skrives i hånden i samme format (R2-059) |

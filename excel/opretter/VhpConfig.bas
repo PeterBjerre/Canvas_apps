@@ -400,12 +400,13 @@ Public Const POPUP_OPTION2 As String = "wnd[1]/usr/btnSPOP-OPTION2"
 
 ' Vaerdien for en noegle i tblIndstillinger. Mangler raekken eller tabellen,
 ' bruges standardvaerdien - saa en ny indstilling ikke stopper en gammel
-' projektmappe.
+' projektmappe. En laast noegle (IsLockedSetting) laeses aldrig fra arket.
 Public Function Setting(ByVal key As String) As String
     Dim lo As ListObject
     Dim r As Long
 
     Setting = DefaultSetting(key)
+    If IsLockedSetting(key) Then Exit Function
 
     On Error Resume Next
     Set lo = ThisWorkbook.Worksheets(SH_SETTINGS).ListObjects(LO_SETTINGS)
@@ -428,8 +429,19 @@ Public Function SettingIsYes(ByVal key As String) As Boolean
     End Select
 End Function
 
+' Sikkerhedsnoegler, der staar fast i koden (R2-058). Arket Indstillinger er
+' en kopi pr. bruger, som enhver kan rette i; spaerren mellem test og
+' produktion maa ikke kunne slaas fra der. ProdSystems aendres her og
+' bygges ind i en ny version. (SapSystem er det system, man VIL oprette i,
+' og skal kunne skiftes - det er ProdSystems, der spaerrer.)
+Public Function IsLockedSetting(ByVal key As String) As Boolean
+    Select Case key
+        Case SET_PROD_SYSTEMS: IsLockedSetting = True
+    End Select
+End Function
+
 ' Standardvaerdierne. Setup skriver dem i tblIndstillinger; herfra bruges de
-' kun, naar en raekke mangler.
+' kun, naar en raekke mangler - og altid for de laaste noegler.
 Public Function DefaultSetting(ByVal key As String) As String
     Select Case key
         Case SET_SAP_SYSTEM: DefaultSetting = "GQ1"

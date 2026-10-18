@@ -1029,6 +1029,7 @@ Private Sub BuildSettings()
     Dim lo As ListObject
     Dim rowsToAdd As Variant
     Dim i As Long
+    Dim r As Long
     Dim lr As ListRow
 
     Set ws = ThisWorkbook.Worksheets(SH_SETTINGS)
@@ -1038,7 +1039,7 @@ Private Sub BuildSettings()
     rowsToAdd = Array( _
         Array(SET_SAP_SYSTEM, "SAP-system", VhpUtil.Dk("Systemet, opretteren logger p{aa}. GQ1 = test, GP1 = produktion.")), _
         Array(SET_SAP_CLIENT, "Klient", ""), _
-        Array(SET_PROD_SYSTEMS, "Produktionssystemer", VhpUtil.Dk("Kommasepareret. DEV- og TEST-ordrer kan ikke oprettes her, PROD-ordrer kun her.")), _
+        Array(SET_PROD_SYSTEMS, "Produktionssystemer", LockedNote()), _
         Array(SET_LOGON_TEST, "SAP Logon, test", VhpUtil.Dk("Forbindelsens navn i SAP Logon. Bruges, hvis SAP ikke er {aa}bent.")), _
         Array(SET_LOGON_PROD, "SAP Logon, produktion", VhpUtil.Dk("Forbindelsens navn i SAP Logon.")), _
         Array(SET_NEW_SESSION, "Eget SAP-vindue", VhpUtil.Dk("Ja: opretteren {aa}bner sit eget SAP-vindue, s{aa} dit arbejde i de andre ikke forstyrres.")), _
@@ -1073,6 +1074,16 @@ Private Sub BuildSettings()
         End If
     Next i
 
+    ' Laaste noegler (R2-058): arket viser kodens vaerdi og siger, at den
+    ' ikke kan rettes her. En gammel vaerdi i arket overskrives.
+    For r = 1 To lo.ListRows.Count
+        If VhpConfig.IsLockedSetting(Trim$(CStr(lo.DataBodyRange.Cells(r, 1).Value))) Then
+            lo.DataBodyRange.Cells(r, 3).Value = VhpConfig.DefaultSetting(Trim$(CStr(lo.DataBodyRange.Cells(r, 1).Value)))
+            lo.DataBodyRange.Cells(r, 4).Value = LockedNote()
+            lo.DataBodyRange.Cells(r, 3).Interior.Color = RGB(237, 235, 233)
+        End If
+    Next r
+
     ws.Columns(1).ColumnWidth = 18
     ws.Columns(2).ColumnWidth = 34
     ws.Columns(3).ColumnWidth = 44
@@ -1082,6 +1093,11 @@ Private Sub BuildSettings()
     AddButton ws, "btnVhpSelfTest", "Selvtest", "VhpUi.BtnSelfTest", _
         ws.Range("F1").Left, ws.Range("F1").Top, 100, RGB(96, 94, 92)
 End Sub
+
+Private Function LockedNote() As String
+    LockedNote = VhpUtil.Dk("Fast i koden (VhpConfig.DefaultSetting) {-} en v{ae}rdi her bruges ikke. ") & _
+        VhpUtil.Dk("DEV- og TEST-ordrer kan ikke oprettes her, PROD-ordrer kun her.")
+End Function
 
 Private Function SettingRowExists(ByVal lo As ListObject, ByVal key As String) As Boolean
     Dim r As Long

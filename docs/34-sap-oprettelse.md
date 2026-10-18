@@ -218,6 +218,7 @@ kan rettes, når de er optaget.
 | En plan trukket tilbage og godkendt igen | Flowet tømmer `SapOrderGuid`, når planen forlader *Ready* uden at være oprettet. Den nye godkendelse giver derfor en ny ordre, som erstatter den gamle |
 | En fremmed fil i Kvitteringer | Flowet tjekker også status og SAP-system. Biblioteket skal kun kunne skrives af Master Data og flowets servicekonto |
 | Første gang | *Bekræft hvert gem* er slået til: opretteren stopper før hvert gem, så I kan se SAP-billedet igennem |
+| Makroer i en fil, alle har en kopi af | Projektmappen signeres med et kodesigneringscertifikat fra IT og åbnes som fra en betroet udgiver, i stedet for at hver bruger fjerner blokeringen (`Build-Opretter.ps1 -SignThumbprint`, README). Spærren `ProdSystems` står fast i koden og kan ikke slås fra i arket *Indstillinger* (R2-058) |
 
 ## 8. Når noget går galt
 
@@ -302,7 +303,8 @@ forkert, siger opretteren hvilket og på hvilken skærm. Rettelsen er én linje 
 2. Byg de to flows efter docs/35 i solution BIO SAP og opret
    miljøvariablerne `BioSap-Environment` og `BioSap-SapSystem`.
 3. Synkronisér biblioteket med OneDrive på jeres pc'er.
-4. Byg projektmappen: `excel\opretter\Build-Opretter.ps1`. Kontrollér de
+4. Byg projektmappen: `excel\opretter\Build-Opretter.ps1`, signeret med
+  IT's kodesigneringscertifikat (`-SignThumbprint`, R2-058). Kontrollér de
   seedede værk- og PM03-opslag i arket *Opslag*, og tilpas kun hvis SAP-data
   lokalt afviger. Læg den, hvor teamet åbner den fra.
 5. Afprøv efter 9. med DEV-planer i GQ1.
