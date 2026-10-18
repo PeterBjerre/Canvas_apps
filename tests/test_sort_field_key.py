@@ -25,10 +25,16 @@ def test_seed_keys_are_three_digits_and_unique():
 
 
 def test_seed_covers_every_row_in_the_list():
-    desc = {r["Description"].lower() for r in _seed()}
+    # Foer provisionering staar beskrivelsen i Title; bagefter noeglen i Title og
+    # beskrivelsen i SortFieldDescription. Begge former skal passe med seed'en.
+    by_desc = {r["Description"].lower(): r["SortKey"] for r in _seed()}
+    pairs = {(r["SortKey"], r["Description"].lower()) for r in _seed()}
     sample = json.load(open(os.path.join(ROOT, "sharepoint", "inspect", "out",
                                          "sample-SortFieldList.json"), encoding="utf-8-sig"))
-    assert [r["Title"] for r in sample if r["Title"].lower() not in desc] == []
+    unknown = [r["Title"] for r in sample
+               if r["Title"].lower() not in by_desc
+               and (r["Title"], (r.get("SortFieldDescription") or "").lower()) not in pairs]
+    assert unknown == []
 
 
 def test_dropdown_shows_key_and_description_but_keeps_the_key():
