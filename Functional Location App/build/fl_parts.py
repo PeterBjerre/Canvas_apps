@@ -332,7 +332,7 @@ def _cells(spec, ctrls):
 # Etiket og maks.-laengde for Room og Sort Field er reglernes
 # (fl_rules.generated.json, ens for alle klasser - tests/test_fl_sections).
 _NO_CLASS = {c["Field"]: c for c in V.R["columns"] if c["Cls"] == "NO CLASS"}
-ROW_VALS = [("Room", "ROOM", 56), ("Sort", "SORT FIELD", 88)]
+ROW_VALS = [("Room", "ROOM", 56), ("Sort", "SORT FIELD", 72)]
 # Popup-knapperne har tekst i 13 px - saa brede som deres tekst.
 BTN_SIZE = 13
 
@@ -347,9 +347,37 @@ def _pop_w(text):
     return _btn_w(text) + 16
 
 
+# MANUFACTURER OG WARRANTY MED FLUEBEN PAA EEN LINJE (issue #362)
+#
+# _pop_w gav kun 16 px til fluebenet, men den moderne knap (Fluent 2,
+# medium) bruger: 12 px padding i hver side, 1 px kant i hver side, et
+# 20 px ikon og 6 px mellem ikon og tekst. Saa blev "Warranty" klippet,
+# naar der var data. Bredden regnes nu af de dele - og de to knapper faar
+# SAMME bredde (den bredeste tekst), saa de ser ens ud. Fluents knap er
+# mindst 96 px bred.
+BTN_PAD_X = 12
+BTN_BORDER = 1
+BTN_ICON = 20
+BTN_ICON_GAP = 6
+BTN_MIN_W = 96
+
+
+def _pop_icon_w(*texts):
+    """Mindste bredde, hvor fluebenet og den HELE tekst staar paa een linje
+    (text_px er allerede et skoen med 10 % luft)."""
+    chrome = 2 * (BTN_PAD_X + BTN_BORDER) + BTN_ICON + BTN_ICON_GAP
+    return max(BTN_MIN_W, *(text_px(t, BTN_SIZE) + chrome for t in texts))
+
+
+MFR_WAR_W = _pop_icon_w("Manufacturer", "Warranty")
+
 VGAP = 6
 FL_MIN = 140
-DESC_MIN = 150
+# Tabellens mindste bredde foer issue #362 (V_BASE). De bredere Manufacturer-
+# og Warranty-knapper maa ikke goere raekken bredere: pladsen tages fra
+# Description's minimum (den kolonne med mest luft over sin overskrift),
+# og Sort Field er 72 px i stedet for 88 (ROW_VALS; overskriften er 56 px).
+V_BASE_MAX = 1258
 # (navn, overskrift, bredde) efter Description. Delete er et ikon.
 # Class Data staar lige efter Assigned Class (issue #242).
 V_FIXED = ([("Kks", "KKS type", 64), ("Cls", "Assigned class", 96),
@@ -358,11 +386,16 @@ V_FIXED = ([("Kks", "KKS type", 64), ("Cls", "Assigned class", 96),
            + [(n, _NO_CLASS[f]["Column"][:1] + _NO_CLASS[f]["Column"][1:].lower(), w)
               for n, f, w in ROW_VALS]
            + [("Abc", "ABC indicator", 88), ("Atex", "ATEX", 40),
-              ("Mfr", "Manufacturer", _pop_w("Manufacturer")),
-              ("War", "Warranty", _pop_w("Warranty")),
-                  ("Status", "Status", 80),
+              ("Mfr", "Manufacturer", MFR_WAR_W),
+              ("War", "Warranty", MFR_WAR_W),
+              ("Status", "Status", 80),
               # "Actions" er 47 px i 11 px - knappen er et ikon.
               ("Act", "Actions", 48)])
+# Description faar det, der er tilbage af V_BASE_MAX - men aldrig mindre end
+# sin overskrift plus feltets padding.
+DESC_MIN = (V_BASE_MAX - FL_MIN - sum(w for _n, _l, w in V_FIXED)
+            - VGAP * (len(V_FIXED) + 1))
+assert DESC_MIN >= text_px("Description", 11) + 24, DESC_MIN
 V_SHOW_NO = at_least("Tablet")
 # Raekkens mindste bredde: # (fra Tablet), FL, Description, resten og
 # mellemrummene. Er kortet smallere, scroller TABELLEN vandret i kortet
