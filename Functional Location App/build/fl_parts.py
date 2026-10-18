@@ -694,10 +694,18 @@ def _panel_section(key, title):
         vis = f'{has} && !(IfError(varFlPanelJump, "") in [{keys}])'
     heading = text_ctrl(f"txtFlPanel{key}Title", f'"{title}"', size=lay.SIZE_BODY,
                         weight="Semibold", height=22, wrap="false", visible=vis)
-    return group(f"conFlPanel{key}", [heading] + fields, direction="Vertical", gap=8,
-                 visible=vis)
+    return group(f"conFlPanel{key}", [heading] + fields, direction="Vertical",
+                 gap=PANEL_HEAD_GAP, visible=vis)
 
 
+# Afstanden mellem sektionerne (issue #347). Hvert felt slutter allerede
+# med sin beskedlinje og 10 px luft (field_grid, TILE_H), saa sektionerne
+# skal kun have lidt ekstra - foer gav 16 + 8 en stor tom flade mellem dem.
+# Een afstand overalt, med og uden "Show all fields"; afstanden MELLEM
+# felterne (TILE_H) er uaendret.
+PANEL_SECTION_GAP = 4
+# Overskriften og dens felter (og Main-sektionens to gitre).
+PANEL_HEAD_GAP = 4
 PANEL_PAD = 20
 # Panelets formularbredde: panelet minus pad, scrollens pad og scrollbaren.
 PANEL_FORM_W = f"({lay.PANEL_W_AT}) - 2 * {PANEL_PAD} - 2 * {PANEL_PAD} - {SCROLLBAR_W}"
@@ -773,7 +781,7 @@ def build_row_panel():
     # Pad (2 x 16), overskrift, bundbjaelken og to mellemrum: bunden
     # klippes aldrig, og bundbjaelken staar fast under det, der scroller.
     scroll_h = f"App.Height - ({2 * 16 + lay.HIT_TOUCH + 2 * 12} + ({footer.h}))"
-    scroll = group("conFlEditorSections", sections, direction="Vertical", gap=16,
+    scroll = group("conFlEditorSections", sections, direction="Vertical", gap=PANEL_SECTION_GAP,
                    height=scroll_h, overflow_y="Scroll",
                    pad=(16, PANEL_PAD, 16, PANEL_PAD))
     panel = group("conFlEditorPanel", [heading, scroll, footer], direction="Vertical", gap=12,

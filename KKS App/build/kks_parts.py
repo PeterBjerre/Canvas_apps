@@ -2,7 +2,7 @@
 """
 KKS-opslagets skaerm: delene, formlerne og hentningen.
 
-    [Function key][Aggregate key][Component key]
+    [Function key][Aggregate key][Component key]   [Search Functional Locations]
     [Search code or description....] [Reset]
     LETTER    ALL A B C ...              <- colKksL1Keys
     GROUP     ALL AB AC ...              <- colKksL2Keys (eller en note)
@@ -346,6 +346,37 @@ def frame(header, body):
     return root
 
 
+# DEN OEVERSTE RAEKKE (issue #345)
+#
+#   bred:   [Function][Aggregate][Component]  ........  [Search Functional Locations]
+#   smal:   [Function ][Aggregate][Component]
+#           [      Search Functional Locations       ]
+#
+# HVORFOR KNAPPERNE VAR VAEK
+# --------------------------
+# Issue #295 lagde fanerne i deres egen flow_row (conKksKeys) INDE i en
+# anden flow_row (conKksTopRow) - to lag containere, der begge skiftede
+# retning og justering med en formel, og knapperne med AlignInContainer.
+# Center i det inderste. Det er praecis den konstruktion, der gjorde
+# Issue Boards vaerktoejslinje (issue #229 -> #244) og topbjaelken til
+# tomme flader i den udgivne app: Studio tegner de indlejrede knapper
+# forskudt nedad, og LayoutOverflow.Hide skjuler dem. Hoejderne gik op -
+# conKksKeys var 32 px og knapperne 32 px - saa check_layout var groen.
+# Det var den eneste flow_row i en flow_row i hele BIO SAP. Det kom ud
+# sammen med de moderne kontroller (#324-#332), men har intet med dem at
+# goere: knapperne har vaeret ModernButton hele tiden.
+#
+# NU: knapperne staar DIREKTE i een fast, vandret raekke direkte i kortet -
+# som foer #295, og som hubbens filterlinje og listernes vaerktoejslinjer
+# (conDomRowsTop). Ingen indlejret container med knapper i, ingen retning
+# som formel. Er der plads (TOP_WIDE), skubber en tom, udregnet mellemrums-
+# gruppe (build_helpers.grow) FL-knappen ud til hoejre. Er der ikke plads
+# (telefon og smal tablet), staar FL-knappen i fuld bredde direkte i kortet
+# under raekken - som en anden kontrol, fordi en kontrol ikke kan flytte
+# mellem to containere. Begge knapper goer det samme.
+TOP_GAP = 8
+
+
 def _key_tabs():
     tabs = []
     for key, text, _sub in cfg.KEYS:
@@ -354,36 +385,54 @@ def _key_tabs():
                    width=TAB_W, height=32,
                    accessible=f'"Show {text.lower()}s"')
         b.props["Size"] = f"If({lay.below('Tablet')}, {lay.SIZE_MICRO}, {lay.SIZE_SMALL})"
-        b.props["Width"] = f"If({lay.below('Tablet')}, ({CARD_W} - 16) / 3, {TAB_W})"
+        b.props["Width"] = (f"If({lay.below('Tablet')}, ({CARD_W} - {TOP_GAP * (len(cfg.KEYS) - 1)})"
+                            f" / {len(cfg.KEYS)}, {TAB_W})")
+        # Fast i raekken - den skifter aldrig retning.
         b.props["LayoutMinWidth"] = b.props["Width"]
         tabs.append(_selected(b, f'varKksKey = "{key}"', radius=14))
-    keys = flow_row("conKksKeys", tabs, CARD_W, gap=8)
-    # Saa bred som fanerne - saa kan FL-knappen staa til hoejre for dem.
-    keys.props["Width"] = (f"If({lay.below('Tablet')}, {CARD_W}, "
-                           f"{len(tabs)} * {TAB_W} + {8 * (len(tabs) - 1)})")
-    return keys
+    return tabs
 
 
 FL_BTN_TEXT = '"Search Functional Locations"'
 FL_BTN_W = fit_button_width(FL_BTN_TEXT, size=lay.SIZE_SMALL) + 24     # + Search-ikonet
 
+# FL-knappen staar til hoejre for fanerne, naar de tre faner, knappen og
+# mellemrummene kan staa paa een linje i kortet. Kun fra Tablet: under
+# Tablet er fanerne en tredjedel af kortet hver og fylder hele linjen.
+# (Bredden staar foerst: check_layouts regnemaskine kan ikke laese "&& (".)
+TOP_NEED = len(cfg.KEYS) * TAB_W + TOP_GAP * len(cfg.KEYS) + FL_BTN_W
+TOP_WIDE = f"({CARD_W}) >= {TOP_NEED} && {lay.at_least('Tablet')}"
+TOP_NARROW = f"({CARD_W}) < {TOP_NEED} || {lay.below('Tablet')}"
 
-def _fl_button():
+
+def _fl_button(name, visible, width):
     """Knappen, der aabner FL-soegningen (issue #295). Den roerer intet af
     KKS-opslagets tilstand."""
-    b = button("btnKksFlOpen", FL_BTN_TEXT, f"Set({FL_OPEN}, true)",
-               width=FL_BTN_W, height=32, icon="Search",
-               accessible='"Search Functional Locations in SAP"')
+    b = button(name, FL_BTN_TEXT, f"Set({FL_OPEN}, true)",
+               width=width, height=32, icon="Search",
+               accessible='"Search Functional Locations in SAP"', visible=visible)
     b.props["Size"] = str(lay.SIZE_SMALL)
     return _soft(b)
 
 
 def _top_row():
-    """Function / Aggregate / Component til venstre og FL-soegningen yderst
-    til hoejre. Er der ikke plads paa een linje (telefon og smal tablet),
-    staar knappen i fuld bredde under fanerne (flow_row)."""
-    return flow_row("conKksTopRow", [_key_tabs(), _fl_button()], CARD_W, gap=8,
-                    justify="SpaceBetween")
+    """Function / Aggregate / Component og - naar der er plads - FL-soegningen
+    yderst til hoejre. Se forklaringen over TOP_GAP."""
+    tabs = _key_tabs()
+    gap = grow(group("conKksTopGap", [], direction="Horizontal", height=0))
+    gap.props["Visible"] = TOP_WIDE
+    gap.vis = TOP_WIDE
+    fl = _fl_button("btnKksFlOpen", TOP_WIDE, FL_BTN_W)
+    fl.props["LayoutMinWidth"] = str(FL_BTN_W)
+    row = group("conKksTopRow", tabs + [gap, fl], direction="Horizontal", gap=TOP_GAP,
+                height=32, align_items="Center")
+    return row
+
+
+def _fl_button_narrow():
+    """FL-knappen under fanerne, naar den ikke kan staa paa deres linje.
+    Direkte i kortet (lodret, Stretch): fuld bredde."""
+    return _fl_button("btnKksFlOpenNarrow", TOP_NARROW, FL_BTN_W)
 
 
 SEARCH_MIN = 2
@@ -591,7 +640,7 @@ def build_browse():
     for m in (m1, m2):
         m.props["Visible"] = below("Tablet")
         m.vis = m.props["Visible"]
-    return card("conKksBrowseCard", [_top_row(), l1, l2, l3, m1, m2, m3, _search_row()], gap=12)
+    return card("conKksBrowseCard", [_top_row(), _fl_button_narrow(), l1, l2, l3, m1, m2, m3, _search_row()], gap=12)
 
 
 # Et klik paa en raekke gaar til dens plads i hierarkiet og rydder
