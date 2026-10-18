@@ -1816,10 +1816,10 @@ Screens:
                                                   Set(varVhpSubmitting, false);
                                                   Set(gblToast, { Text: "Create the plan and at least one item first.", Kind: "Warning", At: Now() }); true,
                                               
-                                                  CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id))) > 0,
+                                                  CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(Trim(IT.ShortText)) || IsBlank(IT.FunctionalLocation) || IsBlank(LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType).Id) || IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id))) > 0,
                                                   Set(varVhpSubmitting, false);
-                                                  Set(gblToast, { Text: "Select a main work center on every item before saving: " &
-                                                      Concat(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id)), Coalesce(Trim(ShortText), FunctionalLocation), ", "), Kind: "Warning", At: Now() }); true,
+                                                  Set(gblToast, { Text: "Fill in short text, functional location, activity type and main work center on every item before saving: " &
+                                                      Concat(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(Trim(IT.ShortText)) || IsBlank(IT.FunctionalLocation) || IsBlank(LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType).Id) || IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id)), Coalesce(Trim(ShortText), FunctionalLocation), ", "), Kind: "Warning", At: Now() }); true,
                                               
                                               Set(varVhpSaving, true);
                                               Clear(colVhpSaveErrors);
@@ -14209,10 +14209,10 @@ Screens:
                                       Set(varVhpSubmitting, false);
                                       Set(gblToast, { Text: "Create the plan and at least one item first.", Kind: "Warning", At: Now() }); true,
                                   
-                                      CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id))) > 0,
+                                      CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(Trim(IT.ShortText)) || IsBlank(IT.FunctionalLocation) || IsBlank(LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType).Id) || IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id))) > 0,
                                       Set(varVhpSubmitting, false);
-                                      Set(gblToast, { Text: "Select a main work center on every item before saving: " &
-                                          Concat(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id)), Coalesce(Trim(ShortText), FunctionalLocation), ", "), Kind: "Warning", At: Now() }); true,
+                                      Set(gblToast, { Text: "Fill in short text, functional location, activity type and main work center on every item before saving: " &
+                                          Concat(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(Trim(IT.ShortText)) || IsBlank(IT.FunctionalLocation) || IsBlank(LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType).Id) || IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id)), Coalesce(Trim(ShortText), FunctionalLocation), ", "), Kind: "Warning", At: Now() }); true,
                                   
                                   Set(varVhpSaving, true);
                                   Clear(colVhpSaveErrors);

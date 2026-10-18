@@ -106,9 +106,17 @@ SAVEABLE_ITEMS = ('Filter(colVhpItems, '
                   '!IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))')
 SAVEABLE_COUNT = f"CountRows({SAVEABLE_ITEMS})"
 
-# Items, der ville blive gemt uden arbejdscenter. MainWorkCenter er
-# paakraevet i MaintenanceItems, saa SharePoint afviser hele Patch'et.
-NO_MWC = (f"Filter({SAVEABLE_ITEMS} As IT, "
+# Items, der ville blive gemt uden et af de paakraevede felter. Title
+# (kort tekst), FunctionalLocation, MaintenanceActivityType og
+# MainWorkCenter er paakraevede i MaintenanceItems (sharepoint/inspect/out/
+# schema.json), saa SharePoint afviser hele Items-Patch'et, hvis bare eet
+# item mangler et af dem (R2-008). Et item er "saveable" med kort tekst
+# ELLER funktionsplads, saa begge tjekkes. Aktivitetstype og arbejdscenter
+# tjekkes paa opslaget, som item_fields skriver - et ukendt navn giver
+# Blank() dér.
+NO_REQ = (f"Filter({SAVEABLE_ITEMS} As IT, "
+          "IsBlank(Trim(IT.ShortText)) || IsBlank(IT.FunctionalLocation) || "
+          "IsBlank(LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType).Id) || "
           "IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id))")
 
 # Opslaget fra en operation til dens item. colVhpSavedItems har ALLE
@@ -861,15 +869,16 @@ def save_action():
         "    Set(varVhpSubmitting, false);\n"
         "    Notify(\"Create the plan and at least one item first.\", NotificationType.Warning),\n"
         "\n"
-        # MainWorkCenter er en PAAKRAEVET opslagskolonne i MaintenanceItems.
-        # Et item uden et gyldigt arbejdscenter kan ikke gemmes - heller
-        # ikke som kladde - saa det siges her, foer noget skrives, i stedet
-        # for som SharePoints netvaerksfejl midt i gemningen.
-        f"    CountRows({NO_MWC}) > 0,\n"
+        # Kort tekst, funktionsplads, aktivitetstype og arbejdscenter er
+        # PAAKRAEVEDE kolonner i MaintenanceItems. Et item uden dem kan ikke
+        # gemmes - heller ikke som kladde - saa det siges her, foer noget
+        # skrives, i stedet for som SharePoints netvaerksfejl midt i
+        # gemningen (R2-008).
+        f"    CountRows({NO_REQ}) > 0,\n"
         "    Set(varVhpSubmitting, false);\n"
         "    Notify(\n"
-        "        \"Select a main work center on every item before saving: \" &\n"
-        f"        Concat({NO_MWC}, Coalesce(Trim(ShortText), FunctionalLocation), \", \"),\n"
+        "        \"Fill in short text, functional location, activity type and main work center on every item before saving: \" &\n"
+        f"        Concat({NO_REQ}, Coalesce(Trim(ShortText), FunctionalLocation), \", \"),\n"
         "        NotificationType.Warning\n"
         "    ),\n"
         "\n"
