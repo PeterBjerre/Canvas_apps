@@ -55,6 +55,9 @@ statusværdierne findes i `MaintenancePlans.Status`, og at parenteserne går op.
    `BioSap-List-MaintenancePlans`, `BioSap-List-MaintenanceItems`,
    `BioSap-List-TaskListMain`, `BioSap-ErrorNotifiers` og
    `BioSap-MasterDataEmail` (kvitteringsflowets Cc ved afviste kørsler).
+   **`BioSap-ErrorNotifiers` har ingen standardværdi i solutionen** (R2-086).
+   Sæt dens værdi i hvert miljø lige efter import – ellers fejler selve
+   fejlmailen, og en fejl i flowet ses kun i run history.
 3. **Forbindelser og ejer.** Som de andre BioSap-flows: connection references
    `orsted_BioSapSharePointConn` og `orsted_BioSapOutlookConn`, og en
    servicekonto som ejer, ikke en navngiven bruger.
@@ -212,7 +215,7 @@ Samme handling som i 7, navn **Clear SapOrderGuid**, med
 
 ### 9. Når noget fejler
 
-Så kommer fejlmailen. Ret årsagen og vælg *Resubmit* på kørslen. En ekstra
+Så kommer fejlmailen med ét link til kørslen (`FlowRunHistoryLink`). Ret årsagen og vælg *Resubmit* på kørslen. En ekstra
 ordrefil gør ingen skade: opretteren bruger den nyeste, og kvitteringsflowet
 godkender kun den, hvis `orderGuid` står på planen.
 
@@ -348,7 +351,10 @@ det mailen igen ved hver senere ændring af planen.
   Master Data, der skal handle (docs/34, 5 og 8). Ellers tom.
 
 **Efter scopet**, stadig i løkken: samme *Move file* til *Afvist* og en mail
-med filnavnet og `FlowRunHistoryLink`. Begge med *Configure run after*:
+med filnavnet, kvitteringens `state`, `planId`, `sapSystem` (og det forventede),
+`orderGuid` og `lastError`, planens `SapOrderGuid` og `Status` (tomme, hvis
+flowet stoppede før de blev læst – udtrykkene bruger `actions('…')?['outputs']`)
+og `FlowRunHistoryLink` (R2-086). Begge med *Configure run after*:
 *Handle receipt has failed* og *has timed out*. Det fanger en fil, der ikke
 kan læses, eller hvis plan ikke findes. Uden dem ville flowet fejle på den
 samme fil hvert 10. minut.

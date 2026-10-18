@@ -145,6 +145,17 @@ og en ny kørsel tager kun de rækker, der mangler.
 
 ## 5. Flowene
 
+> **Status (R2-021, 2026-10):** flow C og D findes **ikke** i solution-
+> eksporten (`solution/BIOSAP/src/Workflows/`). Om de er bygget i DEV, kan
+> kun ses i Power Automate. **Peters skridt:** se efter
+> `BioSap-FL-SapOrder`/`BioSap-FL-SapReceipt` i DEV. Findes de, så tilføj
+> dem til solution BIO SAP og eksportér (`tools/export_solution.ps1`), så de
+> kommer i repoet – derefter er repoets JSON kilden (docs/22), og
+> `tests/test_request_index_flows.py` tjekker også deres indeksstatus
+> (`OprettetISAP`/trin 5/`IsOpen = false`). Findes de ikke, så byg dem efter
+> dette afsnit med **engelske** mailtekster (emnet nedenfor). Indtil da
+> lukkes FL-anmodninger i indekset kun af en admin i hubben (R2-021).
+
 To nye flows i solution BIO SAP, bygget som VH-planernes i
 [`35-flow-sap-ordre.md`](35-flow-sap-ordre.md). Variablen
 `FlowRunHistoryLink`, scopet `Try`, scopet `Catch` med fejlmail, ejer og
@@ -293,7 +304,8 @@ Som VH-planernes kvitteringsflow (docs/35), med disse forskelle:
   er en *Select* fra `outputs('Receipt')?['rows']`. *Map* er udtrykket i
   `fl-kvittering-6-mail-row.txt`. Mailen går til
   `body('Get_request')?['RequesterEmail']` med emnet
-  `FL-anmodning @{outputs('Receipt')?['requestNo']} er oprettet i SAP` og
+  `Functional location request @{outputs('Receipt')?['requestNo']} created in SAP`
+  (engelsk som alle appens mails) og
   `<table>@{join(body('Mail_rows'), '')}</table>` i brødteksten.
 
 **Rettigheder** som docs/35: de to flows kører med servicekontoen, som skal

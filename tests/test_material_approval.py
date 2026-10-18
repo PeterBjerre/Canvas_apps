@@ -26,6 +26,8 @@ SVC = {
     "shared_powerbi": "orsted_BioSapPowerBIConn",
     "shared_approvals": "orsted_BioSapApprovalsConn",
     "shared_office365": "orsted_BioSapOutlookConn",
+    # R2-084 pkt. 3: godkenderen slaas op i Entra (2. godkender som reserve).
+    "shared_office365users": "orsted_BioSapOffice365UsersConn",
 }
 
 
@@ -96,6 +98,7 @@ def _patches(name, table):
 def test_both_flows_run_as_the_service_account():
     for name, apis in ((RESOLVE, ["shared_powerbi", "shared_sharepointonline"]),
                        (APPROVAL, ["shared_approvals", "shared_office365",
+                                   "shared_office365users",
                                    "shared_powerbi", "shared_sharepointonline"])):
         refs = _flow(name)["properties"]["connectionReferences"]
         assert sorted(refs) == apis, name
@@ -278,7 +281,7 @@ def test_the_approver_email_is_initials_plus_the_domain_parameter():
     }
     fx = acts["Approver_email"]["inputs"]
     # Domaenet er en miljoevariabel, ikke en konstant i flowet.
-    assert "parameters(' BioSap-EmailDomain (orsted_BioSapEmailDomain)')" in fx
+    assert "parameters('BioSap-EmailDomain (orsted_BioSapEmailDomain)')" in fx
     assert fx.startswith("@if(empty(outputs('Initials')), ''")
 
 
@@ -291,7 +294,7 @@ def test_every_log_row_is_the_system_stage_with_no_plan_id():
         # tage Materials' raekker med.
         assert "item/PlanId" not in p
         assert p["item/RequestGuid"] == "@outputs('RequestGuid')"
-        assert p["item/Decision"] in ("Approve", "Return", "Requested")
+        assert p["item/Decision"] in ("Approve", "Return", "Requested", "Timeout")  # Timeout: R2-030
 
 
 def test_an_open_unit_is_logged_as_requested_so_progress_can_be_counted():
@@ -303,9 +306,11 @@ def test_an_open_unit_is_logged_as_requested_so_progress_can_be_counted():
 
 def test_a_return_unlocks_the_rows_and_asks_the_requester():
     idx = {p["item/Status/Value"]: p for p in _patches(APPROVAL, "MD_RequestIndex")}
-    assert set(idx) == {"UnderBehandling", "Indsendt", "AfventerInfo"}
-    assert idx["AfventerInfo"]["item/StatusStep"] == 4
-    assert idx["Indsendt"]["item/StatusStep"] == 2
+    # R2-020: retur er trin 3 (Stuck-filteret fanger den), godkendt er
+    # KlarTilSAP/trin 4 som i MP-flowet - Indsendt skrives kun af apperne.
+    assert set(idx) == {"UnderBehandling", "KlarTilSAP", "AfventerInfo"}
+    assert idx["AfventerInfo"]["item/StatusStep"] == 3
+    assert idx["KlarTilSAP"]["item/StatusStep"] == 4
     for p in idx.values():
         assert p["item/LastActionBy"] == "System approval"
     rows, = _patches(APPROVAL, "MaterialItems")
@@ -353,7 +358,7 @@ def test_the_mails_come_from_the_service_account():
     mails = [a for _n, a in _actions(_definition(APPROVAL)["actions"])
              if _op(a) == "SendEmailV2"]
     # Rekvirenten faar baade et nej og et ja - og udviklerne en fejl.
-    assert len(mails) == 3
+    assert len(mails) == 4   # + Send_reminder ved timeout (R2-030)
     for m in mails:
         assert m["inputs"]["host"]["connectionName"] == "shared_office365"
 

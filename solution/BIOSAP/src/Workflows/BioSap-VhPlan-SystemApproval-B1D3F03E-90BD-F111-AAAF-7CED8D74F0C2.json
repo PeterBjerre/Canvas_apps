@@ -122,15 +122,21 @@
             "schemaName": "orsted_shared_sharepointonline_ec07acb417e14a7c999704263844acb9"
           }
         },
-        "BioSap-PowerBI-WorkspaceId": {
+        "BioSap-PowerBI-WorkspaceId (orsted_BioSapPowerBIWorkspaceId)": {
           "defaultValue": "26d062ec-3014-4cd3-9313-ced0cfe497b9",
-          "type": "String"
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapPowerBIWorkspaceId"
+          }
         },
-        "BioSap-PowerBI-DatasetId": {
+        "BioSap-PowerBI-DatasetId (orsted_BioSapPowerBIDatasetId)": {
           "defaultValue": "fadc4a40-342b-41e3-a1ef-aa4af8bb9e09",
-          "type": "String"
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapPowerBIDatasetId"
+          }
         },
-        " BioSap-EmailDomain (orsted_BioSapEmailDomain)": {
+        "BioSap-EmailDomain (orsted_BioSapEmailDomain)": {
           "defaultValue": "orsted.com",
           "type": "String",
           "metadata": {
@@ -145,6 +151,11 @@
             "interval": 1
           },
           "splitOn": "@triggerOutputs()?['body/value']",
+          "runtimeConfiguration": {
+            "concurrency": {
+              "runs": 1
+            }
+          },
           "type": "OpenApiConnection",
           "inputs": {
             "parameters": {
@@ -267,8 +278,8 @@
                   "type": "OpenApiConnection",
                   "inputs": {
                     "parameters": {
-                      "groupid": "@parameters('BioSap-PowerBI-WorkspaceId')",
-                      "datasetid": "@parameters('BioSap-PowerBI-DatasetId')",
+                      "groupid": "@parameters('BioSap-PowerBI-WorkspaceId (orsted_BioSapPowerBIWorkspaceId)')",
+                      "datasetid": "@parameters('BioSap-PowerBI-DatasetId (orsted_BioSapPowerBIDatasetId)')",
                       "specification/query": "EVALUATE SELECTCOLUMNS(FILTER('Functional Locations', 'Functional Locations'[Functional Location] IN {@{join(body('Select_FL_list'), ',')}}), \"FL\", 'Functional Locations'[Functional Location], \"Description\", 'Functional Locations'[Functional Location Description], \"PlantKey\", 'Functional Locations'[Plant Key], \"SystemNo\", 'Functional Locations'[Plant Section Key])",
                       "specification/serializerSettings/includeNulls": false
                     },
@@ -421,7 +432,7 @@
                         ]
                       },
                       "type": "Compose",
-                      "inputs": "@if(empty(outputs('Approver_initials1')), '', toLower(concat(outputs('Approver_initials1'), '@', parameters(' BioSap-EmailDomain (orsted_BioSapEmailDomain)'))))"
+                      "inputs": "@if(empty(outputs('Approver_initials1')), '', toLower(concat(outputs('Approver_initials1'), '@', parameters('BioSap-EmailDomain (orsted_BioSapEmailDomain)'))))"
                     },
                     "Approver_email2": {
                       "runAfter": {
@@ -430,7 +441,7 @@
                         ]
                       },
                       "type": "Compose",
-                      "inputs": "@if(empty(outputs('Approver_initials2')), '', toLower(concat(outputs('Approver_initials2'), '@', parameters(' BioSap-EmailDomain (orsted_BioSapEmailDomain)'))))"
+                      "inputs": "@if(empty(outputs('Approver_initials2')), '', toLower(concat(outputs('Approver_initials2'), '@', parameters('BioSap-EmailDomain (orsted_BioSapEmailDomain)'))))"
                     },
                     "Approver1_absent": {
                       "runAfter": {
@@ -469,7 +480,7 @@
                         ]
                       },
                       "type": "Compose",
-                      "inputs": "@toLower(coalesce(items('For_each_item')?['Author']?['Email'], ''))"
+                      "inputs": "@toLower(coalesce(triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email'], ''))"
                     },
                     "Creator_is_approver": {
                       "runAfter": {
@@ -702,7 +713,7 @@
                                     ],
                                     "WebhookApprovalCreationInput/title": "@concat('System approval - ', triggerBody()?['PlanID'], ' - ', coalesce(items('For_each_item')?['Title'], ''))",
                                     "WebhookApprovalCreationInput/assignedTo": "@outputs('Final_approver')",
-                                    "WebhookApprovalCreationInput/details": "@concat('**Plan:** ', triggerBody()?['PlanID'], ' - ', coalesce(triggerBody()?['Title'], ''), '\n\n**Plant:** ', coalesce(triggerBody()?['PlantsInitial/Value'], ''), '\n\n**Item:** ', coalesce(items('For_each_item')?['Title'], ''), '\n\n**Functional location:** ', outputs('FL'), '\n\n**System:** ', outputs('SysNo'), '\n\n**Description:** ', coalesce(items('For_each_item')?['ItemDescription'], ''), '\n\n**Requester:** ', coalesce(triggerBody()?['Author/DisplayName'], ''))",
+                                    "WebhookApprovalCreationInput/details": "@concat('**Plan:** ', triggerBody()?['PlanID'], ' - ', coalesce(triggerBody()?['Title'], ''), '\n\n**Plant:** ', coalesce(triggerBody()?['PlantsInitial/Value'], ''), '\n\n**Item:** ', coalesce(items('For_each_item')?['Title'], ''), '\n\n**Functional location:** ', outputs('FL'), '\n\n**System:** ', outputs('SysNo'), '\n\n**Description:** ', coalesce(items('For_each_item')?['ItemDescription'], ''), '\n\n**Requester:** ', coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterName'], triggerBody()?['Author/DisplayName'], ''))",
                                     "WebhookApprovalCreationInput/itemLink": "@coalesce(first(outputs('Get_request_index')?['body/value'])?['AppUrl'], parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)'))",
                                     "WebhookApprovalCreationInput/itemLinkDescription": "Open the plan in the app",
                                     "WebhookApprovalCreationInput/enableNotifications": true,
@@ -833,8 +844,8 @@
                                 "inputs": {
                                   "parameters": {
                                     "emailMessage/To": "@outputs('Final_approver')",
-                                    "emailMessage/Subject": "@concat('Reminder: maintenance plan ', triggerBody()?['PlanID'], ' is waiting for your approval')",
-                                    "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">The system approval of item '@{items('For_each_item')?['Title']}' (@{outputs('FL')}) in maintenance plan @{triggerBody()?['PlanID']} has not been answered. Respond in Teams under Approvals or in the email from Power Automate.</p>",
+                                    "emailMessage/Subject": "@concat('Approval request for maintenance plan ', triggerBody()?['PlanID'], ' expired without a response')",
+                                    "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">The system approval request for item '@{items('For_each_item')?['Title']}' (@{outputs('FL')}) in maintenance plan @{triggerBody()?['PlanID']} expired after 14 days without a response and can no longer be answered. A new request will be sent to you shortly, unless the plan has been returned in the meantime - respond to the new one in Teams under Approvals.</p>",
                                     "emailMessage/Importance": "Normal"
                                   },
                                   "host": {
@@ -953,9 +964,47 @@
                     "where": "@equals(item()?['Decision'], 'Timeout')"
                   }
                 },
-                "Any_timeout": {
+                "Any_return": {
                   "actions": {
-                    "Release_stage_after_timeout": {
+                    "Select_return_lines": {
+                      "type": "Select",
+                      "inputs": {
+                        "from": "@body('Return_rows')",
+                        "select": "@concat(coalesce(item()?['ItemText'], ''), ' - ', coalesce(item()?['Comment'], item()?['Detail'], ''))"
+                      }
+                    },
+                    "Return_comment": {
+                      "runAfter": {
+                        "Select_return_lines": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Compose",
+                      "inputs": "@join(body('Select_return_lines'), decodeUriComponent('%0A'))"
+                    },
+                    "Body_return": {
+                      "runAfter": {
+                        "Return_comment": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Compose",
+                      "inputs": {
+                        "__metadata": {
+                          "type": "@parameters('BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)')"
+                        },
+                        "Status": "Returned",
+                        "ApprovalStage": null,
+                        "StageRunId": "",
+                        "ReturnComment": "@outputs('Return_comment')"
+                      }
+                    },
+                    "Set_plan_returned": {
+                      "runAfter": {
+                        "Body_return": [
+                          "Succeeded"
+                        ]
+                      },
                       "type": "OpenApiConnection",
                       "inputs": {
                         "parameters": {
@@ -967,7 +1016,7 @@
                             "If-Match": "*",
                             "X-HTTP-Method": "MERGE"
                           },
-                          "parameters/body": "{\"__metadata\": {\"type\": \"@{parameters('BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)')}\"}, \"StageRunId\": \"\"}"
+                          "parameters/body": "@string(outputs('Body_return'))"
                         },
                         "host": {
                           "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -975,56 +1024,84 @@
                           "connectionName": "shared_sharepointonline"
                         }
                       }
+                    },
+                    "Index_returned": {
+                      "actions": {
+                        "Patch_index_returned": {
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "parameters": {
+                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                              "table": "@parameters('MD_RequestIndex (orsted_shared_sharepointonline_9f0c6e07f15d4509a3ecab4d20b7fff7)')",
+                              "id": "@first(outputs('Get_request_index')?['body/value'])?['ID']",
+                              "item/Title": "@first(outputs('Get_request_index')?['body/value'])?['Title']",
+                              "item/RequesterEmail": "@first(outputs('Get_request_index')?['body/value'])?['RequesterEmail']",
+                              "item/Domain": {
+                                "Value": "MaintenancePlan"
+                              },
+                              "item/Status": {
+                                "Value": "AfventerInfo"
+                              },
+                              "item/StatusStep": 3,
+                              "item/LastActionOn": "@utcNow()",
+                              "item/LastActionBy": "System approval",
+                              "item/AssignedToEmail": "",
+                              "item/AssignedToName": ""
+                            },
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                              "operationId": "PatchItem",
+                              "connectionName": "shared_sharepointonline"
+                            }
+                          }
+                        }
+                      },
+                      "runAfter": {
+                        "Set_plan_returned": [
+                          "Succeeded"
+                        ]
+                      },
+                      "else": {
+                        "actions": {}
+                      },
+                      "expression": {
+                        "greater": [
+                          "@length(outputs('Get_request_index')?['body/value'])",
+                          0
+                        ]
+                      },
+                      "type": "If"
+                    },
+                    "Send_returned_mail": {
+                      "runAfter": {
+                        "Index_returned": [
+                          "Succeeded",
+                          "Failed",
+                          "Skipped"
+                        ]
+                      },
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "parameters": {
+                          "emailMessage/To": "@coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterEmail'], triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email'])",
+                          "emailMessage/Cc": "@if(equals(toLower(coalesce(triggerBody()?['SubmittedBy'], '')), toLower(coalesce(coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterEmail'], triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email']), ''))), '', coalesce(triggerBody()?['SubmittedBy'], ''))",
+                          "emailMessage/Subject": "@concat('Maintenance plan ', triggerBody()?['PlanID'], ' returned - correct it and submit again')",
+                          "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">Maintenance plan @{triggerBody()?['PlanID']} (@{triggerBody()?['Title']}) was returned by the system approval:</p><p style=\"font-family: Arial, sans-serif; white-space: pre-line;\">@{replace(replace(replace(outputs('Return_comment'), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</p><p style=\"font-family: Arial, sans-serif;\">Correct the plan in the app and submit it again.</p>",
+                          "emailMessage/Importance": "Normal"
+                        },
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                          "operationId": "SendEmailV2",
+                          "connectionName": "shared_office365"
+                        }
+                      }
                     }
-                  },
-                  "runAfter": {
-                    "Timeout_rows": [
-                      "Succeeded"
-                    ]
                   },
                   "else": {
                     "actions": {
-                      "Any_return": {
+                      "Any_timeout": {
                         "actions": {
-                          "Select_return_lines": {
-                            "type": "Select",
-                            "inputs": {
-                              "from": "@body('Return_rows')",
-                              "select": "@concat(coalesce(item()?['ItemText'], ''), ' - ', coalesce(item()?['Comment'], item()?['Detail'], ''))"
-                            }
-                          },
-                          "Return_comment": {
-                            "runAfter": {
-                              "Select_return_lines": [
-                                "Succeeded"
-                              ]
-                            },
-                            "type": "Compose",
-                            "inputs": "@join(body('Select_return_lines'), decodeUriComponent('%0A'))"
-                          },
-                          "Body_return": {
-                            "runAfter": {
-                              "Return_comment": [
-                                "Succeeded"
-                              ]
-                            },
-                            "type": "Compose",
-                            "inputs": {
-                              "__metadata": {
-                                "type": "@parameters('BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)')"
-                              },
-                              "Status": "Returned",
-                              "ApprovalStage": null,
-                              "StageRunId": "",
-                              "ReturnComment": "@outputs('Return_comment')"
-                            }
-                          },
-                          "Set_plan_returned": {
-                            "runAfter": {
-                              "Body_return": [
-                                "Succeeded"
-                              ]
-                            },
+                          "Release_stage_after_timeout": {
                             "type": "OpenApiConnection",
                             "inputs": {
                               "parameters": {
@@ -1036,82 +1113,12 @@
                                   "If-Match": "*",
                                   "X-HTTP-Method": "MERGE"
                                 },
-                                "parameters/body": "@string(outputs('Body_return'))"
+                                "parameters/body": "{\"__metadata\": {\"type\": \"@{parameters('BioSap-ListItemEntityTypeMaintenancePlan (orsted_BioSapListItemEntityTypeMaintenancePlan)')}\"}, \"StageRunId\": \"\"}"
                               },
                               "host": {
                                 "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
                                 "operationId": "HttpRequest",
                                 "connectionName": "shared_sharepointonline"
-                              }
-                            }
-                          },
-                          "Index_returned": {
-                            "actions": {
-                              "Patch_index_returned": {
-                                "type": "OpenApiConnection",
-                                "inputs": {
-                                  "parameters": {
-                                    "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
-                                    "table": "@parameters('MD_RequestIndex (orsted_shared_sharepointonline_9f0c6e07f15d4509a3ecab4d20b7fff7)')",
-                                    "id": "@first(outputs('Get_request_index')?['body/value'])?['ID']",
-                                    "item/Title": "@first(outputs('Get_request_index')?['body/value'])?['Title']",
-                                    "item/RequesterEmail": "@first(outputs('Get_request_index')?['body/value'])?['RequesterEmail']",
-                                    "item/Domain": {
-                                      "Value": "MaintenancePlan"
-                                    },
-                                    "item/Status": {
-                                      "Value": "AfventerInfo"
-                                    },
-                                    "item/StatusStep": 3,
-                                    "item/LastActionOn": "@utcNow()",
-                                    "item/LastActionBy": "System approval",
-                                    "item/AssignedToEmail": "",
-                                    "item/AssignedToName": ""
-                                  },
-                                  "host": {
-                                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                                    "operationId": "PatchItem",
-                                    "connectionName": "shared_sharepointonline"
-                                  }
-                                }
-                              }
-                            },
-                            "runAfter": {
-                              "Set_plan_returned": [
-                                "Succeeded"
-                              ]
-                            },
-                            "else": {
-                              "actions": {}
-                            },
-                            "expression": {
-                              "greater": [
-                                "@length(outputs('Get_request_index')?['body/value'])",
-                                0
-                              ]
-                            },
-                            "type": "If"
-                          },
-                          "Send_returned_mail": {
-                            "runAfter": {
-                              "Index_returned": [
-                                "Succeeded",
-                                "Failed",
-                                "Skipped"
-                              ]
-                            },
-                            "type": "OpenApiConnection",
-                            "inputs": {
-                              "parameters": {
-                                "emailMessage/To": "@triggerBody()?['Author/Email']",
-                                "emailMessage/Subject": "@concat('Maintenance plan ', triggerBody()?['PlanID'], ' returned - correct it and submit again')",
-                                "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">Maintenance plan @{triggerBody()?['PlanID']} (@{triggerBody()?['Title']}) was returned by the system approval:</p><p style=\"font-family: Arial, sans-serif; white-space: pre-line;\">@{replace(replace(replace(outputs('Return_comment'), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</p><p style=\"font-family: Arial, sans-serif;\">Correct the plan in the app and submit it again.</p>",
-                                "emailMessage/Importance": "Normal"
-                              },
-                              "host": {
-                                "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
-                                "operationId": "SendEmailV2",
-                                "connectionName": "shared_office365"
                               }
                             }
                           }
@@ -1190,7 +1197,7 @@
                         },
                         "expression": {
                           "greater": [
-                            "@length(body('Return_rows'))",
+                            "@length(body('Timeout_rows'))",
                             0
                           ]
                         },
@@ -1200,11 +1207,16 @@
                   },
                   "expression": {
                     "greater": [
-                      "@length(body('Timeout_rows'))",
+                      "@length(body('Return_rows'))",
                       0
                     ]
                   },
-                  "type": "If"
+                  "type": "If",
+                  "runAfter": {
+                    "Timeout_rows": [
+                      "Succeeded"
+                    ]
+                  }
                 }
               },
               "runAfter": {
@@ -1232,6 +1244,77 @@
                         "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
                         "operationId": "HttpRequest",
                         "connectionName": "shared_sharepointonline"
+                      }
+                    }
+                  },
+                  "Index_returned_no_items": {
+                    "actions": {
+                      "Patch_index_returned_no_items": {
+                        "type": "OpenApiConnection",
+                        "inputs": {
+                          "parameters": {
+                            "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                            "table": "@parameters('MD_RequestIndex (orsted_shared_sharepointonline_9f0c6e07f15d4509a3ecab4d20b7fff7)')",
+                            "id": "@first(outputs('Get_request_index')?['body/value'])?['ID']",
+                            "item/Title": "@first(outputs('Get_request_index')?['body/value'])?['Title']",
+                            "item/RequesterEmail": "@first(outputs('Get_request_index')?['body/value'])?['RequesterEmail']",
+                            "item/Domain": {
+                              "Value": "MaintenancePlan"
+                            },
+                            "item/Status": {
+                              "Value": "AfventerInfo"
+                            },
+                            "item/StatusStep": 3,
+                            "item/LastActionOn": "@utcNow()",
+                            "item/LastActionBy": "System approval",
+                            "item/AssignedToEmail": "",
+                            "item/AssignedToName": ""
+                          },
+                          "host": {
+                            "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                            "operationId": "PatchItem",
+                            "connectionName": "shared_sharepointonline"
+                          }
+                        }
+                      }
+                    },
+                    "runAfter": {
+                      "Return_no_items": [
+                        "Succeeded"
+                      ]
+                    },
+                    "else": {
+                      "actions": {}
+                    },
+                    "expression": {
+                      "greater": [
+                        "@length(outputs('Get_request_index')?['body/value'])",
+                        0
+                      ]
+                    },
+                    "type": "If"
+                  },
+                  "Send_returned_mail_no_items": {
+                    "runAfter": {
+                      "Index_returned_no_items": [
+                        "Succeeded",
+                        "Failed",
+                        "Skipped"
+                      ]
+                    },
+                    "type": "OpenApiConnection",
+                    "inputs": {
+                      "parameters": {
+                        "emailMessage/To": "@coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterEmail'], triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email'])",
+                        "emailMessage/Cc": "@if(equals(toLower(coalesce(triggerBody()?['SubmittedBy'], '')), toLower(coalesce(coalesce(first(outputs('Get_request_index')?['body/value'])?['RequesterEmail'], triggerBody()?['SubmittedBy'], triggerBody()?['Author/Email']), ''))), '', coalesce(triggerBody()?['SubmittedBy'], ''))",
+                        "emailMessage/Subject": "@concat('Maintenance plan ', triggerBody()?['PlanID'], ' returned - correct it and submit again')",
+                        "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">Maintenance plan @{triggerBody()?['PlanID']} (@{replace(replace(replace(coalesce(triggerBody()?['Title'], ''), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}) was returned by the system approval:</p><p style=\"font-family: Arial, sans-serif;\">The plan has no items.</p><p style=\"font-family: Arial, sans-serif;\">Correct the plan in the app and submit it again.</p>",
+                        "emailMessage/Importance": "Normal"
+                      },
+                      "host": {
+                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                        "operationId": "SendEmailV2",
+                        "connectionName": "shared_office365"
                       }
                     }
                   }

@@ -39,13 +39,19 @@
             "schemaName": "orsted_BioSapSiteUrl"
           }
         },
-        "BioSap-PowerBI-WorkspaceId": {
+        "BioSap-PowerBI-WorkspaceId (orsted_BioSapPowerBIWorkspaceId)": {
           "defaultValue": "26d062ec-3014-4cd3-9313-ced0cfe497b9",
-          "type": "String"
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapPowerBIWorkspaceId"
+          }
         },
-        "BioSap-PowerBI-DatasetId": {
+        "BioSap-PowerBI-DatasetId (orsted_BioSapPowerBIDatasetId)": {
           "defaultValue": "fadc4a40-342b-41e3-a1ef-aa4af8bb9e09",
-          "type": "String"
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapPowerBIDatasetId"
+          }
         }
       },
       "triggers": {
@@ -137,8 +143,8 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "groupid": "@parameters('BioSap-PowerBI-WorkspaceId')",
-                  "datasetid": "@parameters('BioSap-PowerBI-DatasetId')",
+                  "groupid": "@parameters('BioSap-PowerBI-WorkspaceId (orsted_BioSapPowerBIWorkspaceId)')",
+                  "datasetid": "@parameters('BioSap-PowerBI-DatasetId (orsted_BioSapPowerBIDatasetId)')",
                   "specification/query": "EVALUATE SELECTCOLUMNS(FILTER('Functional Locations', 'Functional Locations'[Functional Location] IN {@{join(body('Select_FL_list'), ',')}}), \"FL\", 'Functional Locations'[Functional Location], \"Description\", 'Functional Locations'[Functional Location Description], \"PlantKey\", 'Functional Locations'[Plant Key], \"SystemNo\", 'Functional Locations'[Plant Section Key])",
                   "specification/serializerSettings/includeNulls": false
                 },

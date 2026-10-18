@@ -36,6 +36,15 @@
         "api": {
           "name": "shared_office365"
         }
+      },
+      "shared_office365users": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "orsted_BioSapOffice365UsersConn"
+        },
+        "api": {
+          "name": "shared_office365users"
+        }
       }
     },
     "definition": {
@@ -64,20 +73,26 @@
             "schemaName": "orsted_BioSapErrorNotifiers"
           }
         },
-        " BioSap-EmailDomain (orsted_BioSapEmailDomain)": {
+        "BioSap-EmailDomain (orsted_BioSapEmailDomain)": {
           "defaultValue": "orsted.com",
           "type": "String",
           "metadata": {
             "schemaName": "orsted_BioSapEmailDomain"
           }
         },
-        "BioSap-PowerBI-WorkspaceId": {
+        "BioSap-PowerBI-WorkspaceId (orsted_BioSapPowerBIWorkspaceId)": {
           "defaultValue": "26d062ec-3014-4cd3-9313-ced0cfe497b9",
-          "type": "String"
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapPowerBIWorkspaceId"
+          }
         },
-        "BioSap-PowerBI-DatasetId": {
+        "BioSap-PowerBI-DatasetId (orsted_BioSapPowerBIDatasetId)": {
           "defaultValue": "fadc4a40-342b-41e3-a1ef-aa4af8bb9e09",
-          "type": "String"
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapPowerBIDatasetId"
+          }
         }
       },
       "triggers": {
@@ -433,7 +448,7 @@
                     },
                     "Creator_email": {
                       "type": "Compose",
-                      "inputs": "@if(empty(outputs('Creator_initials')), '', toLower(concat(outputs('Creator_initials'), '@', parameters(' BioSap-EmailDomain (orsted_BioSapEmailDomain)'))))",
+                      "inputs": "@if(empty(outputs('Creator_initials')), '', toLower(concat(outputs('Creator_initials'), '@', parameters('BioSap-EmailDomain (orsted_BioSapEmailDomain)'))))",
                       "runAfter": {
                         "Creator_initials": [
                           "Succeeded"
@@ -661,8 +676,8 @@
                       "type": "OpenApiConnection",
                       "inputs": {
                         "parameters": {
-                          "groupid": "@parameters('BioSap-PowerBI-WorkspaceId')",
-                          "datasetid": "@parameters('BioSap-PowerBI-DatasetId')",
+                          "groupid": "@parameters('BioSap-PowerBI-WorkspaceId (orsted_BioSapPowerBIWorkspaceId)')",
+                          "datasetid": "@parameters('BioSap-PowerBI-DatasetId (orsted_BioSapPowerBIDatasetId)')",
                           "specification/query": "EVALUATE SELECTCOLUMNS(FILTER('Functional Locations', 'Functional Locations'[Functional Location] IN {@{join(body('Select_FL_quoted'), ',')}}), \"FL\", 'Functional Locations'[Functional Location], \"Description\", 'Functional Locations'[Functional Location Description], \"PlantKey\", 'Functional Locations'[Plant Key], \"SystemNo\", 'Functional Locations'[Plant Section Key])",
                           "specification/serializerSettings/includeNulls": false
                         },
@@ -697,6 +712,68 @@
                         "Run_a_query_against_a_dataset": [
                           "Succeeded"
                         ]
+                      }
+                    },
+                    "Decided_rows": {
+                      "runAfter": {
+                        "Get_log": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Query",
+                      "inputs": {
+                        "from": "@outputs('Get_log')?['body/value']",
+                        "where": "@contains(createArray('Approve', 'Return', 'Timeout', 'Skipped'), item()?['Decision'])"
+                      }
+                    },
+                    "Decided_keys": {
+                      "runAfter": {
+                        "Decided_rows": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Select",
+                      "inputs": {
+                        "from": "@body('Decided_rows')",
+                        "select": "@concat(item()?['Title'], '|', item()?['ItemGuid'])"
+                      }
+                    },
+                    "Running_rows": {
+                      "runAfter": {
+                        "Decided_keys": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "Query",
+                      "inputs": {
+                        "from": "@outputs('Get_log')?['body/value']",
+                        "where": "@and(equals(item()?['Decision'], 'Requested'), not(equals(item()?['Title'], outputs('RunName'))), not(contains(body('Decided_keys'), concat(item()?['Title'], '|', item()?['ItemGuid']))), greater(string(coalesce(item()?['DecidedOn'], '')), addDays(utcNow(), -1)))"
+                      }
+                    },
+                    "Already_running": {
+                      "runAfter": {
+                        "Running_rows": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "If",
+                      "expression": {
+                        "greater": [
+                          "@length(body('Running_rows'))",
+                          0
+                        ]
+                      },
+                      "actions": {
+                        "Stop_already_running": {
+                          "runAfter": {},
+                          "type": "Terminate",
+                          "inputs": {
+                            "runStatus": "Cancelled"
+                          }
+                        }
+                      },
+                      "else": {
+                        "actions": {}
                       }
                     },
                     "For_each_row": {
@@ -766,18 +843,102 @@
                         },
                         "Approver_email": {
                           "type": "Compose",
-                          "inputs": "@if(empty(outputs('Initials')), '', toLower(concat(outputs('Initials'), '@', parameters(' BioSap-EmailDomain (orsted_BioSapEmailDomain)'))))",
+                          "inputs": "@if(empty(outputs('Initials')), '', toLower(concat(outputs('Initials'), '@', parameters('BioSap-EmailDomain (orsted_BioSapEmailDomain)'))))",
                           "runAfter": {
                             "Initials": [
                               "Succeeded"
                             ]
                           }
                         },
+                        "Initials_alt": {
+                          "runAfter": {
+                            "Approver_email": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "Compose",
+                          "inputs": "@if(equals(length(body('Filter_approver_rows')), 0), '', if(equals(first(body('Filter_approver_rows'))?['Approver1Absent'], true), trim(coalesce(first(body('Filter_approver_rows'))?['Approver1'], '')), trim(coalesce(first(body('Filter_approver_rows'))?['Approver2'], ''))))"
+                        },
+                        "Approver_email_alt": {
+                          "runAfter": {
+                            "Initials_alt": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "Compose",
+                          "inputs": "@if(empty(outputs('Initials_alt')), '', toLower(concat(outputs('Initials_alt'), '@', parameters('BioSap-EmailDomain (orsted_BioSapEmailDomain)'))))"
+                        },
+                        "Resolve_primary": {
+                          "runAfter": {
+                            "Approver_email_alt": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "parameters": {
+                              "id": "@outputs('Approver_email')"
+                            },
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365users",
+                              "operationId": "UserProfile_V2",
+                              "connectionName": "shared_office365users"
+                            },
+                            "retryPolicy": {
+                              "type": "none"
+                            }
+                          }
+                        },
+                        "Resolve_secondary": {
+                          "runAfter": {
+                            "Resolve_primary": [
+                              "Failed"
+                            ]
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "parameters": {
+                              "id": "@outputs('Approver_email_alt')"
+                            },
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365users",
+                              "operationId": "UserProfile_V2",
+                              "connectionName": "shared_office365users"
+                            },
+                            "retryPolicy": {
+                              "type": "none"
+                            }
+                          }
+                        },
+                        "Resolved_email": {
+                          "runAfter": {
+                            "Resolve_primary": [
+                              "Succeeded",
+                              "Failed"
+                            ],
+                            "Resolve_secondary": [
+                              "Succeeded",
+                              "Failed",
+                              "Skipped"
+                            ]
+                          },
+                          "type": "Compose",
+                          "inputs": "@toLower(coalesce(actions('Resolve_primary')?['outputs']?['body']?['mail'], actions('Resolve_primary')?['outputs']?['body']?['userPrincipalName'], actions('Resolve_secondary')?['outputs']?['body']?['mail'], actions('Resolve_secondary')?['outputs']?['body']?['userPrincipalName'], ''))"
+                        },
+                        "Resolved_initials": {
+                          "runAfter": {
+                            "Resolved_email": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "Compose",
+                          "inputs": "@if(equals(actions('Resolve_secondary')?['status'], 'Succeeded'), outputs('Initials_alt'), outputs('Initials'))"
+                        },
                         "ItemText": {
                           "type": "Compose",
                           "inputs": "@concat(coalesce(items('For_each_row')?['Title'], ''), ' - ', outputs('FL'), ' - ', coalesce(items('For_each_row')?['Characteristic'], ''), ' (', coalesce(items('For_each_row')?['CharacteristicUnit'], ''), ')')",
                           "runAfter": {
-                            "Approver_email": [
+                            "Resolved_initials": [
                               "Succeeded"
                             ]
                           }
@@ -833,8 +994,8 @@
                                   "itemText": "@outputs('ItemText')",
                                   "sysNo": "@outputs('SysNo')",
                                   "fingerprint": "@outputs('Fingerprint')",
-                                  "approver": "@outputs('Approver_email')",
-                                  "initials": "@toUpper(outputs('Initials'))",
+                                  "approver": "@outputs('Resolved_email')",
+                                  "initials": "@toUpper(outputs('Resolved_initials'))",
                                   "done": "@greater(length(body('Filter_prev_rows')), 0)"
                                 }
                               },
@@ -865,7 +1026,7 @@
                         }
                       },
                       "runAfter": {
-                        "Get_log": [
+                        "Already_running": [
                           "Succeeded"
                         ]
                       }
@@ -1323,6 +1484,68 @@
                               "Succeeded"
                             ]
                           }
+                        },
+                        "For_each_my_unit_timeout": {
+                          "foreach": "@body('My_units')",
+                          "type": "Foreach",
+                          "runtimeConfiguration": {
+                            "concurrency": {
+                              "repetitions": 1
+                            }
+                          },
+                          "actions": {
+                            "Log_timeout": {
+                              "type": "OpenApiConnection",
+                              "inputs": {
+                                "parameters": {
+                                  "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                  "table": "MD_ApprovalLog",
+                                  "item/Title": "@outputs('RunName')",
+                                  "item/RequestGuid": "@outputs('RequestGuid')",
+                                  "item/Stage": "System",
+                                  "item/ItemGuid": "@items('For_each_my_unit_timeout')?['itemGuid']",
+                                  "item/ItemText": "@items('For_each_my_unit_timeout')?['itemText']",
+                                  "item/Fingerprint": "@items('For_each_my_unit_timeout')?['fingerprint']",
+                                  "item/Decision": "Timeout",
+                                  "item/Detail": "@concat('No answer from ', items('For_each_approver'), ' within 14 days')",
+                                  "item/DecidedByEmail": "system",
+                                  "item/DecidedOn": "@utcNow()"
+                                },
+                                "host": {
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                  "operationId": "PostItem",
+                                  "connectionName": "shared_sharepointonline"
+                                }
+                              },
+                              "runAfter": {}
+                            }
+                          },
+                          "runAfter": {
+                            "Start_and_wait_for_an_approval": [
+                              "TimedOut"
+                            ]
+                          }
+                        },
+                        "Send_reminder": {
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "parameters": {
+                              "emailMessage/To": "@items('For_each_approver')",
+                              "emailMessage/Subject": "@concat('Approval request for measuring point request ', coalesce(outputs('RequestNo'), ''), ' expired without a response')",
+                              "emailMessage/Body": "<p style=\"font-family: Arial, sans-serif;\">The approval request for measuring point request @{coalesce(outputs('RequestNo'), '')} expired after 14 days without a response and can no longer be answered. The request has been returned to the requester, who can correct it and submit it again - you will then get a new request.</p>",
+                              "emailMessage/Importance": "Normal"
+                            },
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                              "operationId": "SendEmailV2",
+                              "connectionName": "shared_office365"
+                            }
+                          },
+                          "runAfter": {
+                            "For_each_my_unit_timeout": [
+                              "Succeeded"
+                            ]
+                          }
                         }
                       },
                       "runAfter": {
@@ -1348,7 +1571,8 @@
                       },
                       "runAfter": {
                         "For_each_approver": [
-                          "Succeeded"
+                          "Succeeded",
+                          "TimedOut"
                         ]
                       }
                     },
@@ -1356,7 +1580,7 @@
                       "type": "Query",
                       "inputs": {
                         "from": "@outputs('Get_log_results')?['body/value']",
-                        "where": "@and(equals(item()?['Decision'], 'Return'), equals(item()?['Title'], outputs('RunName')))"
+                        "where": "@and(or(equals(item()?['Decision'], 'Return'), equals(item()?['Decision'], 'Timeout')), equals(item()?['Title'], outputs('RunName')))"
                       },
                       "runAfter": {
                         "Get_log_results": [

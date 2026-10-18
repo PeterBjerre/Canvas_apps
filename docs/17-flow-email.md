@@ -71,7 +71,10 @@ Slå rækken op med `RequestGuid` eller `RequestNo` = planens `PlanID`.
 | `{{RequesterEmail}}` | `RequesterEmail` |
 | `{{ItemCount}}` | `ItemCount` |
 | `{{AppUrl}}` | `AppUrl` |
-| `{{SubmittedOn}}` | `formatDateTime(…['LastActionOn'], 'dd-MM-yyyy HH:mm')` |
+| `{{SubmittedOn}}` | `convertFromUtc(…['LastActionOn'], 'Romance Standard Time', 'dd-MM-yyyy HH:mm')` – dansk tid; tilføj `Z`, hvis værdien mangler det (R2-085) |
+
+`{{MasterDataEmail}}` i fodnoten er miljøvariablen `BioSap-MasterDataEmail`
+(R2-052) – ikke en fast adresse, så DEV kan pege på en testpostkasse.
 
 `{{ItemCount}}` kan også tages som `length(body('Get_items_MaintenanceItems')?['value'])`
 — så er den garanteret i takt med tabellen lige nedenunder.
@@ -148,9 +151,9 @@ mailen kan søges frem.
 |---|---|---|---|---|---|---|
 | **Sendt til godkendelse** | `BioSap-EmailNotification-NewPlanCreated` (findes – ny brødtekst) | Rekvirenten | `VH-plan MP0068 sendt til godkendelse - SSV` | Sendt til godkendelse | Info: "Du får besked, når planen er godkendt eller sendt retur." | Åbn planen i appen |
 | **Sendt retur** | F1, F2 eller F3, når mindst ét svar er *Send retur* | Rekvirenten | `VH-plan MP0068 sendt retur - ret og indsend igen` | Sendt retur | Advarsel med kommentarerne pr. item | Ret planen i appen |
-| **Påmindelse** | F1, F2 eller F3 ved timeout (`P14D`) | Den godkender, der ikke har svaret | `Påmindelse: VH-plan MP0068 venter på din godkendelse` | Venter på din godkendelse | Info: sendt dato, og at der svares i Teams → *Approvals* eller i mailen fra Power Automate | Åbn planen i appen |
+| **Påmindelse** | F1, F2 eller F3 ved timeout (`P14D`) | Den godkender, der ikke har svaret | `Approval request for maintenance plan MP0068 expired without a response` | Udløbet | Info: anmodningen er udløbet efter 14 dage og kan ikke længere besvares; en ny kommer (medmindre planen er sendt retur) og besvares i Teams → *Approvals* (R2-087) | Åbn planen i appen |
 | **Klar til oprettelse i SAP** | F4 `BioSap-VhPlan-ToMasterData` (ny) | `sapvedligehold@orsted.com` | `VH-plan MP0068 klar til oprettelse i SAP - SSV` | Klar til oprettelse i SAP | Succes: hvem der godkendte system, omkostning og kvalitet | Åbn planen i appen |
-| **Oprettet i SAP** | `BioSap-EmailNotification-PlanPublished` (ny brødtekst, R2-019) | Rekvirenten, cc sidste redaktør | `Maintenance plan MP0068 created in SAP (12345678) - SSV` | Created in SAP | Succes: SAP-plannummeret | Open the plan in the app |
+| **Oprettet i SAP** | `BioSap-EmailNotification-PlanPublished` (ny brødtekst, R2-019) | Ejeren, cc indsenderen (og Master Data ved SAP-advarsler) | `Maintenance plan MP0068 created in SAP (12345678) - SSV` | Created in SAP | Succes: SAP-plannummeret | Open the plan in the app |
 
 *Oprettet i SAP* er bygget (R2-019): flowet henter `MD_RequestIndex`-rækken
 **før** mailen (`Get_request_index`), så knappen kan pege på `AppUrl` – uden
@@ -158,6 +161,13 @@ række peger den på `BioSap-SiteUrl`. Datoen vises som `dd-MM-yyyy` i dansk tid
 (`-`, hvis den mangler), og al fritekst escapes som i *Sendt til godkendelse*.
 Spærren `RequesterNotified`, loggen (`Stage = SapCreated`) og indeksopdateringen
 kører bagefter som før. Testen er `tests/test_vh_plan_published_mail.py`.
+
+**"Rekvirenten" er ejeren (R2-049).** Alle VH-mails til rekvirenten går til
+indeksrækkens `RequesterEmail` (falder tilbage på planens `SubmittedBy` og
+til sidst `Author`), og indsenderen (`SubmittedBy`) får Cc, når han ikke er
+ejeren. Godkendelseskortene viser `RequesterName`. *Oprettet i SAP* har ikke
+længere `Editor` på Cc (R2-048) – efter kvitteringsflowet er det
+servicekontoen. Testen er `tests/test_vh_mail_owner.py`.
 
 **Selve godkendelsesanmodningen bruger ikke skabelonen.** Den sendes af
 Approvals-connectoren, hvis *Details* kun forstår Markdown – ikke HTML.
