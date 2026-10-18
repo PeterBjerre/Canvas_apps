@@ -490,8 +490,10 @@ Private Sub PreviewPlan(ByVal ws As Worksheet, ByVal path As String, ByVal order
     Dim st As Object
     Dim cand As Object
     Dim n As Long
+    Dim isStrat As Boolean
 
     Set plan = VhpUtil.JObj(order, "plan")
+    isStrat = VhpStrategy.IsStrategyOrder(order)
     Set plantRec = VhpLookup.Plant(lk, VhpUtil.JStr(plan, "plant"))
     cycle = VhpUtil.JNum(plan, "cycle")
     unitText = VhpMap.NormalizeUnit(VhpUtil.JStr(plan, "unit"))
@@ -511,13 +513,23 @@ Private Sub PreviewPlan(ByVal ws As Worksheet, ByVal path As String, ByVal order
 
     '--- Planen ---------------------------------------------------------------
     Section ws, r, VhpUtil.Dk("Planen {-} IP01")
-    Pair ws, r, "Plankategori", VhpConfig.Setting(SET_PLAN_CATEGORY) & VhpUtil.Dk(" (ingen strategi)")
+    If isStrat Then
+        Pair ws, r, "Plankategori", VhpConfig.Setting(SET_PLAN_CATEGORY) & VhpUtil.Dk(" (strategiplan)")
+        Pair ws, r, "Strategi", VhpStrategy.StrategyKey(order)
+    Else
+        Pair ws, r, "Plankategori", VhpConfig.Setting(SET_PLAN_CATEGORY) & VhpUtil.Dk(" (ingen strategi)")
+    End If
     Pair ws, r, "Tekst", VhpUtil.Clip(VhpUtil.JStr(plan, "title"), 40)
-    Pair ws, r, "Cyklus", VhpMap.NumberKey(cycle) & " " & unitText
+    If Not isStrat Then Pair ws, r, "Cyklus", VhpMap.NumberKey(cycle) & " " & unitText
     If VhpUtil.TryParseYmd(VhpUtil.JStr(plan, "plannedDate"), firstDue) Then
         Pair ws, r, VhpUtil.Dk("F{oe}rste forfald"), VhpMap.SapDate(firstDue)
-        Pair ws, r, VhpUtil.Dk("Startdato i SAP"), VhpMap.SapDate(VhpMap.StartDate(firstDue, cycle, unitText)) & _
-            VhpUtil.Dk("  (en cyklus f{oe}r f{oe}rste forfald)")
+        If isStrat Then
+            Pair ws, r, VhpUtil.Dk("Startdato i SAP"), VhpMap.SapDate(VhpStrategy.StartDate(order, firstDue)) & _
+                VhpUtil.Dk("  (den korteste pakke f{oe}r f{oe}rste forfald)")
+        Else
+            Pair ws, r, VhpUtil.Dk("Startdato i SAP"), VhpMap.SapDate(VhpMap.StartDate(firstDue, cycle, unitText)) & _
+                VhpUtil.Dk("  (en cyklus f{oe}r f{oe}rste forfald)")
+        End If
     End If
     If Not hz Is Nothing Then
         Pair ws, r, "Kaldshorisont", VhpUtil.JStr(hz, "horizon") & " " & VhpConfig.Setting(SET_HORIZON_QUALIFIER)
@@ -572,7 +584,7 @@ Private Sub PreviewPlan(ByVal ws As Worksheet, ByVal path As String, ByVal order
         End If
 
         Header ws, r, Array("#", "Kort tekst", "Arbejdscenter", VhpUtil.Dk("Kontroln{oe}gle"), "Timer", "Antal", _
-            "Pris", "Varegruppe", VhpUtil.Dk("Leverand{oe}r"), "Ydelse (PM03)", "Langtekst")
+            "Pris", "Varegruppe", VhpUtil.Dk("Leverand{oe}r"), "Ydelse (PM03)", "Langtekst", "Pakker")
         n = 0
         For Each op In VhpOrder.Operations(item)
             n = n + 1
@@ -585,6 +597,7 @@ Private Sub PreviewPlan(ByVal ws As Worksheet, ByVal path As String, ByVal order
                 VhpUtil.JStr(op, "materialGroup"), VhpMap.VendorNo(VhpUtil.JStr(op, "vendor")), _
                 IIf(svc Is Nothing, "", VhpUtil.JStr(svc, "serviceNo")), _
                 IIf(VhpItf.HasText(VhpUtil.JStr(op, "longText")), "ja", ""))
+            If isStrat Then ws.Cells(r, 12).Value = "'" & VhpStrategy.PackageText(order, op)
             r = r + 1
         Next op
 

@@ -207,6 +207,25 @@ Public Function SelfTestJson() As String
     Set v = VhpOrder.Validate(o, lk)
     Check "Ugyldig ordre: fejl", v("errors").Count, 2
 
+    '--- Strategiplan ----------------------------------------------------------
+    Set o = JsonConverter.ParseJson(SampleStrategyJson("MON"))
+    VhpOrder.Prepare o
+    Check "Strategi er strategi", VhpStrategy.IsStrategyOrder(o), True
+    Check "Strategi pakker", VhpStrategy.PackageNos(VhpUtil.JList(o, "operations")(1)).Count, 2
+    Check "Strategi tid", VhpStrategy.PlanKind(o), "TIME"
+    Check "Strategi foerste pakke", VhpUtil.JLng(VhpStrategy.FirstTimePackage(o), "packageNo"), 1
+    Check "Strategi startdato", Format$(VhpStrategy.StartDate(o, DateSerial(2027, 9, 20)), "yyyy-mm-dd"), "2027-08-20"
+    Check "Strategi pakketekst", VhpStrategy.PackageText(o, VhpUtil.JList(o, "operations")(1)), "1 (1M, 1 MON), 3 (12M, 12 MON)"
+    Set v = VhpOrder.Validate(o, lk)
+    Check "Strategi gyldig: fejl", v("errors").Count, 0
+    Check "Strategi D er taeller", VhpStrategy.UnitKind("D"), "COUNTER"
+
+    Set o = JsonConverter.ParseJson(SampleStrategyJson("H"))
+    VhpOrder.Prepare o
+    Check "Strategi taeller", VhpStrategy.PlanKind(o), "COUNTER"
+    Set v = VhpOrder.Validate(o, lk)
+    Check "Strategi taeller: fejl", v("errors").Count, 1
+
     s = JsonConverter.ConvertToJson(VhpUtil.JObj(o, "plan"), 2)
     Set back = JsonConverter.ParseJson(s)
     Check "JSON frem og tilbage", VhpUtil.JStr(back, "title"), VhpUtil.JStr(VhpUtil.JObj(o, "plan"), "title")
@@ -268,6 +287,18 @@ Private Function SampleOrderJson(ByVal valid As Boolean) As String
         IIf(valid, "PM02", "") & "','work':1,'persons':1,'price':5000,'materialGroup':'B08.04','vendor':'12654'}]," & _
         "'materials':[{'spId':6,'itemId':'MI0179','taskItemId':'TI0438','operationNo':'0170','materialNo':'000000000010203945','quantity':2,'unit':'ST'}]}"
     SampleOrderJson = Replace(s, "'", """")
+End Function
+
+' Den gyldige ordre som strategiplan (strategi 101): alle operationer paa
+' pakke 1 og 3, og pakkerne har enheden unitText (MON = tid, H = taeller).
+Private Function SampleStrategyJson(ByVal unitText As String) As String
+    Dim s As String
+    s = Replace(SampleOrderJson(True), """strategyKey"":null", """strategyKey"":""101""")
+    s = Replace(s, """controlKey"":", """packagesKey"":"";1;3;"",""controlKey"":")
+    s = Left$(s, Len(s) - 1) & ",'strategyPackages':[" & _
+        "{'packageNo':1,'shortCode':'1M','cycleLength':1,'cycleUnit':'" & unitText & "'}," & _
+        "{'packageNo':3,'shortCode':'12M','cycleLength':12,'cycleUnit':'" & unitText & "'}]}"
+    SampleStrategyJson = Replace(s, "'", """")
 End Function
 
 ' En lille FL-anmodning som i schema/example-fl-sap-order.json, med raekkerne

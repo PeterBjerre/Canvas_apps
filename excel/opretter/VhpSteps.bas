@@ -59,6 +59,7 @@ Public Sub CreateTaskList(ByVal sess As Object, ByVal item As Object, ByVal ctx 
     VhpSap.SetText sess, IA05_HDR_TEXT, VhpUtil.Clip(VhpUtil.JStr(item, "title"), 40)
     VhpSap.SetText sess, IA05_HDR_PLANT, CStr(ctx("sapPlant"))
     VhpSap.SetText sess, IA05_HDR_WORKCENTER, VhpMap.WorkCenter(VhpUtil.JStr(item, "mainWorkCenter"))
+    If IsStrategy(ctx) Then VhpStrategy.SetTaskListStrategy sess, ctx, what
     VhpSap.Press sess, IA05_BTN_OPERATIONS
     VhpSap.FailOnPopup sess, what & VhpUtil.Dk(" (hoved)")
     VhpSap.FailOnError sess, what & VhpUtil.Dk(" (hoved)")
@@ -68,6 +69,9 @@ Public Sub CreateTaskList(ByVal sess As Object, ByVal item As Object, ByVal ctx 
         EnterOperation sess, op, row, ctx, what
         row = row + 1
     Next op
+
+    ' Strategiplan: operationerne paa deres pakker (VhpStrategy).
+    If IsStrategy(ctx) Then VhpStrategy.AssignPackages sess, item, ctx, what
 
     ConfirmSave ctx, VhpUtil.Dk("Arbejdsplanen for ") & VhpOrder.ItemLabel(item) & " (" & _
         VhpUtil.Clip(VhpUtil.JStr(item, "title"), 40) & VhpUtil.Dk(") er udfyldt i SAP med ") & row & _
@@ -358,6 +362,9 @@ Public Function CreateItem(ByVal sess As Object, ByVal item As Object, ByVal ctx
     VhpSap.FailOnPopup sess, what
     VhpSap.FailOnError sess, what
 
+    ' Strategiplan: positionen faar planens strategi.
+    If IsStrategy(ctx) Then VhpStrategy.SetItemStrategy sess, ctx, what
+
     ' Ingen ordreoprettelse - som det gamle script.
     VhpSap.SetChecked sess, IP04_NO_RELEASE, True
     VhpSap.SetText sess, IP04_TEXT, VhpUtil.Clip(VhpUtil.JStr(item, "title"), 40)
@@ -642,6 +649,17 @@ Public Sub ConfirmSave(ByVal ctx As Object, ByVal text As String)
     End Select
 End Sub
 
-Private Sub AddStepWarning(ByVal ctx As Object, ByVal msg As String)
+Public Sub AddStepWarning(ByVal ctx As Object, ByVal msg As String)
     ctx("warnings").Add msg
 End Sub
+
+' Gem og laes nummeret - til VhpStrategy.CreatePlan.
+Public Function SaveAndReadNumberFor(ByVal sess As Object, ByVal what As String, ByVal minDigits As Long, _
+                                     ByVal checkHint As String) As String
+    SaveAndReadNumberFor = SaveAndReadNumber(sess, what, minDigits, checkHint)
+End Function
+
+' Er ordren en strategiplan? BuildContext (VhpRun) saetter strategyKey.
+Private Function IsStrategy(ByVal ctx As Object) As Boolean
+    If ctx.Exists("strategyKey") Then IsStrategy = Len(CStr(ctx("strategyKey"))) > 0
+End Function
