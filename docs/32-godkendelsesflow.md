@@ -380,14 +380,14 @@ skabelonen.
    - Findes der i loggen en `Approve` for `Stage = System` med **samme
      `ItemGuid`** og samme `Fingerprint` (`SystemNo|FL`) → log `Skipped`
      med "godkendt tidligere".
-   - Er itemets *Created By* **1. eller 2. godkender** for systemet → log
-     `Skipped` med hvem.
+   - Er planens indsender (`SubmittedBy`, ellers planens *Created By*) **1.
+     eller 2. godkender** for systemet → log `Skipped` med hvem (§4, R2-083).
    - Ellers: godkendelse til 1. godkender, eller til 2. godkender, hvis
      `Approver1Absent` er Ja (§4). Detaljerne har itemets korttekst, FL,
      systemnummer og operationerne.
 5. Alle godkendt eller sprunget over → `ApprovalStage = Cost`.
 
-*Created By* sammenlignes med godkendernes adresser med `toLower` på
+Indsenderen sammenlignes med godkendernes adresser med `toLower` på
 begge sider.
 
 Ved genindsendelse efter *Send retur* sendes derfor kun de items igen, der
