@@ -14,6 +14,7 @@ from build_helpers import (child_name, text_min_height, text_ctrl, group, button
 # saa Materials kan bruge samme overskrift som Item Editor.
 from build_helpers import section_header, step_badge  # noqa: F401
 from build_helpers import ghost, fit  # noqa: F401
+from build_helpers import fluent, fluent_icon
 
 DM_PLAN = "If(varVhpPlanLocked, DisplayMode.Disabled, DisplayMode.Edit)"
 REQ_PLAN = "varVhpPlanValidated"
@@ -225,28 +226,16 @@ CHIP_CHAR_W = 7          # 12 px Segoe UI, en lidt rummelig gennemsnitsbredde
 CHIP_PAD = 10
 
 
-def status_icon(name, ok_fx, size=20, d_ok=None, d_bad=None, label_ok="Complete",
-                label_bad="Needs attention"):
+def status_icon(name, ok_fx, size=20, label_ok="Complete", label_bad="Needs attention"):
     """Et statusikon (issue #139): ring med flueben, naar ok_fx er sand, ellers
     ring med udraabstegn - FORM og farve, ikke farve alene. Pynt ved siden af
-    en tekst: ingen hover."""
-    def svg(d, token):
-        col = '" & %s & "' % ref_hex(token)
-        return icons.svg(d, col, size=size)
-    ok = svg(d_ok or icons.STATUS_READY, "state-ok-fg")
-    bad = svg(d_bad or icons.STATUS_AWAITING, "state-error-fg")
-    img = ('"data:image/svg+xml;utf8," & EncodeUrl(If(%s, "%s", "%s"))' % (ok_fx, ok, bad))
-    return Ctrl(name, "Image", props={
-        "AccessibleLabel": 'If(%s, "%s", "%s")' % (ok_fx, label_ok, label_bad),
-        "BorderStyle": "BorderStyle.None",
-        "BorderThickness": "0",
-        "Height": str(size),
-        "Image": img,
-        "ImagePosition": "ImagePosition.Fit",
-        "OnSelect": "false",
-        "TabIndex": "0",
-        "Width": str(size),
-    }, h=size)
+    en tekst: ingen hover og ingen klik.
+
+    Fluents CheckmarkCircle/ErrorCircle paa den moderne Icon-kontrol (issue
+    #306) - samme former som stregikonerne STATUS_READY/STATUS_AWAITING."""
+    return fluent_icon(name, 'If(%s, %s, %s)' % (ok_fx, fluent("ok"), fluent("awaiting")),
+                       "If(%s, %s, %s)" % (ok_fx, C_VALID_FG, C_INVALID_FG),
+                       'If(%s, "%s", "%s")' % (ok_fx, label_ok, label_bad), size=size)
 
 
 def value_chip(name, label, value_fx, label_w=None, value_chars=None, visible=None):
@@ -277,7 +266,7 @@ def plan_fold_row(fold, toggle_set, show):
     oeverste linje, og under den alle otte vaerdier som een ombrudt tekst
     (issue #287) med Show hoejrestillet i samme raekke, lodret centreret
     paa teksten (issue #292). Vises kun, naar planen er gemt og foldet."""
-    ok = status_icon("imgVhpPlanFoldStatus", "VhpPlanValid", d_ok=icons.STATUS_READY)
+    ok = status_icon("icoVhpPlanFoldStatus", "VhpPlanValid")
     title_w = text_px("Plan header", lay.SIZE_BODY + 1) + 2
     title = text_ctrl("txtVhpPlanFoldTitle", '"Plan header"', size=lay.SIZE_BODY + 1, weight="Semibold",
                       height=24, width=title_w, accessible='"Plan header"')
