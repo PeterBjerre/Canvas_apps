@@ -12224,7 +12224,8 @@ Screens:
                                                     With(
                                                         { docRowId: Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpAttOpNo).SpId, 0) },
                                                         Set(varVhpAttRow, If(docRowId = 0, Blank(), LookUp(TaskListMain, ID = docRowId)))
-                                                    )
+                                                    );
+                                                    If(!IsBlank(varVhpAttRow), UpdateIf(colVhpOperations, SpId = varVhpAttRow.ID, { FileCount: CountRows(varVhpAttRow.Attachments) }))
                                                 RadiusBottomLeft: |-
                                                     =R.input
                                                 RadiusBottomRight: |-
@@ -12236,7 +12237,7 @@ Screens:
                                                 Size: |-
                                                     =T.small
                                                 Text: |-
-                                                    ="Docs (" & Text(Coalesce(ThisItem.FileCount, 0)) & ")"
+                                                    =With({ n: ThisItem.FileCount }, If(IsBlank(n), "Docs", "Docs (" & Text(n) & ")"))
                                                 VerticalAlign: |-
                                                     =VerticalAlign.Middle
                                                 Width: |-
@@ -16894,7 +16895,7 @@ Screens:
                             Control: ModernButton
                             Properties:
                               AccessibleLabel: |-
-                                  ="Docs (" & Text(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).FileCount, 0)) & ")"
+                                  =With({ n: LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).FileCount }, If(IsBlank(n), "Docs", "Docs (" & Text(n) & ")"))
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
@@ -16922,7 +16923,8 @@ Screens:
                                   With(
                                       { docRowId: Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpAttOpNo).SpId, 0) },
                                       Set(varVhpAttRow, If(docRowId = 0, Blank(), LookUp(TaskListMain, ID = docRowId)))
-                                  )
+                                  );
+                                  If(!IsBlank(varVhpAttRow), UpdateIf(colVhpOperations, SpId = varVhpAttRow.ID, { FileCount: CountRows(varVhpAttRow.Attachments) }))
                               RadiusBottomLeft: |-
                                   =R.input
                               RadiusBottomRight: |-
@@ -16934,7 +16936,7 @@ Screens:
                               Size: |-
                                   =T.input
                               Text: |-
-                                  ="Docs (" & Text(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).FileCount, 0)) & ")"
+                                  =With({ n: LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).FileCount }, If(IsBlank(n), "Docs", "Docs (" & Text(n) & ")"))
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
@@ -25615,7 +25617,7 @@ Screens:
                                                             CostElement: OP.CostElem,
                                                             MaterialGroup: OP.MaterialGroup,
                                                             ServiceNo: OP.ServiceNo,
-                                                            FileCount: CountRows(OP.Attachments),
+                                                            FileCount: If(false, 0),
                                                             SpId: OP.ID
                                                         }
                                                     )
