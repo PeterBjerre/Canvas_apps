@@ -525,7 +525,11 @@ WORKING_COLLECTIONS = [
       "TasklistKey": '""', "TasklistName": '""', "Status": '""',
       # Raekkens ID i MaintenanceItems; 0 = ikke gemt endnu. Gem opdaterer
       # et item med SpId i stedet for at oprette det igen (REVIEW.md D7).
-      "SpId": 0}),
+      "SpId": 0,
+      # Itemets identitet paa tvaers af gem (MaintenanceItems.ItemGuid,
+      # docs/32 §6). Dannes ved Add/Copy item og ved indlaesning af et item
+      # uden; godkendelserne i MD_ApprovalLog peger paa den (R2-034).
+      "ItemGuid": '""'}),
     ("colVhpOperations",
      {"ItemId": 0, "OperationNo": '""', "OperationShortText": '""', "WorkHours": 0,
       # Persons er SAP's "No." (ANZZL). DurationHours regnes af de to og

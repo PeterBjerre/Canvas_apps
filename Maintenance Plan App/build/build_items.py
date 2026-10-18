@@ -233,6 +233,9 @@ def _copy_record(collection, alias, indent):
         elif k == "SpId":
             # En kopi er en NY raekke - den maa ikke opdatere originalen.
             fields.append("SpId: 0")
+        elif k == "ItemGuid":
+            # En kopi er et nyt item med sin egen identitet (docs/32 §6).
+            fields.append("ItemGuid: Text(GUID())")
         elif k == "FileCount":
             # Dokumenterne haenger paa originalens raekke - kopien har ingen.
             fields.append("FileCount: 0")
@@ -288,7 +291,7 @@ def build_items_rail():
             "            ItemId: varVhpNextItemId, ShortText: \"\", FunctionalLocation: \"\", FlDescription: \"\",\n"
             "            MainWorkCenter: \"\", ActivityType: \"\", ObjectList: \"\", Revision: \"\",\n"
             "            OrstedResponsible: \"\", Initials: Upper(First(Split(varVhpMe, \"@\")).Value), LongText: \"\", NonFlowUserStatus: \"\", TasklistKey: \"\", TasklistName: \"\",\n"
-            "            Status: \"draft\", SpId: 0\n"
+            "            Status: \"draft\", SpId: 0, ItemGuid: Text(GUID())\n"
             "        }\n"
             "    );\n"
             "    Set(varVhpActiveItemId, varVhpNextItemId);\n"
@@ -321,7 +324,8 @@ def build_items_rail():
             "                OrstedResponsible: src.OrstedResponsible, Initials: src.Initials, LongText: src.LongText,\n"
             "                NonFlowUserStatus: src.NonFlowUserStatus,\n"
             "                TasklistKey: src.TasklistKey, TasklistName: src.TasklistName, Status: \"draft\",\n"
-            "                SpId: 0\n"
+            # En kopi er et NYT item: ny identitet, ikke kildens (docs/32 §6).
+            "                SpId: 0, ItemGuid: Text(GUID())\n"
             "            }\n"
             "        );\n"
             # Collect UDEN OM ForAll. ForAll returnerer en tabel, og Collect

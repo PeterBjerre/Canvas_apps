@@ -262,6 +262,9 @@ def item_fields(key=None):
         "{\n"
         + (f"                ItemID: {key},\n" if key else "") +
         "                Title: IT.ShortText,\n"
+        # Itemets identitet paa tvaers af gem (docs/32 §6, R2-034) -
+        # godkendelsesflowene logger den i MD_ApprovalLog.ItemGuid.
+        "                ItemGuid: IT.ItemGuid,\n"
         # Vaerdien er SharePoints egen (New/Change/Deleted) - se build_load.
         "                Status: { Value: Coalesce(varVhpPlan.Status, \"New\") },\n"
         "                MaintenancePlanNo: { Id: varVhpPlanSpId, Value: varVhpPlanKey },\n"

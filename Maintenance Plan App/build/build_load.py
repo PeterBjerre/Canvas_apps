@@ -74,6 +74,7 @@ EMPTY_ITEM_FIELDS = [
     ("Initials", 'Upper(First(Split(varVhpMe, "@")).Value)'), ("LongText", '""'),
     ("NonFlowUserStatus", '""'), ("TasklistKey", '""'),
     ("TasklistName", '""'), ("Status", '"draft"'), ("SpId", "0"),
+    ("ItemGuid", "Text(GUID())"),
 ]
 
 # Planhovedet. Feltnavnene SKAL vaere de samme som i OnStart's foerste
@@ -126,6 +127,9 @@ ITEM_FIELDS = [
     ("Status", '"valid"'),
     # Gem opdaterer netop den raekke (build_save, REVIEW.md D7).
     ("SpId", "IT.ID"),
+    # Itemets identitet (docs/32 §6, R2-034). Et item fra foer kolonnen
+    # blev skrevet, faar en ny her og beholder den fra naeste gem.
+    ("ItemGuid", "Coalesce(IT.ItemGuid, Text(GUID()))"),
 ]
 
 OP_FIELDS = [
