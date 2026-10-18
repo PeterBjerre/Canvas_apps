@@ -152,3 +152,20 @@ def test_rule_16b_rejects_classic_and_other_versions(tmp_path):
             assert rc == 0 and "[16b]" not in buf.getvalue(), buf.getvalue()
         else:
             assert rc == 1 and "[16b]" in buf.getvalue(), (bad, buf.getvalue())
+
+
+def test_picker_height_fills_parent_without_needless_scroll():
+    """Issue #344: kontrollen har plads til tom-tilstanden (mindst
+    PICKER_H), vokser med filerne og kappes foerst af foraelderens plads
+    (Parent.Height minus de andre boern) - ikke af et fast loft paa fire
+    filer. Den naevner ikke sig selv ved navn i sin egen hoejde."""
+    sys.path.insert(0, TOOLS)
+    import doc_upload as du
+    assert du.PICKER_H > 112
+    for screen, (name, _btn, _lst, items) in PICKERS.items():
+        h = _prop(_block(_read(screen), name), "Height")
+        assert h.startswith(f"Min({du.PICKER_H} + Max(Self.AttachmentsCount, "
+                            f"CountRows({items})) * {du.PICKER_FILE_H}, "
+                            f"Max({du.PICKER_H}, Parent.Height - ("), (screen, h)
+        assert f"{name}." not in h, (screen, h)
+        assert "Min(Self.AttachmentsCount, 4)" not in h, screen
