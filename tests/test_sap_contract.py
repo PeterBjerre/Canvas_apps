@@ -241,7 +241,13 @@ def test_folder_names_agree():
     folders = re.search(r"foreach \(\$folder in @\(([^)]*)\)\)", ps1).group(1)
     for key in ("FOLDER_ORDERS", "FOLDER_RECEIPTS", "FOLDER_DONE"):
         assert f"'{const[key]}'" in folders, key
-    assert const["SUFFIX_RECEIPT"] in _expressions()["kvittering-0-filter.txt"]
+    # R2-055: filteret tager ogsaa OneDrives konfliktkopier
+    # ("...kvittering-PCNAVN.json") med, og betingelsen afviser dem til
+    # Afvist med en mail, saa ingen kvittering bliver liggende stille.
+    stem = const["SUFFIX_RECEIPT"][:-len(".json")]
+    assert f"'{stem}'" in _expressions()["kvittering-0-filter.txt"]
+    assert "'.json'" in _expressions()["kvittering-0-filter.txt"]
+    assert f"'{const['SUFFIX_RECEIPT']}'" in _expressions()["kvittering-2-betingelse.txt"]
 
 
 #==============================================================================
@@ -304,9 +310,11 @@ def test_fl_flows_write_known_columns():
     writes = {
         "FunctionalLocationRequests": set(load(FLOW, "fl-ordre-3-merge-request.json")) |
                                       set(load(FLOW, "fl-ordre-4-merge-request-reset.json")) |
-                                      set(load(FLOW, "fl-kvittering-4-merge-request.json")),
+                                      set(load(FLOW, "fl-kvittering-4-merge-request.json")) |
+                                      set(load(FLOW, "fl-kvittering-7-merge-request-partial.json")),
         "FunctionalLocationItems": set(load(FLOW, "fl-kvittering-3-merge-row.json")),
-        "MD_RequestIndex": set(load(FLOW, "fl-kvittering-5-merge-index.json")),
+        "MD_RequestIndex": set(load(FLOW, "fl-kvittering-5-merge-index.json")) |
+                           set(load(FLOW, "fl-kvittering-8-merge-index-partial.json")),
     }
     missing = [(l, c) for l, cols in writes.items() for c in sorted(cols) if not known(l, c)]
     assert not missing, missing
@@ -326,7 +334,7 @@ def _fl_flow_columns():
 
     req, row = set(), set()
     for name in ("fl-ordre-3-merge-request.json", "fl-ordre-4-merge-request-reset.json",
-                 "fl-kvittering-4-merge-request.json"):
+                 "fl-kvittering-4-merge-request.json", "fl-kvittering-7-merge-request-partial.json"):
         req |= set(load(FLOW, name))
     row |= set(load(FLOW, "fl-kvittering-3-merge-row.json"))
     for name in ("fl-ordre-0-trigger.txt", "fl-ordre-2-compose-order.json",
@@ -374,11 +382,35 @@ def test_fl_status_values_are_known():
     for arr in re.findall(r"createArray\(([^)]*)\)", text):
         used |= set(re.findall(r"'([^']+)'", arr))
     used.add(load(FLOW, "fl-kvittering-4-merge-request.json")["Status"])
-    index = load(FLOW, "fl-kvittering-5-merge-index.json")
-    used.add(index["Status"])
-    assert {"Indsendt", "OprettetISAP"} <= used
+    used.add(load(FLOW, "fl-kvittering-7-merge-request-partial.json")["Status"])
+    for name in ("fl-kvittering-5-merge-index.json", "fl-kvittering-8-merge-index-partial.json"):
+        index = load(FLOW, name)
+        used.add(index["Status"])
+        assert index["StatusStep"] == ri.step(index["Status"]), name
+    assert {"Indsendt", "OprettetISAP", "UnderBehandling"} <= used
     assert used <= known, sorted(used - known)
-    assert index["StatusStep"] == ri.step(index["Status"])
+
+
+def test_fl_partial_receipt():
+    """R2-057: en anmodning med een fejlende raekke faar en kvittering med
+    state Partial. Flow D godtager den, skriver Failed og fejlen paa raekken
+    og holder anmodningen aaben (UnderBehandling) - som en aaben status, saa
+    den endelige kvittering ogsaa godtages."""
+    import request_index as ri
+    run = open(os.path.join(RUNNER, "VhpFlRun.bas"), encoding="utf-8").read()
+    assert re.search(r'If VhpUtil\.JStr\(status, "state"\) = "Partial" Then WritePartialReceipt', run)
+    assert "Partial" in FL_RECEIPT["properties"]["state"]["enum"]
+    cond = _expressions()["fl-kvittering-2-betingelse.txt"]
+    assert "'Created'" in cond and "'Partial'" in cond
+    row = load(FLOW, "fl-kvittering-3-merge-row.json")
+    assert "'Failed'" in row["SapResult"]
+    assert "['lastError']" in row["SapMessage"]
+    assert "take(" in row["SapMessage"], "SapMessage er en tekstkolonne (255 tegn)"
+    partial = load(FLOW, "fl-kvittering-7-merge-request-partial.json")
+    assert ri.step(partial["Status"]) < ri.step("OprettetISAP")
+    open_states = re.findall(r"createArray\(([^)]*)\)", cond)[0]
+    assert f"'{partial['Status']}'" in open_states
+    assert load(FLOW, "fl-kvittering-8-merge-index-partial.json")["IsOpen"] is True
 
 
 def test_fl_order_trigger_and_reset():

@@ -9,7 +9,10 @@ Option Explicit
 '
 ' Forskellen: en raekke, SAP afviser, stopper ikke de andre - SPOOL-arket
 ' fortsatte ogsaa med naeste raekke. Anmodningen er foerst oprettet, naar
-' ALLE raekker er gemt; indtil da er den Delvist oprettet.
+' ALLE raekker er gemt; indtil da er den Delvist oprettet. Raekkerne er
+' uafhaengige objekter i SAP, saa en delvis koersel skriver ogsaa en
+' kvittering (state Partial, R2-057): de gemte FL'er og den fejlende raekkes
+' fejl naar SharePoint, og Master Data faar en mail fra flow D.
 '
 ' En FL kan ikke blive en dublet: findes den, aendres den (IL02). Derfor
 ' maa en ny ordre for samme anmodning koere, selv om en aeldre er delvist
@@ -107,6 +110,13 @@ Public Function ProcessFlOrder(ByVal path As String, ByVal root As String, _
         ", " & VhpUtil.UserName() & ")"
     VhpRun.SaveStatus status, statusPath
 
+    reason = VhpRun.ConfirmLock(status, statusPath)
+    If Len(reason) > 0 Then
+        VhpUi.LogLine key, reason
+        ProcessFlOrder = "SK:" & key & ": " & reason
+        Exit Function
+    End If
+
     Set ctx = VhpUtil.NewDict()
     ctx.Add "lookups", lk
     ctx.Add "confirmSave", VhpConfig.SettingIsYes(SET_CONFIRM_SAVE)
@@ -168,6 +178,7 @@ Public Function ProcessFlOrder(ByVal path As String, ByVal root As String, _
     End If
     VhpRun.AddLog status, key, "STOP: " & VhpUtil.JStr(status, "lastError")
     VhpRun.SaveStatus status, statusPath
+    If VhpUtil.JStr(status, "state") = "Partial" Then WritePartialReceipt root, path, status, key
 
     Select Case stopNo
         Case ERR_STOP_RUN
@@ -309,6 +320,28 @@ Private Function DoneSummary(ByVal status As Object) As String
     DoneSummary = (nNew + nChanged) & VhpUtil.Dk(" FL gemt i SAP (") & nNew & VhpUtil.Dk(" oprettet, ") & _
         nChanged & VhpUtil.Dk(" {ae}ndret)")
 End Function
+
+' Delvis kvittering (R2-057): de gemte raekker og fejlen paa den, der ikke
+' blev gemt, til flowet (Kvitteringer\FL), mens ordren bliver i "Til
+' oprettelse". Samme filnavn som den endelige kvittering - naeste koersel
+' skriver en ny. Kan den ikke skrives, er det kun en besked: raekkerne staar
+' i statusfilen, og naeste koersel proever igen.
+Public Sub WritePartialReceipt(ByVal root As String, ByVal path As String, ByVal status As Object, _
+                               ByVal key As String)
+    Dim errMsg As String
+
+    On Error GoTo Failed
+    VhpFiles.WriteJson VhpFiles.FlReceiptPathFor(root, path), status
+    VhpUi.LogLine key, VhpUtil.Dk("Delvis kvittering skrevet (Partial). Flowet skriver de gemte FL og fejlen i SharePoint.")
+    Exit Sub
+
+Failed:
+    errMsg = Err.Description
+    Resume Report
+Report:
+    On Error GoTo 0
+    VhpUi.LogLine key, VhpUtil.Dk("Den delvise kvittering kunne ikke skrives: ") & errMsg
+End Sub
 
 ' Kvitteringen til flowet (Kvitteringer\FL), ordren og aeldre ordrer for samme
 ' anmodning ud af "Til oprettelse".

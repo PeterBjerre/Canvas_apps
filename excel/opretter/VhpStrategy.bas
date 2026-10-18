@@ -354,7 +354,7 @@ Public Function CreatePlan(ByVal sess As Object, ByVal order As Object, ByVal it
     If Not VhpUtil.TryParseYmd(VhpUtil.JStr(plan, "plannedDate"), firstDue) Then
         Err.Raise ERR_SAP, "VhpStrategy", what & VhpUtil.Dk(": ugyldig dato for f{oe}rste forfald.")
     End If
-    startText = VhpMap.SapDate(StartDate(order, firstDue))
+    startText = VhpMap.SapDate(StartDate(order, firstDue), CStr(ctx("dateFormat")))
 
     ' Appens kaldshorisont, ellers Opslag for den korteste tidspakke, ellers
     ' det, SAP foreslaar fra strategien.

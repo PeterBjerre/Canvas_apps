@@ -464,6 +464,8 @@ Private Sub ValidateItem(ByVal res As Object, ByVal item As Object, ByVal plantR
         End If
     End If
 
+    CheckLongText res, lbl, VhpUtil.JStr(item, "longText")
+
     If Operations(item).Count = 0 Then
         AddError res, lbl & VhpUtil.Dk("har ingen operationer. Hvert item f{aa}r sin egen arbejdsplan, og den skal have mindst {e}n.")
     End If
@@ -499,6 +501,8 @@ Private Sub ValidateOperation(ByVal res As Object, ByVal lbl As String, ByVal op
     If Len(VhpMap.WorkCenter(VhpUtil.JStr(op, "workCenter"))) = 0 Then
         AddError res, opLbl & VhpUtil.Dk("mangler arbejdscenter.")
     End If
+
+    CheckLongText res, opLbl, VhpUtil.JStr(op, "longText")
 
     Select Case ctrl
         Case "PM01", "ZB01"
@@ -536,6 +540,18 @@ Private Sub ValidateOperation(ByVal res As Object, ByVal lbl As String, ByVal op
             AddError res, opLbl & VhpUtil.Dk("kontroln{oe}glen '") & ctrl & _
                 VhpUtil.Dk("' kender opretteren ikke. Den kan PM01, ZB01, PM02 og PM03.")
     End Select
+End Sub
+
+' Langtekstfilen skrives i Windows' tegnsaet. Et tegn, det ikke har, bliver
+' til "?" i SAP - det siges her, saa det staar i Detaljer og i kvitteringen
+' (R2-088). De kendte (>=, minustegn, pile ...) erstatter VhpItf selv.
+Private Sub CheckLongText(ByVal res As Object, ByVal lbl As String, ByVal html As String)
+    Dim bad As String
+    If Len(html) = 0 Then Exit Sub
+    bad = VhpItf.NonWindowsChars(VhpItf.HtmlToSapText(html))
+    If Len(bad) > 0 Then
+        AddWarning res, lbl & VhpUtil.Dk("langteksten har tegn, SAP ikke kan f{aa} {-} de bliver til ? i SAP: ") & bad
+    End If
 End Sub
 
 Private Sub AddError(ByVal res As Object, ByVal msg As String)

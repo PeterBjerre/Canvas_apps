@@ -278,7 +278,11 @@ ligeglad med, hvordan filen kom dertil. Planen bliver altså *Published* senest
 *Filter array* **Receipt files**: *From*
 `body('Get_files_(properties_only)')?['value']`. Betingelsen er udtrykket i
 `kvittering-0-filter.txt` *is equal to* `true`. Det sorterer mapperne
-*Behandlet* og *Afvist* fra og alt andet end `*.kvittering.json`.
+*Behandlet* og *Afvist* fra og alt andet end `*.kvittering*.json`. OneDrives
+konfliktkopier (`….kvittering-PCNAVN.json`, når to pc'er skrev samme
+kvittering) kommer med, så *Valid receipt* kan afvise dem med en mail – før
+R2-055 blev de liggende i *Kvitteringer* uden at nogen fik besked. Halvt
+skrevne `.json.tmp`-filer kommer ikke med.
 
 ### 2. Én kvittering ad gangen
 
@@ -301,6 +305,7 @@ Betingelsen tjekker:
 
 | Tjek | Fanger |
 |---|---|
+| Filnavnet ender på `.kvittering.json` | En OneDrive-konfliktkopi (R2-055) |
 | `kind` er `vhplan-sap-receipt`, og `state` er `Created` | En fremmed fil |
 | `sapPlanNo` er udfyldt | En kvittering uden plannummer |
 | `orderGuid` er planens `SapOrderGuid` | En kvittering for en gammel ordre, fx fra før planen blev trukket tilbage |
@@ -393,7 +398,9 @@ Med en DEV-plan, før opretteren bruges mod SAP:
 4. Opret planen i GQ1 (docs/34, afsnit 9). Inden for 10 minutter er planen
    *Published* med `SAPNum`. Hvert item har `SapItemNo`, `TaskListGroup` og
    `TaskListGroupCounter`, kvitteringen ligger i *Behandlet*, og rekvirenten
-   har fået mailen.
+   har fået mailen. Den gamle ordre fra punkt 3 er flyttet til *Oprettet*
+   sammen med den nye (R2-056), og listen i opretteren har ingen række for
+   planen længere.
 5. Kopiér kvitteringen fra *Behandlet* tilbage til *Kvitteringer*. Den havner
    i *Afvist*, fordi planen ikke længere er *Ready*, og der kommer en mail.
 

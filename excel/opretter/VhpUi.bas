@@ -169,7 +169,7 @@ Public Sub RefreshList()
     If Len(root) = 0 Then GoTo Done
 
     Set lk = VhpLookup.Load()
-    Set files = VhpFiles.ListOrderFiles(root)
+    Set files = VhpFiles.ListOrderFiles(root, True)
     Set newest = VhpUtil.NewDict()
 
     ' Foerste gennemloeb: laes alle, og find den nyeste ordre pr. plan eller
@@ -236,6 +236,15 @@ Private Function ReadOrderInfo(ByVal path As String, ByVal lk As Object, ByVal r
     info.Add "state", ""
     info.Add "message", ""
     Set ReadOrderInfo = info
+
+    ' To pc'er skrev samme status- eller kvitteringsfil, foer OneDrive naaede
+    ' at synkronisere (R2-055). Kopien er ikke en ordre.
+    If VhpFiles.IsSyncConflict(path) Then
+        info("state") = "Synkkonflikt"
+        info("message") = VhpUtil.Dk("OneDrive-konfliktkopi (to pc'er skrev samme fil). Slet kopien, og behold den nyeste uden pc-navn. ") & _
+            VhpUtil.Dk("Se i Log, om planen blev k{oe}rt to gange.")
+        Exit Function
+    End If
 
     On Error Resume Next
     Set order = VhpOrder.LoadOrder(path)
@@ -344,7 +353,7 @@ Private Sub ColorState(ByVal cell As Range, ByVal state As String)
         Case state = VhpUtil.Dk("Kan ikke oprettes"), state = VhpUtil.Dk("Fejlede"), state = VhpUtil.Dk("Ugyldig fil")
             c = RGB(253, 231, 233)
         Case state = VhpUtil.Dk("Kr{ae}ver kontrol"), state = VhpUtil.Dk("Delvist oprettet"), _
-             state = VhpUtil.Dk("Allerede oprettet")
+             state = VhpUtil.Dk("Allerede oprettet"), state = "Synkkonflikt"
             c = RGB(255, 244, 206)
         Case Else
             c = RGB(237, 235, 233)
@@ -524,10 +533,10 @@ Private Sub PreviewPlan(ByVal ws As Worksheet, ByVal path As String, ByVal order
     If VhpUtil.TryParseYmd(VhpUtil.JStr(plan, "plannedDate"), firstDue) Then
         Pair ws, r, VhpUtil.Dk("F{oe}rste forfald"), VhpMap.SapDate(firstDue)
         If isStrat Then
-            Pair ws, r, VhpUtil.Dk("Startdato i SAP"), VhpMap.SapDate(VhpStrategy.StartDate(order, firstDue)) & _
+            Pair ws, r, VhpUtil.Dk("Startdato i SAP"), VhpMap.SapDate(VhpStrategy.StartDate(order, firstDue), VhpConfig.Setting(SET_DATE_FORMAT)) & _
                 VhpUtil.Dk("  (den korteste pakke f{oe}r f{oe}rste forfald)")
         Else
-            Pair ws, r, VhpUtil.Dk("Startdato i SAP"), VhpMap.SapDate(VhpMap.StartDate(firstDue, cycle, unitText)) & _
+            Pair ws, r, VhpUtil.Dk("Startdato i SAP"), VhpMap.SapDate(VhpMap.StartDate(firstDue, cycle, unitText), VhpConfig.Setting(SET_DATE_FORMAT)) & _
                 VhpUtil.Dk("  (en cyklus f{oe}r f{oe}rste forfald)")
         End If
     End If
@@ -679,9 +688,9 @@ Private Sub PreviewFl(ByVal ws As Worksheet, ByVal path As String, ByVal order A
         Pair ws, r, "Rum", VhpFl.FieldValue(row, FLF_ROOM)
         Pair ws, r, "ABC", VhpFl.FieldValue(row, FLF_ABC)
         Pair ws, r, "Sorteringsfelt", VhpFl.FieldValue(row, FLF_SORTFIELD)
-        warranty = VhpFl.SapDateText(VhpFl.FieldValue(row, FLF_WARRANTY_START))
+        warranty = VhpFl.SapDateText(VhpFl.FieldValue(row, FLF_WARRANTY_START), VhpConfig.Setting(SET_DATE_FORMAT))
         If Len(VhpFl.FieldValue(row, FLF_WARRANTY_END)) > 0 Then
-            warranty = warranty & "  " & ChrW$(8211) & "  " & VhpFl.SapDateText(VhpFl.FieldValue(row, FLF_WARRANTY_END))
+            warranty = warranty & "  " & ChrW$(8211) & "  " & VhpFl.SapDateText(VhpFl.FieldValue(row, FLF_WARRANTY_END), VhpConfig.Setting(SET_DATE_FORMAT))
         End If
         Pair ws, r, "Garanti", warranty
         If cls = "KAB" Then Pair ws, r, "Overordnet FL", VhpFl.FieldValue(row, FLF_SUPERIOR)
@@ -1020,6 +1029,7 @@ Private Sub BuildSettings()
     Dim lo As ListObject
     Dim rowsToAdd As Variant
     Dim i As Long
+    Dim r As Long
     Dim lr As ListRow
 
     Set ws = ThisWorkbook.Worksheets(SH_SETTINGS)
@@ -1029,7 +1039,7 @@ Private Sub BuildSettings()
     rowsToAdd = Array( _
         Array(SET_SAP_SYSTEM, "SAP-system", VhpUtil.Dk("Systemet, opretteren logger p{aa}. GQ1 = test, GP1 = produktion.")), _
         Array(SET_SAP_CLIENT, "Klient", ""), _
-        Array(SET_PROD_SYSTEMS, "Produktionssystemer", VhpUtil.Dk("Kommasepareret. DEV- og TEST-ordrer kan ikke oprettes her, PROD-ordrer kun her.")), _
+        Array(SET_PROD_SYSTEMS, "Produktionssystemer", LockedNote()), _
         Array(SET_LOGON_TEST, "SAP Logon, test", VhpUtil.Dk("Forbindelsens navn i SAP Logon. Bruges, hvis SAP ikke er {aa}bent.")), _
         Array(SET_LOGON_PROD, "SAP Logon, produktion", VhpUtil.Dk("Forbindelsens navn i SAP Logon.")), _
         Array(SET_NEW_SESSION, "Eget SAP-vindue", VhpUtil.Dk("Ja: opretteren {aa}bner sit eget SAP-vindue, s{aa} dit arbejde i de andre ikke forstyrres.")), _
@@ -1040,7 +1050,9 @@ Private Sub BuildSettings()
         Array(SET_TASKLIST_TYPE, "Arbejdsplantype", "A = generel arbejdsplan"), _
         Array(SET_PM02_MATGROUP, "Varegruppe ved PM02 uden varegruppe", VhpUtil.Dk("Det gamle regneark brugte altid B08.06.")), _
         Array(SET_DECIMAL_SEP, "Decimaltegn i SAP", VhpUtil.Dk("Som i SAP-brugerprofilen (System > Brugerprofil > Egne data > Standardv{ae}rdier).")), _
-        Array(SET_PLAN_CATEGORY, "Plankategori", ""))
+        Array(SET_PLAN_CATEGORY, "Plankategori", ""), _
+        Array(SET_DATE_FORMAT, "Datoformat i SAP", VhpUtil.Dk("Som i SAP-brugerprofilen (SU3), fx dd.mm.yyyy, mm/dd/yyyy eller yyyy-mm-dd. N{oe}gledatoen skrives i samme format.")), _
+        Array(SET_SAP_LANGUAGE, "SAP-sprog", VhpUtil.Dk("Logon-sproget, opretteren kr{ae}ver (EN). Den genkender SAP's beskeder p{aa} engelsk. Tom = intet tjek.")))
 
     If Not TableExists(ws, LO_SETTINGS) Then
         ws.Range("A3:D3").Value = Array(VhpUtil.Dk("N{oe}gle"), "Indstilling", VhpUtil.Dk("V{ae}rdi"), "Forklaring")
@@ -1062,6 +1074,16 @@ Private Sub BuildSettings()
         End If
     Next i
 
+    ' Laaste noegler (R2-058): arket viser kodens vaerdi og siger, at den
+    ' ikke kan rettes her. En gammel vaerdi i arket overskrives.
+    For r = 1 To lo.ListRows.Count
+        If VhpConfig.IsLockedSetting(Trim$(CStr(lo.DataBodyRange.Cells(r, 1).Value))) Then
+            lo.DataBodyRange.Cells(r, 3).Value = VhpConfig.DefaultSetting(Trim$(CStr(lo.DataBodyRange.Cells(r, 1).Value)))
+            lo.DataBodyRange.Cells(r, 4).Value = LockedNote()
+            lo.DataBodyRange.Cells(r, 3).Interior.Color = RGB(237, 235, 233)
+        End If
+    Next r
+
     ws.Columns(1).ColumnWidth = 18
     ws.Columns(2).ColumnWidth = 34
     ws.Columns(3).ColumnWidth = 44
@@ -1071,6 +1093,11 @@ Private Sub BuildSettings()
     AddButton ws, "btnVhpSelfTest", "Selvtest", "VhpUi.BtnSelfTest", _
         ws.Range("F1").Left, ws.Range("F1").Top, 100, RGB(96, 94, 92)
 End Sub
+
+Private Function LockedNote() As String
+    LockedNote = VhpUtil.Dk("Fast i koden (VhpConfig.DefaultSetting) {-} en v{ae}rdi her bruges ikke. ") & _
+        VhpUtil.Dk("DEV- og TEST-ordrer kan ikke oprettes her, PROD-ordrer kun her.")
+End Function
 
 Private Function SettingRowExists(ByVal lo As ListObject, ByVal key As String) As Boolean
     Dim r As Long

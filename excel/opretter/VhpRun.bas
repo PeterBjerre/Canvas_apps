@@ -46,6 +46,7 @@ Public Sub CreateOrders(ByVal paths As Collection)
     Dim nCheck As Long
     Dim nSkip As Long
     Dim msg As String
+    Dim langMsg As String
 
     If paths Is Nothing Then Exit Sub
     If paths.Count = 0 Then
@@ -61,10 +62,28 @@ Public Sub CreateOrders(ByVal paths As Collection)
     VhpFiles.EnsureSubfolders root
     Set lk = VhpLookup.Load()
 
+    ' Datoformatet skal kunne bruges, foer noget skrives i SAP (R2-059).
+    If Not VhpMap.IsSapDateFormat(VhpConfig.Setting(SET_DATE_FORMAT)) Then
+        MsgBox VhpUtil.Dk("Indstillingen Datoformat i SAP er '") & VhpConfig.Setting(SET_DATE_FORMAT) & _
+            VhpUtil.Dk("'. Skriv den som i SAP-brugerprofilen (SU3), fx dd.mm.yyyy eller mm/dd/yyyy."), _
+            vbExclamation, VHP_APP_NAME
+        Exit Sub
+    End If
+
     On Error GoTo NoSap
     Set sess = VhpSap.Connect(VhpConfig.Setting(SET_SAP_SYSTEM), VhpConfig.Setting(SET_SAP_CLIENT), _
                               VhpConfig.SettingIsYes(SET_NEW_SESSION), createdNew)
     On Error GoTo 0
+
+    ' Logon-sproget: opretteren genkender SAP's beskeder paa engelsk.
+    langMsg = LanguageProblem(sess)
+    If Len(langMsg) > 0 Then
+        Application.StatusBar = False
+        If createdNew Then VhpSap.CloseSession sess
+        VhpUi.LogLine "", langMsg
+        MsgBox langMsg, vbExclamation, VHP_APP_NAME
+        Exit Sub
+    End If
 
     mProdConfirmed = False
     VhpUi.LogLine "", VhpUtil.Dk("Start: ") & paths.Count & VhpUtil.Dk(" ordre(r), SAP ") & _
@@ -105,6 +124,29 @@ NoSap:
     MsgBox Err.Description, vbExclamation, VHP_APP_NAME
 End Sub
 
+' "" = sproget er i orden. Ellers beskeden til brugeren (R2-059). SAP's
+' tekster ("already exists") og loggens beskeder forventes paa det sprog,
+' indstillingen SapLanguage siger (EN). Med dansk logon ville en FL, der
+' findes, ikke blive genkendt, og IL01 fejle i stedet for IL02.
+Private Function LanguageProblem(ByVal sess As Object) As String
+    Dim wanted As String
+    Dim actual As String
+
+    wanted = UCase$(Trim$(VhpConfig.Setting(SET_SAP_LANGUAGE)))
+    If Len(wanted) = 0 Then Exit Function
+    actual = VhpSap.LanguageOf(sess)
+    If Len(actual) = 0 Then
+        VhpUi.LogLine "", VhpUtil.Dk("SAP-sproget kunne ikke l{ae}ses. Der forts{ae}ttes som ") & wanted & "."
+        Exit Function
+    End If
+    If VhpMap.SameSapLanguage(actual, wanted) Then Exit Function
+
+    LanguageProblem = VhpUtil.Dk("SAP er logget p{aa} med sproget ") & actual & _
+        VhpUtil.Dk(", men opretteren kr{ae}ver ") & wanted & "." & vbLf & vbLf & _
+        VhpUtil.Dk("Log p{aa} med ") & IIf(wanted = "EN", "engelsk (EN)", wanted) & _
+        VhpUtil.Dk(" i SAP Logon, og pr{oe}v igen. Opretteren genkender SAP's beskeder p{aa} det sprog. Intet er oprettet.")
+End Function
+
 ' ProcessOrder og VhpFlRun.ProcessFlOrder fanger selv fejlene fra SAP. Det her
 ' er nettet under: en fejl, ingen havde forudset (en fil, OneDrive holder
 ' laast, et ark, der er slettet), maa stoppe EEN ordre, ikke hele koerslen
@@ -113,6 +155,11 @@ Private Function SafeProcessOrder(ByVal path As String, ByVal root As String, _
                                   ByVal sess As Object, ByVal lk As Object) As String
     Dim msg As String
     On Error GoTo Unexpected
+    If VhpFiles.IsSyncConflict(path) Then
+        SafeProcessOrder = "SK:" & VhpFiles.FileNameOf(path) & _
+            VhpUtil.Dk(": OneDrive-konfliktkopi, ikke en ordre. Slet den.")
+        Exit Function
+    End If
     If VhpOrder.IsFlFile(path) Then
         SafeProcessOrder = VhpFlRun.ProcessFlOrder(path, root, sess, lk)
     Else
@@ -214,7 +261,7 @@ Private Function ProcessOrder(ByVal path As String, ByVal root As String, _
     ' Allerede oprettet, men ikke flyttet (fx afbrudt lige efter planen)?
     If VhpUtil.JStr(status, "state") = "Created" Then
         On Error GoTo FinishFailed
-        FinishOrder root, path, status
+        FinishOrder root, path, status, planId, VhpUtil.JStr(order, "createdOn")
         On Error GoTo 0
         ProcessOrder = "OK:" & planId & VhpUtil.Dk(": var allerede oprettet som plan ") & VhpUtil.JStr(status, "sapPlanNo")
         Exit Function
@@ -233,6 +280,13 @@ Private Function ProcessOrder(ByVal path As String, ByVal root As String, _
     AddLog status, planId, VhpUtil.Dk("Start (") & VhpSap.SystemName(sess) & "/" & VhpSap.ClientOf(sess) & _
         ", " & VhpUtil.UserName() & ")"
     SaveStatus status, statusPath
+
+    reason = ConfirmLock(status, statusPath)
+    If Len(reason) > 0 Then
+        VhpUi.LogLine planId, reason
+        ProcessOrder = "SK:" & planId & ": " & reason
+        Exit Function
+    End If
 
     Set ctx = BuildContext(order, lk)
 
@@ -297,7 +351,7 @@ Private Function ProcessOrder(ByVal path As String, ByVal root As String, _
     ' Planen ER oprettet. Kan kvitteringen ikke skrives, staar statusfilen
     ' paa Created, og naeste koersel proever kun kvitteringen igen.
     On Error GoTo FinishFailed
-    FinishOrder root, path, status
+    FinishOrder root, path, status, planId, VhpUtil.JStr(order, "createdOn")
     On Error GoTo 0
 
     ProcessOrder = "OK:" & planId & VhpUtil.Dk(": oprettet som plan ") & VhpUtil.JStr(status, "sapPlanNo") & _
@@ -525,6 +579,35 @@ Public Function CheckStatus(ByVal status As Object, ByVal order As Object, ByVal
     End If
 End Function
 
+' Er laasen stadig min, et par sekunder efter den blev skrevet? "" = ja.
+' Statusfilen ligger i en OneDrive-mappe: en kollega, der trykkede Opret paa
+' samme plan lige foer, ses foerst, naar OneDrive har hentet hans fil
+' (R2-055). Den, der skrev sidst, vinder filen; den anden stopper her.
+Public Function ConfirmLock(ByVal status As Object, ByVal statusPath As String) As String
+    Dim again As Object
+    Dim who As String
+
+    DoEvents
+    Application.Wait Now + TimeSerial(0, 0, LOCK_CONFIRM_SECONDS)
+    DoEvents
+
+    On Error Resume Next
+    Set again = VhpFiles.ReadJson(statusPath)
+    On Error GoTo 0
+    If again Is Nothing Then
+        ConfirmLock = VhpUtil.Dk("statusfilen kunne ikke l{ae}ses igen, efter l{aa}sen blev skrevet (OneDrive?). Pr{oe}v igen om lidt.")
+        Exit Function
+    End If
+
+    If StrComp(VhpUtil.JStr(again, "lockedBy"), VhpUtil.JStr(status, "lockedBy"), vbTextCompare) <> 0 Or _
+       StrComp(VhpUtil.JStr(again, "lockedOn"), VhpUtil.JStr(status, "lockedOn"), vbBinaryCompare) <> 0 Then
+        who = VhpUtil.JStr(again, "lockedBy")
+        If Len(who) = 0 Then who = VhpUtil.Dk("en kollega")
+        ConfirmLock = VhpUtil.Dk("blev startet samtidig af ") & who & _
+            VhpUtil.Dk(" (OneDrive har lige hentet en anden statusfil). Intet er oprettet her. Aftal, hvem der k{oe}rer den.")
+    End If
+End Function
+
 Private Function MinutesSince(ByVal iso As String) As Double
     Dim d As Date
     If Not VhpUtil.TryParseYmd(Left$(iso, 10), d) Then
@@ -662,15 +745,20 @@ Public Sub MergeStepWarnings(ByVal status As Object, ByVal ctx As Object)
     Set ctx("warnings") = New Collection
 End Sub
 
-' Kvitteringen til flowet, og ordren ud af "Til oprettelse".
-Private Sub FinishOrder(ByVal root As String, ByVal path As String, ByVal status As Object)
+' Kvitteringen til flowet, og ordren ud af "Til oprettelse" - sammen med
+' aeldre ordrer for samme plan (R2-056). En erstattet ordre, der blev
+' liggende, ville ellers staa som Klar, naar den nye var flyttet.
+Private Sub FinishOrder(ByVal root As String, ByVal path As String, ByVal status As Object, _
+                        ByVal planId As String, ByVal createdOn As String)
     VhpFiles.WriteJson VhpFiles.ReceiptPathFor(root, path), status
     VhpFiles.MoveToDone root, path
+    RetireOlderOrders root, path, planId, createdOn
 End Sub
 
-' AEldre ordrer for samme noegle (fx en FL-anmodning, der blev sendt retur og
-' indsendt igen) flyttes til Oprettet, naar den nyeste er gemt. Ellers ville
-' de staa i listen som Erstattet eller Delvist oprettet for altid.
+' AEldre ordrer for samme noegle (en FL-anmodning, der blev sendt retur og
+' indsendt igen, eller en VH-plan, der blev trukket tilbage og godkendt
+' igen) flyttes til Oprettet, naar den nyeste er gemt. Ellers ville de staa
+' i listen som Erstattet, Delvist oprettet - eller Klar - for altid.
 Public Sub RetireOlderOrders(ByVal root As String, ByVal path As String, ByVal key As String, _
                              ByVal createdOn As String)
     Dim other As Variant
@@ -706,6 +794,7 @@ Private Function BuildContext(ByVal order As Object, ByVal lk As Object) As Obje
     ctx.Add "profile", VhpUtil.JStr(plantRec, "profile")
     ctx.Add "serviceSpec", VhpUtil.JStr(plantRec, "serviceSpec")
     ctx.Add "keyDate", VhpConfig.Setting(SET_KEY_DATE)
+    ctx.Add "dateFormat", VhpConfig.Setting(SET_DATE_FORMAT)
     ctx.Add "itfPath", VhpConfig.Setting(SET_ITF_PATH)
     ctx.Add "decimalSep", VhpConfig.Setting(SET_DECIMAL_SEP)
     ctx.Add "pm02MatGroup", VhpConfig.Setting(SET_PM02_MATGROUP)
@@ -730,15 +819,20 @@ Public Sub TestConnection()
     Dim sess As Object
     Dim createdNew As Boolean
     Dim sysName As String
+    Dim langMsg As String
 
     On Error GoTo Failed
     Set sess = VhpSap.Connect(VhpConfig.Setting(SET_SAP_SYSTEM), VhpConfig.Setting(SET_SAP_CLIENT), False, createdNew)
     sysName = VhpSap.SystemName(sess)
+    langMsg = LanguageProblem(sess)
     MsgBox VhpUtil.Dk("Forbindelsen virker.") & vbLf & vbLf & _
         "System: " & sysName & IIf(VhpConfig.IsProductionSystem(sysName), VhpUtil.Dk(" (PRODUKTION)"), " (test)") & vbLf & _
         "Klient: " & VhpSap.ClientOf(sess) & vbLf & _
         VhpUtil.Dk("Bruger: ") & sess.Info.User & vbLf & _
-        "Transaktion: " & sess.Info.Transaction, vbInformation, VHP_APP_NAME
+        "Sprog: " & VhpSap.LanguageOf(sess) & vbLf & _
+        "Transaktion: " & sess.Info.Transaction & _
+        IIf(Len(langMsg) > 0, vbLf & vbLf & langMsg, ""), _
+        IIf(Len(langMsg) > 0, vbExclamation, vbInformation), VHP_APP_NAME
     Exit Sub
 
 Failed:

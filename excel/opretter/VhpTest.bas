@@ -84,6 +84,21 @@ Public Function SelfTestPure() As String
     Check "StartDate DAY", Format$(VhpMap.StartDate(DateSerial(2027, 1, 1), 20, "DAY"), "yyyy-mm-dd"), "2026-12-12"
     Check "StartDate H", Format$(VhpMap.StartDate(DateSerial(2027, 1, 1), 1, "H"), "yyyy-mm-dd"), "2027-01-01"
     Check "SapDate", VhpMap.SapDate(DateSerial(2026, 3, 1)), "01.03.2026"
+    Check "SapDate dd.mm.yyyy", VhpMap.SapDate(DateSerial(2026, 3, 1), "dd.mm.yyyy"), "01.03.2026"
+    Check "SapDate mm/dd/yyyy", VhpMap.SapDate(DateSerial(2026, 3, 1), "mm/dd/yyyy"), "03/01/2026"
+    Check "SapDate YYYY-MM-DD", VhpMap.SapDate(DateSerial(2026, 3, 1), "YYYY-MM-DD"), "2026-03-01"
+    Check "IsSapDateFormat dd.mm.yyyy", VhpMap.IsSapDateFormat("dd.mm.yyyy"), True
+    Check "IsSapDateFormat MM/DD/YYYY", VhpMap.IsSapDateFormat("MM/DD/YYYY"), True
+    Check "IsSapDateFormat yyyy.mm.dd", VhpMap.IsSapDateFormat("yyyy.mm.dd"), True
+    Check "IsSapDateFormat yy", VhpMap.IsSapDateFormat("dd.mm.yy"), False
+    Check "IsSapDateFormat blandet", VhpMap.IsSapDateFormat("dd.mm/yyyy"), False
+    Check "IsSapDateFormat dd dd", VhpMap.IsSapDateFormat("dd.dd.yyyy"), False
+    Check "IsSapDateFormat tom", VhpMap.IsSapDateFormat(""), False
+    Check "SameSapLanguage EN", VhpMap.SameSapLanguage("en", "EN"), True
+    Check "SameSapLanguage E", VhpMap.SameSapLanguage("E", "EN"), True
+    Check "SameSapLanguage DA", VhpMap.SameSapLanguage("DA", "EN"), False
+    Check "SameSapLanguage K", VhpMap.SameSapLanguage("K", "EN"), False
+    Check "SameSapLanguage tom", VhpMap.SameSapLanguage("", "EN"), False
     Check "SapNumber komma", VhpMap.SapNumber(1.5, ","), "1,5"
     Check "SapNumber heltal", VhpMap.SapNumber(49400, ","), "49400"
     Check "SapNumber punktum", VhpMap.SapNumber(0.25, "."), "0.25"
@@ -129,6 +144,17 @@ Public Function SelfTestPure() As String
     Check "Itf HasText", VhpItf.HasText("<div>sfsef</div>"), True
     Check "Itf linjeskift i HTML", VhpItf.HtmlToSapText("<p>et" & vbLf & "  to</p>"), "et to"
 
+    ' R2-088: tegn uden for Windows' tegnsaet
+    Check "Itf stoerre end eller lig", VhpItf.HtmlToSapText("<p>a " & ChrW$(8805) & " b</p>"), "a " & ChrW$(8250) & "= b"
+    Check "Itf minustegn ren tekst", VhpItf.HtmlToSapText("5 " & ChrW$(8722) & " 3"), "5 - 3"
+    Check "Itf pil", VhpItf.HtmlToSapText("<p>A " & ChrW$(8594) & " B</p>"), "A -" & ChrW$(8250) & " B"
+    Check "Itf graesk my", VhpItf.HtmlToSapText("<p>5 " & ChrW$(956) & "m</p>"), "5 " & ChrW$(181) & "m"
+    Check "Itf tegnkode for >=", VhpItf.HtmlToSapText("<p>&#8805;5</p>"), ChrW$(8250) & "=5"
+    Check "NonWindowsChars cp1252", VhpItf.NonWindowsChars("a " & ChrW$(8364) & ChrW$(230) & ChrW$(8211) & ChrW$(8249)), ""
+    Check "NonWindowsChars flueben", VhpItf.NonWindowsChars("ok " & ChrW$(10003) & " og " & ChrW$(10003)), ChrW$(10003) & " (U+2713)"
+    Check "NonWindowsChars to", VhpItf.NonWindowsChars(ChrW$(945) & ChrW$(10003)), ChrW$(945) & " (U+03B1), " & ChrW$(10003) & " (U+2713)"
+    Check "NonWindowsChars tom", VhpItf.NonWindowsChars(""), ""
+
     Set body = VhpItf.ItfBody("<p>a</p><p></p><p>b</p>")
     Check "ItfBody antal", body.Count, 3
     Check "ItfBody tom linje", body(2), "*"
@@ -146,6 +172,8 @@ Public Function SelfTestPure() As String
     Check "Fl dato YYYYMMDD", VhpFl.SapDateText("20281231"), "31.12.2028"
     Check "Fl dato DD.MM.YYYY", VhpFl.SapDateText(" 01.01.2026 "), "01.01.2026"
     Check "Fl dato tom", VhpFl.SapDateText(""), ""
+    Check "Fl dato mm/dd/yyyy", VhpFl.SapDateText("31.12.2028", "mm/dd/yyyy"), "12/31/2028"
+    Check "Fl dato YYYYMMDD til yyyy-mm-dd", VhpFl.SapDateText("20281231", "yyyy-mm-dd"), "2028-12-31"
     Check "Fl dato gyldig skuddag", VhpFl.IsFlDate("29.02.2024"), True
     Check "Fl dato ugyldig skuddag", VhpFl.IsFlDate("20230229"), False
     Check "Fl dato ISO afvist", VhpFl.IsFlDate("2024-12-31"), False
