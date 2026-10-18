@@ -70,12 +70,15 @@ def test_every_tab_row_is_a_modern_tab_list_on_the_same_variable():
         for name, (var, values) in tabs.items():
             b = _block(text, name)
             assert f"Control: {VERSION}" in b, name
-            assert _prop(b, "Appearance") == "TabListAppearance.Underline", name
+            # Tenantens Tab list kender ikke TabListAppearance.Underline og
+            # TabListAlignment (#331) - Fluents standard bruges.
+            assert _prop(b, "Appearance") is None, name
+            assert _prop(b, "Alignment") is None, name
             assert _prop(b, "Color") == "C.'text-primary'", name
             acc = _prop(b, "AccessibleLabel")
             assert acc and acc != '""', name
             items, default, change = _prop(b, "Items"), _prop(b, "Default"), _prop(b, "OnChange")
-            assert default.startswith(f"Switch({var}, "), name
+            assert default.startswith(f"{{Value: Switch({var}, "), name
             # Valget skrives kun, naar det faktisk skifter.
             assert f"If(!IsBlank(k) && k <> {var}," in change, name
             assert f"Set({var}, k)" in change, name

@@ -2075,9 +2075,10 @@ TABLIST_CONTROL = "ModernTabList@1.0.0"
 # Fanernes egenskaber efter Microsoft Learn ("Tab List modern control in
 # canvas apps", den opdaterede version). Ingen TabIndex, Fill,
 # BasePaletteColor eller Tooltip - og ingen af de gamle Font*-navne
-# (FontColor, FontSize, ...) eller BorderRadius.
+# (FontColor, FontSize, ...) eller BorderRadius. Alignment og Appearance
+# staar i Learn, men tenantens Tab list kender ikke deres enums (#331).
 TABLIST_PROPS = {
-    "AccessibleLabel", "Align", "Alignment", "Appearance", "BorderColor", "BorderStyle",
+    "AccessibleLabel", "Align", "BorderColor", "BorderStyle",
     "BorderThickness", "Color", "ContentLanguage", "Default", "DisplayMode", "Font",
     "FontWeight", "Height", "Italic", "Items", "OnChange", "OnSelect", "PaddingBottom",
     "PaddingLeft", "PaddingRight", "PaddingTop", "RadiusBottomLeft", "RadiusBottomRight",
@@ -2150,9 +2151,16 @@ def rule_16t(ctx):
         if ctl != TABLIST_CONTROL:
             ctx.problems.append(f"[16t] {name}: {ctl} - faner er {TABLIST_CONTROL} "
                                 f"fra build_helpers.tab_list")
-        for key in sorted(set(body.get("Properties") or {}) - TABLIST_PROPS):
+        props = body.get("Properties") or {}
+        for key in sorted(set(props) - TABLIST_PROPS):
             ctx.problems.append(f"[16t] {name}: {ctl} - '{key}' er ikke en "
                                 f"dokumenteret Tab list-egenskab")
+        # Default skal vaere en raekke som Items' ({Value: ...}); en tekst
+        # afviser compile (#331).
+        default = str(props.get("Default", "")).lstrip("= ").strip()
+        if default and not default.startswith("{Value:"):
+            ctx.problems.append(f"[16t] {name}: Default skal vaere {{Value: ...}} "
+                                f"som Items' raekker")
 
 
 # Et animeret SVG-hjul er en DREJNING: CSS (spinner_svg: rotate(360deg))
@@ -2680,6 +2688,10 @@ def rule_16e(ctx):
         for key in sorted(set(props) - BADGE_PROPS):
             ctx.problems.append(f"[16e] {name}: {ctl} - '{key}' er ikke en "
                                 f"dokumenteret Badge-egenskab")
+        for key, fx in props.items():
+            if "Self.Content" in str(fx):
+                ctx.problems.append(f"[16e] {name}: {key} bruger Self.Content - "
+                                    f"Studio kender den ikke (#331)")
         for key in ("Color", "Fill", "Content", "AccessibleLabel"):
             if key not in props:
                 ctx.problems.append(f"[16e] {name}: {ctl} mangler {key} - "

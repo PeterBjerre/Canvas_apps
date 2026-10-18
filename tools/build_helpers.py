@@ -646,8 +646,12 @@ def tab_list(name, var, tabs, *, label, width, tail="", size=TAB_SIZE, visible=N
              KUN naar den faktisk skifter. En Default, der nulstiller fanen,
              goer derfor intet (ingen ekstra genindlaesning).
 
-    Valgt fane: Appearance Underline - Fluents streg under den valgte, saa
-    det ikke kun er en farve. Color er text-primary, saa teksten kan laeses
+    Default er en POST ({Value: ...}) som Items' raekker - en ren tekst
+    afviste compile ("Expected a value compatible with 'Items'", #331).
+    Alignment og Appearance saettes IKKE: tenantens Tab list kender
+    hverken TabListAlignment eller TabListAppearance.Underline (#331), saa
+    Fluents standard tegner fanerne (streg under den valgte).
+    Color er text-primary, saa teksten kan laeses
     i baade lys og moerk tilstand (appen saetter ikke Fluent-temaet, jf.
     regel 10c). Ingen TabIndex (Learn har ingen); fanerne er Fluents egne,
     saa Tab, piletaster og skaermlaeser virker."""
@@ -676,10 +680,8 @@ def tab_list(name, var, tabs, *, label, width, tail="", size=TAB_SIZE, visible=N
     props = {
         "AccessibleLabel": f'"{label}"',
         "AlignInContainer": "AlignInContainer.Start",
-        "Alignment": "TabListAlignment.Start",
-        "Appearance": "TabListAppearance.Underline",
         "Color": C_TITLE,
-        "Default": default,
+        "Default": "{Value: " + default + "}",
         "Font": FONT,
         "Height": str(TAB_H),
         "Items": items,
@@ -2891,7 +2893,7 @@ def modern_badge(name, content, *, color, fill, width, height=22, size=lay.SIZE_
     ingen TabIndex (Learn: uden OnSelect er det display-only)."""
     r = height // 2 if radius is None else radius
     props = {
-        "AccessibleLabel": accessible or "Self.Content",
+        "AccessibleLabel": accessible or content,
         "Align": f"Align.{align}",
         "Appearance": "BadgeAppearance.Filled",
         "BorderStyle": "BorderStyle.None",
@@ -2915,7 +2917,18 @@ def modern_badge(name, content, *, color, fill, width, height=22, size=lay.SIZE_
         props["Visible"] = visible
     if extra:
         props.update(extra)
+    _badge_no_self(props)
     return Ctrl(name, BADGE_CONTROL, props=props, h=height, vis=visible)
+
+
+def _badge_no_self(props):
+    """Self.Content kan ikke laeses i Studio ("'Content' isn't recognized",
+    #331). Hvor en formel bruger den, staar maerkets egen tekst-formel i
+    stedet (regel 16e afviser Self.Content)."""
+    content = props["Content"]
+    for key, fx in list(props.items()):
+        if key != "Content" and "Self.Content" in fx:
+            props[key] = fx.replace("Self.Content", f"({content})")
 
 
 def badge(name, text, size=11, width=64):
@@ -2945,11 +2958,16 @@ def step_badge(name, step_label, valid_fx, attention_fx=None):
             + '"")')
     b = badge(name, text, width=72)
     b.vis = f"({valid_fx})" + (f" || ({attention_fx})" if attention_fx else "")
-    # Self.Content: formlen bag teksten regnes een gang, ikke tre.
-    b.props["Color"] = f'Switch(Self.Content, "Valid", {C_VALID_FG}, "Invalid", {C_INVALID_FG}, {C_MUTED})'
-    b.props["Fill"] = f'Switch(Self.Content, "Valid", {C_VALID_BG}, "Invalid", {C_INVALID_BG}, {C_NEUTRAL_BG})'
-    b.props["AccessibleLabel"] = (f'If(Self.Content = "Valid", "{step_label}: valid", '
-                                  f'"{step_label}: " & If(Self.Content = "Invalid", "invalid", "not complete yet"))')
+    # Self.Content kan ikke laeses i Studio (#331); farverne vaelges ud fra
+    # samme betingelser som teksten.
+    att = f"{attention_fx}, " if attention_fx else ""
+    b.props["Color"] = (f'If({valid_fx}, {C_VALID_FG}, '
+                        + (f'{att}{C_INVALID_FG}, ' if attention_fx else "") + f'{C_MUTED})')
+    b.props["Fill"] = (f'If({valid_fx}, {C_VALID_BG}, '
+                       + (f'{att}{C_INVALID_BG}, ' if attention_fx else "") + f'{C_NEUTRAL_BG})')
+    b.props["AccessibleLabel"] = (f'If({valid_fx}, "{step_label}: valid", '
+                                  + (f'{att}"{step_label}: invalid", ' if attention_fx else "")
+                                  + f'"{step_label}: not complete yet")')
     return b
 
 
