@@ -72,7 +72,7 @@ def test_popups_found():
     # Vaagt mod at testen stille finder nul popupper.
     assert len(POPUPS) >= 40
     names = {n for _, n, _ in POPUPS}
-    for must in ("conVhpObjListModal", "conVhpPickerModal", "conFlClsModal",
+    for must in ("conVhpObjListModal", "conVhpPickerModal",
                  "conKksPickModal", "conVhpNotesModal"):
         assert must in names
 
@@ -163,6 +163,6 @@ def test_cancel_logic_moved_to_close():
     assert "Clear(colVhpPickerSelected)" in by["btnVhpPickerClose"]
     assert "Collect" not in by["btnVhpPickerClose"]
     # Apply, Use selected og Add selected lines er bevaret.
-    for keep in ("btnFlClsApply", "btnVhpObjListUse", "btnVhpPickerAddSelected",
+    for keep in ("btnVhpObjListUse", "btnVhpPickerAddSelected",
                  "btnVhpSubmitConfirm"):
         assert keep in by, keep

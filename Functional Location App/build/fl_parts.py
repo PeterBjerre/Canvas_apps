@@ -25,7 +25,7 @@ import fl_config as cfg
 import fl_validation as V
 import fl_save as S
 from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED, C_WHITE,
-                        C_PRIMARY, C_TRANSPARENT, C_MODAL_BG, C_PRIMARY_SOFT, C_OVERLAY,
+                        C_PRIMARY, C_TRANSPARENT, C_MODAL_BG, C_PRIMARY_SOFT,
                         C_BORDER_OK, C_BORDER_ERROR, C_INVALID_FG, C_WARN_FG, C_VALID_FG,
                         C_CARD_BG, C_DIVIDER)
 from design_tokens import ref_hex
@@ -434,7 +434,7 @@ def verify_button():
     Select(btnFlVerify) (REVERIFY, docs/31 PX7). Select virker paa en
     skjult knap; den skal bare staa paa samme skaerm."""
     b = button("btnFlVerify", '"Verify"',
-               V.verify_fx(PANEL_REFRESH, after=CLS_AFTER_VERIFY + ";\n" + S.submit_after_verify()),
+               V.verify_fx(PANEL_REFRESH, after=S.submit_after_verify()),
                width=100, visible="false", accessible='"Validate the rows"')
     return b
 
@@ -518,7 +518,7 @@ def row_cells():
 
     has_cls = "!IsBlank(ThisItem.AssignedClass)"
     cls_data = _pop_button(
-        "btnFlRowClassData", "Class data", open_row_panel_fx("ThisItem.RowGuid"),
+        "btnFlRowClassData", "Class data", open_row_panel_fx("ThisItem.RowGuid", f'"{PANEL_CLS_JUMP}"'),
         f"{has_cls} && " + has_vals(
             "ThisItem.RowGuid",
             f"Filter(colFlColumns, Cls = ThisItem.AssignedClass && {CLS_TEST}).Field"),
@@ -576,6 +576,13 @@ PANEL_KEYS = [k for k, _t in cfg.PANEL_SECTIONS]
 PANE_ORD = {f: i + 1 for i, (f, _p, _l) in enumerate(cfg.PANEL_FIELDS)}
 # Raekkens Manufacturer- og Warranty-knap aabner panelet ved DEN sektion.
 PANEL_JUMP = {"Manufacturer": "Mfr", "Warranty": "War"}
+# Class data (Rows) og Edit (Classes) aabner panelet med KUN klassens felter:
+# Class characteristics og TRM - det, Class data-popuppen viste (issue #346).
+PANEL_CLS_JUMP = "Class"
+# Hvilke sektioner hvert spring viser; resten er foldet sammen bag "Show
+# all fields". Manufacturer/Warranty: den sektion og dem efter den.
+PANEL_FOCUS = {j: PANEL_KEYS[PANEL_KEYS.index(j):] for j in PANEL_JUMP.values()}
+PANEL_FOCUS[PANEL_CLS_JUMP] = ["Class", "TRM"]
 PANEL_DR = "LookUp(colFlRows, RowGuid = varFlDetailRow)"
 PANEL_CLS = f'Coalesce({PANEL_DR}.AssignedClass, "NO CLASS")'
 
@@ -665,9 +672,10 @@ PANEL_DM = f"If({PANEL_LOCKED}, DisplayMode.Disabled, DisplayMode.Edit)"
 
 
 def open_row_panel_fx(guid, jump='""'):
-    """Aabn panelet for raekken guid. jump: sektionen, panelet skal vise
-    (Manufacturer/Warranty-knappen) - sektionerne foer den er foldet sammen
-    til "Show all fields" (issue #278). Tom = alle sektioner."""
+    """Aabn panelet for raekken guid. jump: hvad knappen aabner (PANEL_FOCUS)
+    - Manufacturer/Warranty: den sektion og dem efter (issue #278); Class
+    data/Edit i Classes: klassens felter (issue #346). De andre sektioner er
+    foldet sammen bag "Show all fields". Tom = alle sektioner."""
     return (f"Set(varFlDetailRow, {guid});\n"
             f"Set(varFlPanelJump, {jump});\n"
             f"{PANEL_FILL};\n"
@@ -687,11 +695,12 @@ def _panel_section(key, title):
         # KKS type og Assigned class paa een linje (issue #308).
         fields.append(_panel_grid(sub, f'"{title} - KKS type and assigned class"', PANEL_SUB_COLS))
     has = f'CountRows(Filter(colFlDet, Pane = "{key}")) > 0'
-    # Aabnet fra Manufacturer/Warranty: sektionerne FOER den er foldet sammen.
-    later = [k for k in PANEL_JUMP.values() if PANEL_KEYS.index(k) > PANEL_KEYS.index(key)]
+    # Aabnet fra en knap (PANEL_FOCUS): sektionerne, den ikke viser, er
+    # foldet sammen.
+    hide = [j for j, shown in PANEL_FOCUS.items() if key not in shown]
     vis = has
-    if later:
-        keys = ", ".join(f'"{k}"' for k in later)
+    if hide:
+        keys = ", ".join(f'"{k}"' for k in hide)
         vis = f'{has} && !(IfError(varFlPanelJump, "") in [{keys}])'
     heading = text_ctrl(f"txtFlPanel{key}Title", f'"{title}"', size=lay.SIZE_BODY,
                         weight="Semibold", height=22, wrap="false", visible=vis)
@@ -767,17 +776,25 @@ def build_row_panel():
                            weight="Semibold", height=28, wrap="false"))
     heading = icon_heading("conFlEditorHeading", title, [prev, next_, close])
 
-    # Aabnet fra Manufacturer/Warranty: den sektion staar oeverst, og de
-    # sammenfoldede sektioner foer den kan vises igen med denne knap.
+    # Aabnet fra en knap (PANEL_FOCUS): dens sektioner staar oeverst, og de
+    # sammenfoldede sektioner kan vises igen med denne knap.
     jumped = '!IsBlank(IfError(varFlPanelJump, ""))'
     show_all = _fit(button("btnFlPanelShowAll", '"Show all fields"', 'Set(varFlPanelJump, "")',
                            visible=jumped, icon="ChevronUp",
-                           tooltip='"Show the sections above this one"'), icon=True)
+                           tooltip='"Show all the fields of this row"'), icon=True)
     show_all.props["Appearance"] = "ButtonAppearance.Outline"
     show_all.props["BorderColor"] = C_INPUT_BORDER
     show_all.props["BorderThickness"] = "1"
     show_all.props["AlignInContainer"] = "AlignInContainer.Start"
-    sections = [show_all] + [_panel_section(k, t) for k, t in cfg.PANEL_SECTIONS]
+    # Klassen uden klassefelter (som popuppens "This class has no class
+    # data fields.") - ellers stod panelet tomt under "Show all fields".
+    cls_keys = ", ".join(f'"{k}"' for k in PANEL_FOCUS[PANEL_CLS_JUMP])
+    no_cls = text_ctrl("txtFlPanelClsNone", '"This class has no class data fields."',
+                       size=13, color=C_MUTED, height=20, wrap="false",
+                       visible=(f'IfError(varFlPanelJump, "") = "{PANEL_CLS_JUMP}" && '
+                                f'IfError(CountRows(Filter(colFlDet, Pane in [{cls_keys}])) = 0, false)'))
+    sections = ([show_all] + [_panel_section(k, t) for k, t in cfg.PANEL_SECTIONS]
+                + [no_cls])
     footer = _panel_footer()
     # Pad (2 x 16), overskrift, bundbjaelken og to mellemrum: bunden
     # klippes aldrig, og bundbjaelken staar fast under det, der scroller.
@@ -957,9 +974,11 @@ def build_classes():
     info_msg = "Coalesce(ThisItem.FirstIssue, ThisItem.FirstWarning, \"\")"
     info = text_ctrl("txtFlCInfo", info_msg, size=13, color=_status_color("ThisItem"),
                      height=20, wrap="false")
-    # Edit aabner raekkens Class data-popup - der er intet at folde ud
-    # (issue #232). Alle raekker her har en klasse (V.BUCKETS).
-    open_ = button("btnFlCOpen", '"Edit"', open_cls_fx("ThisItem.RowGuid"), width=72, height=30,
+    # Edit aabner raekkens sidepanel med klassens felter - samme panel som
+    # Class data i Rows (issue #346). Hver post her ER een raekke
+    # (V.BUCKETS), saa ThisItem.RowGuid er raekken.
+    open_ = button("btnFlCOpen", '"Edit"',
+                   open_row_panel_fx("ThisItem.RowGuid", f'"{PANEL_CLS_JUMP}"'), width=72, height=30,
                    accessible='"Edit class data of " & ThisItem.FL')
     cells = _cells(C_SPEC, [no, fl, desc, strc, clsc, info, open_])
     gal = table_gallery("galFlClassRows", '"Rows in the selected class"', VIEW_POS, VIEW_N,
@@ -974,52 +993,20 @@ def build_classes():
 
 
 # ---------------------------------------------------------------------------
-# Popupperne bag raekkens knapper (issue #184, #232)
+# Felterne bag raekkens knapper (issue #184, #232, #278, #346)
 #
-#   Manufacturer og Warranty - aabner sidepanelet for raekken ved den
-#              sektion (issue #278); der er ingen egen popup laengere.
-#   Class data - klassens karakteristikker og TRM for netop
-#              den raekke. Den redigerer en KOPI (colFlClsDet); Apply
-#              skriver kopien tilbage og validerer, Close (eneste luk,
-#              #237) kasserer den.
+# Class data, Manufacturer og Warranty i Rows og Edit i Classes aabner
+# ALLE raekkens sidepanel (build_row_panel) med knappens felter oeverst
+# (PANEL_FOCUS). Der er ingen egne popupper laengere - Class data-popuppen
+# er fjernet (issue #346).
 # Hvilke felter der er hvor, er Section i colFlColumns (harnessens
 # buildPlan), og editoren er Kind (generate_app_onstart.editor_kind).
-# Klassen bestemmes af KKS-koden (FL16-FL23) - ingen overstyring. En raekke
-# uden klasse viser stamdata fra NO CLASS (ens for alle klasser, se
-# tests/test_fl_sections.py) og ingen klassedata.
+# Klassen bestemmes af KKS-koden (FL16-FL23) - ingen overstyring.
 # ---------------------------------------------------------------------------
-
-
-def _display_val(dr, field):
-    """getSpoolColumnValue (:2205-2242) for de felter, formularen viser."""
-    raw = f"LookUp(colFlVals, RowGuid = {dr}.RowGuid && Field = {field}).Value"
-    return (f'Switch({field},\n'
-            f'    "STRINDICATOR", {dr}.KksType,\n'
-            f'    "STR. INDICATOR", {dr}.KksType,\n'
-            f'    "FUNCTIONAL LOCATION", {dr}.FL,\n'
-            f'    "DESCRIPTION", {dr}.Description,\n'
-            f'    Coalesce({raw}, ""))')
-
-
-def det_items(row_var, section_test):
-    """Felterne i een sektion for raekken row_var - med vaerdi og besked.
-    Regnet EEN gang (ved valg, aabning og validering); gallerierne
-    filtrerer kun den lille, lokale samling (ingen kald)."""
-    return f"""With(
-    {{ dr: LookUp(colFlRows, RowGuid = {row_var}) }},
-    With(
-        {{ dc: Coalesce(dr.AssignedClass, "NO CLASS") }},
-        ForAll(
-            Sort(Filter(colFlColumns, Cls = dc && {section_test}), Ord) As K,
-            {{
-                Column: K.Column, Field: K.Field, Editable: K.Editable,
-                List: K.List, MaxLen: K.MaxLen, Section: K.Section, Kind: K.Kind,
-                Value: {_display_val("dr", "K.Field")},
-                Issue: {V.field_issue("dr.RowGuid", "K.Field")}
-            }}
-        )
-    )
-)"""
+# Klassens felter (Class data-knappens udfyldt-tilstand) og den laaste
+# anmodning.
+CLS_TEST = 'Section in ["Class", "TRM"]'
+CLS_LOCKED = 'varFlViewOnly || varFlStatus = "Indsendt"'
 
 
 # Dropdownens valg: tom, den gemte vaerdi hvis den er ugyldig, og listen
@@ -1052,12 +1039,6 @@ FIELD_HELP = ('Switch(ThisItem.Field, '
 def _set_detail(value):
     """Fold-ud-sektionens felter skriver direkte i raekkens data."""
     return set_val_fx("varFlDetailRow", "ThisItem.Field", value)
-
-
-def _set_copy(value):
-    """Popuppens felter skriver KUN i kopien - Apply overfoerer den."""
-    return (f"Patch(colFlClsDet, LookUp(colFlClsDet, Field = ThisItem.Field), "
-            f"{{ Value: {value} }})")
 
 
 def _live(ctrl):
@@ -1146,143 +1127,6 @@ def field_grid(tag, section_test, label, source="colFlDet", set_fx=_set_detail, 
     }, children=[tile], h=gal_h, vis=vis)
     return gal
 
-
-def _group_title(name, text, visible):
-    return text_ctrl(name, text, size=14, weight="Semibold", height=22, wrap="false",
-                     visible=visible)
-
-
-# --- Sloeret OG popuppen er een kontrol (issue #242) -------------------------
-# Foer var sloeret et Image og popuppen dets naboe paa skaermen - to
-# kontroller, hvis raekkefoelge (z-orden) alene afgjorde, hvem der laa
-# oeverst. I appen laa sloeret OVEN PAA popupperne: Manufacturer og
-# Warranty stod graa og kunne ikke bruges, og Class data viste kun
-# sloeret. Nu er popuppen et BARN af sloeret (Issue Boards og feedback-
-# popuppens moenster), saa den altid tegnes over sloeret og sloeret kun
-# daemper siden under. Et tryk paa sloeret goer intet; Close er vejen ud.
-POP_MARGIN = 16
-
-
-def scrim_with_popup(name, modal, vis):
-    """Sloeret i hele skaermens stoerrelse med popuppen centreret indeni.
-    Popuppens bredde er hoejst App.Width - 2 x POP_MARGIN, og dens hoejde er
-    regnet, saa den aldrig er hoejere end skaermen (kroppen scroller)."""
-    scrim = group(name, [modal], direction="Vertical", gap=0,
-                  height="App.Height", width="App.Width", fill=C_OVERLAY, visible=vis,
-                  justify="Center", align_items="Center",
-                  pad=(POP_MARGIN, 0, POP_MARGIN, 0))
-    scrim.props["X"] = "0"
-    scrim.props["Y"] = "0"
-    return scrim
-
-
-# --- Class data-popuppen ----------------------------------------------------
-CR = "LookUp(colFlRows, RowGuid = varFlClsRow)"
-CLS_TEST = 'Section in ["Class", "TRM"]'
-CLS_ITEMS = det_items("varFlClsRow", CLS_TEST)
-CLS_LOCKED = 'varFlViewOnly || varFlStatus = "Indsendt"'
-CLS_OPEN = "IfError(varFlClsOpen, false)"
-
-
-def open_cls_fx(guid):
-    """Kopien laves af raekkens GEMTE vaerdier, hver gang popuppen aabnes -
-    en anden raekkes popup kan derfor aldrig se denne raekkes kladde."""
-    return (f"Set(varFlClsRow, {guid});\n"
-            "ClearCollect(colFlClsDet, " + CLS_ITEMS + ");\n"
-            "Set(varFlClsOpen, true)")
-
-
-CLOSE_CLS_FX = "Set(varFlClsOpen, false);\nClear(colFlClsDet)"
-# Apply: kopiens redigerbare felter erstatter raekkens (samme form som
-# set_val_fx: trimmet, tomt = intet), og valideringen koerer.
-APPLY_CLS_FX = f"""With(
-    {{ r: varFlClsRow, ed: Filter(colFlClsDet, Editable) }},
-    RemoveIf(colFlVals, RowGuid = r && Field in ed.Field);
-    Collect(colFlVals, ForAll(Filter(ed, !IsBlank(Trim(Value))) As E, {{ RowGuid: r, Field: E.Field, Value: Trim(E.Value) }}))
-);
-Set(varFlClsCheck, true);
-{REVERIFY}"""
-# Efter valideringen (fl_validation.verify_fx, I): uden fejl i popuppens
-# felter lukker den; ellers bliver den staaende med beskederne. Select
-# koerer foerst, naar Apply er faerdig - derfor her, ikke i Apply.
-CLS_AFTER_VERIFY = f"""If(varFlClsCheck,
-    Set(varFlClsCheck, false);
-    If(
-        IsEmpty(Filter(colFlIssues, RowGuid = varFlClsRow && Sev = "Error" && Ord >= 100 && Field in colFlClsDet.Field)),
-        {CLOSE_CLS_FX.replace(chr(10), " ")},
-        ClearCollect(colFlClsDet, {CLS_ITEMS})
-    )
-)"""
-CLS_W = "Min(900, App.Width - 32)"
-
-
-def build_class_modal():
-    """[sloer med popuppen indeni] - klassedata for raekken varFlClsRow
-    (issue #184, #242)."""
-    title = text_ctrl("txtFlClsH", '"Class data"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
-                      height=26, wrap="false")
-    sub = text_ctrl("txtFlClsSub",
-                    f'With({{ r: {CR} }}, "Row " & r.Pos & " - " & '
-                    f'If(IsBlank(r.FL), "no Functional Location", r.FL) & " - class " & r.AssignedClass & '
-                    f'With({{ hp: LookUp(colFlClassHelp, Key = r.AssignedClass).Help }}, '
-                    f'If(IsBlank(hp), "", " (" & hp & ")")))',
-                    size=12, color=C_MUTED, height=18, wrap="false")
-    left = grow(group("conFlClsHeadL", [title, sub], direction="Vertical", gap=2))
-    # Samme X som sidepanelet og de andre popupper (issue #343) - lukker
-    # uden at anvende, som foer.
-    close = close_x("btnFlClsClose", CLOSE_CLS_FX, accessible='"Close without applying"')
-    close.props["Tooltip"] = '"Close without applying"'
-    head = group("conFlClsTop", pin_widths([left, close]), direction="Horizontal", gap=8,
-                 align_items="Center")
-
-    groups = []
-    for tag, test, head_txt, label in (
-            ("C", 'Section = "Class"', '"Class characteristics"', '"Characteristics of the class"'),
-            ("T", 'Section = "TRM"', '"TRM"', '"TRM fields"')):
-        grid = field_grid(tag, test, label, source="colFlClsDet", set_fx=_set_copy)
-        groups.append(_group_title(f"txtFl{tag}GroupH", head_txt, grid.props["Visible"]))
-        groups.append(grid)
-    groups.append(text_ctrl("txtFlClsNone", '"This class has no class data fields."', size=13,
-                            color=C_MUTED, height=20, wrap="false",
-                            visible="IfError(CountRows(colFlClsDet) = 0, false)"))
-    inner = group("conFlClsFields", groups, direction="Vertical", gap=8)
-    # Popuppen er aldrig hoejere end skaermen: felterne scroller, titel og
-    # knapper staar fast. Hoejre polstring = scrollbarens plads.
-    body = group("conFlClsBody", [inner], direction="Vertical", gap=0,
-                 height=f"Min({inner.h}, App.Height - 220)", overflow_y="Scroll",
-                 pad=(0, SCROLLBAR_W, 0, 0))
-
-    # EEN luk-knap (issue #237): Cancel i bunden er fjernet. Close oeverst
-    # til hoejre koerer den samme CLOSE_CLS_FX og kasserer kopien. Bunden
-    # har kun Apply og er vaek, naar Apply er det (laast raekke) - ingen
-    # tom plads under felterne.
-    apply_ = _fit(button("btnFlClsApply", '"Apply"', APPLY_CLS_FX, primary=True,
-                         visible=f"!({CLS_LOCKED})",
-                         tooltip='"Validate and apply the changes to this row"'))
-    foot = group("conFlClsFoot", [apply_], direction="Horizontal", gap=8, height=36,
-                 justify="End", align_items="Center", visible=f"!({CLS_LOCKED})")
-    modal = group("conFlClsModal", [head, body, foot], direction="Vertical", gap=12,
-                  fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
-                  pad=(18, 18, 18, 18), width=CLS_W, drop_shadow="ExtraBold", visible=CLS_OPEN,
-                  align_in_container="Center")
-    # Et gennemsigtigt lag under sloeret, over sidepanelet: mens popuppen
-    # er aaben, kan intet i panelet eller paa siden trykkes, rulles eller
-    # aendres (issue #278). Det goer intet selv; Close og Apply er vejen ud,
-    # og panelet staar uroert bagefter - samme felter, vaerdier og scroll.
-    block = Ctrl("imgFlClsBlock", "Image", props={
-        "AccessibleLabel": '"Class data is open"',
-        "BorderStyle": "BorderStyle.None",
-        "BorderThickness": "0",
-        **stable_scrim(C_TRANSPARENT),
-        "Height": "App.Height",
-        "Image": '""',
-        "TabIndex": "0",
-        "Visible": CLS_OPEN,
-        "Width": "App.Width",
-        "X": "0",
-        "Y": "0",
-    }, h="App.Height", vis=CLS_OPEN)
-    return [block, scrim_with_popup("conFlClsBackdrop", modal, CLS_OPEN)]
 
 
 # ---------------------------------------------------------------------------
@@ -1377,7 +1221,6 @@ Clear(colFlIssues);
 Clear(colFlIssuesRaw);
 Clear(colFlTabs);
 Clear(colFlDet);
-Clear(colFlClsDet);
 Clear(colFlPanelSnap);
 Clear(colFlPanelSnapVals)"""
 
@@ -1391,10 +1234,7 @@ Set(varFlTab, "ALL");
 Set(varFlDetailRow, "");
 Set(varFlPanelOpen, false);
 Set(varFlPanelJump, "");
-Set(varFlClsOpen, false);
-Set(varFlClsCheck, false);
 Set(varFlSubmitAsk, false);
-Set(varFlClsRow, "");
 Set(varFlStale, false);
 Set(varFlNextRowNo, 1);
 """ + add_row_fx() + """;
