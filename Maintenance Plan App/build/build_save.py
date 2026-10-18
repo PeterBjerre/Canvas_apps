@@ -131,6 +131,8 @@ PLAN_STATUS_DRAFT = "Draft"
 PLAN_STATUS_SUBMITTED = "In Progress"
 # Sat af godkendelsesflowene ved Send retur (docs/32 §5).
 PLAN_STATUS_RETURNED = "Returned"
+# Indeksets status for en returneret plan (build_load.AWAITING).
+IDX_STATUS_AWAITING = "AfventerInfo"
 
 # PRIORITETEN regnes, den vaelges ikke - samme regel som den gamle app
 # (solution/BIOSAP/.../orsted_biosapmaintenanceplans_ba408.src, Priority-
@@ -168,6 +170,13 @@ SAVE_BUTTON = "btnVhpSaveDraft"
 # Indeksraekken, som den staar i SharePoint, naar gemningen starter
 # (_step_keys). Den er grundraekken i trin 8 og afgoer rettigheden.
 IDX_NOW = "varVhpIdxNow"
+# Status, rettigheden regnes paa - SAMME sandhed som indlaesningen
+# (build_load.IDX_STATUS): staar planen selv i Returned, er det
+# AfventerInfo, uanset hvad indeksraekken siger. Ellers kunne en returneret
+# plan aabnes i Edit, men ikke gemmes, naar indekset haltede (R2-036).
+# varVhpFlow saettes ved indlaesning og i _step_status.
+IDX_STATUS_NOW = (f'If(varVhpFlow.Status = "{PLAN_STATUS_RETURNED}", '
+                  f'"{IDX_STATUS_AWAITING}", {IDX_NOW}.Status.Value)')
 # Planhovedet, som det staar i SharePoint, foer trin 3 skriver det.
 PLAN_NOW = "varVhpPlanNow"
 # Gemmer en admin en andens anmodning? Saa bevares ejeren (tools/permissions.py).
@@ -363,7 +372,7 @@ def _step_keys():
         # Rettigheden i selve handlingen - ikke kun i UI'et.
         "    If(\n"
         f"        !IsBlank({IDX_NOW}) &&\n"
-        f"        !{perm.may_change(IDX_NOW + '.RequesterEmail', IDX_NOW + '.Status.Value', 'varVhpMe', resubmit=True)},\n"
+        f"        !{perm.may_change(IDX_NOW + '.RequesterEmail', IDX_STATUS_NOW, 'varVhpMe', resubmit=True)},\n"
         "        Collect(colVhpSaveErrors, {\n"
         "            Where: \"Request\",\n"
         "            Msg: \"This request can no longer be changed.\"\n"
@@ -753,10 +762,14 @@ def _step_status():
         "        Set(varVhpFlow, { Status: varVhpPlanRec.Status.Value, "
         "Stage: varVhpPlanRec.ApprovalStage.Value, ReturnComment: \"\" })\n"
         "    );\n"
-        # Hubben laeser KUN indeksraekken.
+        # Hubben laeser KUN indeksraekken. En returneret plan, der gemmes
+        # som kladde, staar i AfventerInfo - ogsaa naar indekset haltede
+        # bagefter, saa det heler ved foerste gem (R2-036).
         "    If(\n"
         "        varVhpSubmitting,\n"
         f"    {_index_patch(ri.SUBMITTED, NOTE_FLAG)},\n"
+        f"        varVhpPlanRec.Status.Value = \"{PLAN_STATUS_RETURNED}\",\n"
+        f"    {_index_patch(IDX_STATUS_AWAITING)},\n"
         f"    {_index_patch(ri.DRAFT)}\n"
         "    );\n"
         # Det, der nu staar i SharePoint - konflikttjekket (trin 2) maaler

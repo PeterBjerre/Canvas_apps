@@ -56,3 +56,16 @@ def test_submitting_flag_is_reset_before_the_message():
     # Spinneren via with_busy (A12): taendt foerst, slukket til sidst.
     assert fx.rstrip().endswith("Set(varVhpSaving, false)\n)")
     assert fx.count("Set(varVhpSaving, true)") == 1
+
+
+# --- R2-036: gem og indlaesning regner rettigheden paa samme status ---------
+def test_save_permission_uses_plan_status_like_load():
+    keys = build_save._step_keys()
+    assert 'varVhpFlow.Status = "Returned"' in keys
+    assert 'If(varVhpFlow.Status = "Returned", "AfventerInfo", varVhpIdxNow.Status.Value)' in keys
+
+
+def test_draft_save_of_returned_plan_heals_index():
+    st = build_save._step_status()
+    i = st.index('varVhpPlanRec.Status.Value = "Returned"')
+    assert 'Status: { Value: "AfventerInfo" }' in st[i:]
