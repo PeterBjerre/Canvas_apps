@@ -194,9 +194,18 @@
           "type": "Compose",
           "inputs": "@trim(coalesce(triggerBody()?['text'], ''))"
         },
-        "Respond_accepted": {
+        "RunName": {
           "runAfter": {
             "RequestGuid": [
+              "Succeeded"
+            ]
+          },
+          "type": "Compose",
+          "inputs": "@workflow()?['run']?['name']"
+        },
+        "Respond_accepted": {
+          "runAfter": {
+            "RunName": [
               "Succeeded"
             ]
           },
@@ -773,7 +782,7 @@
                             "parameters": {
                               "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
                               "table": "MD_ApprovalLog",
-                              "item/Title": "@workflow()?['run']?['name']",
+                              "item/Title": "@outputs('RunName')",
                               "item/RequestGuid": "@outputs('RequestGuid')",
                               "item/Stage": "System",
                               "item/ItemGuid": "@items('For_each_open_unit')?['itemGuid']",
@@ -825,7 +834,7 @@
                             "parameters": {
                               "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
                               "table": "MD_ApprovalLog",
-                              "item/Title": "@workflow()?['run']?['name']",
+                              "item/Title": "@outputs('RunName')",
                               "item/RequestGuid": "@outputs('RequestGuid')",
                               "item/Stage": "System",
                               "item/ItemGuid": "@items('For_each_unresolved')?['itemGuid']",
@@ -866,7 +875,7 @@
                             "parameters": {
                               "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
                               "table": "MD_ApprovalLog",
-                              "item/Title": "@workflow()?['run']?['name']",
+                              "item/Title": "@outputs('RunName')",
                               "item/RequestGuid": "@outputs('RequestGuid')",
                               "item/Stage": "System",
                               "item/ItemGuid": "@concat(items('For_each_problem')?['itemKey'], '#none')",
@@ -1013,7 +1022,7 @@
                                   "type": "OpenApiConnection",
                                   "inputs": {
                                     "parameters": {
-                                      "item/Title": "@workflow()?['run']?['name']",
+                                      "item/Title": "@outputs('RunName')",
                                       "item/RequestGuid": "@outputs('RequestGuid')",
                                       "item/Stage": "System",
                                       "item/ItemGuid": "@items('For_each_my_unit')?['itemGuid']",
@@ -1053,7 +1062,7 @@
                                     "type": "OpenApiConnection",
                                     "inputs": {
                                       "parameters": {
-                                        "item/Title": "@workflow()?['run']?['name']",
+                                        "item/Title": "@outputs('RunName')",
                                         "item/RequestGuid": "@outputs('RequestGuid')",
                                         "item/Stage": "System",
                                         "item/ItemGuid": "@items('For_each_my_unit_returned')?['itemGuid']",
@@ -1111,7 +1120,7 @@
                       "type": "Query",
                       "inputs": {
                         "from": "@outputs('Get_log_results')?['body/value']",
-                        "where": "@equals(item()?['Decision'], 'Return')"
+                        "where": "@and(equals(item()?['Decision'], 'Return'), equals(item()?['Title'], outputs('RunName')))"
                       }
                     },
                     "Any_return": {
