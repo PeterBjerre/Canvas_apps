@@ -532,6 +532,9 @@ WORKING_COLLECTIONS = [
       # timerne rettes. Se cost_expr() i build_tasklist.py.
       "ControlKey": '""', "Cost": 0, "UnitCost": 0, "Currency": '""',
       "CostElement": 0, "MaterialGroup": '""', "ServiceNo": '""',
+      # Antal vedhaeftninger paa operationens raekke - vises i Docs-knappen.
+      # Hentes med operationen og rettes, naar dokumenterne gemmes.
+      "FileCount": 0,
       # Raekkens ID i TaskListMain; 0 = ny. Se colVhpItems.SpId.
       "SpId": 0}),
     ("colVhpFl",

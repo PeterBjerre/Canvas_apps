@@ -152,6 +152,9 @@ OP_FIELDS = [
     ("CostElement", "OP.CostElem"),
     ("MaterialGroup", "OP.MaterialGroup"),
     ("ServiceNo", "OP.ServiceNo"),
+    # Dokumenterne er vedhaeftninger paa raekken (issue #300). Antallet
+    # kommer med i SAMME hentning som operationen - intet kald pr. raekke.
+    ("FileCount", "CountRows(OP.Attachments)"),
     ("SpId", "OP.ID"),
 ]
 
