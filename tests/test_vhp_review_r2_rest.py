@@ -39,3 +39,20 @@ def test_add_and_copy_item_make_a_new_guid():
     # Add item og Copy item: hver sin nye identitet - kopien arver ikke kildens.
     assert src.count("SpId: 0, ItemGuid: Text(GUID())") == 2
     assert "src.ItemGuid" not in src
+
+
+# --- R2-035: Submit afhaenger ikke af en deaktiveret knap -------------------
+def test_submit_checks_save_button_display_mode():
+    assert "btnVhpSaveDraft.DisplayMode = DisplayMode.Edit" in build_save.SUBMIT_FX
+    src = open(os.path.join(BUILD, "build_save.py"), encoding="utf-8").read()
+    assert "+ SUBMIT_FX)," in src
+    assert "Set(varVhpSubmitting, true);\\nSelect(" not in src
+
+
+def test_submitting_flag_is_reset_before_the_message():
+    fx = build_save.save_action()
+    reset = fx.index("{ sub: varVhpSubmitting },\n    Set(varVhpSubmitting, false);")
+    assert reset < fx.index("Set(varVhpSavedJson, VhpStateJson)")
+    # Spinneren via with_busy (A12): taendt foerst, slukket til sidst.
+    assert fx.rstrip().endswith("Set(varVhpSaving, false)\n)")
+    assert fx.count("Set(varVhpSaving, true)") == 1

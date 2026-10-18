@@ -80,7 +80,7 @@ kilden afklares foerst - ikke gaettes her.
 import display_text as dt
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from build_helpers import button, ICON_SAVE, ICON_SUBMIT
+from build_helpers import button, with_busy, ICON_SAVE, ICON_SUBMIT
 import sp_config as cfg
 import messages as msg
 import admin_log as alog
@@ -798,10 +798,12 @@ def _step_notes():
         "    )"))
 
 
-def _admin_log():
+def _admin_log(submitting="varVhpSubmitting"):
     """Admin i en andens plan: planhovedet foer/efter (varVhpPlanNow mod
     varVhpPlanRec - begge som de staar i SharePoint), items foer (colVhpAdmOld)
-    mod det gemte, og Submit (tools/admin_log.py)."""
+    mod det gemte, og Submit (tools/admin_log.py). submitting er udtrykket
+    for "det var en indsendelse" - i save_action en kopi af flaget, som
+    allerede er nulstillet (R2-035)."""
     P, N = PLAN_NOW, "varVhpPlanRec"
     header = alog.diff([
         ("Plan text", f"{P}.Title", f"{N}.Title"),
@@ -826,7 +828,7 @@ def _admin_log():
         "            )\n        ),\n        !IsBlank(Value)\n    ),\n    Value,\n    \"; \"\n)")
     added = (f'With({{ k: CountRows(Filter({SAVEABLE_ITEMS}, !(SpId in colVhpAdmOld.ID))) }}, '
              'If(k > 0, ' + dt.plural("k", "item") + ' & " added", ""))')
-    status = f'If(varVhpSubmitting, {alog.submitted(IDX_NOW + ".Status.Value")}, "")'
+    status = f'If({submitting}, {alog.submitted(IDX_NOW + ".Status.Value")}, "")'
     comment = alog.join(header, items, added, status)
     return (f"If(\n    {AS_ADMIN},\n    With(\n        {{ c: {comment} }},\n"
             "        If(\n            !IsBlank(c),\n"
@@ -836,20 +838,28 @@ def _admin_log():
 
 def save_action():
     """Hele gemningen. Om det er Save draft eller Submit, afgoer
-    varVhpSubmitting - den nulstilles, naar gemningen er faerdig."""
+    varVhpSubmitting.
+
+    FLAGET NULSTILLES FOERST I BESKEDEN (R2-035). Beskeden laeser en kopi
+    (sub), og flaget er falsk, foer der vises eller logges noget - ogsaa
+    hvis noget i beskeden fejler. Stod det til sidst, kunne et flag, der
+    blev haengende, faa naeste "Save draft" til at indsende planen."""
     detail = 'First(colVhpSaveErrors).Where & ": " & First(colVhpSaveErrors).Msg'
     report = (
-        "If(\n"
+        "With(\n"
+        "    { sub: varVhpSubmitting },\n"
+        "    Set(varVhpSubmitting, false);\n"
+        "    If(\n"
         f"    {OK},\n"
         # Save-trinnet er groent, saa laenge planen er den samme - se
         # VhpStateJson i sp_config.py.
         "    Set(varVhpSavedJson, VhpStateJson);\n"
-        + _admin_log() + ";\n"
-        f"    If(varVhpSubmitting, {msg.submitted('varVhpPlanKey')}, {msg.saved('varVhpPlanKey')}),\n"
-        f"    If(varVhpSubmitting, {msg.failed('Submit', detail)}, {msg.failed('Save', detail)})\n"
+        + _admin_log("sub") + ";\n"
+        f"    If(sub, {msg.submitted('varVhpPlanKey')}, {msg.saved('varVhpPlanKey')}),\n"
+        f"    If(sub, {msg.failed('Submit', detail)}, {msg.failed('Save', detail)})\n"
+        "    )\n"
         ")")
-    body = ";\n".join([
-        "Set(varVhpSaving, true)",
+    steps = ";\n".join([
         "Clear(colVhpSaveErrors)",
         _step_keys(),
         _when_ok(_step_conflict()),
@@ -862,10 +872,9 @@ def save_action():
         _when_ok(_step_notes()),
         _when_ok(_step_status()),
         report,
-        # EET sted spinneren slukkes og tilstanden nulstilles.
-        "Set(varVhpSubmitting, false)",
-        "Set(varVhpSaving, false)",
     ])
+    # Spinneren taendes og slukkes eet sted (A12, tools/build_helpers.with_busy).
+    body = with_busy("varVhpSaving", steps)
     return (
         "If(\n"
         f"    !varVhpPlanCommitted || {SAVEABLE_COUNT} = 0,\n"
@@ -893,8 +902,10 @@ def save_action():
 # selve gemningen: et tomt item taeller ikke med, saa knappen bliver ikke
 # aktiv af det item, appen selv aabnede med.
 #
-# Submit gaar ogsaa gennem den her knap (Select). Submit kan kun trykkes,
-# naar planen kan indsendes - og saa er den her knap altid aktiv.
+# Submit gaar ogsaa gennem den her knap (Select). Select paa en DEAKTIVERET
+# knap koerer ikke dens OnSelect, og popuppen kan staa aaben, mens
+# tilstanden aendrer sig - derfor tjekker popuppens Submit knappens
+# DisplayMode, foer flaget saettes (SUBMIT_FX, R2-035).
 DRAFT_DM = ("If(\n"
             f"    varVhpViewOnly || varVhpSaving || !varVhpPlanCommitted || {SAVEABLE_COUNT} = 0,\n"
             "    DisplayMode.Disabled,\n"
@@ -911,7 +922,8 @@ def save_buttons(can_submit):
 
     Submit aabner popuppen med noterne; foerst "Submit" dér indsender: den
     saetter noterne og varVhpSubmitting og vaelger Save draft-knappen.
-    Select koerer knappens OnSelect, efter popuppens egen formel er faerdig.
+    Select koerer knappens OnSelect, efter popuppens egen formel er faerdig
+    - men kun, naar knappen er aktiv (SUBMIT_FX).
 
     Returnerer (Save draft, Submit, [popup])."""
     btnDraft = button(SAVE_BUTTON, "\"Save draft\"", save_action(),
@@ -941,6 +953,15 @@ NOTES_OPEN_VIEW = ("Set(varVhpNotesEdit, false);\n" + "".join(f"Reset({c});\n" f
 VHP_OWNER = 'Coalesce(varVhpOwnerEmail, varVhpMe)'
 NOTES_HAVE = '(!IsBlank(varVhpNoteApprover) || !IsBlank(varVhpNoteSelf))'
 
+# Popuppens Submit. Flaget saettes KUN, naar Save draft-knappen er aktiv:
+# Select paa en deaktiveret knap koerer ikke OnSelect, og saa blev
+# varVhpSubmitting staaende, og naeste "Save draft" indsendte planen (R2-035).
+SUBMIT_FX = (
+    f"If(\n    {SAVE_BUTTON}.DisplayMode = DisplayMode.Edit,\n"
+    f"    Set(varVhpSubmitting, true);\n    Select({SAVE_BUTTON}),\n"
+    '    Notify("The plan cannot be submitted right now - save it first.", NotificationType.Warning)\n'
+    ")")
+
 
 def notes_popup():
     edit = NOTES_EDIT
@@ -962,6 +983,6 @@ def notes_popup():
         submit_fx=("Set(varVhpNoteApprover, inpVhpNoteA.Text);\n"
                    "Set(varVhpNoteSelf, If(" + perm.is_owner(VHP_OWNER, "varVhpMe") +
                    ", inpVhpNoteS.Text, varVhpNoteSelf));\n"
-                   f"Set(varVhpSubmitting, true);\nSelect({SAVE_BUTTON})"),
+                   + SUBMIT_FX),
         submit_name="btnVhpSubmitConfirm")
     return ctrls
