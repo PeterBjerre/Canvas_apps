@@ -128,7 +128,7 @@ ingen `TabIndex` (display-only). Navnene har fået præfikset `bdg`.
 
 | Hvor | Antal | Før | Efter |
 |---|---|---|---|
-| Trin-mærket "Valid"/"Invalid" i VH-planens sektioner (`step_badge`) | 4 | `txtVhp…HeadBadge` (ModernText) | `bdgVhp…HeadBadge` — samme `Switch(Self.Content, …)` på state-ok/-error/-neutral |
+| Trin-mærket "Valid"/"Invalid" i VH-planens sektioner (`step_badge`) | 4 | `txtVhp…HeadBadge` (ModernText) | `bdgVhp…HeadBadge` — farven vælges af samme betingelse som teksten (`If(…Valid, …)`); `Self.Content` kan ikke læses i Studio (#331) |
 | Nummerpillen ved sidetitlen (`number_badge`, Eq/Mat/MP/VHP) | 4 | `img…Number` (Image, 88 × 26 SVG: tekst i domænefarven på 12 % af den) | `bdg…Number` — `Color = ColorValue(hex)`, `Fill = ColorValue(hex & "1F")` (1F = 12 %); skjult, mens der intet nummer er (billedet var tomt) |
 | Anmodningsnummeret i hubbens godkendelsesflow | 1 | `imgMdAprNo` (Image) | `bdgMdAprNo`, samme domænefarve-tone |
 | Trinets status i godkendelsesflowet ("Approved", "Pending" …) | 1 | `txtMdAprChip` | `bdgMdAprChip`, samme `BADGE_FG`/`BADGE_BG` |
@@ -224,11 +224,12 @@ anderledes ud end vores 1,8 px-streg.
 
 Alle faner bygges af `build_helpers.tab_list`. Fanerne læser og sætter den
 **samme variabel** som de knapper, de afløser: `Default` er teksten for
-variablens værdi, og `OnChange` oversætter den valgte tekst tilbage og
+variablens værdi som en række (`{Value: …}`, samme form som `Items`), og `OnChange` oversætter den valgte tekst tilbage og
 sætter variablen kun, når den faktisk skifter. Filtrering, ruder og
-genindlæsning læser variablen som før. `Appearance` er
-`TabListAppearance.Underline` (stregen under den valgte fane – ikke kun en
-farve), `Color` er `text-primary` (læsbar i lys og mørk tilstand). Fanerne
+genindlæsning læser variablen som før. `Appearance` og `Alignment` sættes
+ikke: deploy (#331) viste, at tenantens Tab list ikke kender
+`TabListAppearance.Underline` eller `TabListAlignment`, så Fluents standard
+tegner fanerne. `Color` er `text-primary` (læsbar i lys og mørk tilstand). Fanerne
 ruller ikke (Learn), så hver række har en kort tekst, når kortet er for
 smalt til de lange. Regel 16t afviser en anden version og enhver egenskab,
 Learn ikke dokumenterer for typen (fx `TabIndex`, `Fill`, `Tooltip`).

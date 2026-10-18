@@ -576,14 +576,10 @@ Screens:
                                         ="Show issues"
                                     AlignInContainer: |-
                                         =AlignInContainer.Start
-                                    Alignment: |-
-                                        =TabListAlignment.Start
-                                    Appearance: |-
-                                        =TabListAppearance.Underline
                                     Color: |-
                                         =C.'text-primary'
                                     Default: |-
-                                        =Switch(varIbScope, "all", If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= 335, "All issues", "All"), "mine", If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= 335, "My issues", "Mine"), "assigned", If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= 335, "Assigned to me", "Assigned"), If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= 335, "All issues", "All"))
+                                        ={Value: Switch(varIbScope, "all", If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= 335, "All issues", "All"), "mine", If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= 335, "My issues", "Mine"), "assigned", If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= 335, "Assigned to me", "Assigned"), If((((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 2 * 18)) >= 335, "All issues", "All"))}
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
@@ -617,14 +613,10 @@ Screens:
                                         ="Show issues by state"
                                     AlignInContainer: |-
                                         =AlignInContainer.Start
-                                    Alignment: |-
-                                        =TabListAlignment.Start
-                                    Appearance: |-
-                                        =TabListAppearance.Underline
                                     Color: |-
                                         =C.'text-primary'
                                     Default: |-
-                                        =Switch(varIbState, "open", "Open", "closed", "Closed", "archived", "Archived", "Open")
+                                        ={Value: Switch(varIbState, "open", "Open", "closed", "Closed", "archived", "Archived", "Open")}
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
@@ -2359,7 +2351,7 @@ Screens:
                                   Control: ModernBadge@1.0.0
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Ticket " & Self.Content
+                                        ="Ticket " & (ThisItem.TicketNo)
                                     Align: |-
                                         =Align.Center
                                     Appearance: |-
@@ -2762,7 +2754,7 @@ Screens:
                                   Control: ModernBadge@1.0.0
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Ticket " & Self.Content
+                                        ="Ticket " & (ThisItem.TicketNo)
                                     Align: |-
                                         =Align.Center
                                     Appearance: |-
@@ -9701,7 +9693,7 @@ Screens:
                       Control: ModernBadge@1.0.0
                       Properties:
                         AccessibleLabel: |-
-                            ="Ticket " & Self.Content
+                            ="Ticket " & (varIbSel.TicketNo)
                         Align: |-
                             =Align.Center
                         Appearance: |-
@@ -10091,7 +10083,7 @@ Screens:
                                   Control: ModernBadge@1.0.0
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Status: " & Self.Content
+                                        ="Status: " & (Switch(If(varIbSel.Archived, "Archived", varIbSel.Status), "New", "New", "Reopened", "Reopened", "Triaged", "Triaged", "In progress", "In progress", "Ready for retest", "Ready for retest", "Closed", "Closed", "Archived", "Archived", "Unknown"))
                                     Align: |-
                                         =Switch(If(varIbSel.Archived, "Archived", varIbSel.Status), "New", Align.Center, "Reopened", Align.Center, "Triaged", Align.Center, "In progress", Align.Center, "Ready for retest", Align.Center, "Closed", Align.Center, "Archived", Align.Center, Align.Center)
                                     Appearance: |-
@@ -10144,7 +10136,7 @@ Screens:
                                   Control: ModernBadge@1.0.0
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Priority: " & Self.Content
+                                        ="Priority: " & (Switch(varIbSel.Priority, "Urgent", "Urgent", "High", "High", "Normal", "Normal", "Low", "Low", "Unknown"))
                                     Align: |-
                                         =Switch(varIbSel.Priority, "Urgent", Align.Center, "High", Align.Center, "Normal", Align.Left, "Low", Align.Left, Align.Center)
                                     Appearance: |-
@@ -12511,7 +12503,7 @@ Screens:
                                   Control: ModernBadge@1.0.0
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Role: " & Self.Content
+                                        ="Role: " & (ThisItem.Role)
                                     Align: |-
                                         =Align.Center
                                     Appearance: |-
