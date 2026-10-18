@@ -132,7 +132,7 @@ glider de fra hinanden.
 | `items[].activityType` | ILART | tre første tegn |
 | `items[].priority` | prioritet | Red → 1, Yellow → 3, Blue → 6, ellers første ciffer |
 | `items[].revision` / `revisionMark` | GV_REVNR | `REV` |
-| `items[].longText` | IP05 langtekst | HTML → SAPscript (`VhpItf.bas`) |
+| `items[].longText` | IP05 langtekst | HTML → SAPscript (`VhpItf.bas`). Filen skrives i Windows' tegnsæt (cp1252): `≥`, `≤`, `−`, pile og græsk `μ` erstattes med `›=`, `‹=`, `-`, `-›` og `µ`; andre tegn uden for tegnsættet (fx `✓`, emojis) giver en advarsel i *Detaljer* og i kvitteringen i stedet for et stille `?` i SAP (R2-088) |
 | `operations[].controlKey` | STEUS | PM01, ZB01, PM02, PM03 |
 | `operations[].price` | PREIS (PM02) | som det står i appen |
 | `operations[].workCenter` (PM03) | ydelse fra modelydelsesspecifikationen | opslag på de fem sidste tegn (`XSTIL`) |

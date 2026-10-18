@@ -144,6 +144,17 @@ Public Function SelfTestPure() As String
     Check "Itf HasText", VhpItf.HasText("<div>sfsef</div>"), True
     Check "Itf linjeskift i HTML", VhpItf.HtmlToSapText("<p>et" & vbLf & "  to</p>"), "et to"
 
+    ' R2-088: tegn uden for Windows' tegnsaet
+    Check "Itf stoerre end eller lig", VhpItf.HtmlToSapText("<p>a " & ChrW$(8805) & " b</p>"), "a " & ChrW$(8250) & "= b"
+    Check "Itf minustegn ren tekst", VhpItf.HtmlToSapText("5 " & ChrW$(8722) & " 3"), "5 - 3"
+    Check "Itf pil", VhpItf.HtmlToSapText("<p>A " & ChrW$(8594) & " B</p>"), "A -" & ChrW$(8250) & " B"
+    Check "Itf graesk my", VhpItf.HtmlToSapText("<p>5 " & ChrW$(956) & "m</p>"), "5 " & ChrW$(181) & "m"
+    Check "Itf tegnkode for >=", VhpItf.HtmlToSapText("<p>&#8805;5</p>"), ChrW$(8250) & "=5"
+    Check "NonWindowsChars cp1252", VhpItf.NonWindowsChars("a " & ChrW$(8364) & ChrW$(230) & ChrW$(8211) & ChrW$(8249)), ""
+    Check "NonWindowsChars flueben", VhpItf.NonWindowsChars("ok " & ChrW$(10003) & " og " & ChrW$(10003)), ChrW$(10003) & " (U+2713)"
+    Check "NonWindowsChars to", VhpItf.NonWindowsChars(ChrW$(945) & ChrW$(10003)), ChrW$(945) & " (U+03B1), " & ChrW$(10003) & " (U+2713)"
+    Check "NonWindowsChars tom", VhpItf.NonWindowsChars(""), ""
+
     Set body = VhpItf.ItfBody("<p>a</p><p></p><p>b</p>")
     Check "ItfBody antal", body.Count, 3
     Check "ItfBody tom linje", body(2), "*"
