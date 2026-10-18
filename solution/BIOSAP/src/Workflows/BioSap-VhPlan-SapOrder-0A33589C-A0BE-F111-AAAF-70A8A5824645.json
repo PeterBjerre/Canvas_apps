@@ -307,9 +307,51 @@
                     }
                   }
                 },
-                "Compose_order": {
+                "Get_items_StrategyPackage": {
                   "runAfter": {
                     "Select_materials": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "operationId": "GetItems",
+                      "connectionName": "shared_sharepointonline"
+                    },
+                    "parameters": {
+                      "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                      "table": "MD_StrategyPackage",
+                      "$filter": "StrategyKey eq '@{coalesce(triggerBody()?['StrategyKey'], '')}'",
+                      "$orderby": "PackageNo",
+                      "$top": 5000
+                    }
+                  }
+                },
+                "Select_strategy_packages": {
+                  "runAfter": {
+                    "Get_items_StrategyPackage": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "Select",
+                  "inputs": {
+                    "from": "@body('Get_items_StrategyPackage')?['value']",
+                    "select": {
+                      "packageNo": "@item()?['PackageNo']",
+                      "shortCode": "@item()?['ShortCode']",
+                      "cycleLength": "@item()?['CycleLength']",
+                      "cycleUnit": "@item()?['CycleUnit']?['Value']",
+                      "hierarchy": "@item()?['Hierarchy']",
+                      "text": "@item()?['PackageText']",
+                      "offsetValue": "@item()?['OffsetValue']"
+                    }
+                  }
+                },
+                "Compose_order": {
+                  "runAfter": {
+                    "Select_strategy_packages": [
                       "Succeeded"
                     ]
                   },
@@ -342,7 +384,8 @@
                     },
                     "items": "@body('Select_items')",
                     "operations": "@body('Select_operations')",
-                    "materials": "@body('Select_materials')"
+                    "materials": "@body('Select_materials')",
+                    "strategyPackages": "@body('Select_strategy_packages')"
                   }
                 },
                 "Create_file": {

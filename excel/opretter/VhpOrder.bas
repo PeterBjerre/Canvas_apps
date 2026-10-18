@@ -261,6 +261,7 @@ Private Function ValidatePlan(ByVal order As Object, ByVal lk As Object) As Obje
     Dim unitText As String
     Dim firstDue As Date
     Dim title As String
+    Dim isStrat As Boolean
 
     Set res = VhpUtil.NewDict()
     res.Add "errors", New Collection
@@ -279,10 +280,7 @@ Private Function ValidatePlan(ByVal order As Object, ByVal lk As Object) As Obje
         AddError res, VhpUtil.Dk("Ordren siger ikke, om den kommer fra DEV, TEST eller PROD (environment er '") & env & "')."
     End If
 
-    If VhpUtil.JHas(plan, "strategyKey") Then
-        AddError res, VhpUtil.Dk("Planen er en strategiplan (") & VhpUtil.JStr(plan, "strategyKey") & _
-            VhpUtil.Dk("). Opretteren kan endnu kun oprette planer med {e}n cyklus (IP01 uden strategi). Opret den i SAP i h{aa}nden.")
-    End If
+    isStrat = VhpStrategy.IsStrategyOrder(order)
 
     title = Trim$(VhpUtil.JStr(plan, "title"))
     If Len(title) = 0 Then
@@ -292,15 +290,20 @@ Private Function ValidatePlan(ByVal order As Object, ByVal lk As Object) As Obje
             VhpUtil.Dk(" tegn. SAP gemmer de f{oe}rste 40: '") & Left$(title, 40) & "'."
     End If
 
-    cycle = VhpUtil.JNum(plan, "cycle")
-    unitText = VhpMap.NormalizeUnit(VhpUtil.JStr(plan, "unit"))
-    If cycle <= 0 Then AddError res, VhpUtil.Dk("Planen har ingen cyklus.")
-    Select Case unitText
-        Case "DAY", "WK", "MON", "YR"
-        Case Else
-            AddError res, VhpUtil.Dk("Cyklusenheden '") & VhpUtil.JStr(plan, "unit") & _
-                VhpUtil.Dk("' kan ikke bruges. Opretteren laver tidsbaserede planer: DAY, WK, MON eller YR.")
-    End Select
+    ' En strategiplan har ingen cyklus: pakkerne er cyklusserne.
+    If isStrat Then
+        ValidateStrategy res, order, lk
+    Else
+        cycle = VhpUtil.JNum(plan, "cycle")
+        unitText = VhpMap.NormalizeUnit(VhpUtil.JStr(plan, "unit"))
+        If cycle <= 0 Then AddError res, VhpUtil.Dk("Planen har ingen cyklus.")
+        Select Case unitText
+            Case "DAY", "WK", "MON", "YR"
+            Case Else
+                AddError res, VhpUtil.Dk("Cyklusenheden '") & VhpUtil.JStr(plan, "unit") & _
+                    VhpUtil.Dk("' kan ikke bruges. Opretteren laver tidsbaserede planer: DAY, WK, MON eller YR.")
+        End Select
+    End If
 
     If Not VhpUtil.TryParseYmd(VhpUtil.JStr(plan, "plannedDate"), firstDue) Then
         AddError res, VhpUtil.Dk("Planen har ingen gyldig dato for f{oe}rste forfald (plannedDate er '") & _
@@ -322,7 +325,7 @@ Private Function ValidatePlan(ByVal order As Object, ByVal lk As Object) As Obje
         End If
     End If
 
-    If cycle > 0 Then
+    If cycle > 0 And Not isStrat Then
         Set hz = PlanHorizon(plan, lk, cycle, unitText)
         If hz Is Nothing Then
             AddError res, VhpUtil.Dk("Kaldshorisont mangler for cyklus ") & VhpMap.NumberKey(cycle) & " " & unitText & _
@@ -365,6 +368,66 @@ Private Function ValidatePlan(ByVal order As Object, ByVal lk As Object) As Obje
             VhpUtil.Dk(" h{oe}rer til et item, der ikke er i ordren, og oprettes ikke.")
     Next m
 End Function
+
+' Strategiplanen: strategiens pakker er med i ordren, hver operation er paa
+' mindst een af dem, og strategien er en tidsstrategi.
+Private Sub ValidateStrategy(ByVal res As Object, ByVal order As Object, ByVal lk As Object)
+    Dim plan As Object
+    Dim key As String
+    Dim item As Object
+    Dim op As Object
+    Dim n As Variant
+    Dim lbl As String
+    Dim p As Object
+    Dim hz As Object
+
+    Set plan = VhpUtil.JObj(order, "plan")
+    key = VhpStrategy.StrategyKey(order)
+
+    If VhpUtil.JList(order, "strategyPackages").Count = 0 Then
+        AddError res, VhpUtil.Dk("Ordren har ingen pakker for strategi ") & key & _
+            VhpUtil.Dk(". Enten er ordren lavet af en {ae}ldre udgave af flowet BioSap-VhPlan-SapOrder, " & _
+            "eller strategien mangler i MD_StrategyPackage. Ret det, og send planen igen.")
+        Exit Sub
+    End If
+
+    For Each item In VhpUtil.JList(order, "items")
+        For Each op In Operations(item)
+            lbl = ItemLabel(item) & ": " & OpLabel(op) & ": "
+            If VhpStrategy.PackageNos(op).Count = 0 Then
+                AddError res, lbl & VhpUtil.Dk("er ikke knyttet til nogen pakke i strategi ") & key & "."
+            End If
+            For Each n In VhpStrategy.PackageNos(op)
+                If VhpStrategy.Package(order, CLng(n)) Is Nothing Then
+                    AddError res, lbl & VhpUtil.Dk("pakke ") & CStr(n) & _
+                        VhpUtil.Dk(" findes ikke i strategi ") & key & " (MD_StrategyPackage)."
+                End If
+            Next n
+        Next op
+    Next item
+
+    Select Case VhpStrategy.PlanKind(order)
+        Case "TIME"
+            Set p = VhpStrategy.FirstTimePackage(order)
+            If VhpUtil.JNum(p, "offsetValue") <> 0 Then
+                AddWarning res, VhpUtil.Dk("Pakke ") & VhpUtil.JStr(p, "packageNo") & VhpUtil.Dk(" har en forskydning (") & _
+                    VhpUtil.JStr(p, "offsetValue") & VhpUtil.Dk("). Startdatoen regnes uden den; se f{oe}rste kald i IP10.")
+            End If
+            Set hz = PlanHorizon(plan, lk, VhpUtil.JNum(p, "cycleLength"), VhpUtil.JStr(p, "cycleUnit"))
+            If hz Is Nothing Then
+                AddWarning res, VhpUtil.Dk("Ingen kaldshorisont fra appen eller Opslag. SAP's forslag fra strategi ") & _
+                    key & VhpUtil.Dk(" bruges.")
+            End If
+        Case "COUNTER"
+            AddError res, VhpUtil.Dk("Strategi ") & key & VhpUtil.Dk(" er en t{ae}llerstrategi (H, D eller COUNT). " & _
+                "Den skal have et m{aa}lepunkt, og det kan opretteren ikke endnu. Opret planen i SAP i h{aa}nden.")
+        Case "MIXED"
+            AddError res, VhpUtil.Dk("Operationerne bruger b{aa}de tids- og t{ae}llerpakker i strategi ") & key & _
+                VhpUtil.Dk(". Det kan opretteren ikke. Opret planen i SAP i h{aa}nden.")
+        Case Else
+            AddError res, VhpUtil.Dk("Pakkerne i strategi ") & key & VhpUtil.Dk(" har ingen kendt enhed (DAY, WK, MON, YR).")
+    End Select
+End Sub
 
 Private Sub ValidateItem(ByVal res As Object, ByVal item As Object, ByVal plantRec As Object, ByVal lk As Object)
     Dim lbl As String

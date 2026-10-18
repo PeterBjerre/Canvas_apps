@@ -31,9 +31,9 @@
         "status": { "type": ["string", "null"], "description": "MaintenancePlans.Status paa det tidspunkt, ordren blev bygget" },
         "title": { "type": "string", "minLength": 1, "description": "MaintenancePlans.Title -> IP01 planens tekst (40 tegn i SAP)" },
         "plant": { "type": "string", "pattern": "^[A-Z]{3}$", "description": "MaintenancePlans.PlantsInitial, fx SSV. Opretteren slaar SAP-vaerket op i arket Opslag." },
-        "strategyKey": { "type": ["string", "null"], "description": "MaintenancePlans.StrategyKey. Udfyldt = strategiplan (IP42), som version 1 af opretteren afviser." },
-        "cycle": { "type": "number", "exclusiveMinimum": 0, "description": "MaintenancePlans.Cycle" },
-        "unit": { "type": "string", "minLength": 1, "description": "MaintenancePlans.Unit: H, DAY, WK, MON eller YR" },
+        "strategyKey": { "type": ["string", "null"], "description": "MaintenancePlans.StrategyKey, fx '101'. Udfyldt = strategiplan: opretteren opretter den med strategien (VhpStrategy) og operationernes pakker (operations[].packagesKey). Kun tidsstrategier; en taellerstrategi afvises, indtil maalepunktet er klar." },
+        "cycle": { "type": "number", "minimum": 0, "description": "MaintenancePlans.Cycle. 0 paa en strategiplan: pakkerne er cyklusserne." },
+        "unit": { "type": ["string", "null"], "description": "MaintenancePlans.Unit: H, DAY, WK, MON eller YR. Tom paa en strategiplan." },
         "plannedDate": {
           "type": "string",
           "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
@@ -125,6 +125,25 @@
           "quantity": { "type": ["number", "null"] },
           "unit": { "type": ["string", "null"] },
           "text": { "type": ["string", "null"], "description": "MD_TasklistMaterial.MaterialText" }
+        }
+      }
+    },
+
+    "strategyPackages": {
+      "type": "array",
+      "description": "Strategiens pakker: een raekke pr. raekke i MD_StrategyPackage med planens StrategyKey. Tom for en plan uden strategi. Opretteren tjekker operationernes pakker mod dem og regner startdatoen (foerste forfald minus den korteste pakke).",
+      "items": {
+        "type": "object",
+        "required": ["packageNo"],
+        "additionalProperties": false,
+        "properties": {
+          "packageNo": { "type": "integer", "description": "MD_StrategyPackage.PackageNo = tallet i operations[].packagesKey og pakkens kolonne i SAP's pakkeoversigt" },
+          "shortCode": { "type": ["string", "null"], "description": "MD_StrategyPackage.ShortCode, fx 6M" },
+          "cycleLength": { "type": ["number", "null"], "description": "MD_StrategyPackage.CycleLength" },
+          "cycleUnit": { "type": ["string", "null"], "description": "MD_StrategyPackage.CycleUnit: DAY, WK, MON, YR (tid) eller H, D, COUNT (taeller; D er taellerdage)" },
+          "hierarchy": { "type": ["number", "null"], "description": "MD_StrategyPackage.Hierarchy" },
+          "text": { "type": ["string", "null"], "description": "MD_StrategyPackage.PackageText" },
+          "offsetValue": { "type": ["number", "null"], "description": "MD_StrategyPackage.OffsetValue" }
         }
       }
     }

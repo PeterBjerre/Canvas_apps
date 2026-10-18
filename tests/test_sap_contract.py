@@ -81,6 +81,7 @@ def test_example_matches_schema(schema, example):
     ("ordre-1-select-items.json", "items"),
     ("ordre-2-select-operations.json", "operations"),
     ("ordre-3-select-materials.json", "materials"),
+    ("ordre-7-select-strategy-packages.json", "strategyPackages"),
 ])
 def test_flow_select_has_exactly_the_schema_fields(snippet, part):
     keys = set(load(FLOW, snippet))
@@ -95,7 +96,8 @@ def test_flow_compose_matches_schema():
     assert set(order["plan"]) == set(props(ORDER, "plan")["properties"])
     # Arrays kommer fra de tre Select-handlinger.
     for part, action in (("items", "Select_items"), ("operations", "Select_operations"),
-                         ("materials", "Select_materials")):
+                         ("materials", "Select_materials"),
+                         ("strategyPackages", "Select_strategy_packages")):
         assert order[part] == f"@body('{action}')"
     assert order["kind"] == ORDER["properties"]["kind"]["const"]
     assert order["version"] == ORDER["properties"]["version"]["const"]

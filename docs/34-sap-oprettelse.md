@@ -167,6 +167,24 @@ gamle scripts (`excel/src/Modules/GUI_Script.bas`, nu kun i git-historikken), sa
 | Langtekst | IP05 | itemets langtekst → gem |
 | Plan | IP01 | kategori PM uden strategi, tekst, cyklus, positionerne én for én, kaldshorisont, planlægningsperiode, startdato, sorteringsfelt → gem |
 
+**Strategiplaner** (planen har en `StrategyKey`) går samme vej med fire
+forskelle, alle i `VhpStrategy.bas`. Det er `excel/vba/Export_Script.bas`, der
+læser strategiplaner ud af SAP, vendt om:
+
+| Trin | Forskel |
+|---|---|
+| IA05 | Hovedet får strategien. Efter operationerne åbnes pakkeoversigten (`btnTEXT_DRUCKTASTE_WP`), og hver operation får kryds i sine pakker (`packagesKey` `;1;3;` → `chkRIHSTRAT-MARK01` og `MARK03`). Kortteksten på rækken tjekkes, så et kryds ikke havner på en anden operation |
+| IP04 | Positionen får strategien (`RMIPM-WSTRA`) |
+| IP01 | Strategien i stedet for cyklussen. Startdatoen er første forfald minus den korteste pakke, operationerne bruger |
+| Validering | Hver operation skal være på mindst én af strategiens pakker. Kun tidsstrategier: en tællerstrategi (H, D, COUNT) kræver et målepunkt og afvises, til det er klar |
+
+Strategiens pakker kommer med i ordren (`strategyPackages`, fra
+`MD_StrategyPackage`). Kun pakkeoversigten og positionens strategifelt er taget
+fra Export_Script; strategifeltet på arbejdsplanens hoved og felterne på
+strategiplanens IP01-skærm er ikke bekræftet. Dem finder opretteren på deres
+SAP-feltnavn, og stierne står under *STRATEGIPLANER* i `VhpConfig.bas`, så de
+kan rettes, når de er optaget.
+
 **Det, der er ændret i forhold til det gamle script, og hvorfor:**
 
 - **Én arbejdsplan pr. item.** Det gamle script samlede operationer på
@@ -271,7 +289,7 @@ forkert, siger opretteren hvilket og på hvilken skærm. Rettelsen er én linje 
 
 | | Hvorfor | I mellemtiden |
 |---|---|---|
-| Strategiplaner (IP42, pakker) | Pakkeallokeringen i IA05 er aldrig blevet kørt af et script mod jeres SAP. Opretteren afviser planen med en tydelig besked frem for at gætte | Opret dem i hånden |
+| Strategiplaner med tæller (H, D, COUNT) | Kræver et målepunkt på planen, og det er ikke klar. Opretteren afviser planen med en tydelig besked. Tidsstrategier oprettes (afsnit 6) | Opret dem i hånden |
 | Materialer (komponenter) | Komponentskærmen i IA05 er ikke optaget | Står som advarsel i *Vis plan* og i kvitteringen: tilføj i IA06. Kvitteringsflowet gemmer advarslerne i `MaintenancePlans.SapWarnings`, og mailen *Created in SAP* viser dem under *To be added manually in SAP* med Master Data på Cc (R2-018) |
 | Dokumenter | Ligger i SharePoint, ikke i ordren | Som i dag |
 | Omkostningsart | Kolonnens plads i operationsoversigten kendes ikke | SAP udleder den |

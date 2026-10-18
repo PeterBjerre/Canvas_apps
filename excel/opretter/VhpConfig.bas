@@ -235,6 +235,31 @@ Public Const IP01_KEY_DATE As String = IP01_SCHED_BASE & "radRMIPM-STICH"
 Public Const IP01_TAB_SORT As String = "wnd[0]/usr/subSUBSCREEN_MPLAN:SAPLIWP3:8001/tabsTABSTRIP_HEAD/tabpT\03"
 Public Const IP01_SORT_FIELD As String = "wnd[0]/usr/subSUBSCREEN_MPLAN:SAPLIWP3:8001/tabsTABSTRIP_HEAD/tabpT\03/ssubSUBSCREEN_BODY1:SAPLIWP3:8012/subSUBSCREEN_PARAMETER:SAPLIWP3:0113/cmbRMIPM-PLAN_SORT"
 
+'==============================================================================
+' STRATEGIPLANER (VhpStrategy)
+'
+' Fra excel/vba/Export_Script.bas, der LAESER strategiplaner i jeres SAP:
+'   IP04_STRATEGY      IP06's hoved (ExportItemExtract, kolonne AA)
+'   IA05_BTN_PACKAGES  pakkeoversigten fra operationsoversigten
+'   IA05_PKG_TABLE ... tabellen og felterne (ExportTasklistMaintPackages)
+' Export_Script laeser i visningstransaktionerne (IP06, IA07). Oprettelsen
+' bruger de samme billeder, men det er IKKE afproevet i IP04/IA05.
+'
+' UBEKRAEFTET (ikke i noget script, der har koert):
+'   IA05_HDR_STRATEGY  strategifeltet paa arbejdsplanens hoved
+' Findes en sti ikke, leder VhpStrategy efter feltet paa NAVN (PLKOD-STRAT,
+' RMIPM-WSTRA ...). IP01-felterne paa en strategiplan findes kun paa navn.
+' Ret stien her, naar den er optaget i SAP (Hjaelp > Script-optagelse).
+'==============================================================================
+Public Const IA05_HDR_STRATEGY As String = "wnd[0]/usr/ctxtPLKOD-STRAT"
+Public Const IP04_STRATEGY As String = "wnd[0]/usr/subSUBSCREEN_HEAD:SAPLIWP3:6001/ctxtRMIPM-WSTRA"
+
+Public Const IA05_BTN_PACKAGES As String = "wnd[0]/usr/btnTEXT_DRUCKTASTE_WP"
+Public Const IA05_PKG_TABLE As String = "wnd[0]/usr/tblSAPLCPDITCTRL_3600"
+Public Const IA05_PKG_COL_SHORTTEXT As String = "txtPLPOD-LTXA1[2,"
+' Pakke nr. n: "chkRIHSTRAT-MARK" & "0n" (eller "n") & "[n + 2,<raekke>]"
+Public Const IA05_PKG_COL_MARK As String = "chkRIHSTRAT-MARK"
+
 
 '==============================================================================
 ' FUNCTIONAL LOCATIONS - fra SPOOL-arket (excel/vba/spool-gui/GUI_SCRIPT.bas)

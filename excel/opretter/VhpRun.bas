@@ -276,7 +276,11 @@ Private Function ProcessOrder(ByVal path As String, ByVal root As String, _
 
     If Not VhpUtil.JHas(status, "sapPlanNo") Then
         Progress planId, VhpUtil.Dk("plan (IP01)")
-        planNo = VhpSteps.CreatePlan(sess, order, itemNos, ctx)
+        If VhpStrategy.IsStrategyOrder(order) Then
+            planNo = VhpStrategy.CreatePlan(sess, order, itemNos, ctx)
+        Else
+            planNo = VhpSteps.CreatePlan(sess, order, itemNos, ctx)
+        End If
         status("sapPlanNo") = planNo
         AddLog status, planId, VhpUtil.Dk("Plan ") & planNo & VhpUtil.Dk(" oprettet") & SapKeyNote(sess)
         SaveStatus status, statusPath
@@ -708,6 +712,7 @@ Private Function BuildContext(ByVal order As Object, ByVal lk As Object) As Obje
     ctx.Add "taskListType", VhpConfig.Setting(SET_TASKLIST_TYPE)
     ctx.Add "horizonQualifier", VhpConfig.Setting(SET_HORIZON_QUALIFIER)
     ctx.Add "planCategory", VhpConfig.Setting(SET_PLAN_CATEGORY)
+    ctx.Add "strategyKey", VhpStrategy.StrategyKey(order)
     ctx.Add "confirmSave", VhpConfig.SettingIsYes(SET_CONFIRM_SAVE)
     ctx.Add "warnings", New Collection
     Set BuildContext = ctx
