@@ -78,6 +78,56 @@ def test_admin_lists_are_provisioned_and_locked():
     assert "Get-MdRoleName 'Reader'" in ro[:ro.index("\n}\n")]
 
 
+def _quality_review():
+    path, = glob.glob(os.path.join(ROOT, "solution", "BIOSAP", "src", "Workflows",
+                                   "BioSap-VhPlan-QualityReview-*.json"))
+    return json.load(open(path, encoding="utf-8-sig"))["properties"]["definition"]
+
+
+def _find(acts, name):
+    for n, a in acts.items():
+        if n == name:
+            return a
+        for sub in ([a.get("actions", {})] + [a.get("else", {}).get("actions", {})]):
+            if sub:
+                hit = _find(sub, name)
+                if hit:
+                    return hit
+    return None
+
+
+SVC_PARAM = "BioSap-ServiceAccountEmail (orsted_BioSapServiceAccountEmail)"
+
+
+def _log(stage, author):
+    return {"Stage": stage, "Decision": "Approve", "ItemGuid": "g1",
+            "Author": {"Email": author}}
+
+
+@pytest.mark.parametrize("stage, action", [("System", "Filter_sys_ok"), ("Cost", "Filter_cost_ok")])
+def test_quality_review_only_trusts_log_rows_written_by_the_service_account(stage, action):
+    import wdl_eval
+    d = _quality_review()
+    assert SVC_PARAM in d["parameters"]
+    acts = {"Get_log_all": {"type": "Compose", "inputs": {"body/value": [
+        _log(stage, "SVC@example.invalid"), _log(stage, "user1@example.invalid")]}},
+        action: _find(d["actions"], action)}
+    out = wdl_eval.run(acts, ["Get_log_all", action], {}, {},
+                       parameters={SVC_PARAM: "svc@example.invalid"}).outputs
+    assert [r["Author"]["Email"] for r in out[action]] == ["SVC@example.invalid"]
+    # Ikke sat endnu: tjekket er slaaet fra, som foer.
+    out = wdl_eval.run(acts, ["Get_log_all", action], {}, {}, parameters={SVC_PARAM: ""}).outputs
+    assert len(out[action]) == 2
+
+
+def test_service_account_variable_is_defined_without_a_value():
+    p = os.path.join(ROOT, "solution", "BIOSAP", "src", "environmentvariabledefinitions",
+                     "orsted_BioSapServiceAccountEmail", "environmentvariabledefinition.xml")
+    text = open(p, encoding="utf-8").read()
+    assert 'schemaname="orsted_BioSapServiceAccountEmail"' in text
+    assert "<defaultvalue>" not in text
+
+
 # ---------------------------------------------------------------------------
 # R2-089: doctor fejler, hvor CI fejler.
 # ---------------------------------------------------------------------------

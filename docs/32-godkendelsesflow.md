@@ -261,7 +261,27 @@ mail til `BioSap-ErrorNotifiers`.
 | `DecidedByEmail` / `DecidedOn` | Text / DateTime | |
 | `Comment` | Note | |
 
-Brugerne har **kun læseadgang**. Flowene skriver med en serviceforbindelse.
+**Rettigheder (besluttet, R2-032).** Appen skriver selv to slags rækker som
+brugeren: admin-loggen (`AdminEdit`/`AdminDelete`, `tools/admin_log.py`) og
+"Counter created" (`Stage = Counter`, Measuring Point). Brugerne kan derfor
+ikke have ren læseadgang. Modellen er:
+
+| Hvem | Rettighed på `MD_ApprovalLog` |
+|---|---|
+| Members | Contribute med *Read access: All items* og *Create and Edit access: Create items and edit items that were created by the user* – en bruger kan oprette rækker og rette sine egne, aldrig flowenes |
+| Owners, flowenes servicekonto | Full Control (ikke bundet af "kun egne") |
+
+`Provision-AdminLists.ps1 -FlowAccount <servicekonto>` sætter det (kør først
+med `-WhatIfOnly`).
+
+Det er stadig ikke nok alene: en bruger kan *oprette* en række med
+`Stage = System`, `Decision = Approve` for en vilkårlig plan. Kvalitetsflowets
+værn (`Filter_sys_ok`/`Filter_cost_ok`, §7.3) tæller derfor kun `System`- og
+`Cost`-rækker, hvis `Author` er flowenes servicekonto – miljøvariablen
+`BioSap-ServiceAccountEmail`. Er variablen tom, er tjekket slået fra (som før).
+`Author` sættes af SharePoint og kan ikke skrives af appen, så det er den
+eneste "hvem", der ikke kan forfalskes.
+
 Det er vigtigt, fordi SharePoint-connectoren i appen kører som brugeren: en
 bruger med skriveadgang til `MaintenancePlans` kan i princippet selv sætte
 `ApprovalStage = Quality`. Kvalitetsflowet tjekker derfor loggen, før det
@@ -289,6 +309,7 @@ ligesom `BioSap-SiteUrl`, `BioSap-List-MaintenancePlans` og
 | `BioSap-EmailDomain` | `orsted.com` |
 | `BioSap-List-Approver`, `BioSap-List-ApprovalLog` | Listenavnene |
 | `BioSap-MasterDataEmail` | `sapvedligehold@orsted.com` – Master Datas fælles postkasse (§7.4) |
+| `BioSap-ServiceAccountEmail` | Flowenes servicekonto. Kvalitetsflowet stoler kun på `System`/`Cost`-rækker i `MD_ApprovalLog`, som den konto har oprettet (se `MD_ApprovalLog` ovenfor). Tom = tjekket er slået fra |
 | `BioSap-PowerBI-WorkspaceId`, `BioSap-PowerBI-DatasetId` | Se §8. ObjectList-flowet har dem skrevet direkte ind; her bliver de variabler, så TEST og PROD kan pege et andet sted hen |
 
 ## 7. Flowene

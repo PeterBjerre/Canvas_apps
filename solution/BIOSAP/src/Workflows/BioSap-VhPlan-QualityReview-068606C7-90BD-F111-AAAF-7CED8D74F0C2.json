@@ -99,6 +99,13 @@
             "schemaName": "orsted_BioSapEmailDomain"
           }
         },
+        "BioSap-ServiceAccountEmail (orsted_BioSapServiceAccountEmail)": {
+          "defaultValue": "",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapServiceAccountEmail"
+          }
+        },
         "BioSap-List-MaintenanceItems (orsted_BioSapListMaintenanceItems)": {
           "defaultValue": "d0b2538e-c702-4375-b766-caf342259495",
           "type": "String",
@@ -283,7 +290,7 @@
               "type": "Query",
               "inputs": {
                 "from": "@outputs('Get_log_all')?['body/value']",
-                "where": "@and(equals(item()?['Stage'], 'System'), or(equals(item()?['Decision'], 'Approve'), equals(item()?['Decision'], 'Skipped')))"
+                "where": "@and(equals(item()?['Stage'], 'System'), or(equals(item()?['Decision'], 'Approve'), equals(item()?['Decision'], 'Skipped')), or(empty(parameters('BioSap-ServiceAccountEmail (orsted_BioSapServiceAccountEmail)')), equals(toLower(coalesce(item()?['Author']?['Email'], '')), toLower(parameters('BioSap-ServiceAccountEmail (orsted_BioSapServiceAccountEmail)')))))"
               },
               "runAfter": {
                 "RequestGuid": [
@@ -307,7 +314,7 @@
               "type": "Query",
               "inputs": {
                 "from": "@outputs('Get_log_all')?['body/value']",
-                "where": "@and(equals(item()?['Stage'], 'Cost'), or(equals(item()?['Decision'], 'Approve'), equals(item()?['Decision'], 'Skipped')))"
+                "where": "@and(equals(item()?['Stage'], 'Cost'), or(equals(item()?['Decision'], 'Approve'), equals(item()?['Decision'], 'Skipped')), or(empty(parameters('BioSap-ServiceAccountEmail (orsted_BioSapServiceAccountEmail)')), equals(toLower(coalesce(item()?['Author']?['Email'], '')), toLower(parameters('BioSap-ServiceAccountEmail (orsted_BioSapServiceAccountEmail)')))))"
               },
               "runAfter": {
                 "Select_sys_guids": [
