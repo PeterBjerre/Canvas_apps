@@ -187,12 +187,21 @@ MIN_MAX_BAD = (f"{IS_STOCK} && !IsBlank({MIN_S}) && !IsBlank({MAX_S}) && "
                f"{MIN_S} > {MAX_S}")
 MIN_MAX_MSG = "Min stock must be less than or equal to max stock."
 
+# Prisen tastes som tekst ("dec", R2-010). Tekst, der ikke er et tal, ville
+# stiltiende blive gemt som tom - den stoppes ogsaa paa en kladde (samme
+# moenster som mp_parts._not_a_number).
+PRICE = dp._var("Price")
+PRICE_BAD = (f'!IsBlank(Trim(Coalesce({PRICE}, ""))) && '
+             f'IsBlank(IfError(Value(Trim({PRICE})), Blank()))')
+PRICE_MSG = "Price must be a number, not text."
+
 
 def save_fx(status):
     """domain_parts' gem, plus Materials' egne krav: lagerniveauet og det
     erstattede materiale."""
     return dp.save_row_fx(status, required=_row_rules(),
-                          always=[(MIN_MAX_BAD, MIN_MAX_MSG)])
+                          always=[(MIN_MAX_BAD, MIN_MAX_MSG),
+                                  (PRICE_BAD, PRICE_MSG)])
 
 
 # ---------------------------------------------------------------------------
