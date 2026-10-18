@@ -169,7 +169,7 @@ Public Sub RefreshList()
     If Len(root) = 0 Then GoTo Done
 
     Set lk = VhpLookup.Load()
-    Set files = VhpFiles.ListOrderFiles(root)
+    Set files = VhpFiles.ListOrderFiles(root, True)
     Set newest = VhpUtil.NewDict()
 
     ' Foerste gennemloeb: laes alle, og find den nyeste ordre pr. plan eller
@@ -236,6 +236,15 @@ Private Function ReadOrderInfo(ByVal path As String, ByVal lk As Object, ByVal r
     info.Add "state", ""
     info.Add "message", ""
     Set ReadOrderInfo = info
+
+    ' To pc'er skrev samme status- eller kvitteringsfil, foer OneDrive naaede
+    ' at synkronisere (R2-055). Kopien er ikke en ordre.
+    If VhpFiles.IsSyncConflict(path) Then
+        info("state") = "Synkkonflikt"
+        info("message") = VhpUtil.Dk("OneDrive-konfliktkopi (to pc'er skrev samme fil). Slet kopien, og behold den nyeste uden pc-navn. ") & _
+            VhpUtil.Dk("Se i Log, om planen blev k{oe}rt to gange.")
+        Exit Function
+    End If
 
     On Error Resume Next
     Set order = VhpOrder.LoadOrder(path)
@@ -344,7 +353,7 @@ Private Sub ColorState(ByVal cell As Range, ByVal state As String)
         Case state = VhpUtil.Dk("Kan ikke oprettes"), state = VhpUtil.Dk("Fejlede"), state = VhpUtil.Dk("Ugyldig fil")
             c = RGB(253, 231, 233)
         Case state = VhpUtil.Dk("Kr{ae}ver kontrol"), state = VhpUtil.Dk("Delvist oprettet"), _
-             state = VhpUtil.Dk("Allerede oprettet")
+             state = VhpUtil.Dk("Allerede oprettet"), state = "Synkkonflikt"
             c = RGB(255, 244, 206)
         Case Else
             c = RGB(237, 235, 233)

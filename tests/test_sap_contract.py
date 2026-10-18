@@ -241,7 +241,13 @@ def test_folder_names_agree():
     folders = re.search(r"foreach \(\$folder in @\(([^)]*)\)\)", ps1).group(1)
     for key in ("FOLDER_ORDERS", "FOLDER_RECEIPTS", "FOLDER_DONE"):
         assert f"'{const[key]}'" in folders, key
-    assert const["SUFFIX_RECEIPT"] in _expressions()["kvittering-0-filter.txt"]
+    # R2-055: filteret tager ogsaa OneDrives konfliktkopier
+    # ("...kvittering-PCNAVN.json") med, og betingelsen afviser dem til
+    # Afvist med en mail, saa ingen kvittering bliver liggende stille.
+    stem = const["SUFFIX_RECEIPT"][:-len(".json")]
+    assert f"'{stem}'" in _expressions()["kvittering-0-filter.txt"]
+    assert "'.json'" in _expressions()["kvittering-0-filter.txt"]
+    assert f"'{const['SUFFIX_RECEIPT']}'" in _expressions()["kvittering-2-betingelse.txt"]
 
 
 #==============================================================================

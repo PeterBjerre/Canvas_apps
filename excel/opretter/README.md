@@ -59,6 +59,13 @@ igen. Ved en **gul** bjælke: tryk *Aktivér indhold*.
    klik bare på én række.
 4. **Opret i SAP.** Opretteren åbner sit eget SAP-vindue og arbejder i det.
    Rør ikke SAP eller Excel, før den er færdig.
+
+   **Én operatør ad gangen.** Aftal, hvem der opretter i dag. Låsen er en
+   fil i den synkroniserede mappe, og en kollegas lås ses først, når
+   OneDrive har hentet den — sekunder, på VPN minutter. Opretteren læser
+   låsen igen to sekunder efter, den er skrevet, og stopper, hvis en anden
+   er kommet først, men to, der trykker *Opret* på samme plan i samme
+   øjeblik, kan stadig begge nå at oprette (R2-055).
 5. **Svar på spørgsmålene** (se nedenfor). Til sidst får du en opsummering.
 
 Inden for 10 minutter står resultatet i appen, og rekvirenten får en mail:
@@ -92,6 +99,7 @@ Det sidste spørgsmål kommer kun, mens *Bekræft hvert gem* står til *Ja* (ark
 | **Erstattet** | Der er kommet en nyere udgave af planen eller anmodningen | Ingenting. Den nyeste bruges, og når den er oprettet, flyttes den gamle med til *Oprettet* |
 | **Oprettet …** | Færdig, men ikke flyttet endnu | Flyttes til *Oprettet* ved næste kørsel |
 | **Ugyldig fil** | Filen kan ikke læses | Spørg den, der vedligeholder opretteren |
+| **Synkkonflikt** | OneDrive-kopi af en statusfil (`….status-PCNAVN.json`): to pc'er skrev den samme fil | Slet kopien, og behold den nyeste uden pc-navn. Se i *Log* og i SAP, om planen blev kørt to gange |
 
 Alt, der sker, står også på arket *Log*.
 

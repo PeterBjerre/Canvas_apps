@@ -43,6 +43,13 @@ Public Const SUFFIX_RECEIPT As String = ".kvittering.json"
 ' for doed (Excel lukket, pc'en gik i dvale). Saa maa en anden tage over.
 Public Const LOCK_STALE_MINUTES As Long = 120
 
+' Laasen er en fil i en synkroniseret mappe (R2-055). Efter den er skrevet,
+' ventes der saa mange sekunder, og filen laeses igen: har OneDrive i
+' mellemtiden hentet en kollegas laas, stopper koerslen, foer SAP roeres.
+' Det lukker ikke vinduet, men goer det lille. Driftsreglen er een operatoer
+' pr. plan ad gangen (README).
+Public Const LOCK_CONFIRM_SECONDS As Long = 2
+
 ' Mappen huskes pr. bruger i registreringsdatabasen (GetSetting), fordi
 ' OneDrive-stien indeholder brugernavnet og er forskellig paa hver pc. Navnet
 ' er det fra version 1.0, saa den valgte mappe huskes efter opdateringen.

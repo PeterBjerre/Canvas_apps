@@ -113,6 +113,11 @@ Private Function SafeProcessOrder(ByVal path As String, ByVal root As String, _
                                   ByVal sess As Object, ByVal lk As Object) As String
     Dim msg As String
     On Error GoTo Unexpected
+    If VhpFiles.IsSyncConflict(path) Then
+        SafeProcessOrder = "SK:" & VhpFiles.FileNameOf(path) & _
+            VhpUtil.Dk(": OneDrive-konfliktkopi, ikke en ordre. Slet den.")
+        Exit Function
+    End If
     If VhpOrder.IsFlFile(path) Then
         SafeProcessOrder = VhpFlRun.ProcessFlOrder(path, root, sess, lk)
     Else
@@ -233,6 +238,13 @@ Private Function ProcessOrder(ByVal path As String, ByVal root As String, _
     AddLog status, planId, VhpUtil.Dk("Start (") & VhpSap.SystemName(sess) & "/" & VhpSap.ClientOf(sess) & _
         ", " & VhpUtil.UserName() & ")"
     SaveStatus status, statusPath
+
+    reason = ConfirmLock(status, statusPath)
+    If Len(reason) > 0 Then
+        VhpUi.LogLine planId, reason
+        ProcessOrder = "SK:" & planId & ": " & reason
+        Exit Function
+    End If
 
     Set ctx = BuildContext(order, lk)
 
@@ -522,6 +534,35 @@ Public Function CheckStatus(ByVal status As Object, ByVal order As Object, ByVal
                 CheckStatus = VhpUtil.Dk("ikke overtaget fra ") & who & "."
             End If
         End If
+    End If
+End Function
+
+' Er laasen stadig min, et par sekunder efter den blev skrevet? "" = ja.
+' Statusfilen ligger i en OneDrive-mappe: en kollega, der trykkede Opret paa
+' samme plan lige foer, ses foerst, naar OneDrive har hentet hans fil
+' (R2-055). Den, der skrev sidst, vinder filen; den anden stopper her.
+Public Function ConfirmLock(ByVal status As Object, ByVal statusPath As String) As String
+    Dim again As Object
+    Dim who As String
+
+    DoEvents
+    Application.Wait Now + TimeSerial(0, 0, LOCK_CONFIRM_SECONDS)
+    DoEvents
+
+    On Error Resume Next
+    Set again = VhpFiles.ReadJson(statusPath)
+    On Error GoTo 0
+    If again Is Nothing Then
+        ConfirmLock = VhpUtil.Dk("statusfilen kunne ikke l{ae}ses igen, efter l{aa}sen blev skrevet (OneDrive?). Pr{oe}v igen om lidt.")
+        Exit Function
+    End If
+
+    If StrComp(VhpUtil.JStr(again, "lockedBy"), VhpUtil.JStr(status, "lockedBy"), vbTextCompare) <> 0 Or _
+       StrComp(VhpUtil.JStr(again, "lockedOn"), VhpUtil.JStr(status, "lockedOn"), vbBinaryCompare) <> 0 Then
+        who = VhpUtil.JStr(again, "lockedBy")
+        If Len(who) = 0 Then who = VhpUtil.Dk("en kollega")
+        ConfirmLock = VhpUtil.Dk("blev startet samtidig af ") & who & _
+            VhpUtil.Dk(" (OneDrive har lige hentet en anden statusfil). Intet er oprettet her. Aftal, hvem der k{oe}rer den.")
     End If
 End Function
 

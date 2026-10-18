@@ -107,6 +107,13 @@ Public Function ProcessFlOrder(ByVal path As String, ByVal root As String, _
         ", " & VhpUtil.UserName() & ")"
     VhpRun.SaveStatus status, statusPath
 
+    reason = VhpRun.ConfirmLock(status, statusPath)
+    If Len(reason) > 0 Then
+        VhpUi.LogLine key, reason
+        ProcessFlOrder = "SK:" & key & ": " & reason
+        Exit Function
+    End If
+
     Set ctx = VhpUtil.NewDict()
     ctx.Add "lookups", lk
     ctx.Add "confirmSave", VhpConfig.SettingIsYes(SET_CONFIRM_SAVE)

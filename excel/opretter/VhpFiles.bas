@@ -146,8 +146,11 @@ End Function
 '==============================================================================
 
 ' Ordrefilerne i "Til oprettelse", sorteret efter navn. Status- og
-' kvitteringsfiler og halvt skrevne .tmp-filer er ikke ordrer.
-Public Function ListOrderFiles(ByVal root As String) As Collection
+' kvitteringsfiler og halvt skrevne .tmp-filer er ikke ordrer - heller ikke
+' OneDrives konfliktkopier af dem (R2-055). Listen (VhpUi) beder om
+' konfliktkopierne med, saa de kan vises som Synkkonflikt.
+Public Function ListOrderFiles(ByVal root As String, _
+                               Optional ByVal includeConflicts As Boolean = False) As Collection
     Dim result As New Collection
     Dim names As New Collection
     Dim f As Object
@@ -161,7 +164,11 @@ Public Function ListOrderFiles(ByVal root As String) As Collection
     For Each f In Fso().GetFolder(folder).Files
         nm = f.Name
         If LCase$(Right$(nm, 5)) = ".json" Then
-            If Not IsSidecar(nm) Then InsertSorted names, nm
+            If Not IsSidecar(nm) Then
+                InsertSorted names, nm
+            ElseIf includeConflicts And IsSyncConflict(nm) Then
+                InsertSorted names, nm
+            End If
         End If
     Next f
 
@@ -171,10 +178,28 @@ Public Function ListOrderFiles(ByVal root As String) As Collection
     Next v
 End Function
 
+' En status- eller kvitteringsfil - ogsaa en konfliktkopi, som OneDrive
+' kalder "MP0133_....status-PCNAVN.json", naar to pc'er har skrevet samme
+' fil. Derfor ".status" et sted i navnet, ikke kun som endelse.
 Private Function IsSidecar(ByVal nm As String) As Boolean
     nm = LCase$(nm)
-    IsSidecar = (Right$(nm, Len(SUFFIX_STATUS)) = LCase$(SUFFIX_STATUS)) Or _
-                (Right$(nm, Len(SUFFIX_RECEIPT)) = LCase$(SUFFIX_RECEIPT))
+    IsSidecar = (InStr(1, nm, SidecarStem(SUFFIX_STATUS), vbBinaryCompare) > 0) Or _
+                (InStr(1, nm, SidecarStem(SUFFIX_RECEIPT), vbBinaryCompare) > 0)
+End Function
+
+' En OneDrive-konfliktkopi af en status- eller kvitteringsfil: en sidecar,
+' der ikke ender paa den rigtige endelse.
+Public Function IsSyncConflict(ByVal nm As String) As Boolean
+    nm = LCase$(FileNameOf(nm))
+    If LCase$(Right$(nm, 5)) <> ".json" Then Exit Function
+    If Not IsSidecar(nm) Then Exit Function
+    IsSyncConflict = (Right$(nm, Len(SUFFIX_STATUS)) <> LCase$(SUFFIX_STATUS)) And _
+                     (Right$(nm, Len(SUFFIX_RECEIPT)) <> LCase$(SUFFIX_RECEIPT))
+End Function
+
+' ".status.json" -> ".status"
+Private Function SidecarStem(ByVal suffix As String) As String
+    SidecarStem = LCase$(Left$(suffix, Len(suffix) - Len(".json")))
 End Function
 
 Private Sub InsertSorted(ByVal c As Collection, ByVal value As String)

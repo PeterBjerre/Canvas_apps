@@ -271,7 +271,8 @@ Som VH-planernes kvitteringsflow (docs/35), med disse forskelle:
 - ***Get request***: *Get item* på `BioSap-List-FunctionalLocationRequests`,
   *Id* `outputs('Receipt')?['requestSpId']`.
 - ***Valid receipt***: `fl-kvittering-2-betingelse.txt` *is equal to* `true`.
-  Den tjekker `kind`, `state = Created`, `orderGuid` mod anmodningens
+  Den tjekker filnavnet (en OneDrive-konfliktkopi `….kvittering-PCNAVN.json`
+  afvises med en mail, R2-055), `kind`, `state = Created`, `orderGuid` mod anmodningens
   `SapOrderGuid`, at anmodningen stadig er åben (Indsendt, UnderBehandling
   eller KlarTilSAP) og SAP-systemet.
 - ***Each row*** over `outputs('Receipt')?['rows']`: MERGE på

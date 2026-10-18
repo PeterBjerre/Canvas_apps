@@ -213,7 +213,7 @@ kan rettes, når de er optaget.
 | En PROD-plan prøvet i GQ1 | Spærret. Kvitteringen ville ellers skrive et testnummer på en rigtig plan |
 | Halvt oprettede planer | Validering før SAP. Statusfil efter hvert gem, så en ny kørsel fortsætter, hvor den slap |
 | Dubletter | Et nummer læses kun fra et succes-svar. Ved et uklart svar stopper planen (`NeedsCheck`) i stedet for at prøve igen. En plan, der allerede er oprettet i samme SAP-system (ordren ligger i *Oprettet*), oprettes ikke igen |
-| To kolleger på samme plan | Statusfilen siger, hvem der kører den. Den anden får besked |
+| To kolleger på samme plan | Statusfilen siger, hvem der kører den. Den anden får besked. Låsen er en fil i en OneDrive-mappe, så en kollegas lås ses først, når den er synkroniseret: opretteren læser låsen igen `LOCK_CONFIRM_SECONDS` (2) sekunder efter, den er skrevet, og stopper, hvis den ikke længere er ens egen. Vinduet er lille, ikke lukket — driftsreglen er én navngiven operatør ad gangen (README). OneDrives konfliktkopier (`….status-PCNAVN.json`) vises som *Synkkonflikt* i listen, og kvitteringsflowet afviser en kopi (`….kvittering-PCNAVN.json`) til *Afvist* med en mail i stedet for at lade den ligge (R2-055) |
 | En gammel ordre efter en ny | Den nyeste ordre pr. plan bruges. Kvitteringsflowet afviser en kvittering, hvis `orderGuid` ikke er planens `SapOrderGuid` |
 | En plan trukket tilbage og godkendt igen | Flowet tømmer `SapOrderGuid`, når planen forlader *Ready* uden at være oprettet. Den nye godkendelse giver derfor en ny ordre, som erstatter den gamle |
 | En fremmed fil i Kvitteringer | Flowet tjekker også status og SAP-system. Biblioteket skal kun kunne skrives af Master Data og flowets servicekonto |

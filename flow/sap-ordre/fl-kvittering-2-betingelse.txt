@@ -1,4 +1,5 @@
 and(
+  endsWith(toLower(items('Each_receipt')?['{FilenameWithExtension}']), '.kvittering.json'),
   equals(outputs('Receipt')?['kind'], 'fl-sap-receipt'),
   equals(outputs('Receipt')?['state'], 'Created'),
   equals(outputs('Receipt')?['orderGuid'], body('Get_request')?['SapOrderGuid']),
