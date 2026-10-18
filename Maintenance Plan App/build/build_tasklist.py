@@ -18,7 +18,7 @@ from build_plan_header import section_header, help_panel, section_footer
 NV = num_value()
 from build_status import HAS_PKGS
 import build_help as bh
-from build_strategy import build_strategy_body, IS_STRATEGY
+from build_strategy import build_strategy_body, IS_STRATEGY, pkg_pills, PILLS_W
 import sp_config as cfg
 from design_tokens import ref_hex
 from layout_tokens import SCROLLBAR_W, fits, TWO_COL_MIN, below, at_least, if_below
@@ -60,7 +60,8 @@ OPS_COLS = [
     ("COST", 80),
     ("MAT.GRP", 90),
     ("LONG TEXT", 170),
-    ("PACKAGES", 110),
+    # Plads til fire pakke-piller (build_strategy.pkg_pills).
+    ("PACKAGES", PILLS_W),
     # Knapper, som Details og Docs i Equipments liste (issue #54). De
     # aabner materialerne og dokumenterne for NETOP denne operation.
     ("MATERIALS", 110),
@@ -770,13 +771,16 @@ def _op_detail_modal():
          'Set(varVhpLongTextOpen, true)'),
         width=MODAL_CW, height=32, icon="DocumentText",
         accessible='"Edit long text for operation " & varVhpOpMNo')
-    packages = text_ctrl(
+    # Samme piller som i tabellens raekke (build_strategy.pkg_pills).
+    m_pills = f"({IS_STRATEGY} && {HAS_PKGS})"
+    packages_txt = text_ctrl(
         "txtVhpOpMPackages",
-        ('If(varVhpPlan.PlanType <> "Strategy", "-", With({ sel: Filter(colVhpStrategyPackages As P, '
-         'P.StrategyKey = varVhpPlan.Strategy && ";" & Text(P.PackageNo) & ";" in '
-         f'Coalesce({OPM}.PackagesKey, ";")) }}, If(CountRows(sel) = 0, "(none)", '
-         'Concat(Sort(sel, PackageNo), ShortCode, ", "))))'),
-        size=13, height=20, wrap="false")
+        'If(varVhpPlan.PlanType <> "Strategy", "-", "(no packages)")',
+        size=13, height=20, wrap="false", visible=f"!{m_pills}")
+    packages_gal = pkg_pills("VhpOpM", "varVhpOpMNo", f"{OPM}.PackagesKey")
+    packages_gal.props["Visible"] = m_pills
+    packages_gal.vis = m_pills
+    packages = group("conVhpOpMPackages", [packages_txt, packages_gal], direction="Vertical", gap=0)
     return _modal("VhpOpM", '"Operation " & varVhpOpMNo', OPM_OPEN, 'Set(varVhpOpMNo, "")',
                   [label("L0", "Operation no."), opno, label("L1", "Short text"), short, label("L2", "Work (h)"), work,
                    label("L3", "Number of people"), persons, dur,
@@ -1176,24 +1180,22 @@ def build_tasklist_section():
         accessible='"Edit long text for operation " & ThisItem.OperationNo')
     mark_done(btnOpLongText, "!IsBlank(Trim(Coalesce(ThisItem.LongText, \"\")))")
 
-    # Pakkerne redigeres i matricen nedenfor - her vises kun resultatet, saa
-    # operationslinjen og allokeringen kan laeses samme sted.
+    # Pakkerne vises som piller (designforslaget), og et klik slaar en pakke
+    # til eller fra paa linjen. Matricen under fanen Packages er den samme
+    # allokering set fra pakkerne. Uden strategi - eller foer strategiens
+    # pakker er hentet - staar der en tekst i stedet.
+    show_pills = f"({IS_STRATEGY} && {HAS_PKGS})"
     txtOpPackages = text_ctrl(
         "txtVhpOpPackages",
-        (
-            "If(\n"
-            "    varVhpPlan.PlanType <> \"Strategy\", \"-\",\n"
-            "    With(\n"
-            "        { sel: Filter(colVhpStrategyPackages As P, P.StrategyKey = varVhpPlan.Strategy && \";\" & Text(P.PackageNo) & \";\" in Coalesce(ThisItem.PackagesKey, \";\")) },\n"
-            "        If(CountRows(sel) = 0, \"(none)\", Concat(Sort(sel, PackageNo), ShortCode, \", \"))\n"
-            "    )\n"
-            ")"
-        ),
-        size=12, height=32, width=w["PACKAGES"], wrap="false",
-        color=(
-            "If(varVhpPlan.PlanType = \"Strategy\" && Len(Coalesce(ThisItem.PackagesKey, \";\")) <= 1, "
-            f"{C_INVALID_FG}, {C_MUTED})"
-        ))
+        'If(varVhpPlan.PlanType <> "Strategy", "-", "(no packages)")',
+        size=12, height=32, width=w["PACKAGES"], wrap="false", color=C_MUTED,
+        visible=f"!{show_pills}")
+    galOpPills = pkg_pills("VhpOp", "ThisItem.OperationNo", "ThisItem.PackagesKey",
+                           width=w["PACKAGES"])
+    galOpPills.props["Visible"] = show_pills
+    galOpPills.vis = show_pills
+    cellOpPackages = group("conVhpOpPackages", [txtOpPackages, galOpPills], direction="Horizontal",
+                           gap=0, height=32, width=w["PACKAGES"], align_items="Center")
 
     OP_MATS = ("Filter(colVhpMaterials, ItemId = ThisItem.ItemId && "
                "OperationNo = ThisItem.OperationNo)")
@@ -1215,7 +1217,7 @@ def build_tasklist_section():
     opRow = group("conVhpOpRow",
                   pin_widths([txtOpNo, txtOpShort, numOpWork, numOpPersons, numOpDur, txtOpMwc,
                               drpOpCtrl, txtOpVendor, numOpCost, txtOpMatGrp,
-                              btnOpLongText, txtOpPackages, btnOpMat, btnOpDocs, btnOpDel]),
+                              btnOpLongText, cellOpPackages, btnOpMat, btnOpDocs, btnOpDel]),
                   direction="Horizontal", gap=OPS_GAP,
                   height="Parent.TemplateHeight - 2", align_items="Center", width="Parent.TemplateWidth")
 
