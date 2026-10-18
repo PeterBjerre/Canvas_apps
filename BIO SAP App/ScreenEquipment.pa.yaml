@@ -4387,7 +4387,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =68 + 14 + (Min(0 + (If(attEqPicker.AttachmentsCount = 0, 112, 112 + Min(attEqPicker.AttachmentsCount, 4) * 36)) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varEqAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 32 - 14))
+                =68 + 14 + (Min(0 + (160 + Max(attEqPicker.AttachmentsCount, CountRows(varEqAttRow.Attachments)) * 44) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varEqAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 32 - 14))
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -4549,7 +4549,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =Min(0 + (If(attEqPicker.AttachmentsCount = 0, 112, 112 + Min(attEqPicker.AttachmentsCount, 4) * 36)) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varEqAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 32 - 14)
+                      =Min(0 + (160 + Max(attEqPicker.AttachmentsCount, CountRows(varEqAttRow.Attachments)) * 44) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varEqAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 32 - 14)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -4573,7 +4573,7 @@ Screens:
                         DisplayMode: |-
                             =If(!((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted")), DisplayMode.View, IfError(Coalesce(varEqAttBusy, false), false) || IsBlank(varEqAttRow), DisplayMode.Disabled, DisplayMode.Edit)
                         Height: |-
-                            =If(Self.AttachmentsCount = 0, 112, 112 + Min(Self.AttachmentsCount, 4) * 36)
+                            =Min(160 + Max(Self.AttachmentsCount, CountRows(varEqAttRow.Attachments)) * 44, Max(160, Parent.Height - (0 + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varEqAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0))))
                         Items: |-
                             =varEqAttRow.Attachments
                         MaxAttachmentSize: |-

@@ -13544,7 +13544,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + (Min(0 + (If(attMatPicker.AttachmentsCount = 0, 112, 112 + Min(attMatPicker.AttachmentsCount, 4) * 36)) + If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varMatAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varMatDocsId) && !(!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 32 - 14))
+                            =0 + (Min(0 + (160 + Max(attMatPicker.AttachmentsCount, CountRows(varMatAttRow.Attachments)) * 44) + If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varMatAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varMatDocsId) && !(!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 32 - 14))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -13597,7 +13597,7 @@ Screens:
                                     DisplayMode: |-
                                         =If(!((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted")), DisplayMode.View, IfError(Coalesce(varMatAttBusy, false), false) || IsBlank(varMatAttRow), DisplayMode.Disabled, DisplayMode.Edit)
                                     Height: |-
-                                        =If(Self.AttachmentsCount = 0, 112, 112 + Min(Self.AttachmentsCount, 4) * 36)
+                                        =Min(160 + Max(Self.AttachmentsCount, CountRows(varMatAttRow.Attachments)) * 44, Max(160, Parent.Height - (0 + If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varMatAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varMatDocsId) && !(!IsBlank(varMatDocsId) && !IfError(varMatViewOnly, false) && LookUp(colMatRows, RowId = varMatDocsId).Status <> "submitted"), 12 + (18), 0))))
                                     Items: |-
                                         =varMatAttRow.Attachments
                                     MaxAttachmentSize: |-
