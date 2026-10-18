@@ -22,6 +22,9 @@ import wdl_eval
 FLOWS = os.path.join(ROOT, "solution", "BIOSAP", "src", "Workflows")
 SITE = "BioSap-SiteUrl (orsted_BioSapSiteUrl)"
 SITE_URL = "https://example.test/teams/BioSAPDev"
+# R2-052: fodnotens postkasse er miljoevariablen.
+MD = "BioSap-MasterDataEmail (orsted_BioSapMasterDataEmail)"
+MD_MAIL = "box@example.test"
 
 
 def _definition(name):
@@ -102,7 +105,7 @@ def _render(plan, index_rows):
             "Subject": {"type": "Compose",
                         "inputs": t["Send_an_email_(V2)-EmailRequestor"]["inputs"]
                         ["parameters"]["emailMessage/Subject"]}}
-    out = wdl_eval.run(acts, list(acts), plan, {}, parameters={SITE: SITE_URL}).outputs
+    out = wdl_eval.run(acts, list(acts), plan, {}, parameters={SITE: SITE_URL, MD: MD_MAIL}).outputs
     return out["Compose-EmailContent"], out["Subject"]
 
 
@@ -120,6 +123,7 @@ def test_the_mail_names_the_sap_plan_and_links_to_the_app():
     assert ">2 years<" in html
     assert ">- years<" not in _render(dict(PLAN, SchedulingPeriod=None), [INDEX])[0]
     assert "Rita Requester" in html and "mailto:rita@example.test" in html
+    assert "mailto:%s" % MD_MAIL in html
 
 
 def test_free_text_is_escaped():

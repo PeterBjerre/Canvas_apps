@@ -71,7 +71,10 @@ Slå rækken op med `RequestGuid` eller `RequestNo` = planens `PlanID`.
 | `{{RequesterEmail}}` | `RequesterEmail` |
 | `{{ItemCount}}` | `ItemCount` |
 | `{{AppUrl}}` | `AppUrl` |
-| `{{SubmittedOn}}` | `formatDateTime(…['LastActionOn'], 'dd-MM-yyyy HH:mm')` |
+| `{{SubmittedOn}}` | `convertFromUtc(…['LastActionOn'], 'Romance Standard Time', 'dd-MM-yyyy HH:mm')` – dansk tid; tilføj `Z`, hvis værdien mangler det (R2-085) |
+
+`{{MasterDataEmail}}` i fodnoten er miljøvariablen `BioSap-MasterDataEmail`
+(R2-052) – ikke en fast adresse, så DEV kan pege på en testpostkasse.
 
 `{{ItemCount}}` kan også tages som `length(body('Get_items_MaintenanceItems')?['value'])`
 — så er den garanteret i takt med tabellen lige nedenunder.

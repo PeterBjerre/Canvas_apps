@@ -71,7 +71,8 @@ def test_solution_has_no_missing_dependency_on_the_flow():
 
 def test_mail_names_the_user_and_only_goes_to_the_mailbox():
     actions = dict(_actions(_flow()["properties"]["definition"]["actions"]))
-    assert actions["Mailbox"]["inputs"] == fb.MAILBOX
+    # R2-052: postkassen er miljoevariablen, ikke en literal i flowet.
+    assert actions["Mailbox"]["inputs"] == "@toLower(trim(parameters('%s')))" % MD
     assert "x-ms-user-email" in actions["Caller"]["inputs"]
     send = actions["Send_an_email_(V2)"]["inputs"]
     assert send["host"]["connectionName"] == "shared_office365"
@@ -154,6 +155,7 @@ def test_send_uses_the_flow_and_outlook_is_a_separate_draft():
 # Mailens formatering (issue #194): flowets udtryk koeres paa eksempler med
 # en lille WDL-fortolker (tests/wdl_eval.py), og den faerdige HTML efterses.
 # ---------------------------------------------------------------------------
+MD = "BioSap-MasterDataEmail (orsted_BioSapMasterDataEmail)"
 COMPOSE = ["Caller", "Context", "Caller_name", "Mailbox", "Message_html",
            "Request", "Heading", "Request_html", "Preheader"]
 HEADERS = {"x-ms-user-email": "Jane.Doe@orsted.com", "x-ms-user-name": 'Jane "JD" <Doe> & Co'}
@@ -168,7 +170,7 @@ def _mail(message, context, headers=HEADERS):
     actions = dict(_actions(_flow()["properties"]["definition"]["actions"]))
     body = {"text": fb.MAILBOX, "text_1": "SAP maintenance - x", "text_2": message,
             "text_3": "[]", "text_4": json.dumps(context, ensure_ascii=False) if context is not None else ""}
-    ctx = wdl_eval.run(actions, COMPOSE, body, headers)
+    ctx = wdl_eval.run(actions, COMPOSE, body, headers, parameters={MD: fb.MAILBOX})
     html = wdl_eval.value(actions["Send_an_email_(V2)"]["inputs"]["parameters"]["emailMessage/Body"], ctx)
     return html, ctx.outputs
 
@@ -328,3 +330,14 @@ def test_no_json_over_a_raw_attachments_table():
     for path in glob.glob(os.path.join(ROOT, "BIO SAP App", "*.pa.yaml")):
         text = open(path, encoding="utf-8").read()
         assert not re.search(r"JSON\(\w+\.Attachments\b", text), path
+
+
+def test_check_needs_a_caller_not_the_apps_address():
+    """R2-052: flowet sender til miljoevariablen; appens "To" (text) er kun
+    visning. Et skift af postkassen kraever ikke en ny app."""
+    actions = dict(_actions(_flow()["properties"]["definition"]["actions"]))
+    expr = json.dumps(actions["Check"]["expression"])
+    assert "triggerBody()?['text']" not in expr
+    assert "outputs('Caller')" in expr
+    params = _flow()["properties"]["definition"]["parameters"]
+    assert params[MD]["metadata"]["schemaName"] == "orsted_BioSapMasterDataEmail"

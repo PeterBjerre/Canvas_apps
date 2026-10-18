@@ -62,6 +62,10 @@ ME = "gblFbMe"
 SEL = "gblFbSel"      # det valgte emne eller anmodning (record), Blank = intet valgt
 PICK = "gblFbPick"    # listen er foldet ud
 REQS = "colFbRequests"
+# R2-052: FLOWET er kilden til postkassen (miljoevariablen
+# BioSap-MasterDataEmail i BioSap-SendFeedbackMail). Literalen her bruges kun
+# til teksten i popuppen, mailto-udkastet ("Send via Outlook") og flowets
+# visningsinput "To" - flowet sender ikke til den.
 MAILBOX = "sapvedligehold@orsted.com"
 SEND_FLOW = "'BioSap-SendFeedbackMail'"
 BUSY = "gblFbBusy"    # flowet koerer - Send er spaerret, saa intet sendes to gange
