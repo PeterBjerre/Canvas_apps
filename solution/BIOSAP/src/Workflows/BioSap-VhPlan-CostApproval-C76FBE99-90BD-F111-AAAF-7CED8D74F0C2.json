@@ -488,6 +488,51 @@
                     }
                   },
                   "actions": {
+                    "Index_assigned": {
+                      "type": "If",
+                      "expression": {
+                        "greater": [
+                          "@length(outputs('Get_request_index')?['body/value'])",
+                          0
+                        ]
+                      },
+                      "actions": {
+                        "Patch_index_assigned": {
+                          "type": "OpenApiConnection",
+                          "runAfter": {},
+                          "inputs": {
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                              "connectionName": "shared_sharepointonline",
+                              "operationId": "PatchItem"
+                            },
+                            "parameters": {
+                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                              "table": "@parameters('MD_RequestIndex (orsted_shared_sharepointonline_9f0c6e07f15d4509a3ecab4d20b7fff7)')",
+                              "id": "@first(outputs('Get_request_index')?['body/value'])?['ID']",
+                              "item/Title": "@first(outputs('Get_request_index')?['body/value'])?['Title']",
+                              "item/Domain": {
+                                "Value": "MaintenancePlan"
+                              },
+                              "item/RequesterEmail": "@first(outputs('Get_request_index')?['body/value'])?['RequesterEmail']",
+                              "item/Status": {
+                                "Value": "UnderBehandling"
+                              },
+                              "item/StatusStep": 3,
+                              "item/LastActionBy": "Cost approval",
+                              "item/LastActionOn": "@utcNow()",
+                              "item/AssignedToEmail": "@toLower(outputs('Final_approver'))",
+                              "item/AssignedToName": "@coalesce(actions('Resolve_primary')?['outputs']?['body']?['displayName'], actions('Resolve_secondary')?['outputs']?['body']?['displayName'], '')"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        }
+                      },
+                      "runAfter": {},
+                      "else": {
+                        "actions": {}
+                      }
+                    },
                     "For_each_item": {
                       "type": "Foreach",
                       "foreach": "@outputs('Get_items_MaintenanceItems')?['body/value']",
@@ -806,7 +851,12 @@
                           }
                         }
                       },
-                      "runAfter": {}
+                      "runAfter": {
+                        "Index_assigned": [
+                          "Succeeded",
+                          "Failed"
+                        ]
+                      }
                     },
                     "Get_log_results": {
                       "type": "OpenApiConnection",
@@ -996,7 +1046,9 @@
                                         },
                                         "item/StatusStep": 3,
                                         "item/LastActionBy": "Cost approval",
-                                        "item/LastActionOn": "@utcNow()"
+                                        "item/LastActionOn": "@utcNow()",
+                                        "item/AssignedToEmail": "",
+                                        "item/AssignedToName": ""
                                       },
                                       "authentication": "@parameters('$authentication')"
                                     }
@@ -1094,7 +1146,9 @@
                                           },
                                           "item/StatusStep": 3,
                                           "item/LastActionBy": "Cost approval",
-                                          "item/LastActionOn": "@utcNow()"
+                                          "item/LastActionOn": "@utcNow()",
+                                          "item/AssignedToEmail": "",
+                                          "item/AssignedToName": ""
                                         },
                                         "authentication": "@parameters('$authentication')"
                                       }

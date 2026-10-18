@@ -644,6 +644,50 @@
                           },
                           "Has_approver": {
                             "actions": {
+                              "Index_assigned": {
+                                "actions": {
+                                  "Patch_index_assigned": {
+                                    "type": "OpenApiConnection",
+                                    "inputs": {
+                                      "parameters": {
+                                        "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                                        "table": "@parameters('MD_RequestIndex (orsted_shared_sharepointonline_9f0c6e07f15d4509a3ecab4d20b7fff7)')",
+                                        "id": "@first(outputs('Get_request_index')?['body/value'])?['ID']",
+                                        "item/Title": "@first(outputs('Get_request_index')?['body/value'])?['Title']",
+                                        "item/RequesterEmail": "@first(outputs('Get_request_index')?['body/value'])?['RequesterEmail']",
+                                        "item/Domain": {
+                                          "Value": "MaintenancePlan"
+                                        },
+                                        "item/Status": {
+                                          "Value": "UnderBehandling"
+                                        },
+                                        "item/StatusStep": 3,
+                                        "item/LastActionOn": "@utcNow()",
+                                        "item/LastActionBy": "System approval",
+                                        "item/AssignedToEmail": "@toLower(outputs('Final_approver'))",
+                                        "item/AssignedToName": "@coalesce(actions('Resolve_primary')?['outputs']?['body']?['displayName'], actions('Resolve_secondary')?['outputs']?['body']?['displayName'], '')"
+                                      },
+                                      "host": {
+                                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                                        "operationId": "PatchItem",
+                                        "connectionName": "shared_sharepointonline"
+                                      }
+                                    },
+                                    "runAfter": {}
+                                  }
+                                },
+                                "runAfter": {},
+                                "else": {
+                                  "actions": {}
+                                },
+                                "expression": {
+                                  "greater": [
+                                    "@length(outputs('Get_request_index')?['body/value'])",
+                                    0
+                                  ]
+                                },
+                                "type": "If"
+                              },
                               "Start_and_wait_for_an_approval": {
                                 "limit": {
                                   "timeout": "P14D"
@@ -669,6 +713,12 @@
                                     "operationId": "StartAndWaitForAnApproval",
                                     "connectionName": "shared_approvals"
                                   }
+                                },
+                                "runAfter": {
+                                  "Index_assigned": [
+                                    "Succeeded",
+                                    "Failed"
+                                  ]
                                 }
                               },
                               "Approval_outcome": {
@@ -1014,7 +1064,9 @@
                                     },
                                     "item/StatusStep": 3,
                                     "item/LastActionOn": "@utcNow()",
-                                    "item/LastActionBy": "System approval"
+                                    "item/LastActionBy": "System approval",
+                                    "item/AssignedToEmail": "",
+                                    "item/AssignedToName": ""
                                   },
                                   "host": {
                                     "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -1106,7 +1158,9 @@
                                       },
                                       "item/StatusStep": 3,
                                       "item/LastActionOn": "@utcNow()",
-                                      "item/LastActionBy": "System approval"
+                                      "item/LastActionBy": "System approval",
+                                      "item/AssignedToEmail": "",
+                                      "item/AssignedToName": ""
                                     },
                                     "host": {
                                       "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",

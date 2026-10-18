@@ -603,8 +603,25 @@ kun det returnerede item (og nye eller ændrede items) til godkendelse igen.
 
 *Til behandling* filtrerer i forvejen på `AssignedToEmail`. Et felt kan kun
 rumme én person, og i trin 1 og 2 kan der være flere godkendere på én gang.
-Feltet sættes derfor til den første åbne godkender. Det er godkendelserne i
-Teams og mailen, der er det sted, man svarer; hubben er et overblik.
+Hubben viser derfor **kun den første åbne godkender** – de andre ser
+anmodningen i Teams og mailen, ikke under *Waiting for me*. Det er
+godkendelserne i Teams og mailen, der er det sted, man svarer; hubben er et
+overblik.
+
+Sådan skriver flowene feltet (adressen dannes som godkendelsens modtager i
+samme flow, med små bogstaver):
+
+| Flow | Sættes i | Værdi |
+|---|---|---|
+| `BioSap-VhPlan-SystemApproval` | `Patch_index_assigned`, lige før hver godkendelse | `Final_approver` + navnet fra brugeropslaget. Items spørges parallelt, så det er den senest spurgte af de åbne |
+| `BioSap-VhPlan-CostApproval` | `Patch_index_assigned`, før løkken | Planens ene omkostningsgodkender + navn |
+| `BioSap-VhPlan-QualityReview` | `Patch_index_assigned`, før godkendelsen | Kvalitetsgodkenderen + navn |
+| `BioSap-Material-SystemApproval` | `Patch_index_progress`, når `Approver_list` er kendt | Første adresse i `Approver_list` (kun e-mail) |
+| `BioSap-MeasuringPoint-Approval` | `Patch_index_progress` / `Patch_index_counter` | Første i `Approver_list` / første PRODOS/SRO-opretter i `Creator_list` (kun e-mail) |
+
+`AssignedToEmail` og `AssignedToName` tømmes, når anmodningen sendes retur,
+godkendes eller er klar til SAP, og når et VH-trin afleveres til det næste
+(`Patch_index_progress`) – det næste trins flow skriver sin egen godkender.
 
 ## 11. Rækkefølge
 

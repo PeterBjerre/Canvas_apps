@@ -637,40 +637,13 @@
                     ]
                   },
                   "actions": {
-                    "Patch_index_progress": {
-                      "type": "OpenApiConnection",
-                      "inputs": {
-                        "parameters": {
-                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
-                          "table": "MD_RequestIndex",
-                          "id": "@outputs('IndexId')",
-                          "item/Title": "@outputs('RequestNo')",
-                          "item/RequesterEmail": "@outputs('RequesterEmail')",
-                          "item/Status/Value": "UnderBehandling",
-                          "item/StatusStep": 3,
-                          "item/IsOpen": true,
-                          "item/LastActionOn": "@utcNow()",
-                          "item/LastActionBy": "System approval"
-                        },
-                        "host": {
-                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                          "operationId": "PatchItem",
-                          "connectionName": "shared_sharepointonline"
-                        }
-                      },
-                      "runAfter": {}
-                    },
                     "FL_rows": {
                       "type": "Query",
                       "inputs": {
                         "from": "@body('Approval_rows')",
                         "where": "@not(empty(trim(coalesce(item()?['FunctionalLocation'], ''))))"
                       },
-                      "runAfter": {
-                        "Patch_index_progress": [
-                          "Succeeded"
-                        ]
-                      }
+                      "runAfter": {}
                     },
                     "Select_FL_quoted": {
                       "type": "Select",
@@ -1166,6 +1139,34 @@
                         ]
                       }
                     },
+                    "Patch_index_progress": {
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "parameters": {
+                          "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                          "table": "MD_RequestIndex",
+                          "id": "@outputs('IndexId')",
+                          "item/Title": "@outputs('RequestNo')",
+                          "item/RequesterEmail": "@outputs('RequesterEmail')",
+                          "item/Status/Value": "UnderBehandling",
+                          "item/StatusStep": 3,
+                          "item/IsOpen": true,
+                          "item/LastActionOn": "@utcNow()",
+                          "item/LastActionBy": "System approval",
+                          "item/AssignedToEmail": "@toLower(coalesce(first(outputs('Approver_list')), ''))"
+                        },
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "operationId": "PatchItem",
+                          "connectionName": "shared_sharepointonline"
+                        }
+                      },
+                      "runAfter": {
+                        "Approver_list": [
+                          "Succeeded"
+                        ]
+                      }
+                    },
                     "For_each_approver": {
                       "foreach": "@outputs('Approver_list')",
                       "type": "Foreach",
@@ -1325,7 +1326,7 @@
                         }
                       },
                       "runAfter": {
-                        "Approver_list": [
+                        "Patch_index_progress": [
                           "Succeeded"
                         ]
                       }
@@ -1448,7 +1449,9 @@
                               "item/StatusStep": 3,
                               "item/IsOpen": true,
                               "item/LastActionOn": "@utcNow()",
-                              "item/LastActionBy": "System approval"
+                              "item/LastActionBy": "System approval",
+                              "item/AssignedToEmail": "",
+                              "item/AssignedToName": ""
                             },
                             "host": {
                               "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -1569,40 +1572,13 @@
                         ]
                       },
                       "actions": {
-                        "Patch_index_counter": {
-                          "type": "OpenApiConnection",
-                          "inputs": {
-                            "parameters": {
-                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
-                              "table": "MD_RequestIndex",
-                              "id": "@outputs('IndexId')",
-                              "item/Title": "@outputs('RequestNo')",
-                              "item/RequesterEmail": "@outputs('RequesterEmail')",
-                              "item/Status/Value": "UnderBehandling",
-                              "item/StatusStep": 3,
-                              "item/IsOpen": true,
-                              "item/LastActionOn": "@utcNow()",
-                              "item/LastActionBy": "PRODOS/SRO counter"
-                            },
-                            "host": {
-                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                              "operationId": "PatchItem",
-                              "connectionName": "shared_sharepointonline"
-                            }
-                          },
-                          "runAfter": {}
-                        },
                         "Mailable_counters": {
                           "type": "Query",
                           "inputs": {
                             "from": "@body('Open_counters')",
                             "where": "@not(empty(coalesce(item()?['creator'], '')))"
                           },
-                          "runAfter": {
-                            "Patch_index_counter": [
-                              "Succeeded"
-                            ]
-                          }
+                          "runAfter": {}
                         },
                         "Select_creator_emails": {
                           "type": "Select",
@@ -1621,6 +1597,34 @@
                           "inputs": "@union(body('Select_creator_emails'), body('Select_creator_emails'))",
                           "runAfter": {
                             "Select_creator_emails": [
+                              "Succeeded"
+                            ]
+                          }
+                        },
+                        "Patch_index_counter": {
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "parameters": {
+                              "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
+                              "table": "MD_RequestIndex",
+                              "id": "@outputs('IndexId')",
+                              "item/Title": "@outputs('RequestNo')",
+                              "item/RequesterEmail": "@outputs('RequesterEmail')",
+                              "item/Status/Value": "UnderBehandling",
+                              "item/StatusStep": 3,
+                              "item/IsOpen": true,
+                              "item/LastActionOn": "@utcNow()",
+                              "item/LastActionBy": "PRODOS/SRO counter",
+                              "item/AssignedToEmail": "@toLower(coalesce(first(outputs('Creator_list')), ''))"
+                            },
+                            "host": {
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                              "operationId": "PatchItem",
+                              "connectionName": "shared_sharepointonline"
+                            }
+                          },
+                          "runAfter": {
+                            "Creator_list": [
                               "Succeeded"
                             ]
                           }
@@ -1677,7 +1681,7 @@
                             }
                           },
                           "runAfter": {
-                            "Creator_list": [
+                            "Patch_index_counter": [
                               "Succeeded"
                             ]
                           }
@@ -1698,7 +1702,9 @@
                                 "item/StatusStep": 4,
                                 "item/IsOpen": true,
                                 "item/LastActionOn": "@utcNow()",
-                                "item/LastActionBy": "@if(greater(length(body('Approval_rows')), 0), 'System approval', 'Submitted')"
+                                "item/LastActionBy": "@if(greater(length(body('Approval_rows')), 0), 'System approval', 'Submitted')",
+                                "item/AssignedToEmail": "",
+                                "item/AssignedToName": ""
                               },
                               "host": {
                                 "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
