@@ -150,6 +150,11 @@ SAP har gemt. Når planen er oprettet, kopieres den til `Kvitteringer` med
 | `NeedsCheck` | SAP svarede uklart efter et gem | En person ser efter i SAP, se 8. |
 | `Created` | Alt er oprettet | Flowet skriver tilbage |
 
+Lægges en kvittering med `Partial`, `Failed` eller `NeedsCheck` i
+`Kvitteringer`, afviser flowet den (planen ændres ikke) og sender en mail med
+kvitteringens `state`, `planId`, `lastError` og planens status til
+`BioSap-ErrorNotifiers` med `BioSap-MasterDataEmail` på Cc (R2-018).
+
 ## 6. Det, der sker i SAP
 
 For hvert item, og til sidst planen. Felternes rækkefølge og ID'er er det
@@ -267,7 +272,7 @@ forkert, siger opretteren hvilket og på hvilken skærm. Rettelsen er én linje 
 | | Hvorfor | I mellemtiden |
 |---|---|---|
 | Strategiplaner (IP42, pakker) | Pakkeallokeringen i IA05 er aldrig blevet kørt af et script mod jeres SAP. Opretteren afviser planen med en tydelig besked frem for at gætte | Opret dem i hånden |
-| Materialer (komponenter) | Komponentskærmen i IA05 er ikke optaget | Står som advarsel i *Vis plan* og i kvitteringen: tilføj i IA06 |
+| Materialer (komponenter) | Komponentskærmen i IA05 er ikke optaget | Står som advarsel i *Vis plan* og i kvitteringen: tilføj i IA06. Kvitteringsflowet gemmer advarslerne i `MaintenancePlans.SapWarnings`, og mailen *Created in SAP* viser dem under *To be added manually in SAP* med Master Data på Cc (R2-018) |
 | Dokumenter | Ligger i SharePoint, ikke i ordren | Som i dag |
 | Omkostningsart | Kolonnens plads i operationsoversigten kendes ikke | SAP udleder den |
 | Operationsnumre | SAP nummererer 0010, 0020 … i appens rækkefølge | — |

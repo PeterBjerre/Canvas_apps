@@ -117,6 +117,8 @@ def test_the_mail_names_the_sap_plan_and_links_to_the_app():
     assert ">01-02-2026<" in html
     assert "2026-01-31T" not in html
     assert "created in SAP 18-10-2026 10:30" in html
+    assert ">2 years<" in html
+    assert ">- years<" not in _render(dict(PLAN, SchedulingPeriod=None), [INDEX])[0]
     assert "Rita Requester" in html and "mailto:rita@example.test" in html
 
 

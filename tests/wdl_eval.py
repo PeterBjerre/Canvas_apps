@@ -194,7 +194,11 @@ class _Parser:
         if name == "triggerBody":
             return self.ctx.trigger_body
         if name == "triggerOutputs":
-            return {"headers": self.ctx.headers, "body": self.ctx.trigger_body}
+            # SharePoint-triggeren svarer ogsaa paa stier: ['body/Editor/Email'].
+            body = self.ctx.trigger_body
+            flat = {"body/" + k: v for k, v in (body or {}).items()} \
+                if isinstance(body, dict) else {}
+            return dict(flat, headers=self.ctx.headers, body=body)
         if name in ("outputs", "body"):
             return self.ctx.outputs[args[0]]
         if name == "item":
