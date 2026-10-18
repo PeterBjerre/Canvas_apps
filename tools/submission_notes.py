@@ -167,8 +167,8 @@ def popup(prefix, open_var, edit, title_fx, intro_fx, a_default, s_default, show
                       weight="Semibold", height=26, wrap="false")
     intro = text_ctrl(f"txt{prefix}NotesIntro", intro_fx, size=13, color=C_MUTED,
                       height=INTRO_H, wrap="true")
-    # EEN Close, oeverst til hoejre (issue #237). Den sad foer i bunden ved
-    # siden af Submit. Den lukker uden at indsende; det skrevne gemmes
+    # EET X, oeverst til hoejre (issue #237, #343). Close sad foer i bunden
+    # ved siden af Submit. X lukker uden at indsende; det skrevne gemmes
     # foerst af Submit, saa intet committes ved et luk.
     head = popup_head(f"con{prefix}NotesHead", title, f"btn{prefix}NotesClose",
                       f"Set({open_var}, false)")
@@ -187,7 +187,7 @@ def popup(prefix, open_var, edit, title_fx, intro_fx, a_default, s_default, show
         foot = [footer]
         foot_h = f"If({edit}, 36 + 12, 0)"
     natural = f"{INTRO_H} + 12 + {row_h}"
-    room = f"App.Height - 32 - {2 * PAD} - 32 - 12 - {foot_h}"
+    room = f"App.Height - 32 - {2 * PAD} - {head.h} - 12 - {foot_h}"
     body_h = f"Min({natural}, Max(120, {room}))"
     body = group(f"con{prefix}NotesBody", [intro, split], direction="Vertical", gap=12,
                  height=body_h, overflow_y="Scroll")
@@ -195,7 +195,7 @@ def popup(prefix, open_var, edit, title_fx, intro_fx, a_default, s_default, show
                   gap=12, fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(PAD, PAD, PAD, PAD), width=pop_w, drop_shadow="ExtraBold",
                   align_in_container="Center")
-    modal.props["Height"] = f"{2 * PAD} + 32 + 12 + ({body_h}) + {foot_h}"
+    modal.props["Height"] = f"{2 * PAD} + {head.h} + 12 + ({body_h}) + {foot_h}"
     backdrop = group(f"con{prefix}NotesBackdrop", [modal], direction="Vertical", gap=0,
                      height="App.Height", width="App.Width", fill=C_OVERLAY, visible=vis,
                      justify="Start", align_items="Center", pad=(16, 0, 16, 0), overflow_y="Scroll")

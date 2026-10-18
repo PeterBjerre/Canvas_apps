@@ -928,7 +928,7 @@ def tap_backdrop(name, vis, close_fx, fill=C_OVERLAY):
     stop paa ethvert Image (TabIndexShouldBeDefinedForInteractiveControl).
     Sloeret lukker kun under Tablet, saa det er et tab stop ("Close the
     dialog") netop dér - paa en bred skaerm ville Enter paa det intet goere.
-    Close-knappen i popuppen er den lukning, der virker overalt."""
+    X oeverst i popuppen er den lukning, der virker overalt."""
     below = lay.below('Tablet')
     return Ctrl(name, "Image", props={
         "AccessibleLabel": '"Close the dialog"',
@@ -956,9 +956,9 @@ def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
     """Bekraeftelsen foer Submit (issue #54) - [sloer, popup].
 
     Samme konstruktion som appernes andre popupper: en centreret container
-    med sloer bag, titel, en linje tekst og to knapper. Submit-knappen
+    med sloer bag, titel med X, en linje tekst og handlingen. Submit-knappen
     aabner den (Set(open_var, true)); foerst "Submit" HER koerer
-    indsendelsen. Cancel lukker uden at goere noget.
+    indsendelsen. X lukker uden at goere noget (issue #343).
 
     danger: knappen sletter eller kasserer noget - roed kant og tekst i
     stedet for den blaa primaerknap (UX-review, screenshots 2026-10-13).
@@ -969,16 +969,18 @@ def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
     backdrop = tap_backdrop(f"con{prefix}ConfirmBackdrop", vis, f"Set({open_var}, false)")
     t = text_ctrl(f"txt{prefix}ConfirmTitle", f'"{title}"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
                   height=26, wrap="false")
+    # Nej'et er X oeverst til hoejre (issue #343), som i appens andre
+    # popupper - det lukker uden at goere noget. Navnet er det gamle.
+    head = popup_head(f"con{prefix}ConfirmHead", t, f"btn{prefix}ConfirmCancel",
+                      f"Set({open_var}, false)")
     msg = text_ctrl(f"txt{prefix}ConfirmText", message, size=13, color=C_MUTED,
                     height=40, wrap="true")
-    cancel = button(f"btn{prefix}ConfirmCancel", '"Close"', f"Set({open_var}, false)",
-                    width=fit_button_width('"Close"'), height=36)
     ok = button(confirm_name, f'"{confirm_text}"',
                 f"Set({open_var}, false);\n{confirm_fx}", primary=not danger, danger=danger,
                 width=fit_button_width(f'"{confirm_text}"') + (ICON_W if icon else 0), height=36, icon=icon)
-    footer = group(f"con{prefix}ConfirmFooter", [cancel, ok], direction="Horizontal", gap=8,
+    footer = group(f"con{prefix}ConfirmFooter", [ok], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
-    modal = group(f"con{prefix}ConfirmModal", [t, msg, footer], direction="Vertical", gap=12,
+    modal = group(f"con{prefix}ConfirmModal", [head, msg, footer], direction="Vertical", gap=12,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(18, 18, 18, 18), width="Min(460, App.Width - 40)",
                   drop_shadow="ExtraBold", visible=vis)
@@ -987,16 +989,36 @@ def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
     return [backdrop, modal]
 
 
-def popup_head(name, title, close_name, close_fx, accessible=None):
-    """Popuppens hoved: titlen til venstre og EEN Close oeverst til hoejre
-    (issue #237). Hovedet er popuppens foerste barn og ligger uden for
-    det, der scroller, saa Close altid kan ses. Samme maal som
-    feedback-popuppens hoved (90 x 32)."""
+def close_x(name, close_fx, accessible=None, mode=None):
+    """Popuppens luk: det samme X som sidepanelernes (btn...EditorClose,
+    icon_button med icons.CLOSE) - stregikonet uden ramme, 44 x 44
+    klikflade, samme hover og tryk (issue #343). Navnet er det gamle
+    Close-knaps, saa intet andet skal rettes.
+
+    accessible: skaermlaeserens tekst, naar "Close" ikke siger nok (fx
+    "Close without applying"). Tooltip er altid "Close". mode: DisplayMode
+    - X'et toner ud og kan ikke trykkes, mens popuppen er optaget."""
+    close = icon_button(name, "Close", close_fx, _icons.CLOSE, mode)
+    if accessible:
+        close.props["AccessibleLabel"] = accessible
+    close.props["AlignInContainer"] = "AlignInContainer.Start"
+    close.props["LayoutMinWidth"] = close.props["Width"]
+    return close
+
+
+def popup_head(name, title, close_name, close_fx, accessible=None, mode=None, extra=(),
+               gap=12):
+    """Popuppens hoved: titlen til venstre og X oeverst til hoejre - samme
+    X som sidepanelerne (issue #343; foer en Close-knap, issue #237).
+    Hovedet er popuppens foerste barn og ligger uden for det, der scroller,
+    saa X altid kan ses. Hoejden er X'ets klikflade (44), som
+    sidepanelernes overskrift (icon_heading).
+
+    extra: knapper mellem titlen og X (fx Previous/Next/Edit)."""
     grow(title)
-    close = button(close_name, '"Close"', close_fx, width=90, height=32,
-                   accessible=accessible)
-    return group(name, [title, close], direction="Horizontal", gap=12,
-                 height=32, align_items="Center")
+    close = close_x(close_name, close_fx, accessible=accessible, mode=mode)
+    return group(name, [title, *extra, close], direction="Horizontal", gap=gap,
+                 height=lay.HIT_TOUCH, align_items="Center")
 
 
 def capped_body(name, kids, max_h, gap=12):
@@ -1018,7 +1040,7 @@ def popup_body_max(fixed_h, margin=12, gap=12, pad=18):
 
 
 def text_modal(prefix, open_var, title_fx, body_fx, body_h):
-    """Et laeseudsnit: titel med Close oeverst til hoejre og broedtekst -
+    """Et laeseudsnit: titel med X oeverst til hoejre og broedtekst -
     [sloer, popup]. Ingen bund: Close sad der foer (issue #237)."""
     vis = f"IfError({open_var}, false)"
     backdrop = tap_backdrop(f"con{prefix}Backdrop", vis, f"Set({open_var}, false)")

@@ -54,7 +54,7 @@ from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED,
 import layout_tokens as lay
 from progress_overlay import progress_overlay
 from layout_tokens import fits, if_below, below, at_least
-from build_helpers import (row_rule, ensure_hit, validation_summary, tap_backdrop, text_ctrl, text_min_height, group, button, text_input,
+from build_helpers import (row_rule, ensure_hit, close_x, popup_head, validation_summary, tap_backdrop, text_ctrl, text_min_height, group, button, text_input,
                            checkbox_theme, date_picker, fit_button_row,
                            fit_button_width, number_field, num_value, themed_dropdown,
                            card, field_cell, pin_widths, badge, top_bar, grow, flow_ok,
@@ -1263,11 +1263,9 @@ def build_attachments():
         "txtDomAttH",
         '"Documents · " & Coalesce(LookUp(colDomRows, RowId = varDomDocsId).ItemKey, "")',
         size=lay.SIZE_CARD_TITLE, weight="Semibold", height=text_min_height(lay.SIZE_CARD_TITLE), wrap="false"))
-    close = button("btnDomAttClose", '"Close"', DOCS_CLOSE,
-                   width=84, height=32,
-                   display_mode=f"If({att.busy}, DisplayMode.Disabled, DisplayMode.Edit)")
-    head = group("conDomAttHead", [title, close], direction="Horizontal",
-                 gap=12, align_items="Center")
+    # X oeverst til hoejre (issue #343) - ikke midt i en gemning.
+    head = popup_head("conDomAttHead", title, "btnDomAttClose", DOCS_CLOSE,
+                      mode=f"If({att.busy}, DisplayMode.Disabled, DisplayMode.Edit)")
     # Popuppen: 18 + 18 luft, hovedet og afstanden - resten er indholdet.
     body = du.capped_body("conDomAttBody",
                           [pick, limits, actions, status, ro],
@@ -1491,12 +1489,12 @@ def build_details(scope=None, extra=()):
                   + ";\nSet(varDomDetailsId, Blank())",
                   primary=True, width=130, height=30,
                   display_mode=DM_ROW_EDIT.replace("ThisItem.", f"{row}."))
-    close = button("btnDomDetClose", '"Close"',
-                   "Set(varDomDetailsId, Blank())", width=84, height=30)
+    # X oeverst til hoejre, som i de andre popupper (issue #343).
+    close = close_x("btnDomDetClose", "Set(varDomDetailsId, Blank())")
     # Knapperne DIREKTE i hovedet, ikke i en indlejret gruppe: i Studio
     # stod de i en indlejret gruppe ved siden af en fleksibel venstreside
     # en linje for lavt, skaaret over af kanten. Samme som topbjaelken.
-    head = group("conDomDetHead", [head_left] + pin_widths([prev, nxt, edit, close]),
+    head = group("conDomDetHead", [head_left] + pin_widths([prev, nxt, edit]) + [close],
                  direction="Horizontal", gap=8, align_items="Center")
 
     # Alle felter - ogsaa de tomme. En tom linje er et svar: feltet ER

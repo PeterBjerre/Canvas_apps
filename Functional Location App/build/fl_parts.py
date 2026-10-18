@@ -37,7 +37,8 @@ import display_text as dt
 from build_helpers import (C_INPUT_BORDER, ensure_hit, checkbox_theme, new_request_label, request_actions, breadcrumb, text_ctrl, group, button, text_input, themed_dropdown, card,
                            pin_widths, top_bar, grow, badge, fit_button_width, row_rule, mark_done,
                            loading_overlay, with_busy, confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
-                           ICON_W, text_px, stable_scrim, icon_button, icon_heading, editor_footer)
+                           ICON_W, text_px, stable_scrim, icon_button, icon_heading, editor_footer,
+                           close_x)
 
 NARROW = below("Tablet")
 
@@ -1227,11 +1228,10 @@ def build_class_modal():
                     f'If(IsBlank(hp), "", " (" & hp & ")")))',
                     size=12, color=C_MUTED, height=18, wrap="false")
     left = grow(group("conFlClsHeadL", [title, sub], direction="Vertical", gap=2))
-    close = button("btnFlClsClose", '"Close"', CLOSE_CLS_FX, width=36, height=36,
-                   icon=icons.FLUENT["dismiss"], accessible='"Close without applying"',
-                   tooltip='"Close without applying"')
-    close.props["Layout"] = "ButtonLayout.IconOnly"
-    ensure_hit(close)
+    # Samme X som sidepanelet og de andre popupper (issue #343) - lukker
+    # uden at anvende, som foer.
+    close = close_x("btnFlClsClose", CLOSE_CLS_FX, accessible='"Close without applying"')
+    close.props["Tooltip"] = '"Close without applying"'
     head = group("conFlClsTop", pin_widths([left, close]), direction="Horizontal", gap=8,
                  align_items="Center")
 

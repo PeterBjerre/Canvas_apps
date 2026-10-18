@@ -17,7 +17,7 @@ from build_helpers import (empty_state, checkbox_theme, row_hit, text_ctrl, grou
                            fit_button_width, column_grid, ICON_SAVE, ICON_W,
                            mark_done, segmented, border_rule, row_n)
 from build_plan_header import section_header, help_panel, section_footer, status_icon
-from build_helpers import ensure_hit
+from build_helpers import ensure_hit, popup_head
 import build_help as bh
 from fl_picker import fl_picker
 import sp_config as cfg
@@ -969,13 +969,10 @@ def build_object_list_modal():
     (eneste luk, issue #237) lukker uden at aendre noget."""
     title = text_ctrl("txtVhpObjListTitle", "\"Object list\"", size=lay.SIZE_CARD_TITLE, weight="Semibold",
                       height=26, wrap="false")
-    grow(title)
-    btnX = button("btnVhpObjListClose", "\"Close\"",
-                  "Set(varVhpObjListOpen, false); Clear(colVhpObjDraft)",
-                  width=fit_button_width("\"Close\""), height=32,
-                  accessible="\"Close object list without changes\"")
-    headRow = group("conVhpObjListHeadRow", [title, btnX], direction="Horizontal", gap=12,
-                    height=32, align_items="Center")
+    # X oeverst til hoejre (issue #343).
+    headRow = popup_head("conVhpObjListHeadRow", title, "btnVhpObjListClose",
+                         "Set(varVhpObjListOpen, false); Clear(colVhpObjDraft)",
+                         accessible="\"Close object list without changes\"")
 
     under = text_ctrl(
         "txtVhpObjListFl",
