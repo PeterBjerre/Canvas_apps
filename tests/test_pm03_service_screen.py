@@ -16,3 +16,9 @@ def test_add_service_starts_on_the_service_screen():
     assert "IA05_OP_TABLE" not in body
     assert "VisibleOperationRow" not in body
     assert body.index("VhpSap.Exists(sess, IA05_SRV_TABLE)") < body.index("IA05_SRV_MODELSPEC_BTN")
+
+
+def test_ip01_stops_clearly_when_no_free_item_is_found():
+    src = open(os.path.join(ROOT, "excel", "opretter", "VhpSteps.bas"), encoding="latin-1").read()
+    i = src.find('VhpSap.Fnd(sess, IP01_ITEM_GRID).SelectedRows = "0"')
+    assert "If Not VhpSap.Exists(sess, IP01_ITEM_GRID) Then" in src[i - 600:i]
