@@ -218,8 +218,9 @@ gamle scripts (`excel/src/Modules/GUI_Script.bas`, nu kun i git-historikken), sa
   skrevet): tøm `SapOrderGuid` på planen i SharePoint. Flowet skriver en ny,
   og opretteren bruger den nyeste. Trækkes planen tilbage (*Draft* eller
   *Returned*) og godkendes igen, sker det af sig selv.
-- **"Planen er allerede oprettet i …".** Opretteren opretter ikke den samme
-  plan to gange i ét SAP-system. Det sker typisk, hvis en ordre blev
+- **"Planen er allerede oprettet i …" / *Allerede oprettet* i listen.**
+  Opretteren opretter ikke den samme plan to gange i ét SAP-system, og
+  listen viser sådan en ordre som *Allerede oprettet* (ikke *Klar*). Det sker typisk, hvis en ordre blev
   oprettet, mens planen var trukket tilbage. Ret planen i SAP (IP02, IA02), skriv
   plannummeret i `SAPNum` og sæt *Status* til *Published* i SharePoint i
   hånden. Flyt så den nye ordre til *Oprettet*.

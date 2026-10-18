@@ -175,7 +175,7 @@ Public Sub RefreshList()
     ' Foerste gennemloeb: laes alle, og find den nyeste ordre pr. plan eller
     ' anmodning.
     For Each f In files
-        Set info = ReadOrderInfo(CStr(f), lk)
+        Set info = ReadOrderInfo(CStr(f), lk, root)
         infos.Add info
         key = UCase$(CStr(info("id")))
         If Len(key) > 0 Then
@@ -212,7 +212,7 @@ Failed:
 End Sub
 
 ' Det, listen viser om een ordrefil.
-Private Function ReadOrderInfo(ByVal path As String, ByVal lk As Object) As Object
+Private Function ReadOrderInfo(ByVal path As String, ByVal lk As Object, ByVal root As String) As Object
     Dim info As Object
     Dim order As Object
     Dim plan As Object
@@ -221,6 +221,7 @@ Private Function ReadOrderInfo(ByVal path As String, ByVal lk As Object) As Obje
     Dim v As Object
     Dim status As Object
     Dim errText As String
+    Dim done As String
 
     Set info = VhpUtil.NewDict()
     info.Add "file", VhpFiles.FileNameOf(path)
@@ -296,6 +297,19 @@ Private Function ReadOrderInfo(ByVal path As String, ByVal lk As Object) As Obje
         If Len(CStr(info("state"))) > 0 Then Exit Function
     End If
 
+    ' Er planen allerede oprettet i SAP-systemet af en tidligere ordre,
+    ' springer koerslen den over (VhpRun.CheckAlreadyCreated). Saa maa listen
+    ' ikke sige Klar.
+    If info("type") = "VH-plan" Then
+        done = VhpRun.CheckAlreadyCreated(root, CStr(info("id")), VhpConfig.Setting(SET_SAP_SYSTEM))
+        If Len(done) > 0 Then
+            info("state") = VhpUtil.Dk("Allerede oprettet")
+            info("message") = UCase$(Left$(done, 1)) & Mid$(done, 2) & _
+                VhpUtil.Dk(" Flyt derefter ordren til Oprettet.")
+            Exit Function
+        End If
+    End If
+
     Set v = VhpOrder.Validate(order, lk)
     If v("errors").Count > 0 Then
         info("state") = VhpUtil.Dk("Kan ikke oprettes")
@@ -329,7 +343,8 @@ Private Sub ColorState(ByVal cell As Range, ByVal state As String)
             c = RGB(223, 246, 221)
         Case state = VhpUtil.Dk("Kan ikke oprettes"), state = VhpUtil.Dk("Fejlede"), state = VhpUtil.Dk("Ugyldig fil")
             c = RGB(253, 231, 233)
-        Case state = VhpUtil.Dk("Kr{ae}ver kontrol"), state = VhpUtil.Dk("Delvist oprettet")
+        Case state = VhpUtil.Dk("Kr{ae}ver kontrol"), state = VhpUtil.Dk("Delvist oprettet"), _
+             state = VhpUtil.Dk("Allerede oprettet")
             c = RGB(255, 244, 206)
         Case Else
             c = RGB(237, 235, 233)
