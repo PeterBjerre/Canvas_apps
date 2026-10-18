@@ -439,7 +439,9 @@ End Function
 ' ordre ligger i "Oprettet" sammen med sin statusfil (state Created). En plan
 ' oprettes kun een gang - en rettelse bagefter laves i SAP. Fanger fx en
 ' ordre, der blev koert, mens planen var trukket tilbage i appen.
-Private Function CheckAlreadyCreated(ByVal root As String, ByVal planId As String, _
+' Listen (VhpUi.ReadOrderInfo) bruger den ogsaa, saa ordren ikke staar som
+' Klar, naar koerslen alligevel springer den over.
+Public Function CheckAlreadyCreated(ByVal root As String, ByVal planId As String, _
                                      ByVal systemName As String) As String
     Dim folder As String
     Dim f As Object
