@@ -84,6 +84,9 @@ if HERE not in sys.path:
     sys.path.insert(0, HERE)
 from design_tokens import ref as _t, TRANSPARENT
 from layout_tokens import SHELL_W, SCROLLBAR_W, GALLERY_RESERVE
+# SHELL_W bruges ikke her, men builderne importerer den herfra. __all__
+# fortaeller pyflakes, at den genudsendes (som i doc_upload.py).
+__all__ = ["SHELL_W"]
 
 # ---------------------------------------------------------------------------
 # Farver

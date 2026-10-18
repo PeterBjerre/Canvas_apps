@@ -45,7 +45,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
-from gen_screen import (Ctrl, SHELL_W, C_CARD_BORDER, C_TITLE, C_MUTED,
+from gen_screen import (Ctrl, SHELL_W, C_WARN_FG, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_MUTED_BG, C_REQUIRED, C_PRIMARY, C_WHITE,
                         C_TRANSPARENT, C_ROW_PRESSED, C_NEUTRAL_BG,
                         C_MODAL_BG, C_PRIMARY_SOFT,

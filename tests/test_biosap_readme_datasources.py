@@ -13,6 +13,12 @@ DS = os.path.join(ROOT, "solution", "BIOSAP", "src", "CanvasApps", "orsted_biosa
                   "References", "DataSources.json")
 
 
+# Lister, appen bruger, men som endnu ikke er tilfoejet som datakilde i Studio
+# (og derfor mangler i solution-snapshottets DataSources.json). Fjern navnet
+# her, naar solutionen er eksporteret igen.
+PENDING_IN_STUDIO = {"AppSettings"}  # R2-082: VH-planens omkostningsgraense
+
+
 def _section(text, start, end):
     i = text.index(start)
     return text[i:text.index(end, i)]
@@ -32,6 +38,7 @@ def test_readme_lists_the_apps_sharepoint_lists():
     mp = _names(_section(text, "*Kun med Measuring Point", "*Kun med Issue Board"))
     ib = _names(_section(text, "*Kun med Issue Board", "3. **"))
     ib = {n for n in ib if n.startswith("IB_")}
+    lists |= PENDING_IN_STUDIO
     assert always | mp | ib == lists, sorted((always | mp | ib) ^ lists)
     n = int(re.search(r"\*SharePoint-lister \((\d+)\):\*", text).group(1))
     assert n == len(always)

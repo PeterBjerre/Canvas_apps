@@ -248,8 +248,8 @@ def test_doctor_warns_without_dotnet(monkeypatch, capsys):
     import doctor
     monkeypatch.setattr(doctor.shutil, "which", lambda n: None)
     monkeypatch.setattr(doctor, "results", [])
-    doctor.check_dotnet()
-    assert ".NET 10 / dnx mangler - canvas_mcp.py deploy virker ikke" in capsys.readouterr().out
+    doctor.check_dnx()
+    assert "Hverken dnx, pac eller dotnet findes" in capsys.readouterr().out
 
 
 # ---------------------------------------------------------------------------
@@ -262,7 +262,8 @@ def test_build_workflow_runs_once_per_push():
     assert "pull_request" in on
     assert wf["concurrency"]["cancel-in-progress"] is True
     assert "github.ref" in wf["concurrency"]["group"]
-    assert list(wf["jobs"]) == ["build"]
+    # build plus LibreOffice-jobbet fra R2-066; build skal staa foerst.
+    assert list(wf["jobs"])[0] == "build"
 
 
 # ---------------------------------------------------------------------------
