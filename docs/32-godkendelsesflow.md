@@ -291,6 +291,9 @@ som allerede har `Option`/`Value` pr. miljø:
 |---|---|
 | `CostApprovalThresholdDkk` | `300000` |
 
+CostApproval læser rækken for sit eget miljø (`Environment eq
+<BioSap-Environment>`, R2-082); findes den ikke, bruges 300000.
+
 Det, kun flowene bruger, bliver **miljøvariabler** i solution BIO SAP,
 ligesom `BioSap-SiteUrl`, `BioSap-List-MaintenancePlans` og
 `BioSap-ErrorNotifiers` i de flows, der findes i dag:

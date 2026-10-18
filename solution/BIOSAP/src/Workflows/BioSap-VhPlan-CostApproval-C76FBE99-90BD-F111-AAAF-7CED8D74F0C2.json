@@ -133,6 +133,13 @@
           "metadata": {
             "schemaName": "orsted_BioSapListAppSettings"
           }
+        },
+        "BioSap-Environment (orsted_BioSapEnvironment)": {
+          "defaultValue": "DEV",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapEnvironment"
+          }
         }
       },
       "triggers": {
@@ -283,7 +290,7 @@
                     "parameters": {
                       "dataset": "@parameters('BioSap-SiteUrl (orsted_BioSapSiteUrl)')",
                       "table": "@parameters('BioSap-List-AppSettings (orsted_BioSapListAppSettings)')",
-                      "$filter": "Option eq 'CostApprovalThresholdDkk'",
+                      "$filter": "Option eq 'CostApprovalThresholdDkk' and Environment eq '@{parameters('BioSap-Environment (orsted_BioSapEnvironment)')}'",
                       "$top": 1
                     },
                     "authentication": "@parameters('$authentication')"
