@@ -595,7 +595,7 @@ End Function
 ' Sorteringsfeltet paa fanen Sortering i IP01: id'et, eller tom streng.
 ' Foerst den kendte sti, ellers feltet RMIPM-PLAN_SORT fundet paa navn.
 Private Function SortFieldId(ByVal sess As Object) As String
-    Dim tab As Object
+    Dim sortTab As Object
     Dim o As Object
     Dim p As Long
 
@@ -605,11 +605,11 @@ Private Function SortFieldId(ByVal sess As Object) As String
     End If
 
     On Error Resume Next
-    Set tab = sess.FindById(IP01_TAB_SORT, False)
-    If Not tab Is Nothing Then
-        Set o = tab.FindByName("RMIPM-PLAN_SORT", "GuiComboBox")
-        If o Is Nothing Then Set o = tab.FindByName("RMIPM-PLAN_SORT", "GuiCTextField")
-        If o Is Nothing Then Set o = tab.FindByName("RMIPM-PLAN_SORT", "GuiTextField")
+    Set sortTab = sess.FindById(IP01_TAB_SORT, False)
+    If Not sortTab Is Nothing Then
+        Set o = sortTab.FindByName("RMIPM-PLAN_SORT", "GuiComboBox")
+        If o Is Nothing Then Set o = sortTab.FindByName("RMIPM-PLAN_SORT", "GuiCTextField")
+        If o Is Nothing Then Set o = sortTab.FindByName("RMIPM-PLAN_SORT", "GuiTextField")
     End If
     On Error GoTo 0
     If o Is Nothing Then Exit Function
