@@ -74,9 +74,20 @@ def _hex_switch(value):
 # ---------------------------------------------------------------------------
 # State logic - one definition, used by the strip and by the popup.
 # ---------------------------------------------------------------------------
+# KUN BESLUTNINGER TAELLER (R2-031). Flowene skriver ogsaa "Timeout"
+# (VH-flowenes Log_timeout: ingen svar i tide, der spoerges igen) og
+# "Requested" (Materials/MP: enheden er spurgt). Ingen af dem er et svar.
+# Foer tog latest() den nyeste raekke uanset Decision, og stage_state
+# talte alt andet end Return/Skipped som afgjort: efter en timeout stod
+# trinnet som "Approved" i striben, mens popuppen viste "Returned".
+DECIDED = ("Approve", "Return", "Skipped", "Done")
+DECIDED_IN = "[" + ", ".join('"%s"' % d for d in DECIDED) + "]"
+
+
 def latest(log, stage):
-    """The latest decision per item for one stage (per plan for Quality)."""
-    s = f'Filter({log}, Stage = "{stage}")'
+    """The latest DECISION per item for one stage (per plan for Quality).
+    Rows that are not a decision (Timeout, Requested) are left out."""
+    s = f'Filter({log}, Stage = "{stage}" && Decision in {DECIDED_IN})'
     newest = 'SortByColumns(%s, "DecidedOn", SortOrder.Descending)'
     if stage == "Quality":
         return f"FirstN({newest % s}, 1)"
@@ -292,12 +303,33 @@ NOT_STARTED = not_started()
 # hver visning, men aendres aldrig imellem. App checker meldte samlingen
 # (CollectingReadOnlyTable) - en samling koster ekstra sporing, som en
 # variabel ikke har. Samme kald, samme tidspunkt, samme raekker.
+#
+# KUN DE SENESTE DAGE (R2-046). Kaldet hentede HELE loggen for alle
+# brugere ved hvert besoeg og voksede med historikken. Nu hentes kun
+# raekker, der er skrevet inden for LOG_DAYS dage (Created er en dato -
+# sammenligningen delegeres). En anmodning, der er OPRETTET foer
+# graensen, kan have beslutninger, samlingen ikke har - den slaar sine
+# egne op (ROW_LOG), ligesom naar samlingen rammer loftet.
+#
+# Hentningen afhaenger IKKE af domaenefilteret: et klik paa en flise
+# skifter filteret uden at koere OnVisible igen, og saa ville striben
+# mangle loggen. Note-ikonet (submission_notes.hub_may_approver) laeser
+# ogsaa varMdAprAll - derfor et helt aar: en godkender, der besluttede
+# for mere end LOG_DAYS dage siden paa en plan, der stadig staar aaben,
+# ser ikke note-ikonet (heller ikke noterne i Activity).
+#
+# LOG_DAYS er en byggekonstant: appen laeser ikke AppSettings i dag, og
+# AppSettings.Option har intet valg til det.
 LOG_LIMIT = 500   # appens Data row limit (som build_hub.ROW_LIMIT)
-LOG_REFRESH = ('Set(varMdAprAll, SortByColumns(Filter(MD_ApprovalLog, '
-               'Stage = "System" || Stage = "Cost" || Stage = "Quality"%s), "ID", '
-               'SortOrder.Descending))' % (' || Stage = "Counter"' if MP_ON else ""))
+LOG_DAYS = 365
+LOG_SINCE = f"DateAdd(Now(), -{LOG_DAYS}, TimeUnit.Days)"
+_LOG_STAGES = ('Stage = "System" || Stage = "Cost" || Stage = "Quality"%s'
+               % (' || Stage = "Counter"' if MP_ON else ""))
+LOG_REFRESH = (f"Set(varMdAprAll, SortByColumns(Filter(MD_ApprovalLog, ({_LOG_STAGES}) && "
+               f'Created >= {LOG_SINCE}), "ID", SortOrder.Descending))')
 ROW_LOG = ('With({ c: Filter(varMdAprAll, RequestGuid = ThisItem.RequestGuid) }, '
-           f'If(IsEmpty(c) && CountRows(varMdAprAll) >= {LOG_LIMIT}, '
+           f'If((IsEmpty(c) && CountRows(varMdAprAll) >= {LOG_LIMIT}) || '
+           f'ThisItem.Created < {LOG_SINCE}, '
            'Filter(MD_ApprovalLog, RequestGuid = ThisItem.RequestGuid), c))')
 
 
@@ -487,11 +519,14 @@ def _decision_rows(stage, tbl, timeline=False):
     # "Done" (MP: taelleren er oprettet) og "Requested" (flowets varsel om,
     # at en enhed er spurgt - Materials og MP) er ikke en tilbagesendelse.
     # Tidslinjen viste foer "Requested" som "Returned" (issue #210).
+    # "Timeout" (R2-031): ingen svar i tide - flowet spoerger igen. Det
+    # er ikke en tilbagesendelse; foer faldt den igennem til "Returned".
     state = ('Switch(Decision, "Approve", "Approved", "Skipped", "Skipped", '
-             f'"Done", "Done", "{REQUESTED}", "Pending", '
-             f'"{alog.EDIT}", "Admin", "{alog.DELETE}", "Admin", "Returned")')
+             f'"Done", "Done", "{REQUESTED}", "Pending", "Timeout", "Pending", "Pending", "Pending", '
+             f'"{alog.EDIT}", "Admin", "{alog.DELETE}", "Admin", "{alog.CLOSE}", "Admin", "Returned")')
     label = (f'Switch(Decision, "{alog.EDIT}", "Admin edit", "{alog.DELETE}", "Admin delete", '
-             f'"{REQUESTED}", "Requested", {state})')
+             f'"{alog.CLOSE}", "Admin close", '
+             f'"{REQUESTED}", "Requested", "Timeout", "No answer", "Pending", "No answer", {state})')
     # Detail (og ItemText) er flowets tekst og vises paa engelsk (#162).
     # Comment er godkenderens egen tekst og vises som den er - undtagen naar
     # flowet har skrevet sin egen tekst i begge (fx en FL-fejl).

@@ -33,8 +33,8 @@ Antallet pr. skærm skrives ud af `build/check_combined.py` ved hvert build
 ## Hvorfor den ikke bliver langsom
 
 - **`App.OnStart` henter ingen data og kender intet domæne.** Den har kun
-  temaet og hubbens fire variabler, så appen starter omtrent som hubben i
-  dag.
+  temaet og samlingernes skemaer; hubbens filtre sætter skærmen selv
+  (R2-044), så appen starter omtrent som hubben i dag.
 - **Hvert domæne klargøres først, når dets skærm åbnes.** Den OnStart, et
   domæne havde som selvstændig app, kører i skærmens `OnVisible` første gang,
   skærmen vises. Kommer man tilbage, sker der ingenting.

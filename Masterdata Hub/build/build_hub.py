@@ -222,13 +222,45 @@ def _by_status(mine, indent=4):
             f"{pad})")
 
 
-SCOPE = (
+SCOPE_IF = (
     "If(\n"
     "        varMdView = \"mine\",\n"
     f"        {_by_status(True, 8)},\n"
     f"        {_by_status(False, 8)}\n"
     "    )"
 )
+
+# ET FLADT FILTER IGEN (R2-045, B3)
+#
+# If er ikke en delegerbar funktion (Microsoft Learn, delegation-overview).
+# Et Filter, hvis KILDE er SCOPE_IF, delegerer kun den valgte inderste
+# gren; domaene, flag, soegning og sortering i ITEMS koerte lokalt paa de
+# foerste 500 raekker. Fejlen i #84 var IsOpen = (udtryk) og Filter inde
+# i Filter - ikke det flade filter som saadan. Her sammenlignes hver
+# kolonne kun med en variabel eller en KONSTANT (IsOpen = true / false),
+# og varMdStatusMode staar i sin egen OR-gren, som Power Apps afgoer
+# lokalt, foer forespoergslen sendes:
+#
+#     varMdStatusMode <> "open" || IsOpen = true
+#     varMdStatusMode <> "done" || IsOpen = false
+#
+# Kolonnetyperne (sharepoint/inspect/out/schema.json, MD_RequestIndex):
+# RequesterEmail tekst, IsOpen ja/nej, Domain valg, AssignedToEmail tekst,
+# Status valg, StatusStep tal, LastActionOn dato, Title(RequestNo)/Plant
+# tekst - alle delegerbare til SharePoint med =, <, >=, StartsWith. Alle
+# undtagen StatusStep og ShortText er indekserede.
+#
+# FLAT_SCOPE = False bygger If-formen fra #84 igen uden anden kodeaendring,
+# hvis Studio/SharePoint igen afviser forespoergslen. Efterproev i Studio
+# med Monitor (eet $filter med alle led) og Data row limit = 1.
+FLAT_SCOPE = True
+SCOPE_CONDS = (
+    'varMdView <> "mine" || RequesterEmail = varMdMe',
+    'varMdStatusMode <> "open" || IsOpen = true',
+    'varMdStatusMode <> "done" || IsOpen = false',
+)
+SCOPE_FLAT = f"Filter('{LIST}', " + ", ".join(SCOPE_CONDS) + ")"
+SCOPE = SCOPE_FLAT if FLAT_SCOPE else SCOPE_IF
 
 # FLISERNES OG TAELLERENS TAL - EEN HENTNING, IKKE SEKS
 #
@@ -267,8 +299,15 @@ DOMAIN_KEYS = ", ".join('"%s"' % d["key"] for d in DOMAINS)
 SAVE_HUB = tok.prefs_save({"prefMdView": "varMdView", "prefMdStatus": "varMdStatusMode",
                            "prefMdFlag": "varMdFlag", "prefMdDomain": "varMdDomain",
                            "prefMdSearch": "varMdSearch"})
+# R2-044: App.OnStart saetter ikke laengere filtrene, og OnVisible kan
+# komme foer OnStarts LoadData. Er lageret ikke laest endnu, henter
+# skaermen det selv - ellers laeste den en tom samling, satte
+# varMdPrefsRead og tabte brugerens gemte valg.
+PREFS_LOAD = (f"If(IsEmpty({tok.PREFS_COLLECTION}), "
+              f'IfError(LoadData({tok.PREFS_COLLECTION}, "{tok.PREFS_KEY}", true), Blank()));\n')
 HUB_ON_VISIBLE = (
     "Set(varMdMe, Lower(User().Email));\n"
+    + PREFS_LOAD +
     "If(\n    !IfError(varMdPrefsRead, false),\n"
     "    Set(varMdView, " + tok.pref_get("prefMdView", '"mine"') + ");\n"
     "    Set(varMdStatusMode, " + tok.pref_get("prefMdStatus", '"open"') + ");\n"
@@ -297,19 +336,34 @@ def scope_count(pred=None):
     return f'Text({n}) & If({SCOPE_FULL}, "+", "")'
 
 
+def scope_count_words(pred=None, short=None):
+    """Som scope_count, men med ordet: "1 request" / "12 requests" /
+    "500+ requests" (R2-079, D30: her stod "1 requests"). Samme regel som
+    display_text.plural - "+" staar mellem tallet og ordet. short: et
+    udtryk; naar det er sandt, staar kun tallet."""
+    n = f"CountRows(Filter(colMdScope, {pred}))" if pred else "CountRows(colMdScope)"
+    word = 'If(_c = 1, " request", " requests")'
+    if short:
+        word = f'If({short}, "", {word})'
+    return f'With({{ _c: {n} }}, Text(_c) & If({SCOPE_FULL}, "+", "") & {word})'
+
+
 # Flisernes undertekst: hvad tallet taeller.
 SCOPE_WORDS = ('Switch(varMdStatusMode, "open", "open", "done", "closed", "in total") & '
                'If(varMdView = "mine", " - my requests", " - whole department")')
 
 # De seneste lukkede indmeldinger i det valgte omfang - til Closed-preview'et.
-CLOSED_LATEST = (
-    "FirstN(\n"
-    "    SortByColumns(\n"
-    "        If(\n"
+_CLOSED_SRC = (
+    f"Filter('{LIST}', {SCOPE_CONDS[0]}, IsOpen = false)" if FLAT_SCOPE else
+    "If(\n"
     "            varMdView = \"mine\",\n"
     f"            Filter('{LIST}', RequesterEmail = varMdMe, IsOpen = false),\n"
     f"            Filter('{LIST}', IsOpen = false)\n"
-    "        ),\n"
+    "        )")
+CLOSED_LATEST = (
+    "FirstN(\n"
+    "    SortByColumns(\n"
+    f"        {_CLOSED_SRC},\n"
     "        \"LastActionOn\", SortOrder.Descending\n"
     "    ),\n"
     "    5\n"
@@ -1153,7 +1207,9 @@ def build_closed_peek():
         "AccessibleLabel": '"Latest closed requests"',
         "BorderStyle": "BorderStyle.None", "Fill": C_TRANSPARENT, "FillPortions": "0",
         "Height": str(5 * PEEK_ROW_H),
-        "Items": CLOSED_LATEST, "LayoutMinWidth": "0",
+        # R2-046: hentes foerst, naar popoveren aabnes - ikke ved hvert
+        # besoeg paa hubben for et skjult galleri.
+        "Items": f"If({PEEK_OPEN}, {CLOSED_LATEST}, Blank())", "LayoutMinWidth": "0",
         "LoadingSpinner": "LoadingSpinner.Controls",
         "Selectable": "false", "ShowScrollbar": "false", "TabIndex": "0",
         "TemplatePadding": "0", "TemplateSize": str(PEEK_ROW_H),
@@ -1176,9 +1232,12 @@ def build_closed_peek():
 # ---------------------------------------------------------------------------
 # Listen
 # ---------------------------------------------------------------------------
+# R2-045: med FLAT_SCOPE staar omfangets betingelser i SAMME Filter som
+# resten - ikke Filter(Filter(...)) (#84) og ikke Filter(If(...)).
+_SRC = (f"'{LIST}',\n        " + ",\n        ".join(SCOPE_CONDS)) if FLAT_SCOPE else SCOPE
 _FILTERED = (
     "    Filter(\n"
-    f"        {SCOPE},\n"
+    f"        {_SRC},\n"
     '        varMdDomain = "" || Domain.Value = varMdDomain,\n'
     '        varMdFlag <> "me" || AssignedToEmail = varMdMe,\n'
     f'        varMdFlag <> "stuck" || (IsOpen = true && StatusStep >= {ri.STUCK_STEPS[0]} && '
@@ -1195,6 +1254,19 @@ _FILTERED = (
 # foerst. SortByColumns faar kolonnens navn som KONSTANT i hver gren (een
 # Switch), saa SharePoint stadig sorterer - et variabelt kolonnenavn kan
 # ikke delegeres.
+#
+# "Title" OG IKKE COL_NO ER MED VILJE (R2-077). Anmodningsnummeret er
+# listens Title-kolonne, omdoebt: i sharepoint/inspect/out/schema.json
+# (MD_RequestIndex) har den internalName "Title" og displayName
+# "RequestNo". Filter og ThisItem binder paa visningsnavnet (RequestNo,
+# hub_config/request_index.COL_NO), men SortByColumns faar kolonnen som
+# TEKSTSTRENG, og en streng er det logiske (interne) navn - Microsoft
+# Learn (function-sort) beder netop om den interne form for
+# SharePoint-navne (_x0020_ for mellemrum). "RequestNo" findes ikke som
+# internt navn og ville give en fejl eller ingen sortering. De tre andre
+# kolonner har samme interne navn og visningsnavn. Ikke efterproevet i
+# Studio; viser formelbjaelken alligevel en fejl paa "Title", skiftes
+# det her til COL_NO.
 SORT_COLS = {"REQUEST": "Title", "PLANT": "Plant", "STATUS": "StatusStep",
              "UPDATED": "LastActionOn"}
 SORT_DEFAULT = "UPDATED"

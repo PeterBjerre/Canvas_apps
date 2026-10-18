@@ -4,7 +4,7 @@ App.OnStart for landingssiden.
 
 Den henter BEVIDST ingen data. OnStart betales af hver bruger hver gang, og
 alt hvad siden viser, kommer fra galleriets eget filter mod MD_RequestIndex.
-Her staar kun de fire variabler, der styrer visningen.
+Her staar kun skemaerne; filtrene saetter skaermen selv (R2-044).
 """
 import os
 import sys
@@ -33,12 +33,15 @@ _prefs = "ClearCollect(%s, { %s });\nClear(%s);" % (
     ", ".join("%s: %s" % kv for kv in _prefs_schema.items()),
     _prefs_name)
 
+# FILTRENE SAETTES IKKE HER (R2-044). OnStart koerer samtidig med
+# skaermens OnVisible (non-blocking OnStart). Stod Set(varMdView, "mine")
+# her, kunne OnStart blive faerdig EFTER OnVisible og overskrive de
+# filtre, brugeren havde gemt (UX-review F8). OnVisible
+# (build_hub.HUB_ON_VISIBLE) saetter varMdMe, laeser de gemte filtre -
+# og henter selv lageret, hvis det ikke er laest endnu - og falder
+# tilbage til standarderne.
 ONSTART = _prefs + "\n\n" + tok.onstart_block() + '''
 
-Set(varMdMe, Lower(User().Email));
-Set(varMdView, "mine");
-Set(varMdDomain, "");
-Set(varMdStatusMode, "open");
 Set(varMdClosedPeek, false);
 // Skemaet for flisernes taellesamling - hentes i skaermens OnVisible.
 // If(false, ...): kun skemaet, ingen handling. OnStart koerer samtidig med
