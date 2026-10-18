@@ -23,9 +23,10 @@ hentningen.
                    Patch direkte i IB_Tickets (issue #193). Filer laegges
                    paa bagefter: papirclipsen i raekken.
     En raekke   -> popup i View mode (issue #229): 1) nummer, titel og
-                   Close-ikonet; 2) status, prioritet, Application og
-                   Section; 3) metadata (Requester, Assigned to, Severity,
-                   Reported, Updated); 4) handlingerne som ikoner (Reopen,
+                   Close-ikonet; 2) status som maerke; 3) Issue
+                   information (Application, Section, Priority) og Ticket
+                   details (Requester, Assigned to, Severity, Reported,
+                   Updated) - issue #369; 4) handlingerne som ikoner (Reopen,
                    Edit, Archive, Delete) - hver kun, naar brugeren maa
                    (IbCan*); 5) fanerne Description, Activity og
                    Attachments, centreret; 6) indholdet. Alt til og med
@@ -1843,13 +1844,30 @@ UPLOAD_FILES = attflows.save_fx(
     extra_fields=", LastActivityOn: Now()")
 
 
+# Issue #369: indholdet i fanen Description staar hver i sin diskrete
+# flade (tynd kant, runde hjoerner) med etiketten lige over, og teksten
+# er en anelse stoerre end broedteksten. Fladen er lige saa hoej som
+# teksten (_lines_h) plus sin luft - aldrig en fast hoejde.
+DET_TEXT_SIZE = lay.SIZE_BODY + 1
+DET_TEXT_LINE = text_min_height(DET_TEXT_SIZE)
+DET_TEXT_PX = 7.8
+BOX_PAD_X = 12
+BOX_PAD_Y = 8
+# Kanten (1 px paa hver side) tages ogsaa fra tekstens bredde.
+BOX_TEXT_W = f"({DET_IN} - {2 * BOX_PAD_X} - 2)"
+
+
 def _text_block(name, label, expr, visible=None):
-    """En overskrift og en tekst, der ombrydes - laest, ikke redigeret."""
+    """En etiket og en tekst, der ombrydes, i en diskret flade - laest,
+    ikke redigeret (issue #369)."""
     lab = text_ctrl(f"txt{name}Label", f'"{label}"', size=lay.SIZE_SMALL, weight="Semibold",
                     color=C_MUTED, height=18)
-    h = _lines_h(expr, DET_IN)
-    body = text_ctrl(f"txt{name}", expr, size=lay.SIZE_BODY, height=h, wrap="true")
-    return group(f"con{name}", [lab, body], direction="Vertical", gap=4, visible=visible)
+    h = _lines_h(expr, BOX_TEXT_W, px=DET_TEXT_PX, line_h=DET_TEXT_LINE)
+    body = text_ctrl(f"txt{name}", expr, size=DET_TEXT_SIZE, height=h, wrap="true",
+                     accessible=f'"{label}: " & Self.Text')
+    box = group(f"con{name}Box", [body], direction="Vertical", gap=0, fill=C_CARD_BG,
+                border_color=C_CARD_BORDER, radius=8, pad=(BOX_PAD_Y, BOX_PAD_X, BOX_PAD_Y, BOX_PAD_X))
+    return group(f"con{name}", [lab, box], direction="Vertical", gap=4, visible=visible)
 
 
 TAB_W = 140
@@ -1979,11 +1997,78 @@ def _files_panel():
 
 FACT_VAL_H = 20
 FACT_INNER = 2
-FACT_H = text_min_height(lay.SIZE_MICRO) + FACT_INNER + FACT_VAL_H
+FACT_LAB_H = text_min_height(lay.SIZE_MICRO)
+FACT_H = FACT_LAB_H + FACT_INNER + FACT_VAL_H
 FACT_GAP = 12
 # Fem fakta paa een linje, naar popuppen er bred nok; ellers tre og to.
 FACTS_OK = f"({DET_IN}) >= 540"
 FACT_W = f"If({FACTS_OK}, (({DET_IN}) - 4 * {FACT_GAP}) / 5, (({DET_IN}) - 2 * {FACT_GAP}) / 3)"
+# Issue information (issue #369): Application, Section og Priority - altid
+# tre kolonner, saa de flugter med de tre foerste fakta paa en smal popup.
+INFO_W = f"((({DET_IN}) - 2 * {FACT_GAP}) / 3)"
+SECTION_H = 18
+
+
+def _section_title(name, title):
+    """En sektions overskrift i sagens popup - som formularernes
+    (domain_parts.form_section): lille, fed, daempet og med versaler."""
+    return text_ctrl(name, f'Upper("{title}")', size=lay.SIZE_MICRO, weight="Semibold",
+                     color=C_MUTED, height=SECTION_H, accessible=f'"{title}"')
+
+
+_MID = {"VerticalAlign": "VerticalAlign.Middle", "LayoutMinWidth": "0"}
+
+
+def _fact(name, label, value_fx, visible=None, width=FACT_W, height=FACT_VAL_H, wrap="false"):
+    """Etiket og vaerdi (to tekster med egen bredde og hoejde)."""
+    lab = text_ctrl(f"txt{name}Label", f'"{label}"', size=lay.SIZE_MICRO, weight="Semibold",
+                    color=C_MUTED, height=FACT_LAB_H, width=width, visible=visible,
+                    extra=dict(_MID))
+    extra = dict(_MID)
+    if wrap == "true":
+        extra["VerticalAlign"] = "VerticalAlign.Top"
+    val = text_ctrl(f"txt{name}", value_fx, size=lay.SIZE_BODY, height=height, width=width,
+                    accessible=f'"{label}: " & Self.Text', visible=visible, wrap=wrap,
+                    extra=extra)
+    return lab, val
+
+
+def _fact_block(name, labels, values, width, val_h=FACT_VAL_H):
+    """En raekke etiketter over en raekke vaerdier."""
+    labs = group(f"con{name}Labels", labels, direction="Horizontal",
+                 gap=FACT_GAP, height=FACT_LAB_H, width=width, align_items="Start")
+    vals = group(f"con{name}Values", values, direction="Horizontal",
+                 gap=FACT_GAP, height=val_h, width=width, align_items="Start")
+    g = group(f"con{name}", [labs, vals], direction="Vertical", gap=FACT_INNER,
+              height=f"{FACT_LAB_H} + {FACT_INNER} + {val_h}", width=width, align_items="Start")
+    for c in (labs, vals, g):
+        c.props["LayoutMinWidth"] = "0"
+    return g
+
+
+def _info():
+    """Issue information (issue #369): Application, Section og Priority
+    under en overskrift - prioriteten som sit farvede maerke. En lang
+    Application eller Section ombrydes, og raekken vokser med den."""
+    val_h = (f"Max({CHIP_H}, {_lines_h(SEL + '.Application', INFO_W)}, "
+             f"{_lines_h(SEL + '.Section', INFO_W)})")
+    app_lab, app = _fact("IbDetApp", "Application", f"{SEL}.Application", width=INFO_W,
+                         height=val_h, wrap="true")
+    app.props["FontWeight"] = "FontWeight.Semibold"
+    sec_lab, sec = _fact("IbDetSection", "Section", f"{SEL}.Section", width=INFO_W,
+                         height=val_h, wrap="true")
+    pri_lab = text_ctrl("txtIbDetPriorityLabel", '"Priority"', size=lay.SIZE_MICRO,
+                        weight="Semibold", color=C_MUTED, height=FACT_LAB_H, width=INFO_W,
+                        extra=dict(_MID))
+    pri, _pri_w = _text_chip("bdgIbDetPriority", f"{SEL}.Priority", sc.PRIORITY, '"Priority: "',
+                             visible=f"!IsBlank({SEL}.Priority)")
+    no_pri = text_ctrl("txtIbDetPriorityNone", '"Not set"', size=lay.SIZE_BODY, color=C_MUTED,
+                       height=CHIP_H, width=INFO_W, visible=f"IsBlank({SEL}.Priority)",
+                       accessible='"Priority: not set"', extra=dict(_MID))
+    block = _fact_block("IbDetInfoFacts", [app_lab, sec_lab, pri_lab], [app, sec, pri, no_pri],
+                        DET_IN, val_h=val_h)
+    return group("conIbDetInfo", [_section_title("txtIbDetInfoTitle", "Issue information"), block],
+                 direction="Vertical", gap=4)
 
 
 def _facts():
@@ -1991,51 +2076,34 @@ def _facts():
     Assigned to, Severity, Reported og Updated. Rapportoeren som kort
     bruger-id (UFFES) - ingen anonymisering (issue #193, #212). Updated
     kun efter en reel aendring, og sidst, saa der ikke opstaar et hul.
+    Issue #369: under overskriften "Ticket details".
 
-    Bygget som Application/Section-linjen (conIbDetWhere), der vises i
-    Play: vandrette raekker af tekster med egen bredde og hoejde. De
+    Bygget som vandrette raekker af tekster med egen bredde og hoejde. De
     lodrette etiket/vaerdi-grupper med strakte tekster og den dynamiske
     LayoutDirection viste sig i Studio, men var tomme i Play og preview.
     Blok 1 (tre fakta) og blok 2 (to) staar paa een linje, naar popuppen
     er bred nok; ellers brydes blok 2 ned under (LayoutWrap)."""
     def blank_as(expr, text):
         return f'If(IsBlank({expr}), "{text}", {expr})'
-    mid = {"VerticalAlign": "VerticalAlign.Middle", "LayoutMinWidth": "0"}
-    lab_h = text_min_height(lay.SIZE_MICRO)
-
-    def fact(name, label, value_fx, visible=None):
-        lab = text_ctrl(f"txt{name}Label", f'"{label}"', size=lay.SIZE_MICRO, weight="Semibold",
-                        color=C_MUTED, height=lab_h, width=FACT_W, visible=visible, extra=dict(mid))
-        val = text_ctrl(f"txt{name}", value_fx, size=lay.SIZE_BODY, height=FACT_VAL_H,
-                        width=FACT_W, accessible=f'"{label}: " & Self.Text', visible=visible,
-                        extra=dict(mid))
-        return lab, val
 
     def block(name, facts, n):
         w = f"{n} * {FACT_W} + {n - 1} * {FACT_GAP}"
-        labs = group(f"con{name}Labels", [f[0] for f in facts], direction="Horizontal",
-                     gap=FACT_GAP, height=lab_h, width=w, align_items="Start")
-        vals = group(f"con{name}Values", [f[1] for f in facts], direction="Horizontal",
-                     gap=FACT_GAP, height=FACT_VAL_H, width=w, align_items="Start")
-        g = group(f"con{name}", [labs, vals], direction="Vertical", gap=FACT_INNER, height=FACT_H,
-                  width=w, align_items="Start")
-        for c in (labs, vals, g):
-            c.props["LayoutMinWidth"] = "0"
-        return g
+        return _fact_block(name, [f[0] for f in facts], [f[1] for f in facts], w)
 
-    rep = fact("IbFactReporter", "Requester", REPORTER_FX.format(r=SEL))
-    asg = fact("IbFactAssigned", "Assigned to", blank_as(SEL + ".Assigned", "Unassigned"))
-    sev = fact("IbFactSeverity", "Severity", blank_as(f"{SEL}.Severity", "Not set"))
-    reported = fact("IbFactReported", "Reported", f"Text({SEL}.CreatedOn, {DATE_FMT})")
-    updated = fact("IbFactUpdated", "Updated", f"Text(IbSelUpdatedOn, {DATE_FMT})",
-                   visible="!IsBlank(IbSelUpdatedOn)")
+    rep = _fact("IbFactReporter", "Requester", REPORTER_FX.format(r=SEL))
+    asg = _fact("IbFactAssigned", "Assigned to", blank_as(SEL + ".Assigned", "Unassigned"))
+    sev = _fact("IbFactSeverity", "Severity", blank_as(f"{SEL}.Severity", "Not set"))
+    reported = _fact("IbFactReported", "Reported", f"Text({SEL}.CreatedOn, {DATE_FMT})")
+    updated = _fact("IbFactUpdated", "Updated", f"Text(IbSelUpdatedOn, {DATE_FMT})",
+                    visible="!IsBlank(IbSelUpdatedOn)")
     a = block("IbFacts1", [rep, asg, sev], 3)
     b = block("IbFacts2", [reported, updated], 2)
-    g = group("conIbDetFacts", [a, b], direction="Horizontal", gap=FACT_GAP,
+    g = group("conIbDetFactRows", [a, b], direction="Horizontal", gap=FACT_GAP,
               height=f"If({FACTS_OK}, {FACT_H}, 2 * {FACT_H} + {FACT_GAP})", align_items="Start")
     g.props["LayoutWrap"] = "true"
     g.props["LayoutMinWidth"] = "0"
-    return g
+    return group("conIbDetFacts", [_section_title("txtIbDetFactsTitle", "Ticket details"), g],
+                 direction="Vertical", gap=4)
 
 
 ROLE_TONE = {"User": "info", "Admin": "violet", "System": "neutral"}
@@ -2073,36 +2141,16 @@ def build_detail():
                  lead=[no], title_w=f"({DETAIL_PANEL_IN}) - {NO_W} - {3 * lay.HIT_TOUCH} - 30",
                  close_icon=True, nav=nav)
 
-    # 2. Status, prioritet, Application og Section - maerker og to korte
-    #    vaerdier, ikke en lang streng. Paa en smal popup paa to linjer.
+    # 2. Status som maerke lige under titlen (issue #369). Prioriteten,
+    #    Application og Section staar under Issue information - ikke to
+    #    steder.
     # Maerkerne er tekster med statussens farvepar (som sagsnummeret,
     # _no_badge) - SVG-billederne (sc.status_chip) var tomme i Play her.
     key = f'If({SEL}.Archived, "Archived", {SEL}.Status)'
-    chip, chip_w = _text_chip("bdgIbDetStatus", key, ISSUE_STATUS, '"Status: "')
-    pri, pri_w = _text_chip("bdgIbDetPriority", f"{SEL}.Priority", sc.PRIORITY, '"Priority: "',
-                            visible=f"!IsBlank({SEL}.Priority)")
-    badges_w = f"({chip_w} + 8 + If(IsBlank({SEL}.Priority), 0, {pri_w} + 8))"
-    badges = group("conIbDetBadges", [chip, pri], direction="Horizontal", gap=8, height=CHIP_H,
-                   width=f"({badges_w} - 8)", align_items="Start")
-    badges.props["LayoutMinWidth"] = badges.props["Width"]
-    where_w = f"If({FACTS_OK}, ({DET_IN}) - {badges_w} - 4, {DET_IN})"
-    where_h = f"If({FACTS_OK}, {CHIP_H}, 20)"
-    mid = {"VerticalAlign": "VerticalAlign.Middle"}
-    app = text_ctrl("txtIbDetApp", f"{SEL}.Application", size=lay.SIZE_BODY, weight="Semibold",
-                    height=where_h, width=f"Max(0, (({where_w}) - 12) / 2)",
-                    accessible='"Application: " & Self.Text', extra=mid)
-    sec = text_ctrl("txtIbDetSection", f"{SEL}.Section", size=lay.SIZE_BODY, color=C_MUTED,
-                    height=where_h, width=f"Max(0, (({where_w}) - 12) / 2)",
-                    accessible='"Section: " & Self.Text', extra=mid)
-    where = group("conIbDetWhere", [app, sec], direction="Horizontal", gap=12, height=where_h,
-                  width=where_w, align_items="Start")
-    where.props["LayoutMinWidth"] = "0"
-    meta = group("conIbDetMeta", [badges, where], direction="Horizontal", gap=12,
-                 height=f"If({FACTS_OK}, {CHIP_H}, {CHIP_H} + 6 + 20)", align_items="Start")
-    meta.props["LayoutDirection"] = (f"If({FACTS_OK}, LayoutDirection.Horizontal, "
-                                     "LayoutDirection.Vertical)")
-    meta.props["LayoutGap"] = f"If({FACTS_OK}, 12, 6)"
-    meta.props["LayoutAlignItems"] = "LayoutAlignItems.Start"
+    chip, _chip_w = _text_chip("bdgIbDetStatus", key, ISSUE_STATUS, '"Status: "')
+    meta = group("conIbDetMeta", [chip], direction="Horizontal", gap=8, height=CHIP_H,
+                 align_items="Start")
+    info = _info()
 
     # 3. Metadata.  4. Handlingerne (ikoner).
     facts = _facts()
@@ -2270,7 +2318,7 @@ def build_detail():
     # alle tre faner: den fane, der kraever mest, bestemmer den (mindst
     # DET_MIN_H), og den er aldrig hoejere end skaermen tillader. Hver fane
     # scroller selv, saa hver har sin egen scrollposition.
-    top = group("conIbDetTop", [meta, facts, actions, peek_note, retest, rule, tabs],
+    top = group("conIbDetTop", [meta, info, facts, actions, peek_note, retest, rule, tabs],
                 direction="Vertical", gap=8)
     files = _files_panel()
     panels = [details, activity, files]

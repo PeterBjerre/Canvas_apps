@@ -10046,7 +10046,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =49 + (If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 22, 22 + 6 + 20)) + 8 + (If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 39, 2 * 39 + 12)) + If(IbCanReopen || IbCanEdit || IbCanManage, 8 + (Max(44, H.hit) + 2 * 3), 0) + If(varIbSelPeek, 8 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 8 + (34), 0)
+                      =71 + 8 + (18 + 4 + (17 + 2 + Max(22, With({ t: varIbSel.Application }, (RoundUp(Len(t) / Max(12, RoundDown(((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2), With({ t: varIbSel.Section }, (RoundUp(Len(t) / Max(12, RoundDown(((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)))) + 8 + (18 + 4 + (If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 39, 2 * 39 + 12))) + If(IbCanReopen || IbCanEdit || IbCanManage, 8 + (Max(44, H.hit) + 2 * 3), 0) + If(varIbSelPeek, 8 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 8 + (34), 0)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -10073,13 +10073,13 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 22, 22 + 6 + 20)
+                            =22
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Start
                         LayoutDirection: |-
-                            =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, LayoutDirection.Horizontal, LayoutDirection.Vertical)
+                            =LayoutDirection.Horizontal
                         LayoutGap: |-
-                            =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 12, 6)
+                            =8
                         LayoutMinWidth: |-
                             =0
                         LayoutOverflowX: |-
@@ -10089,7 +10089,120 @@ Screens:
                         Width: |-
                             =Parent.Width
                       Children:
-                        - conIbDetBadges:
+                        - bdgIbDetStatus:
+                            Control: ModernBadge@1.0.0
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Status: " & (Switch(If(varIbSel.Archived, "Archived", varIbSel.Status), "New", "New", "Reopened", "Reopened", "Triaged", "Triaged", "In progress", "In progress", "Ready for retest", "Ready for retest", "Closed", "Closed", "Archived", "Archived", "Unknown"))
+                              Align: |-
+                                  =Switch(If(varIbSel.Archived, "Archived", varIbSel.Status), "New", Align.Center, "Reopened", Align.Center, "Triaged", Align.Center, "In progress", Align.Center, "Ready for retest", Align.Center, "Closed", Align.Center, "Archived", Align.Center, Align.Center)
+                              Appearance: |-
+                                  =BadgeAppearance.Filled
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =Switch(If(varIbSel.Archived, "Archived", varIbSel.Status), "New", C.'state-info-fg', "Reopened", C.'state-rose-fg', "Triaged", C.'state-violet-fg', "In progress", C.'state-warn-fg', "Ready for retest", C.'state-lime-fg', "Closed", C.'state-ok-fg', "Archived", C.'state-neutral-fg', C.'state-neutral-fg')
+                              Content: |-
+                                  =Switch(If(varIbSel.Archived, "Archived", varIbSel.Status), "New", "New", "Reopened", "Reopened", "Triaged", "Triaged", "In progress", "In progress", "Ready for retest", "Ready for retest", "Closed", "Closed", "Archived", "Archived", "Unknown")
+                              Fill: |-
+                                  =Switch(If(varIbSel.Archived, "Archived", varIbSel.Status), "New", C.'state-info-bg', "Reopened", C.'state-rose-bg', "Triaged", C.'state-violet-bg', "In progress", C.'state-warn-bg', "Ready for retest", C.'state-lime-bg', "Closed", C.'state-ok-bg', "Archived", C.'state-neutral-bg', C.'state-neutral-bg')
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =22
+                              Intent: |-
+                                  =BadgeIntent.Neutral
+                              LayoutMinWidth: |-
+                                  =Switch(If(varIbSel.Archived, "Archived", varIbSel.Status), "New", 44, "Reopened", 75, "Triaged", 60, "In progress", 80, "Ready for retest", 105, "Closed", 56, "Archived", 67, 71)
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              RadiusBottomLeft: |-
+                                  =11
+                              RadiusBottomRight: |-
+                                  =11
+                              RadiusTopLeft: |-
+                                  =11
+                              RadiusTopRight: |-
+                                  =11
+                              Shape: |-
+                                  =BadgeShape.Circular
+                              Size: |-
+                                  =T.micro
+                              VerticalAlign: |-
+                                  =VerticalAlign.Middle
+                              Width: |-
+                                  =Switch(If(varIbSel.Archived, "Archived", varIbSel.Status), "New", 44, "Reopened", 75, "Triaged", 60, "In progress", 80, "Ready for retest", 105, "Closed", 56, "Archived", 67, 71)
+                  - conIbDetInfo:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =18 + 4 + (17 + 2 + Max(22, With({ t: varIbSel.Application }, (RoundUp(Len(t) / Max(12, RoundDown(((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2), With({ t: varIbSel.Section }, (RoundUp(Len(t) / Max(12, RoundDown(((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)))
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Stretch
+                        LayoutDirection: |-
+                            =LayoutDirection.Vertical
+                        LayoutGap: |-
+                            =4
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Width: |-
+                            =Parent.Width
+                      Children:
+                        - txtIbDetInfoTitle:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Issue information"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-muted'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =18
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =T.micro
+                              Text: |-
+                                  =Upper("Issue information")
+                              Wrap: |-
+                                  =false
+                        - conIbDetInfoFacts:
                             Control: GroupContainer
                             Variant: AutoLayout
                             Properties:
@@ -10100,131 +10213,424 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =22
+                                  =17 + 2 + Max(22, With({ t: varIbSel.Application }, (RoundUp(Len(t) / Max(12, RoundDown(((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2), With({ t: varIbSel.Section }, (RoundUp(Len(t) / Max(12, RoundDown(((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Start
                               LayoutDirection: |-
-                                  =LayoutDirection.Horizontal
+                                  =LayoutDirection.Vertical
                               LayoutGap: |-
-                                  =8
+                                  =2
                               LayoutMinWidth: |-
-                                  =(((Switch(If(varIbSel.Archived, "Archived", varIbSel.Status), "New", 44, "Reopened", 75, "Triaged", 60, "In progress", 80, "Ready for retest", 105, "Closed", 56, "Archived", 67, 71)) + 8 + If(IsBlank(varIbSel.Priority), 0, (Switch(varIbSel.Priority, "Urgent", 57, "High", 46, "Normal", 46, "Low", 26, 71)) + 8)) - 8)
+                                  =0
                               LayoutOverflowX: |-
                                   =LayoutOverflow.Hide
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
                               Width: |-
-                                  =(((Switch(If(varIbSel.Archived, "Archived", varIbSel.Status), "New", 44, "Reopened", 75, "Triaged", 60, "In progress", 80, "Ready for retest", 105, "Closed", 56, "Archived", 67, 71)) + 8 + If(IsBlank(varIbSel.Priority), 0, (Switch(varIbSel.Priority, "Urgent", 57, "High", 46, "Normal", 46, "Low", 26, 71)) + 8)) - 8)
+                                  =((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)
                             Children:
-                              - bdgIbDetStatus:
-                                  Control: ModernBadge@1.0.0
+                              - conIbDetInfoFactsLabels:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        ="Status: " & (Switch(If(varIbSel.Archived, "Archived", varIbSel.Status), "New", "New", "Reopened", "Reopened", "Triaged", "Triaged", "In progress", "In progress", "Ready for retest", "Ready for retest", "Closed", "Closed", "Archived", "Archived", "Unknown"))
-                                    Align: |-
-                                        =Switch(If(varIbSel.Archived, "Archived", varIbSel.Status), "New", Align.Center, "Reopened", Align.Center, "Triaged", Align.Center, "In progress", Align.Center, "Ready for retest", Align.Center, "Closed", Align.Center, "Archived", Align.Center, Align.Center)
-                                    Appearance: |-
-                                        =BadgeAppearance.Filled
                                     BorderStyle: |-
                                         =BorderStyle.None
-                                    BorderThickness: |-
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
                                         =0
-                                    Color: |-
-                                        =Switch(If(varIbSel.Archived, "Archived", varIbSel.Status), "New", C.'state-info-fg', "Reopened", C.'state-rose-fg', "Triaged", C.'state-violet-fg', "In progress", C.'state-warn-fg', "Ready for retest", C.'state-lime-fg', "Closed", C.'state-ok-fg', "Archived", C.'state-neutral-fg', C.'state-neutral-fg')
-                                    Content: |-
-                                        =Switch(If(varIbSel.Archived, "Archived", varIbSel.Status), "New", "New", "Reopened", "Reopened", "Triaged", "Triaged", "In progress", "In progress", "Ready for retest", "Ready for retest", "Closed", "Closed", "Archived", "Archived", "Unknown")
-                                    Fill: |-
-                                        =Switch(If(varIbSel.Archived, "Archived", varIbSel.Status), "New", C.'state-info-bg', "Reopened", C.'state-rose-bg', "Triaged", C.'state-violet-bg', "In progress", C.'state-warn-bg', "Ready for retest", C.'state-lime-bg', "Closed", C.'state-ok-bg', "Archived", C.'state-neutral-bg', C.'state-neutral-bg')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
                                     Height: |-
-                                        =22
-                                    Intent: |-
-                                        =BadgeIntent.Neutral
+                                        =17
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Start
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Horizontal
+                                    LayoutGap: |-
+                                        =12
                                     LayoutMinWidth: |-
-                                        =Switch(If(varIbSel.Archived, "Archived", varIbSel.Status), "New", 44, "Reopened", 75, "Triaged", 60, "In progress", 80, "Ready for retest", 105, "Closed", 56, "Archived", 67, 71)
-                                    PaddingBottom: |-
                                         =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    RadiusBottomLeft: |-
-                                        =11
-                                    RadiusBottomRight: |-
-                                        =11
-                                    RadiusTopLeft: |-
-                                        =11
-                                    RadiusTopRight: |-
-                                        =11
-                                    Shape: |-
-                                        =BadgeShape.Circular
-                                    Size: |-
-                                        =T.micro
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
-                                        =Switch(If(varIbSel.Archived, "Archived", varIbSel.Status), "New", 44, "Reopened", 75, "Triaged", 60, "In progress", 80, "Ready for retest", 105, "Closed", 56, "Archived", 67, 71)
-                              - bdgIbDetPriority:
-                                  Control: ModernBadge@1.0.0
+                                        =((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)
+                                  Children:
+                                    - txtIbDetAppLabel:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Application"
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-muted'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =17
+                                          LayoutMinWidth: |-
+                                              =0
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.micro
+                                          Text: |-
+                                              ="Application"
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Width: |-
+                                              =(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
+                                          Wrap: |-
+                                              =false
+                                    - txtIbDetSectionLabel:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Section"
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-muted'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =17
+                                          LayoutMinWidth: |-
+                                              =0
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.micro
+                                          Text: |-
+                                              ="Section"
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Width: |-
+                                              =(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
+                                          Wrap: |-
+                                              =false
+                                    - txtIbDetPriorityLabel:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Priority"
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-muted'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =17
+                                          LayoutMinWidth: |-
+                                              =0
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.micro
+                                          Text: |-
+                                              ="Priority"
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Width: |-
+                                              =(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
+                                          Wrap: |-
+                                              =false
+                              - conIbDetInfoFactsValues:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        ="Priority: " & (Switch(varIbSel.Priority, "Urgent", "Urgent", "High", "High", "Normal", "Normal", "Low", "Low", "Unknown"))
-                                    Align: |-
-                                        =Switch(varIbSel.Priority, "Urgent", Align.Center, "High", Align.Center, "Normal", Align.Left, "Low", Align.Left, Align.Center)
-                                    Appearance: |-
-                                        =BadgeAppearance.Filled
                                     BorderStyle: |-
                                         =BorderStyle.None
-                                    BorderThickness: |-
+                                    DropShadow: |-
+                                        =DropShadow.None
+                                    FillPortions: |-
                                         =0
-                                    Color: |-
-                                        =Switch(varIbSel.Priority, "Urgent", C.'state-error-fg', "High", C.'state-warn-fg', "Normal", C.'text-primary', "Low", C.'text-primary', C.'state-neutral-fg')
-                                    Content: |-
-                                        =Switch(varIbSel.Priority, "Urgent", "Urgent", "High", "High", "Normal", "Normal", "Low", "Low", "Unknown")
-                                    Fill: |-
-                                        =Switch(varIbSel.Priority, "Urgent", C.'state-error-bg', "High", C.'state-warn-bg', "Normal", RGBA(0, 0, 0, 0), "Low", RGBA(0, 0, 0, 0), C.'state-neutral-bg')
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
                                     Height: |-
-                                        =22
-                                    Intent: |-
-                                        =BadgeIntent.Neutral
+                                        =Max(22, With({ t: varIbSel.Application }, (RoundUp(Len(t) / Max(12, RoundDown(((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2), With({ t: varIbSel.Section }, (RoundUp(Len(t) / Max(12, RoundDown(((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Start
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Horizontal
+                                    LayoutGap: |-
+                                        =12
                                     LayoutMinWidth: |-
-                                        =Switch(varIbSel.Priority, "Urgent", 57, "High", 46, "Normal", 46, "Low", 26, 71)
-                                    PaddingBottom: |-
                                         =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    RadiusBottomLeft: |-
-                                        =11
-                                    RadiusBottomRight: |-
-                                        =11
-                                    RadiusTopLeft: |-
-                                        =11
-                                    RadiusTopRight: |-
-                                        =11
-                                    Shape: |-
-                                        =BadgeShape.Circular
-                                    Size: |-
-                                        =T.micro
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Visible: |-
-                                        =!IsBlank(varIbSel.Priority)
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     Width: |-
-                                        =Switch(varIbSel.Priority, "Urgent", 57, "High", 46, "Normal", 46, "Low", 26, 71)
-                        - conIbDetWhere:
+                                        =((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)
+                                  Children:
+                                    - txtIbDetApp:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Application: " & Self.Text
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =Max(22, With({ t: varIbSel.Application }, (RoundUp(Len(t) / Max(12, RoundDown(((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2), With({ t: varIbSel.Section }, (RoundUp(Len(t) / Max(12, RoundDown(((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))
+                                          LayoutMinWidth: |-
+                                              =0
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.body
+                                          Text: |-
+                                              =varIbSel.Application
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Top
+                                          Width: |-
+                                              =(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
+                                          Wrap: |-
+                                              =true
+                                    - txtIbDetSection:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Section: " & Self.Text
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =Max(22, With({ t: varIbSel.Application }, (RoundUp(Len(t) / Max(12, RoundDown(((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2), With({ t: varIbSel.Section }, (RoundUp(Len(t) / Max(12, RoundDown(((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))
+                                          LayoutMinWidth: |-
+                                              =0
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.body
+                                          Text: |-
+                                              =varIbSel.Section
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Top
+                                          Width: |-
+                                              =(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
+                                          Wrap: |-
+                                              =true
+                                    - bdgIbDetPriority:
+                                        Control: ModernBadge@1.0.0
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Priority: " & (Switch(varIbSel.Priority, "Urgent", "Urgent", "High", "High", "Normal", "Normal", "Low", "Low", "Unknown"))
+                                          Align: |-
+                                              =Switch(varIbSel.Priority, "Urgent", Align.Center, "High", Align.Center, "Normal", Align.Left, "Low", Align.Left, Align.Center)
+                                          Appearance: |-
+                                              =BadgeAppearance.Filled
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =Switch(varIbSel.Priority, "Urgent", C.'state-error-fg', "High", C.'state-warn-fg', "Normal", C.'text-primary', "Low", C.'text-primary', C.'state-neutral-fg')
+                                          Content: |-
+                                              =Switch(varIbSel.Priority, "Urgent", "Urgent", "High", "High", "Normal", "Normal", "Low", "Low", "Unknown")
+                                          Fill: |-
+                                              =Switch(varIbSel.Priority, "Urgent", C.'state-error-bg', "High", C.'state-warn-bg', "Normal", RGBA(0, 0, 0, 0), "Low", RGBA(0, 0, 0, 0), C.'state-neutral-bg')
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          FontWeight: |-
+                                              =FontWeight.Semibold
+                                          Height: |-
+                                              =22
+                                          Intent: |-
+                                              =BadgeIntent.Neutral
+                                          LayoutMinWidth: |-
+                                              =Switch(varIbSel.Priority, "Urgent", 57, "High", 46, "Normal", 46, "Low", 26, 71)
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          RadiusBottomLeft: |-
+                                              =11
+                                          RadiusBottomRight: |-
+                                              =11
+                                          RadiusTopLeft: |-
+                                              =11
+                                          RadiusTopRight: |-
+                                              =11
+                                          Shape: |-
+                                              =BadgeShape.Circular
+                                          Size: |-
+                                              =T.micro
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Visible: |-
+                                              =!IsBlank(varIbSel.Priority)
+                                          Width: |-
+                                              =Switch(varIbSel.Priority, "Urgent", 57, "High", 46, "Normal", 46, "Low", 26, 71)
+                                    - txtIbDetPriorityNone:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Priority: not set"
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-muted'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =22
+                                          LayoutMinWidth: |-
+                                              =0
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.body
+                                          Text: |-
+                                              ="Not set"
+                                          VerticalAlign: |-
+                                              =VerticalAlign.Middle
+                                          Visible: |-
+                                              =IsBlank(varIbSel.Priority)
+                                          Width: |-
+                                              =(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
+                                          Wrap: |-
+                                              =false
+                  - conIbDetFacts:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =18 + 4 + (If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 39, 2 * 39 + 12))
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Stretch
+                        LayoutDirection: |-
+                            =LayoutDirection.Vertical
+                        LayoutGap: |-
+                            =4
+                        LayoutMinWidth: |-
+                            =0
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Width: |-
+                            =Parent.Width
+                      Children:
+                        - txtIbDetFactsTitle:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Ticket details"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-muted'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =18
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =T.micro
+                              Text: |-
+                                  =Upper("Ticket details")
+                              Wrap: |-
+                                  =false
+                        - conIbDetFactRows:
                             Control: GroupContainer
                             Variant: AutoLayout
                             Properties:
@@ -10235,7 +10641,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 22, 20)
+                                  =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 39, 2 * 39 + 12)
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Start
                               LayoutDirection: |-
@@ -10248,138 +10654,12 @@ Screens:
                                   =LayoutOverflow.Hide
                               LayoutOverflowY: |-
                                   =LayoutOverflow.Hide
+                              LayoutWrap: |-
+                                  =true
                               Width: |-
-                                  =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, (((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - ((Switch(If(varIbSel.Archived, "Archived", varIbSel.Status), "New", 44, "Reopened", 75, "Triaged", 60, "In progress", 80, "Ready for retest", 105, "Closed", 56, "Archived", 67, 71)) + 8 + If(IsBlank(varIbSel.Priority), 0, (Switch(varIbSel.Priority, "Urgent", 57, "High", 46, "Normal", 46, "Low", 26, 71)) + 8)) - 4, ((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18))
+                                  =Parent.Width
                             Children:
-                              - txtIbDetApp:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Application: " & Self.Text
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-primary'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    FontWeight: |-
-                                        =FontWeight.Semibold
-                                    Height: |-
-                                        =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 22, 20)
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.body
-                                    Text: |-
-                                        =varIbSel.Application
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Width: |-
-                                        =Max(0, ((If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, (((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - ((Switch(If(varIbSel.Archived, "Archived", varIbSel.Status), "New", 44, "Reopened", 75, "Triaged", 60, "In progress", 80, "Ready for retest", 105, "Closed", 56, "Archived", 67, 71)) + 8 + If(IsBlank(varIbSel.Priority), 0, (Switch(varIbSel.Priority, "Urgent", 57, "High", 46, "Normal", 46, "Low", 26, 71)) + 8)) - 4, ((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18))) - 12) / 2)
-                                    Wrap: |-
-                                        =false
-                              - txtIbDetSection:
-                                  Control: ModernText
-                                  Properties:
-                                    AccessibleLabel: |-
-                                        ="Section: " & Self.Text
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-muted'
-                                    Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
-                                    Height: |-
-                                        =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 22, 20)
-                                    PaddingBottom: |-
-                                        =0
-                                    PaddingLeft: |-
-                                        =0
-                                    PaddingRight: |-
-                                        =0
-                                    PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.body
-                                    Text: |-
-                                        =varIbSel.Section
-                                    VerticalAlign: |-
-                                        =VerticalAlign.Middle
-                                    Width: |-
-                                        =Max(0, ((If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, (((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - ((Switch(If(varIbSel.Archived, "Archived", varIbSel.Status), "New", 44, "Reopened", 75, "Triaged", 60, "In progress", 80, "Ready for retest", 105, "Closed", 56, "Archived", 67, 71)) + 8 + If(IsBlank(varIbSel.Priority), 0, (Switch(varIbSel.Priority, "Urgent", 57, "High", 46, "Normal", 46, "Low", 26, 71)) + 8)) - 4, ((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18))) - 12) / 2)
-                                    Wrap: |-
-                                        =false
-                  - conIbDetFacts:
-                      Control: GroupContainer
-                      Variant: AutoLayout
-                      Properties:
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        DropShadow: |-
-                            =DropShadow.None
-                        FillPortions: |-
-                            =0
-                        Height: |-
-                            =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 39, 2 * 39 + 12)
-                        LayoutAlignItems: |-
-                            =LayoutAlignItems.Start
-                        LayoutDirection: |-
-                            =LayoutDirection.Horizontal
-                        LayoutGap: |-
-                            =12
-                        LayoutMinWidth: |-
-                            =0
-                        LayoutOverflowX: |-
-                            =LayoutOverflow.Hide
-                        LayoutOverflowY: |-
-                            =LayoutOverflow.Hide
-                        LayoutWrap: |-
-                            =true
-                        Width: |-
-                            =Parent.Width
-                      Children:
-                        - conIbFacts1:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =39
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Start
-                              LayoutDirection: |-
-                                  =LayoutDirection.Vertical
-                              LayoutGap: |-
-                                  =2
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              Width: |-
-                                  =3 * If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3) + 2 * 12
-                            Children:
-                              - conIbFacts1Labels:
+                              - conIbFacts1:
                                   Control: GroupContainer
                                   Variant: AutoLayout
                                   Properties:
@@ -10390,13 +10670,13 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =17
+                                        =17 + 2 + 20
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Start
                                     LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
+                                        =LayoutDirection.Vertical
                                     LayoutGap: |-
-                                        =12
+                                        =2
                                     LayoutMinWidth: |-
                                         =0
                                     LayoutOverflowX: |-
@@ -10406,124 +10686,289 @@ Screens:
                                     Width: |-
                                         =3 * If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3) + 2 * 12
                                   Children:
-                                    - txtIbFactReporterLabel:
-                                        Control: ModernText
+                                    - conIbFacts1Labels:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
                                         Properties:
-                                          AccessibleLabel: |-
-                                              ="Requester"
                                           BorderStyle: |-
                                               =BorderStyle.None
-                                          BorderThickness: |-
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
                                               =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
                                           Height: |-
                                               =17
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Start
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =12
                                           LayoutMinWidth: |-
                                               =0
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.micro
-                                          Text: |-
-                                              ="Requester"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
-                                          Wrap: |-
-                                              =false
-                                    - txtIbFactAssignedLabel:
-                                        Control: ModernText
+                                              =3 * If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3) + 2 * 12
+                                        Children:
+                                          - txtIbFactReporterLabel:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Requester"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =17
+                                                LayoutMinWidth: |-
+                                                    =0
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =T.micro
+                                                Text: |-
+                                                    ="Requester"
+                                                VerticalAlign: |-
+                                                    =VerticalAlign.Middle
+                                                Width: |-
+                                                    =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
+                                                Wrap: |-
+                                                    =false
+                                          - txtIbFactAssignedLabel:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Assigned to"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =17
+                                                LayoutMinWidth: |-
+                                                    =0
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =T.micro
+                                                Text: |-
+                                                    ="Assigned to"
+                                                VerticalAlign: |-
+                                                    =VerticalAlign.Middle
+                                                Width: |-
+                                                    =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
+                                                Wrap: |-
+                                                    =false
+                                          - txtIbFactSeverityLabel:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Severity"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =17
+                                                LayoutMinWidth: |-
+                                                    =0
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =T.micro
+                                                Text: |-
+                                                    ="Severity"
+                                                VerticalAlign: |-
+                                                    =VerticalAlign.Middle
+                                                Width: |-
+                                                    =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
+                                                Wrap: |-
+                                                    =false
+                                    - conIbFacts1Values:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
                                         Properties:
-                                          AccessibleLabel: |-
-                                              ="Assigned to"
                                           BorderStyle: |-
                                               =BorderStyle.None
-                                          BorderThickness: |-
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
                                               =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
                                           Height: |-
-                                              =17
+                                              =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Start
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =12
                                           LayoutMinWidth: |-
                                               =0
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.micro
-                                          Text: |-
-                                              ="Assigned to"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
-                                          Wrap: |-
-                                              =false
-                                    - txtIbFactSeverityLabel:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Severity"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =17
-                                          LayoutMinWidth: |-
-                                              =0
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.micro
-                                          Text: |-
-                                              ="Severity"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
-                                          Wrap: |-
-                                              =false
-                              - conIbFacts1Values:
+                                              =3 * If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3) + 2 * 12
+                                        Children:
+                                          - txtIbFactReporter:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Requester: " & Self.Text
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                LayoutMinWidth: |-
+                                                    =0
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =T.body
+                                                Text: |-
+                                                    =If(IsBlank(varIbSel.Reporter), "-", Upper(First(Split(varIbSel.Reporter, "@")).Value))
+                                                VerticalAlign: |-
+                                                    =VerticalAlign.Middle
+                                                Width: |-
+                                                    =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
+                                                Wrap: |-
+                                                    =false
+                                          - txtIbFactAssigned:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Assigned to: " & Self.Text
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                LayoutMinWidth: |-
+                                                    =0
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =T.body
+                                                Text: |-
+                                                    =If(IsBlank(varIbSel.Assigned), "Unassigned", varIbSel.Assigned)
+                                                VerticalAlign: |-
+                                                    =VerticalAlign.Middle
+                                                Width: |-
+                                                    =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
+                                                Wrap: |-
+                                                    =false
+                                          - txtIbFactSeverity:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Severity: " & Self.Text
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                LayoutMinWidth: |-
+                                                    =0
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =T.body
+                                                Text: |-
+                                                    =If(IsBlank(varIbSel.Severity), "Not set", varIbSel.Severity)
+                                                VerticalAlign: |-
+                                                    =VerticalAlign.Middle
+                                                Width: |-
+                                                    =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
+                                                Wrap: |-
+                                                    =false
+                              - conIbFacts2:
                                   Control: GroupContainer
                                   Variant: AutoLayout
                                   Properties:
@@ -10534,285 +10979,13 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =20
+                                        =17 + 2 + 20
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Start
                                     LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
+                                        =LayoutDirection.Vertical
                                     LayoutGap: |-
-                                        =12
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    Width: |-
-                                        =3 * If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3) + 2 * 12
-                                  Children:
-                                    - txtIbFactReporter:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Requester: " & Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          LayoutMinWidth: |-
-                                              =0
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.body
-                                          Text: |-
-                                              =If(IsBlank(varIbSel.Reporter), "-", Upper(First(Split(varIbSel.Reporter, "@")).Value))
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
-                                          Wrap: |-
-                                              =false
-                                    - txtIbFactAssigned:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Assigned to: " & Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          LayoutMinWidth: |-
-                                              =0
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.body
-                                          Text: |-
-                                              =If(IsBlank(varIbSel.Assigned), "Unassigned", varIbSel.Assigned)
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
-                                          Wrap: |-
-                                              =false
-                                    - txtIbFactSeverity:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Severity: " & Self.Text
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =20
-                                          LayoutMinWidth: |-
-                                              =0
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.body
-                                          Text: |-
-                                              =If(IsBlank(varIbSel.Severity), "Not set", varIbSel.Severity)
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
-                                          Wrap: |-
-                                              =false
-                        - conIbFacts2:
-                            Control: GroupContainer
-                            Variant: AutoLayout
-                            Properties:
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              DropShadow: |-
-                                  =DropShadow.None
-                              FillPortions: |-
-                                  =0
-                              Height: |-
-                                  =39
-                              LayoutAlignItems: |-
-                                  =LayoutAlignItems.Start
-                              LayoutDirection: |-
-                                  =LayoutDirection.Vertical
-                              LayoutGap: |-
-                                  =2
-                              LayoutMinWidth: |-
-                                  =0
-                              LayoutOverflowX: |-
-                                  =LayoutOverflow.Hide
-                              LayoutOverflowY: |-
-                                  =LayoutOverflow.Hide
-                              Width: |-
-                                  =2 * If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3) + 1 * 12
-                            Children:
-                              - conIbFacts2Labels:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =17
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Start
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =12
-                                    LayoutMinWidth: |-
-                                        =0
-                                    LayoutOverflowX: |-
-                                        =LayoutOverflow.Hide
-                                    LayoutOverflowY: |-
-                                        =LayoutOverflow.Hide
-                                    Width: |-
-                                        =2 * If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3) + 1 * 12
-                                  Children:
-                                    - txtIbFactReportedLabel:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Reported"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =17
-                                          LayoutMinWidth: |-
-                                              =0
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.micro
-                                          Text: |-
-                                              ="Reported"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Width: |-
-                                              =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
-                                          Wrap: |-
-                                              =false
-                                    - txtIbFactUpdatedLabel:
-                                        Control: ModernText
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              ="Updated"
-                                          BorderStyle: |-
-                                              =BorderStyle.None
-                                          BorderThickness: |-
-                                              =0
-                                          Color: |-
-                                              =C.'text-muted'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          FontWeight: |-
-                                              =FontWeight.Semibold
-                                          Height: |-
-                                              =17
-                                          LayoutMinWidth: |-
-                                              =0
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.micro
-                                          Text: |-
-                                              ="Updated"
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Visible: |-
-                                              =!IsBlank(IbSelUpdatedOn)
-                                          Width: |-
-                                              =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
-                                          Wrap: |-
-                                              =false
-                              - conIbFacts2Values:
-                                  Control: GroupContainer
-                                  Variant: AutoLayout
-                                  Properties:
-                                    BorderStyle: |-
-                                        =BorderStyle.None
-                                    DropShadow: |-
-                                        =DropShadow.None
-                                    FillPortions: |-
-                                        =0
-                                    Height: |-
-                                        =20
-                                    LayoutAlignItems: |-
-                                        =LayoutAlignItems.Start
-                                    LayoutDirection: |-
-                                        =LayoutDirection.Horizontal
-                                    LayoutGap: |-
-                                        =12
+                                        =2
                                     LayoutMinWidth: |-
                                         =0
                                     LayoutOverflowX: |-
@@ -10822,82 +10995,216 @@ Screens:
                                     Width: |-
                                         =2 * If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3) + 1 * 12
                                   Children:
-                                    - txtIbFactReported:
-                                        Control: ModernText
+                                    - conIbFacts2Labels:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
                                         Properties:
-                                          AccessibleLabel: |-
-                                              ="Reported: " & Self.Text
                                           BorderStyle: |-
                                               =BorderStyle.None
-                                          BorderThickness: |-
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
                                               =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
                                           Height: |-
-                                              =20
+                                              =17
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Start
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =12
                                           LayoutMinWidth: |-
                                               =0
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.body
-                                          Text: |-
-                                              =Text(varIbSel.CreatedOn, "dd-mm-yyyy")
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
-                                          Wrap: |-
-                                              =false
-                                    - txtIbFactUpdated:
-                                        Control: ModernText
+                                              =2 * If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3) + 1 * 12
+                                        Children:
+                                          - txtIbFactReportedLabel:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Reported"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =17
+                                                LayoutMinWidth: |-
+                                                    =0
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =T.micro
+                                                Text: |-
+                                                    ="Reported"
+                                                VerticalAlign: |-
+                                                    =VerticalAlign.Middle
+                                                Width: |-
+                                                    =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
+                                                Wrap: |-
+                                                    =false
+                                          - txtIbFactUpdatedLabel:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Updated"
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-muted'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                FontWeight: |-
+                                                    =FontWeight.Semibold
+                                                Height: |-
+                                                    =17
+                                                LayoutMinWidth: |-
+                                                    =0
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =T.micro
+                                                Text: |-
+                                                    ="Updated"
+                                                VerticalAlign: |-
+                                                    =VerticalAlign.Middle
+                                                Visible: |-
+                                                    =!IsBlank(IbSelUpdatedOn)
+                                                Width: |-
+                                                    =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
+                                                Wrap: |-
+                                                    =false
+                                    - conIbFacts2Values:
+                                        Control: GroupContainer
+                                        Variant: AutoLayout
                                         Properties:
-                                          AccessibleLabel: |-
-                                              ="Updated: " & Self.Text
                                           BorderStyle: |-
                                               =BorderStyle.None
-                                          BorderThickness: |-
+                                          DropShadow: |-
+                                              =DropShadow.None
+                                          FillPortions: |-
                                               =0
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Fill: |-
-                                              =RGBA(0, 0, 0, 0)
-                                          Font: |-
-                                              =Font.'Segoe UI'
                                           Height: |-
                                               =20
+                                          LayoutAlignItems: |-
+                                              =LayoutAlignItems.Start
+                                          LayoutDirection: |-
+                                              =LayoutDirection.Horizontal
+                                          LayoutGap: |-
+                                              =12
                                           LayoutMinWidth: |-
                                               =0
-                                          PaddingBottom: |-
-                                              =0
-                                          PaddingLeft: |-
-                                              =0
-                                          PaddingRight: |-
-                                              =0
-                                          PaddingTop: |-
-                                              =0
-                                          Size: |-
-                                              =T.body
-                                          Text: |-
-                                              =Text(IbSelUpdatedOn, "dd-mm-yyyy")
-                                          VerticalAlign: |-
-                                              =VerticalAlign.Middle
-                                          Visible: |-
-                                              =!IsBlank(IbSelUpdatedOn)
+                                          LayoutOverflowX: |-
+                                              =LayoutOverflow.Hide
+                                          LayoutOverflowY: |-
+                                              =LayoutOverflow.Hide
                                           Width: |-
-                                              =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
-                                          Wrap: |-
-                                              =false
+                                              =2 * If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3) + 1 * 12
+                                        Children:
+                                          - txtIbFactReported:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Reported: " & Self.Text
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                LayoutMinWidth: |-
+                                                    =0
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =T.body
+                                                Text: |-
+                                                    =Text(varIbSel.CreatedOn, "dd-mm-yyyy")
+                                                VerticalAlign: |-
+                                                    =VerticalAlign.Middle
+                                                Width: |-
+                                                    =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
+                                                Wrap: |-
+                                                    =false
+                                          - txtIbFactUpdated:
+                                              Control: ModernText
+                                              Properties:
+                                                AccessibleLabel: |-
+                                                    ="Updated: " & Self.Text
+                                                BorderStyle: |-
+                                                    =BorderStyle.None
+                                                BorderThickness: |-
+                                                    =0
+                                                Color: |-
+                                                    =C.'text-primary'
+                                                Fill: |-
+                                                    =RGBA(0, 0, 0, 0)
+                                                Font: |-
+                                                    =Font.'Segoe UI'
+                                                Height: |-
+                                                    =20
+                                                LayoutMinWidth: |-
+                                                    =0
+                                                PaddingBottom: |-
+                                                    =0
+                                                PaddingLeft: |-
+                                                    =0
+                                                PaddingRight: |-
+                                                    =0
+                                                PaddingTop: |-
+                                                    =0
+                                                Size: |-
+                                                    =T.body
+                                                Text: |-
+                                                    =Text(IbSelUpdatedOn, "dd-mm-yyyy")
+                                                VerticalAlign: |-
+                                                    =VerticalAlign.Middle
+                                                Visible: |-
+                                                    =!IsBlank(IbSelUpdatedOn)
+                                                Width: |-
+                                                    =If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 4 * 12) / 5, ((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)
+                                                Wrap: |-
+                                                    =false
                   - conIbDetActions:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -11665,7 +11972,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =Max(160, Min(App.Height - 32 - 36 - (Max(44, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36)) - 96 - 132 - 30) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))) - 12 - (49 + (If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 22, 22 + 6 + 20)) + 8 + (If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 39, 2 * 39 + 12)) + If(IbCanReopen || IbCanEdit || IbCanManage, 8 + (Max(44, H.hit) + 2 * 3), 0) + If(varIbSelPeek, 8 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 8 + (34), 0)) - 12, Max(200, (0 + (18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))) + If(varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))), 0)), (If(IbSeeActivity, 0 + If((varIbActBusy && IsEmpty(colIbActivity)) || IfError(varIbActFailed, false), 0 + (34), 0) + If(!IsEmpty(colIbActivity), 12 + (Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40))), 0) + If(IbCanComment, 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0) + If(varIbSel.Archived, 12 + (18), 0), 0)), (0 + If(varIbFilesBusy || IfError(varIbFilesFailed, false) || CountRows(If(varIbFilesFor = varIbSelId, varIbFiles, FirstN(varIbFiles, 0))) = 0, 0 + (20), 0) + 12 + (160 + Max(attIbFiles.AttachmentsCount, CountRows(If(varIbFilesFor = varIbSelId, varIbFiles, FirstN(varIbFiles, 0)))) * 44) + If(IbCanAttach, 12 + (78), 0)))))
+                      =Max(160, Min(App.Height - 32 - 36 - (Max(44, Min(3 * 23 + 2, Max(26, With({ t: varIbSel.Title }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36)) - 96 - 132 - 30) / 9.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 23 + 2))))) - 12 - (71 + 8 + (18 + 4 + (17 + 2 + Max(22, With({ t: varIbSel.Application }, (RoundUp(Len(t) / Max(12, RoundDown(((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2), With({ t: varIbSel.Section }, (RoundUp(Len(t) / Max(12, RoundDown(((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) - 2 * 12) / 3)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)))) + 8 + (18 + 4 + (If((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) >= 540, 39, 2 * 39 + 12))) + If(IbCanReopen || IbCanEdit || IbCanManage, 8 + (Max(44, H.hit) + 2 * 3), 0) + If(varIbSelPeek, 8 + (34), 0) + If(IbSelMine && varIbSel.Status = "Ready for retest" && !varIbSel.Archived, 8 + (34), 0)) - 12, Max(200, (0 + (18 + 4 + (16 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))) + If(varIbSelFullFor <> varIbSelId, 12 + (18), 0) + If(!IsBlank(varIbSel.Steps), 12 + (18 + 4 + (16 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))), 0) + If(!IsBlank(varIbSel.Expected), 12 + (18 + 4 + (16 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))), 0) + If(!IsBlank(varIbSel.Actual), 12 + (18 + 4 + (16 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))), 0) + If(!IsBlank(varIbSel.Other), 12 + (18 + 4 + (16 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))), 0) + If(!IsBlank(varIbSel.RelatedNo), 12 + (18 + 4 + (16 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))), 0) + If(!IsBlank(varIbSel.Resolution), 12 + (18 + 4 + (16 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))), 0)), (If(IbSeeActivity, 0 + If((varIbActBusy && IsEmpty(colIbActivity)) || IfError(varIbActFailed, false), 0 + (34), 0) + If(!IsEmpty(colIbActivity), 12 + (Max(40, Sum(colIbActivity, With({ t: Body }, (RoundUp(Len(t) / Max(12, RoundDown((((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 18 - 40) - 24)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2) + 40))), 0) + If(IbCanComment, 12 + (158 + If(IsAdmin, 8 + (24), 0)), 0) + If(varIbSel.Archived, 12 + (18), 0), 0)), (0 + If(varIbFilesBusy || IfError(varIbFilesFailed, false) || CountRows(If(varIbFilesFor = varIbSelId, varIbFiles, FirstN(varIbFiles, 0))) = 0, 0 + (20), 0) + 12 + (160 + Max(attIbFiles.AttachmentsCount, CountRows(If(varIbFilesFor = varIbSelId, varIbFiles, FirstN(varIbFiles, 0)))) * 44) + If(IbCanAttach, 12 + (78), 0)))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -11721,7 +12028,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =18 + 4 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))
+                                  =18 + 4 + (16 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -11770,37 +12077,84 @@ Screens:
                                         ="Description"
                                     Wrap: |-
                                         =false
-                              - txtIbDetDesc:
-                                  Control: ModernText
+                              - conIbDetDescBox:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =Self.Text
-                                    BorderStyle: |-
-                                        =BorderStyle.None
+                                    BorderColor: |-
+                                        =C.'border-default'
                                     BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-primary'
+                                        =1
+                                    DropShadow: |-
+                                        =DropShadow.None
                                     Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
+                                        =C.'bg-card'
+                                    FillPortions: |-
+                                        =0
                                     Height: |-
-                                        =With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)
+                                        =16 + (With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2))
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =0
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     PaddingBottom: |-
-                                        =0
+                                        =8
                                     PaddingLeft: |-
-                                        =0
+                                        =12
                                     PaddingRight: |-
-                                        =0
+                                        =12
                                     PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.body
-                                    Text: |-
-                                        =varIbSel.Description
-                                    Wrap: |-
-                                        =true
+                                        =8
+                                    RadiusBottomLeft: |-
+                                        =8
+                                    RadiusBottomRight: |-
+                                        =8
+                                    RadiusTopLeft: |-
+                                        =8
+                                    RadiusTopRight: |-
+                                        =8
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - txtIbDetDesc:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Description: " & Self.Text
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =With({ t: varIbSel.Description }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.input
+                                          Text: |-
+                                              =varIbSel.Description
+                                          Wrap: |-
+                                              =true
                         - txtIbDetLoading:
                             Control: ModernText
                             Properties:
@@ -11845,7 +12199,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =18 + 4 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))
+                                  =18 + 4 + (16 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -11896,37 +12250,84 @@ Screens:
                                         ="Steps to reproduce"
                                     Wrap: |-
                                         =false
-                              - txtIbDetSteps:
-                                  Control: ModernText
+                              - conIbDetStepsBox:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =Self.Text
-                                    BorderStyle: |-
-                                        =BorderStyle.None
+                                    BorderColor: |-
+                                        =C.'border-default'
                                     BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-primary'
+                                        =1
+                                    DropShadow: |-
+                                        =DropShadow.None
                                     Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
+                                        =C.'bg-card'
+                                    FillPortions: |-
+                                        =0
                                     Height: |-
-                                        =With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)
+                                        =16 + (With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2))
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =0
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     PaddingBottom: |-
-                                        =0
+                                        =8
                                     PaddingLeft: |-
-                                        =0
+                                        =12
                                     PaddingRight: |-
-                                        =0
+                                        =12
                                     PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.body
-                                    Text: |-
-                                        =varIbSel.Steps
-                                    Wrap: |-
-                                        =true
+                                        =8
+                                    RadiusBottomLeft: |-
+                                        =8
+                                    RadiusBottomRight: |-
+                                        =8
+                                    RadiusTopLeft: |-
+                                        =8
+                                    RadiusTopRight: |-
+                                        =8
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - txtIbDetSteps:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Steps to reproduce: " & Self.Text
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =With({ t: varIbSel.Steps }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.input
+                                          Text: |-
+                                              =varIbSel.Steps
+                                          Wrap: |-
+                                              =true
                         - conIbDetExpected:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -11938,7 +12339,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =18 + 4 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))
+                                  =18 + 4 + (16 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -11989,37 +12390,84 @@ Screens:
                                         ="Expected result"
                                     Wrap: |-
                                         =false
-                              - txtIbDetExpected:
-                                  Control: ModernText
+                              - conIbDetExpectedBox:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =Self.Text
-                                    BorderStyle: |-
-                                        =BorderStyle.None
+                                    BorderColor: |-
+                                        =C.'border-default'
                                     BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-primary'
+                                        =1
+                                    DropShadow: |-
+                                        =DropShadow.None
                                     Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
+                                        =C.'bg-card'
+                                    FillPortions: |-
+                                        =0
                                     Height: |-
-                                        =With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)
+                                        =16 + (With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2))
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =0
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     PaddingBottom: |-
-                                        =0
+                                        =8
                                     PaddingLeft: |-
-                                        =0
+                                        =12
                                     PaddingRight: |-
-                                        =0
+                                        =12
                                     PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.body
-                                    Text: |-
-                                        =varIbSel.Expected
-                                    Wrap: |-
-                                        =true
+                                        =8
+                                    RadiusBottomLeft: |-
+                                        =8
+                                    RadiusBottomRight: |-
+                                        =8
+                                    RadiusTopLeft: |-
+                                        =8
+                                    RadiusTopRight: |-
+                                        =8
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - txtIbDetExpected:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Expected result: " & Self.Text
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =With({ t: varIbSel.Expected }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.input
+                                          Text: |-
+                                              =varIbSel.Expected
+                                          Wrap: |-
+                                              =true
                         - conIbDetActual:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -12031,7 +12479,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =18 + 4 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))
+                                  =18 + 4 + (16 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -12082,37 +12530,84 @@ Screens:
                                         ="Actual result"
                                     Wrap: |-
                                         =false
-                              - txtIbDetActual:
-                                  Control: ModernText
+                              - conIbDetActualBox:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =Self.Text
-                                    BorderStyle: |-
-                                        =BorderStyle.None
+                                    BorderColor: |-
+                                        =C.'border-default'
                                     BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-primary'
+                                        =1
+                                    DropShadow: |-
+                                        =DropShadow.None
                                     Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
+                                        =C.'bg-card'
+                                    FillPortions: |-
+                                        =0
                                     Height: |-
-                                        =With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)
+                                        =16 + (With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2))
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =0
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     PaddingBottom: |-
-                                        =0
+                                        =8
                                     PaddingLeft: |-
-                                        =0
+                                        =12
                                     PaddingRight: |-
-                                        =0
+                                        =12
                                     PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.body
-                                    Text: |-
-                                        =varIbSel.Actual
-                                    Wrap: |-
-                                        =true
+                                        =8
+                                    RadiusBottomLeft: |-
+                                        =8
+                                    RadiusBottomRight: |-
+                                        =8
+                                    RadiusTopLeft: |-
+                                        =8
+                                    RadiusTopRight: |-
+                                        =8
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - txtIbDetActual:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Actual result: " & Self.Text
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =With({ t: varIbSel.Actual }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.input
+                                          Text: |-
+                                              =varIbSel.Actual
+                                          Wrap: |-
+                                              =true
                         - conIbDetOther:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -12124,7 +12619,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =18 + 4 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))
+                                  =18 + 4 + (16 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -12175,37 +12670,84 @@ Screens:
                                         ="Where it happened"
                                     Wrap: |-
                                         =false
-                              - txtIbDetOther:
-                                  Control: ModernText
+                              - conIbDetOtherBox:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =Self.Text
-                                    BorderStyle: |-
-                                        =BorderStyle.None
+                                    BorderColor: |-
+                                        =C.'border-default'
                                     BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-primary'
+                                        =1
+                                    DropShadow: |-
+                                        =DropShadow.None
                                     Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
+                                        =C.'bg-card'
+                                    FillPortions: |-
+                                        =0
                                     Height: |-
-                                        =With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)
+                                        =16 + (With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2))
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =0
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     PaddingBottom: |-
-                                        =0
+                                        =8
                                     PaddingLeft: |-
-                                        =0
+                                        =12
                                     PaddingRight: |-
-                                        =0
+                                        =12
                                     PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.body
-                                    Text: |-
-                                        =varIbSel.Other
-                                    Wrap: |-
-                                        =true
+                                        =8
+                                    RadiusBottomLeft: |-
+                                        =8
+                                    RadiusBottomRight: |-
+                                        =8
+                                    RadiusTopLeft: |-
+                                        =8
+                                    RadiusTopRight: |-
+                                        =8
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - txtIbDetOther:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Where it happened: " & Self.Text
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =With({ t: varIbSel.Other }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.input
+                                          Text: |-
+                                              =varIbSel.Other
+                                          Wrap: |-
+                                              =true
                         - conIbDetRelated:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -12217,7 +12759,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =18 + 4 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))
+                                  =18 + 4 + (16 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -12268,37 +12810,84 @@ Screens:
                                         ="Related request"
                                     Wrap: |-
                                         =false
-                              - txtIbDetRelated:
-                                  Control: ModernText
+                              - conIbDetRelatedBox:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =Self.Text
-                                    BorderStyle: |-
-                                        =BorderStyle.None
+                                    BorderColor: |-
+                                        =C.'border-default'
                                     BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-primary'
+                                        =1
+                                    DropShadow: |-
+                                        =DropShadow.None
                                     Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
+                                        =C.'bg-card'
+                                    FillPortions: |-
+                                        =0
                                     Height: |-
-                                        =With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)
+                                        =16 + (With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2))
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =0
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     PaddingBottom: |-
-                                        =0
+                                        =8
                                     PaddingLeft: |-
-                                        =0
+                                        =12
                                     PaddingRight: |-
-                                        =0
+                                        =12
                                     PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.body
-                                    Text: |-
-                                        =varIbSel.RelatedNo
-                                    Wrap: |-
-                                        =true
+                                        =8
+                                    RadiusBottomLeft: |-
+                                        =8
+                                    RadiusBottomRight: |-
+                                        =8
+                                    RadiusTopLeft: |-
+                                        =8
+                                    RadiusTopRight: |-
+                                        =8
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - txtIbDetRelated:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Related request: " & Self.Text
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =With({ t: varIbSel.RelatedNo }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.input
+                                          Text: |-
+                                              =varIbSel.RelatedNo
+                                          Wrap: |-
+                                              =true
                         - conIbDetResolution:
                             Control: GroupContainer
                             Variant: AutoLayout
@@ -12310,7 +12899,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =18 + 4 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2))
+                                  =18 + 4 + (16 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -12361,37 +12950,84 @@ Screens:
                                         ="Resolution"
                                     Wrap: |-
                                         =false
-                              - txtIbDetResolution:
-                                  Control: ModernText
+                              - conIbDetResolutionBox:
+                                  Control: GroupContainer
+                                  Variant: AutoLayout
                                   Properties:
-                                    AccessibleLabel: |-
-                                        =Self.Text
-                                    BorderStyle: |-
-                                        =BorderStyle.None
+                                    BorderColor: |-
+                                        =C.'border-default'
                                     BorderThickness: |-
-                                        =0
-                                    Color: |-
-                                        =C.'text-primary'
+                                        =1
+                                    DropShadow: |-
+                                        =DropShadow.None
                                     Fill: |-
-                                        =RGBA(0, 0, 0, 0)
-                                    Font: |-
-                                        =Font.'Segoe UI'
+                                        =C.'bg-card'
+                                    FillPortions: |-
+                                        =0
                                     Height: |-
-                                        =With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18)) / 7.2, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)
+                                        =16 + (With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2))
+                                    LayoutAlignItems: |-
+                                        =LayoutAlignItems.Stretch
+                                    LayoutDirection: |-
+                                        =LayoutDirection.Vertical
+                                    LayoutGap: |-
+                                        =0
+                                    LayoutMinWidth: |-
+                                        =0
+                                    LayoutOverflowX: |-
+                                        =LayoutOverflow.Hide
+                                    LayoutOverflowY: |-
+                                        =LayoutOverflow.Hide
                                     PaddingBottom: |-
-                                        =0
+                                        =8
                                     PaddingLeft: |-
-                                        =0
+                                        =12
                                     PaddingRight: |-
-                                        =0
+                                        =12
                                     PaddingTop: |-
-                                        =0
-                                    Size: |-
-                                        =T.body
-                                    Text: |-
-                                        =varIbSel.Resolution
-                                    Wrap: |-
-                                        =true
+                                        =8
+                                    RadiusBottomLeft: |-
+                                        =8
+                                    RadiusBottomRight: |-
+                                        =8
+                                    RadiusTopLeft: |-
+                                        =8
+                                    RadiusTopRight: |-
+                                        =8
+                                    Width: |-
+                                        =Parent.Width
+                                  Children:
+                                    - txtIbDetResolution:
+                                        Control: ModernText
+                                        Properties:
+                                          AccessibleLabel: |-
+                                              ="Resolution: " & Self.Text
+                                          BorderStyle: |-
+                                              =BorderStyle.None
+                                          BorderThickness: |-
+                                              =0
+                                          Color: |-
+                                              =C.'text-primary'
+                                          Fill: |-
+                                              =RGBA(0, 0, 0, 0)
+                                          Font: |-
+                                              =Font.'Segoe UI'
+                                          Height: |-
+                                              =With({ t: varIbSel.Resolution }, (RoundUp(Len(t) / Max(12, RoundDown(((((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) - 18) - 24 - 2)) / 7.8, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 21 + 2)
+                                          PaddingBottom: |-
+                                              =0
+                                          PaddingLeft: |-
+                                              =0
+                                          PaddingRight: |-
+                                              =0
+                                          PaddingTop: |-
+                                              =0
+                                          Size: |-
+                                              =T.input
+                                          Text: |-
+                                              =varIbSel.Resolution
+                                          Wrap: |-
+                                              =true
                   - conIbDetActivity:
                       Control: GroupContainer
                       Variant: AutoLayout
