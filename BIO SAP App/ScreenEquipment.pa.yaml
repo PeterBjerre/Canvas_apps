@@ -3089,7 +3089,7 @@ Screens:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Still missing"
+                                              =Self.Text
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -3119,7 +3119,7 @@ Screens:
                                           Size: |-
                                               =T.body
                                           Text: |-
-                                              ="Still missing"
+                                              =If(IsBlank(varEqRequestGuid) && CountRows(Filter(colEqRows, Status = "submitted")) > 0, With({ _c: CountRows(Filter(colEqRows, Status = "draft")) }, Text(_c) & If(_c = 1, " draft row", " draft rows")) & " stayed on the request - complete and submit them if the request is returned", "Still missing")
                                           Width: |-
                                               =Max(0, (((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18) - 12 - 12)) - 2)
                                           Wrap: |-
@@ -3129,7 +3129,7 @@ Screens:
                                   Variant: Vertical
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Still missing"
+                                        =If(IsBlank(varEqRequestGuid) && CountRows(Filter(colEqRows, Status = "submitted")) > 0, With({ _c: CountRows(Filter(colEqRows, Status = "draft")) }, Text(_c) & If(_c = 1, " draft row", " draft rows")) & " stayed on the request - complete and submit them if the request is returned", "Still missing")
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     Fill: |-
@@ -10722,10 +10722,10 @@ Screens:
                                           Set(varEqActiveRowId, varEqSpRow.ID);
                                       
                                           If(
-                                              (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)) && Coalesce(varEqSpRow.RequestGuid, "") <> varEqRequestGuid,
+                                              !IsBlank(varEqRequestGuid) && IsBlank(Coalesce(varEqSpRow.RequestGuid, "")),
                                               Set(
                                                   varEqSpRow,
-                                                  Patch(EquipmentItems, varEqSpRow, { RequestGuid: varEqRequestGuid, RequestNo: varEqRequestNo })
+                                                  Patch(EquipmentItems, varEqSpRow, { RequestGuid: varEqRequestGuid, RequestNo: Coalesce(varEqRequestNo, "") })
                                               )
                                           );
                                       
@@ -10928,10 +10928,10 @@ Screens:
                                           Set(varEqActiveRowId, varEqSpRow.ID);
                                       
                                           If(
-                                              (!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)) && Coalesce(varEqSpRow.RequestGuid, "") <> varEqRequestGuid,
+                                              !IsBlank(varEqRequestGuid) && IsBlank(Coalesce(varEqSpRow.RequestGuid, "")),
                                               Set(
                                                   varEqSpRow,
-                                                  Patch(EquipmentItems, varEqSpRow, { RequestGuid: varEqRequestGuid, RequestNo: varEqRequestNo })
+                                                  Patch(EquipmentItems, varEqSpRow, { RequestGuid: varEqRequestGuid, RequestNo: Coalesce(varEqRequestNo, "") })
                                               )
                                           );
                                       
@@ -11812,8 +11812,8 @@ Screens:
                                                 RoomCoordinates: P.RoomCoordinates,
                                                 Placement: P.Placement,
                                                 RowStatus: { Value: "draft" },
-                                                RequestGuid: If((!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)), varEqRequestGuid, ""),
-                                                RequestNo: If((!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)), varEqRequestNo, ""),
+                                                RequestGuid: Coalesce(varEqRequestGuid, ""),
+                                                RequestNo: Coalesce(varEqRequestNo, ""),
                                                 RequesterEmail: If((!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)), Lower(varEqIdx.RequesterEmail), varEqMe),
                                                 RequesterName: If((!IsBlank(varEqRequestGuid) && !IsBlank(varEqIdx) && varEqIdx.RequestGuid = varEqRequestGuid && !(Lower(Coalesce(varEqIdx.RequesterEmail, "")) = varEqMe)), varEqIdx.RequesterName, User().FullName)
                                             }) },
@@ -12659,6 +12659,14 @@ Screens:
                                                 RowStatus: { Value: "submitted" },
                                                 SubmittedOn: Now()
                                             }
+                                        )
+                                    );
+                                    If(
+                                        CountRows(Filter(colEqRows, Status = "draft")) > 0,
+                                        Patch(
+                                            EquipmentItems,
+                                            ForAll(Filter(colEqRows, Status = "draft") As X, { ID: X.RowId }),
+                                            ForAll(Filter(colEqRows, Status = "draft"), { RequestNo: varEqRequestNo, RequestGuid: varEqRequestGuid })
                                         )
                                     );
                             

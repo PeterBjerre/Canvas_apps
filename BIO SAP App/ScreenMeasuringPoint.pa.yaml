@@ -3300,7 +3300,7 @@ Screens:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Still missing"
+                                              =Self.Text
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -3330,7 +3330,7 @@ Screens:
                                           Size: |-
                                               =T.body
                                           Text: |-
-                                              ="Still missing"
+                                              =If(IsBlank(varMpRequestGuid) && CountRows(Filter(colMpRows, Status = "submitted")) > 0, With({ _c: CountRows(Filter(colMpRows, Status = "draft")) }, Text(_c) & If(_c = 1, " draft row", " draft rows")) & " stayed on the request - complete and submit them if the request is returned", "Still missing")
                                           Width: |-
                                               =Max(0, (((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18) - 12 - 12)) - 2)
                                           Wrap: |-
@@ -3340,7 +3340,7 @@ Screens:
                                   Variant: Vertical
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Still missing"
+                                        =If(IsBlank(varMpRequestGuid) && CountRows(Filter(colMpRows, Status = "submitted")) > 0, With({ _c: CountRows(Filter(colMpRows, Status = "draft")) }, Text(_c) & If(_c = 1, " draft row", " draft rows")) & " stayed on the request - complete and submit them if the request is returned", "Still missing")
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     Fill: |-
@@ -12877,10 +12877,10 @@ Screens:
                                           Set(varMpActiveRowId, varMpSpRow.ID);
                                       
                                           If(
-                                              (!IsBlank(varMpRequestGuid) && !IsBlank(varMpIdx) && varMpIdx.RequestGuid = varMpRequestGuid && !(Lower(Coalesce(varMpIdx.RequesterEmail, "")) = varMpMe)) && Coalesce(varMpSpRow.RequestGuid, "") <> varMpRequestGuid,
+                                              !IsBlank(varMpRequestGuid) && IsBlank(Coalesce(varMpSpRow.RequestGuid, "")),
                                               Set(
                                                   varMpSpRow,
-                                                  Patch(MeasuringPointItems, varMpSpRow, { RequestGuid: varMpRequestGuid, RequestNo: varMpRequestNo })
+                                                  Patch(MeasuringPointItems, varMpSpRow, { RequestGuid: varMpRequestGuid, RequestNo: Coalesce(varMpRequestNo, "") })
                                               )
                                           );
                                       
@@ -13135,10 +13135,10 @@ Screens:
                                           Set(varMpActiveRowId, varMpSpRow.ID);
                                       
                                           If(
-                                              (!IsBlank(varMpRequestGuid) && !IsBlank(varMpIdx) && varMpIdx.RequestGuid = varMpRequestGuid && !(Lower(Coalesce(varMpIdx.RequesterEmail, "")) = varMpMe)) && Coalesce(varMpSpRow.RequestGuid, "") <> varMpRequestGuid,
+                                              !IsBlank(varMpRequestGuid) && IsBlank(Coalesce(varMpSpRow.RequestGuid, "")),
                                               Set(
                                                   varMpSpRow,
-                                                  Patch(MeasuringPointItems, varMpSpRow, { RequestGuid: varMpRequestGuid, RequestNo: varMpRequestNo })
+                                                  Patch(MeasuringPointItems, varMpSpRow, { RequestGuid: varMpRequestGuid, RequestNo: Coalesce(varMpRequestNo, "") })
                                               )
                                           );
                                       
@@ -14070,8 +14070,8 @@ Screens:
                                                 CounterCreateIn: If(IsBlank(P.CounterCreateIn), Blank(), { Value: P.CounterCreateIn }),
                                                 Remarks: P.Remarks,
                                                 RowStatus: { Value: "draft" },
-                                                RequestGuid: If((!IsBlank(varMpRequestGuid) && !IsBlank(varMpIdx) && varMpIdx.RequestGuid = varMpRequestGuid && !(Lower(Coalesce(varMpIdx.RequesterEmail, "")) = varMpMe)), varMpRequestGuid, ""),
-                                                RequestNo: If((!IsBlank(varMpRequestGuid) && !IsBlank(varMpIdx) && varMpIdx.RequestGuid = varMpRequestGuid && !(Lower(Coalesce(varMpIdx.RequesterEmail, "")) = varMpMe)), varMpRequestNo, ""),
+                                                RequestGuid: Coalesce(varMpRequestGuid, ""),
+                                                RequestNo: Coalesce(varMpRequestNo, ""),
                                                 RequesterEmail: If((!IsBlank(varMpRequestGuid) && !IsBlank(varMpIdx) && varMpIdx.RequestGuid = varMpRequestGuid && !(Lower(Coalesce(varMpIdx.RequesterEmail, "")) = varMpMe)), Lower(varMpIdx.RequesterEmail), varMpMe),
                                                 RequesterName: If((!IsBlank(varMpRequestGuid) && !IsBlank(varMpIdx) && varMpIdx.RequestGuid = varMpRequestGuid && !(Lower(Coalesce(varMpIdx.RequesterEmail, "")) = varMpMe)), varMpIdx.RequesterName, User().FullName)
                                             }) },
@@ -14995,6 +14995,14 @@ Screens:
                                                 RowStatus: { Value: "submitted" },
                                                 SubmittedOn: Now()
                                             }
+                                        )
+                                    );
+                                    If(
+                                        CountRows(Filter(colMpRows, Status = "draft")) > 0,
+                                        Patch(
+                                            MeasuringPointItems,
+                                            ForAll(Filter(colMpRows, Status = "draft") As X, { ID: X.RowId }),
+                                            ForAll(Filter(colMpRows, Status = "draft"), { RequestNo: varMpRequestNo, RequestGuid: varMpRequestGuid })
                                         )
                                     );
                             

@@ -1359,11 +1359,21 @@ def build_structure():
 # ---------------------------------------------------------------------------
 # New request (FL70). Save draft, Submit og New request staar i bjaelken.
 # ---------------------------------------------------------------------------
-NEW_FX = """Clear(colFlRows);
+# "Tom skaerm": de samlinger, der hoerer til EEN anmodning. Bruges af "New
+# request" og af BIO SAP's klargoering (assemble_screen.reset_part, R2-003),
+# saa der kun er een liste.
+RESET_FX = """Clear(colFlRows);
 Clear(colFlDeleted);
 Clear(colFlVals);
 Clear(colFlIssues);
+Clear(colFlIssuesRaw);
 Clear(colFlTabs);
+Clear(colFlDet);
+Clear(colFlClsDet);
+Clear(colFlPanelSnap);
+Clear(colFlPanelSnapVals)"""
+
+NEW_FX = RESET_FX + """;
 Set(varFlRequestGuid, "");
 Set(varFlRequestNo, "");
 Set(varFlStatus, "");
@@ -1373,12 +1383,10 @@ Set(varFlTab, "ALL");
 Set(varFlDetailRow, "");
 Set(varFlPanelOpen, false);
 Set(varFlPanelJump, "");
-Clear(colFlDet);
 Set(varFlClsOpen, false);
 Set(varFlClsCheck, false);
 Set(varFlSubmitAsk, false);
 Set(varFlClsRow, "");
-Clear(colFlClsDet);
 Set(varFlStale, false);
 Set(varFlNextRowNo, 1);
 """ + add_row_fx() + """;

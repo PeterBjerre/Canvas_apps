@@ -3872,7 +3872,7 @@ Screens:
                                         Control: ModernText
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Still missing"
+                                              =Self.Text
                                           BorderStyle: |-
                                               =BorderStyle.None
                                           BorderThickness: |-
@@ -3902,7 +3902,7 @@ Screens:
                                           Size: |-
                                               =T.body
                                           Text: |-
-                                              ="Still missing"
+                                              =If(IsBlank(varMatRequestGuid) && CountRows(Filter(colMatRows, Status = "submitted")) > 0, With({ _c: CountRows(Filter(colMatRows, Status = "draft")) }, Text(_c) & If(_c = 1, " draft row", " draft rows")) & " stayed on the request - complete and submit them if the request is returned", "Still missing")
                                           Width: |-
                                               =Max(0, (((((((App.Width - If(LayoutRank >= 2, 56, 0) - PanelInset))) - 24 - 16 - 18) - 18 - 18) - 12 - 12)) - 2)
                                           Wrap: |-
@@ -3912,7 +3912,7 @@ Screens:
                                   Variant: Vertical
                                   Properties:
                                     AccessibleLabel: |-
-                                        ="Still missing"
+                                        =If(IsBlank(varMatRequestGuid) && CountRows(Filter(colMatRows, Status = "submitted")) > 0, With({ _c: CountRows(Filter(colMatRows, Status = "draft")) }, Text(_c) & If(_c = 1, " draft row", " draft rows")) & " stayed on the request - complete and submit them if the request is returned", "Still missing")
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     Fill: |-
@@ -14279,10 +14279,10 @@ Screens:
                                           Set(varMatActiveRowId, varMatSpRow.ID);
                                       
                                           If(
-                                              (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)) && Coalesce(varMatSpRow.RequestGuid, "") <> varMatRequestGuid,
+                                              !IsBlank(varMatRequestGuid) && IsBlank(Coalesce(varMatSpRow.RequestGuid, "")),
                                               Set(
                                                   varMatSpRow,
-                                                  Patch(MaterialItems, varMatSpRow, { RequestGuid: varMatRequestGuid, RequestNo: varMatRequestNo })
+                                                  Patch(MaterialItems, varMatSpRow, { RequestGuid: varMatRequestGuid, RequestNo: Coalesce(varMatRequestNo, "") })
                                               )
                                           );
                                       
@@ -14552,10 +14552,10 @@ Screens:
                                           Set(varMatActiveRowId, varMatSpRow.ID);
                                       
                                           If(
-                                              (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)) && Coalesce(varMatSpRow.RequestGuid, "") <> varMatRequestGuid,
+                                              !IsBlank(varMatRequestGuid) && IsBlank(Coalesce(varMatSpRow.RequestGuid, "")),
                                               Set(
                                                   varMatSpRow,
-                                                  Patch(MaterialItems, varMatSpRow, { RequestGuid: varMatRequestGuid, RequestNo: varMatRequestNo })
+                                                  Patch(MaterialItems, varMatSpRow, { RequestGuid: varMatRequestGuid, RequestNo: Coalesce(varMatRequestNo, "") })
                                               )
                                           );
                                       
@@ -15865,8 +15865,8 @@ Screens:
                                                 MaintenanceOrderNo: P.MaintenanceOrderNo,
                                                 ReplacedMaterialNo: P.ReplacedMaterialNo,
                                                 RowStatus: { Value: "draft" },
-                                                RequestGuid: If((!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)), varMatRequestGuid, ""),
-                                                RequestNo: If((!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)), varMatRequestNo, ""),
+                                                RequestGuid: Coalesce(varMatRequestGuid, ""),
+                                                RequestNo: Coalesce(varMatRequestNo, ""),
                                                 RequesterEmail: If((!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)), Lower(varMatIdx.RequesterEmail), varMatMe),
                                                 RequesterName: If((!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)), varMatIdx.RequesterName, User().FullName)
                                             }) },
@@ -16814,6 +16814,14 @@ Screens:
                                                 RowStatus: { Value: "submitted" },
                                                 SubmittedOn: Now()
                                             }
+                                        )
+                                    );
+                                    If(
+                                        CountRows(Filter(colMatRows, Status = "draft")) > 0,
+                                        Patch(
+                                            MaterialItems,
+                                            ForAll(Filter(colMatRows, Status = "draft") As X, { ID: X.RowId }),
+                                            ForAll(Filter(colMatRows, Status = "draft"), { RequestNo: varMatRequestNo, RequestGuid: varMatRequestGuid })
                                         )
                                     );
                             

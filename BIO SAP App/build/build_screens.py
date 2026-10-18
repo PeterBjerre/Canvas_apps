@@ -460,7 +460,10 @@ def build_functionallocation():
     # Live status (issue #92): raekkerne er det ene tunge kald efter opslaget.
     load = mark_step(load, r"^([ \t]*)ClearCollect\(\n\s*colFlLoad,", d["tag"],
                      "Loading functional locations", "Functional Location")
-    init = (cb.with_reqid(cb.domain_onstart(d), d) + ";\n"
+    # Foerst ryddes den forrige anmodnings samlinger, saa en ny anmodning
+    # ikke arver dens raekker (R2-003). Saa laegger ensure_row_part den
+    # tomme raekke.
+    init = (asm.reset_part() + ";\n" + cb.with_reqid(cb.domain_onstart(d), d) + ";\n"
             + asm.ME + ";\n" + cb.with_reqid(load, d))
     load_all = stale_check(d) + open_block(d, init) + ";\n\n" + asm.ME + ";\n" + asm.ensure_row_part()
     attach_open(d, seen, guarded(d, load_all), "Functional Location")

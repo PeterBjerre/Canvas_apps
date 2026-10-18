@@ -50,6 +50,15 @@ def load_part():
     )
 
 
+def reset_part():
+    """Toem skaermens samlinger, foer en anden anmodning klargoeres.
+
+    BIO SAP koerer den foerst i FL-skaermens klargoering. Uden den arvede en
+    "ny" anmodning den forriges raekker, og Save draft skrev dem som nye
+    raekker i en ny anmodning (D23/R2-003). Samme liste som New request."""
+    return P.RESET_FX
+
+
 def ensure_row_part():
     """En tom anmodning har altid een raekke at skrive i (issue #166), og
     raekkerne er valideret, naar skaermen vises."""
