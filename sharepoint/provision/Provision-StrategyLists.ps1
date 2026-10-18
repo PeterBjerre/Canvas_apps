@@ -8,17 +8,18 @@
     har kun en Title, hvor pakkestrukturen staar som fritekst i navnet.
     Se docs/09-datamodel-fund.md 4 og docs/10-datamodel-forslag.md 4.
 
-    Dette script opretter begge lister. MD_Strategy fyldes med de 53
-    strategier fra sharepoint/seed/MD_Strategy.csv. MD_StrategyPackage
-    oprettes TOM - pakkerne hentes fra SAP (IP11) senere.
+    Dette script opretter begge lister. MD_Strategy fyldes med de 67
+    strategier fra sharepoint/seed/MD_Strategy.csv, og MD_StrategyPackage
+    med de 238 pakker fra sharepoint/seed/MD_StrategyPackage.csv. Pakkerne
+    laves af tools/gen_package_seed.py ud fra "Strategi pakker.xlsx".
 
     Idempotent: eksisterende lister, kolonner og raekker springes over, saa
     scriptet kan koeres igen, naar der kommer flere strategier.
 
-    Hierarchical saettes IKKE af scriptet. Alle raekker faar
-    "Ikke afklaret", og feltet udfyldes i haanden i SharePoint. Et forkert
-    default ville forplante sig hele vejen til SAP, uden at nogen opdagede
-    det. Scriptet skriver til sidst, hvor mange der mangler.
+    Hierarchical kommer fra csv'en, hvor tools/gen_strategy_seed.py udleder
+    den af pakkernes hierarki. En strategi, der findes i forvejen, faar kun
+    vaerdien, hvis den staar som "Ikke afklaret" - en vaerdi sat i haanden i
+    SharePoint roeres ikke. Scriptet skriver til sidst, hvor mange der mangler.
 
 .PARAMETER SiteUrl
     Sitet listerne skal ligge paa.
@@ -95,7 +96,21 @@ New-MdField 'MD_StrategyPackage' 'StrategyKey'  Text -Indexed -Required
 New-MdField 'MD_StrategyPackage' 'PackageNo'    Number -Required
 New-MdField 'MD_StrategyPackage' 'ShortCode'    Text      # M1, M3, ...
 New-MdField 'MD_StrategyPackage' 'CycleLength'  Number
-New-MdField 'MD_StrategyPackage' 'CycleUnit'    Choice -Choices 'H','DAY','WK','MON','YR','COUNT'
+New-MdField 'MD_StrategyPackage' 'CycleUnit'    Choice -Choices 'H','D','DAY','WK','MON','YR','COUNT'
+# D (taellerdage) kom med "Strategi pakker.xlsx". New-MdField roerer ikke en
+# kolonne, der findes, saa et manglende valg tilfoejes her.
+$cuField = Get-PnPField -List 'MD_StrategyPackage' -Identity 'CycleUnit'
+$cuChoices = @($cuField.Choices)
+if (-not $cuChoices.Count) { throw "Kunne ikke laese valgene paa CycleUnit - retter ikke kolonnen." }
+$cuMissing = @('H','D','DAY','WK','MON','YR','COUNT' | Where-Object { $cuChoices -notcontains $_ })
+if ($cuMissing.Count) {
+    if ($WhatIfOnly) {
+        Write-Host "    ? CycleUnit ville faa valget $($cuMissing -join ', ')" -ForegroundColor Yellow
+    } else {
+        Set-PnPField -List 'MD_StrategyPackage' -Identity 'CycleUnit' -Values @{ Choices = [string[]]($cuChoices + $cuMissing) }
+        Write-Host "    ~ CycleUnit: valg tilfoejet: $($cuMissing -join ', ')" -ForegroundColor Green
+    }
+}
 # Hoejere tal = mere omfattende. Afgoer hvem der kalder, naar flere
 # pakker forfalder samme dag.
 New-MdField 'MD_StrategyPackage' 'Hierarchy'    Number
@@ -118,12 +133,32 @@ if (-not $SkipSeed) {
     # Eet opslag i stedet for eet pr. raekke.
     $existing = @{}
     foreach ($it in (Get-PnPListItem -List 'MD_Strategy' -PageSize 500)) {
-        $existing[[string]$it.FieldValues.Title] = $it.Id
+        $existing[[string]$it.FieldValues.Title] = $it
     }
 
-    $added = 0; $skipped = 0
+    $added = 0; $skipped = 0; $hierSet = 0
     foreach ($r in $seed) {
-        if ($existing.ContainsKey($r.Title)) { $skipped++; continue }
+        if ($existing.ContainsKey($r.Title)) {
+            $skipped++
+            # Kun "Ikke afklaret" (eller tom) udfyldes. Ja/Nej sat i haanden
+            # i SharePoint vinder over csv'en.
+            $it  = $existing[$r.Title]
+            $cur = [string]$it.FieldValues.Hierarchical
+            if (($cur -ne 'Ja' -and $cur -ne 'Nej') -and ($r.Hierarchical -eq 'Ja' -or $r.Hierarchical -eq 'Nej')) {
+                $mark = if ($WhatIfOnly) { '?' } else { '~' }
+                Write-Host "    $mark $($r.Title): Hierarchical '$cur' -> '$($r.Hierarchical)'" -ForegroundColor Yellow
+                if (-not $WhatIfOnly) {
+                    Set-PnPListItem -List 'MD_Strategy' -Identity $it.Id `
+                                    -Values @{ Hierarchical = $r.Hierarchical } | Out-Null
+                }
+                $hierSet++
+            }
+            continue
+        }
+        if ($WhatIfOnly) {
+            Write-Host "    ? ville oprette strategi $($r.Title) $($r.StrategyName)" -ForegroundColor Yellow
+            $added++; continue
+        }
         Add-PnPListItem -List 'MD_Strategy' -Values @{
             Title               = $r.Title
             StrategyName        = $r.StrategyName
@@ -134,7 +169,7 @@ if (-not $SkipSeed) {
         } | Out-Null
         $added++
     }
-    Write-Host "  + $added oprettet, = $skipped fandtes i forvejen" -ForegroundColor Green
+    Write-Host "  + $added oprettet, = $skipped fandtes i forvejen, $hierSet fik Hierarchical" -ForegroundColor Green
 }
 
 # ---------------------------------------------------------------------------
@@ -212,9 +247,13 @@ if (-not $SkipSeed -and (Test-Path $PackageSeedPath)) {
         $key = [string]$it.FieldValues.Title
         if (-not $touched.ContainsKey($key)) { continue }
         if ($it.FieldValues.PackagesLoaded -eq $true) { continue }
+        $marked++
+        if ($WhatIfOnly) {
+            Write-Host "    ? strategi $key ville blive markeret som klar" -ForegroundColor Yellow
+            continue
+        }
         Set-PnPListItem -List 'MD_Strategy' -Identity $it.Id `
                         -Values @{ PackagesLoaded = $true } | Out-Null
-        $marked++
         Write-Host "    ~ strategi $key markeret som klar" -ForegroundColor Green
     }
     if (-not $marked) { Write-Host "    ingen strategier skiftede status" -ForegroundColor DarkGray }
@@ -234,7 +273,7 @@ Write-Host "`nNaeste skridt:" -ForegroundColor Yellow
 Write-Host "  1. Efterproev SchedulingIndicator mod IP11. Den er udledt af"
 Write-Host "     strateginavnet (begynder det med 'Taeller' eller 'T.'"
 Write-Host "     = PERFORMANCE), ikke laest i SAP."
-Write-Host "  2. Saet Hierarchical paa de strategier, der skal kunne vaelges."
+Write-Host "  2. Saet Hierarchical i haanden paa dem, der stadig er 'Ikke afklaret'."
 Write-Host "  3. Naar flere strategiers pakker er hentet: laeg dem i"
 Write-Host "     sharepoint/seed/MD_StrategyPackage.csv og koer scriptet igen."
 Write-Host "     PackagesLoaded saettes automatisk."
