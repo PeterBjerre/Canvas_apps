@@ -124,3 +124,26 @@ def test_cost_over_line_under_the_totals():
     assert "Sum(Filter(colVhpOperations, ItemId = varVhpActiveItemId), Cost) > VhpCostThreshold" in bt.COST_OVER_ON
     screen = open(os.path.join(ROOT, "BIO SAP App", "ScreenVhPlan.pa.yaml"), encoding="utf-8").read()
     assert "txtVhpOpsCostOver" in screen
+
+
+# --- R2-093: VH-konstanter ud af de faelles moduler -------------------------
+def test_vh_constants_live_in_vh_build():
+    import build_helpers
+    import gen_screen
+    import build_help
+    for name in ("RAIL_W", "SPLIT_GAP", "EDITOR_W"):
+        assert not hasattr(gen_screen, name), name
+        assert hasattr(build_items, name), name
+    assert not hasattr(build_helpers, "HINTS_ON")
+    assert build_help.HINTS_ON == "IfError(varVhpShowHints, false)"
+
+
+def test_field_cell_hint_needs_explicit_switch():
+    import pytest
+    import build_helpers
+    from gen_screen import Ctrl
+    inp = Ctrl("inpX", "TextInput", props={})
+    with pytest.raises(ValueError):
+        build_helpers.field_cell("conX", "X", inp, hint_text='"hint"')
+    build_helpers.field_cell("conY", "Y", Ctrl("inpY", "TextInput", props={}),
+                             hint_text='"hint"', hints_on="varShow")

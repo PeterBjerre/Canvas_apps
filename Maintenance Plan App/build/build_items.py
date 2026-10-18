@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_MUTED, C_INFO_FG,
                         C_INFO_BG, C_VALID_FG, C_VALID_BG, C_INVALID_FG,
                         C_INVALID_BG, C_NEUTRAL_BG, C_NEUTRAL_FG, C_INPUT_BG, SHELL_W,
-                        EDITOR_W, RAIL_W, SPLIT_GAP, C_TRANSPARENT, C_MODAL_BG,
+                        C_TRANSPARENT, C_MODAL_BG,
                         C_PRIMARY_SOFT, C_PRIMARY, C_MUTED_BG, C_WARN_FG)
 from design_tokens import ref_hex
 import layout_tokens as lay
@@ -13,7 +13,7 @@ import status_chip as sc
 from layout_tokens import if_below, at_least, below, fits, TWO_COL_MIN
 from build_helpers import (empty_state, checkbox_theme, row_hit, text_ctrl, group, button,
                            button_row, text_input, themed_dropdown, label_row,
-                           field_cell, col_width, card, HINTS_ON, grow,
+                           field_cell, col_width, card, grow,
                            fit_button_width, column_grid, ICON_SAVE, ICON_W,
                            mark_done, segmented, border_rule, row_n)
 from build_plan_header import section_header, help_panel, section_footer, status_icon
@@ -22,6 +22,22 @@ import build_help as bh
 from fl_picker import fl_picker
 import sp_config as cfg
 from build_tasklist import AUTO_SELECT_TL
+
+from build_help import HINTS_ON
+
+# Bredden af items-skinnen, naar de to kort staar side om side, og
+# afstanden mellem dem. Stod i tools/gen_screen.py, men VH-planen er den
+# eneste bruger (R2-093).
+RAIL_W = 360
+SPLIT_GAP = 20
+# Bredden af Item Editor-kortet, udtrykt uden at referere nogen kontrol.
+#
+# Her stod "App.Width < 1000". Det var eet af FIRE braekpunkter mellem 996
+# og 1024, spredt over fire filer - heroen stablede ved 996, det her ved
+# 1000, hubbens fliser ved 1004 og FillPortions ved 1024. Alle fire stod
+# for det samme skift, og ingen af dem var valgt i forhold til de tre
+# andre. Nu er de eet tal. Se tools/layout_tokens.py.
+EDITOR_W = if_below("Desktop", SHELL_W, f"{SHELL_W} - {RAIL_W} - {SPLIT_GAP}")
 
 DM_ITEM = "If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)"
 VIEW_LOCK = "If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)"
@@ -814,7 +830,7 @@ def build_item_editor():
     def cell(name, label, ctrl, hint, required=False):
         return field_cell(name, label, ctrl, required=required, width=EDITOR_COL_W,
                           container_w=CW, fill_portions_formula="0",
-                          hint_text=bh.hint(hint))
+                          hint_text=bh.hint(hint), hints_on=bh.HINTS_ON)
 
     fieldsGrid = column_grid("conVhpItemFieldsGrid", [
         [cell("conVhpCellItemShortText", "Item short text", txtShort, "ItemShortText", True),

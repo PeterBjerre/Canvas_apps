@@ -37,6 +37,11 @@ docs/14-feltforklaringer.md.
 """
 import display_text as dt
 
+# Alle VH-planens feltforklaringer ser paa den samme variabel, slaaet til
+# og fra i hero-kortet (build_hero.HELP_ON). Den stod i tools/build_helpers
+# som en faelles konstant, selv om kun VH-planen har kontakten (R2-093).
+HINTS_ON = "IfError(varVhpShowHints, false)"
+
 
 # Items med lovpligtigt eftersyn. Bruges af flere hints og af valideringen.
 STATUTORY_ITEMS = ("Filter(colVhpItems, "
