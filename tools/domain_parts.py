@@ -1272,6 +1272,8 @@ def build_attachments():
     body = du.capped_body("conDomAttBody",
                           [pick, limits, actions, status, ro],
                           f"App.Height - 40 - 36 - {head.h} - 14")
+    # Kontrollen fylder den plads, popuppen har tilbage (issue #344).
+    du.fit_picker(pick, body.children, 12)
     modal = group("conDomAttModal", [head, body],
                   direction="Vertical", gap=14,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,

@@ -42,7 +42,7 @@ outputtet intet skema, og F.Name/F.Value kompilerede ikke (issue #300).
 I View-tilstand (laast anmodning) viser kontrollen kun filerne til
 download.
 """
-from gen_screen import Ctrl, C_MUTED, C_WARN_FG
+from gen_screen import Ctrl, C_MUTED, C_WARN_FG, stack_height
 import layout_tokens as lay
 from build_helpers import text_ctrl, button, fit_button_width, ICON_W, capped_body  # noqa: F401
 
@@ -50,17 +50,43 @@ from build_helpers import text_ctrl, button, fit_button_width, ICON_W, capped_bo
 # afviser den klassiske kontrol og enhver anden version.
 CONTROL = "ModernAttachments@1.3.0"
 
-# Dropfladen uden filer, og hvad hver valgt fil laegger til. Hoejden
-# foelger indholdet; over fire filer scroller kontrollen selv.
-PICKER_H = 112
-PICKER_FILE_H = 36
-PICKER_MAX_FILES_SHOWN = 4
+# Dropfladen uden filer, og hvad hver fil laegger til (issue #344).
+# 112 var for lidt: tom-tilstanden fik sin egen lodrette scrollbar, selv
+# med masser af plads i popuppen. Hoejden foelger nu filerne helt ud og
+# kappes foerst af den plads, foraelderen har (fit_picker) - kontrollen
+# scroller kun, naar filerne reelt ikke kan vaere der.
+PICKER_H = 160
+PICKER_FILE_H = 44
 
-def picker_height(ref):
-    """Hoejden som udtryk - ref er "Self" i kontrollen og navnet i
-    foraelderens regnestykke."""
-    return (f"If({ref}.AttachmentsCount = 0, {PICKER_H}, {PICKER_H} + "
-            f"Min({ref}.AttachmentsCount, {PICKER_MAX_FILES_SHOWN}) * {PICKER_FILE_H})")
+
+def picker_rows(ref, items):
+    """Raekker, kontrollen viser. AttachmentsCount taeller ikke filer, der
+    er markeret til fjernelse - de staar der stadig, til der gemmes. Derfor
+    det stoerste af det og de gemte filer (Items)."""
+    return f"Max({ref}.AttachmentsCount, CountRows({items}))"
+
+
+def picker_height(ref, items):
+    """Den naturlige hoejde som udtryk - ref er "Self" i kontrollen og
+    navnet i foraelderens regnestykke. Intet loft her: det saetter
+    fit_picker ud fra den plads, der er."""
+    return f"{PICKER_H} + {picker_rows(ref, items)} * {PICKER_FILE_H}"
+
+
+def fit_picker(pick, siblings, gap):
+    """Kontrollen fylder op til den plads, foraelderen har tilbage
+    (issue #344): Parent.Height minus de andre synlige boern og deres
+    mellemrum - aldrig mindre end tom-tilstanden, aldrig mere end
+    indholdet. siblings er ALLE boern i den lodrette container, inkl.
+    kontrollen selv, og gap containerens mellemrum. Foraelderens egen
+    hoejde regnes af den naturlige hoejde (pick.h), saa der er ingen
+    cirkel. Kontrollen staar i regnestykket som en tom plads (h 0), saa
+    dens mellemrum taeller med, men den ikke naevner sig selv."""
+    gap_only = Ctrl(pick.name, pick.control, h=0)
+    reserve = stack_height([gap_only if c is pick else c for c in siblings], gap)
+    pick.props["Height"] = (f"Min({pick.props['Height']}, "
+                            f"Max({PICKER_H}, Parent.Height - ({reserve})))")
+    return pick
 
 
 def picker(name, label, max_files, max_mb, items, display_mode=None, visible=None):
@@ -73,7 +99,7 @@ def picker(name, label, max_files, max_mb, items, display_mode=None, visible=Non
     Blank(): saa har Attachments-outputtet intet skema (issue #300)."""
     props = {
         "AccessibleLabel": label,
-        "Height": picker_height("Self"),
+        "Height": picker_height("Self", items),
         # De gemte filer paa listeraekken (issue #300).
         "Items": items,
         "MaxAttachments": str(max_files),
@@ -88,7 +114,7 @@ def picker(name, label, max_files, max_mb, items, display_mode=None, visible=Non
         props["DisplayMode"] = display_mode
     if visible is not None:
         props["Visible"] = visible
-    return Ctrl(name, CONTROL, props=props, h=picker_height(name), vis=visible)
+    return Ctrl(name, CONTROL, props=props, h=picker_height(name, items), vis=visible)
 
 
 def picker_mode(pane, can_edit):

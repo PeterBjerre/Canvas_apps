@@ -18102,7 +18102,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =68 + 12 + (Min(0 + (If(attVhpAttPicker.AttachmentsCount = 0, 112, 112 + Min(attVhpAttPicker.AttachmentsCount, 4) * 36)) + If((!IfError(varVhpViewOnly, false)), 12 + (18), 0) + If(((!IfError(varVhpViewOnly, false))) && IsBlank(varVhpAttRow), 12 + (34), 0) + If((!IfError(varVhpViewOnly, false)), 12 + (36), 0) + If(IfError(Coalesce(varVhpAttBusy, false), false), 12 + (18), 0) + If(!(!IfError(varVhpViewOnly, false)), 12 + (18), 0), App.Height - 40 - 36 - 32 - 12))
+                =68 + 12 + (Min(0 + (160 + Max(attVhpAttPicker.AttachmentsCount, CountRows(varVhpAttRow.Attachments)) * 44) + If((!IfError(varVhpViewOnly, false)), 12 + (18), 0) + If(((!IfError(varVhpViewOnly, false))) && IsBlank(varVhpAttRow), 12 + (34), 0) + If((!IfError(varVhpViewOnly, false)), 12 + (36), 0) + If(IfError(Coalesce(varVhpAttBusy, false), false), 12 + (18), 0) + If(!(!IfError(varVhpViewOnly, false)), 12 + (18), 0), App.Height - 40 - 36 - 32 - 12))
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -18264,7 +18264,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =Min(0 + (If(attVhpAttPicker.AttachmentsCount = 0, 112, 112 + Min(attVhpAttPicker.AttachmentsCount, 4) * 36)) + If((!IfError(varVhpViewOnly, false)), 12 + (18), 0) + If(((!IfError(varVhpViewOnly, false))) && IsBlank(varVhpAttRow), 12 + (34), 0) + If((!IfError(varVhpViewOnly, false)), 12 + (36), 0) + If(IfError(Coalesce(varVhpAttBusy, false), false), 12 + (18), 0) + If(!(!IfError(varVhpViewOnly, false)), 12 + (18), 0), App.Height - 40 - 36 - 32 - 12)
+                      =Min(0 + (160 + Max(attVhpAttPicker.AttachmentsCount, CountRows(varVhpAttRow.Attachments)) * 44) + If((!IfError(varVhpViewOnly, false)), 12 + (18), 0) + If(((!IfError(varVhpViewOnly, false))) && IsBlank(varVhpAttRow), 12 + (34), 0) + If((!IfError(varVhpViewOnly, false)), 12 + (36), 0) + If(IfError(Coalesce(varVhpAttBusy, false), false), 12 + (18), 0) + If(!(!IfError(varVhpViewOnly, false)), 12 + (18), 0), App.Height - 40 - 36 - 32 - 12)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -18288,7 +18288,7 @@ Screens:
                         DisplayMode: |-
                             =If(!((!IfError(varVhpViewOnly, false))), DisplayMode.View, IfError(Coalesce(varVhpAttBusy, false), false) || IsBlank(varVhpAttRow), DisplayMode.Disabled, DisplayMode.Edit)
                         Height: |-
-                            =If(Self.AttachmentsCount = 0, 112, 112 + Min(Self.AttachmentsCount, 4) * 36)
+                            =Min(160 + Max(Self.AttachmentsCount, CountRows(varVhpAttRow.Attachments)) * 44, Max(160, Parent.Height - (0 + If((!IfError(varVhpViewOnly, false)), 12 + (18), 0) + If(((!IfError(varVhpViewOnly, false))) && IsBlank(varVhpAttRow), 12 + (34), 0) + If((!IfError(varVhpViewOnly, false)), 12 + (36), 0) + If(IfError(Coalesce(varVhpAttBusy, false), false), 12 + (18), 0) + If(!(!IfError(varVhpViewOnly, false)), 12 + (18), 0))))
                         Items: |-
                             =varVhpAttRow.Attachments
                         MaxAttachmentSize: |-
