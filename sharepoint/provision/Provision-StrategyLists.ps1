@@ -16,10 +16,10 @@
     Idempotent: eksisterende lister, kolonner og raekker springes over, saa
     scriptet kan koeres igen, naar der kommer flere strategier.
 
-    Hierarchical saettes IKKE af scriptet. Alle raekker faar
-    "Ikke afklaret", og feltet udfyldes i haanden i SharePoint. Et forkert
-    default ville forplante sig hele vejen til SAP, uden at nogen opdagede
-    det. Scriptet skriver til sidst, hvor mange der mangler.
+    Hierarchical kommer fra csv'en, hvor tools/gen_strategy_seed.py udleder
+    den af pakkernes hierarki. En strategi, der findes i forvejen, faar kun
+    vaerdien, hvis den staar som "Ikke afklaret" - en vaerdi sat i haanden i
+    SharePoint roeres ikke. Scriptet skriver til sidst, hvor mange der mangler.
 
 .PARAMETER SiteUrl
     Sitet listerne skal ligge paa.
@@ -133,12 +133,28 @@ if (-not $SkipSeed) {
     # Eet opslag i stedet for eet pr. raekke.
     $existing = @{}
     foreach ($it in (Get-PnPListItem -List 'MD_Strategy' -PageSize 500)) {
-        $existing[[string]$it.FieldValues.Title] = $it.Id
+        $existing[[string]$it.FieldValues.Title] = $it
     }
 
-    $added = 0; $skipped = 0
+    $added = 0; $skipped = 0; $hierSet = 0
     foreach ($r in $seed) {
-        if ($existing.ContainsKey($r.Title)) { $skipped++; continue }
+        if ($existing.ContainsKey($r.Title)) {
+            $skipped++
+            # Kun "Ikke afklaret" (eller tom) udfyldes. Ja/Nej sat i haanden
+            # i SharePoint vinder over csv'en.
+            $it  = $existing[$r.Title]
+            $cur = [string]$it.FieldValues.Hierarchical
+            if (($cur -ne 'Ja' -and $cur -ne 'Nej') -and ($r.Hierarchical -eq 'Ja' -or $r.Hierarchical -eq 'Nej')) {
+                $mark = if ($WhatIfOnly) { '?' } else { '~' }
+                Write-Host "    $mark $($r.Title): Hierarchical '$cur' -> '$($r.Hierarchical)'" -ForegroundColor Yellow
+                if (-not $WhatIfOnly) {
+                    Set-PnPListItem -List 'MD_Strategy' -Identity $it.Id `
+                                    -Values @{ Hierarchical = $r.Hierarchical } | Out-Null
+                }
+                $hierSet++
+            }
+            continue
+        }
         if ($WhatIfOnly) {
             Write-Host "    ? ville oprette strategi $($r.Title) $($r.StrategyName)" -ForegroundColor Yellow
             $added++; continue
@@ -153,7 +169,7 @@ if (-not $SkipSeed) {
         } | Out-Null
         $added++
     }
-    Write-Host "  + $added oprettet, = $skipped fandtes i forvejen" -ForegroundColor Green
+    Write-Host "  + $added oprettet, = $skipped fandtes i forvejen, $hierSet fik Hierarchical" -ForegroundColor Green
 }
 
 # ---------------------------------------------------------------------------
@@ -257,7 +273,7 @@ Write-Host "`nNaeste skridt:" -ForegroundColor Yellow
 Write-Host "  1. Efterproev SchedulingIndicator mod IP11. Den er udledt af"
 Write-Host "     strateginavnet (begynder det med 'Taeller' eller 'T.'"
 Write-Host "     = PERFORMANCE), ikke laest i SAP."
-Write-Host "  2. Saet Hierarchical paa de strategier, der skal kunne vaelges."
+Write-Host "  2. Saet Hierarchical i haanden paa dem, der stadig er 'Ikke afklaret'."
 Write-Host "  3. Naar flere strategiers pakker er hentet: laeg dem i"
 Write-Host "     sharepoint/seed/MD_StrategyPackage.csv og koer scriptet igen."
 Write-Host "     PackagesLoaded saettes automatisk."

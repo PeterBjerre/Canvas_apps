@@ -15,13 +15,24 @@ det en taellerstrategi (PERFORMANCE), ellers er det tid (TIME). Det er et
 kvalificeret gaet ud fra teksten - IKKE noget der er laest i SAP. Det skal
 efterproeves mod IP11.
 
-Hierarchical GAETTES IKKE
--------------------------
-Om en strategi undertrykker sine egne pakker, staar ikke i navnet, og der
-er intet i udtraekket at udlede det af. Alle raekker faar derfor
-"Ikke afklaret", og feltet saettes i haanden i SharePoint. Et forkert
-default her ville forplante sig hele vejen til SAP uden at nogen opdagede
-det.
+Hierarchical UDLEDES AF PAKKERNE
+--------------------------------
+Navnet siger intet om det, men pakkernes Hierarchy (fra "Strategi
+pakker.xlsx", se tools/gen_package_seed.py) goer. I SAP kaldes kun pakken
+med det hoejeste hierarki, naar flere forfalder samme dag - saa den skal
+indeholde de lavere pakkers operationer. Det er det, appens "Fill by
+hierarchy" goer. Reglen her:
+
+    Ja             pakkerne har forskellige hierarkier og ingen offset
+    Nej            ingen pakker har hierarki, alle har det samme, eller
+                   pakkerne er forskudt med offset (fx JAN, FEB, ... eller
+                   "Aar 1, 2, 3"), saa de aldrig forfalder samtidig
+    Ikke afklaret  ingen pakker indlaest, eller kun nogle pakker har
+                   hoejere hierarki end resten (fx 10, 20, 10, 10)
+
+Koer gen_package_seed.py foerst, saa pakke-csv'en er frisk. Provisioneringen
+retter kun raekker, der staar som "Ikke afklaret" i SharePoint, saa en
+vaerdi sat i haanden bliver staaende.
 """
 import csv, os, re, sys
 
@@ -30,10 +41,35 @@ SRC = os.path.join(ROOT, "sharepoint", "Strategier.txt")
 OUT = os.path.join(ROOT, "sharepoint", "seed", "MD_Strategy.csv")
 
 # "Taeller 250-1000..." og den forkortede "T. 250-500..." er begge taellere.
+PACKAGES = os.path.join(ROOT, "sharepoint", "seed", "MD_StrategyPackage.csv")
+
 COUNTER = re.compile(r"^\s*(Tæller|Taeller|T\.)", re.I)
 
 
+def hierarchical_by_strategy():
+    """StrategyKey -> Ja/Nej/Ikke afklaret ud fra pakkerne (se oeverst)."""
+    pkgs = {}
+    if os.path.exists(PACKAGES):
+        with open(PACKAGES, encoding="utf-8-sig", newline="") as f:
+            for r in csv.DictReader(f):
+                pkgs.setdefault(r["StrategyKey"], []).append(
+                    (int(r["Hierarchy"] or 0), int(r["OffsetValue"] or 0)))
+    out = {}
+    for key, p in pkgs.items():
+        levels = {h for h, _ in p}
+        if len(levels) == 1 or any(o for _, o in p):
+            out[key] = "Nej"
+        elif 0 in levels:
+            out[key] = "Ikke afklaret"
+        elif len(levels) == len(p):
+            out[key] = "Ja"
+        else:
+            out[key] = "Ikke afklaret"
+    return out
+
+
 def main():
+    hier = hierarchical_by_strategy()
     rows, seen = [], set()
     for lineno, line in enumerate(open(SRC, encoding="utf-8"), 1):
         line = line.rstrip("\r\n")
@@ -52,7 +88,7 @@ def main():
             "Title": key,
             "StrategyName": name,
             "SchedulingIndicator": "PERFORMANCE" if COUNTER.match(name) else "TIME",
-            "Hierarchical": "Ikke afklaret",
+            "Hierarchical": hier.get(key, "Ikke afklaret"),
             "PackagesLoaded": "FALSE",
             "Notes": "",
         })
@@ -69,7 +105,10 @@ def main():
     print(f"Skrev {OUT}")
     print(f"  {len(rows)} strategier")
     print(f"  {perf} gaettet som PERFORMANCE (taeller), {len(rows)-perf} som TIME")
-    print(f"  {len(rows)} med Hierarchical = 'Ikke afklaret' - saettes i haanden")
+    for v in ("Ja", "Nej", "Ikke afklaret"):
+        keys = [r["Title"] for r in rows if r["Hierarchical"] == v]
+        print(f"  Hierarchical = {v}: {len(keys)}"
+              + (f" ({', '.join(keys)})" if v != "Ja" else ""))
     trunc = [r for r in rows if len(r["StrategyName"]) >= 30]
     if trunc:
         print(f"  {len(trunc)} navne er praecis 30 tegn - SAP afkorter her, "

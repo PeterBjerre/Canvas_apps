@@ -144,6 +144,13 @@ ikke ja/nej, netop så en strategi, ingen har taget stilling til, ikke ligner
 et bevidst "nej" — og så appen kan advare frem for at gætte. Scriptet skriver
 til sidst, hvor mange der mangler.
 
+> **Opdatering (oktober 2026).** Med pakkerne fra "Strategi pakker.xlsx" kan
+> `Hierarchical` udledes af pakkernes `Hierarchy`: *Ja* når pakkerne har
+> forskellige hierarkier og ingen offset, *Nej* når alle har samme (eller intet)
+> hierarki eller er forskudt med offset. Det giver 48 Ja, 18 Nej og 1 Ikke
+> afklaret (10069). Se `tools/gen_strategy_seed.py`. Værdier sat i hånden i
+> SharePoint overskrives ikke.
+
 **`SchedulingIndicator` gættes derimod.** Begynder navnet med `Tæller` eller
 `T.`, er det en tællerstrategi (`PERFORMANCE`), ellers tid (`TIME`). Det giver
 13 PERFORMANCE og 40 TIME. Det er udledt af teksten, ikke læst i SAP, så det
