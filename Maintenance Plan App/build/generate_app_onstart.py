@@ -148,6 +148,8 @@ Set(varVhpLongTextDraft, "");
 // saa opdateres den i stedet for at blive oprettet igen.
 Set(varVhpPlanSpId, 0);
 Set(varVhpPlanKey, "");
+// Noeglen, gemningens filtre maaler mod (sp_config.PLAN_KEY_Q, R2-007).
+Set(varVhpPlanKeyQ, "-");
 // Gemmet (build_save.py): konflikttjek, Save draft/Submit og planens raekke.
 Set(varVhpPlanModified, Blank());
 Set(varVhpSubmitting, false);

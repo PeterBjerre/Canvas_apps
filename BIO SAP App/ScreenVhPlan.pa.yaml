@@ -1816,10 +1816,10 @@ Screens:
                                                   Set(varVhpSubmitting, false);
                                                   Set(gblToast, { Text: "Create the plan and at least one item first.", Kind: "Warning", At: Now() }); true,
                                               
-                                                  CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id))) > 0,
+                                                  CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(Trim(IT.ShortText)) || IsBlank(IT.FunctionalLocation) || IsBlank(LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType).Id) || IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id))) > 0,
                                                   Set(varVhpSubmitting, false);
-                                                  Set(gblToast, { Text: "Select a main work center on every item before saving: " &
-                                                      Concat(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id)), Coalesce(Trim(ShortText), FunctionalLocation), ", "), Kind: "Warning", At: Now() }); true,
+                                                  Set(gblToast, { Text: "Fill in short text, functional location, activity type and main work center on every item before saving: " &
+                                                      Concat(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(Trim(IT.ShortText)) || IsBlank(IT.FunctionalLocation) || IsBlank(LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType).Id) || IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id)), Coalesce(Trim(ShortText), FunctionalLocation), ", "), Kind: "Warning", At: Now() }); true,
                                               
                                               Set(varVhpSaving, true);
                                               Clear(colVhpSaveErrors);
@@ -1932,6 +1932,7 @@ Screens:
                                                   );
                                                   Set(varVhpPlanSpId, varVhpPlanRec.ID);
                                                   Set(varVhpPlanKey, varVhpPlanRec.PlanID);
+                                                  Set(varVhpPlanKeyQ, Coalesce(varVhpPlanKey, "-"));
                                                   Set(varVhpRequestGuid, Coalesce(varVhpRequestGuid, Text(GUID())));
                                                   true,
                                                   Collect(colVhpSaveErrors, { Where: "Plan", Msg: FirstError.Message });
@@ -1941,17 +1942,18 @@ Screens:
                                               If(
                                                   CountRows(colVhpSaveErrors) = 0,
                                               IfError(
+                                                  ClearCollect(colVhpSpItemRows, Filter(MaintenanceItems, MaintenancePlanNo.Value = varVhpPlanKeyQ));
                                                   If(
                                                       (!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)),
                                                       ClearCollect(
                                                           colVhpAdmOld,
-                                                          ForAll(Filter(MaintenanceItems, MaintenancePlanNo.Value = Coalesce(varVhpPlanKey, "-")) As I, { ID: I.ID, ItemID: I.ItemID, Title: I.Title, ItemDescription: I.ItemDescription, FunctionalLocation: I.FunctionalLocation, ObjectList: I.ObjectList })
+                                                          ForAll(colVhpSpItemRows As I, { ID: I.ID, ItemID: I.ItemID, Title: I.Title, ItemDescription: I.ItemDescription, FunctionalLocation: I.FunctionalLocation, ObjectList: I.ObjectList })
                                                       ),
                                                       Clear(colVhpAdmOld)
                                                   );
                                                   ClearCollect(
                                                       colVhpSpItems,
-                                                      ForAll(Filter(MaintenanceItems, MaintenancePlanNo.Value = Coalesce(varVhpPlanKey, "-")) As I, { ID: I.ID, ItemID: I.ItemID, Sceq: !IsBlank(I.SCEqFL) || !IsBlank(I.SCEqOL) })
+                                                      ForAll(colVhpSpItemRows As I, { ID: I.ID, ItemID: I.ItemID, Sceq: !IsBlank(I.SCEqFL) || !IsBlank(I.SCEqOL) })
                                                   );
                                                   ClearCollect(
                                                       colVhpSavedItems,
@@ -1969,14 +1971,13 @@ Screens:
                                                   );
                                                   With(
                                                       {
-                                                          ex: Filter(MaintenanceItems, MaintenancePlanNo.Value = Coalesce(varVhpPlanKey, "-")),
                                                           old: Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)), SpId in colVhpSpItems.ID)
                                                       },
                                                       If(
                                                           CountRows(old) > 0,
                                                           Patch(
                                                               MaintenanceItems,
-                                                              ForAll(old As IT, LookUp(ex, ID = IT.SpId)),
+                                                              ForAll(old As IT, LookUp(colVhpSpItemRows, ID = IT.SpId)),
                                                               ForAll(old As IT, {
                                                               ItemID: LookUp(colVhpSavedItems, LocalId = IT.ItemId).ItemKey,
                                                               Title: IT.ShortText,
@@ -2102,9 +2103,10 @@ Screens:
                                               If(
                                                   CountRows(colVhpSaveErrors) = 0,
                                               IfError(
+                                                  ClearCollect(colVhpSpOpRows, Filter(TaskListMain, MaintenancePlanID.Value = varVhpPlanKeyQ));
                                                   ClearCollect(
                                                       colVhpSpOps,
-                                                      ForAll(Filter(TaskListMain, MaintenancePlanID.Value = Coalesce(varVhpPlanKey, "-")) As T, { ID: T.ID, TaskItemID: T.TaskItemID })
+                                                      ForAll(colVhpSpOpRows As T, { ID: T.ID, TaskItemID: T.TaskItemID })
                                                   );
                                                   ClearCollect(
                                                       colVhpSavedOps,
@@ -2123,14 +2125,13 @@ Screens:
                                                   );
                                                   With(
                                                       {
-                                                          ex: Filter(TaskListMain, MaintenancePlanID.Value = Coalesce(varVhpPlanKey, "-")),
                                                           old: Filter(Filter(colVhpOperations As OP, !IsBlank(LookUp(colVhpSavedItems, LocalId = OP.ItemId).SpId)), SpId in colVhpSpOps.ID)
                                                       },
                                                       If(
                                                           CountRows(old) > 0,
                                                           Patch(
                                                               TaskListMain,
-                                                              ForAll(old As OP, LookUp(ex, ID = OP.SpId)),
+                                                              ForAll(old As OP, LookUp(colVhpSpOpRows, ID = OP.SpId)),
                                                               ForAll(old As OP, {
                                                               TaskItemID: LookUp(colVhpSavedOps, SpId = OP.SpId).TaskKey,
                                                               Title: LookUp(colVhpSavedItems, LocalId = OP.ItemId).ItemKey & " - " & OP.OperationShortText,
@@ -2226,10 +2227,7 @@ Screens:
                                               If(
                                                   CountRows(colVhpSaveErrors) = 0,
                                               IfError(
-                                                  ClearCollect(
-                                                      colVhpOldMats,
-                                                      ForAll(Filter(MD_TasklistMaterial, PlanKey = varVhpPlanKey) As M, { ID: M.ID })
-                                                  );
+                                                  ClearCollect(colVhpOldMats, Filter(MD_TasklistMaterial, PlanKey = varVhpPlanKey));
                                                   With(
                                                       { srcMats: Filter(colVhpMaterials As MT, !IsBlank(MT.MaterialNo)) },
                                                       If(
@@ -2265,10 +2263,7 @@ Screens:
                                               If(
                                                   CountRows(colVhpSaveErrors) = 0,
                                               IfError(
-                                                  ClearCollect(
-                                                      colVhpOldAtts,
-                                                      ForAll(Filter(MD_TasklistAttachment, PlanKey = varVhpPlanKey) As A, { ID: A.ID })
-                                                  );
+                                                  ClearCollect(colVhpOldAtts, Filter(MD_TasklistAttachment, PlanKey = varVhpPlanKey));
                                                   With(
                                                       { srcAtt: Filter(colVhpAttachments As AT, !IsBlank(AT.FileName)) },
                                                       If(
@@ -2299,22 +2294,10 @@ Screens:
                                               If(
                                                   CountRows(colVhpSaveErrors) = 0,
                                               IfError(
-                                                  With(
-                                                      { ex: Filter(MD_TasklistMaterial, PlanKey = varVhpPlanKey) },
-                                                      Remove(MD_TasklistMaterial, Filter(ex, ID in colVhpOldMats.ID))
-                                                  );
-                                                  With(
-                                                      { ex: Filter(MD_TasklistAttachment, PlanKey = varVhpPlanKey) },
-                                                      Remove(MD_TasklistAttachment, Filter(ex, ID in colVhpOldAtts.ID))
-                                                  );
-                                                  With(
-                                                      { ex: Filter(TaskListMain, MaintenancePlanID.Value = Coalesce(varVhpPlanKey, "-")) },
-                                                      Remove(TaskListMain, Filter(ex, !(ID in colVhpSavedOps.SpId)))
-                                                  );
-                                                  With(
-                                                      { ex: Filter(MaintenanceItems, MaintenancePlanNo.Value = Coalesce(varVhpPlanKey, "-")) },
-                                                      Remove(MaintenanceItems, Filter(ex, !(ID in colVhpSavedItems.SpId)))
-                                                  );
+                                                  Remove(MD_TasklistMaterial, colVhpOldMats);
+                                                  Remove(MD_TasklistAttachment, colVhpOldAtts);
+                                                  Remove(TaskListMain, Filter(colVhpSpOpRows, !(ID in colVhpSavedOps.SpId)));
+                                                  Remove(MaintenanceItems, Filter(colVhpSpItemRows, !(ID in colVhpSavedItems.SpId)));
                                                   true,
                                                   Collect(colVhpSaveErrors, { Where: "Clean-up", Msg: FirstError.Message });
                                                   false
@@ -11579,6 +11562,8 @@ Screens:
                                                     =Font.'Segoe UI'
                                                 Height: |-
                                                     =32
+                                                MaxLength: |-
+                                                    =40
                                                 OnChange: |-
                                                     =Patch(colVhpOperations, ThisItem, { OperationShortText: Self.Text })
                                                 Placeholder: |-
@@ -14226,10 +14211,10 @@ Screens:
                                       Set(varVhpSubmitting, false);
                                       Set(gblToast, { Text: "Create the plan and at least one item first.", Kind: "Warning", At: Now() }); true,
                                   
-                                      CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id))) > 0,
+                                      CountRows(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(Trim(IT.ShortText)) || IsBlank(IT.FunctionalLocation) || IsBlank(LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType).Id) || IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id))) > 0,
                                       Set(varVhpSubmitting, false);
-                                      Set(gblToast, { Text: "Select a main work center on every item before saving: " &
-                                          Concat(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id)), Coalesce(Trim(ShortText), FunctionalLocation), ", "), Kind: "Warning", At: Now() }); true,
+                                      Set(gblToast, { Text: "Fill in short text, functional location, activity type and main work center on every item before saving: " &
+                                          Concat(Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)) As IT, IsBlank(Trim(IT.ShortText)) || IsBlank(IT.FunctionalLocation) || IsBlank(LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType).Id) || IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id)), Coalesce(Trim(ShortText), FunctionalLocation), ", "), Kind: "Warning", At: Now() }); true,
                                   
                                   Set(varVhpSaving, true);
                                   Clear(colVhpSaveErrors);
@@ -14342,6 +14327,7 @@ Screens:
                                       );
                                       Set(varVhpPlanSpId, varVhpPlanRec.ID);
                                       Set(varVhpPlanKey, varVhpPlanRec.PlanID);
+                                      Set(varVhpPlanKeyQ, Coalesce(varVhpPlanKey, "-"));
                                       Set(varVhpRequestGuid, Coalesce(varVhpRequestGuid, Text(GUID())));
                                       true,
                                       Collect(colVhpSaveErrors, { Where: "Plan", Msg: FirstError.Message });
@@ -14351,17 +14337,18 @@ Screens:
                                   If(
                                       CountRows(colVhpSaveErrors) = 0,
                                   IfError(
+                                      ClearCollect(colVhpSpItemRows, Filter(MaintenanceItems, MaintenancePlanNo.Value = varVhpPlanKeyQ));
                                       If(
                                           (!IsBlank(varVhpIdxNow) && !(Lower(Coalesce(varVhpIdxNow.RequesterEmail, "")) = varVhpMe)),
                                           ClearCollect(
                                               colVhpAdmOld,
-                                              ForAll(Filter(MaintenanceItems, MaintenancePlanNo.Value = Coalesce(varVhpPlanKey, "-")) As I, { ID: I.ID, ItemID: I.ItemID, Title: I.Title, ItemDescription: I.ItemDescription, FunctionalLocation: I.FunctionalLocation, ObjectList: I.ObjectList })
+                                              ForAll(colVhpSpItemRows As I, { ID: I.ID, ItemID: I.ItemID, Title: I.Title, ItemDescription: I.ItemDescription, FunctionalLocation: I.FunctionalLocation, ObjectList: I.ObjectList })
                                           ),
                                           Clear(colVhpAdmOld)
                                       );
                                       ClearCollect(
                                           colVhpSpItems,
-                                          ForAll(Filter(MaintenanceItems, MaintenancePlanNo.Value = Coalesce(varVhpPlanKey, "-")) As I, { ID: I.ID, ItemID: I.ItemID, Sceq: !IsBlank(I.SCEqFL) || !IsBlank(I.SCEqOL) })
+                                          ForAll(colVhpSpItemRows As I, { ID: I.ID, ItemID: I.ItemID, Sceq: !IsBlank(I.SCEqFL) || !IsBlank(I.SCEqOL) })
                                       );
                                       ClearCollect(
                                           colVhpSavedItems,
@@ -14379,14 +14366,13 @@ Screens:
                                       );
                                       With(
                                           {
-                                              ex: Filter(MaintenanceItems, MaintenancePlanNo.Value = Coalesce(varVhpPlanKey, "-")),
                                               old: Filter(Filter(colVhpItems, !IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation)), SpId in colVhpSpItems.ID)
                                           },
                                           If(
                                               CountRows(old) > 0,
                                               Patch(
                                                   MaintenanceItems,
-                                                  ForAll(old As IT, LookUp(ex, ID = IT.SpId)),
+                                                  ForAll(old As IT, LookUp(colVhpSpItemRows, ID = IT.SpId)),
                                                   ForAll(old As IT, {
                                                   ItemID: LookUp(colVhpSavedItems, LocalId = IT.ItemId).ItemKey,
                                                   Title: IT.ShortText,
@@ -14512,9 +14498,10 @@ Screens:
                                   If(
                                       CountRows(colVhpSaveErrors) = 0,
                                   IfError(
+                                      ClearCollect(colVhpSpOpRows, Filter(TaskListMain, MaintenancePlanID.Value = varVhpPlanKeyQ));
                                       ClearCollect(
                                           colVhpSpOps,
-                                          ForAll(Filter(TaskListMain, MaintenancePlanID.Value = Coalesce(varVhpPlanKey, "-")) As T, { ID: T.ID, TaskItemID: T.TaskItemID })
+                                          ForAll(colVhpSpOpRows As T, { ID: T.ID, TaskItemID: T.TaskItemID })
                                       );
                                       ClearCollect(
                                           colVhpSavedOps,
@@ -14533,14 +14520,13 @@ Screens:
                                       );
                                       With(
                                           {
-                                              ex: Filter(TaskListMain, MaintenancePlanID.Value = Coalesce(varVhpPlanKey, "-")),
                                               old: Filter(Filter(colVhpOperations As OP, !IsBlank(LookUp(colVhpSavedItems, LocalId = OP.ItemId).SpId)), SpId in colVhpSpOps.ID)
                                           },
                                           If(
                                               CountRows(old) > 0,
                                               Patch(
                                                   TaskListMain,
-                                                  ForAll(old As OP, LookUp(ex, ID = OP.SpId)),
+                                                  ForAll(old As OP, LookUp(colVhpSpOpRows, ID = OP.SpId)),
                                                   ForAll(old As OP, {
                                                   TaskItemID: LookUp(colVhpSavedOps, SpId = OP.SpId).TaskKey,
                                                   Title: LookUp(colVhpSavedItems, LocalId = OP.ItemId).ItemKey & " - " & OP.OperationShortText,
@@ -14636,10 +14622,7 @@ Screens:
                                   If(
                                       CountRows(colVhpSaveErrors) = 0,
                                   IfError(
-                                      ClearCollect(
-                                          colVhpOldMats,
-                                          ForAll(Filter(MD_TasklistMaterial, PlanKey = varVhpPlanKey) As M, { ID: M.ID })
-                                      );
+                                      ClearCollect(colVhpOldMats, Filter(MD_TasklistMaterial, PlanKey = varVhpPlanKey));
                                       With(
                                           { srcMats: Filter(colVhpMaterials As MT, !IsBlank(MT.MaterialNo)) },
                                           If(
@@ -14675,10 +14658,7 @@ Screens:
                                   If(
                                       CountRows(colVhpSaveErrors) = 0,
                                   IfError(
-                                      ClearCollect(
-                                          colVhpOldAtts,
-                                          ForAll(Filter(MD_TasklistAttachment, PlanKey = varVhpPlanKey) As A, { ID: A.ID })
-                                      );
+                                      ClearCollect(colVhpOldAtts, Filter(MD_TasklistAttachment, PlanKey = varVhpPlanKey));
                                       With(
                                           { srcAtt: Filter(colVhpAttachments As AT, !IsBlank(AT.FileName)) },
                                           If(
@@ -14709,22 +14689,10 @@ Screens:
                                   If(
                                       CountRows(colVhpSaveErrors) = 0,
                                   IfError(
-                                      With(
-                                          { ex: Filter(MD_TasklistMaterial, PlanKey = varVhpPlanKey) },
-                                          Remove(MD_TasklistMaterial, Filter(ex, ID in colVhpOldMats.ID))
-                                      );
-                                      With(
-                                          { ex: Filter(MD_TasklistAttachment, PlanKey = varVhpPlanKey) },
-                                          Remove(MD_TasklistAttachment, Filter(ex, ID in colVhpOldAtts.ID))
-                                      );
-                                      With(
-                                          { ex: Filter(TaskListMain, MaintenancePlanID.Value = Coalesce(varVhpPlanKey, "-")) },
-                                          Remove(TaskListMain, Filter(ex, !(ID in colVhpSavedOps.SpId)))
-                                      );
-                                      With(
-                                          { ex: Filter(MaintenanceItems, MaintenancePlanNo.Value = Coalesce(varVhpPlanKey, "-")) },
-                                          Remove(MaintenanceItems, Filter(ex, !(ID in colVhpSavedItems.SpId)))
-                                      );
+                                      Remove(MD_TasklistMaterial, colVhpOldMats);
+                                      Remove(MD_TasklistAttachment, colVhpOldAtts);
+                                      Remove(TaskListMain, Filter(colVhpSpOpRows, !(ID in colVhpSavedOps.SpId)));
+                                      Remove(MaintenanceItems, Filter(colVhpSpItemRows, !(ID in colVhpSavedItems.SpId)));
                                       true,
                                       Collect(colVhpSaveErrors, { Where: "Clean-up", Msg: FirstError.Message });
                                       false
@@ -16151,6 +16119,8 @@ Screens:
                             =32
                         LayoutMinWidth: |-
                             =0
+                        MaxLength: |-
+                            =40
                         OnChange: |-
                             =Patch(colVhpOperations, LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo), { OperationShortText: Self.Text })
                         Placeholder: |-
@@ -25766,10 +25736,6 @@ Screens:
                 
                             If(false, ClearCollect(colVhpSpOps, { ID: 0, TaskItemID: "" }));
                 
-                            If(false, ClearCollect(colVhpOldMats, { ID: 0 }));
-                
-                            If(false, ClearCollect(colVhpOldAtts, { ID: 0 }));
-                
                             If(false, ClearCollect(colVhpSaveErrors, { Where: "", Msg: "" }));
                 
                             Set(
@@ -25862,6 +25828,8 @@ Screens:
                             // saa opdateres den i stedet for at blive oprettet igen.
                             Set(varVhpPlanSpId, 0);
                             Set(varVhpPlanKey, "");
+                            // Noeglen, gemningens filtre maaler mod (sp_config.PLAN_KEY_Q, R2-007).
+                            Set(varVhpPlanKeyQ, "-");
                             // Gemmet (build_save.py): konflikttjek, Save draft/Submit og planens raekke.
                             Set(varVhpPlanModified, Blank());
                             Set(varVhpSubmitting, false);

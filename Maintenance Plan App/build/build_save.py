@@ -106,9 +106,17 @@ SAVEABLE_ITEMS = ('Filter(colVhpItems, '
                   '!IsBlank(Trim(ShortText)) || !IsBlank(FunctionalLocation))')
 SAVEABLE_COUNT = f"CountRows({SAVEABLE_ITEMS})"
 
-# Items, der ville blive gemt uden arbejdscenter. MainWorkCenter er
-# paakraevet i MaintenanceItems, saa SharePoint afviser hele Patch'et.
-NO_MWC = (f"Filter({SAVEABLE_ITEMS} As IT, "
+# Items, der ville blive gemt uden et af de paakraevede felter. Title
+# (kort tekst), FunctionalLocation, MaintenanceActivityType og
+# MainWorkCenter er paakraevede i MaintenanceItems (sharepoint/inspect/out/
+# schema.json), saa SharePoint afviser hele Items-Patch'et, hvis bare eet
+# item mangler et af dem (R2-008). Et item er "saveable" med kort tekst
+# ELLER funktionsplads, saa begge tjekkes. Aktivitetstype og arbejdscenter
+# tjekkes paa opslaget, som item_fields skriver - et ukendt navn giver
+# Blank() dér.
+NO_REQ = (f"Filter({SAVEABLE_ITEMS} As IT, "
+          "IsBlank(Trim(IT.ShortText)) || IsBlank(IT.FunctionalLocation) || "
+          "IsBlank(LookUp(colVhpActivityTypeOptions, Value = IT.ActivityType).Id) || "
           "IsBlank(LookUp(colVhpMainWorkCenters, Value = Trim(IT.MainWorkCenter)).Id))")
 
 # Opslaget fra en operation til dens item. colVhpSavedItems har ALLE
@@ -416,20 +424,34 @@ def _step_plan():
         # raekker.
         "    Set(varVhpPlanSpId, varVhpPlanRec.ID);\n"
         "    Set(varVhpPlanKey, varVhpPlanRec.PlanID);\n"
+        # Ren global variabel til filtrene i trin 4, 5 og 7 (R2-007):
+        # Coalesce(...) inde i Filter er et funktionsudtryk.
+        f"    Set({cfg.PLAN_KEY_Q}, {cfg.PLAN_KEY_REF});\n"
         "    Set(varVhpRequestGuid, Coalesce(varVhpRequestGuid, Text(GUID())))"))
 
 
 def _step_items():
-    """4. Items: opdatér de eksisterende, opret de nye (D7)."""
-    ex = cfg.plan_rows(cfg.L_ITEMS)
+    """4. Items: opdatér de eksisterende, opret de nye (D7).
+
+    Planens raekker hentes EEN gang ind i colVhpSpItemRows med et
+    delegerbart filter mod en ren global variabel - filteret koerer i
+    SharePoint, saa samlingen er planens raekker, uanset hvor lang listen
+    er. Alt andet (loggen, noeglerne, basisraekkerne til opdateringen og
+    oprydningen i trin 7) slaar op i samlingen. Ikke With({ex: Filter(
+    liste, ...)}): den scope-variabel bryder delegeringen og har kun de
+    foerste 500/2.000 raekker af LISTEN (R2-007). Og ikke LookUp(liste,
+    ID = IT.SpId) i ForAll: et scope-felt delegeres ikke (check_layout
+    regel 30)."""
+    ex = cfg.plan_rows(cfg.L_ITEMS, cfg.PLAN_KEY_Q)
     return _step("Items", (
         # En admin i en andens plan: items, som de staar nu, til loggen.
-        # Kun dér - andre betaler ingen ekstra hentning.
+        # Kun dér; hentningen er den samme som noeglernes.
+        f"    ClearCollect(colVhpSpItemRows, {ex});\n"
         "    If(\n"
         f"        {AS_ADMIN},\n"
         "        ClearCollect(\n"
         "            colVhpAdmOld,\n"
-        f"            ForAll({ex} As I, {{ ID: I.ID, ItemID: I.ItemID, Title: I.Title, "
+        f"            ForAll(colVhpSpItemRows As I, {{ ID: I.ID, ItemID: I.ItemID, Title: I.Title, "
         "ItemDescription: I.ItemDescription, FunctionalLocation: I.FunctionalLocation, "
         "ObjectList: I.ObjectList })\n"
         "        ),\n"
@@ -438,7 +460,7 @@ def _step_items():
         # Hvad der er i SharePoint nu - ID og noegle.
         "    ClearCollect(\n"
         "        colVhpSpItems,\n"
-        f"        ForAll({ex} As I, {{ ID: I.ID, ItemID: I.ItemID, "
+        "        ForAll(colVhpSpItemRows As I, { ID: I.ID, ItemID: I.ItemID, "
         "Sceq: !IsBlank(I.SCEqFL) || !IsBlank(I.SCEqOL) })\n"
         "    );\n"
         # De eksisterende foerst i oversaettelsen: operationerne,
@@ -458,18 +480,17 @@ def _step_items():
         "        )\n"
         "    );\n"
         # OPDATERING. Base-raekkerne er RIGTIGE raekker fra listen, hentet
-        # een gang med et delegerbart filter (som fl_save.py) - ikke
-        # { ID: ... }, som FL-appens compile afviste (issue #32).
+        # een gang med et delegerbart filter (colVhpSpItemRows ovenfor) -
+        # ikke { ID: ... }, som FL-appens compile afviste (issue #32).
         "    With(\n"
         "        {\n"
-        f"            ex: {ex},\n"
         f"            old: Filter({SAVEABLE_ITEMS}, SpId in colVhpSpItems.ID)\n"
         "        },\n"
         "        If(\n"
         "            CountRows(old) > 0,\n"
         "            Patch(\n"
         f"                {cfg.L_ITEMS},\n"
-        "                ForAll(old As IT, LookUp(ex, ID = IT.SpId)),\n"
+        "                ForAll(old As IT, LookUp(colVhpSpItemRows, ID = IT.SpId)),\n"
         f"                ForAll(old As IT, {item_fields('LookUp(colVhpSavedItems, LocalId = IT.ItemId).ItemKey')})\n"
         "            )\n"
         "        )\n"
@@ -518,13 +539,14 @@ def _step_items():
 
 
 def _step_ops():
-    """5. Operationer - samme model som items."""
-    ex = cfg.plan_rows(cfg.L_TASKS)
+    """5. Operationer - samme model som items (R2-007)."""
+    ex = cfg.plan_rows(cfg.L_TASKS, cfg.PLAN_KEY_Q)
     live = f"Filter(colVhpOperations As OP, !IsBlank({M_SPID}))"
     return _step("Operations", (
+        f"    ClearCollect(colVhpSpOpRows, {ex});\n"
         "    ClearCollect(\n"
         "        colVhpSpOps,\n"
-        f"        ForAll({ex} As T, {{ ID: T.ID, TaskItemID: T.TaskItemID }})\n"
+        "        ForAll(colVhpSpOpRows As T, { ID: T.ID, TaskItemID: T.TaskItemID })\n"
         "    );\n"
         "    ClearCollect(\n"
         "        colVhpSavedOps,\n"
@@ -543,14 +565,13 @@ def _step_ops():
         "    );\n"
         "    With(\n"
         "        {\n"
-        f"            ex: {ex},\n"
         f"            old: Filter({live}, SpId in colVhpSpOps.ID)\n"
         "        },\n"
         "        If(\n"
         "            CountRows(old) > 0,\n"
         "            Patch(\n"
         f"                {cfg.L_TASKS},\n"
-        "                ForAll(old As OP, LookUp(ex, ID = OP.SpId)),\n"
+        "                ForAll(old As OP, LookUp(colVhpSpOpRows, ID = OP.SpId)),\n"
         f"                ForAll(old As OP, {op_fields('LookUp(colVhpSavedOps, SpId = OP.SpId).TaskKey')})\n"
         "            )\n"
         "        )\n"
@@ -605,10 +626,8 @@ def _step_materials():
     """6a. Materialer. De gamle raekkers ID huskes, og de slettes foerst i
     oprydningen - efter de nye er skrevet."""
     return _step("Materials", (
-        "    ClearCollect(\n"
-        "        colVhpOldMats,\n"
-        f"        ForAll(Filter({cfg.L_MATERIALS}, PlanKey = varVhpPlanKey) As M, {{ ID: M.ID }})\n"
-        "    );\n"
+        # Hele raekkerne: oprydningen fjerner dem direkte (R2-007).
+        f"    ClearCollect(colVhpOldMats, Filter({cfg.L_MATERIALS}, PlanKey = varVhpPlanKey));\n"
         # Peger paa operationens TaskItemID, ikke paa itemet. Et materiale
         # hoerer til EEN operation - det er den relation SAP har.
         "    With(\n"
@@ -648,10 +667,7 @@ def _step_attachments():
     Mappen i biblioteket er opkaldt efter ItemKey, og den er nu STABIL:
     et item beholder sin noegle ved hvert gem (trin 4)."""
     return _step("Documents", (
-        "    ClearCollect(\n"
-        "        colVhpOldAtts,\n"
-        f"        ForAll(Filter({cfg.L_ATTACHMENTS}, PlanKey = varVhpPlanKey) As A, {{ ID: A.ID }})\n"
-        "    );\n"
+        f"    ClearCollect(colVhpOldAtts, Filter({cfg.L_ATTACHMENTS}, PlanKey = varVhpPlanKey));\n"
         "    With(\n"
         "        { srcAtt: Filter(colVhpAttachments As AT, !IsBlank(AT.FileName)) },\n"
         "        If(\n"
@@ -679,21 +695,24 @@ def _step_attachments():
 def _step_cleanup():
     """7. Oprydning - foerst naar alt er skrevet (D8).
 
-    Remove(kilde, Filter(...)) og ikke RemoveIf: RemoveIf delegeres ikke
-    paa en tekstkolonne eller et opslags underfelt. Filteret mod listen
-    er delegerbart (lighed mod en global variabel); 'in' tages bagefter i
-    hukommelsen paa planens egne raekker."""
-    def rm(lst, flt, keep):
-        return (f"    With(\n        {{ ex: Filter({lst}, {flt}) }},\n"
-                f"        Remove({lst}, Filter(ex, {keep}))\n    )")
+    Hvad der skal vaek, afgoeres i hukommelsen paa samlinger af planens
+    EGNE raekker, hentet med et delegerbart filter i trin 4, 5, 6a og 6b
+    (colVhpSpItemRows, colVhpSpOpRows, colVhpOldMats, colVhpOldAtts), og
+    raekkerne fjernes direkte med Remove(liste, <raekker>). Ikke
+    With({ex: Filter(liste, ...)}): den scope-variabel har kun de foerste
+    500/2.000 raekker af listen, og planens raekker ud over loftet blev
+    staaende (R2-007). Ikke RemoveIf: den delegeres ikke paa en
+    tekstkolonne eller et opslags underfelt."""
+    def rm(lst, rows):
+        return f"    Remove({lst}, {rows})"
     return _step("Clean-up", ";\n".join([
-        rm(cfg.L_MATERIALS, "PlanKey = varVhpPlanKey", "ID in colVhpOldMats.ID"),
-        rm(cfg.L_ATTACHMENTS, "PlanKey = varVhpPlanKey", "ID in colVhpOldAtts.ID"),
+        # Materialerne og dokumenterne skrives altid paa ny (trin 6), saa
+        # alle de gamle raekker gaar.
+        rm(cfg.L_MATERIALS, "colVhpOldMats"),
+        rm(cfg.L_ATTACHMENTS, "colVhpOldAtts"),
         # Operationer foer items: en operation peger paa sit item.
-        rm(cfg.L_TASKS, cfg.plan_cond(cfg.L_TASKS),
-           "!(ID in colVhpSavedOps.SpId)"),
-        rm(cfg.L_ITEMS, cfg.plan_cond(cfg.L_ITEMS),
-           "!(ID in colVhpSavedItems.SpId)"),
+        rm(cfg.L_TASKS, "Filter(colVhpSpOpRows, !(ID in colVhpSavedOps.SpId))"),
+        rm(cfg.L_ITEMS, "Filter(colVhpSpItemRows, !(ID in colVhpSavedItems.SpId))"),
     ]))
 
 
@@ -850,15 +869,16 @@ def save_action():
         "    Set(varVhpSubmitting, false);\n"
         "    Notify(\"Create the plan and at least one item first.\", NotificationType.Warning),\n"
         "\n"
-        # MainWorkCenter er en PAAKRAEVET opslagskolonne i MaintenanceItems.
-        # Et item uden et gyldigt arbejdscenter kan ikke gemmes - heller
-        # ikke som kladde - saa det siges her, foer noget skrives, i stedet
-        # for som SharePoints netvaerksfejl midt i gemningen.
-        f"    CountRows({NO_MWC}) > 0,\n"
+        # Kort tekst, funktionsplads, aktivitetstype og arbejdscenter er
+        # PAAKRAEVEDE kolonner i MaintenanceItems. Et item uden dem kan ikke
+        # gemmes - heller ikke som kladde - saa det siges her, foer noget
+        # skrives, i stedet for som SharePoints netvaerksfejl midt i
+        # gemningen (R2-008).
+        f"    CountRows({NO_REQ}) > 0,\n"
         "    Set(varVhpSubmitting, false);\n"
         "    Notify(\n"
-        "        \"Select a main work center on every item before saving: \" &\n"
-        f"        Concat({NO_MWC}, Coalesce(Trim(ShortText), FunctionalLocation), \", \"),\n"
+        "        \"Fill in short text, functional location, activity type and main work center on every item before saving: \" &\n"
+        f"        Concat({NO_REQ}, Coalesce(Trim(ShortText), FunctionalLocation), \", \"),\n"
         "        NotificationType.Warning\n"
         "    ),\n"
         "\n"

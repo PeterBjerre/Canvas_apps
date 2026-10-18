@@ -187,12 +187,21 @@ MIN_MAX_BAD = (f"{IS_STOCK} && !IsBlank({MIN_S}) && !IsBlank({MAX_S}) && "
                f"{MIN_S} > {MAX_S}")
 MIN_MAX_MSG = "Min stock must be less than or equal to max stock."
 
+# Prisen tastes som tekst ("dec", R2-010). Tekst, der ikke er et tal, ville
+# stiltiende blive gemt som tom - den stoppes ogsaa paa en kladde (samme
+# moenster som mp_parts._not_a_number).
+PRICE = dp._var("Price")
+PRICE_BAD = (f'!IsBlank(Trim(Coalesce({PRICE}, ""))) && '
+             f'IsBlank(IfError(Value(Trim({PRICE})), Blank()))')
+PRICE_MSG = "Price must be a number, not text."
+
 
 def save_fx(status):
     """domain_parts' gem, plus Materials' egne krav: lagerniveauet og det
     erstattede materiale."""
     return dp.save_row_fx(status, required=_row_rules(),
-                          always=[(MIN_MAX_BAD, MIN_MAX_MSG)])
+                          always=[(MIN_MAX_BAD, MIN_MAX_MSG),
+                                  (PRICE_BAD, PRICE_MSG)])
 
 
 # ---------------------------------------------------------------------------
@@ -730,20 +739,40 @@ DET_ROW = "LookUp(colDomRows, RowId = varDomActiveRowId)"
 # Naar ruden skifter raekke, skal feltet vise DEN raekkes nummer.
 DETAILS_SYNC = (f'Set({CREATED_VAR}, Coalesce({DET_ROW}.CreatedMaterialNo, ""));\n'
                 f"Reset({CREATED_IN})")
-CREATED_EDIT = (f'If(Coalesce({DET_ROW}.Status, "") = "submitted" || IsAdmin, '
-                "DisplayMode.Edit, DisplayMode.Disabled)")
+# HVEM MAA (R2-011): rekvirenten paa sin egen raekke og en admin - og kun
+# paa en indsendt raekke. Reglen staar baade i UI'et (CREATED_EDIT) og i
+# selve handlingen (_save_created_fx), og aendringen logges i
+# MD_ApprovalLog som andre admin-aendringer (tools/admin_log.py) - samme
+# moenster som Measuring Points mp_parts._save_mpno_fx.
+CREATED_MAY = (f'(Coalesce({DET_ROW}.Status, "") = "submitted" && '
+               f'({perm.IS_ADMIN} || {perm.is_owner(DET_ROW + ".RequesterEmail", "varDomMe")}))')
+CREATED_EDIT = f"If({CREATED_MAY}, DisplayMode.Edit, DisplayMode.Disabled)"
 
 
 def _save_created_fx():
+    new_no = f'Trim(Coalesce({CREATED_VAR}, ""))'
+    log = alog.write(
+        "varDomRequestGuid", f'Coalesce({DET_ROW}.RequestNo, "")', alog.EDIT,
+        f'"Created material no. for " & Coalesce({DET_ROW}.ItemKey, "") & '
+        f'": " & Coalesce({DET_ROW}.CreatedMaterialNo, "(blank)") & " '
+        f'{alog.ARROW} " & {new_no}', 8)
     return (
-        "IfError(\n"
+        "If(\n"
+        f"    !{CREATED_MAY},\n"
+        '    Notify("Only the requester and admins can fill in the material no.",\n'
+        "        NotificationType.Warning),\n"
+        "\n"
+        "    IfError(\n"
         f"    Patch(\n        {cfg.L_ROWS},\n"
         f"        LookUp({cfg.L_ROWS}, ID = varDomActiveRowId),\n"
-        f'        {{ CreatedMaterialNo: Trim(Coalesce({CREATED_VAR}, "")) }}\n'
+        f"        {{ CreatedMaterialNo: {new_no} }}\n"
         "    );\n"
+        + log + ";\n"
         + dp.refresh_rows_fx(4) + ";\n"
         '    Notify("Created material no. saved.", NotificationType.Success),\n'
+        "\n"
         '    Notify("Save failed: " & FirstError.Message, NotificationType.Error)\n'
+        "    )\n"
         ")"
     )
 

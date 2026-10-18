@@ -720,7 +720,9 @@ def _op_detail_modal():
     opno = text_input("inpVhpOpMNo", f"{OPM}.OperationNo", width=MODAL_CW, height=32, max_length=4,
                       onchange=op_no_change(OPM, 'Set(varVhpOpMNo, Text(n, "0000"))'),
                       label='"Operation number"')
+    # SAP's LTXA1 er 40 tegn (schema/vhplan-sap-order.schema.json, R2-009).
     short = text_input("inpVhpOpMText", f"{OPM}.OperationShortText", width=MODAL_CW, height=32,
+                       max_length=40,
                        onchange=f"Patch(colVhpOperations, {OPM}, {{ OperationShortText: Self.Text }})",
                        label='"Operation text"')
     cost = cost_expr(NV).replace("ThisItem", "r")
@@ -1092,7 +1094,7 @@ def build_tasklist_section():
                          max_length=4, onchange=op_no_change("ThisItem"),
                          label='"Operation number " & ThisItem.OperationNo')
     txtOpShort = text_input("inpVhpOpShortText", "ThisItem.OperationShortText", width=w["OPERATION SHORT TEXT"],
-                            height=32,
+                            height=32, max_length=40,   # SAP's LTXA1 (R2-009)
                             onchange="Patch(colVhpOperations, ThisItem, { OperationShortText: Self.Text })", label="\"Operation text\"")
     # Work og No. skriver BEGGE varigheden, fordi den er regnet af dem
     # begge. Gjorde kun den ene det, ville et skift i den anden efterlade en

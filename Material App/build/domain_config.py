@@ -102,7 +102,10 @@ SECTIONS = [
         ("DeliveringTime", "Delivery time (days)", "num", None),
     ]),
     ("Price and stock", [
-        ("Price", "Price", "num", None),
+        # Price er et beloeb med decimaler (12,50) - "dec" tastes som tekst
+        # og gemmes med Value() i Number-kolonnen. "num" er heltal og
+        # rundede prisen af (R2-010).
+        ("Price", "Price", "dec", None),
         ("PriceUnit", "Price unit", "text", None),
         ("StockUnit", "Stock unit", "text", None),
     ]),

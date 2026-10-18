@@ -66,6 +66,13 @@
           "metadata": {
             "schemaName": "orsted_BioSapErrorNotifiers"
           }
+        },
+        "BioSap-MasterDataEmail (orsted_BioSapMasterDataEmail)": {
+          "defaultValue": "sapvedligehold@orsted.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "orsted_BioSapMasterDataEmail"
+          }
         }
       },
       "triggers": {
@@ -174,6 +181,24 @@
                     },
                     "Valid_receipt": {
                       "actions": {
+                        "Warning_lines": {
+                          "runAfter": {},
+                          "type": "Select",
+                          "inputs": {
+                            "from": "@coalesce(outputs('Receipt')?['warnings'], createArray())",
+                            "select": "@replace(replace(replace(replace(replace(trim(string(item())), '\\', '\\\\'), '\"', '\\\"'), decodeUriComponent('%0D'), ''), decodeUriComponent('%0A'), ' '), decodeUriComponent('%09'), ' ')"
+                          },
+                          "description": "R2-018: receipt warnings (e.g. materials to add in IA06), JSON-escaped, one per line."
+                        },
+                        "Warnings_json": {
+                          "runAfter": {
+                            "Warning_lines": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "Compose",
+                          "inputs": "@join(body('Warning_lines'), '\\n')"
+                        },
                         "Each_item": {
                           "foreach": "@outputs('Receipt')?['items']",
                           "actions": {
@@ -201,7 +226,11 @@
                               }
                             }
                           },
-                          "runAfter": {},
+                          "runAfter": {
+                            "Warnings_json": [
+                              "Succeeded"
+                            ]
+                          },
                           "type": "Foreach"
                         },
                         "Set_plan_published": {
@@ -227,7 +256,7 @@
                                 "IF-MATCH": "*",
                                 "X-HTTP-Method": "MERGE"
                               },
-                              "parameters/body": "{\"SAPNum\":\"@{outputs('Receipt')?['sapPlanNo']}\",\"Status\":\"Published\",\"SapCreatedOn\":\"@{utcNow()}\",\"SapCreatedBy\":\"@{outputs('Receipt')?['lockedBy']}\"}"
+                              "parameters/body": "{\"SAPNum\":\"@{outputs('Receipt')?['sapPlanNo']}\",\"Status\":\"Published\",\"SapCreatedOn\":\"@{utcNow()}\",\"SapCreatedBy\":\"@{outputs('Receipt')?['lockedBy']}\",\"SapWarnings\":\"@{outputs('Warnings_json')}\"}"
                             }
                           }
                         },
@@ -294,8 +323,9 @@
                               },
                               "parameters": {
                                 "emailMessage/To": "@parameters('BioSap-ErrorNotifiers (orsted_BioSapErrorNotifiers)')",
-                                "emailMessage/Subject": "Maintenance plan creator: receipt rejected - @{items('Each_receipt')?['{FilenameWithExtension}']}",
-                                "emailMessage/Body": "<p>The receipt was rejected.</p><p>File: @{items('Each_receipt')?['{FilenameWithExtension}']}</p><p>Run history: @{variables('FlowRunHistoryLink')}</p>",
+                                "emailMessage/Cc": "@if(contains(createArray('Partial', 'NeedsCheck', 'Failed'), coalesce(outputs('Receipt')?['state'], '')), parameters('BioSap-MasterDataEmail (orsted_BioSapMasterDataEmail)'), '')",
+                                "emailMessage/Subject": "Maintenance plan creator: receipt rejected (@{coalesce(outputs('Receipt')?['state'], '-')}) - @{items('Each_receipt')?['{FilenameWithExtension}']}",
+                                "emailMessage/Body": "<p style=\"font-family:Segoe UI,Arial,sans-serif;\">The receipt was rejected and moved to Kvitteringer/Afvist. The plan was not changed. Compare the values below to find the check that failed: the receipt must be state Created with a SAP plan number, carry the plan's order GUID and SAP system, and the plan must be Ready for creation in SAP.</p><table style=\"font-family:Segoe UI,Arial,sans-serif;font-size:14px;border-collapse:collapse;\"><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">File</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(items('Each_receipt')?['{FilenameWithExtension}'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">State</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(outputs('Receipt')?['state'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">Plan ID</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(outputs('Receipt')?['planId'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">SAP plan number</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(outputs('Receipt')?['sapPlanNo'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">SAP system (receipt)</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(outputs('Receipt')?['sapSystem'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">SAP system (expected)</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(parameters('BioSap-SapSystem (orsted_BioSapSapSystem)'), '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">Order GUID (receipt)</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(outputs('Receipt')?['orderGuid'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">Order GUID (plan)</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(body('Get_plan')?['SapOrderGuid'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">Plan status</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(body('Get_plan')?['Status']?['Value'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">Last error</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(outputs('Receipt')?['lastError'], '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#6b7b8c;\">Warnings</td><td style=\"padding:4px 0;\">@{replace(replace(replace(string(coalesce(join(coalesce(outputs('Receipt')?['warnings'], createArray()), '; '), '')), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</td></tr></table><p style=\"font-family:Segoe UI,Arial,sans-serif;\">Run history: @{variables('FlowRunHistoryLink')}</p>",
                                 "emailMessage/Importance": "Normal"
                               }
                             }
