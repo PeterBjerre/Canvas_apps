@@ -37,7 +37,8 @@ import display_text as dt
 from build_helpers import (C_INPUT_BORDER, ensure_hit, checkbox_theme, new_request_label, request_actions, breadcrumb, text_ctrl, group, button, text_input, themed_dropdown, card,
                            pin_widths, top_bar, grow, badge, fit_button_width, row_rule, mark_done,
                            loading_overlay, with_busy, confirm_modal, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
-                           ICON_W, text_px, stable_scrim, icon_button, icon_heading, editor_footer)
+                           ICON_W, text_px, stable_scrim, icon_button, icon_heading, editor_footer,
+                           close_x)
 
 NARROW = below("Tablet")
 

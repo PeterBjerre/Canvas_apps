@@ -52,7 +52,7 @@ from gen_screen import C_DISABLED_BG, C_DIVIDER, C_INPUT_BG, C_INPUT_FG, C_PRIMA
 from design_tokens import ref as _t, ref_hex
 from build_helpers import (group, text_ctrl, button, text_input,
                            fit_button_width, grow, row_hit, ICON_W, ensure_hit,
-                           flat_button)
+                           flat_button, popup_head)
 import layout_tokens as lay
 import request_index as ri
 import icons
@@ -360,23 +360,22 @@ def build(p):
     n = lambda kind, base: f"{kind}{p}Fb{base}"
 
     # Beskedens hoejde: det faste i popuppen og resten til beskeden. Det
-    # faste er 354: polstring 36, overskrift 32, intro 40, Initials/Email
+    # faste er 366: polstring 36, overskrift 44 (titel og X), intro 40, Initials/Email
     # 62, emnecellen 62, beskedens etiket 26, footer 36 og seks mellemrum
     # af 12. Vedhaeftningsraekken (36 + 12) er vaek (issue #215), saa
     # beskeden faar den plads. Den afhaenger IKKE af, om listen er foldet
     # ud (issue #205), saa popuppen staar stille.
-    msg_h = f"If({lay.below('Tablet')}, 220, Max(160, Min(272, App.Height - 40 - 354)))"
+    msg_h = f"If({lay.below('Tablet')}, 220, Max(160, Min(272, App.Height - 40 - 366)))"
     # Pladsen under vaelgerens knap: resten af cellen og beskeden.
     avail = f"({msg_h}) + {12 + 26 - 4}"
     about, panel, find_name = _subject_picker(n, avail)
     reset = (f"Set({SEL}, Blank()); Set({PICK}, false); Reset({find_name}); "
              f"Reset({n('inp', 'Message')})")
 
-    title = grow(text_ctrl(n("txt", "Title"), '"Message SAP maintenance"', size=lay.SIZE_CARD_TITLE,
-                           weight="Semibold", height=26, wrap="false"))
-    btnClose = button(n("btn", "Close"), '"Close"', f"Set({OPEN}, false); {reset}", width=90, height=32)
-    head = group(n("con", "Head"), [title, btnClose], direction="Horizontal", gap=12,
-                 height=32, align_items="Center")
+    title = text_ctrl(n("txt", "Title"), '"Message SAP maintenance"', size=lay.SIZE_CARD_TITLE,
+                      weight="Semibold", height=26, wrap="false")
+    # X oeverst til hoejre (issue #343) - lukker og nulstiller som foer.
+    head = popup_head(n("con", "Head"), title, n("btn", "Close"), f"Set({OPEN}, false); {reset}")
 
     intro = text_ctrl(n("txt", "Intro"),
                       f'"Questions, ideas or something not working? Your message goes to {MAILBOX}."',

@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-"""Popuppernes luk-knap i hele BIO SAP (issue #237).
+"""Popuppernes luk i hele BIO SAP (issue #237, #343).
 
-Hver popup har EEN Close, oeverst til hoejre: sidste knap i popuppens
+Hver popup har EET X, oeverst til hoejre: sidste kontrol i popuppens
 hoved, som er popuppens foerste barn og ligger uden for det, der scroller.
-Ingen popup har baade Close og Cancel, og ingen bund er tom.
+X'et er det samme som sidepanelernes (icon_button med icons.CLOSE). Ingen
+popup har en Close- eller Cancel-knap med tekst, og ingen bund er tom.
 
-Bekraeftelser (navne med "Confirm") er et ja/nej-valg: Close er deres
-nej-knap i bunden ved siden af handlingen, og den er stadig den eneste.
-Fjern-bekraeftelsen inde i dokumentpopuppen (doc_upload, "...RemoveCancel")
-er ogsaa et ja/nej-valg - den lukker ikke popuppen."""
+Bekraeftelserne (navne med "Confirm") har ogsaa X'et oeverst; bunden har
+kun handlingen. Fjern-bekraeftelsen inde i dokumentpopuppen (doc_upload,
+"...RemoveCancel") er et ja/nej-valg - den lukker ikke popuppen."""
 import glob
 import os
 
@@ -77,30 +77,67 @@ def test_popups_found():
         assert must in names
 
 
+def _closes(node):
+    """Popuppens X'er: Image-kontroller, hvis tooltip er "Close"."""
+    out = []
+    _walk("root", node, out)
+    return [(n, v) for n, v, _ in out
+            if v.get("Control") == "Image" and _prop(v, "Tooltip") in ('"Close"', '"Close without applying"')]
+
+
+def _sidebar_x():
+    """Sidepanelets X (btnEqEditorClose) - referencen for popuppernes X."""
+    with open(os.path.join(ROOT, "BIO SAP App", "ScreenEquipment.pa.yaml"), encoding="utf-8") as f:
+        doc = yaml.safe_load(f)
+    allc = []
+    for s in doc["Screens"].values():
+        for n, v in _kids(s):
+            _walk(n, v, allc)
+    return next(v for n, v, _ in allc if n == "btnEqEditorClose")
+
+
+SIDEBAR_X = _sidebar_x()
+
+
 @pytest.mark.parametrize("screen,name,node", POPUPS, ids=IDS)
-def test_one_close_no_cancel(screen, name, node):
+def test_one_x_no_close_button(screen, name, node):
+    # Issue #343: ingen Close- eller Cancel-knap med tekst; EET X.
     btns = _buttons(node)
-    closes = [n for n, v, _ in btns if _prop(v, "Text") == '"Close"' or _icon_close(v)]
-    cancels = [n for n, v, _ in btns if _prop(v, "Text") == '"Cancel"'
-               and not n.endswith("RemoveCancel")]
-    assert len(closes) == 1, f"{name}: Close-knapper {closes}"
-    assert not cancels, f"{name}: Cancel ved siden af Close: {cancels}"
+    texts = [n for n, v, _ in btns if _prop(v, "Text") in ('"Close"', '"Cancel"')
+             and not n.endswith("RemoveCancel")]
+    assert not texts, f"{name}: Close/Cancel-knapper med tekst: {texts}"
+    xs = [n for n, _ in _closes(node)]
+    assert len(xs) == 1, f"{name}: X'er {xs}"
 
 
-@pytest.mark.parametrize("screen,name,node",
-                         [p for p in POPUPS if "Confirm" not in p[1]],
-                         ids=[i for i in IDS if "Confirm" not in i])
-def test_close_top_right_and_fixed(screen, name, node):
-    # Hovedet er popuppens foerste barn; Close er dets sidste barn.
+@pytest.mark.parametrize("screen,name,node", POPUPS, ids=IDS)
+def test_x_top_right_and_fixed(screen, name, node):
+    # Hovedet er popuppens foerste barn; X er dets sidste barn.
     first_name, head = next(_kids(node))
     assert "Horizontal" in _prop(head, "LayoutDirection"), f"{name}: {first_name}"
     kids = list(_kids(head))
     last_name, last = kids[-1]
-    assert (last.get("Control") in BUTTONS and _prop(last, "Text") == '"Close"') or _icon_close(last), \
-        f"{name}: sidste i hovedet er {last_name}"
+    assert (last_name, last) in _closes(node), f"{name}: sidste i hovedet er {last_name}"
     # Hovedet scroller ikke med indholdet.
     assert "Scroll" not in _prop(node, "LayoutOverflowY"), name
     assert "Scroll" not in _prop(head, "LayoutOverflowY"), name
+
+
+@pytest.mark.parametrize("screen,name,node", POPUPS, ids=IDS)
+def test_x_matches_sidebar(screen, name, node):
+    # Samme X som sidepanelet: ikon, stoerrelse, hover og tryk (issue #343).
+    # Et X, der slukkes midt i en gemning (DisplayMode), toner ud og har
+    # ingen hover, mens det er slukket - dets Image og Fill er betingede.
+    (_n, x), = _closes(node)
+    for key in ("Width", "Height", "Fill", "BorderStyle", "ImagePosition",
+                "AlignInContainer", "LayoutMinWidth", "RadiusTopLeft"):
+        assert _prop(x, key) == _prop(SIDEBAR_X, key), f"{name}: {key}"
+    if "DisplayMode" in (x.get("Properties") or {}):
+        assert "C.'row-hover'" in _prop(x, "HoverFill"), name
+        assert "M6 6l12 12M18 6L6 18" in _prop(x, "Image"), name
+    else:
+        for key in ("Image", "HoverFill", "PressedFill"):
+            assert _prop(x, key) == _prop(SIDEBAR_X, key), f"{name}: {key}"
 
 
 @pytest.mark.parametrize("screen,name,node", POPUPS, ids=IDS)
@@ -113,11 +150,14 @@ def test_no_empty_footer(screen, name, node):
 
 
 def test_cancel_logic_moved_to_close():
-    # Close koerer den oprydning, Cancel gjorde - ventende valg kasseres.
+    # X koerer den oprydning, Cancel gjorde - ventende valg kasseres.
     by = {}
     for _f, _n, node in POPUPS:
-        for n, v, _ in _buttons(node):
-            by[n] = _prop(v, "OnSelect")
+        out = []
+        _walk("root", node, out)
+        for n, v, _ in out:
+            if v.get("Control") in BUTTONS + ("Image",):
+                by[n] = _prop(v, "OnSelect")
     assert "Clear(colVhpObjDraft)" in by["btnVhpObjListClose"]
     assert "colVhpItemObjects" not in by["btnVhpObjListClose"]
     assert "Clear(colVhpPickerSelected)" in by["btnVhpPickerClose"]

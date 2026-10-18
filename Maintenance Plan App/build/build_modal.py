@@ -6,7 +6,7 @@ from gen_screen import (Ctrl, C_MUTED, C_TRANSPARENT, C_DIVIDER, C_MODAL_BG,
                         C_PRIMARY_SOFT, C_OVERLAY, C_PRIMARY, C_WHITE)
 import layout_tokens as lay
 from layout_tokens import at_least, if_below
-from build_helpers import tap_backdrop, text_ctrl, group, button, text_input, grow, ICON_SAVE, checkbox_theme, table_surface, flat_button
+from build_helpers import popup_head, tap_backdrop, text_ctrl, group, button, text_input, grow, ICON_SAVE, checkbox_theme, table_surface, flat_button
 from design_tokens import ref_hex
 
 MUT_HEX = ref_hex("text-muted")
@@ -114,21 +114,20 @@ CLEAR_ALL_VISIBLE = (
 
 # Galleriets raekkehoejde efter table_surface (TemplateSize 32 + padding 2).
 PICKER_ROW_H = 34
-# Popuppens faste dele paa desktop: padding 18+18, hoved 32, soegefelt 36,
-# info 18, kolonneoverskrift 22 + streg 1 + 2 x 4 gap, knapraekke 36 og
-# 4 x 12 gap mellem sektionerne = 237. Plus 32 luft over og under.
-PICKER_FIXED_H = 237
+# Popuppens faste dele paa desktop: padding 18+18, hoved 44 (titel og X,
+# issue #343), soegefelt 36, info 18, kolonneoverskrift 22 + streg 1 +
+# 2 x 4 gap, knapraekke 36 og 4 x 12 gap mellem sektionerne = 249. Plus
+# 32 luft over og under.
+PICKER_FIXED_H = 249
 PICKER_EDGE = 32
 
 
 def build_tasklist_picker_modal():
     title = text_ctrl("txtVhpPickerTitle", "\"Select task list lines\"", size=lay.SIZE_CARD_TITLE, weight="Semibold", height=24,
                       wrap="false")
-    btnClose = button(
-        "btnVhpPickerClose", "\"Close\"",
-        "Set(varVhpTasklistPickerOpen, false); Clear(colVhpPickerSelected)", width=80, height=32)
-    headRow = group("conVhpPickerHeadRow", [title, btnClose], direction="Horizontal", gap=12, height=32,
-                    justify="SpaceBetween", align_items="Center")
+    # X oeverst til hoejre (issue #343): lukker og glemmer de valgte linjer.
+    headRow = popup_head("conVhpPickerHeadRow", title, "btnVhpPickerClose",
+                         "Set(varVhpTasklistPickerOpen, false); Clear(colVhpPickerSelected)")
 
     txtSearch = text_input("inpVhpPickerSearch", "\"\"", placeholder="\"Search operation no, text, work center\"",
                             height=36, label="\"Search operations\"")
@@ -356,14 +355,14 @@ def build_longtext_modal():
                       'If(varVhpLongTextTarget = "item", "Long text - item " & Text(varVhpLongTextItemId), '
                       '"Long text - operation " & varVhpLongTextOpNo)',
                       size=lay.SIZE_CARD_TITLE, weight="Semibold", height=26, wrap="false")
-    btnCancel = button("btnVhpLongTextCancel", '"Close"',
-                       "Set(varVhpLongTextOpen, false)", width=90, height=32)
-    headRow = group("conVhpLongTextHeadRow", [title, btnCancel], direction="Horizontal",
-                    gap=12, height=32, justify="SpaceBetween", align_items="Center")
+    # X oeverst til hoejre (issue #343) lukker uden at gemme - Save text
+    # i bunden er uaendret. Navnet er det gamle.
+    headRow = popup_head("conVhpLongTextHeadRow", title, "btnVhpLongTextCancel",
+                         "Set(varVhpLongTextOpen, false)")
 
     box = text_input("inpVhpLongTextBox", "varVhpLongTextDraft",
                      placeholder='"Instructions for this operation"',
-                     width="Parent.Width", height="Min(260, Max(120, App.Height - 168))",
+                     width="Parent.Width", height="Min(260, Max(120, App.Height - 180))",
                      ttype="Multiline", label="\"Long text\"")
 
     # Gemmer paa knappen, ikke paa hvert tastetryk. Et OnChange pr. tegn ville

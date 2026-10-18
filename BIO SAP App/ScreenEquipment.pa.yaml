@@ -4391,7 +4391,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =68 + 14 + (Min(0 + (160 + Max(attEqPicker.AttachmentsCount, CountRows(varEqAttRow.Attachments)) * 44) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varEqAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 32 - 14))
+                =80 + 14 + (Min(0 + (160 + Max(attEqPicker.AttachmentsCount, CountRows(varEqAttRow.Attachments)) * 44) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varEqAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 44 - 14))
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -4440,7 +4440,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =32
+                      =44
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Center
                   LayoutDirection: |-
@@ -4492,56 +4492,58 @@ Screens:
                         Text: |-
                             ="Documents · " & Coalesce(LookUp(colEqRows, RowId = varEqDocsId).ItemKey, "")
                         Width: |-
-                            =Max(0, (((Min(760, App.Width - 32)) - 18 - 18)) - ((84) + 12) - 2)
+                            =Max(0, (((Min(760, App.Width - 32)) - 18 - 18)) - ((44) + 12) - 2)
                         Wrap: |-
                             =false
                   - btnEqAttClose:
-                      Control: ModernButton
+                      Control: Image
                       Properties:
                         AccessibleLabel: |-
                             ="Close"
-                        Align: |-
-                            =Align.Center
                         AlignInContainer: |-
-                            =AlignInContainer.Center
-                        Appearance: |-
-                            =ButtonAppearance.Outline
+                            =AlignInContainer.Start
                         BorderColor: |-
-                            =C.'border-input'
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
                         BorderThickness: |-
-                            =1
-                        Color: |-
-                            =C.'text-primary'
+                            =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
                         DisplayMode: |-
                             =If(IfError(Coalesce(varEqAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
                         Height: |-
-                            =32
-                        Layout: |-
-                            =ButtonLayout.TextOnly
+                            =44
+                        HoverFill: |-
+                            =If((If(IfError(Coalesce(varEqAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-hover', RGBA(0, 0, 0, 0))
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl(If((If(IfError(Coalesce(varEqAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' opacity='0.45'><path d='M6 6l12 12M18 6L6 18'/></g></svg>"))
+                        ImagePosition: |-
+                            =ImagePosition.Center
+                        LayoutMinWidth: |-
+                            =44
                         OnSelect: |-
                             =Set(varEqDocsId, Blank());
                             Reset(attEqPicker);
                             Set(varEqAttRow, Blank())
+                        PressedFill: |-
+                            =If((If(IfError(Coalesce(varEqAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, C.'row-pressed', RGBA(0, 0, 0, 0))
                         RadiusBottomLeft: |-
-                            =R.input
+                            =6
                         RadiusBottomRight: |-
-                            =R.input
+                            =6
                         RadiusTopLeft: |-
-                            =R.input
+                            =6
                         RadiusTopRight: |-
-                            =R.input
-                        Size: |-
-                            =T.input
-                        Text: |-
+                            =6
+                        TabIndex: |-
+                            =If((If(IfError(Coalesce(varEqAttBusy, false), false), DisplayMode.Disabled, DisplayMode.Edit)) <> DisplayMode.Disabled, 0, -1)
+                        Tooltip: |-
                             ="Close"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
                         Width: |-
-                            =84
+                            =44
             - conEqAttBody:
                 Control: GroupContainer
                 Variant: AutoLayout
@@ -4553,7 +4555,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =Min(0 + (160 + Max(attEqPicker.AttachmentsCount, CountRows(varEqAttRow.Attachments)) * 44) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varEqAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 32 - 14)
+                      =Min(0 + (160 + Max(attEqPicker.AttachmentsCount, CountRows(varEqAttRow.Attachments)) * 44) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0) + If((!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (36), 0) + If(IfError(Coalesce(varEqAttBusy, false), false), 12 + (18), 0) + If(!IsBlank(varEqDocsId) && !(!IsBlank(varEqDocsId) && !IfError(varEqViewOnly, false) && LookUp(colEqRows, RowId = varEqDocsId).Status <> "submitted"), 12 + (18), 0), App.Height - 40 - 36 - 44 - 14)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -5437,7 +5439,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =242 + 12 + (0 + (20 + 6 + (H.control)) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354))))))
+                      =254 + 12 + (0 + (20 + 6 + (H.control)) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 366))))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -5480,7 +5482,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =32
+                            =44
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Center
                         LayoutDirection: |-
@@ -5532,52 +5534,54 @@ Screens:
                               Text: |-
                                   ="Message SAP maintenance"
                               Width: |-
-                                  =Max(0, (((Min(560, App.Width - 40)) - 18 - 18)) - ((90) + 12) - 2)
+                                  =Max(0, (((Min(560, App.Width - 40)) - 18 - 18)) - ((44) + 12) - 2)
                               Wrap: |-
                                   =false
                         - btnEqFbClose:
-                            Control: ModernButton
+                            Control: Image
                             Properties:
                               AccessibleLabel: |-
                                   ="Close"
-                              Align: |-
-                                  =Align.Center
                               AlignInContainer: |-
-                                  =AlignInContainer.Center
-                              Appearance: |-
-                                  =ButtonAppearance.Outline
+                                  =AlignInContainer.Start
                               BorderColor: |-
-                                  =C.'border-input'
+                                  =RGBA(0, 0, 0, 0)
+                              BorderStyle: |-
+                                  =BorderStyle.None
                               BorderThickness: |-
-                                  =1
-                              Color: |-
-                                  =C.'text-primary'
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
+                                  =0
+                              DisabledFill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
                               Height: |-
-                                  =32
-                              Layout: |-
-                                  =ButtonLayout.TextOnly
+                                  =44
+                              HoverFill: |-
+                                  =C.'row-hover'
+                              Image: |-
+                                  ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>")
+                              ImagePosition: |-
+                                  =ImagePosition.Center
+                              LayoutMinWidth: |-
+                                  =44
                               OnSelect: |-
                                   =Set(gblFbOpen, false); Set(gblFbSel, Blank()); Set(gblFbPick, false); Reset(inpEqFbSubjectFind); Reset(inpEqFbMessage)
+                              PressedFill: |-
+                                  =C.'row-pressed'
                               RadiusBottomLeft: |-
-                                  =R.input
+                                  =6
                               RadiusBottomRight: |-
-                                  =R.input
+                                  =6
                               RadiusTopLeft: |-
-                                  =R.input
+                                  =6
                               RadiusTopRight: |-
-                                  =R.input
-                              Size: |-
-                                  =T.input
-                              Text: |-
+                                  =6
+                              TabIndex: |-
+                                  =0
+                              Tooltip: |-
                                   ="Close"
-                              VerticalAlign: |-
-                                  =VerticalAlign.Middle
                               Width: |-
-                                  =90
+                                  =44
                   - txtEqFbIntro:
                       Control: ModernText
                       Properties:
@@ -5837,7 +5841,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =0 + (20 + 6 + (H.control)) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354)))))
+                            =0 + (20 + 6 + (H.control)) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 366)))))
                         LayoutMinWidth: |-
                             =0
                         Width: |-
@@ -5852,7 +5856,7 @@ Screens:
                               DropShadow: |-
                                   =DropShadow.None
                               Height: |-
-                                  =0 + (20 + 6 + (H.control)) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354)))))
+                                  =0 + (20 + 6 + (H.control)) + 12 + (20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 366)))))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -6087,7 +6091,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354))))
+                                        =20 + 6 + (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 366))))
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
@@ -6160,7 +6164,7 @@ Screens:
                                           Font: |-
                                               =Font.'Segoe UI'
                                           Height: |-
-                                              =If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354)))
+                                              =If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 366)))
                                           LayoutMinWidth: |-
                                               =0
                                           MaxLength: |-
@@ -6196,7 +6200,7 @@ Screens:
                               Fill: |-
                                   =C.'bg-modal'
                               Height: |-
-                                  =12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(Min(galEqFbSubject.AllItemsCount, 7) * 36, (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354)))) + 34 - 12 - If(CountRows(colFbRequests) > 6, 42, 0)))
+                                  =12 + If(CountRows(colFbRequests) > 6, 0 + (42), 0) + (Min(Min(galEqFbSubject.AllItemsCount, 7) * 36, (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 366)))) + 34 - 12 - If(CountRows(colFbRequests) > 6, 42, 0)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -6325,7 +6329,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =Min(Min(galEqFbSubject.AllItemsCount, 7) * 36, (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 354)))) + 34 - 12 - If(CountRows(colFbRequests) > 6, 42, 0))
+                                        =Min(Min(galEqFbSubject.AllItemsCount, 7) * 36, (If(LayoutRank < 2, 220, Max(160, Min(272, App.Height - 40 - 366)))) + 34 - 12 - If(CountRows(colFbRequests) > 6, 42, 0))
                                     Items: |-
                                         =With({q: Trim(inpEqFbSubjectFind.Text)},
                                             With({
@@ -11340,7 +11344,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =116 + 12 + (Min(152 + (If(LayoutRank < 2, 132, 80)) + If(!IsEmpty(colEqPaste), 12 + (If(LayoutRank >= 3, Min(CountRows(colEqPaste), 6), CountRows(colEqPaste)) * 26), 0), App.Height - 152))
+                =128 + 12 + (Min(152 + (If(LayoutRank < 2, 132, 80)) + If(!IsEmpty(colEqPaste), 12 + (If(LayoutRank >= 3, Min(CountRows(colEqPaste), 6), CountRows(colEqPaste)) * 26), 0), App.Height - 164))
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -11389,7 +11393,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =32
+                      =44
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Center
                   LayoutDirection: |-
@@ -11441,52 +11445,54 @@ Screens:
                         Text: |-
                             ="Paste rows"
                         Width: |-
-                            =Max(0, (((Min(640, App.Width - 24)) - 18 - 18)) - ((90) + 12) - 2)
+                            =Max(0, (((Min(640, App.Width - 24)) - 18 - 18)) - ((44) + 12) - 2)
                         Wrap: |-
                             =false
                   - btnEqPasteClose:
-                      Control: ModernButton
+                      Control: Image
                       Properties:
                         AccessibleLabel: |-
                             ="Close"
-                        Align: |-
-                            =Align.Center
                         AlignInContainer: |-
-                            =AlignInContainer.Center
-                        Appearance: |-
-                            =ButtonAppearance.Outline
+                            =AlignInContainer.Start
                         BorderColor: |-
-                            =C.'border-input'
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
                         BorderThickness: |-
-                            =1
-                        Color: |-
-                            =C.'text-primary'
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
+                            =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
                         Height: |-
-                            =32
-                        Layout: |-
-                            =ButtonLayout.TextOnly
+                            =44
+                        HoverFill: |-
+                            =C.'row-hover'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Center
+                        LayoutMinWidth: |-
+                            =44
                         OnSelect: |-
                             =Set(varEqPasteOpen, false)
+                        PressedFill: |-
+                            =C.'row-pressed'
                         RadiusBottomLeft: |-
-                            =R.input
+                            =6
                         RadiusBottomRight: |-
-                            =R.input
+                            =6
                         RadiusTopLeft: |-
-                            =R.input
+                            =6
                         RadiusTopRight: |-
-                            =R.input
-                        Size: |-
-                            =T.input
-                        Text: |-
+                            =6
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
                             ="Close"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
                         Width: |-
-                            =90
+                            =44
             - conEqPasteBody:
                 Control: GroupContainer
                 Variant: AutoLayout
@@ -11498,7 +11504,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =Min(152 + (If(LayoutRank < 2, 132, 80)) + If(!IsEmpty(colEqPaste), 12 + (If(LayoutRank >= 3, Min(CountRows(colEqPaste), 6), CountRows(colEqPaste)) * 26), 0), App.Height - 152)
+                      =Min(152 + (If(LayoutRank < 2, 132, 80)) + If(!IsEmpty(colEqPaste), 12 + (If(LayoutRank >= 3, Min(CountRows(colEqPaste), 6), CountRows(colEqPaste)) * 26), 0), App.Height - 164)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -11989,7 +11995,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =162
+                =180
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -12027,39 +12033,117 @@ Screens:
             Y: |-
                 =Max(20, (App.Height - Self.Height) / 3)
           Children:
-            - txtEqDelConfirmTitle:
-                Control: ModernText
+            - conEqDelConfirmHead:
+                Control: GroupContainer
+                Variant: AutoLayout
                 Properties:
-                  AccessibleLabel: |-
-                      ="Delete row?"
                   BorderStyle: |-
                       =BorderStyle.None
-                  BorderThickness: |-
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
                       =0
-                  Color: |-
-                      =C.'text-primary'
-                  Fill: |-
-                      =RGBA(0, 0, 0, 0)
-                  Font: |-
-                      =Font.'Segoe UI'
-                  FontWeight: |-
-                      =FontWeight.Semibold
                   Height: |-
-                      =26
-                  PaddingBottom: |-
+                      =44
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =12
+                  LayoutMinWidth: |-
                       =0
-                  PaddingLeft: |-
-                      =0
-                  PaddingRight: |-
-                      =0
-                  PaddingTop: |-
-                      =0
-                  Size: |-
-                      =T.cardTitle
-                  Text: |-
-                      ="Delete row?"
-                  Wrap: |-
-                      =false
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - txtEqDelConfirmTitle:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Delete row?"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =26
+                        LayoutMinWidth: |-
+                            =0
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.cardTitle
+                        Text: |-
+                            ="Delete row?"
+                        Width: |-
+                            =Max(0, (((Min(460, App.Width - 40)) - 18 - 18)) - ((44) + 12) - 2)
+                        Wrap: |-
+                            =false
+                  - btnEqDelConfirmCancel:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Height: |-
+                            =44
+                        HoverFill: |-
+                            =C.'row-hover'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Center
+                        LayoutMinWidth: |-
+                            =44
+                        OnSelect: |-
+                            =Set(varEqConfirmDelete, false)
+                        PressedFill: |-
+                            =C.'row-pressed'
+                        RadiusBottomLeft: |-
+                            =6
+                        RadiusBottomRight: |-
+                            =6
+                        RadiusTopLeft: |-
+                            =6
+                        RadiusTopRight: |-
+                            =6
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            ="Close"
+                        Width: |-
+                            =44
             - txtEqDelConfirmText:
                 Control: ModernText
                 Properties:
@@ -12120,49 +12204,6 @@ Screens:
                   Width: |-
                       =Parent.Width
                 Children:
-                  - btnEqDelConfirmCancel:
-                      Control: ModernButton
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Close"
-                        Align: |-
-                            =Align.Center
-                        AlignInContainer: |-
-                            =AlignInContainer.Center
-                        Appearance: |-
-                            =ButtonAppearance.Outline
-                        BorderColor: |-
-                            =C.'border-input'
-                        BorderThickness: |-
-                            =1
-                        Color: |-
-                            =C.'text-primary'
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
-                        Height: |-
-                            =36
-                        Layout: |-
-                            =ButtonLayout.TextOnly
-                        OnSelect: |-
-                            =Set(varEqConfirmDelete, false)
-                        RadiusBottomLeft: |-
-                            =R.input
-                        RadiusBottomRight: |-
-                            =R.input
-                        RadiusTopLeft: |-
-                            =R.input
-                        RadiusTopRight: |-
-                            =R.input
-                        Size: |-
-                            =T.input
-                        Text: |-
-                            ="Close"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
-                        Width: |-
-                            =77
                   - btnEqDeleteConfirm:
                       Control: ModernButton
                       Properties:
@@ -12406,7 +12447,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =162
+                =180
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -12444,39 +12485,117 @@ Screens:
             Y: |-
                 =Max(20, (App.Height - Self.Height) / 3)
           Children:
-            - txtEqConfirmTitle:
-                Control: ModernText
+            - conEqConfirmHead:
+                Control: GroupContainer
+                Variant: AutoLayout
                 Properties:
-                  AccessibleLabel: |-
-                      ="Submit request?"
                   BorderStyle: |-
                       =BorderStyle.None
-                  BorderThickness: |-
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
                       =0
-                  Color: |-
-                      =C.'text-primary'
-                  Fill: |-
-                      =RGBA(0, 0, 0, 0)
-                  Font: |-
-                      =Font.'Segoe UI'
-                  FontWeight: |-
-                      =FontWeight.Semibold
                   Height: |-
-                      =26
-                  PaddingBottom: |-
+                      =44
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =12
+                  LayoutMinWidth: |-
                       =0
-                  PaddingLeft: |-
-                      =0
-                  PaddingRight: |-
-                      =0
-                  PaddingTop: |-
-                      =0
-                  Size: |-
-                      =T.cardTitle
-                  Text: |-
-                      ="Submit request?"
-                  Wrap: |-
-                      =false
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - txtEqConfirmTitle:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Submit request?"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =26
+                        LayoutMinWidth: |-
+                            =0
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.cardTitle
+                        Text: |-
+                            ="Submit request?"
+                        Width: |-
+                            =Max(0, (((Min(460, App.Width - 40)) - 18 - 18)) - ((44) + 12) - 2)
+                        Wrap: |-
+                            =false
+                  - btnEqConfirmCancel:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Height: |-
+                            =44
+                        HoverFill: |-
+                            =C.'row-hover'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Center
+                        LayoutMinWidth: |-
+                            =44
+                        OnSelect: |-
+                            =Set(varEqConfirmSubmit, false)
+                        PressedFill: |-
+                            =C.'row-pressed'
+                        RadiusBottomLeft: |-
+                            =6
+                        RadiusBottomRight: |-
+                            =6
+                        RadiusTopLeft: |-
+                            =6
+                        RadiusTopRight: |-
+                            =6
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            ="Close"
+                        Width: |-
+                            =44
             - txtEqConfirmText:
                 Control: ModernText
                 Properties:
@@ -12537,49 +12656,6 @@ Screens:
                   Width: |-
                       =Parent.Width
                 Children:
-                  - btnEqConfirmCancel:
-                      Control: ModernButton
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Close"
-                        Align: |-
-                            =Align.Center
-                        AlignInContainer: |-
-                            =AlignInContainer.Center
-                        Appearance: |-
-                            =ButtonAppearance.Outline
-                        BorderColor: |-
-                            =C.'border-input'
-                        BorderThickness: |-
-                            =1
-                        Color: |-
-                            =C.'text-primary'
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
-                        Height: |-
-                            =36
-                        Layout: |-
-                            =ButtonLayout.TextOnly
-                        OnSelect: |-
-                            =Set(varEqConfirmSubmit, false)
-                        RadiusBottomLeft: |-
-                            =R.input
-                        RadiusBottomRight: |-
-                            =R.input
-                        RadiusTopLeft: |-
-                            =R.input
-                        RadiusTopRight: |-
-                            =R.input
-                        Size: |-
-                            =T.input
-                        Text: |-
-                            ="Close"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
-                        Width: |-
-                            =77
                   - btnEqSubmitConfirm:
                       Control: ModernButton
                       Properties:
@@ -12862,7 +12938,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =162
+                =180
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -12900,39 +12976,117 @@ Screens:
             Y: |-
                 =Max(20, (App.Height - Self.Height) / 3)
           Children:
-            - txtEqReqDelConfirmTitle:
-                Control: ModernText
+            - conEqReqDelConfirmHead:
+                Control: GroupContainer
+                Variant: AutoLayout
                 Properties:
-                  AccessibleLabel: |-
-                      ="Delete request"
                   BorderStyle: |-
                       =BorderStyle.None
-                  BorderThickness: |-
+                  DropShadow: |-
+                      =DropShadow.None
+                  FillPortions: |-
                       =0
-                  Color: |-
-                      =C.'text-primary'
-                  Fill: |-
-                      =RGBA(0, 0, 0, 0)
-                  Font: |-
-                      =Font.'Segoe UI'
-                  FontWeight: |-
-                      =FontWeight.Semibold
                   Height: |-
-                      =26
-                  PaddingBottom: |-
+                      =44
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Center
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =12
+                  LayoutMinWidth: |-
                       =0
-                  PaddingLeft: |-
-                      =0
-                  PaddingRight: |-
-                      =0
-                  PaddingTop: |-
-                      =0
-                  Size: |-
-                      =T.cardTitle
-                  Text: |-
-                      ="Delete request"
-                  Wrap: |-
-                      =false
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
+                Children:
+                  - txtEqReqDelConfirmTitle:
+                      Control: ModernText
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Delete request"
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        Color: |-
+                            =C.'text-primary'
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        FillPortions: |-
+                            =0
+                        Font: |-
+                            =Font.'Segoe UI'
+                        FontWeight: |-
+                            =FontWeight.Semibold
+                        Height: |-
+                            =26
+                        LayoutMinWidth: |-
+                            =0
+                        PaddingBottom: |-
+                            =0
+                        PaddingLeft: |-
+                            =0
+                        PaddingRight: |-
+                            =0
+                        PaddingTop: |-
+                            =0
+                        Size: |-
+                            =T.cardTitle
+                        Text: |-
+                            ="Delete request"
+                        Width: |-
+                            =Max(0, (((Min(460, App.Width - 40)) - 18 - 18)) - ((44) + 12) - 2)
+                        Wrap: |-
+                            =false
+                  - btnEqReqDelConfirmCancel:
+                      Control: Image
+                      Properties:
+                        AccessibleLabel: |-
+                            ="Close"
+                        AlignInContainer: |-
+                            =AlignInContainer.Start
+                        BorderColor: |-
+                            =RGBA(0, 0, 0, 0)
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        BorderThickness: |-
+                            =0
+                        DisabledFill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Fill: |-
+                            =RGBA(0, 0, 0, 0)
+                        Height: |-
+                            =44
+                        HoverFill: |-
+                            =C.'row-hover'
+                        Image: |-
+                            ="data:image/svg+xml;utf8," & EncodeUrl("<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'><g transform='translate(12 12) scale(0.833333)' fill='none' stroke='" & C.'hex-text-primary' & "' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 6l12 12M18 6L6 18'/></g></svg>")
+                        ImagePosition: |-
+                            =ImagePosition.Center
+                        LayoutMinWidth: |-
+                            =44
+                        OnSelect: |-
+                            =Set(varEqDeleteOpen, false)
+                        PressedFill: |-
+                            =C.'row-pressed'
+                        RadiusBottomLeft: |-
+                            =6
+                        RadiusBottomRight: |-
+                            =6
+                        RadiusTopLeft: |-
+                            =6
+                        RadiusTopRight: |-
+                            =6
+                        TabIndex: |-
+                            =0
+                        Tooltip: |-
+                            ="Close"
+                        Width: |-
+                            =44
             - txtEqReqDelConfirmText:
                 Control: ModernText
                 Properties:
@@ -12993,49 +13147,6 @@ Screens:
                   Width: |-
                       =Parent.Width
                 Children:
-                  - btnEqReqDelConfirmCancel:
-                      Control: ModernButton
-                      Properties:
-                        AccessibleLabel: |-
-                            ="Close"
-                        Align: |-
-                            =Align.Center
-                        AlignInContainer: |-
-                            =AlignInContainer.Center
-                        Appearance: |-
-                            =ButtonAppearance.Outline
-                        BorderColor: |-
-                            =C.'border-input'
-                        BorderThickness: |-
-                            =1
-                        Color: |-
-                            =C.'text-primary'
-                        Font: |-
-                            =Font.'Segoe UI'
-                        FontWeight: |-
-                            =FontWeight.Semibold
-                        Height: |-
-                            =36
-                        Layout: |-
-                            =ButtonLayout.TextOnly
-                        OnSelect: |-
-                            =Set(varEqDeleteOpen, false)
-                        RadiusBottomLeft: |-
-                            =R.input
-                        RadiusBottomRight: |-
-                            =R.input
-                        RadiusTopLeft: |-
-                            =R.input
-                        RadiusTopRight: |-
-                            =R.input
-                        Size: |-
-                            =T.input
-                        Text: |-
-                            ="Close"
-                        VerticalAlign: |-
-                            =VerticalAlign.Middle
-                        Width: |-
-                            =77
                   - btnEqReqDelConfirm:
                       Control: ModernButton
                       Properties:

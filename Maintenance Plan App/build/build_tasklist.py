@@ -7,7 +7,7 @@ from gen_screen import (Ctrl, C_CARD_BG, C_CARD_BORDER, C_TITLE, C_MUTED,
                         C_INVALID_FG, C_DIVIDER, C_TRANSPARENT, SHELL_W)
 import layout_tokens as lay
 import icons
-from build_helpers import (ensure_hit, empty_state, checkbox_theme, table_surface, flow_row, text_ctrl,
+from build_helpers import (ensure_hit, popup_head, empty_state, checkbox_theme, table_surface, flow_row, text_ctrl,
                            group, button, text_input, number_field, num_value, themed_dropdown,
                            field_cell, card, pin_widths, grow, row_hit,
                            fit_button_width, fit_button_row, ICON_W, ICON_SAVE, flow_ok, mark_done,
@@ -397,23 +397,26 @@ def _mat_header_html():
             f"font-weight:600;white-space:nowrap;'>{spans}</div>\"")
 
 
-def _modal(name, title, open_var, close_fx, kids, width=620, scroll=False, cap=False):
+# Popuppens hoved: titel og X (icon_button, 44) - build_helpers.popup_head.
+HEAD_H = lay.HIT_TOUCH
+
+
+def _modal(name, title, open_var, close_fx, kids, width=620, scroll=False, cap=False,
+           close_mode=None):
     """En popup i appens moenster (som tasklist-pickeren): centreret,
-    sloer bag (build_modal.build_modal_backdrop), titel og luk-knap.
-    scroll: titel og Close staar fast, indholdet scroller."""
-    t = grow(text_ctrl(f"txt{name}Title", title, size=lay.SIZE_CARD_TITLE, weight="Semibold", height=26,
-                       wrap="false"))
-    close = button(f"btn{name}Close", '"Close"', close_fx,
-                   width=fit_button_width('"Close"'), height=32)
-    head = group(f"con{name}HeadRow", [t, close], direction="Horizontal", gap=12,
-                 height=32, align_items="Center")
+    sloer bag (build_modal.build_modal_backdrop), titel og X oeverst til
+    hoejre (issue #343). scroll: titel og X staar fast, indholdet scroller.
+    close_mode: X'ets DisplayMode (fx slukket midt i en gemning)."""
+    t = text_ctrl(f"txt{name}Title", title, size=lay.SIZE_CARD_TITLE, weight="Semibold", height=26,
+                  wrap="false")
+    head = popup_head(f"con{name}HeadRow", t, f"btn{name}Close", close_fx, mode=close_mode)
     if scroll:
-        body_h = "Max(200, App.Height - 150)"
+        body_h = f"Max(200, App.Height - {150 + HEAD_H - 32})"
         body = group(f"con{name}Body", kids, direction="Vertical", gap=8, height=body_h,
                      overflow_y="Scroll")
         kids = [body]
     elif cap:
-        kids = [du.capped_body(f"con{name}Body", kids, "App.Height - 40 - 36 - 32 - 12", gap=8)]
+        kids = [du.capped_body(f"con{name}Body", kids, f"App.Height - 40 - 36 - {HEAD_H} - 12", gap=8)]
     modal = group(f"con{name}Modal", [head] + kids, direction="Vertical", gap=12,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
                   pad=(18, 18, 18, 18), width=f"Min({width}, App.Width - 40)",
@@ -592,19 +595,16 @@ def _attachments_modal():
     ro = du.readonly_note("txtVhpAttReadOnly", f"!{edit}")
 
     # Popuppen: 20 + 20 luft til skaermkanten, 18 + 18 polstring, hovedet
-    # (32) og afstanden (12) - resten er indholdet.
+    # (HEAD_H) og afstanden (12) - resten er indholdet.
     body = du.capped_body("conVhpAttBody",
                           [pick, limits, not_saved, actions, status, ro],
-                          "App.Height - 40 - 36 - 32 - 12")
+                          f"App.Height - 40 - 36 - {HEAD_H} - 12")
     # Kontrollen fylder den plads, popuppen har tilbage (issue #344).
     du.fit_picker(pick, body.children, 12)
-    modal = _modal("VhpAtt", '"Documents · Operation " & varVhpAttOpNo', ATT_OPEN,
-                   ATT_CLOSE, [body])
-    # Close er den eneste vej ud - men ikke midt i en gemning.
-    for c in modal.children[0].children:
-        if c.name == "btnVhpAttClose":
-            c.props["DisplayMode"] = f"If({att.busy}, DisplayMode.Disabled, DisplayMode.Edit)"
-    return modal
+    # X er den eneste vej ud - men ikke midt i en gemning.
+    return _modal("VhpAtt", '"Documents · Operation " & varVhpAttOpNo', ATT_OPEN,
+                  ATT_CLOSE, [body],
+                  close_mode=f"If({att.busy}, DisplayMode.Disabled, DisplayMode.Edit)")
 
 
 # ---------------------------------------------------------------------------
