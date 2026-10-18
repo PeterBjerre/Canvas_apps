@@ -27,26 +27,29 @@ def test_department_is_gone_from_the_hub():
     assert '"Dept."' not in y
 
 
-def test_segment_says_all_requests_and_keeps_the_queue_logic():
-    b = _block("conMdFltViewDept")
-    text = _prop(b, "Text")
-    assert '"All requests"' in text
-    assert '"All")' in text or '"All",' in text      # kort trin paa smal tablet
-    assert 'varMdView = "queue"' in _prop(b, "Appearance")
-    assert 'Set(varMdView, "queue")' in _prop(b, "OnSelect")
-    assert '"View: All requests"' in _prop(b, "AccessibleLabel")
-    # "My requests" er uaendret.
-    assert '"My requests"' in _prop(_block("conMdFltViewMine"), "Text")
+def test_tab_says_all_requests_and_keeps_the_queue_logic():
+    """Issue #303: My requests | All requests er faner (ModernTabList), men
+    vaerdien bag "All requests" er stadig varMdView = "queue"."""
+    b = _block("tabMdFltView")
+    assert "Control: ModernTabList@1.0.0" in b
+    items = _prop(b, "Items")
+    assert '"All requests"' in items and '"My requests"' in items
+    assert '"All")' in items or '"All",' in items      # kort trin paa smal tablet
+    on = b[b.index("OnChange:"):]
+    assert '"All requests", "queue"' in on and '"My requests", "mine"' in on
+    assert "Set(varMdView, k)" in on and 'Set(varMdDomain, "")' in on
+    assert _prop(b, "Default").startswith('Switch(varMdView, "mine", ')
 
 
-def test_all_requests_segment_is_at_least_as_wide_as_my_requests():
-    def widths(name):
-        return [int(n) for n in re.findall(r", (\d+)[,)]", _prop(_block(name), "Width"))]
-    mine, alls = widths("conMdFltViewMine"), widths("conMdFltViewDept")
-    # fuld og kompakt: "All requests" er en anelse bredere end "My requests".
-    assert alls[0] >= mine[0] and alls[1] >= mine[1]
+def test_all_requests_tab_list_shrinks_with_the_filter_row():
+    w = _prop(_block("tabMdFltView"), "Width")
+    widths = [int(n) for n in re.findall(r"PanelInset\)\) >= \d+, (\d+)", w)]
+    widths.append(int(re.search(r", (\d+)\)$", w).group(1)))
+    # fuld > kompakt > kort.
+    assert widths[0] > widths[1] > widths[2]
 
 
 def test_mobile_keeps_my_and_all():
-    assert _prop(_block("btnMdViewMineM"), "Text") == '"My"'
-    assert _prop(_block("btnMdViewAllM"), "Text") == '"All"'
+    b = _block("tabMdViewM")
+    assert "Control: ModernTabList@1.0.0" in b
+    assert _prop(b, "Items") == '["My", "All"]'
