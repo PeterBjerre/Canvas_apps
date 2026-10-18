@@ -214,7 +214,7 @@ Private Function ProcessOrder(ByVal path As String, ByVal root As String, _
     ' Allerede oprettet, men ikke flyttet (fx afbrudt lige efter planen)?
     If VhpUtil.JStr(status, "state") = "Created" Then
         On Error GoTo FinishFailed
-        FinishOrder root, path, status
+        FinishOrder root, path, status, planId, VhpUtil.JStr(order, "createdOn")
         On Error GoTo 0
         ProcessOrder = "OK:" & planId & VhpUtil.Dk(": var allerede oprettet som plan ") & VhpUtil.JStr(status, "sapPlanNo")
         Exit Function
@@ -297,7 +297,7 @@ Private Function ProcessOrder(ByVal path As String, ByVal root As String, _
     ' Planen ER oprettet. Kan kvitteringen ikke skrives, staar statusfilen
     ' paa Created, og naeste koersel proever kun kvitteringen igen.
     On Error GoTo FinishFailed
-    FinishOrder root, path, status
+    FinishOrder root, path, status, planId, VhpUtil.JStr(order, "createdOn")
     On Error GoTo 0
 
     ProcessOrder = "OK:" & planId & VhpUtil.Dk(": oprettet som plan ") & VhpUtil.JStr(status, "sapPlanNo") & _
@@ -662,15 +662,20 @@ Public Sub MergeStepWarnings(ByVal status As Object, ByVal ctx As Object)
     Set ctx("warnings") = New Collection
 End Sub
 
-' Kvitteringen til flowet, og ordren ud af "Til oprettelse".
-Private Sub FinishOrder(ByVal root As String, ByVal path As String, ByVal status As Object)
+' Kvitteringen til flowet, og ordren ud af "Til oprettelse" - sammen med
+' aeldre ordrer for samme plan (R2-056). En erstattet ordre, der blev
+' liggende, ville ellers staa som Klar, naar den nye var flyttet.
+Private Sub FinishOrder(ByVal root As String, ByVal path As String, ByVal status As Object, _
+                        ByVal planId As String, ByVal createdOn As String)
     VhpFiles.WriteJson VhpFiles.ReceiptPathFor(root, path), status
     VhpFiles.MoveToDone root, path
+    RetireOlderOrders root, path, planId, createdOn
 End Sub
 
-' AEldre ordrer for samme noegle (fx en FL-anmodning, der blev sendt retur og
-' indsendt igen) flyttes til Oprettet, naar den nyeste er gemt. Ellers ville
-' de staa i listen som Erstattet eller Delvist oprettet for altid.
+' AEldre ordrer for samme noegle (en FL-anmodning, der blev sendt retur og
+' indsendt igen, eller en VH-plan, der blev trukket tilbage og godkendt
+' igen) flyttes til Oprettet, naar den nyeste er gemt. Ellers ville de staa
+' i listen som Erstattet, Delvist oprettet - eller Klar - for altid.
 Public Sub RetireOlderOrders(ByVal root As String, ByVal path As String, ByVal key As String, _
                              ByVal createdOn As String)
     Dim other As Variant

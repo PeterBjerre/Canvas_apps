@@ -387,7 +387,9 @@ Med en DEV-plan, før opretteren bruges mod SAP:
 4. Opret planen i GQ1 (docs/34, afsnit 9). Inden for 10 minutter er planen
    *Published* med `SAPNum`. Hvert item har `SapItemNo`, `TaskListGroup` og
    `TaskListGroupCounter`, kvitteringen ligger i *Behandlet*, og rekvirenten
-   har fået mailen.
+   har fået mailen. Den gamle ordre fra punkt 3 er flyttet til *Oprettet*
+   sammen med den nye (R2-056), og listen i opretteren har ingen række for
+   planen længere.
 5. Kopiér kvitteringen fra *Behandlet* tilbage til *Kvitteringer*. Den havner
    i *Afvist*, fordi planen ikke længere er *Ready*, og der kommer en mail.
 

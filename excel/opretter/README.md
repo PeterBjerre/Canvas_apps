@@ -89,7 +89,7 @@ Det sidste spørgsmål kommer kun, mens *Bekræft hvert gem* står til *Ja* (ark
 | **Delvist oprettet** | Noget er oprettet, resten mangler. For FL: nogle rækker fejlede, de andre er gemt | Ret årsagen (står i *Besked* og under *Detaljer*) og tryk *Opret i SAP* igen. Det, der er gemt, springes over |
 | **Fejlede** | Intet blev oprettet | Ret årsagen og prøv igen |
 | **Kræver kontrol** | SAP svarede uklart efter et gem | Spørg den, der vedligeholder opretteren |
-| **Erstattet** | Der er kommet en nyere udgave af planen eller anmodningen | Ingenting. Den nyeste bruges |
+| **Erstattet** | Der er kommet en nyere udgave af planen eller anmodningen | Ingenting. Den nyeste bruges, og når den er oprettet, flyttes den gamle med til *Oprettet* |
 | **Oprettet …** | Færdig, men ikke flyttet endnu | Flyttes til *Oprettet* ved næste kørsel |
 | **Ugyldig fil** | Filen kan ikke læses | Spørg den, der vedligeholder opretteren |
 
