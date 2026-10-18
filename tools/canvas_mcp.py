@@ -36,6 +36,7 @@ import argparse
 import difflib
 import json
 import os
+import queue
 import re
 import shlex
 import shutil
@@ -114,7 +115,19 @@ class McpClient:
                 % " ".join(self.command))
         t = threading.Thread(target=self._drain_stderr, daemon=True)
         t.start()
+        # stdout laeses ogsaa i en traad (R2-067): readline() blokerer,
+        # indtil serveren skriver, saa en server, der haenger midt i et
+        # kald (mistet coauthoring-session, lukket Studio-fane), ramte
+        # aldrig --timeout. Fra koeen kan der ventes MED timeout.
+        self._q = queue.Queue()
+        t = threading.Thread(target=self._drain_stdout, daemon=True)
+        t.start()
         self._handshake()
+
+    def _drain_stdout(self):
+        for line in self.proc.stdout:
+            self._q.put(line)
+        self._q.put(None)    # serveren lukkede stdout
 
     def _drain_stderr(self):
         for line in self.proc.stderr:
@@ -148,15 +161,22 @@ class McpClient:
         self.proc.stdin.flush()
 
     def _read_message(self, deadline):
-        """Laeser een JSON-besked. Tomme linjer springes over."""
+        """Laeser een JSON-besked. Tomme linjer springes over.
+
+        Venter paa koeen fra _drain_stdout i hoejst et sekund ad gangen,
+        saa deadline og en doed server opdages, ogsaa naar serveren intet
+        skriver."""
         while True:
-            if self.proc.poll() is not None:
-                raise McpError("MCP-serveren stoppede.\n" + self.server_log())
-            if time.time() > deadline:
-                raise McpError("Timeout - serveren svarede ikke i tide.\n"
-                               + self.server_log())
-            line = self.proc.stdout.readline()
-            if line == "":
+            try:
+                line = self._q.get(timeout=max(0.1, min(1.0, deadline - time.time())))
+            except queue.Empty:
+                if self.proc.poll() is not None:
+                    raise McpError("MCP-serveren stoppede.\n" + self.server_log())
+                if time.time() > deadline:
+                    raise McpError("Timeout - serveren svarede ikke i tide.\n"
+                                   + self.server_log())
+                continue
+            if line is None:
                 raise McpError("MCP-serveren lukkede forbindelsen.\n"
                                + self.server_log())
             line = line.strip()
