@@ -1,6 +1,6 @@
 ﻿{
     "site":  "https://orsted.sharepoint.com/teams/BioSAPDev/",
-    "exportedOn":  "2026-10-18 15:24",
+    "exportedOn":  "2026-10-18 17:01",
     "includesData":  true,
     "skippedLists":  "FunctionalLocations",
     "lists":  [
@@ -1516,6 +1516,24 @@
                                          "readOnly":  false
                                      },
                                      {
+                                         "internalName":  "SapResult",
+                                         "displayName":  "SapResult",
+                                         "type":  "Text",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  false,
+                                         "description":  "Created (oprettet med IL01) eller Updated (fandtes, aendret med IL02)."
+                                     },
+                                     {
+                                         "internalName":  "SapMessage",
+                                         "displayName":  "SapMessage",
+                                         "type":  "Text",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  false,
+                                         "description":  "Statuslinjen i SAP efter Gem."
+                                     },
+                                     {
                                          "internalName":  "ID",
                                          "displayName":  "ID",
                                          "type":  "Counter",
@@ -1581,7 +1599,9 @@
                                                        "TrmAssignment",
                                                        "AbcIndic",
                                                        "SafetyCriticalEquipment",
-                                                       "RequesterEmail"
+                                                       "RequesterEmail",
+                                                       "SapResult",
+                                                       "SapMessage"
                                                    ]
                                     }
                                 ]
@@ -1697,6 +1717,42 @@
                                          "readOnly":  false
                                      },
                                      {
+                                         "internalName":  "SapOrderGuid",
+                                         "displayName":  "SapOrderGuid",
+                                         "type":  "Text",
+                                         "required":  false,
+                                         "indexed":  true,
+                                         "readOnly":  false,
+                                         "description":  "Ordren til SAP-oprettelsen, flowet sidst skrev. Kvitteringen skal baere den samme."
+                                     },
+                                     {
+                                         "internalName":  "SapOrderFile",
+                                         "displayName":  "SapOrderFile",
+                                         "type":  "Text",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  false,
+                                         "description":  "Navnet paa ordrefilen i SAP-oprettelse/Til oprettelse."
+                                     },
+                                     {
+                                         "internalName":  "SapCreatedOn",
+                                         "displayName":  "SapCreatedOn",
+                                         "type":  "DateTime",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  false,
+                                         "description":  "Hvornaar kvitteringen fra SAP Opretter blev laest."
+                                     },
+                                     {
+                                         "internalName":  "SapCreatedBy",
+                                         "displayName":  "SapCreatedBy",
+                                         "type":  "Text",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  false,
+                                         "description":  "Initialerne paa den, der oprettede FL i SAP."
+                                     },
+                                     {
                                          "internalName":  "ID",
                                          "displayName":  "ID",
                                          "type":  "Counter",
@@ -1758,7 +1814,11 @@
                                                        "IssueCount",
                                                        "WarningCount",
                                                        "SubmittedOn",
-                                                       "IndexItemId"
+                                                       "IndexItemId",
+                                                       "SapOrderGuid",
+                                                       "SapOrderFile",
+                                                       "SapCreatedOn",
+                                                       "SapCreatedBy"
                                                    ]
                                     }
                                 ]
@@ -4718,7 +4778,7 @@
                   },
                   {
                       "title":  "MD_ApprovalLog",
-                      "itemCount":  25,
+                      "itemCount":  29,
                       "fields":  [
                                      {
                                          "internalName":  "Title",
@@ -6551,7 +6611,7 @@
                   },
                   {
                       "title":  "MD_TasklistMaterial",
-                      "itemCount":  9,
+                      "itemCount":  10,
                       "fields":  [
                                      {
                                          "internalName":  "Title",
@@ -7555,11 +7615,19 @@
                   },
                   {
                       "title":  "SortFieldList",
-                      "itemCount":  28,
+                      "itemCount":  30,
                       "fields":  [
                                      {
                                          "internalName":  "Title",
                                          "displayName":  "Title",
+                                         "type":  "Text",
+                                         "required":  false,
+                                         "indexed":  false,
+                                         "readOnly":  false
+                                     },
+                                     {
+                                         "internalName":  "SortFieldDescription",
+                                         "displayName":  "SortFieldDescription",
                                          "type":  "Text",
                                          "required":  false,
                                          "indexed":  false,
@@ -7618,7 +7686,7 @@
                                         "defaultView":  true,
                                         "rowLimit":  30,
                                         "fields":  [
-
+                                                       "SortFieldDescription"
                                                    ]
                                     }
                                 ]

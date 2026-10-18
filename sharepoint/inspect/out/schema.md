@@ -1,6 +1,6 @@
 ﻿# SharePoint-lister bag VH-plan appen
 
-Udtrukket 2026-10-18 15:24 fra https://orsted.sharepoint.com/teams/BioSAPDev/
+Udtrukket 2026-10-18 17:01 fra https://orsted.sharepoint.com/teams/BioSAPDev/
 
 | Liste | Raekker | Kolonner |
 |---|---:|---:|
@@ -9,8 +9,8 @@ Udtrukket 2026-10-18 15:24 fra https://orsted.sharepoint.com/teams/BioSAPDev/
 | `AVV Standard Tasklist` | 37 | 43 |
 | `CallHorizonMatrix` | 16 | 10 |
 | `EquipmentItems` | 4 | 34 |
-| `FunctionalLocationItems` | 2 | 21 |
-| `FunctionalLocationRequests` | 2 | 17 |
+| `FunctionalLocationItems` | 2 | 23 |
+| `FunctionalLocationRequests` | 2 | 21 |
 | `HEV Standard Tasklist` | 30 | 42 |
 | `IB_AppSections` | 87 | 13 |
 | `IB_TicketComments` | 9 | 20 |
@@ -22,7 +22,7 @@ Udtrukket 2026-10-18 15:24 fra https://orsted.sharepoint.com/teams/BioSAPDev/
 | `MaintenancePlans` | 52 | 40 |
 | `MainWorkCenters` | 53 | 8 |
 | `MaterialItems` | 7 | 44 |
-| `MD_ApprovalLog` | 25 | 18 |
+| `MD_ApprovalLog` | 29 | 18 |
 | `MD_Approver` | 31 | 10 |
 | `MD_FLKey` | 6733 | 9 |
 | `MD_HelpText` | 51 | 11 |
@@ -34,11 +34,11 @@ Udtrukket 2026-10-18 15:24 fra https://orsted.sharepoint.com/teams/BioSAPDev/
 | `MD_Strategy` | 65 | 11 |
 | `MD_StrategyPackage` | 238 | 14 |
 | `MD_TasklistAttachment` | 1 | 13 |
-| `MD_TasklistMaterial` | 9 | 14 |
+| `MD_TasklistMaterial` | 10 | 14 |
 | `MeasuringPointItems` | 0 | 43 |
 | `PlantList` | 8 | 6 |
 | `SKV Standard Tasklist` | 31 | 42 |
-| `SortFieldList` | 28 | 6 |
+| `SortFieldList` | 30 | 7 |
 | `SSV Standard Tasklist` | 32 | 42 |
 | `StandardStrategyList` | 3 | 6 |
 | `StandardTaskList` | 3 | 12 |
@@ -234,6 +234,8 @@ Udtrukket 2026-10-18 15:24 fra https://orsted.sharepoint.com/teams/BioSAPDev/
 | `SafetyCriticalEquipment` | SafetyCriticalEquipment | Text |  | x |  |
 | `RequesterEmail` | RequesterEmail | Text |  | x |  |
 | `SpoolValuesJson` | SpoolValuesJson | Note |  |  |  |
+| `SapResult` | SapResult | Text |  |  |  |
+| `SapMessage` | SapMessage | Text |  |  |  |
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
@@ -256,6 +258,10 @@ Udtrukket 2026-10-18 15:24 fra https://orsted.sharepoint.com/teams/BioSAPDev/
 | `SubmittedOn` | SubmittedOn | DateTime |  |  |  |
 | `IndexItemId` | IndexItemId | Number |  |  |  |
 | `PayloadJson` | PayloadJson | Note |  |  |  |
+| `SapOrderGuid` | SapOrderGuid | Text |  | x |  |
+| `SapOrderFile` | SapOrderFile | Text |  |  |  |
+| `SapCreatedOn` | SapCreatedOn | DateTime |  |  |  |
+| `SapCreatedBy` | SapCreatedBy | Text |  |  |  |
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
@@ -605,7 +611,7 @@ Udtrukket 2026-10-18 15:24 fra https://orsted.sharepoint.com/teams/BioSAPDev/
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MD_ApprovalLog`  -  25 raekker
+## `MD_ApprovalLog`  -  29 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -838,7 +844,7 @@ Udtrukket 2026-10-18 15:24 fra https://orsted.sharepoint.com/teams/BioSAPDev/
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `MD_TasklistMaterial`  -  9 raekker
+## `MD_TasklistMaterial`  -  10 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
@@ -963,11 +969,12 @@ Udtrukket 2026-10-18 15:24 fra https://orsted.sharepoint.com/teams/BioSAPDev/
 | `Author` | **Created By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 | `Editor` | **Modified By** | User |  |  | opslag -> UserInfo (); skrivebeskyttet |
 
-## `SortFieldList`  -  28 raekker
+## `SortFieldList`  -  30 raekker
 
 | Internt navn | Visningsnavn | Type | Kraevet | Indeks | Noter |
 |---|---|---|:-:|:-:|---|
 | `Title` | Title | Text |  |  |  |
+| `SortFieldDescription` | SortFieldDescription | Text |  |  |  |
 | `ID` | ID | Counter |  |  | skrivebeskyttet |
 | `Modified` | Modified | DateTime |  |  | skrivebeskyttet |
 | `Created` | Created | DateTime |  |  | skrivebeskyttet |
