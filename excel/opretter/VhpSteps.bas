@@ -550,7 +550,17 @@ Public Function CreatePlan(ByVal sess As Object, ByVal order As Object, ByVal it
     VhpSap.SetText sess, IP01_SCHED_PERIOD, VhpUtil.JStr(hz, "period")
     VhpSap.SetText sess, IP01_SCHED_UNIT, VhpUtil.JStr(hz, "periodUnit")
     VhpSap.SetText sess, IP01_START_DATE, VhpMap.SapDate(VhpMap.StartDate(firstDue, cycle, unitText))
-    VhpSap.SelectItem sess, IP01_KEY_DATE
+    ' "Time - key date" kan SAP ikke ved cyklus i dage (DAY): den svarer med
+    ' dialogen "Key date scheduling not possible", som ellers blokerer resten
+    ' af skaermen (MP0142). Ved DAY beholdes SAP's standard (Time).
+    If UCase$(unitText) <> "DAY" Then
+        VhpSap.SelectItem sess, IP01_KEY_DATE
+        If VhpSap.HasPopup(sess) Then
+            AddStepWarning ctx, VhpUtil.JStr(plan, "planId") & VhpUtil.Dk(": SAP afviste 'Time - key date' (") & _
+                VhpSap.PopupText(sess) & VhpUtil.Dk("). Planen bruger SAP's standard.")
+            VhpSap.ClosePopups sess
+        End If
+    End If
 
     ' Sorteringsfeltet. sortField er SAP-noeglen (010, 020 ...) fra
     ' SortFieldList. Opslagets Id er IKKE noeglen: Id 10 er "Gas systems",
