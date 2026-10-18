@@ -138,7 +138,16 @@ nået til, står i en ny kolonne, `ApprovalStage`.
 | `In Progress` | `Quality` | Lokal ASM-leder | `UnderBehandling` | 3 |
 | `Ready for creation in SAP` | `Done` | Master Data | `KlarTilSAP` | 4 |
 | `Published` | `Done` | – | `OprettetISAP` | 5 |
-| **`Returned`** *(ny)* | *(tom)* | Rekvirenten | `AfventerInfo` | – |
+| **`Returned`** *(ny)* | *(tom)* | Rekvirenten | `AfventerInfo` | 3 |
+
+**Hvem skriver hvilken indeksstatus (R2-020).** Apperne skriver kun
+`Kladde` og `Indsendt` (`tools/request_index.py`, `DRAFT`/`SUBMITTED`).
+Alt andet skrives af flowene: `UnderBehandling`/`AfventerInfo` (trin 3),
+`KlarTilSAP` (trin 4) og `OprettetISAP` (trin 5, `IsOpen = false`). Gælder
+alle domæner – også Materials' og MP's systemgodkendelse: retur er
+`AfventerInfo`/3, godkendt er `KlarTilSAP`/4. Trinnet skal altid være
+`request_index.step(status)`; `tests/test_request_index_flows.py` tjekker
+hver `PatchItem` mod `MD_RequestIndex` i `solution/`.
 
 Hvorfor en ekstra kolonne og ikke flere statusværdier: Excel-makroen,
 hubben og den eksisterende mail kender allerede de fire værdier. Tre nye

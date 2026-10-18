@@ -303,9 +303,11 @@ def test_an_open_unit_is_logged_as_requested_so_progress_can_be_counted():
 
 def test_a_return_unlocks_the_rows_and_asks_the_requester():
     idx = {p["item/Status/Value"]: p for p in _patches(APPROVAL, "MD_RequestIndex")}
-    assert set(idx) == {"UnderBehandling", "Indsendt", "AfventerInfo"}
-    assert idx["AfventerInfo"]["item/StatusStep"] == 4
-    assert idx["Indsendt"]["item/StatusStep"] == 2
+    # R2-020: retur er trin 3 (Stuck-filteret fanger den), godkendt er
+    # KlarTilSAP/trin 4 som i MP-flowet - Indsendt skrives kun af apperne.
+    assert set(idx) == {"UnderBehandling", "KlarTilSAP", "AfventerInfo"}
+    assert idx["AfventerInfo"]["item/StatusStep"] == 3
+    assert idx["KlarTilSAP"]["item/StatusStep"] == 4
     for p in idx.values():
         assert p["item/LastActionBy"] == "System approval"
     rows, = _patches(APPROVAL, "MaterialItems")
