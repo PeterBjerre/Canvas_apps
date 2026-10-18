@@ -12228,23 +12228,23 @@ Screens:
                                                 AccessibleLabel: |-
                                                     ="Created material no."
                                                 Appearance: |-
-                                                    =If((If(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).Status, "") = "submitted" || IsAdmin, DisplayMode.Edit, DisplayMode.Disabled)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                                    =If((If((Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).Status, "") = "submitted" && (IsAdmin || Lower(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).RequesterEmail, "")) = varMatMe)), DisplayMode.Edit, DisplayMode.Disabled)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                                 BasePaletteColor: |-
                                                     =C.'color-brand-primary'
                                                 BorderColor: |-
-                                                    =If((If(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).Status, "") = "submitted" || IsAdmin, DisplayMode.Edit, DisplayMode.Disabled)) = DisplayMode.Edit, C.'border-input', C.'border-default')
+                                                    =If((If((Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).Status, "") = "submitted" && (IsAdmin || Lower(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).RequesterEmail, "")) = varMatMe)), DisplayMode.Edit, DisplayMode.Disabled)) = DisplayMode.Edit, C.'border-input', C.'border-default')
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
                                                     =1
                                                 Color: |-
-                                                    =If((If(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).Status, "") = "submitted" || IsAdmin, DisplayMode.Edit, DisplayMode.Disabled)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                                    =If((If((Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).Status, "") = "submitted" && (IsAdmin || Lower(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).RequesterEmail, "")) = varMatMe)), DisplayMode.Edit, DisplayMode.Disabled)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                                 Default: |-
                                                     =varMatDetCreatedNo
                                                 DisplayMode: |-
-                                                    =If((If(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).Status, "") = "submitted" || IsAdmin, DisplayMode.Edit, DisplayMode.Disabled)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If((If((Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).Status, "") = "submitted" && (IsAdmin || Lower(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).RequesterEmail, "")) = varMatMe)), DisplayMode.Edit, DisplayMode.Disabled)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
-                                                    =If(If(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).Status, "") = "submitted" || IsAdmin, DisplayMode.Edit, DisplayMode.Disabled) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                    =If(If((Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).Status, "") = "submitted" && (IsAdmin || Lower(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).RequesterEmail, "")) = varMatMe)), DisplayMode.Edit, DisplayMode.Disabled) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
@@ -12289,7 +12289,7 @@ Screens:
                                                 Color: |-
                                                     =C.'text-primary'
                                                 DisplayMode: |-
-                                                    =If(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).Status, "") = "submitted" || IsAdmin, DisplayMode.Edit, DisplayMode.Disabled)
+                                                    =If((Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).Status, "") = "submitted" && (IsAdmin || Lower(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).RequesterEmail, "")) = varMatMe)), DisplayMode.Edit, DisplayMode.Disabled)
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 FontWeight: |-
@@ -12301,12 +12301,31 @@ Screens:
                                                 LayoutMinWidth: |-
                                                     =127
                                                 OnSelect: |-
-                                                    =IfError(
+                                                    =If(
+                                                        !(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).Status, "") = "submitted" && (IsAdmin || Lower(Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).RequesterEmail, "")) = varMatMe)),
+                                                        Set(gblToast, { Text: "Only the requester and admins can fill in the material no.", Kind: "Warning", At: Now() }); true,
+                                                    
+                                                        IfError(
                                                         Patch(
                                                             MaterialItems,
                                                             LookUp(MaterialItems, ID = varMatActiveRowId),
                                                             { CreatedMaterialNo: Trim(Coalesce(varMatDetCreatedNo, "")) }
                                                         );
+                                                            IfError(
+                                                                Patch(MD_ApprovalLog, Defaults(MD_ApprovalLog), {
+                                                                    Title: Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).RequestNo, ""),
+                                                                    RequestGuid: varMatRequestGuid,
+                                                                    Stage: "Admin",
+                                                                    Decision: "AdminEdit",
+                                                                    Detail: Left("Created material no. for " & Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).ItemKey, "") & ": " & Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).CreatedMaterialNo, "(blank)") & " → " & Trim(Coalesce(varMatDetCreatedNo, "")), 255),
+                                                                    Comment: "Created material no. for " & Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).ItemKey, "") & ": " & Coalesce(LookUp(colMatRows, RowId = varMatActiveRowId).CreatedMaterialNo, "(blank)") & " → " & Trim(Coalesce(varMatDetCreatedNo, "")),
+                                                                    DecidedByEmail: Lower(User().Email),
+                                                                    DecidedOn: Now()
+                                                                });
+                                                                true,
+                                                                Set(gblToast, { Text: "The change was saved, but the admin log entry failed: " & FirstError.Message, Kind: "Warning", At: Now() });
+                                                                false
+                                                            );
                                                         If(
                                                             (!IsBlank(varMatRequestGuid) && !IsBlank(varMatIdx) && varMatIdx.RequestGuid = varMatRequestGuid && !(Lower(Coalesce(varMatIdx.RequesterEmail, "")) = varMatMe)),
                                                             ClearCollect(
@@ -12440,7 +12459,9 @@ Screens:
                                                             )
                                                         );
                                                         Set(gblToast, { Text: "Created material no. saved.", Kind: "Success", At: Now() }); true,
+                                                    
                                                         Set(gblToast, { Text: "Save failed: " & FirstError.Message, Kind: "Error", At: Now() }); true
+                                                        )
                                                     )
                                                 RadiusBottomLeft: |-
                                                     =R.input

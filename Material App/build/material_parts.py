@@ -739,20 +739,40 @@ DET_ROW = "LookUp(colDomRows, RowId = varDomActiveRowId)"
 # Naar ruden skifter raekke, skal feltet vise DEN raekkes nummer.
 DETAILS_SYNC = (f'Set({CREATED_VAR}, Coalesce({DET_ROW}.CreatedMaterialNo, ""));\n'
                 f"Reset({CREATED_IN})")
-CREATED_EDIT = (f'If(Coalesce({DET_ROW}.Status, "") = "submitted" || IsAdmin, '
-                "DisplayMode.Edit, DisplayMode.Disabled)")
+# HVEM MAA (R2-011): rekvirenten paa sin egen raekke og en admin - og kun
+# paa en indsendt raekke. Reglen staar baade i UI'et (CREATED_EDIT) og i
+# selve handlingen (_save_created_fx), og aendringen logges i
+# MD_ApprovalLog som andre admin-aendringer (tools/admin_log.py) - samme
+# moenster som Measuring Points mp_parts._save_mpno_fx.
+CREATED_MAY = (f'(Coalesce({DET_ROW}.Status, "") = "submitted" && '
+               f'({perm.IS_ADMIN} || {perm.is_owner(DET_ROW + ".RequesterEmail", "varDomMe")}))')
+CREATED_EDIT = f"If({CREATED_MAY}, DisplayMode.Edit, DisplayMode.Disabled)"
 
 
 def _save_created_fx():
+    new_no = f'Trim(Coalesce({CREATED_VAR}, ""))'
+    log = alog.write(
+        "varDomRequestGuid", f'Coalesce({DET_ROW}.RequestNo, "")', alog.EDIT,
+        f'"Created material no. for " & Coalesce({DET_ROW}.ItemKey, "") & '
+        f'": " & Coalesce({DET_ROW}.CreatedMaterialNo, "(blank)") & " '
+        f'{alog.ARROW} " & {new_no}', 8)
     return (
-        "IfError(\n"
+        "If(\n"
+        f"    !{CREATED_MAY},\n"
+        '    Notify("Only the requester and admins can fill in the material no.",\n'
+        "        NotificationType.Warning),\n"
+        "\n"
+        "    IfError(\n"
         f"    Patch(\n        {cfg.L_ROWS},\n"
         f"        LookUp({cfg.L_ROWS}, ID = varDomActiveRowId),\n"
-        f'        {{ CreatedMaterialNo: Trim(Coalesce({CREATED_VAR}, "")) }}\n'
+        f"        {{ CreatedMaterialNo: {new_no} }}\n"
         "    );\n"
+        + log + ";\n"
         + dp.refresh_rows_fx(4) + ";\n"
         '    Notify("Created material no. saved.", NotificationType.Success),\n'
+        "\n"
         '    Notify("Save failed: " & FirstError.Message, NotificationType.Error)\n'
+        "    )\n"
         ")"
     )
 
