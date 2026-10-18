@@ -209,6 +209,45 @@ Public Function Validate(ByVal order As Object, ByVal lk As Object) As Object
     Set Validate = ValidatePlan(order, lk)
 End Function
 
+' Kaldshorisont og planlaegningsperiode til IP01. Appens vaerdier fra planen
+' (callHorizon, schedulingPeriod) vinder - det er dem, godkenderen saa (R2-054).
+' Arket Opslag (tabellen Kaldshorisont) er reserven, naar planen ikke har dem.
+' Nothing = ingen kaldshorisont nogen steder. Felter: horizon, period,
+' periodUnit, source ("App" eller "Opslag").
+Public Function PlanHorizon(ByVal plan As Object, ByVal lk As Object, ByVal cycle As Double, _
+                            ByVal unitText As String) As Object
+    Dim opslag As Object
+    Dim rec As Object
+
+    Set opslag = VhpLookup.Horizon(lk, cycle, unitText)
+    If Not VhpUtil.JHas(plan, "callHorizon") Then
+        If Not opslag Is Nothing Then
+            If Not opslag.Exists("source") Then opslag.Add "source", "Opslag"
+        End If
+        Set PlanHorizon = opslag
+        Exit Function
+    End If
+
+    Set rec = VhpUtil.NewDict()
+    rec.Add "horizon", VhpMap.NumberKey(VhpUtil.JNum(plan, "callHorizon"))
+    If VhpUtil.JHas(plan, "schedulingPeriod") Then
+        rec.Add "period", VhpMap.NumberKey(VhpUtil.JNum(plan, "schedulingPeriod"))
+        If VhpUtil.JHas(plan, "schedulingPeriodUnit") Then
+            rec.Add "periodUnit", UCase$(VhpUtil.JStr(plan, "schedulingPeriodUnit"))
+        Else
+            rec.Add "periodUnit", "YR"
+        End If
+    ElseIf Not opslag Is Nothing Then
+        rec.Add "period", VhpUtil.JStr(opslag, "period")
+        rec.Add "periodUnit", VhpUtil.JStr(opslag, "periodUnit")
+    Else
+        rec.Add "period", ""
+        rec.Add "periodUnit", ""
+    End If
+    rec.Add "source", "App"
+    Set PlanHorizon = rec
+End Function
+
 Private Function ValidatePlan(ByVal order As Object, ByVal lk As Object) As Object
     Dim res As Object
     Dim plan As Object
@@ -284,11 +323,14 @@ Private Function ValidatePlan(ByVal order As Object, ByVal lk As Object) As Obje
     End If
 
     If cycle > 0 Then
-        Set hz = VhpLookup.Horizon(lk, cycle, unitText)
+        Set hz = PlanHorizon(plan, lk, cycle, unitText)
         If hz Is Nothing Then
             AddError res, VhpUtil.Dk("Kaldshorisont mangler for cyklus ") & VhpMap.NumberKey(cycle) & " " & unitText & _
-                VhpUtil.Dk(". Tilf{oe}j en r{ae}kke i Opslag (tabellen Kaldshorisont).")
-        ElseIf VhpUtil.JHas(plan, "schedulingPeriod") Then
+                VhpUtil.Dk(". Planen har ingen CallHorizon fra appen, og Opslag (tabellen Kaldshorisont) har ingen r{ae}kke.")
+        ElseIf Len(VhpUtil.JStr(hz, "period")) = 0 Then
+            AddError res, VhpUtil.Dk("Planl{ae}gningsperiode mangler for cyklus ") & VhpMap.NumberKey(cycle) & " " & unitText & _
+                VhpUtil.Dk(". Planen har ingen SchedulingPeriod fra appen, og Opslag har ingen r{ae}kke.")
+        ElseIf VhpUtil.JStr(hz, "source") = "Opslag" And VhpUtil.JHas(plan, "schedulingPeriod") Then
             If VhpMap.NumberKey(VhpUtil.JNum(plan, "schedulingPeriod")) <> Replace(VhpUtil.JStr(hz, "period"), ",", ".") Then
                 AddWarning res, VhpUtil.Dk("Appen har planl{ae}gningsperiode ") & VhpUtil.JStr(plan, "schedulingPeriod") & _
                     VhpUtil.Dk(", Opslag siger ") & VhpUtil.JStr(hz, "period") & " " & VhpUtil.JStr(hz, "periodUnit") & _
