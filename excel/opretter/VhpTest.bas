@@ -89,6 +89,14 @@ Public Function SelfTestPure() As String
     Check "SapNumber punktum", VhpMap.SapNumber(0.25, "."), "0.25"
     Check "LongestDigitRun", VhpMap.LongestDigitRun("Task list 50012345 saved, counter 1"), "50012345"
     Check "LongestDigitRun tom", VhpMap.LongestDigitRun("Ingen tal"), ""
+    Check "NumberFromStatus W", VhpMap.NumberFromStatus("W", "Start date 01.01.2026 is in the past", "", 3), ""
+    Check "NumberFromStatus W param", VhpMap.NumberFromStatus("W", "Maintenance plan 10001234 created", "10001234", 3), ""
+    Check "NumberFromStatus S param", VhpMap.NumberFromStatus("S", "Maintenance plan 10001234 created", "10001234", 3), "10001234"
+    Check "NumberFromStatus S fallback", VhpMap.NumberFromStatus("S", "Maintenance plan 10001234 created", "", 3), "10001234"
+    Check "NumberFromStatus S param foer dato", VhpMap.NumberFromStatus("S", "Plan 42 created, start 01.01.2026", "42", 2), "42"
+    Check "NumberFromStatus S param ikke tal", VhpMap.NumberFromStatus("S", "Task list 50012345 saved", "A", 4), "50012345"
+    Check "NumberFromStatus minDigits", VhpMap.NumberFromStatus("S", "Item 12 saved", "12", 3), ""
+    Check "NumberFromStatus E", VhpMap.NumberFromStatus("E", "Plan 10001234 locked", "10001234", 3), ""
 
     Set c = VhpMap.ObjectListEntries("SSV13 HFC10; SSV13 HFC20AT002;; SSV13 HFC10")
     Check "Objektliste ny app, antal", c.Count, 2

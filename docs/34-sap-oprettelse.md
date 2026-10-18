@@ -172,9 +172,11 @@ gamle scripts (`excel/src/Modules/GUI_Script.bas`, nu kun i git-historikken), sa
 - **PM02 får prisen og varegruppen fra appen.** Før blev feltet med timer
   ganget med 1000, og varegruppen var altid `B08.06`. Den er nu standarden i
   *Indstillinger*, når operationen ikke har én.
-- **Et nummer læses kun fra et svar, der siger succes** (`S`/`W` på
-  statuslinjen), og en dialog efter *Gem* giver `NeedsCheck` i stedet for et
-  gæt. Det gamle script kunne skrive et tal fra en fejlbesked som
+- **Et nummer læses kun fra et svar, der siger succes** (`S` på
+  statuslinjen), helst fra beskedens første parameter og ellers det længste
+  tal i teksten. En advarsel (`W`) eller en dialog efter *Gem* giver
+  `NeedsCheck` i stedet for et gæt, så et årstal fra en advarsel ikke bliver
+  planens nummer. Beskedens nøgle (fx `IP/032`) står i statusfilens log. Det gamle script kunne skrive et tal fra en fejlbesked som
   plannummer (docs/20).
 - **Valideringen sker før SAP.** Det gamle script opdagede en manglende
   kaldshorisont først ved planen, efter arbejdsplaner og positioner var

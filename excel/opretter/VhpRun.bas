@@ -249,7 +249,7 @@ Private Function ProcessOrder(ByVal path As String, ByVal root As String, _
             st("taskListType") = CStr(ctx("taskListType"))
             st("taskListGroup") = grp
             st("taskListCounter") = cnt
-            AddLog status, planId, VhpOrder.ItemLabel(item) & VhpUtil.Dk(": arbejdsplan ") & grp & "/" & cnt & " oprettet"
+            AddLog status, planId, VhpOrder.ItemLabel(item) & VhpUtil.Dk(": arbejdsplan ") & grp & "/" & cnt & " oprettet" & SapKeyNote(sess)
             SaveStatus status, statusPath
         End If
 
@@ -257,7 +257,7 @@ Private Function ProcessOrder(ByVal path As String, ByVal root As String, _
             Progress planId, VhpOrder.ItemLabel(item) & VhpUtil.Dk(": position (IP04)")
             itemNo = VhpSteps.CreateItem(sess, item, ctx, VhpUtil.JStr(st, "taskListGroup"), VhpUtil.JStr(st, "taskListCounter"))
             st("sapItemNo") = itemNo
-            AddLog status, planId, VhpOrder.ItemLabel(item) & VhpUtil.Dk(": position ") & itemNo & " oprettet"
+            AddLog status, planId, VhpOrder.ItemLabel(item) & VhpUtil.Dk(": position ") & itemNo & " oprettet" & SapKeyNote(sess)
             SaveStatus status, statusPath
         End If
 
@@ -278,7 +278,7 @@ Private Function ProcessOrder(ByVal path As String, ByVal root As String, _
         Progress planId, VhpUtil.Dk("plan (IP01)")
         planNo = VhpSteps.CreatePlan(sess, order, itemNos, ctx)
         status("sapPlanNo") = planNo
-        AddLog status, planId, VhpUtil.Dk("Plan ") & planNo & VhpUtil.Dk(" oprettet")
+        AddLog status, planId, VhpUtil.Dk("Plan ") & planNo & VhpUtil.Dk(" oprettet") & SapKeyNote(sess)
         SaveStatus status, statusPath
     End If
 
@@ -638,6 +638,14 @@ Public Sub AddLog(ByVal status As Object, ByVal planId As String, ByVal text As 
     Loop
     VhpUi.LogLine planId, text
 End Sub
+
+' " (SAP IP/032)" efter en logline: beskedens noegle paa statuslinjen efter
+' Gem, saa de rigtige noegler kendes efter foerste koersel (R2-004).
+Private Function SapKeyNote(ByVal sess As Object) As String
+    Dim key As String
+    key = VhpSap.StatusMsgKey(sess)
+    If Len(key) > 0 Then SapKeyNote = " (SAP " & key & ")"
+End Function
 
 Public Sub MergeStepWarnings(ByVal status As Object, ByVal ctx As Object)
     Dim w As Variant
