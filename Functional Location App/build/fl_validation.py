@@ -436,8 +436,7 @@ def verify_fx(panel_fx, after=None):
     det goer kun noget, naar raekkens klasse er skiftet (felterne er nogle
     andre). Foer regnede afsnit H panelets samling om med Manufacturer/
     Warranty-felterne efter HVER aendring - saa forsvandt alle andre felter
-    fra panelet, mens man skrev. after koerer til sidst - Class data-
-    popuppens Apply (fl_parts.CLS_AFTER_VERIFY, issue #184) og Submit
+    fra panelet, mens man skrev. after koerer til sidst - Submit
     (fl_save.submit_after_verify) laeser resultatet dér."""
     return ";\n\n".join([
         "// A. Dubletterne een gang (FL5)\n" + DUPS,

@@ -78,9 +78,8 @@ def on_visible():
 def build_screen(render=render_screen):
     """render: gen_screen.render_screen - eller BIO SAP App's opsamler."""
     # EEN spalte: Validation (raekkerne, issue #232), Classes og
-    # strukturen. Raekkens Class data, Manufacturer og Warranty aabner
-    # sidepanelet (build_row_panel, issue #278); Classes' Edit aabner Class
-    # data-popuppen (build_class_modal). Save
+    # strukturen. Raekkens Class data, Manufacturer og Warranty og Classes'
+    # Edit aabner sidepanelet (build_row_panel, issue #278, #346). Save
     # draft, Submit og New request staar i bjaelken (issue #77).
     bar = P.build_bar()
     # Save draft og Submit i en fast bjaelke nederst under Desktop (UX-review M8).
@@ -89,15 +88,13 @@ def build_screen(render=render_screen):
                           footer=sticky_actions("Fl", P.BAR_ACTIONS))
     # Sidebaren: skinnen efter rammen, det aabne panel efter den (tools/
     # side_nav.py). LAGENE ER RAEKKEFOELGEN - senere ligger oeverst:
-    # raekkens sidepanel, saa Class data-popuppen (issue #278: den laa under
-    # sidepanelet, som daekkede dens Apply), Paste rows og til sidst
-    # Submit-bekraeftelsen og ventespinneren. Popuppen er sit eget sloer
-    # med popuppen indeni (fl_parts.scrim_with_popup, issue #242).
+    # raekkens sidepanel, Paste rows og til sidst Submit-bekraeftelsen og
+    # ventespinneren. Class data-popuppen er fjernet (issue #346).
     nav, overlay = side_nav("Fl", "functionallocation")
     return render(cfg.SCREEN, {"Fill": C_APP_BG, "OnVisible": on_visible(),
                                "OnHidden": "Set(varFlPanelOpen, false)"},
                          [root, *nav, *overlay, *P.build_row_panel(),
-                          *P.build_class_modal(), *P.build_paste(),
+                          *P.build_paste(),
                           *P.build_submit_confirm()])
 
 
