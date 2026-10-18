@@ -38,6 +38,9 @@
     html/lookups.generated.js er aendret, og MD_FLKey.csv er genereret
     igen med: node tools/fl/harness.js seed
 
+.PARAMETER WhatIfOnly
+    Toerloeb: vis hvad der ville ske, aendr intet (R2-060).
+
 .EXAMPLE
     .\Provision-FunctionalLocationLists.ps1 -SiteUrl "https://contoso.sharepoint.com/sites/SAPMasterdata" -SeedMasterData
 
@@ -54,6 +57,7 @@ param(
     [Parameter(Mandatory = $true)][string] $SiteUrl,
     [switch] $SeedMasterData,
     [switch] $ReseedKeys,
+    [switch] $WhatIfOnly,
     [string] $ClientId = $env:PNP_CLIENT_ID
 )
 
@@ -62,6 +66,7 @@ $ErrorActionPreference = 'Stop'
 # Login og de faelles hjaelpefunktioner (REVIEW.md E8).
 Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
 Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId
+Set-MdWhatIf $WhatIfOnly
 
 # ---------------------------------------------------------------------------
 # Hjaelpefunktioner. New-MdList/New-MdField/New-MdNoteField staar i
@@ -73,6 +78,7 @@ Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId
 # datahentning tungere.
 function Remove-FromDefaultView {
     param([string]$List, [string]$Name)
+    if ($WhatIfOnly) { return }
     $view = Get-PnPView -List $List | Where-Object { $_.DefaultView } | Select-Object -First 1
     if ($view -and $view.ViewFields -contains $Name) {
         $view.ViewFields.Remove($Name); $view.Update(); Invoke-PnPQuery
@@ -108,7 +114,7 @@ New-MdField 'FunctionalLocationRequests' 'WarningCount'   Number
 New-MdField 'FunctionalLocationRequests' 'SubmittedOn'    DateTime
 New-MdField 'FunctionalLocationRequests' 'IndexItemId'    Number
 New-MdNoteField 'FunctionalLocationRequests' 'PayloadJson'
-Set-PnPField -List 'FunctionalLocationRequests' -Identity 'Title' -Values @{ Title = 'RequestNo'; Indexed = $true }
+Rename-MdTitle 'FunctionalLocationRequests' 'RequestNo'
 Remove-FromDefaultView 'FunctionalLocationRequests' 'PayloadJson'
 
 # ---------------------------------------------------------------------------
@@ -136,7 +142,7 @@ New-MdNoteField 'FunctionalLocationItems' 'SpoolValuesJson'
 # samlingen og listen, og det er den, der goer gem GENOPTAGELIGT: en raekke,
 # der blev oprettet foer en fejl, findes igen paa RowGuid og oprettes ikke
 # to gange. Se powerfx/04-submit-patch.fx.
-Set-PnPField -List 'FunctionalLocationItems' -Identity 'Title' -Values @{ Title = 'RowGuid'; Indexed = $true }
+Rename-MdTitle 'FunctionalLocationItems' 'RowGuid'
 Remove-FromDefaultView 'FunctionalLocationItems' 'SpoolValuesJson'
 
 # ---------------------------------------------------------------------------
@@ -149,7 +155,7 @@ New-MdField 'MD_FLKey' 'Description' Text
 # Et opslag er LookUp(MD_FLKey, KeyType = "Function" && KeyValue = k).
 # Begge kolonner SKAL vaere indekseret: der er 6.441 funktionsnoegler, og
 # uden indeks afviser SharePoint forespoergslen over 5.000 elementer.
-Set-PnPField -List 'MD_FLKey' -Identity 'Title' -Values @{ Title = 'KeyValue'; Indexed = $true }
+Rename-MdTitle 'MD_FLKey' 'KeyValue'
 
 # ---------------------------------------------------------------------------
 # Seed af MD_FLKey
@@ -159,8 +165,10 @@ if ($SeedMasterData -or $ReseedKeys) {
     $path = Join-Path $PSScriptRoot '..\seed\MD_FLKey.csv'
     if (-not (Test-Path $path)) { throw "Finder ikke $path" }
 
-    $existing = (Get-PnPList -Identity 'MD_FLKey').ItemCount
-    if ($existing -gt 0 -and -not $ReseedKeys) {
+    $existing = if (Test-MdList 'MD_FLKey') { (Get-PnPList -Identity 'MD_FLKey').ItemCount } else { 0 }
+    if ($WhatIfOnly) {
+        Write-Host "  ? ville seede MD_FLKey fra $path (har nu $existing raekker)" -ForegroundColor Yellow
+    } elseif ($existing -gt 0 -and -not $ReseedKeys) {
         Write-Host "  = MD_FLKey har allerede $existing raekker - springer over (brug -ReseedKeys)" -ForegroundColor DarkGray
     } else {
         if ($existing -gt 0) {

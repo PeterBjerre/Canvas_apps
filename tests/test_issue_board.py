@@ -31,7 +31,9 @@ def _ps1():
 
 def _provisioned():
     cols = {}
-    for lst, col in re.findall(r"^Add-Col '([^']+)' '([^']+)'", _ps1(), re.M):
+    # Kolonnerne oprettes med _Common.psm1's New-MdField/New-MdNoteField
+    # (R2-060: de lokale Add-Col/New-List er vaek).
+    for lst, col in re.findall(r"^(?:New-MdField|New-MdNoteField) '([^']+)' '([^']+)'", _ps1(), re.M):
         cols.setdefault(lst, set()).add(col)
     # IB_AppSections: Title hedder Application (Set-PnPField ... Title = 'Application').
     assert "Title = 'Application'" in _ps1()
@@ -301,7 +303,7 @@ def test_no_anonymous_copy_anymore():
         assert word not in yaml, word
     assert not hasattr(cfg, "L_SHARED")
     ps1 = _ps1()
-    assert "Add-Col 'IB_SharedIssues'" not in ps1
+    assert "'IB_SharedIssues' '" not in ps1
     assert "[switch] $RemoveSharedIssues" in ps1
     removal = ps1[ps1.index("Remove-PnPList"):]
     before = ps1[:ps1.index("Remove-PnPList")]

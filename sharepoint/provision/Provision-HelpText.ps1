@@ -39,6 +39,9 @@
     Med -Seed: overskriv ogsaa de raekker, der findes. Bruges kun, naar
     listen skal saettes tilbage til det, koden havde.
 
+.PARAMETER WhatIfOnly
+    Toerloeb: vis hvad der ville ske, aendr intet (R2-060).
+
 .EXAMPLE
     .\Provision-HelpText.ps1 -SiteUrl "https://orsted.sharepoint.com/sites/SAPMasterdata"
 
@@ -56,6 +59,7 @@ param(
     [switch] $Seed,
     [switch] $Force,
     [string] $SeedPath,
+    [switch] $WhatIfOnly,
     [string] $ClientId = $env:PNP_CLIENT_ID
 )
 
@@ -74,10 +78,13 @@ if (-not $SeedPath) { $SeedPath = Join-Path $PSScriptRoot '..\seed\MD_HelpText.c
 # Login og de faelles hjaelpefunktioner (REVIEW.md E8).
 Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
 Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId
+Set-MdWhatIf $WhatIfOnly
 
 # --- listen ---------------------------------------------------------------
 if (Get-PnPList -Identity $LIST_NAME -ErrorAction SilentlyContinue) {
     Write-Host "  = Liste '$LIST_NAME' findes allerede" -ForegroundColor DarkGray
+} elseif ($WhatIfOnly) {
+    Write-Host "  ? ville oprette listen '$LIST_NAME'" -ForegroundColor Yellow
 } else {
     New-PnPList -Title $LIST_NAME -Template GenericList -OnQuickLaunch:$true | Out-Null
     Write-Host "  + Liste '$LIST_NAME' oprettet" -ForegroundColor Green
@@ -85,27 +92,12 @@ if (Get-PnPList -Identity $LIST_NAME -ErrorAction SilentlyContinue) {
 $DESC = 'Hjaelpetekster til masterdata-apperne. Kind=Hint er linjen under et felt, ' +
         'Kind=Panel er et afsnit i hjaelpepanelet. En slettet raekke betyder INGEN ' +
         'tekst i appen.'
-Set-PnPList -Identity $LIST_NAME -Description $DESC
+if (-not $WhatIfOnly) { Set-PnPList -Identity $LIST_NAME -Description $DESC }
 
-function New-HelpField {
-    param([string]$Name, [string]$Type, [string[]]$Choices,
-          [switch]$Indexed, [switch]$Required)
-    if (Get-PnPField -List $LIST_NAME -Identity $Name -ErrorAction SilentlyContinue) {
-        Write-Host "    = $Name" -ForegroundColor DarkGray
-    } else {
-        $p = @{ List = $LIST_NAME; DisplayName = $Name; InternalName = $Name; Type = $Type }
-        if ($Choices) { $p.Choices = $Choices }
-        Add-PnPField @p -AddToDefaultView | Out-Null
-        Write-Host "    + $Name ($Type)" -ForegroundColor Green
-    }
-    $values = @{}
-    if ($Indexed)  { $values.Indexed  = $true }
-    if ($Required) { $values.Required = $true }
-    if ($values.Count) { Set-PnPField -List $LIST_NAME -Identity $Name -Values $values }
-}
-
+# Kolonnerne gaar gennem New-MdField (_Common.psm1), saa toerloebet og
+# fletningen af nye valg (R2-012) er de samme som i de andre scripts.
 Write-Host "  Kolonner:" -ForegroundColor Cyan
-Set-PnPField -List $LIST_NAME -Identity 'Title' -Values @{ Title = $COL_KEY; Indexed = $true }
+Rename-MdTitle $LIST_NAME $COL_KEY
 
 # Samme vaerdier som Domain i MD_RequestIndex, saa de fem apps kan dele
 # listen uden at laese hinandens tekster.
@@ -113,16 +105,18 @@ Set-PnPField -List $LIST_NAME -Identity 'Title' -Values @{ Title = $COL_KEY; Ind
 # linjen - en backtick er baade overfloedig og let at braekke.
 $APP_AREAS = 'FunctionalLocation','Equipment','MeasuringPoint','Material',
              'MaintenancePlan'
-New-HelpField 'AppArea' Choice -Choices $APP_AREAS -Indexed -Required
-New-HelpField 'Kind'      Choice -Choices 'Hint','Panel' -Required
-New-HelpField 'Heading'   Text
+New-MdField 'MD_HelpText' 'AppArea'   Choice -Choices $APP_AREAS -Indexed -Required
+New-MdField 'MD_HelpText' 'Kind'      Choice -Choices 'Hint','Panel' -Required
+New-MdField 'MD_HelpText' 'Heading'   Text
 # Note, ikke Text: et panelafsnit er 2-4 saetninger og sprang 255 tegn.
-New-HelpField 'Body'      Note -Required
-New-HelpField 'SortOrder' Number
+New-MdField 'MD_HelpText' 'Body'      Note -Required
+New-MdField 'MD_HelpText' 'SortOrder' Number
 
 # Flersidet ren tekst. Uden det gemmer SharePoint HTML, og appen ville
 # vise <div>-maerker midt i hjaelpeteksten.
-Set-PnPField -List $LIST_NAME -Identity 'Body' -Values @{ RichText = $false; NumberOfLines = 6 }
+if (-not $WhatIfOnly) {
+    Set-PnPField -List $LIST_NAME -Identity 'Body' -Values @{ RichText = $false; NumberOfLines = 6 }
+}
 
 # --- seed -----------------------------------------------------------------
 if ($Seed) {
@@ -131,6 +125,10 @@ if ($Seed) {
     }
     Write-Host "  Seed fra $SeedPath" -ForegroundColor Cyan
     $rows = Import-Csv -Path $SeedPath -Encoding UTF8
+}
+if ($Seed -and $WhatIfOnly) {
+    Write-Host "    ? ville seede $(@($rows).Count) raekker" -ForegroundColor Yellow
+} elseif ($Seed) {
     $existing = Get-PnPListItem -List $LIST_NAME -PageSize 500
     $index = @{}
     foreach ($it in $existing) {

@@ -22,6 +22,9 @@
     foer de fem submit-flows er bygget. Koer scriptet igen UDEN dette flag,
     naar de rigtige data begynder at komme ind, og slet proeveraekkerne.
 
+.PARAMETER WhatIfOnly
+    Toerloeb: vis hvad der ville ske, aendr intet (R2-060).
+
 .EXAMPLE
     .\Provision-RequestIndex.ps1 -SiteUrl "https://orsted.sharepoint.com/sites/SAPMasterdata"
 
@@ -38,6 +41,7 @@ param(
     [Parameter(Mandatory = $true)][string] $SiteUrl,
     [switch] $IncludeArchive,
     [switch] $AddSampleRows,
+    [switch] $WhatIfOnly,
     [string] $ClientId = $env:PNP_CLIENT_ID
 )
 
@@ -54,6 +58,7 @@ $COL_NO = 'RequestNo'
 # Login og de faelles hjaelpefunktioner (REVIEW.md E8).
 Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
 Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId
+Set-MdWhatIf $WhatIfOnly
 
 # Vaerdierne skal vaere ORDRET de samme som i hub_config.py (DOMAINS/STATUS).
 # Landingssiden slaar op paa dem; en stavefejl giver en raekke uden farve og
@@ -68,7 +73,7 @@ function Add-IndexColumns {
     # --- Nummeret ---------------------------------------------------------
     # Title genbruges som indmeldingsnummer. Den er obligatorisk i forvejen,
     # saa der er ingen vej udenom at bruge den til noget fornuftigt.
-    Set-PnPField -List $List -Identity 'Title' -Values @{ Title = $COL_NO; Indexed = $true }
+    Rename-MdTitle $List $COL_NO
 
     # --- Det landingssiden grupperer og filtrerer paa ---------------------
     New-MdField $List 'Domain'     Choice -Choices $DOMAINS -Indexed -Required
@@ -117,6 +122,10 @@ function Set-IdxView {
     # findes ikke". Omdoebningen aendrer kun visningsnavnet.
     $cols = @('Title', 'Domain', 'ShortText', 'Plant', 'Status', 'StatusStep',
               'IsOpen', 'RequesterEmail', 'LastActionOn', 'SapObjectNo')
+    if ($WhatIfOnly) {
+        Write-Host "    ? ville saette standardvisningen" -ForegroundColor Yellow
+        return
+    }
     $view = Get-PnPView -List $List | Where-Object { $_.DefaultView } | Select-Object -First 1
     if ($view) {
         Set-PnPView -List $List -Identity $view.Id -Fields $cols -Values @{
@@ -139,7 +148,9 @@ if ($IncludeArchive) {
     Set-IdxView "${LIST_NAME}Archive"
 }
 
-if ($AddSampleRows) {
+if ($AddSampleRows -and $WhatIfOnly) {
+    Write-Host "`n  ? ville oprette fire proeveraekker" -ForegroundColor Yellow
+} elseif ($AddSampleRows) {
     Write-Host "`n=== Proeveraekker ===" -ForegroundColor Cyan
     # Den indloggede brugers mail, hentet eksplicit - CurrentUser kommer ikke
     # med Email udfyldt, foer den er loadet.

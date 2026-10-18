@@ -57,6 +57,7 @@ if (-not $PackageSeedPath) { $PackageSeedPath = Join-Path $PSScriptRoot '..\seed
 # Login og de faelles hjaelpefunktioner (REVIEW.md E8).
 Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
 Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId
+Set-MdWhatIf $WhatIfOnly
 
 # ---------------------------------------------------------------------------
 # MD_Strategy
@@ -65,7 +66,7 @@ Write-Host "`n=== MD_Strategy ===" -ForegroundColor Cyan
 New-MdList 'MD_Strategy' 'Vedligeholdsstrategier fra SAP (IP11). Title = SAP-strateginoeglen.'
 
 # Title ER SAP-noeglen (100, 101, ...). Derfor indekseret - appen slaar op paa den.
-Set-PnPField -List 'MD_Strategy' -Identity 'Title' -Values @{ Title = 'StrategyKey'; Indexed = $true }
+Rename-MdTitle 'MD_Strategy' 'StrategyKey'
 
 New-MdField 'MD_Strategy' 'StrategyName' Text -Required
 
@@ -90,27 +91,16 @@ Write-Host "`n=== MD_StrategyPackage ===" -ForegroundColor Cyan
 New-MdList 'MD_StrategyPackage' 'Pakker pr. strategi (SAP IP11). Fyldes naar pakkerne er hentet.'
 
 # Title bruges ikke til noget her - noeglen er StrategyKey + PackageNo.
-Set-PnPField -List 'MD_StrategyPackage' -Identity 'Title' -Values @{ Title = 'PackageLabel' }
+if (-not $WhatIfOnly) { Set-PnPField -List 'MD_StrategyPackage' -Identity 'Title' -Values @{ Title = 'PackageLabel' } }
 
 New-MdField 'MD_StrategyPackage' 'StrategyKey'  Text -Indexed -Required
 New-MdField 'MD_StrategyPackage' 'PackageNo'    Number -Required
 New-MdField 'MD_StrategyPackage' 'ShortCode'    Text      # M1, M3, ...
 New-MdField 'MD_StrategyPackage' 'CycleLength'  Number
 New-MdField 'MD_StrategyPackage' 'CycleUnit'    Choice -Choices 'H','D','DAY','WK','MON','YR','COUNT'
-# D (taellerdage) kom med "Strategi pakker.xlsx". New-MdField roerer ikke en
-# kolonne, der findes, saa et manglende valg tilfoejes her.
-$cuField = Get-PnPField -List 'MD_StrategyPackage' -Identity 'CycleUnit'
-$cuChoices = @($cuField.Choices)
-if (-not $cuChoices.Count) { throw "Kunne ikke laese valgene paa CycleUnit - retter ikke kolonnen." }
-$cuMissing = @('H','D','DAY','WK','MON','YR','COUNT' | Where-Object { $cuChoices -notcontains $_ })
-if ($cuMissing.Count) {
-    if ($WhatIfOnly) {
-        Write-Host "    ? CycleUnit ville faa valget $($cuMissing -join ', ')" -ForegroundColor Yellow
-    } else {
-        Set-PnPField -List 'MD_StrategyPackage' -Identity 'CycleUnit' -Values @{ Choices = [string[]]($cuChoices + $cuMissing) }
-        Write-Host "    ~ CycleUnit: valg tilfoejet: $($cuMissing -join ', ')" -ForegroundColor Green
-    }
-}
+# D (taellerdage) kom med "Strategi pakker.xlsx". New-MdField tilfoejer
+# selv de valg, en eksisterende kolonne mangler (R2-012), saa den lokale
+# rettelse, der stod her, er vaek (R2-060).
 # Hoejere tal = mere omfattende. Afgoer hvem der kalder, naar flere
 # pakker forfalder samme dag.
 New-MdField 'MD_StrategyPackage' 'Hierarchy'    Number
@@ -132,7 +122,7 @@ if (-not $SkipSeed) {
 
     # Eet opslag i stedet for eet pr. raekke.
     $existing = @{}
-    foreach ($it in (Get-PnPListItem -List 'MD_Strategy' -PageSize 500)) {
+    foreach ($it in $(if (Test-MdList 'MD_Strategy') { Get-PnPListItem -List 'MD_Strategy' -PageSize 500 })) {
         $existing[[string]$it.FieldValues.Title] = $it
     }
 
@@ -187,7 +177,7 @@ if (-not $SkipSeed -and (Test-Path $PackageSeedPath)) {
     # i csv'en ogsaa listen, naar scriptet koeres igen. Sprang vi den over,
     # ville en forkert vaerdi blive liggende for evigt.
     $havePkg = @{}
-    foreach ($it in (Get-PnPListItem -List 'MD_StrategyPackage' -PageSize 500)) {
+    foreach ($it in $(if (Test-MdList 'MD_StrategyPackage') { Get-PnPListItem -List 'MD_StrategyPackage' -PageSize 500 })) {
         $havePkg["$($it.FieldValues.StrategyKey)|$($it.FieldValues.PackageNo)"] = $it
     }
 
@@ -246,7 +236,7 @@ if (-not $SkipSeed -and (Test-Path $PackageSeedPath)) {
 
     # Saet PackagesLoaded paa de strategier, der nu HAR pakker.
     $marked = 0
-    foreach ($it in (Get-PnPListItem -List 'MD_Strategy' -PageSize 500)) {
+    foreach ($it in $(if (Test-MdList 'MD_Strategy') { Get-PnPListItem -List 'MD_Strategy' -PageSize 500 })) {
         $key = [string]$it.FieldValues.Title
         if (-not $touched.ContainsKey($key)) { continue }
         if ($it.FieldValues.PackagesLoaded -eq $true) { continue }
@@ -263,7 +253,7 @@ if (-not $SkipSeed -and (Test-Path $PackageSeedPath)) {
 }
 
 # ---------------------------------------------------------------------------
-$unresolved = @(Get-PnPListItem -List 'MD_Strategy' -PageSize 500 |
+$unresolved = @($(if (Test-MdList 'MD_Strategy') { Get-PnPListItem -List 'MD_Strategy' -PageSize 500 }) |
     Where-Object { $_.FieldValues.Hierarchical -ne 'Ja' -and $_.FieldValues.Hierarchical -ne 'Nej' })
 
 Write-Host "`nFaerdig.`n" -ForegroundColor Cyan

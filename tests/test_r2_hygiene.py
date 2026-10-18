@@ -27,6 +27,58 @@ def _read(*parts):
 
 
 # ---------------------------------------------------------------------------
+# R2-060: -WhatIfOnly i alle scripts, og hjaelperne i _Common.psm1 skriver
+# ikke i et toerloeb.
+# ---------------------------------------------------------------------------
+def _provision_scripts():
+    return sorted(glob.glob(os.path.join(PROV, "Provision-*.ps1")))
+
+
+def test_every_provisioning_script_has_a_dry_run():
+    for path in _provision_scripts():
+        text = open(path, encoding="utf-8-sig").read()
+        name = os.path.basename(path)
+        assert "[switch] $WhatIfOnly" in text, name
+        assert re.search(r"^Connect-MdSite [^\n]*\n\s*Set-MdWhatIf \$WhatIfOnly", text, re.M), name
+
+
+def test_there_is_one_set_of_list_and_column_helpers():
+    for path in glob.glob(os.path.join(PROV, "*.ps1")):
+        text = open(path, encoding="utf-8-sig").read()
+        assert not re.search(r"^function (New-List|Add-Col)\b", text, re.M), path
+
+
+def test_common_helpers_respect_the_dry_run():
+    common = _read("sharepoint", "provision", "_Common.psm1")
+    assert "$script:MdWhatIf = $false" in common
+    for fn in ("New-MdList", "New-MdField", "New-MdNoteField", "Rename-MdTitle",
+               "Set-MdIndexed", "Set-MdReadOnlyList", "Set-MdOwnItemsList"):
+        body = common[common.index("function %s {" % fn):]
+        body = body[:body.index("\n}\n")] if "\n}\n" in body else body
+        # Toerloebet tjekkes, FOER der kaldes en PnP-cmdlet, der skriver.
+        first_write = re.search(r"\b(New|Set|Add|Remove)-PnP\w+", body)
+        assert "$script:MdWhatIf" in body, fn
+        if first_write:
+            assert body.index("$script:MdWhatIf") < first_write.start(), fn
+
+
+# ---------------------------------------------------------------------------
+# R2-024 / R2-032: rettighederne paa admin-, godkender- og loglisten.
+# ---------------------------------------------------------------------------
+def test_admin_lists_are_provisioned_and_locked():
+    ps = _read("sharepoint", "provision", "Provision-AdminLists.ps1")
+    assert "New-MdList $ADMINS" in ps and "New-MdField 'UserAndGroups' 'Member' Text -Indexed" in ps
+    for lst in ("$ADMINS", "$l", "$LibraryName"):
+        assert "Set-MdReadOnlyList %s $FlowAccount" % lst in ps, lst
+    assert "Set-MdOwnItemsList $LOG $FlowAccount" in ps
+    common = _read("sharepoint", "provision", "_Common.psm1")
+    own = common[common.index("function Set-MdOwnItemsList {"):]
+    assert "-ReadSecurity 1 -WriteSecurity 2" in own
+    ro = common[common.index("function Set-MdReadOnlyList {"):]
+    assert "Get-MdRoleName 'Reader'" in ro[:ro.index("\n}\n")]
+
+
+# ---------------------------------------------------------------------------
 # R2-089: doctor fejler, hvor CI fejler.
 # ---------------------------------------------------------------------------
 def test_doctor_fails_on_uncommitted_yaml(monkeypatch):

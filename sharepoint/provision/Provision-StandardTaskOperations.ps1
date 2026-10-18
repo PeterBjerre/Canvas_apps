@@ -95,50 +95,26 @@ $MAP = @(
 # Login og de faelles hjaelpefunktioner (REVIEW.md E8).
 Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
 Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId
+Set-MdWhatIf $WhatIfOnly
 
 # ---------------------------------------------------------------------------
 Write-Host "`n=== $TARGET ===" -ForegroundColor Cyan
 
-if (Get-PnPList -Identity $TARGET -ErrorAction SilentlyContinue) {
-    Write-Host "  = Listen findes allerede" -ForegroundColor DarkGray
-} elseif ($WhatIfOnly) {
-    Write-Host "  ? ville oprette listen" -ForegroundColor Yellow
-} else {
-    New-PnPList -Title $TARGET -Template GenericList -OnQuickLaunch:$false | Out-Null
-    Set-PnPList -Identity $TARGET -Description `
-        'Standardoperationer pr. vaerk. Erstatter de seks "<VAERK> Standard Tasklist".'
-    Write-Host "  + Listen oprettet" -ForegroundColor Green
-}
-
-function Add-Col {
-    param([string]$Name, [string]$Type, [string]$Description, [switch]$Indexed)
-    if (Get-PnPField -List $TARGET -Identity $Name -ErrorAction SilentlyContinue) {
-        Write-Host "    = $Name" -ForegroundColor DarkGray; return
-    }
-    if ($WhatIfOnly) { Write-Host "    ? $Name ($Type)" -ForegroundColor Yellow; return }
-    Add-PnPField -List $TARGET -DisplayName $Name -InternalName $Name -Type $Type `
-                 -AddToDefaultView | Out-Null
-    $v = @{}
-    if ($Description) { $v.Description = $Description }
-    if ($Indexed)     { $v.Indexed = $true }
-    if ($v.Count) { Set-PnPField -List $TARGET -Identity $Name -Values $v }
-    Write-Host "    + $Name ($Type)" -ForegroundColor Green
-}
+# Listen og kolonnerne gaar gennem _Common.psm1 (toerloeb: Set-MdWhatIf).
+New-MdList $TARGET 'Standardoperationer pr. vaerk. Erstatter de seks "<VAERK> Standard Tasklist".'
 
 if (-not $WhatIfOnly) {
     Set-PnPField -List $TARGET -Identity 'Title' -Values @{ Title = 'TaskLabel' }
 }
 
 # Vaerket er det, alt filtreres paa. Derfor indekseret.
-Add-Col 'Plant' 'Choice' 'Vaerkskode. Kommer fra navnet paa kildelisten.'
-if (-not $WhatIfOnly) {
-    Set-PnPField -List $TARGET -Identity 'Plant' `
-        -Values @{ Choices = [string[]]@('ASV','AVV','HEV','HCV','KYV','SKV','SMV','SSV'); Indexed = $true }
-}
-Add-Col 'OperationNo' 'Number' 'SAP-operationsnummer: 10, 20, 30. Laa i Title i kildelisterne - field_1 (SOp) var tom overalt.' -Indexed
+New-MdField $TARGET 'Plant' Choice -Choices 'ASV','AVV','HEV','HCV','KYV','SKV','SMV','SSV' -Indexed `
+    -Description 'Vaerkskode. Kommer fra navnet paa kildelisten.'
+New-MdField $TARGET 'OperationNo' Number -Indexed `
+    -Description 'SAP-operationsnummer: 10, 20, 30. Laa i Title i kildelisterne - field_1 (SOp) var tom overalt.'
 
 foreach ($m in $MAP) {
-    Add-Col $m.To $m.Type "SAP: $($m.Sap)  (var $($m.From) i kildelisten)"
+    New-MdField $TARGET $m.To $m.Type -Description "SAP: $($m.Sap)  (var $($m.From) i kildelisten)"
 }
 
 # ---------------------------------------------------------------------------

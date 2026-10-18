@@ -129,51 +129,14 @@ $THRESHOLD_VALUE  = 300000
 # Login og de faelles hjaelpefunktioner (REVIEW.md E8).
 Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
 Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId
+Set-MdWhatIf $WhatIfOnly
 
 # ---------------------------------------------------------------------------
 # Hjaelpere
 # ---------------------------------------------------------------------------
-function New-List {
-    param([string]$Title, [string]$Description)
-    if (Get-PnPList -Identity $Title -ErrorAction SilentlyContinue) {
-        Write-Host "  = Liste '$Title' findes allerede" -ForegroundColor DarkGray
-        return
-    }
-    if ($WhatIfOnly) {
-        Write-Host "  ? ville oprette listen '$Title'" -ForegroundColor Yellow
-        return
-    }
-    New-PnPList -Title $Title -Template GenericList -OnQuickLaunch:$false | Out-Null
-    Set-PnPList -Identity $Title -Description $Description | Out-Null
-    Write-Host "  + Liste '$Title' oprettet" -ForegroundColor Green
-}
-
-function Add-Col {
-    param([string]$List, [string]$Name, [string]$Type, [string]$Description,
-          [string[]]$Choices, [switch]$Indexed)
-    # I et toerloeb findes en ny liste ikke endnu, og Get-PnPField paa en
-    # liste, der ikke findes, fejler i stedet for at svare tomt.
-    if ($WhatIfOnly -and -not (Get-PnPList -Identity $List -ErrorAction SilentlyContinue)) {
-        Write-Host "    ? ville oprette $Name ($Type)" -ForegroundColor Yellow
-        return
-    }
-    if (Get-PnPField -List $List -Identity $Name -ErrorAction SilentlyContinue) {
-        Write-Host "    = $Name findes allerede" -ForegroundColor DarkGray
-        return
-    }
-    if ($WhatIfOnly) {
-        Write-Host "    ? ville oprette $Name ($Type)" -ForegroundColor Yellow
-        return
-    }
-    $p = @{ List = $List; DisplayName = $Name; InternalName = $Name; Type = $Type }
-    if ($Choices) { $p.Choices = $Choices }
-    Add-PnPField @p -AddToDefaultView | Out-Null
-    $v = @{}
-    if ($Description) { $v.Description = $Description }
-    if ($Indexed)     { $v.Indexed = $true }
-    if ($v.Count) { Set-PnPField -List $List -Identity $Name -Values $v }
-    Write-Host "    + $Name ($Type)" -ForegroundColor Green
-}
+# New-MdList og New-MdField staar i _Common.psm1 og respekterer toerloebet
+# (Set-MdWhatIf). Her stod lokale kopier af dem, netop for at faa WhatIf
+# (R2-060) - nu er der kun een udgave.
 
 function Add-Choice {
     # Tilfoejer et valg til en eksisterende Choice-kolonne uden at roere de
@@ -230,25 +193,25 @@ function Set-ChoiceOrder {
 # ---------------------------------------------------------------------------
 Write-Host "`n=== $PLANS ===" -ForegroundColor Cyan
 # ---------------------------------------------------------------------------
-Add-Col $PLANS 'ApprovalStage' Choice -Choices $STAGES -Indexed `
+New-MdField $PLANS 'ApprovalStage' Choice -Choices $STAGES -Indexed `
     -Description 'Godkendelsestrin under In Progress. Appen saetter System ved Submit; flowene resten. Se docs/32.'
-Add-Col $PLANS 'SubmittedOn' DateTime `
+New-MdField $PLANS 'SubmittedOn' DateTime `
     -Description 'Saettes af appen ved Submit. Afgraenser denne indsendelse i MD_ApprovalLog.'
-Add-Col $PLANS 'StageRunId' Text `
+New-MdField $PLANS 'StageRunId' Text `
     -Description 'Koersels-id for det flow, der ejer trinnet. Spaerre mod dobbeltkoersel. Skrives kun af flows.'
-Add-Col $PLANS 'ReturnComment' Note `
+New-MdField $PLANS 'ReturnComment' Note `
     -Description 'Kommentarerne ved Send retur, en linje pr. item. Skrives kun af flows.'
-Add-Col $PLANS 'MasterDataNotified' Boolean `
+New-MdField $PLANS 'MasterDataNotified' Boolean `
     -Description 'Spaerre: mailen til Master Data er sendt. IKKE det samme som InitialEmailSent.'
-Add-Col $PLANS 'RequesterNotified' Boolean `
+New-MdField $PLANS 'RequesterNotified' Boolean `
     -Description 'Spaerre: rekvirenten har faaet mailen ved Published.'
 Set-ChoiceOrder $PLANS 'Status' @('Draft', 'In Progress', 'Ready for creation in SAP', 'Published', $RETURNED)
 # Noterne ved Submit (issue #115). Skrives KUN af appen ved Submit - aldrig
 # af Save draft eller flowene. Note to self ligger IKKE her: alle, der kan
 # laese planen, kan laese dens kolonner. Den har sin egen liste nedenfor.
-Add-Col 'MaintenancePlans' 'NoteToApprover' Note `
+New-MdField 'MaintenancePlans' 'NoteToApprover' Note `
     -Description 'Note to approver fra rekvirenten ved Submit. Laeses af ejer, admins og godkendere. Se tools/submission_notes.py.'
-Add-Col 'MaintenancePlans' 'SubmittedBy' Text `
+New-MdField 'MaintenancePlans' 'SubmittedBy' Text `
     -Description 'E-mail paa den, der indsendte (saettes af appen ved Submit sammen med SubmittedOn).'
 if (-not $WhatIfOnly -and (Get-PnPField -List $PLANS -Identity 'NoteToApprover' -ErrorAction SilentlyContinue)) {
     # Ren tekst: noten gemmes praecis, som den er skrevet.
@@ -258,7 +221,7 @@ if (-not $WhatIfOnly -and (Get-PnPField -List $PLANS -Identity 'NoteToApprover' 
 # ---------------------------------------------------------------------------
 Write-Host "`n=== MD_RequestIndex ===" -ForegroundColor Cyan
 # ---------------------------------------------------------------------------
-Add-Col 'MD_RequestIndex' 'HasApproverNote' Boolean `
+New-MdField 'MD_RequestIndex' 'HasApproverNote' Boolean `
     -Description 'VH-plan: Note to approver er udfyldt. Saettes af appen ved Submit; hubben viser note-ikonet.'
 
 # ---------------------------------------------------------------------------
@@ -268,13 +231,13 @@ Write-Host "`n=== $ITEMS ===" -ForegroundColor Cyan
 # igennem processen igen. Eksisterende raekker faar ingen vaerdi her - appen
 # giver dem et nyt ItemGuid, naar planen aabnes, og de har aldrig vaeret
 # godkendt.
-Add-Col $ITEMS 'ItemGuid' Text -Indexed `
+New-MdField $ITEMS 'ItemGuid' Text -Indexed `
     -Description 'Itemets identitet paa tvaers af gem. Dannes i appen ved Add/Copy item. Godkendelser i MD_ApprovalLog peger paa den.'
 
 # ---------------------------------------------------------------------------
 Write-Host "`n=== $APPROVER ===" -ForegroundColor Cyan
 # ---------------------------------------------------------------------------
-New-List $APPROVER 'Godkendere til VH-plan: systemnummer 1-16, vaerkskode (kvalitet) og COST (omkostning). Se docs/32.'
+New-MdList $APPROVER 'Godkendere til VH-plan: systemnummer 1-16, vaerkskode (kvalitet) og COST (omkostning). Se docs/32.'
 if (-not $WhatIfOnly) {
     # Unik noegle: der maa ikke kunne staa to raekker for samme system
     # eller vaerk. EnforceUniqueValues kraever, at kolonnen er indekseret.
@@ -282,32 +245,32 @@ if (-not $WhatIfOnly) {
         -Values @{ Title = 'ApproverKey'; Indexed = $true; EnforceUniqueValues = $true }
     Write-Host "    ~ Title -> ApproverKey (unik, indekseret)" -ForegroundColor Green
 }
-Add-Col $APPROVER 'Approver1' Text -Description '1. godkender, initialer. Mail = initialer + @ + BioSap-EmailDomain.'
-Add-Col $APPROVER 'Approver2' Text -Description '2. godkender, initialer. Bruges ved fravaer.'
-Add-Col $APPROVER 'Approver1Absent' Boolean -Description 'Ja = godkendelser gaar til 2. godkender.'
-Add-Col $APPROVER 'Notes' Text -Description 'Fri tekst. Bruges ikke af flowene.'
+New-MdField $APPROVER 'Approver1' Text -Description '1. godkender, initialer. Mail = initialer + @ + BioSap-EmailDomain.'
+New-MdField $APPROVER 'Approver2' Text -Description '2. godkender, initialer. Bruges ved fravaer.'
+New-MdField $APPROVER 'Approver1Absent' Boolean -Description 'Ja = godkendelser gaar til 2. godkender.'
+New-MdField $APPROVER 'Notes' Text -Description 'Fri tekst. Bruges ikke af flowene.'
 
 # ---------------------------------------------------------------------------
 Write-Host "`n=== $LOG ===" -ForegroundColor Cyan
 # ---------------------------------------------------------------------------
-New-List $LOG 'Revisionsspor for godkendelser af VH-planer. Skrives KUN af flows. Se docs/32.'
+New-MdList $LOG 'Revisionsspor for godkendelser af VH-planer. Skrives KUN af flows. Se docs/32.'
 if (-not $WhatIfOnly) {
     # Flowet skriver en laesbar titel, fx "MP0068 System". Den maa ikke
     # vaere paakraevet, saa en raekke aldrig afvises paa den.
     Set-PnPField -List $LOG -Identity 'Title' -Values @{ Required = $false }
 }
-Add-Col $LOG 'RequestGuid' Text -Indexed
-Add-Col $LOG 'PlanId' Number -Indexed -Description 'ID i MaintenancePlans.'
-Add-Col $LOG 'Stage' Text -Indexed -Description 'System, Cost, Quality eller SapCreated.'
-Add-Col $LOG 'ItemGuid' Text -Indexed -Description 'Itemets identitet (MaintenanceItems.ItemGuid). Tom for Quality og SapCreated.'
-Add-Col $LOG 'ItemText' Text -Description 'Itemets korttekst og FL, til visning.'
-Add-Col $LOG 'Fingerprint' Text -Description 'Det, der blev godkendt. System: SystemNo|FL. Tom for de andre.'
-Add-Col $LOG 'Amount' Number -Description 'Cost: det godkendte beloeb. Genbruges kun for samme ItemGuid og kun, hvis itemet ikke er blevet dyrere.'
-Add-Col $LOG 'Decision' Text -Description 'Approve, Return eller Skipped.'
-Add-Col $LOG 'Detail' Text -Description 'Fx systemnummer, beloeb eller grunden til Skipped.'
-Add-Col $LOG 'DecidedByEmail' Text
-Add-Col $LOG 'DecidedOn' DateTime
-Add-Col $LOG 'Comment' Note
+New-MdField $LOG 'RequestGuid' Text -Indexed
+New-MdField $LOG 'PlanId' Number -Indexed -Description 'ID i MaintenancePlans.'
+New-MdField $LOG 'Stage' Text -Indexed -Description 'System, Cost, Quality eller SapCreated.'
+New-MdField $LOG 'ItemGuid' Text -Indexed -Description 'Itemets identitet (MaintenanceItems.ItemGuid). Tom for Quality og SapCreated.'
+New-MdField $LOG 'ItemText' Text -Description 'Itemets korttekst og FL, til visning.'
+New-MdField $LOG 'Fingerprint' Text -Description 'Det, der blev godkendt. System: SystemNo|FL. Tom for de andre.'
+New-MdField $LOG 'Amount' Number -Description 'Cost: det godkendte beloeb. Genbruges kun for samme ItemGuid og kun, hvis itemet ikke er blevet dyrere.'
+New-MdField $LOG 'Decision' Text -Description 'Approve, Return eller Skipped.'
+New-MdField $LOG 'Detail' Text -Description 'Fx systemnummer, beloeb eller grunden til Skipped.'
+New-MdField $LOG 'DecidedByEmail' Text
+New-MdField $LOG 'DecidedOn' DateTime
+New-MdField $LOG 'Comment' Note
 
 # ---------------------------------------------------------------------------
 Write-Host "`n=== $SELF_NOTE ===" -ForegroundColor Cyan
@@ -316,7 +279,7 @@ Write-Host "`n=== $SELF_NOTE ===" -ForegroundColor Cyan
 # den private note har sin egen liste med sikkerhed pr. element: brugerne
 # kan kun laese og rette deres egne raekker. Admins ser alle via Override
 # List Behaviors (Full Control eller Design paa listen).
-New-List $SELF_NOTE 'Note to self ved Submit af en VH-plan. Kun ejeren og admins kan laese en raekke. Se tools/submission_notes.py.'
+New-MdList $SELF_NOTE 'Note to self ved Submit af en VH-plan. Kun ejeren og admins kan laese en raekke. Se tools/submission_notes.py.'
 if (-not $WhatIfOnly) {
     Set-PnPField -List $SELF_NOTE -Identity 'Title' -Values @{ Title = 'RequestNo'; Required = $false }
     # 2 = OwnerReadAccess / OwnerWriteAccess: "Only their own".
@@ -325,10 +288,10 @@ if (-not $WhatIfOnly) {
 } else {
     Write-Host "    ? ville saette Read/Create and Edit access til Only their own" -ForegroundColor Yellow
 }
-Add-Col 'VHP_NoteToSelf' 'RequestGuid' Text -Indexed -Description 'MD_RequestIndex.RequestGuid.'
-Add-Col 'VHP_NoteToSelf' 'PlanId' Number -Description 'ID i MaintenancePlans.'
-Add-Col 'VHP_NoteToSelf' 'OwnerEmail' Text -Indexed -Description 'Ejeren med smaa bogstaver - den, der kan laese raekken.'
-Add-Col 'VHP_NoteToSelf' 'Note' Note -Description 'Note to self, praecis som den er skrevet.'
+New-MdField 'VHP_NoteToSelf' 'RequestGuid' Text -Indexed -Description 'MD_RequestIndex.RequestGuid.'
+New-MdField 'VHP_NoteToSelf' 'PlanId' Number -Description 'ID i MaintenancePlans.'
+New-MdField 'VHP_NoteToSelf' 'OwnerEmail' Text -Indexed -Description 'Ejeren med smaa bogstaver - den, der kan laese raekken.'
+New-MdField 'VHP_NoteToSelf' 'Note' Note -Description 'Note to self, praecis som den er skrevet.'
 if (-not $WhatIfOnly -and (Get-PnPField -List $SELF_NOTE -Identity 'Note' -ErrorAction SilentlyContinue)) {
     Set-PnPField -List $SELF_NOTE -Identity 'Note' -Values @{ RichText = $false; NumberOfLines = 6 }
 }
@@ -439,13 +402,15 @@ if ($WhatIfOnly) {
     return
 }
 Write-Host "Naeste skridt, som scriptet IKKE goer:" -ForegroundColor Yellow
-Write-Host "  1. Rettigheder paa ${LOG}: bryd nedarvningen og giv brugerne Read."
-Write-Host "     Kun flowenes servicekonto skal kunne skrive. Se docs/32, afsnit 6."
-Write-Host "  2. Rettigheder paa ${APPROVER}: kun dem, der vedligeholder godkendere,"
-Write-Host "     maa kunne rette. Flowenes konto skal kunne laese."
+Write-Host "  1. Rettigheder paa ${LOG} og ${APPROVER}: koer"
+Write-Host "       .\Provision-AdminLists.ps1 -SiteUrl $SiteUrl -FlowAccount <servicekonto> -WhatIfOnly"
+Write-Host "     og derefter uden -WhatIfOnly. ${LOG}: brugerne opretter og retter kun"
+Write-Host "     egne raekker; ${APPROVER}: kun Owners retter (docs/32, afsnit 6)."
+Write-Host "  2. Miljoevariablen BioSap-ServiceAccountEmail = flowenes servicekonto, saa"
+Write-Host "     kvalitetsflowet kun stoler paa log-raekker, flowene selv har skrevet."
 Write-Host "  3. Miljoevariabler i solution BIO SAP (docs/32, afsnit 6, Parametre):"
 Write-Host "       BioSap-EmailDomain        orsted.com"
-Write-Host "       BioSap-MasterDataEmail    sapvedligehold@orsted.com"
+Write-Host "       BioSap-MasterDataEmail    Master Datas faelles postkasse"
 Write-Host "       BioSap-List-Approver      $APPROVER"
 Write-Host "       BioSap-List-ApprovalLog   $LOG"
 Write-Host "       BioSap-PowerBI-WorkspaceId, BioSap-PowerBI-DatasetId"

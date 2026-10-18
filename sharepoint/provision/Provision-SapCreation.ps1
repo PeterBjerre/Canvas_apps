@@ -54,8 +54,9 @@
     Den, der kan laegge en fil i Kvitteringer, kan i princippet faa en plan
     markeret som oprettet. Flowet tjekker SapOrderGuid, status og SAP-system,
     men biblioteket boer kun kunne skrives af Master Data og flowets
-    servicekonto. Scriptet saetter ikke rettighederne - det er en
-    beslutning, ikke en opsaetning. Se docs/35, "Rettigheder".
+    servicekonto. Rettighederne saettes af Provision-AdminLists.ps1
+    (R2-024): Members Read, Owners og flowets konto Full Control, og
+    -MaintainerGroup (Master Data) Contribute. Se docs/35, "Rettigheder".
 
 .PARAMETER SiteUrl
     Sitet med MaintenancePlans og MaintenanceItems.
@@ -89,25 +90,9 @@ $ErrorActionPreference = 'Stop'
 
 Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
 Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId
+Set-MdWhatIf $WhatIfOnly
 
-function Add-Col {
-    param([string]$List, [string]$Name, [string]$Type, [string]$Description,
-          [switch]$Indexed)
-    if (Get-PnPField -List $List -Identity $Name -ErrorAction SilentlyContinue) {
-        Write-Host "    = $Name findes allerede" -ForegroundColor DarkGray
-        return
-    }
-    if ($WhatIfOnly) {
-        Write-Host "    ? ville oprette $Name ($Type)" -ForegroundColor Yellow
-        return
-    }
-    Add-PnPField -List $List -DisplayName $Name -InternalName $Name -Type $Type -AddToDefaultView | Out-Null
-    $v = @{}
-    if ($Description) { $v.Description = $Description }
-    if ($Indexed)     { $v.Indexed = $true }
-    if ($v.Count) { Set-PnPField -List $List -Identity $Name -Values $v }
-    Write-Host "    + $Name ($Type)" -ForegroundColor Green
-}
+# Kolonnerne oprettes med New-MdField fra _Common.psm1 (toerloeb: Set-MdWhatIf).
 
 # ---------------------------------------------------------------------------
 Write-Host "`n=== Biblioteket $LibraryName ===" -ForegroundColor Cyan
@@ -140,28 +125,21 @@ if ($lib) {
 
 # ---------------------------------------------------------------------------
 Write-Host "`n=== MaintenancePlans ===" -ForegroundColor Cyan
-Add-Col 'MaintenancePlans' 'SapOrderGuid' Text -Indexed `
+New-MdField 'MaintenancePlans' 'SapOrderGuid' Text -Indexed `
     -Description 'Ordren til SAP-oprettelsen, flowet sidst skrev. Kvitteringen skal baere den samme. Toem den for at faa en ny ordre.'
-Add-Col 'MaintenancePlans' 'SapOrderFile' Text `
+New-MdField 'MaintenancePlans' 'SapOrderFile' Text `
     -Description 'Navnet paa ordrefilen i SAP-oprettelse/Til oprettelse.'
-Add-Col 'MaintenancePlans' 'SapCreatedOn' DateTime `
+New-MdField 'MaintenancePlans' 'SapCreatedOn' DateTime `
     -Description 'Hvornaar kvitteringen fra VH-plan Opretter blev laest.'
-Add-Col 'MaintenancePlans' 'SapCreatedBy' Text `
+New-MdField 'MaintenancePlans' 'SapCreatedBy' Text `
     -Description 'Initialerne paa den, der oprettede planen i SAP.'
 # Note, ikke Text: en plan kan have mange advarsler, og de er laengere end
 # 255 tegn tilsammen. Ren tekst - flowet skriver een advarsel pr. linje.
-if ($WhatIfOnly) {
-    if (-not (Get-PnPField -List 'MaintenancePlans' -Identity 'SapWarnings' -ErrorAction SilentlyContinue)) {
-        Write-Host "    ? ville oprette SapWarnings (Note, ren tekst)" -ForegroundColor Yellow
-    }
-} else {
-    New-MdNoteField 'MaintenancePlans' 'SapWarnings' 6
-    Set-PnPField -List 'MaintenancePlans' -Identity 'SapWarnings' `
-        -Values @{ Description = 'Kvitteringens advarsler, een pr. linje - fx materialer, der skal tilfoejes i IA06. Skrives af kvitteringsflowet.' }
-}
+New-MdNoteField 'MaintenancePlans' 'SapWarnings' 6 `
+    -Description 'Kvitteringens advarsler, een pr. linje - fx materialer, der skal tilfoejes i IA06. Skrives af kvitteringsflowet.'
 
 Write-Host "`n=== MaintenanceItems ===" -ForegroundColor Cyan
-Add-Col 'MaintenanceItems' 'SapItemNo' Text -Indexed `
+New-MdField 'MaintenanceItems' 'SapItemNo' Text -Indexed `
     -Description 'Vedligeholdspositionens nummer i SAP (IP04). Skrives af kvitteringsflowet.'
 
 # ---------------------------------------------------------------------------
@@ -174,23 +152,23 @@ foreach ($pair in @(@('FunctionalLocationRequests', 'FL-anmodningerne'), @('Func
 }
 if (Get-PnPList -Identity 'FunctionalLocationRequests' -ErrorAction SilentlyContinue) {
     Write-Host "`n=== FunctionalLocationRequests ===" -ForegroundColor Cyan
-    Add-Col 'FunctionalLocationRequests' 'SapOrderGuid' Text -Indexed `
+    New-MdField 'FunctionalLocationRequests' 'SapOrderGuid' Text -Indexed `
         -Description 'Ordren til SAP-oprettelsen, flowet sidst skrev. Kvitteringen skal baere den samme.'
-    Add-Col 'FunctionalLocationRequests' 'SapOrderFile' Text `
+    New-MdField 'FunctionalLocationRequests' 'SapOrderFile' Text `
         -Description 'Navnet paa ordrefilen i SAP-oprettelse/Til oprettelse.'
-    Add-Col 'FunctionalLocationRequests' 'SapCreatedOn' DateTime `
+    New-MdField 'FunctionalLocationRequests' 'SapCreatedOn' DateTime `
         -Description 'Hvornaar kvitteringen fra SAP Opretter blev laest.'
-    Add-Col 'FunctionalLocationRequests' 'SapCreatedBy' Text `
+    New-MdField 'FunctionalLocationRequests' 'SapCreatedBy' Text `
         -Description 'Initialerne paa den, der oprettede FL i SAP.'
 }
 if (Get-PnPList -Identity 'FunctionalLocationItems' -ErrorAction SilentlyContinue) {
     Write-Host "`n=== FunctionalLocationItems ===" -ForegroundColor Cyan
-    Add-Col 'FunctionalLocationItems' 'SapResult' Text `
+    New-MdField 'FunctionalLocationItems' 'SapResult' Text `
         -Description 'Created (oprettet med IL01) eller Updated (fandtes, aendret med IL02).'
-    Add-Col 'FunctionalLocationItems' 'SapMessage' Text `
+    New-MdField 'FunctionalLocationItems' 'SapMessage' Text `
         -Description 'Statuslinjen i SAP efter Gem.'
 }
 
 Write-Host ""
 Write-Host "Faerdig. Synkroniser biblioteket $LibraryName med OneDrive paa Master Datas pc'er," -ForegroundColor Cyan
-Write-Host "og saet rettighederne, saa kun Master Data og flowets servicekonto kan skrive." -ForegroundColor Cyan
+Write-Host "Rettighederne paa biblioteket saettes af Provision-AdminLists.ps1 (Master Data og flowets servicekonto skriver)." -ForegroundColor Cyan

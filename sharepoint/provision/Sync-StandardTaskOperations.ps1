@@ -203,6 +203,7 @@ function Test-MdEqual($a, $b) {
 
 Import-Module (Join-Path $PSScriptRoot '_Common.psm1') -Force
 Connect-MdSite -SiteUrl $SiteUrl -ClientId $ClientId
+Set-MdWhatIf $WhatIfOnly
 
 Write-Host "`n=== $LIST ===" -ForegroundColor Cyan
 if (-not (Get-PnPList -Identity $LIST -ErrorAction SilentlyContinue)) {
