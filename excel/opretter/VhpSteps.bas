@@ -516,6 +516,14 @@ Public Function CreatePlan(ByVal sess As Object, ByVal order As Object, ByVal it
         VhpSap.Press sess, ID_BTN_EXECUTE
         VhpSap.FailOnPopup sess, what & VhpUtil.Dk(" (position ") & CStr(itemNos(j)) & ")"
         VhpSap.FailOnError sess, what & VhpUtil.Dk(" (position ") & CStr(itemNos(j)) & ")"
+        ' Finder SAP ingen ledig position ("No objects were selected"), er der
+        ' ingen liste. Typisk er positionen allerede knyttet til en plan fra et
+        ' tidligere forsoeg.
+        If Not VhpSap.Exists(sess, IP01_ITEM_GRID) Then
+            Err.Raise ERR_SAP, "VhpSteps", what & VhpUtil.Dk(": position ") & CStr(itemNos(j)) & _
+                VhpUtil.Dk(" kan ikke knyttes til planen (") & VhpSap.StatusText(sess) & _
+                VhpUtil.Dk("). Er den allerede knyttet til en plan? Se positionen i IP03/IP17.")
+        End If
         VhpSap.Fnd(sess, IP01_ITEM_GRID).SelectedRows = "0"
         VhpSap.Press sess, IP01_ITEM_CHOOSE
         VhpSap.FailOnPopup sess, what & VhpUtil.Dk(" (position ") & CStr(itemNos(j)) & ")"
