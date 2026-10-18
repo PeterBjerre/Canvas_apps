@@ -333,6 +333,8 @@ Fælles for dem:
 - **Timeout** `P14D` på *Wait*. Ved timeout: påmindelse, og `StageRunId`
   tømmes. Så starter samme flow forfra. De items, der nåede at blive
   godkendt, står i loggen og sendes ikke igen.
+  Har et andet item samtidig fået *Send retur*, vinder returen (R2-029):
+  planen sendes retur med kommentaren i stedet for at starte forfra.
 - **Fejl:** `Catch` sender fejlmailen, læser planen igen og tømmer
   `StageRunId`, hvis det stadig er denne kørsels id (en nyere kørsel kan
   have taget trinnet). Derefter `Terminate` med status *Failed*. Uden det
