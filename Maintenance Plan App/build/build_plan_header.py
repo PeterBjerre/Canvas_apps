@@ -256,6 +256,12 @@ def value_chip(name, label, value_fx, label_w=None, value_chars=None, visible=No
                  pad=(0, CHIP_PAD, 0, CHIP_PAD), visible=visible)
 
 
+# Planens samlede omkostning: alle items' operationer (som build_tasklist.
+# PLAN_COST - den kan ikke importeres herfra, build_tasklist importerer os).
+# Blank (ingen operationer) og 0 giver begge false.
+PLAN_COST = "Sum(colVhpOperations, Cost)"
+FOLD_COST_ON = f"IfError({PLAN_COST} > 0, false)"
+
 FOLD_H = 24                  # titelraekken: ikon og titel (Show staar nu ved resumeet)
 
 
@@ -274,10 +280,15 @@ def plan_fold_row(fold, toggle_set, show):
     # hoejrestillet i titelraekken, ogsaa naar planhovedet er foldet.
     # Et ModernBadge (som Valid-maerkerne): en gruppe med to tekster blev
     # tegnet som en tom pille i Studio (Peter 2026-10-19).
-    cost_text = ('"Total cost: " & ' + lay.num_text("Sum(colVhpOperations, Cost)") + ' & " DKK"')
+    #
+    # KUN NAAR DER ER EN SUM (issue #421): uden operationer - eller med en
+    # sum paa 0 - stod der et tomt maerke over Show-knappen. Nu er det
+    # skjult, og en skjult kontrol fylder intet i en auto-layout-raekke.
+    cost_text = ('"Total cost: " & ' + lay.num_text(PLAN_COST) + ' & " DKK"')
     cost = modern_badge("bdgVhpPlanFoldCost", cost_text, color=C_TITLE, fill=C_NEUTRAL_BG,
                         width=f"Len({cost_text}) * 7 + 24", height=24, size=12,
                         pad=(10, 10), accessible='"Plan " & ' + cost_text,
+                        visible=FOLD_COST_ON,
                         extra={"AlignInContainer": "AlignInContainer.Center"})
     top = group("conVhpPlanFoldTop", [ok, title, cost], direction="Horizontal", gap=10,
                 height=FOLD_H, align_items="Center")
