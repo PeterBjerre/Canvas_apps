@@ -11,6 +11,7 @@ import os
 import re
 
 from conftest import ROOT
+from test_vhp_view_lock import without_section_locks
 
 SCREEN = os.path.join(ROOT, "BIO SAP App", "ScreenVhPlan.pa.yaml")
 
@@ -26,7 +27,8 @@ def _block(text, name):
 
 def _prop(block, prop):
     m = re.search(r"\n\s+%s: \|-\n\s+(.*)" % prop, block)
-    return m.group(1).strip() if m else None
+    # Issue #433: en gemt sektions laas laeses som View (test_vhp_view_lock).
+    return without_section_locks(m.group(1).strip()) if m else None
 
 
 def test_vendor_and_matgrp_have_neutral_border_always():

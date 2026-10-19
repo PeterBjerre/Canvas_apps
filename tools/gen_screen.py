@@ -790,16 +790,53 @@ def _lock_inputs_in_view(children):
         return
     var = "var%sViewOnly" % found.pop()
     for n in _walk(children):
-        if n.control in _LOCKED_TYPES and "Fb" not in n.name:
-            dm = n.props.get("DisplayMode") or "DisplayMode.Edit"
-            if var not in str(dm):
-                n.props["DisplayMode"] = (
-                    f"If((If({var}, DisplayMode.View, {dm})) = DisplayMode.Edit, "
-                    "DisplayMode.Edit, DisplayMode.View)")
-                # Laast i View mode = View-kanten, ikke groen/roed (UX-review).
-                bc = n.props.get("BorderColor")
-                if bc and var not in str(bc):
-                    n.props["BorderColor"] = f"If({var}, {C_CARD_BORDER}, {bc})"
+        _view_lock_input(n, var)
+
+
+def _view_lock_input(n, var):
+    """Et inputfelt er View, naar var er sand (og ellers sin egen DisplayMode)."""
+    if n.control in _LOCKED_TYPES and "Fb" not in n.name:
+        dm = n.props.get("DisplayMode") or "DisplayMode.Edit"
+        if var not in str(dm):
+            n.props["DisplayMode"] = (
+                f"If((If({var}, DisplayMode.View, {dm})) = DisplayMode.Edit, "
+                "DisplayMode.Edit, DisplayMode.View)")
+            # Laast i View mode = View-kanten, ikke groen/roed (UX-review).
+            bc = n.props.get("BorderColor")
+            if bc and var not in str(bc):
+                n.props["BorderColor"] = f"If({var}, {C_CARD_BORDER}, {bc})"
+
+
+def lock_section(nodes, view_var, locked, keep=()):
+    """En sektion, der er gemt, er skrivebeskyttet som i View mode (issue
+    #433): overalt i sektionens kontroller laeses view_var som
+    "(view_var || locked)". Saa goer laasen praecis det, View allerede goer
+    - felterne bliver graa, knapperne slaas fra, og popupperne aabner
+    skrivebeskyttet - uden en liste over kontroller, der kan glemme en.
+
+    Inputfelter uden DisplayMode faar foerst View-laasen (som
+    _lock_inputs_in_view ellers giver dem ved render), saa ogsaa de laases.
+    Set(view_var, ...) roeres aldrig. keep: kontroller, der ikke laases
+    (sektionens egen Save/Edit-knap)."""
+    import re
+    pat = re.compile(r"(?<!Set\()\b%s\b" % re.escape(view_var))
+    ro = f"({view_var} || {locked})"
+    for n in _walk(nodes):
+        if n.name in keep:
+            continue
+        _view_lock_input(n, view_var)
+        for k, v in list(n.props.items()):
+            if isinstance(v, str) and pat.search(v):
+                new = pat.sub(lambda _m: ro, v)
+                if k == "Visible":
+                    n.vis = new
+                else:
+                    n.props[k] = new
+        # Hoejde-algebraens udtryk foelger med, saa forelderen regner med
+        # de samme synlige boern som kontrollerne selv.
+        if isinstance(n.h, str) and pat.search(n.h):
+            n.h = pat.sub(lambda _m: ro, n.h)
+    return nodes
 
 
 def _toast_rewrite(children, screen_props):

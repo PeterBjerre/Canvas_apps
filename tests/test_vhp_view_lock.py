@@ -24,8 +24,20 @@ NOT_EDITING = {"btnVhpOpen", "btnVhpNewConfirm", "btnVhpReqDelConfirm", "btnVhpN
                "btnVhpOpDocs", "btnVhpOpMDocs"}
 
 
+# Issue #433: en gemt sektion (Item, Task list and operations) er laast som
+# i View - laasen staar som "(varVhpViewOnly || <sektionens laas>)". Her
+# laeses den som varVhpViewOnly, saa View-reglerne nedenfor tjekkes som foer.
+_LOCK = r'IfError\(varVhpActiveItemId in Filter\(colVhpSectionLocks, Section = "(?:Item|Ops)"\)\.ItemId, false\)'
+_VIEW_OR_LOCK = re.compile(
+    r'\(varVhpViewOnly \|\| (?:%s|If\(varVhpLongTextTarget = "item", %s, %s\))\)' % (_LOCK, _LOCK, _LOCK))
+
+
+def without_section_locks(text):
+    return _VIEW_OR_LOCK.sub(VIEW, text)
+
+
 def _controls():
-    d = yaml.safe_load(open(SCREEN, encoding="utf-8"))
+    d = yaml.safe_load(without_section_locks(open(SCREEN, encoding="utf-8").read()))
     out = {}
 
     def walk(nodes, guards):

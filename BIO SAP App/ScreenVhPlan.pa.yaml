@@ -1639,6 +1639,7 @@ Screens:
                                               Clear(colVhpOperations);
                                               Clear(colVhpItemObjects);
                                               Clear(colVhpObjDraft);
+                                              Clear(colVhpSectionLocks);
                                               Clear(colVhpMaterials);
                                               Clear(colVhpAttachments);
                                               Collect(colVhpItems, {
@@ -5713,7 +5714,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =Max(0, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - ((96) + (77) + (120) + 16) - 8 - 2))
+                                        =Max(0, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - ((96) + (77) + (126) + 16) - 8 - 2))
                                   Children:
                                     - txtVhpPlanMeta:
                                         Control: ModernText
@@ -5777,7 +5778,7 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =(96) + (77) + (120) + 16
+                                        =(96) + (77) + (126) + 16
                                   Children:
                                     - btnVhpPlanHide:
                                         Control: ModernButton
@@ -5881,7 +5882,7 @@ Screens:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              =If(varVhpPlanLocked, "Edit", "Done")
+                                              =If(IfError(varVhpAct = "plan", false), "Saving...", If(varVhpPlanLocked, "Edit", "Save"))
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
@@ -5890,6 +5891,8 @@ Screens:
                                               =C.'color-brand-primary'
                                           Color: |-
                                               =C.'text-on-primary'
+                                          DisplayMode: |-
+                                              =If(IfError(!IsBlank(varVhpAct) && !(":" in varVhpAct), false), DisplayMode.Disabled, DisplayMode.Edit)
                                           Font: |-
                                               =Font.'Segoe UI'
                                           FontWeight: |-
@@ -5907,7 +5910,8 @@ Screens:
                                                   Set(varVhpPlanLocked, false);
                                                   Set(gblToast, { Text: "Plan unlocked for editing.", Kind: "Success", At: Now() }); true,
                                               
-                                                  Set(varVhpPlanValidated, true);
+                                              Set(varVhpAct, "plan");
+                                              Set(varVhpPlanValidated, true);
                                                   With(
                                                       { isStrat: drpVhpPlanType.Selected.Key = "Strategy" },
                                                       If(
@@ -5940,6 +5944,7 @@ Screens:
                                                           );
                                                           Set(varVhpPlanCommitted, true);
                                                           Set(varVhpPlanLocked, true);
+                                                          Set(varVhpAct, "plan:ok");
                                                           Set(varVhpPlanShow, false);
                                                           Set(varVhpPlanCreatedAt, Now());
                                                           If(
@@ -5947,11 +5952,10 @@ Screens:
                                                               Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemTasklist); Reset(cmbVhpItemFL);
                                                               Set(gblToast, { Text: "Plant changed to " & drpVhpPlant.Selected.Value &
                                                                       ". Check work centre, task list and functional location on existing items.", Kind: "Warning", At: Now() }); true
-                                                          );
-                                                          Set(gblToast, { Text: "Plan header done: " & drpVhpPlant.Selected.Value & " " & Trim(inpVhpPlanText.Text) &
-                                                              If(isStrat, " (strategy " & drpVhpStrategy.Selected.Key & ")", "") & ". Save draft to keep it.", Kind: "Success", At: Now() }); true
+                                                          )
                                                       )
-                                                  )
+                                              );
+                                              If(IfError(!IsBlank(varVhpAct) && !(":" in varVhpAct), false), Set(varVhpAct, ""))
                                               )
                                           RadiusBottomLeft: |-
                                               =R.input
@@ -5964,13 +5968,13 @@ Screens:
                                           Size: |-
                                               =T.input
                                           Text: |-
-                                              =If(varVhpPlanLocked, "Edit", "Done")
+                                              =If(IfError(varVhpAct = "plan", false), "Saving...", If(varVhpPlanLocked, "Edit", "Save"))
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
                                               =!varVhpViewOnly
                                           Width: |-
-                                              =120
+                                              =126
                   - conVhpItemsSplit:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -5988,13 +5992,13 @@ Screens:
                             )), 1) * 88) + If(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "item" && Kind = "Panel"),
                                 Ord
-                            )) = 0, 4 + (32), 0)), 0) + 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (60 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 40, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (60 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))) + 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640, (20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3))))), 6 + (32), 0) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && Len(Trim(cmbVhpItemFL.SearchText)) < 8 && !(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3)))))), 6 + (18), 0) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)) + (20 + 6 + (34 + If((Len(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "")) > 0 && If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "") <> "ZBOW"), 4 + (32), 0)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 20, Max((20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3))))), 6 + (32), 0) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && Len(Trim(cmbVhpItemFL.SearchText)) < 8 && !(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3)))))), 6 + (18), 0) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)), (20 + 6 + (34 + If((Len(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "")) > 0 && If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "") <> "ZBOW"), 4 + (32), 0)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))) + 14 + (If(LayoutRank < 2, If(((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)), (0 + If((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)) + 8, 0) + 36, Max(If(((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)), 0 + If((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0), 0), 36)))), Max((36 + (0 + (Max((26), (0), (Max(36, H.hit)), (36), (22))) * 1 + 0) + 12 + (Max(CountRows(colVhpItems), 1) * 94) + If(IfError(CountRows(colVhpItems) = 0, true), 12 + (112 + If(!varVhpViewOnly, 8 + (36), 0)), 0)), (36 + (30 + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
+                            )) = 0, 4 + (32), 0)), 0) + 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (60 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 40, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (60 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))) + 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640, (20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3))))), 6 + (32), 0) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && Len(Trim(cmbVhpItemFL.SearchText)) < 8 && !(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3)))))), 6 + (18), 0) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)) + (20 + 6 + (34 + If((Len(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "")) > 0 && If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "") <> "ZBOW"), 4 + (32), 0)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 20, Max((20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3))))), 6 + (32), 0) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && Len(Trim(cmbVhpItemFL.SearchText)) < 8 && !(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3)))))), 6 + (18), 0) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)), (20 + 6 + (34 + If((Len(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "")) > 0 && If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "") <> "ZBOW"), 4 + (32), 0)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))) + 14 + (If(LayoutRank < 2, If(((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)))), (0 + If((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false))), 0 + (36), 0)) + 8, 0) + 36, Max(If(((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)))), 0 + If((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false))), 0 + (36), 0), 0), 36)))), Max((36 + (0 + (Max((26), (0), (Max(36, H.hit)), (36), (22))) * 1 + 0) + 12 + (Max(CountRows(colVhpItems), 1) * 94) + If(IfError(CountRows(colVhpItems) = 0, true), 12 + (112 + If(!varVhpViewOnly, 8 + (36), 0)), 0)), (36 + (30 + If(IfError(varVhpShowHints, false), 14 + (24 + (Max(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "item" && Kind = "Panel"),
                                 Ord
                             )), 1) * 88) + If(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "item" && Kind = "Panel"),
                                 Ord
-                            )) = 0, 4 + (32), 0)), 0) + 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (60 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 40, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (60 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))) + 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640, (20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3))))), 6 + (32), 0) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && Len(Trim(cmbVhpItemFL.SearchText)) < 8 && !(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3)))))), 6 + (18), 0) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)) + (20 + 6 + (34 + If((Len(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "")) > 0 && If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "") <> "ZBOW"), 4 + (32), 0)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 20, Max((20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3))))), 6 + (32), 0) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && Len(Trim(cmbVhpItemFL.SearchText)) < 8 && !(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3)))))), 6 + (18), 0) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)), (20 + 6 + (34 + If((Len(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "")) > 0 && If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "") <> "ZBOW"), 4 + (32), 0)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))) + 14 + (If(LayoutRank < 2, If(((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)), (0 + If((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)) + 8, 0) + 36, Max(If(((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)), 0 + If((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0), 0), 36))))))) + 2
+                            )) = 0, 4 + (32), 0)), 0) + 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (60 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 40, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (60 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))) + 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640, (20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3))))), 6 + (32), 0) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && Len(Trim(cmbVhpItemFL.SearchText)) < 8 && !(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3)))))), 6 + (18), 0) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)) + (20 + 6 + (34 + If((Len(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "")) > 0 && If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "") <> "ZBOW"), 4 + (32), 0)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 20, Max((20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3))))), 6 + (32), 0) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && Len(Trim(cmbVhpItemFL.SearchText)) < 8 && !(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3)))))), 6 + (18), 0) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)), (20 + 6 + (34 + If((Len(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "")) > 0 && If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "") <> "ZBOW"), 4 + (32), 0)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))) + 14 + (If(LayoutRank < 2, If(((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)))), (0 + If((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false))), 0 + (36), 0)) + 8, 0) + 36, Max(If(((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)))), 0 + If((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false))), 0 + (36), 0), 0), 36))))))) + 2
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -6446,7 +6450,7 @@ Screens:
                                           OnSelect: |-
                                               =If(
                                                   !varVhpPlanCommitted,
-                                                  Set(gblToast, { Text: "Press Done in the plan header before adding items.", Kind: "Warning", At: Now() }); true,
+                                                  Set(gblToast, { Text: "Press Save in the plan header before adding items.", Kind: "Warning", At: Now() }); true,
                                                   Set(varVhpNextItemId, varVhpNextItemId + 1);
                                                   Collect(
                                                       colVhpItems,
@@ -7038,7 +7042,7 @@ Screens:
                                           OnSelect: |-
                                               =If(
                                                   !varVhpPlanCommitted,
-                                                  Set(gblToast, { Text: "Press Done in the plan header before adding items.", Kind: "Warning", At: Now() }); true,
+                                                  Set(gblToast, { Text: "Press Save in the plan header before adding items.", Kind: "Warning", At: Now() }); true,
                                                   Set(varVhpNextItemId, varVhpNextItemId + 1);
                                                   Collect(
                                                       colVhpItems,
@@ -7107,7 +7111,7 @@ Screens:
                                   )), 1) * 88) + If(CountRows(Sort(
                                       Filter(colVhpHelp, Key = "item" && Kind = "Panel"),
                                       Ord
-                                  )) = 0, 4 + (32), 0)), 0) + 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (60 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 40, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (60 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))) + 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640, (20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3))))), 6 + (32), 0) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && Len(Trim(cmbVhpItemFL.SearchText)) < 8 && !(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3)))))), 6 + (18), 0) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)) + (20 + 6 + (34 + If((Len(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "")) > 0 && If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "") <> "ZBOW"), 4 + (32), 0)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 20, Max((20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3))))), 6 + (32), 0) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && Len(Trim(cmbVhpItemFL.SearchText)) < 8 && !(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3)))))), 6 + (18), 0) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)), (20 + 6 + (34 + If((Len(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "")) > 0 && If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "") <> "ZBOW"), 4 + (32), 0)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))) + 14 + (If(LayoutRank < 2, If(((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)), (0 + If((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)) + 8, 0) + 36, Max(If(((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)), 0 + If((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0), 0), 36)))
+                                  )) = 0, 4 + (32), 0)), 0) + 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640, (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + (0 + (60 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))) + 40, Max((0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0))), (0 + (60 + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 12 + (62 + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))) + 14 + (If(((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640, (20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3))))), 6 + (32), 0) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && Len(Trim(cmbVhpItemFL.SearchText)) < 8 && !(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3)))))), 6 + (18), 0) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)) + (20 + 6 + (34 + If((Len(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "")) > 0 && If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "") <> "ZBOW"), 4 + (32), 0)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)) + 20, Max((20 + If(IfError(varVhpShowHints, false), 6 + (32), 0) + 6 + (0 + (If((LayoutRank < 2 || ((If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36)) < 640), 96, 40)) + If(false, 0 + (1), 0)) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3))))), 6 + (32), 0) + If(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && Len(Trim(cmbVhpItemFL.SearchText)) < 8 && !(!varVhpFlBusy && Len(Trim(cmbVhpItemFL.SearchText)) > 0 && (IsBlank(varVhpPlan.Plant) || (Len(Trim(cmbVhpItemFL.SearchText)) >= 3 && (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(cmbVhpItemFL.SearchText), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3)))))), 6 + (18), 0) + If(!IsBlank(varVhpFlMsg), 6 + (18), 0)), (20 + 6 + (34 + If((Len(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "")) > 0 && If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "") <> "ZBOW"), 4 + (32), 0)) + If(IfError(varVhpShowHints, false), 6 + (32), 0)))))) + 14 + (If(LayoutRank < 2, If(((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)))), (0 + If((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false))), 0 + (36), 0)) + 8, 0) + 36, Max(If(((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)))), 0 + If((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false))), 0 + (36), 0), 0), 36)))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Stretch
                               LayoutDirection: |-
@@ -7868,11 +7872,11 @@ Screens:
                                                             AccessibleLabel: |-
                                                                 ="Item short text, required"
                                                             Appearance: |-
-                                                                =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                                                =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                                             BasePaletteColor: |-
                                                                 =C.'color-brand-primary'
                                                             BorderColor: |-
-                                                                =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, If(
+                                                                =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, If(
                                                                     varVhpItemValidated && IsBlank(Trim(Self.Text)),
                                                                     C.'border-error',
                                                                     If(IsBlank(Trim(Self.Text)), C.'border-input', C.'border-ok')
@@ -7882,13 +7886,13 @@ Screens:
                                                             BorderThickness: |-
                                                                 =1
                                                             Color: |-
-                                                                =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                                                =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                                             Default: |-
                                                                 =LookUp(colVhpItems, ItemId = varVhpActiveItemId).ShortText
                                                             DisplayMode: |-
-                                                                =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                                =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                             Fill: |-
-                                                                =If(If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                                =If(If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                             Font: |-
                                                                 =Font.'Segoe UI'
                                                             Height: |-
@@ -8081,11 +8085,11 @@ Screens:
                                                             AccessibleLabel: |-
                                                                 ="Main work center, required"
                                                             Appearance: |-
-                                                                =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                                                =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                                             BasePaletteColor: |-
                                                                 =C.'color-brand-primary'
                                                             BorderColor: |-
-                                                                =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, If(
+                                                                =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, If(
                                                                     varVhpItemValidated && IsBlank(Self.Selected.Value),
                                                                     C.'border-error',
                                                                     If(IsBlank(Self.Selected.Value), C.'border-input', C.'border-ok')
@@ -8095,7 +8099,7 @@ Screens:
                                                             BorderThickness: |-
                                                                 =1
                                                             Color: |-
-                                                                =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                                                =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                                             Default: |-
                                                                 =LookUp(Sort(
                                                                     If(
@@ -8113,9 +8117,9 @@ Screens:
                                                                     Value
                                                                 ), Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).MainWorkCenter).Value))
                                                             DisplayMode: |-
-                                                                =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                                =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                             Fill: |-
-                                                                =If(If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                                =If(If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                             Font: |-
                                                                 =Font.'Segoe UI'
                                                             Height: |-
@@ -8294,7 +8298,7 @@ Screens:
                                                             Color: |-
                                                                 =If(!IsBlank(Trim(Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).LongText, ""))), C.'state-ok-fg', C.'text-primary')
                                                             DisplayMode: |-
-                                                                =If(IsBlank(varVhpActiveItemId) || (varVhpViewOnly && !(!IsBlank(Trim(Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).LongText, ""))))), DisplayMode.Disabled, DisplayMode.Edit)
+                                                                =If(IsBlank(varVhpActiveItemId) || ((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && !(!IsBlank(Trim(Coalesce(LookUp(colVhpItems, ItemId = varVhpActiveItemId).LongText, ""))))), DisplayMode.Disabled, DisplayMode.Edit)
                                                             Font: |-
                                                                 =Font.'Segoe UI'
                                                             FontWeight: |-
@@ -8497,11 +8501,11 @@ Screens:
                                                             AccessibleLabel: |-
                                                                 ="Maintenance activity type, required"
                                                             Appearance: |-
-                                                                =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                                                =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                                             BasePaletteColor: |-
                                                                 =C.'color-brand-primary'
                                                             BorderColor: |-
-                                                                =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, If(
+                                                                =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, If(
                                                                     varVhpItemValidated && IsBlank(Self.Selected.Value),
                                                                     C.'border-error',
                                                                     If(IsBlank(Self.Selected.Value), C.'border-input', C.'border-ok')
@@ -8511,13 +8515,13 @@ Screens:
                                                             BorderThickness: |-
                                                                 =1
                                                             Color: |-
-                                                                =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                                                =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                                             Default: |-
                                                                 =LookUp(colVhpActivityTypeOptions As _dd, _dd.Value = (LookUp(colVhpActivityTypeOptions, Value = LookUp(colVhpItems, ItemId = varVhpActiveItemId).ActivityType).Value))
                                                             DisplayMode: |-
-                                                                =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                                =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                             Fill: |-
-                                                                =If(If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                                =If(If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                             Font: |-
                                                                 =Font.'Segoe UI'
                                                             Height: |-
@@ -8746,7 +8750,7 @@ Screens:
                                                                   Color: |-
                                                                       =If(!Coalesce(varVhpItemRevPick, !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Revision)), C.'text-on-primary', C.'text-muted')
                                                                   DisplayMode: |-
-                                                                      =If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
+                                                                      =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
                                                                   Font: |-
                                                                       =Font.'Segoe UI'
                                                                   FontWeight: |-
@@ -8799,7 +8803,7 @@ Screens:
                                                                   Color: |-
                                                                       =If(Coalesce(varVhpItemRevPick, !IsBlank(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Revision)), C.'text-on-primary', C.'text-muted')
                                                                   DisplayMode: |-
-                                                                      =If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
+                                                                      =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
                                                                   Font: |-
                                                                       =Font.'Segoe UI'
                                                                   FontWeight: |-
@@ -9000,7 +9004,7 @@ Screens:
                                                             AccessibleLabel: |-
                                                                 ="Initials, required"
                                                             Appearance: |-
-                                                                =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                                                =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                                             BasePaletteColor: |-
                                                                 =C.'color-brand-primary'
                                                             BorderColor: |-
@@ -9014,13 +9018,13 @@ Screens:
                                                             BorderThickness: |-
                                                                 =1
                                                             Color: |-
-                                                                =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                                                =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                                             Default: |-
                                                                 =Upper(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Initials)
                                                             DisplayMode: |-
-                                                                =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                                =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                             Fill: |-
-                                                                =If(If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                                =If(If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                             Font: |-
                                                                 =Font.'Segoe UI'
                                                             Height: |-
@@ -9344,11 +9348,11 @@ Screens:
                                                                   AlignInContainer: |-
                                                                       =AlignInContainer.Start
                                                                   Appearance: |-
-                                                                      =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                                                      =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                                                   BasePaletteColor: |-
                                                                       =C.'color-brand-primary'
                                                                   BorderColor: |-
-                                                                      =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, If(
+                                                                      =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, If(
                                                                           varVhpItemValidated && (IsBlank(Self.Selected.Code) || Self.Selected.Code = "?search"),
                                                                           C.'border-error',
                                                                           If((IsBlank(Self.Selected.Code) || Self.Selected.Code = "?search"), C.'border-input', C.'border-ok')
@@ -9358,15 +9362,15 @@ Screens:
                                                                   BorderThickness: |-
                                                                       =1
                                                                   Color: |-
-                                                                      =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                                                      =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                                                   DefaultSelectedItems: |-
                                                                       =Filter(colVhpFl, Code = Coalesce(varVhpFlPick, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation))
                                                                   DelayOutput: |-
                                                                       =false
                                                                   DisplayMode: |-
-                                                                      =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                                      =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                                   Fill: |-
-                                                                      =If(If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                                      =If(If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                                   Font: |-
                                                                       =Font.'Segoe UI'
                                                                   Height: |-
@@ -9548,7 +9552,7 @@ Screens:
                                                                         Color: |-
                                                                             =C.'text-primary'
                                                                         DisplayMode: |-
-                                                                            =If(Len(Trim(Coalesce(cmbVhpItemFL.SearchText, varVhpFlQuery))) < 8 || (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(Coalesce(cmbVhpItemFL.SearchText, varVhpFlQuery)), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3))), DisplayMode.Disabled, If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit))
+                                                                            =If(Len(Trim(Coalesce(cmbVhpItemFL.SearchText, varVhpFlQuery))) < 8 || (IsBlank(varVhpPlan.Plant) || Upper(Left(Trim(Coalesce(cmbVhpItemFL.SearchText, varVhpFlQuery)), 3)) <> Upper(Left(Trim(varVhpPlan.Plant), 3))), DisplayMode.Disabled, If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit))
                                                                         Font: |-
                                                                             =Font.'Segoe UI'
                                                                         FontWeight: |-
@@ -9684,7 +9688,7 @@ Screens:
                                                                         BorderThickness: |-
                                                                             =0
                                                                         DisplayMode: |-
-                                                                            =If((IsBlank(varVhpActiveItemId) || (!varVhpViewOnly && !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
+                                                                            =If((IsBlank(varVhpActiveItemId) || (!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
                                                                                 colVhpFl,
                                                                                 !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
                                                                             )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0)))), DisplayMode.Disabled, DisplayMode.Edit)
@@ -9699,13 +9703,13 @@ Screens:
                                                                         HoverFill: |-
                                                                             =C.'bg-muted'
                                                                         Image: |-
-                                                                            ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='40' height='34' viewBox='0 0 40 34'><rect x='0.5' y='0.5' width='39' height='33' rx='10' fill='none' stroke='" & If((CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-border-default') & "'/><g transform='translate(11 9) scale(0.666667)' fill='none' stroke='" & If((IsBlank(varVhpActiveItemId) || (!varVhpViewOnly && !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
+                                                                            ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='40' height='34' viewBox='0 0 40 34'><rect x='0.5' y='0.5' width='39' height='33' rx='10' fill='none' stroke='" & If((CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-border-default') & "'/><g transform='translate(11 9) scale(0.666667)' fill='none' stroke='" & If((IsBlank(varVhpActiveItemId) || (!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
                                                                                 colVhpFl,
                                                                                 !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                                                                            )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0)))), C.'hex-text-muted', (CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-text-primary') & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6h11M9 12h11M9 18h11 M4.5 6h.01M4.5 12h.01M4.5 18h.01'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='185' height='34' viewBox='0 0 185 34'><rect x='0.5' y='0.5' width='184' height='33' rx='10' fill='none' stroke='" & If((CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-border-default') & "'/><g transform='translate(13 9) scale(0.666667)' fill='none' stroke='" & If((IsBlank(varVhpActiveItemId) || (!varVhpViewOnly && !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
+                                                                            )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0)))), C.'hex-text-muted', (CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-text-primary') & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6h11M9 12h11M9 18h11 M4.5 6h.01M4.5 12h.01M4.5 18h.01'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='185' height='34' viewBox='0 0 185 34'><rect x='0.5' y='0.5' width='184' height='33' rx='10' fill='none' stroke='" & If((CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-border-default') & "'/><g transform='translate(13 9) scale(0.666667)' fill='none' stroke='" & If((IsBlank(varVhpActiveItemId) || (!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
                                                                                 colVhpFl,
                                                                                 !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                                                                            )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0)))), C.'hex-text-muted', (CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-text-primary') & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6h11M9 12h11M9 18h11 M4.5 6h.01M4.5 12h.01M4.5 18h.01'/></g><text x='103' y='22' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & If((IsBlank(varVhpActiveItemId) || (!varVhpViewOnly && !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
+                                                                            )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0)))), C.'hex-text-muted', (CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-text-primary') & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6h11M9 12h11M9 18h11 M4.5 6h.01M4.5 12h.01M4.5 18h.01'/></g><text x='103' y='22' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & If((IsBlank(varVhpActiveItemId) || (!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
                                                                                 colVhpFl,
                                                                                 !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
                                                                             )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0)))), C.'hex-text-muted', (CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-text-primary') & "'>" & "Object list (" & Text(CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId))) & ")" & "</text></svg>"))
@@ -10050,7 +10054,7 @@ Screens:
                                                                   Color: |-
                                                                       =If(Len(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "")) = 0, C.'text-on-primary', C.'text-muted')
                                                                   DisplayMode: |-
-                                                                      =If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
+                                                                      =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
                                                                   Font: |-
                                                                       =Font.'Segoe UI'
                                                                   FontWeight: |-
@@ -10103,7 +10107,7 @@ Screens:
                                                                   Color: |-
                                                                       =If(If(IsBlank(varVhpItemNfPick), LookUp(colVhpItems, ItemId = varVhpActiveItemId).NonFlowUserStatus & "", varVhpItemNfPick.Value & "") = "ZBOW", C.'text-on-primary', C.'text-muted')
                                                                   DisplayMode: |-
-                                                                      =If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
+                                                                      =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
                                                                   Font: |-
                                                                       =Font.'Segoe UI'
                                                                   FontWeight: |-
@@ -10216,7 +10220,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =If(LayoutRank < 2, If(((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)), (0 + If((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)) + 8, 0) + 36, Max(If(((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)), 0 + If((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0), 0), 36))
+                                        =If(LayoutRank < 2, If(((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)))), (0 + If((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false))), 0 + (36), 0)) + 8, 0) + 36, Max(If(((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)))), 0 + If((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false))), 0 + (36), 0), 0), 36))
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Center
                                     LayoutDirection: |-
@@ -10243,7 +10247,7 @@ Screens:
                                           FillPortions: |-
                                               =0
                                           Height: |-
-                                              =0 + If((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)
+                                              =0 + If((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false))), 0 + (36), 0)
                                           LayoutAlignItems: |-
                                               =LayoutAlignItems.Stretch
                                           LayoutDirection: |-
@@ -10259,9 +10263,9 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Visible: |-
-                                              =(!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)
+                                              =(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)))
                                           Width: |-
-                                              =Max(0, If(LayoutRank < 2, (If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36), (If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36) - ((77) + (120) + 8) - 8 - 2))
+                                              =Max(0, If(LayoutRank < 2, (If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36), (If(LayoutRank < 3, (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset), (App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 360 - 20) - 36) - ((77) + (126) + 8) - 8 - 2))
                                         Children:
                                           - txtVhpItemAttention:
                                               Control: ModernText
@@ -10291,11 +10295,11 @@ Screens:
                                                 Size: |-
                                                     =T.small
                                                 Text: |-
-                                                    =Switch(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status, "invalid", "Fix the fields marked * and press Done.", "valid", "Item is valid.", "Not done yet.")
+                                                    =Switch(LookUp(colVhpItems, ItemId = varVhpActiveItemId).Status, "invalid", "Fix the fields marked * and press Save.", "valid", "Item is valid.", "Not done yet.")
                                                 VerticalAlign: |-
                                                     =VerticalAlign.Middle
                                                 Visible: |-
-                                                    =(!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)
+                                                    =(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)))
                                                 Wrap: |-
                                                     =true
                                     - conVhpEditorFooterBtns:
@@ -10327,7 +10331,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =(77) + (120) + 8
+                                              =(77) + (126) + 8
                                         Children:
                                           - btnVhpResetItem:
                                               Control: ModernButton
@@ -10347,7 +10351,7 @@ Screens:
                                                 Color: |-
                                                     =C.'text-primary'
                                                 DisplayMode: |-
-                                                    =If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
+                                                    =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 FontWeight: |-
@@ -10392,7 +10396,7 @@ Screens:
                                                             )
                                                         )
                                                     );
-                                                    Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist)
+                                                    Set(varVhpFlQuery, ""); Set(varVhpFlLast, ""); Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); Reset(inpVhpItemShortText); Reset(drpVhpItemMainWorkCenter); Reset(drpVhpItemActivityType); Set(varVhpItemRevPick, Blank()); Reset(inpVhpItemInitials); Set(varVhpItemNfPick, Blank()); With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist))))); Reset(drpVhpItemTasklist)
                                                 RadiusBottomLeft: |-
                                                     =R.input
                                                 RadiusBottomRight: |-
@@ -10413,7 +10417,7 @@ Screens:
                                               Control: ModernButton
                                               Properties:
                                                 AccessibleLabel: |-
-                                                    ="Done with item " & Text(varVhpActiveItemId)
+                                                    =If(IfError(varVhpAct = "item", false), "Saving...", If(IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false), "Edit item ", "Save item ") & Text(varVhpActiveItemId))
                                                 Align: |-
                                                     =Align.Center
                                                 AlignInContainer: |-
@@ -10423,7 +10427,7 @@ Screens:
                                                 Color: |-
                                                     =C.'text-on-primary'
                                                 DisplayMode: |-
-                                                    =If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
+                                                    =If(IfError(!IsBlank(varVhpAct) && !(":" in varVhpAct), false), DisplayMode.Disabled, If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit))
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 FontWeight: |-
@@ -10431,15 +10435,18 @@ Screens:
                                                 Height: |-
                                                     =36
                                                 Icon: |-
-                                                    ="Checkmark"
+                                                    =If(IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false), "Edit", "Checkmark")
                                                 Layout: |-
                                                     =ButtonLayout.IconBefore
                                                 OnSelect: |-
                                                     =If(
                                                         IsBlank(varVhpActiveItemId),
                                                         Set(gblToast, { Text: "Select or add an item first.", Kind: "Warning", At: Now() }); true,
+                                                        IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false),
+                                                        RemoveIf(colVhpSectionLocks, ItemId = varVhpActiveItemId && Section = "Item"),
                                                     
-                                                        Set(varVhpItemValidated, true);
+                                                    Set(varVhpAct, "item");
+                                                    Set(varVhpItemValidated, true);
                                                         If(
                                                             IsBlank(Trim(inpVhpItemShortText.Text)) || Len(Trim(inpVhpItemShortText.Text)) > 40 ||
                                                             IsBlank(drpVhpItemMainWorkCenter.Selected.Value) ||
@@ -10470,11 +10477,14 @@ Screens:
                                                             );
                                                             If(
                                                                 CountRows(Filter(colVhpItems, ItemId = varVhpActiveItemId)) = 0,
+                                                                Set(varVhpAct, "item:failed");
                                                                 Set(gblToast, { Text: "Item " & Text(varVhpActiveItemId) & " is not in the list - nothing was changed.", Kind: "Error", At: Now() }); true,
                                                                 With({ tlIt: LookUp(colVhpItems, ItemId = varVhpActiveItemId) }, If(!varVhpViewOnly && !IsBlank(tlIt.FunctionalLocation) && (IsBlank(tlIt.TasklistKey) || IsBlank(LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = tlIt.TasklistKey).Key)), With({ tlFirst: First(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant))) }, If(!IsBlank(tlFirst.Key), UpdateIf(colVhpItems, ItemId = varVhpActiveItemId, { TasklistKey: tlFirst.Key, TasklistName: tlFirst.Name }); Reset(drpVhpItemTasklist)))));
-                                                                Set(gblToast, { Text: "Item done: " & Trim(inpVhpItemShortText.Text) & ". Save draft to keep it.", Kind: "Success", At: Now() }); true
+                                                                Collect(colVhpSectionLocks, { ItemId: varVhpActiveItemId, Section: "Item" });
+                                                                Set(varVhpAct, "item:ok")
                                                             )
-                                                        )
+                                                        );
+                                                    If(IfError(!IsBlank(varVhpAct) && !(":" in varVhpAct), false), Set(varVhpAct, ""))
                                                     )
                                                 RadiusBottomLeft: |-
                                                     =R.input
@@ -10487,11 +10497,11 @@ Screens:
                                                 Size: |-
                                                     =T.input
                                                 Text: |-
-                                                    ="Done"
+                                                    =If(IfError(varVhpAct = "item", false), "Saving...", If(IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false), "Edit", "Save"))
                                                 VerticalAlign: |-
                                                     =VerticalAlign.Middle
                                                 Width: |-
-                                                    =120
+                                                    =126
                   - conVhpOpsCard:
                       Control: GroupContainer
                       Variant: AutoLayout
@@ -10519,7 +10529,7 @@ Screens:
                             )), 1) * 88) + If(CountRows(Sort(
                                 Filter(colVhpHelp, Key = "pkg" && Kind = "Panel"),
                                 Ord
-                            )) = 0, 4 + (32), 0)), 0) + If(IfError((!IsBlank(varVhpPlan.Strategy) && CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0), false), 12 + (36), 0) + If(IfError((!IsBlank(varVhpPlan.Strategy) && CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0) && !(LookUp(colVhpStrategies, Key = varVhpPlan.Strategy).Hierarchical = "Ja"), false), 12 + (32), 0) + If(IfError((!IsBlank(varVhpPlan.Strategy) && CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0), false), 12 + (39 + 4 + (Max(CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)), 1) * 46)), 0) + If(IfError(!(!IsBlank(varVhpPlan.Strategy) && CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0), true), 12 + (40), 0) + If(IfError((!IsBlank(varVhpPlan.Strategy) && CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0), false), 12 + (32), 0)), 0) + 14 + (If(LayoutRank < 2, If(((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)), (0 + If((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)) + 8, 0) + 36, Max(If(((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)), 0 + If((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0), 0), 36)))
+                            )) = 0, 4 + (32), 0)), 0) + If(IfError((!IsBlank(varVhpPlan.Strategy) && CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0), false), 12 + (36), 0) + If(IfError((!IsBlank(varVhpPlan.Strategy) && CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0) && !(LookUp(colVhpStrategies, Key = varVhpPlan.Strategy).Hierarchical = "Ja"), false), 12 + (32), 0) + If(IfError((!IsBlank(varVhpPlan.Strategy) && CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0), false), 12 + (39 + 4 + (Max(CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)), 1) * 46)), 0) + If(IfError(!(!IsBlank(varVhpPlan.Strategy) && CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0), true), 12 + (40), 0) + If(IfError((!IsBlank(varVhpPlan.Strategy) && CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 0 && CountRows(Filter(colVhpOperations, ItemId = varVhpActiveItemId)) > 0), false), 12 + (32), 0)), 0) + 14 + (If(LayoutRank < 2, If(((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)))), (0 + If((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false))), 0 + (36), 0)) + 8, 0) + 36, Max(If(((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)))), 0 + If((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false))), 0 + (36), 0), 0), 36)))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
@@ -11154,23 +11164,23 @@ Screens:
                                                 AccessibleLabel: |-
                                                     ="Task list, required"
                                                 Appearance: |-
-                                                    =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                                    =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                                                 BasePaletteColor: |-
                                                     =C.'color-brand-primary'
                                                 BorderColor: |-
-                                                    =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'border-input', C.'border-default')
+                                                    =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'border-input', C.'border-default')
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
                                                     =1
                                                 Color: |-
-                                                    =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                                    =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                                                 Default: |-
                                                     =LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)) As _dd, _dd.Name = (LookUp(Filter(colVhpTasklists, Upper(Plant) = Upper(varVhpPlan.Plant)), Key = LookUp(colVhpItems, ItemId = varVhpActiveItemId).TasklistKey).Name))
                                                 DisplayMode: |-
-                                                    =If((If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
-                                                    =If(If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                                    =If(If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 Height: |-
@@ -11223,7 +11233,7 @@ Screens:
                                           Color: |-
                                               =C.'text-primary'
                                           DisplayMode: |-
-                                              =If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
+                                              =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
                                           Font: |-
                                               =Font.'Segoe UI'
                                           FontWeight: |-
@@ -11286,7 +11296,7 @@ Screens:
                                           Color: |-
                                               =C.'text-primary'
                                           DisplayMode: |-
-                                              =If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
+                                              =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
                                           Font: |-
                                               =Font.'Segoe UI'
                                           FontWeight: |-
@@ -11359,7 +11369,7 @@ Screens:
                                           BasePaletteColor: |-
                                               =C.'color-brand-primary'
                                           BorderColor: |-
-                                              =If(varVhpViewOnly, C.'border-default', C.'border-input')
+                                              =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), C.'border-default', C.'border-input')
                                           BorderStyle: |-
                                               =BorderStyle.Solid
                                           BorderThickness: |-
@@ -11369,7 +11379,7 @@ Screens:
                                           Default: |-
                                               =LookUp(Table({ Value: "Add lines from task list" }, { Value: "Add manual operation" }) As _dd, _dd.Value = (""))
                                           DisplayMode: |-
-                                              =If((If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                              =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                           Fill: |-
                                               =C.'input-bg'
                                           Font: |-
@@ -11650,7 +11660,7 @@ Screens:
                                                 BasePaletteColor: |-
                                                     =C.'color-brand-primary'
                                                 BorderColor: |-
-                                                    =If(varVhpViewOnly, C.'border-default', C.'border-input')
+                                                    =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), C.'border-default', C.'border-input')
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
@@ -11660,7 +11670,7 @@ Screens:
                                                 Default: |-
                                                     =ThisItem.OperationNo
                                                 DisplayMode: |-
-                                                    =If((If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =C.'input-bg'
                                                 Font: |-
@@ -11727,7 +11737,7 @@ Screens:
                                                 BasePaletteColor: |-
                                                     =C.'color-brand-primary'
                                                 BorderColor: |-
-                                                    =If(varVhpViewOnly, C.'border-default', C.'border-input')
+                                                    =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), C.'border-default', C.'border-input')
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
@@ -11737,7 +11747,7 @@ Screens:
                                                 Default: |-
                                                     =ThisItem.OperationShortText
                                                 DisplayMode: |-
-                                                    =If((If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =C.'input-bg'
                                                 Font: |-
@@ -11778,7 +11788,7 @@ Screens:
                                                 BasePaletteColor: |-
                                                     =C.'color-brand-primary'
                                                 BorderColor: |-
-                                                    =If(varVhpViewOnly, C.'border-default', C.'border-input')
+                                                    =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), C.'border-default', C.'border-input')
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
@@ -11788,7 +11798,7 @@ Screens:
                                                 Default: |-
                                                     =If(IsBlank(ThisItem.WorkHours), "", Text(ThisItem.WorkHours))
                                                 DisplayMode: |-
-                                                    =If((If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =C.'input-bg'
                                                 Font: |-
@@ -11838,7 +11848,7 @@ Screens:
                                                 BasePaletteColor: |-
                                                     =C.'color-brand-primary'
                                                 BorderColor: |-
-                                                    =If(varVhpViewOnly, C.'border-default', C.'border-input')
+                                                    =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), C.'border-default', C.'border-input')
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
@@ -11848,7 +11858,7 @@ Screens:
                                                 Default: |-
                                                     =If(IsBlank(ThisItem.Persons), "", Text(ThisItem.Persons))
                                                 DisplayMode: |-
-                                                    =If((If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =C.'input-bg'
                                                 Font: |-
@@ -11893,7 +11903,7 @@ Screens:
                                                 BasePaletteColor: |-
                                                     =C.'color-brand-primary'
                                                 BorderColor: |-
-                                                    =If(varVhpViewOnly, C.'border-default', If((DisplayMode.View) = DisplayMode.Edit, C.'border-input', C.'border-default'))
+                                                    =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), C.'border-default', If((DisplayMode.View) = DisplayMode.Edit, C.'border-input', C.'border-default'))
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
@@ -11903,7 +11913,7 @@ Screens:
                                                 Default: |-
                                                     =If(IsBlank(ThisItem.DurationHours), "", Text(ThisItem.DurationHours))
                                                 DisplayMode: |-
-                                                    =If((If(varVhpViewOnly, DisplayMode.View, If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(DisplayMode.View = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -11940,7 +11950,7 @@ Screens:
                                                 BasePaletteColor: |-
                                                     =C.'color-brand-primary'
                                                 BorderColor: |-
-                                                    =If(varVhpViewOnly, C.'border-default', If((DisplayMode.View) = DisplayMode.Edit, C.'border-input', C.'border-default'))
+                                                    =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), C.'border-default', If((DisplayMode.View) = DisplayMode.Edit, C.'border-input', C.'border-default'))
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
@@ -11950,7 +11960,7 @@ Screens:
                                                 Default: |-
                                                     =ThisItem.MainWorkCenter
                                                 DisplayMode: |-
-                                                    =If((If(varVhpViewOnly, DisplayMode.View, If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(DisplayMode.View = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -11987,7 +11997,7 @@ Screens:
                                                 BasePaletteColor: |-
                                                     =C.'color-brand-primary'
                                                 BorderColor: |-
-                                                    =If(varVhpViewOnly, C.'border-default', If((If(EndsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'border-input', C.'border-default'))
+                                                    =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), C.'border-default', If((If(EndsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'border-input', C.'border-default'))
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
@@ -12017,7 +12027,7 @@ Screens:
                                                         !IsBlank(Value)
                                                     ), Value = ThisItem.ControlKey).Value))
                                                 DisplayMode: |-
-                                                    =If((If(varVhpViewOnly, DisplayMode.View, If((If(EndsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, If((If(EndsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(If(EndsWith(Upper(Coalesce(ThisItem.MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -12074,7 +12084,7 @@ Screens:
                                                 Color: |-
                                                     =C.'text-primary'
                                                 DisplayMode: |-
-                                                    =If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02" && !varVhpViewOnly, DisplayMode.Edit, DisplayMode.Disabled)
+                                                    =If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02" && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Edit, DisplayMode.Disabled)
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 FontWeight: |-
@@ -12125,7 +12135,7 @@ Screens:
                                                 BasePaletteColor: |-
                                                     =C.'color-brand-primary'
                                                 BorderColor: |-
-                                                    =If(varVhpViewOnly, C.'border-default', If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, If(
+                                                    =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), C.'border-default', If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, If(
                                                         Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02" && IsBlank(Trim(Self.Text)),
                                                         C.'border-error',
                                                         If(IsBlank(Trim(Self.Text)), C.'border-input', C.'border-ok')
@@ -12139,7 +12149,7 @@ Screens:
                                                 Default: |-
                                                     =If(IsBlank(If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02" && Coalesce(ThisItem.Cost, 0) = 0, Blank(), ThisItem.Cost)), "", Text(If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02" && Coalesce(ThisItem.Cost, 0) = 0, Blank(), ThisItem.Cost)))
                                                 DisplayMode: |-
-                                                    =If((If(varVhpViewOnly, DisplayMode.View, If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, If((If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -12184,7 +12194,7 @@ Screens:
                                                 Color: |-
                                                     =C.'text-primary'
                                                 DisplayMode: |-
-                                                    =If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02" && !varVhpViewOnly, DisplayMode.Edit, DisplayMode.Disabled)
+                                                    =If(Upper(Coalesce(ThisItem.ControlKey, "")) = "PM02" && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Edit, DisplayMode.Disabled)
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 FontWeight: |-
@@ -12233,7 +12243,7 @@ Screens:
                                                 Color: |-
                                                     =If(!IsBlank(Trim(Coalesce(ThisItem.LongText, ""))), C.'state-ok-fg', C.'text-primary')
                                                 DisplayMode: |-
-                                                    =If(varVhpViewOnly && IsBlank(Trim(Coalesce(ThisItem.LongText, ""))), DisplayMode.Disabled, DisplayMode.Edit)
+                                                    =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)) && IsBlank(Trim(Coalesce(ThisItem.LongText, ""))), DisplayMode.Disabled, DisplayMode.Edit)
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 FontWeight: |-
@@ -12371,7 +12381,7 @@ Screens:
                                                     Control: Image
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          =ThisItem.ShortCode & If(varVhpViewOnly, If(ThisItem.Sel, ", selected", ", not selected"), "")
+                                                          =ThisItem.ShortCode & If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), If(ThisItem.Sel, ", selected", ", not selected"), "")
                                                       BorderStyle: |-
                                                           =BorderStyle.None
                                                       BorderThickness: |-
@@ -12413,7 +12423,7 @@ Screens:
                                                       DisabledFill: |-
                                                           =C.'row-pressed'
                                                       DisplayMode: |-
-                                                          =If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)
+                                                          =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Disabled, DisplayMode.Edit)
                                                       Fill: |-
                                                           =RGBA(0, 0, 0, 0)
                                                       FocusedBorderColor: |-
@@ -12429,7 +12439,7 @@ Screens:
                                                       HoverFill: |-
                                                           =C.'row-hover'
                                                       OnSelect: |-
-                                                          =If(!varVhpViewOnly,
+                                                          =If(!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)),
                                                               With(
                                                                   { pkg: Text(ThisItem.PackageNo), op: ThisItem.OpNo, was: ThisItem.Sel },
                                                                   UpdateIf(
@@ -12467,7 +12477,7 @@ Screens:
                                                       Tooltip: |-
                                                           =ThisItem.ShortCode & " - " & Text(ThisItem.CycleLength) & " " & ThisItem.CycleUnit
                                                       Visible: |-
-                                                          =!varVhpViewOnly
+                                                          =!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false))
                                                       Width: |-
                                                           =(If(CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 4, 26, 40))
                                                       X: |-
@@ -12585,7 +12595,7 @@ Screens:
                                                 Color: |-
                                                     =C.'state-error-fg'
                                                 DisplayMode: |-
-                                                    =If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
+                                                    =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
                                                 Font: |-
                                                     =Font.'Segoe UI'
                                                 FontWeight: |-
@@ -13320,7 +13330,7 @@ Screens:
                                               =C.'text-on-primary'
                                           DisplayMode: |-
                                               =If(
-                                                  varVhpViewOnly || IsBlank(varVhpActiveItemId) || !(LookUp(colVhpStrategies, Key = varVhpPlan.Strategy).Hierarchical = "Ja"),
+                                                  (varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)) || IsBlank(varVhpActiveItemId) || !(LookUp(colVhpStrategies, Key = varVhpPlan.Strategy).Hierarchical = "Ja"),
                                                   DisplayMode.Disabled,
                                                   DisplayMode.Edit
                                               )
@@ -13400,7 +13410,7 @@ Screens:
                                           Color: |-
                                               =C.'text-primary'
                                           DisplayMode: |-
-                                              =If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
+                                              =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
                                           Font: |-
                                               =Font.'Segoe UI'
                                           FontWeight: |-
@@ -13455,7 +13465,7 @@ Screens:
                                           Color: |-
                                               =C.'state-error-fg'
                                           DisplayMode: |-
-                                              =If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
+                                              =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
                                           Font: |-
                                               =Font.'Segoe UI'
                                           FontWeight: |-
@@ -13655,7 +13665,7 @@ Screens:
                                                 BasePaletteColor: |-
                                                     =C.'color-brand-primary'
                                                 BorderColor: |-
-                                                    =If(varVhpViewOnly, C.'border-default', If((DisplayMode.View) = DisplayMode.Edit, C.'border-input', C.'border-default'))
+                                                    =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), C.'border-default', If((DisplayMode.View) = DisplayMode.Edit, C.'border-input', C.'border-default'))
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
@@ -13665,7 +13675,7 @@ Screens:
                                                 Default: |-
                                                     =ThisItem.OperationNo
                                                 DisplayMode: |-
-                                                    =If((If(varVhpViewOnly, DisplayMode.View, If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(DisplayMode.View = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -13702,7 +13712,7 @@ Screens:
                                                 BasePaletteColor: |-
                                                     =C.'color-brand-primary'
                                                 BorderColor: |-
-                                                    =If(varVhpViewOnly, C.'border-default', If((DisplayMode.View) = DisplayMode.Edit, C.'border-input', C.'border-default'))
+                                                    =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), C.'border-default', If((DisplayMode.View) = DisplayMode.Edit, C.'border-input', C.'border-default'))
                                                 BorderStyle: |-
                                                     =BorderStyle.Solid
                                                 BorderThickness: |-
@@ -13712,7 +13722,7 @@ Screens:
                                                 Default: |-
                                                     =If(IsBlank(ThisItem.OperationShortText), "(no text)", ThisItem.OperationShortText)
                                                 DisplayMode: |-
-                                                    =If((If(varVhpViewOnly, DisplayMode.View, If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                                    =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, If((DisplayMode.View) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                                 Fill: |-
                                                     =If(DisplayMode.View = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                                                 Font: |-
@@ -13789,7 +13799,7 @@ Screens:
                                                     Control: Image
                                                     Properties:
                                                       AccessibleLabel: |-
-                                                          =ThisItem.ShortCode & If(varVhpViewOnly, If(ThisItem.Sel, ", selected", ", not selected"), "")
+                                                          =ThisItem.ShortCode & If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), If(ThisItem.Sel, ", selected", ", not selected"), "")
                                                       BorderStyle: |-
                                                           =BorderStyle.None
                                                       BorderThickness: |-
@@ -13828,7 +13838,7 @@ Screens:
                                                       DisabledFill: |-
                                                           =C.'row-pressed'
                                                       DisplayMode: |-
-                                                          =If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)
+                                                          =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Disabled, DisplayMode.Edit)
                                                       Fill: |-
                                                           =RGBA(0, 0, 0, 0)
                                                       FocusedBorderColor: |-
@@ -13844,7 +13854,7 @@ Screens:
                                                       HoverFill: |-
                                                           =C.'row-hover'
                                                       OnSelect: |-
-                                                          =If(!varVhpViewOnly,
+                                                          =If(!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)),
                                                               With(
                                                                   { pkg: Text(ThisItem.PackageNo), op: ThisItem.OpNo, was: ThisItem.Sel },
                                                                   UpdateIf(
@@ -13882,7 +13892,7 @@ Screens:
                                                       Tooltip: |-
                                                           =ThisItem.ShortCode & " - " & Text(ThisItem.CycleLength) & " " & ThisItem.CycleUnit
                                                       Visible: |-
-                                                          =!varVhpViewOnly
+                                                          =!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false))
                                                       Width: |-
                                                           =40
                                                       X: |-
@@ -14000,7 +14010,7 @@ Screens:
                               FillPortions: |-
                                   =0
                               Height: |-
-                                  =If(LayoutRank < 2, If(((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)), (0 + If((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)) + 8, 0) + 36, Max(If(((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)), 0 + If((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0), 0), 36))
+                                  =If(LayoutRank < 2, If(((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)))), (0 + If((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false))), 0 + (36), 0)) + 8, 0) + 36, Max(If(((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)))), 0 + If((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false))), 0 + (36), 0), 0), 36))
                               LayoutAlignItems: |-
                                   =LayoutAlignItems.Center
                               LayoutDirection: |-
@@ -14027,7 +14037,7 @@ Screens:
                                     FillPortions: |-
                                         =0
                                     Height: |-
-                                        =0 + If((!IsBlank(varVhpActiveItemId) && !varVhpViewOnly), 0 + (36), 0)
+                                        =0 + If((!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false))), 0 + (36), 0)
                                     LayoutAlignItems: |-
                                         =LayoutAlignItems.Stretch
                                     LayoutDirection: |-
@@ -14043,9 +14053,9 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Visible: |-
-                                        =(!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)
+                                        =(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)))
                                     Width: |-
-                                        =Max(0, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - ((120) + 0) - 8 - 2))
+                                        =Max(0, If(LayoutRank < 2, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 36) - ((126) + 0) - 8 - 2))
                                   Children:
                                     - txtVhpOpsAttention:
                                         Control: ModernText
@@ -14093,7 +14103,7 @@ Screens:
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Visible: |-
-                                              =(!IsBlank(varVhpActiveItemId) && !varVhpViewOnly)
+                                              =(!IsBlank(varVhpActiveItemId) && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)))
                                           Wrap: |-
                                               =true
                               - conVhpOpsFooterBtns:
@@ -14125,13 +14135,13 @@ Screens:
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =(120) + 0
+                                        =(126) + 0
                                   Children:
                                     - btnVhpTasklistSave:
                                         Control: ModernButton
                                         Properties:
                                           AccessibleLabel: |-
-                                              ="Done with the task list and operations"
+                                              =If(IfError(varVhpAct = "ops", false), "Saving...", If(IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false), "Edit the task list and operations", "Save the task list and operations"))
                                           Align: |-
                                               =Align.Center
                                           AlignInContainer: |-
@@ -14141,7 +14151,7 @@ Screens:
                                           Color: |-
                                               =C.'text-on-primary'
                                           DisplayMode: |-
-                                              =If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, btnVhpSaveDraft.DisplayMode)
+                                              =If(IfError(!IsBlank(varVhpAct) && !(":" in varVhpAct), false), DisplayMode.Disabled, If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, btnVhpSaveDraft.DisplayMode))
                                           Font: |-
                                               =Font.'Segoe UI'
                                           FontWeight: |-
@@ -14149,13 +14159,18 @@ Screens:
                                           Height: |-
                                               =36
                                           Icon: |-
-                                              ="Checkmark"
+                                              =If(IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false), "Edit", "Checkmark")
                                           Layout: |-
                                               =ButtonLayout.IconBefore
                                           OnSelect: |-
                                               =If(
                                                   IsBlank(varVhpActiveItemId),
                                                   Set(gblToast, { Text: "Select an item first.", Kind: "Warning", At: Now() }); true,
+                                                  IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false),
+                                                  RemoveIf(colVhpSectionLocks, ItemId = varVhpActiveItemId && Section = "Ops"),
+                                              
+                                              Set(varVhpAct, "ops");
+                                              If(
                                                   IsBlank(drpVhpItemTasklist.Selected.Key),
                                                   Set(gblToast, { Text: "Select a task list first.", Kind: "Warning", At: Now() }); true,
                                                   With(
@@ -14174,9 +14189,12 @@ Screens:
                                                               colVhpItems, ItemId = varVhpActiveItemId,
                                                               { TasklistKey: drpVhpItemTasklist.Selected.Key, TasklistName: drpVhpItemTasklist.Selected.Name }
                                                           );
-                                                          Set(gblToast, { Text: "Task list done. Save draft to keep it.", Kind: "Success", At: Now() }); true
+                                                          Collect(colVhpSectionLocks, { ItemId: varVhpActiveItemId, Section: "Ops" });
+                                                          Set(varVhpAct, "ops:ok")
                                                       )
                                                   )
+                                              );
+                                              If(IfError(!IsBlank(varVhpAct) && !(":" in varVhpAct), false), Set(varVhpAct, ""))
                                               )
                                           RadiusBottomLeft: |-
                                               =R.input
@@ -14189,11 +14207,11 @@ Screens:
                                           Size: |-
                                               =T.input
                                           Text: |-
-                                              ="Done"
+                                              =If(IfError(varVhpAct = "ops", false), "Saving...", If(IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false), "Edit", "Save"))
                                           VerticalAlign: |-
                                               =VerticalAlign.Middle
                                           Width: |-
-                                              =120
+                                              =126
             - conVhpFoot:
                 Control: GroupContainer
                 Variant: AutoLayout
@@ -16340,7 +16358,7 @@ Screens:
                         BasePaletteColor: |-
                             =C.'color-brand-primary'
                         BorderColor: |-
-                            =If(varVhpViewOnly, C.'border-default', C.'border-input')
+                            =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), C.'border-default', C.'border-input')
                         BorderStyle: |-
                             =BorderStyle.Solid
                         BorderThickness: |-
@@ -16350,7 +16368,7 @@ Screens:
                         Default: |-
                             =LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).OperationNo
                         DisplayMode: |-
-                            =If((If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                            =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                         Fill: |-
                             =C.'input-bg'
                         Font: |-
@@ -16447,7 +16465,7 @@ Screens:
                         BasePaletteColor: |-
                             =C.'color-brand-primary'
                         BorderColor: |-
-                            =If(varVhpViewOnly, C.'border-default', C.'border-input')
+                            =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), C.'border-default', C.'border-input')
                         BorderStyle: |-
                             =BorderStyle.Solid
                         BorderThickness: |-
@@ -16457,7 +16475,7 @@ Screens:
                         Default: |-
                             =LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).OperationShortText
                         DisplayMode: |-
-                            =If((If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                            =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                         Fill: |-
                             =C.'input-bg'
                         Font: |-
@@ -16554,7 +16572,7 @@ Screens:
                               BasePaletteColor: |-
                                   =C.'color-brand-primary'
                               BorderColor: |-
-                                  =If(varVhpViewOnly, C.'border-default', C.'border-input')
+                                  =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), C.'border-default', C.'border-input')
                               BorderStyle: |-
                                   =BorderStyle.Solid
                               BorderThickness: |-
@@ -16564,7 +16582,7 @@ Screens:
                               Default: |-
                                   =If(IsBlank(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).WorkHours), "", Text(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).WorkHours))
                               DisplayMode: |-
-                                  =If((If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                  =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                               Fill: |-
                                   =C.'input-bg'
                               Font: |-
@@ -16706,7 +16724,7 @@ Screens:
                               BasePaletteColor: |-
                                   =C.'color-brand-primary'
                               BorderColor: |-
-                                  =If(varVhpViewOnly, C.'border-default', C.'border-input')
+                                  =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), C.'border-default', C.'border-input')
                               BorderStyle: |-
                                   =BorderStyle.Solid
                               BorderThickness: |-
@@ -16716,7 +16734,7 @@ Screens:
                               Default: |-
                                   =If(IsBlank(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Persons), "", Text(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Persons))
                               DisplayMode: |-
-                                  =If((If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                  =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                               Fill: |-
                                   =C.'input-bg'
                               Font: |-
@@ -16857,7 +16875,7 @@ Screens:
                         BasePaletteColor: |-
                             =C.'color-brand-primary'
                         BorderColor: |-
-                            =If(varVhpViewOnly, C.'border-default', If((If(EndsWith(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'border-input', C.'border-default'))
+                            =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), C.'border-default', If((If(EndsWith(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, C.'border-input', C.'border-default'))
                         BorderStyle: |-
                             =BorderStyle.Solid
                         BorderThickness: |-
@@ -16867,7 +16885,7 @@ Screens:
                         Default: |-
                             =LookUp(Filter(Distinct(Table({ Value: "ZB01" }, { Value: "PM01" }, { Value: Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "") }), Value), !IsBlank(Value)) As _dd, _dd.Value = (LookUp(Filter(Distinct(Table({ Value: "ZB01" }, { Value: "PM01" }, { Value: Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "") }), Value), !IsBlank(Value)), Value = LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey).Value))
                         DisplayMode: |-
-                            =If((If(varVhpViewOnly, DisplayMode.View, If((If(EndsWith(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                            =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, If((If(EndsWith(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                         Fill: |-
                             =If(If(EndsWith(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).MainWorkCenter, "")), "SUP"), DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                         Font: |-
@@ -16945,7 +16963,7 @@ Screens:
                         Color: |-
                             =C.'text-primary'
                         DisplayMode: |-
-                            =If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02" && !varVhpViewOnly, DisplayMode.Edit, DisplayMode.Disabled)
+                            =If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02" && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Edit, DisplayMode.Disabled)
                         Font: |-
                             =Font.'Segoe UI'
                         FontWeight: |-
@@ -17023,7 +17041,7 @@ Screens:
                         BasePaletteColor: |-
                             =C.'color-brand-primary'
                         BorderColor: |-
-                            =If(varVhpViewOnly, C.'border-default', If((If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, If(
+                            =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), C.'border-default', If((If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, If(
                                 Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02" && IsBlank(Trim(Self.Text)),
                                 C.'border-error',
                                 If(IsBlank(Trim(Self.Text)), C.'border-input', C.'border-ok')
@@ -17037,7 +17055,7 @@ Screens:
                         Default: |-
                             =If(IsBlank(If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02" && Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Cost, 0) = 0, Blank(), LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Cost)), "", Text(If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02" && Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Cost, 0) = 0, Blank(), LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).Cost)))
                         DisplayMode: |-
-                            =If((If(varVhpViewOnly, DisplayMode.View, If((If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                            =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, If((If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View))) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                         Fill: |-
                             =If(If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02", DisplayMode.Edit, DisplayMode.View) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                         Font: |-
@@ -17113,7 +17131,7 @@ Screens:
                         Color: |-
                             =C.'text-primary'
                         DisplayMode: |-
-                            =If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02" && !varVhpViewOnly, DisplayMode.Edit, DisplayMode.Disabled)
+                            =If(Upper(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).ControlKey, "")) = "PM02" && !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Edit, DisplayMode.Disabled)
                         Font: |-
                             =Font.'Segoe UI'
                         FontWeight: |-
@@ -17191,7 +17209,7 @@ Screens:
                         Color: |-
                             =C.'text-primary'
                         DisplayMode: |-
-                            =If(varVhpViewOnly && IsBlank(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).LongText, ""))), DisplayMode.Disabled, DisplayMode.Edit)
+                            =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)) && IsBlank(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpOpMNo).LongText, ""))), DisplayMode.Disabled, DisplayMode.Edit)
                         Font: |-
                             =Font.'Segoe UI'
                         FontWeight: |-
@@ -17377,7 +17395,7 @@ Screens:
                                   Control: Image
                                   Properties:
                                     AccessibleLabel: |-
-                                        =ThisItem.ShortCode & If(varVhpViewOnly, If(ThisItem.Sel, ", selected", ", not selected"), "")
+                                        =ThisItem.ShortCode & If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), If(ThisItem.Sel, ", selected", ", not selected"), "")
                                     BorderStyle: |-
                                         =BorderStyle.None
                                     BorderThickness: |-
@@ -17419,7 +17437,7 @@ Screens:
                                     DisabledFill: |-
                                         =C.'row-pressed'
                                     DisplayMode: |-
-                                        =If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)
+                                        =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Disabled, DisplayMode.Edit)
                                     Fill: |-
                                         =RGBA(0, 0, 0, 0)
                                     FocusedBorderColor: |-
@@ -17435,7 +17453,7 @@ Screens:
                                     HoverFill: |-
                                         =C.'row-hover'
                                     OnSelect: |-
-                                        =If(!varVhpViewOnly,
+                                        =If(!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)),
                                             With(
                                                 { pkg: Text(ThisItem.PackageNo), op: ThisItem.OpNo, was: ThisItem.Sel },
                                                 UpdateIf(
@@ -17473,7 +17491,7 @@ Screens:
                                     Tooltip: |-
                                         =ThisItem.ShortCode & " - " & Text(ThisItem.CycleLength) & " " & ThisItem.CycleUnit
                                     Visible: |-
-                                        =!varVhpViewOnly
+                                        =!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false))
                                     Width: |-
                                         =(If(CountRows(Filter(colVhpStrategyPackages, StrategyKey = varVhpPlan.Strategy)) > 4, 26, 40))
                                     X: |-
@@ -17620,7 +17638,7 @@ Screens:
                               Color: |-
                                   =C.'state-error-fg'
                               DisplayMode: |-
-                                  =If(varVhpViewOnly || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
+                                  =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)) || IsBlank(varVhpActiveItemId), DisplayMode.Disabled, DisplayMode.Edit)
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
@@ -17882,7 +17900,7 @@ Screens:
                               Color: |-
                                   =C.'text-on-primary'
                               DisplayMode: |-
-                                  =If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)
+                                  =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Disabled, DisplayMode.Edit)
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
@@ -17940,7 +17958,7 @@ Screens:
                               Color: |-
                                   =C.'state-error-fg'
                               DisplayMode: |-
-                                  =If(varVhpViewOnly || CountRows(Filter(Filter(colVhpMaterials, ItemId = varVhpActiveItemId && OperationNo = varVhpMatOpNo), Selected = true)) = 0, DisplayMode.Disabled, DisplayMode.Edit)
+                                  =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)) || CountRows(Filter(Filter(colVhpMaterials, ItemId = varVhpActiveItemId && OperationNo = varVhpMatOpNo), Selected = true)) = 0, DisplayMode.Disabled, DisplayMode.Edit)
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
@@ -18120,7 +18138,7 @@ Screens:
                                     Default: |-
                                         =ThisItem.Selected
                                     DisplayMode: |-
-                                        =If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)
+                                        =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, DisplayMode.Edit)
                                     Font: |-
                                         =Font.'Segoe UI'
                                     Height: |-
@@ -18149,7 +18167,7 @@ Screens:
                                     BasePaletteColor: |-
                                         =C.'color-brand-primary'
                                     BorderColor: |-
-                                        =If(varVhpViewOnly, C.'border-default', C.'border-input')
+                                        =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), C.'border-default', C.'border-input')
                                     BorderStyle: |-
                                         =BorderStyle.Solid
                                     BorderThickness: |-
@@ -18159,7 +18177,7 @@ Screens:
                                     Default: |-
                                         =ThisItem.MaterialNo
                                     DisplayMode: |-
-                                        =If((If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                        =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                     Fill: |-
                                         =C.'input-bg'
                                     Font: |-
@@ -18235,7 +18253,7 @@ Screens:
                                     BasePaletteColor: |-
                                         =C.'color-brand-primary'
                                     BorderColor: |-
-                                        =If(varVhpViewOnly, C.'border-default', C.'border-input')
+                                        =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), C.'border-default', C.'border-input')
                                     BorderStyle: |-
                                         =BorderStyle.Solid
                                     BorderThickness: |-
@@ -18245,7 +18263,7 @@ Screens:
                                     Default: |-
                                         =If(IsBlank(ThisItem.Quantity), "", Text(ThisItem.Quantity))
                                     DisplayMode: |-
-                                        =If((If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                        =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                                     Fill: |-
                                         =C.'input-bg'
                                     Font: |-
@@ -19137,25 +19155,25 @@ Screens:
                               AccessibleLabel: |-
                                   ="Vendor - type at least 3 characters, then Search or Enter"
                               Appearance: |-
-                                  =If((If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
+                                  =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, Appearance.FilledDarker, Appearance.Outline)
                               BasePaletteColor: |-
                                   =C.'color-brand-primary'
                               BorderColor: |-
-                                  =If((If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'border-input', C.'border-default')
+                                  =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'border-input', C.'border-default')
                               BorderStyle: |-
                                   =BorderStyle.Solid
                               BorderThickness: |-
                                   =1
                               Color: |-
-                                  =If((If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
+                                  =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, C.'input-fg', C.'text-muted')
                               DefaultSelectedItems: |-
                                   =Filter(colVhpVendors, Code = varVhpVenPick)
                               DelayOutput: |-
                                   =false
                               DisplayMode: |-
-                                  =If((If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                                  =If((If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Disabled, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                               Fill: |-
-                                  =If(If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
+                                  =If(If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Disabled, DisplayMode.Edit) = DisplayMode.Edit, C.'input-bg', C.'input-bg-disabled')
                               FillPortions: |-
                                   =0
                               Font: |-
@@ -19298,7 +19316,7 @@ Screens:
                               Color: |-
                                   =C.'text-primary'
                               DisplayMode: |-
-                                  =If(Len(Trim(Coalesce(cmbVhpVendor.SearchText, varVhpVenQuery))) < 3, DisplayMode.Disabled, If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit))
+                                  =If(Len(Trim(Coalesce(cmbVhpVendor.SearchText, varVhpVenQuery))) < 3, DisplayMode.Disabled, If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.Disabled, DisplayMode.Edit))
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
@@ -19507,7 +19525,7 @@ Screens:
                         Color: |-
                             =C.'text-on-primary'
                         DisplayMode: |-
-                            =If(varVhpViewOnly || varVhpVenBusy || IsBlank(cmbVhpVendor.Selected.Code) || cmbVhpVendor.Selected.Code = "?search", DisplayMode.Disabled, DisplayMode.Edit)
+                            =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)) || varVhpVenBusy || IsBlank(cmbVhpVendor.Selected.Code) || cmbVhpVendor.Selected.Code = "?search", DisplayMode.Disabled, DisplayMode.Edit)
                         Font: |-
                             =Font.'Segoe UI'
                         FontWeight: |-
@@ -19555,7 +19573,7 @@ Screens:
                         Color: |-
                             =C.'state-error-fg'
                         DisplayMode: |-
-                            =If(varVhpViewOnly || varVhpVenBusy || IsBlank(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpVenOpNo).Vendor, ""))), DisplayMode.Disabled, DisplayMode.Edit)
+                            =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)) || varVhpVenBusy || IsBlank(Trim(Coalesce(LookUp(colVhpOperations, ItemId = varVhpActiveItemId && OperationNo = varVhpVenOpNo).Vendor, ""))), DisplayMode.Disabled, DisplayMode.Edit)
                         Font: |-
                             =Font.'Segoe UI'
                         FontWeight: |-
@@ -19895,7 +19913,7 @@ Screens:
                         DisabledFill: |-
                             =C.'row-pressed'
                         DisplayMode: |-
-                            =If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)
+                            =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false)), DisplayMode.View, DisplayMode.Edit)
                         Fill: |-
                             =RGBA(0, 0, 0, 0)
                         FocusedBorderColor: |-
@@ -21181,7 +21199,7 @@ Screens:
                   BasePaletteColor: |-
                       =C.'color-brand-primary'
                   BorderColor: |-
-                      =If(varVhpViewOnly, C.'border-default', C.'border-input')
+                      =If((varVhpViewOnly || If(varVhpLongTextTarget = "item", IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false), IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false))), C.'border-default', C.'border-input')
                   BorderStyle: |-
                       =BorderStyle.Solid
                   BorderThickness: |-
@@ -21191,7 +21209,7 @@ Screens:
                   Default: |-
                       =varVhpLongTextDraft
                   DisplayMode: |-
-                      =If((If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
+                      =If((If((varVhpViewOnly || If(varVhpLongTextTarget = "item", IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false), IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false))), DisplayMode.View, DisplayMode.Edit)) = DisplayMode.Edit, DisplayMode.Edit, DisplayMode.View)
                   Fill: |-
                       =C.'input-bg'
                   Font: |-
@@ -21261,7 +21279,7 @@ Screens:
                         Color: |-
                             =C.'text-on-primary'
                         DisplayMode: |-
-                            =If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)
+                            =If((varVhpViewOnly || If(varVhpLongTextTarget = "item", IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false), IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Ops").ItemId, false))), DisplayMode.Disabled, DisplayMode.Edit)
                         Font: |-
                             =Font.'Segoe UI'
                         FontWeight: |-
@@ -21315,7 +21333,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =476 + If(IfError((varVhpViewOnly || CountRows(Filter(
+                =476 + If(IfError(((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || CountRows(Filter(
                     colVhpFl,
                     !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
                 )) = 0) && CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) = 0, true), 12 + (32), 0)
@@ -21495,7 +21513,7 @@ Screens:
                   Size: |-
                       =T.small
                   Text: |-
-                      =If(IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)), "No functional location selected.", varVhpViewOnly, "Objects linked under " & Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation) & " - read-only.", "Sub-objects under " & Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation) & " - " & Text(CountRows(Filter(
+                      =If(IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)), "No functional location selected.", (varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)), "Objects linked under " & Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation) & " - read-only.", "Sub-objects under " & Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation) & " - " & Text(CountRows(Filter(
                           colVhpFl,
                           !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
                       ))) & " found.")
@@ -21526,7 +21544,7 @@ Screens:
                           { c: ForAll(Filter(Filter(
                           colVhpFl,
                           !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                      ), !varVhpViewOnly) As F, { Code: F.Code, Description: F.Description }) },
+                      ), !(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false))) As F, { Code: F.Code, Description: F.Description }) },
                           With(
                               { x: ForAll(Filter(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), !(Code in c.Code)) As O,
                                           { Code: O.Code, Description: Coalesce(O.Description, LookUp(colVhpFl, Code = O.Code).Description, LookUp(colVhpObjDesc, Code = O.Code).Description, "") }) },
@@ -21595,7 +21613,7 @@ Screens:
                         Default: |-
                             =CountRows(Filter(colVhpObjDraft, Code = ThisItem.Code)) > 0
                         DisplayMode: |-
-                            =If(varVhpViewOnly, DisplayMode.View, DisplayMode.Edit)
+                            =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)), DisplayMode.View, DisplayMode.Edit)
                         Font: |-
                             =Font.'Segoe UI'
                         Height: |-
@@ -21646,14 +21664,14 @@ Screens:
                       =T.small
                   Text: |-
                       =If(
-                          varVhpViewOnly,
+                          (varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)),
                           "No objects are linked to this item.",
                           IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)),
                           "Choose a functional location first.",
                           "No results found. Search more broadly in the functional location field."
                       )
                   Visible: |-
-                      =IfError((varVhpViewOnly || CountRows(Filter(
+                      =IfError(((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)) || CountRows(Filter(
                           colVhpFl,
                           !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
                       )) = 0) && CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) = 0, true)
@@ -21720,7 +21738,7 @@ Screens:
                         Text: |-
                             =Text(CountRows(colVhpObjDraft)) & " selected"
                         Width: |-
-                            =Max(0, (((Min(640, App.Width - 40)) - 18 - 18)) - (If(!varVhpViewOnly, (133) + 8, 0)) - 2)
+                            =Max(0, (((Min(640, App.Width - 40)) - 18 - 18)) - (If(!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)), (133) + 8, 0)) - 2)
                         Wrap: |-
                             =false
                   - btnVhpObjListUse:
@@ -21737,7 +21755,7 @@ Screens:
                         Color: |-
                             =C.'text-on-primary'
                         DisplayMode: |-
-                            =If(varVhpViewOnly, DisplayMode.Disabled, DisplayMode.Edit)
+                            =If((varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false)), DisplayMode.Disabled, DisplayMode.Edit)
                         Font: |-
                             =Font.'Segoe UI'
                         FontWeight: |-
@@ -21770,7 +21788,7 @@ Screens:
                         VerticalAlign: |-
                             =VerticalAlign.Middle
                         Visible: |-
-                            =!varVhpViewOnly
+                            =!(varVhpViewOnly || IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, Section = "Item").ItemId, false))
                         Width: |-
                             =133
       - conVhpNotesBackdrop:
@@ -22806,6 +22824,7 @@ Screens:
                             Clear(colVhpOperations);
                             Clear(colVhpItemObjects);
                             Clear(colVhpObjDraft);
+                            Clear(colVhpSectionLocks);
                             Clear(colVhpMaterials);
                             Clear(colVhpAttachments);
                             Collect(colVhpItems, {
@@ -23847,7 +23866,7 @@ Screens:
                                       )
                                   ) },
                                       With(
-                                      { t: Concat(Filter(Table({ m: VhpItemMissing }, { m: If(vhpDirty, "Press Done in the item editor to keep the changes.", "") }), !IsBlank(m)), m, Char(10)) },
+                                      { t: Concat(Filter(Table({ m: VhpItemMissing }, { m: If(vhpDirty, "Press Save in the item editor to keep the changes.", "") }), !IsBlank(m)), m, Char(10)) },
                                       If(IsBlank(t), "", "• " & Substitute(t, Char(10), Char(10) & "• "))
                                   )
                                   )
@@ -26303,6 +26322,7 @@ Screens:
                             Clear(colVhpObjDraft);
                             Clear(colVhpMaterials);
                             Clear(colVhpAttachments);
+                            Clear(colVhpSectionLocks);
                             If(false, ClearCollect(colVhpItems, { ItemId: 0, ShortText: "", FunctionalLocation: "", FlDescription: "", MainWorkCenter: "", ActivityType: "", ObjectList: "", Revision: "", OrstedResponsible: "", Initials: "", LongText: "", NonFlowUserStatus: "", TasklistKey: "", TasklistName: "", Status: "", SpId: 0, ItemGuid: "" }));
                 
                             If(false, ClearCollect(colVhpOperations, { ItemId: 0, OperationNo: "", OperationShortText: "", WorkHours: 0, Persons: 0, DurationHours: 0, MainWorkCenter: "", Vendor: "", LongText: "", PackagesKey: ";", Selected: false, ControlKey: "", Cost: 0, UnitCost: 0, Currency: "", CostElement: 0, MaterialGroup: "", ServiceNo: "", FileCount: 0, SpId: 0 }));
@@ -26316,6 +26336,8 @@ Screens:
                             If(false, ClearCollect(colVhpObjDesc, { Code: "", Description: "" }));
                 
                             If(false, ClearCollect(colVhpPickerSelected, { OperationNo: "" }));
+                
+                            If(false, ClearCollect(colVhpSectionLocks, { ItemId: 0, Section: "" }));
                 
                             If(false, ClearCollect(colVhpMaterials, { ItemId: 0, LineId: 0, MaterialNo: "", Description: "", Unit: "", Quantity: 0, OperationNo: "", Selected: false }));
                 

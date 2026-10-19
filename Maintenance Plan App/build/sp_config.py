@@ -522,6 +522,13 @@ def named_formulas():
     return F
 
 
+def section_locked(section):
+    """Sand, naar det aktive items sektion er gemt med Save og laast
+    (issue #433). section: "Item" eller "Ops" (colVhpSectionLocks)."""
+    return (f'IfError(varVhpActiveItemId in Filter(colVhpSectionLocks, '
+            f'Section = "{section}").ItemId, false)')
+
+
 # ---------------------------------------------------------------------------
 # Samlinger appen SKRIVER til. De kan ikke vaere navngivne formler.
 # Skemaet defineres med en enkelt raekke, som straks ryddes - ellers kender
@@ -572,6 +579,10 @@ WORKING_COLLECTIONS = [
     # op i FL-flowet, naar Object list aabnes. Kun visning; gemmes aldrig.
     ("colVhpObjDesc", {"Code": '""', "Description": '""'}),
     ("colVhpPickerSelected", {"OperationNo": '""'}),
+    # De sektioner, der er gemt med Save og nu er skrivebeskyttede, indtil
+    # der trykkes Edit (issue #433) - een raekke pr. item og sektion
+    # ("Item" eller "Ops"). Kun skaermens tilstand; gemmes aldrig.
+    ("colVhpSectionLocks", {"ItemId": 0, "Section": '""'}),
     # Materialer til arbejdsplanen. Description og Unit staar tomme, indtil
     # materialeopslaget mod SAP er paa plads - felterne findes allerede, saa
     # opslaget kun skal fylde dem ud og ikke aendre skemaet.
