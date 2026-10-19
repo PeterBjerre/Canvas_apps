@@ -83,7 +83,7 @@ from build_helpers import (empty_state, fluent, fluent_icon, skeleton_rows, ensu
                            label_px, text_ctrl, text_input, text_min_height, text_px, themed_dropdown, top_bar,
                            ICON_W, modern_badge, spinner, panel_save_fx, panel_save_mode,
                            panel_save_status, panel_save_block, panel_save_text,
-                           act_fx, act_mark, act_button, act_status, act_layers)
+                           act_fx, act_mark, act_button, act_status, act_layers, icon_only_when)
 from permissions import IS_ADMIN, ADMIN_LIST, ADMIN_GROUP
 from design_tokens import ref as _t, ref_hex as _hex
 import icons
@@ -2230,7 +2230,8 @@ def _actions():
     reopen.props["LayoutMinWidth"] = reopen.props["Width"]
     reopen.props["Size"] = str(lay.SIZE_SMALL)
     # "Reopening..." i knappen (issue #420). Ikon-knapperne har ingen tekst
-    # at skifte - hjulet foran raekken viser, at kaldet koerer.
+    # at skifte - hjulet foran raekken viser, at kaldet koerer (kun for
+    # dem, issue #441).
     act_button(reopen, IB_ACT, "reopen")
     # Edit foerst, naar sagens hele raekke er hentet - ellers kunne de
     # felter, oversigten ikke henter, blive gemt tomme.
@@ -2257,9 +2258,13 @@ def _actions():
                           "IbCanManage", '"Delete issue"',
                           '"Delete issue permanently - you confirm first"',
                           "If(varIbBusy, DisplayMode.Disabled, DisplayMode.Edit)", danger=True)
-    # Hjulet og "Reopened"/"Update failed" foran knapperne (issue #420).
-    # Delete koerer i sin egen popup og viser sin tilstand dér.
-    status = act_status("IbDetAct", IB_ACT, ("reopen", "archive"))
+    # "Reopened"/"Update failed" foran knapperne (issue #420). Hjulet kun
+    # for Archive/Restore - de er ikoner uden tekst; Reopen siger selv
+    # "Reopening..." (issue #441). Delete koerer i sin egen popup og viser
+    # sin tilstand dér.
+    status = act_status("IbDetAct", IB_ACT, ("reopen", "archive"),
+                        spin={"archive": icon_only_when(archive)})
+    assert icon_only_when(restore) == "true"
     row = group("conIbDetActions", [*status, reopen, edit, archive, restore, delete],
                 direction="Horizontal",
                 gap=4, height=f"{hit_size(ICON_BTN)} + 2 * {ACT_PAD}", align_items="Center",
@@ -2755,7 +2760,7 @@ def build_delete():
                 width=fit_button_width('"Delete permanently"') + ICON_W, height=36, icon="Delete",
                 accessible=f'"Delete " & {SEL}.TicketNo & " permanently"',
                 display_mode=f"If({match} && !varIbBusy, DisplayMode.Edit, DisplayMode.Disabled)")
-    # "Deleting..." i knappen og hjulet ved den; popuppen lukker, naar
+    # "Deleting..." i knappen (eet ventetegn, #441); popuppen lukker, naar
     # sagen er slettet - ellers staar "Delete failed" her (issue #420).
     act_button(ok, IB_ACT, "delete")
     footer = group("conIbDelFooter", [*act_status("IbDelAct", IB_ACT, ("delete",)), ok],

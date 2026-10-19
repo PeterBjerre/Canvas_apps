@@ -967,8 +967,8 @@ def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
     Uden angivelse er en Delete-knap (icon="Delete") altid danger.
 
     act: (act_var, key) - handlingen koerer I popuppen (issue #420): den
-    lukker ikke foerst, knappen siger fx "Deleting..." med hjulet ved
-    siden af, og popuppen lukker, naar handlingen er faerdig. Fejler den,
+    lukker ikke foerst, knappen siger fx "Deleting..." (eet ventetegn,
+    issue #441), og popuppen lukker, naar handlingen er faerdig. Fejler den,
     bliver popuppen staaende med "Delete failed" ved knappen. confirm_fx
     skriver selv sit udfald (act_mark)."""
     if danger is None:
@@ -2118,10 +2118,13 @@ def editor_footer(prefix, delete, reset, cancel, save):
 #
 # Foer taendte panelets Save det samme sloer og den samme bjaelke midt paa
 # SIDEN som Save draft og Submit (progress_overlay) - langt fra knappen og
-# bag panelet. Nu vises tilstanden I panelet, lige over bundbjaelken:
+# bag panelet. Nu vises tilstanden I panelet:
 #
-#   "saving"  hjulet (ModernSpinner) med "Saving..." - Save er spaerret
-#   "failed"  "Save failed. Your changes are kept." og Retry
+#   "saving"  Save siger selv "Saving..." og er spaerret (panel_save_text).
+#             EET ventetegn (issue #441): foer stod der OGSAA et hjul med
+#             "Saving..." lige over bundbjaelken - det samme to gange.
+#   "failed"  "Save failed. Your changes are kept." og Retry over
+#             bundbjaelken (panel_save_status)
 #   ""        intet (panelet lukker, naar gemmet lykkes, og appens
 #             "Saved ..."-besked siger det - som foer)
 #
@@ -2152,12 +2155,11 @@ def panel_save_mode(state_var, display_mode):
 
 
 def panel_save_status(prefix, state_var, retry_fx, display_mode=None):
-    """Linjen over panelets bundbjaelke: hjulet eller fejlen med Retry.
-    Hoejre-justeret, saa den staar ved Save. Skjult, naar der intet er."""
-    saving = f"IfError({state_var} = {PANEL_SAVING}, false)"
+    """Linjen over panelets bundbjaelke: fejlen med Retry. Hoejre-justeret,
+    saa den staar ved Save. Skjult, naar der intet er - ogsaa mens der
+    gemmes: dér siger Save selv "Saving..." (panel_save_text), og et hjul
+    her ville vise det samme gem to gange (issue #441)."""
     failed = f"IfError({state_var} = {PANEL_FAILED}, false)"
-    spin = spinner(f"spn{prefix}EditorSaving", saving, '"Saving"', width=120,
-                   height=PANEL_SAVE_H, label='"Saving..."', size=13)
     text = text_ctrl(f"txt{prefix}EditorSaveFailed", '"Save failed. Your changes are kept."',
                      size=13, color=C_INVALID_FG, weight="Semibold", height=20, wrap="false",
                      align="Right", visible=failed)
@@ -2166,16 +2168,16 @@ def panel_save_status(prefix, state_var, retry_fx, display_mode=None):
                    width=fit_button_width('"Retry"'), height=PANEL_SAVE_H,
                    display_mode=panel_save_mode(state_var, display_mode), visible=failed,
                    tooltip='"Try to save again"')
-    vis = f"{saving} || {failed}"
-    return group(f"con{prefix}EditorSaveStatus", [spin, text, retry], direction="Horizontal",
-                 gap=8, height=PANEL_SAVE_H, justify="End", align_items="Center", visible=vis)
+    return group(f"con{prefix}EditorSaveStatus", [text, retry], direction="Horizontal",
+                 gap=8, height=PANEL_SAVE_H, justify="End", align_items="Center",
+                 visible=failed)
 
 
 def panel_save_text(btn, state_var, text="Saving...", text_fx=None):
     """Panelets Save siger selv "Saving...", mens der gemmes - samme
-    moenster som sidernes knapper (issue #420). Hjulet staar lige over
-    knappen (panel_save_status), saa ikonet viger for teksten imens: saa
-    kan "Saving..." staa i knappens egen bredde, og bundbjaelkens bredder
+    moenster som sidernes knapper (issue #420). Det er gemmets ENESTE
+    ventetegn (issue #441). Ikonet viger for teksten imens: saa kan
+    "Saving..." staa i knappens egen bredde, og bundbjaelkens bredder
     (editor_footer regner med tal) staar fast.
 
     text_fx: teksten som udtryk (fx Submit eller Save) - text er da den
@@ -2226,7 +2228,10 @@ def panel_save_block(prefix, state_var):
 # (#402) og kommentarfeltet (#370):
 #
 #   koerer     knappen siger "Saving..." / "Submitting..." / "Deleting..."
-#              og er spaerret; hjulet (ModernSpinner) staar lige ved siden af
+#              og er spaerret. Det er handlingens ENESTE ventetegn (issue
+#              #441): foer stod et hjul (ModernSpinner) ved siden af OGSAA.
+#              Hjulet ses nu kun ved en knap, der ikke kan vise teksten -
+#              en ren ikonknap (act_status spin=, se icon_only_when)
 #   lykkedes   "Saved" / "Submitted" ... i groent ved knappen i 4 sekunder
 #   fejlede    "Save failed" ... i roedt ved knappen, til naeste handling.
 #              Intet indtastet ryddes - handlingerne rydder kun ved succes.
@@ -2339,17 +2344,37 @@ def act_width(key, icon=True, text=None):
     return fit_button_width(f'"{text or ACT_TEXTS[key][0]}"') + (ICON_W if icon else 0)
 
 
-def act_status(name, act_var, keys, visible=None, size=ACT_NOTE_SIZE):
-    """[hjul, besked] - staar lige ved knapperne for keys.
+def icon_only_when(btn):
+    """Hvornaar knappen KUN er sit ikon - og altsaa ikke kan sige
+    "Saving..." selv: "true", betingelsen i If(<betingelse>,
+    ButtonLayout.IconOnly, ...), eller None (teksten ses altid)."""
+    layout = btn.props.get("Layout", "")
+    if layout == "ButtonLayout.IconOnly" or btn.control == "Image":
+        return "true"
+    if layout.startswith("If(") and ", ButtonLayout.IconOnly" in layout:
+        return layout[3:layout.index(", ButtonLayout.IconOnly")]
+    return None
 
-    Hjulet ses, mens en af handlingerne koerer; beskeden bagefter. Begge
-    har en fast bredde (beskedens efter teksten), saa en raekke kan regne
-    resten ud (grow). visible: en ekstra betingelse (fx kun fra Desktop)."""
+
+def act_status(name, act_var, keys, visible=None, size=ACT_NOTE_SIZE, spin=None):
+    """[besked] eller [hjul, besked] - staar lige ved knapperne for keys.
+
+    Beskeden ("Saved", "Save failed" ...) ses, efter en handling er
+    faerdig. Mens den koerer, siger knappen det selv (act_button) - det er
+    handlingens ENESTE ventetegn (issue #441).
+
+    spin: {noegle: betingelse} for de handlinger, hvis knap kan vaere en
+    ren ikonknap uden tekst (icon_only_when) - kun DER, og kun mens
+    betingelsen er sand, staar hjulet ved knappen i stedet for teksten.
+    Uden spin intet hjul.
+
+    Begge har en fast bredde (beskedens efter teksten), saa en raekke kan
+    regne resten ud (grow). visible: en ekstra betingelse (fx kun fra
+    Desktop)."""
     def _w(text):
         return label_px(text, size) + 4
     ok = [(f"{k}:ok", ACT_TEXTS[k][1]) for k in keys]
     bad = [(f"{k}:failed", ACT_TEXTS[k][2]) for k in keys]
-    running = "(" + " || ".join(act_is(act_var, k) for k in keys) + ")"
     lst = lambda pairs: "[" + ", ".join(f'"{s}"' for s, _t in pairs) + "]"
     shown = f"IfError({act_var} in {lst(ok + bad)}, false)"
     failed = f"IfError({act_var} in {lst(bad)}, false)"
@@ -2357,19 +2382,26 @@ def act_status(name, act_var, keys, visible=None, size=ACT_NOTE_SIZE):
             + ", ".join(f'"{s}", "{t}"' for s, t in ok + bad) + ', "")')
     width = (f"Switch({act_var}, "
              + ", ".join(f'"{s}", {_w(t)}' for s, t in ok + bad) + ", 0)")
-    spin_vis = running if visible is None else f"({visible}) && {running}"
     note_vis = shown if visible is None else f"({visible}) && {shown}"
-    labels = ", ".join(f'"{k}", "{ACT_TEXTS[k][0][:-3]}, please wait"' for k in keys)
-    spin = spinner(f"spn{name}", spin_vis, f'Switch({act_var}, {labels}, "Please wait")',
-                   width=ACT_SPIN, height=ACT_SPIN)
-    spin.props["LayoutMinWidth"] = str(ACT_SPIN)
-    spin.props["AlignInContainer"] = "AlignInContainer.Center"
     note = text_ctrl(f"txt{name}Note", text, size=size, weight="Semibold", wrap="false",
                      color=f"If({failed}, {C_INVALID_FG}, {C_VALID_FG})", height=20,
                      width=width, visible=note_vis)
     note.props["LayoutMinWidth"] = width
     note.props["AlignInContainer"] = "AlignInContainer.Center"
-    return [spin, note]
+    spin = {k: c for k, c in (spin or {}).items() if c}
+    if not spin:
+        return [note]
+    assert set(spin) <= set(keys), (name, spin, keys)
+    running = "(" + " || ".join(
+        act_is(act_var, k) if c == "true" else f"({act_is(act_var, k)} && ({c}))"
+        for k, c in spin.items()) + ")"
+    spin_vis = running if visible is None else f"({visible}) && {running}"
+    labels = ", ".join(f'"{k}", "{ACT_TEXTS[k][0][:-3]}, please wait"' for k in spin)
+    wheel = spinner(f"spn{name}", spin_vis, f'Switch({act_var}, {labels}, "Please wait")',
+                    width=ACT_SPIN, height=ACT_SPIN)
+    wheel.props["LayoutMinWidth"] = str(ACT_SPIN)
+    wheel.props["AlignInContainer"] = "AlignInContainer.Center"
+    return [wheel, note]
 
 
 def act_block(prefix, act_var):

@@ -2238,6 +2238,50 @@ def rule_16f(ctx):
                                 f"issue #420)")
 
 
+# Et ventetegn er "If(IfError(<var> = "<noegle>", false), ..." - knappens
+# egen tekst (act_button, panel_save_text) og hjulets Visible bruger det.
+BUSY_STATE_RE = re.compile(r'IfError\((\w+) = "(\w+)", false\)')
+BUSY_TEXT_RE = re.compile(r'If\(IfError\((\w+) = "(\w+)", false\), "')
+# En ventetekst skrevet for sig selv, uden for knappen (fx "Saving
+# documents... please wait." under en Save-knap).
+SAVING_TEXT_RE = re.compile(r'"(Saving|Submitting)\b[^"]*"')
+
+
+def rule_16g(ctx):
+    """Eet ventetegn pr. handling - i knappen, der startede den (issue #441)"""
+    # Foer #441 sagde Save "Saving..." OG et hjul med "Saving..." stod lige
+    # ved siden af (act_status) eller over bundbjaelken (panel_save_status).
+    # Nu er knappens tekst det ene ventetegn. Et hjul paa den samme
+    # tilstand er kun tilladt ved en knap, der kan vaere sit ikon alene
+    # (Layout med IconOnly) - dér er hjulet det eneste, der ses.
+    buttons = {}
+    for p_, name, body in ctx.all_nodes:
+        ctl = (body.get("Control") or "").strip().split("@")[0]
+        props = body.get("Properties") or {}
+        if ctl == "ModernButton":
+            text = str(props.get("Text", ""))
+            layout = str(props.get("Layout", ""))
+            for st in BUSY_TEXT_RE.findall(text):
+                buttons.setdefault(st, []).append((name, "IconOnly" in layout))
+        elif ctl == "ModernText":
+            m = SAVING_TEXT_RE.search(str(props.get("Text", "")))
+            if m:
+                ctx.problems.append(f"[16g] {name}: teksten {m.group(0)[:40]} er et ekstra "
+                                    f"ventetegn - lad knappen sige det (issue #441)")
+    for p_, name, body in ctx.all_nodes:
+        ctl = (body.get("Control") or "").strip().split("@")[0]
+        if ctl != "ModernSpinner":
+            continue
+        vis = str((body.get("Properties") or {}).get("Visible", ""))
+        for st in set(BUSY_STATE_RE.findall(vis)):
+            for bname, icon_only in buttons.get(st, []):
+                if not icon_only:
+                    ctx.problems.append(
+                        f"[16g] {name}: hjulet viser {st[0]} = \"{st[1]}\", som "
+                        f"{bname} allerede siger i sin tekst - eet ventetegn pr. "
+                        f"handling (issue #441)")
+
+
 def rule_16k(ctx):
     """Knapper er ModernButton - Classic/Button kun som gennemsigtigt klik-lag (issue #307)"""
     # Studio skriver ModernButton uden @-version; en version er ikke
@@ -2732,6 +2776,7 @@ RULES = [
     Rule('16t', 'Faner er ModernTabList@1.0.0 med Learns egenskaber (issue #303)', rule_16t),
     Rule('16c', 'Hjul er ModernSpinner@1.1.0 - aldrig et animeret billede (issue #302)', rule_16c),
     Rule('16f', 'Ingen bjaelke midt paa skaermen - tilstanden staar i knappen (issue #420)', rule_16f),
+    Rule('16g', 'Eet ventetegn pr. handling - i knappen, der startede den (issue #441)', rule_16g),
     Rule('16k', 'Knapper er ModernButton - Classic/Button kun som gennemsigtigt klik-lag (issue #307)', rule_16k),
     Rule('33', 'Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4)', rule_33),
     Rule('16i', 'Pynt-/statusikoner er ModernIcon@1.1.0 (issue #306)', rule_16i),
