@@ -6784,7 +6784,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =Max(60, Min(86 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + If(IsBlank(varIbFormApp), 12 + (18), 0) + If(IbOtherNeeded, 12 + (62), 0) + 12 + (62) + If(!(varIbFormMode = "edit") && galIbSimilar.AllItemsCount > 0, 12 + (38 + 6 + (galIbSimilar.AllItemsCount * 44)), 0) + 12 + (136) + If(varIbMore, 12 + (0 + (98) + 12 + (98) + 12 + (98) + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62)))), 0) + If(varIbFormMode = "edit" && IsAdmin, 12 + (90 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + 12 + (62) + 12 + (98)), 0) + If(!(varIbFormMode = "edit"), 12 + (34), 0), App.Height - 32 - 36 - 12 - (44) + 12 + (36 + If(!(!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && (!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))), 8 + (With({ t: If(varIbFormMode = "edit", "To save, add ", "To submit, add ") & Concat(Filter(Table({ m: "an application", ok: !IsBlank(varIbFormApp) }, { m: "a section", ok: !IsBlank(varIbFormSection) }, { m: "where it happened", ok: !IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text)) }, { m: "a title of at least 4 characters", ok: Len(Trim(inpIbTitle.Text)) >= 4 }, { m: "what happened", ok: !IsBlank(Trim(inpIbDesc.Text)) }), !ok), m, ", ") & "." }, (RoundUp(Len(t) / Max(12, RoundDown((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) / 6.6, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)), 0))))
+                      =Max(60, Min(94 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + If(IsBlank(varIbFormApp), 12 + (18), 0) + If(IbOtherNeeded, 12 + (62), 0) + 12 + (62) + If(!(varIbFormMode = "edit") && galIbSimilar.AllItemsCount > 0, 12 + (38 + 6 + (galIbSimilar.AllItemsCount * 44)), 0) + 12 + (136) + If(varIbMore, 12 + (0 + (98) + 12 + (98) + 12 + (98) + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62)))), 0) + If(varIbFormMode = "edit" && IsAdmin, 12 + (90 + 12 + (If(LayoutRank >= 2, Max(62, 62), (62) + 12 + (62))) + 12 + (62) + 12 + (98)), 0) + If(!(varIbFormMode = "edit"), 12 + (34), 0), App.Height - 36 - 12 - ((44) + 12 + (1) + 12 + (36 + If(!(!IsBlank(varIbFormApp) && !IsBlank(varIbFormSection) && (!IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text))) && Len(Trim(inpIbTitle.Text)) >= 4 && !IsBlank(Trim(inpIbDesc.Text))), 8 + (With({ t: If(varIbFormMode = "edit", "To save, add ", "To submit, add ") & Concat(Filter(Table({ m: "an application", ok: !IsBlank(varIbFormApp) }, { m: "a section", ok: !IsBlank(varIbFormSection) }, { m: "where it happened", ok: !IbOtherNeeded || !IsBlank(Trim(inpIbOther.Text)) }, { m: "a title of at least 4 characters", ok: Len(Trim(inpIbTitle.Text)) >= 4 }, { m: "what happened", ok: !IsBlank(Trim(inpIbDesc.Text)) }), !ok), m, ", ") & "." }, (RoundUp(Len(t) / Max(12, RoundDown((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width) - 36) / 6.6, 0)), 0) + CountRows(Split(t, Char(10))) - 1) * 19 + 2)), 0)))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -6797,6 +6797,14 @@ Screens:
                       =LayoutOverflow.Hide
                   LayoutOverflowY: |-
                       =LayoutOverflow.Scroll
+                  PaddingBottom: |-
+                      =8
+                  PaddingLeft: |-
+                      =0
+                  PaddingRight: |-
+                      =0
+                  PaddingTop: |-
+                      =0
                   Width: |-
                       =Parent.Width
                 Children:
@@ -9396,6 +9404,34 @@ Screens:
                             =!(varIbFormMode = "edit")
                         Wrap: |-
                             =true
+            - conIbFormFootRule:
+                Control: GroupContainer
+                Variant: AutoLayout
+                Properties:
+                  BorderStyle: |-
+                      =BorderStyle.None
+                  DropShadow: |-
+                      =DropShadow.None
+                  Fill: |-
+                      =C.'border-subtle'
+                  FillPortions: |-
+                      =0
+                  Height: |-
+                      =1
+                  LayoutAlignItems: |-
+                      =LayoutAlignItems.Stretch
+                  LayoutDirection: |-
+                      =LayoutDirection.Horizontal
+                  LayoutGap: |-
+                      =8
+                  LayoutMinWidth: |-
+                      =0
+                  LayoutOverflowX: |-
+                      =LayoutOverflow.Hide
+                  LayoutOverflowY: |-
+                      =LayoutOverflow.Hide
+                  Width: |-
+                      =Parent.Width
             - conIbFormFoot:
                 Control: GroupContainer
                 Variant: AutoLayout
@@ -14611,7 +14647,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =128 + 12 + (Max(60, Min(58 + 12 + (62), App.Height - 32 - 36 - 12 - (44) + 12 + (36))))
+                      =128 + 12 + (Max(60, Min(58 + 12 + (62), App.Height - 32 - 36 - 12 - ((44) + 12 + (36)))))
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -14765,7 +14801,7 @@ Screens:
                         FillPortions: |-
                             =0
                         Height: |-
-                            =Max(60, Min(58 + 12 + (62), App.Height - 32 - 36 - 12 - (44) + 12 + (36)))
+                            =Max(60, Min(58 + 12 + (62), App.Height - 32 - 36 - 12 - ((44) + 12 + (36))))
                         LayoutAlignItems: |-
                             =LayoutAlignItems.Stretch
                         LayoutDirection: |-
