@@ -757,7 +757,7 @@ def build_top_bar():
     status_w = "".join(f" + If({k.vis}, ({k.props['Width']}) + {BTN_GAP}, 0)" for k in status)
     if sub_extra:
         status_w += (f' + If(IfError({ACT} = "submit", false) && {COMPACT} && '
-                     f"!{below('Tablet')}, {sub_extra}, 0)")
+                     f"!({below('Tablet')}), {sub_extra}, 0)")
     # Stregen mellem New request og planens handlinger.
     sep = group("conVhpHeadSep", [], direction="Horizontal", height=24, width=str(SEP_W),
                 fill=C_DIVIDER, layout_min_width=SEP_W,
