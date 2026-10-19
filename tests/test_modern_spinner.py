@@ -26,17 +26,24 @@ SPINNERS = {
     "ScreenEquipment.pa.yaml": {
         "spnEqLoadIcon": ("!IfError(varEqLoadFailed, false)", '""'),
         "spnEqFlBusy": ("varEqFlBusy", '"Searching..."'),
+        # Sidepanelets gem (issue #402).
+        "spnEqEditorSaving": ('IfError(varEqPanelSave = "saving", false)', '"Saving..."'),
     },
     "ScreenMaterial.pa.yaml": {
         "spnMatLoadIcon": ("!IfError(varMatLoadFailed, false)", '""'),
         "spnMatFlBusy": ("varMatFlBusy", '"Searching..."'),
+        # Sidepanelets gem (issue #402).
+        "spnMatEditorSaving": ('IfError(varMatPanelSave = "saving", false)', '"Saving..."'),
     },
     "ScreenMeasuringPoint.pa.yaml": {
         "spnMpLoadIcon": ("!IfError(varMpLoadFailed, false)", '""'),
         "spnMpFlBusy": ("varMpFlBusy", '"Searching..."'),
+        # Sidepanelets gem (issue #402).
+        "spnMpEditorSaving": ('IfError(varMpPanelSave = "saving", false)', '"Saving..."'),
     },
     "ScreenFunctionalLocation.pa.yaml": {
         "spnFlLoadIcon": ("!IfError(varFlLoadFailed, false)", '""'),
+        "spnFlEditorSaving": ('IfError(varFlPanelSave = "saving", false)', '"Saving..."'),
     },
     "ScreenVhPlan.pa.yaml": {
         "spnVhpLoadIcon": ("!IfError(varVhpLoadFailed, false)", '""'),
@@ -106,7 +113,7 @@ def test_every_spinner_is_modern_spinner_in_the_brand_color():
             for bad in ("Image", "TabIndex", "Fill", "SpinnerSize", "FontSize", "FontColor"):
                 assert _prop(block, bad) is None, (name, bad)
             total += 1
-    assert total == 15
+    assert total == 19
 
 
 def test_overlays_keep_the_scrim_and_center_the_wheel():
