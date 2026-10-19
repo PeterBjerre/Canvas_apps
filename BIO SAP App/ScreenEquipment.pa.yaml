@@ -11,8 +11,7 @@ Screens:
           // (BIO SAP App/build/build_screens.py, attach_open). Sloeret taendes
           // her med det samme, naar der tydeligvis skal klargoeres.
           If(IsBlank(varEqOpened) || If(gblNavTo = "Eq", "new:0", Coalesce(gblEqWant, varEqOpened)) <> varEqOpened,
-              Set(varEqLoading, true);
-              Set(varEqLoadCard, StartsWith(If(gblNavTo = "Eq", "new:0", Coalesce(gblEqWant, varEqOpened)), "new"))
+              Set(varEqLoading, true)
           );
           Select(btnEqOpen)
     Children:
@@ -13854,8 +13853,6 @@ Screens:
                             Set(varEqLoadFailed, false);
                             Set(varEqLoadSlow, false);
                             Set(varEqLoadStep, If(IsBlank(gblEqReqId), "Setting up a new request", "Finding the request"));
-                            // Issue #391: en gemt anmodning aabnes uden kort.
-                            Set(varEqLoadCard, IsBlank(gblEqReqId));
                             If(false, ClearCollect(colEqRows, { RowId: 0, ItemKey: "", RequestNo: "", Status: "", FileCount: 0, Description: "", Plant: "", RequestType: "", EquipmentCategory: "", Manufacturer: "", TypeDesignation: "", SerialNumber: "", FunctionalLocation: "", ClassData: "", RoomCoordinates: "", Placement: "", WarrantyStart: Blank(), WarrantyEnd: Blank(), EquipmentNumber: "" }));
                 
                             If(false, ClearCollect(colEqFl, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" }));
@@ -14153,7 +14150,7 @@ Screens:
             TabIndex: |-
                 =0
             Visible: |-
-                =(IfError(varEqLoading, false) && IfError(varEqLoadCard, false)) || IfError(varEqLoadFailed, false)
+                =IfError(varEqLoadFailed, false)
             Width: |-
                 =App.Width
             X: |-
@@ -14205,7 +14202,7 @@ Screens:
             RadiusTopRight: |-
                 =R.modal
             Visible: |-
-                =(IfError(varEqLoading, false) && IfError(varEqLoadCard, false)) || IfError(varEqLoadFailed, false)
+                =IfError(varEqLoadFailed, false)
             Width: |-
                 =Min(360, App.Width - 32)
             X: |-
@@ -14289,7 +14286,7 @@ Screens:
                   Size: |-
                       =T.cardTitle
                   Text: |-
-                      =If(IfError(varEqLoadFailed, false), "Could not open the request", IsBlank(gblEqReqId), "Preparing a new request", "Opening request")
+                      =If(IfError(varEqLoadFailed, false), "Could not open the request", "Opening request")
                   Wrap: |-
                       =false
             - txtEqLoadStep:

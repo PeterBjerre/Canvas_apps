@@ -8,7 +8,8 @@ Screens:
           // (BIO SAP App/build/build_screens.py, attach_open). Sloeret taendes
           // her med det samme, naar der tydeligvis skal klargoeres.
           If(IsBlank(varVhpOpened) || If(gblNavTo = "Vhp", "new:0", Coalesce(gblVhpWant, varVhpOpened)) <> varVhpOpened,
-              Set(varVhpLoading, true)
+              Set(varVhpLoading, true);
+              Set(varVhpLoadCard, !StartsWith(If(gblNavTo = "Vhp", "new:0", Coalesce(gblVhpWant, varVhpOpened)), "new"))
           );
           Select(btnVhpOpen)
     Children:
@@ -26205,6 +26206,8 @@ Screens:
                             Set(varVhpLoadFailed, false);
                             Set(varVhpLoadSlow, false);
                             Set(varVhpLoadStep, If(IsBlank(gblVhpReqId), "Setting up a new plan", "Finding the request"));
+                            // Issue #407: kun en gemt anmodning viser kortet - en ny ikke.
+                            Set(varVhpLoadCard, !IsBlank(gblVhpReqId));
                             // A new or another request starts from a clean plan.
                             Clear(colVhpItems);
                             Clear(colVhpOperations);
@@ -26691,7 +26694,7 @@ Screens:
             TabIndex: |-
                 =0
             Visible: |-
-                =IfError(varVhpLoading, false) || IfError(varVhpLoadFailed, false)
+                =(IfError(varVhpLoading, false) && IfError(varVhpLoadCard, false)) || IfError(varVhpLoadFailed, false)
             Width: |-
                 =App.Width
             X: |-
@@ -26743,7 +26746,7 @@ Screens:
             RadiusTopRight: |-
                 =R.modal
             Visible: |-
-                =IfError(varVhpLoading, false) || IfError(varVhpLoadFailed, false)
+                =(IfError(varVhpLoading, false) && IfError(varVhpLoadCard, false)) || IfError(varVhpLoadFailed, false)
             Width: |-
                 =Min(360, App.Width - 32)
             X: |-
@@ -26827,7 +26830,7 @@ Screens:
                   Size: |-
                       =T.cardTitle
                   Text: |-
-                      =If(IfError(varVhpLoadFailed, false), "Could not open the request", IsBlank(gblVhpReqId), "Preparing a new request", "Opening request")
+                      =If(IfError(varVhpLoadFailed, false), "Could not open the request", "Opening request")
                   Wrap: |-
                       =false
             - txtVhpLoadStep:

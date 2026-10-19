@@ -10,8 +10,7 @@ Screens:
           // (BIO SAP App/build/build_screens.py, attach_open). Sloeret taendes
           // her med det samme, naar der tydeligvis skal klargoeres.
           If(IsBlank(varFlOpened) || If(gblNavTo = "Fl", "new:0", Coalesce(gblFlWant, varFlOpened)) <> varFlOpened,
-              Set(varFlLoading, true);
-              Set(varFlLoadCard, StartsWith(If(gblNavTo = "Fl", "new:0", Coalesce(gblFlWant, varFlOpened)), "new"))
+              Set(varFlLoading, true)
           );
           Select(btnFlOpen)
     Children:
@@ -13808,8 +13807,6 @@ Screens:
                             Set(varFlLoadFailed, false);
                             Set(varFlLoadSlow, false);
                             Set(varFlLoadStep, If(IsBlank(gblFlReqId), "Setting up a new request", "Finding the request"));
-                            // Issue #391: en gemt anmodning aabnes uden kort.
-                            Set(varFlLoadCard, IsBlank(gblFlReqId));
                             Clear(colFlRows);
                             Clear(colFlDeleted);
                             Clear(colFlVals);
@@ -14023,7 +14020,7 @@ Screens:
             TabIndex: |-
                 =0
             Visible: |-
-                =(IfError(varFlLoading, false) && IfError(varFlLoadCard, false)) || IfError(varFlLoadFailed, false)
+                =IfError(varFlLoadFailed, false)
             Width: |-
                 =App.Width
             X: |-
@@ -14075,7 +14072,7 @@ Screens:
             RadiusTopRight: |-
                 =R.modal
             Visible: |-
-                =(IfError(varFlLoading, false) && IfError(varFlLoadCard, false)) || IfError(varFlLoadFailed, false)
+                =IfError(varFlLoadFailed, false)
             Width: |-
                 =Min(360, App.Width - 32)
             X: |-
@@ -14159,7 +14156,7 @@ Screens:
                   Size: |-
                       =T.cardTitle
                   Text: |-
-                      =If(IfError(varFlLoadFailed, false), "Could not open the request", IsBlank(gblFlReqId), "Preparing a new request", "Opening request")
+                      =If(IfError(varFlLoadFailed, false), "Could not open the request", "Opening request")
                   Wrap: |-
                       =false
             - txtFlLoadStep:
