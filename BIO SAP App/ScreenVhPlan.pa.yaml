@@ -670,7 +670,7 @@ Screens:
                                     Visible: |-
                                         =LayoutRank >= 2
                                     Width: |-
-                                        =If(LayoutRank < 2, 56, If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - If(LayoutRank < 3, If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && (IfError(varVhpAct = "save", false) || IfError(varVhpAct = "submit", false)), (24) + 8, 0) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), Max(If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && (IfError(varVhpAct = "save", false) || IfError(varVhpAct = "submit", false)), (24) + 8, 0) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) / 2)))
+                                        =If(LayoutRank < 2, 56, If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - If(LayoutRank < 3, If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), Max(If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) / 2)))
                                   Children:
                                     - imgVhpTitleIcon:
                                         Control: Image
@@ -726,7 +726,7 @@ Screens:
                                           LayoutOverflowY: |-
                                               =LayoutOverflow.Hide
                                           Width: |-
-                                              =Max(0, ((If(LayoutRank < 2, 56, If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - If(LayoutRank < 3, If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && (IfError(varVhpAct = "save", false) || IfError(varVhpAct = "submit", false)), (24) + 8, 0) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), Max(If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && (IfError(varVhpAct = "save", false) || IfError(varVhpAct = "submit", false)), (24) + 8, 0) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) / 2))))) - (If(LayoutRank >= 2, (32) + 10, 0)) - 2)
+                                              =Max(0, ((If(LayoutRank < 2, 56, If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - If(LayoutRank < 3, If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), Max(If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) / 2))))) - (If(LayoutRank >= 2, (32) + 10, 0)) - 2)
                                         Children:
                                           - conVhpCrumb:
                                               Control: GroupContainer
@@ -828,7 +828,7 @@ Screens:
                                                       Text: |-
                                                           ="  /  Maintenance Plan"
                                                       Width: |-
-                                                          =Max(0, (((Max(0, ((If(LayoutRank < 2, 56, If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - If(LayoutRank < 3, If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && (IfError(varVhpAct = "save", false) || IfError(varVhpAct = "submit", false)), (24) + 8, 0) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), Max(If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && (IfError(varVhpAct = "save", false) || IfError(varVhpAct = "submit", false)), (24) + 8, 0) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) / 2))))) - (If(LayoutRank >= 2, (32) + 10, 0)) - 2)))) - ((99) + 0) - 2)
+                                                          =Max(0, (((Max(0, ((If(LayoutRank < 2, 56, If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - If(LayoutRank < 3, If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), Max(If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) / 2))))) - (If(LayoutRank >= 2, (32) + 10, 0)) - 2)))) - ((99) + 0) - 2)
                                                       Wrap: |-
                                                           =false
                                           - conVhpTitleLine:
@@ -860,7 +860,7 @@ Screens:
                                                 Visible: |-
                                                     =LayoutRank >= 2
                                                 Width: |-
-                                                    =Max(0, Min(286, ((Max(0, ((If(LayoutRank < 2, 56, If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - If(LayoutRank < 3, If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && (IfError(varVhpAct = "save", false) || IfError(varVhpAct = "submit", false)), (24) + 8, 0) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), Max(If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && (IfError(varVhpAct = "save", false) || IfError(varVhpAct = "submit", false)), (24) + 8, 0) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) / 2))))) - (If(LayoutRank >= 2, (32) + 10, 0)) - 2)))))
+                                                    =Max(0, Min(286, ((Max(0, ((If(LayoutRank < 2, 56, If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - If(LayoutRank < 3, If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), Max(If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) / 2))))) - (If(LayoutRank >= 2, (32) + 10, 0)) - 2)))))
                                               Children:
                                                 - txtVhpTitle:
                                                     Control: ModernText
@@ -898,7 +898,7 @@ Screens:
                                                       Visible: |-
                                                           =LayoutRank >= 2
                                                       Width: |-
-                                                          =Max(0, Min(192, ((Max(0, Min(286, ((Max(0, ((If(LayoutRank < 2, 56, If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - If(LayoutRank < 3, If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && (IfError(varVhpAct = "save", false) || IfError(varVhpAct = "submit", false)), (24) + 8, 0) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), Max(If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && (IfError(varVhpAct = "save", false) || IfError(varVhpAct = "submit", false)), (24) + 8, 0) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) / 2))))) - (If(LayoutRank >= 2, (32) + 10, 0)) - 2))))))) - (If(IsBlank(varVhpPlanKey), 0, 6 + 88))))
+                                                          =Max(0, Min(192, ((Max(0, Min(286, ((Max(0, ((If(LayoutRank < 2, 56, If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - If(LayoutRank < 3, If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), Max(If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) / 2))))) - (If(LayoutRank >= 2, (32) + 10, 0)) - 2))))))) - (If(IsBlank(varVhpPlanKey), 0, 6 + 88))))
                                                       Wrap: |-
                                                           =false
                                                 - bdgVhpNumber:
@@ -1541,13 +1541,13 @@ Screens:
                                     LayoutJustifyContent: |-
                                         =LayoutJustifyContent.End
                                     LayoutMinWidth: |-
-                                        =If(LayoutRank < 3, If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && (IfError(varVhpAct = "save", false) || IfError(varVhpAct = "submit", false)), (24) + 8, 0) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), Max(If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && (IfError(varVhpAct = "save", false) || IfError(varVhpAct = "submit", false)), (24) + 8, 0) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) / 2))
+                                        =If(LayoutRank < 3, If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), Max(If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) / 2))
                                     LayoutOverflowX: |-
                                         =LayoutOverflow.Hide
                                     LayoutOverflowY: |-
                                         =LayoutOverflow.Hide
                                     Width: |-
-                                        =If(LayoutRank < 3, If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && (IfError(varVhpAct = "save", false) || IfError(varVhpAct = "submit", false)), (24) + 8, 0) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), Max(If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && (IfError(varVhpAct = "save", false) || IfError(varVhpAct = "submit", false)), (24) + 8, 0) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) / 2))
+                                        =If(LayoutRank < 3, If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), Max(If(LayoutRank < 2, 247, (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 426, 566) + If((LayoutRank >= 3) && IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0) + If(IfError(varVhpAct = "submit", false) && (LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220) && !LayoutRank < 2, 11, 0), If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) / 2))
                                   Children:
                                     - btnVhpNewRequest:
                                         Control: ModernButton
@@ -1778,29 +1778,6 @@ Screens:
                                               =IfError(varVhpViewOnly && varVhpCanEdit, false)
                                           Width: |-
                                               =If((LayoutRank < 2 || If(LayoutRank < 3, ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 16), ((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset) - 416 - 32)) - 566 < 220), 40, 96)
-                                    - spnVhpAct:
-                                        Control: ModernSpinner@1.1.0
-                                        Properties:
-                                          AccessibleLabel: |-
-                                              =Switch(varVhpAct, "save", "Saving, please wait", "submit", "Submitting, please wait", "Please wait")
-                                          AlignInContainer: |-
-                                              =AlignInContainer.Center
-                                          BasePaletteColor: |-
-                                              =C.'color-brand-primary'
-                                          Color: |-
-                                              =C.'text-primary'
-                                          Font: |-
-                                              =Font.'Segoe UI'
-                                          Height: |-
-                                              =24
-                                          Label: |-
-                                              =""
-                                          LayoutMinWidth: |-
-                                              =24
-                                          Visible: |-
-                                              =(LayoutRank >= 3) && (IfError(varVhpAct = "save", false) || IfError(varVhpAct = "submit", false))
-                                          Width: |-
-                                              =24
                                     - txtVhpActNote:
                                         Control: ModernText
                                         Properties:
@@ -2855,8 +2832,6 @@ Screens:
                                             "View only - this plan has not been submitted.",
                                             VhpCanSubmit && !(vhpDirty),
                                             "Ready to submit.",
-                                            varVhpSaving,
-                                            "Saving ...",
                                             Mid(First(Filter(Split(txtVhpMissingPlan.Text & Char(10) & txtVhpMissingItem.Text & Char(10) & txtVhpMissingOps.Text, Char(10)), !IsBlank(Value))).Value, 3)
                                         )
                                         )
@@ -9429,7 +9404,7 @@ Screens:
                                                                               Set(varVhpFlLast, q);
                                                                               Clear(colVhpFl);
                                                                               Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId); Clear(colVhpObjDraft);
-                                                                              Set(varVhpFlMsg, "Searching for " & Upper(q) & " ...");
+                                                                              Set(varVhpFlMsg, "");
                                                                               IfError(
                                                                                   Set(varVhpFlRaw, 'BioSap-Integration-FunctionalLocations'.Run(q));
                                                                                   If(
@@ -9582,7 +9557,7 @@ Screens:
                                                                                     Set(varVhpFlLast, q);
                                                                                     Clear(colVhpFl);
                                                                                     Set(varVhpFlPick, ""); Reset(cmbVhpItemFL); RemoveIf(colVhpItemObjects, ItemId = varVhpActiveItemId); Clear(colVhpObjDraft);
-                                                                                    Set(varVhpFlMsg, "Searching for " & Upper(q) & " ...");
+                                                                                    Set(varVhpFlMsg, "");
                                                                                     IfError(
                                                                                         Set(varVhpFlRaw, 'BioSap-Integration-FunctionalLocations'.Run(q));
                                                                                         If(
@@ -14306,29 +14281,6 @@ Screens:
                         Width: |-
                             =Parent.Width
                       Children:
-                        - spnVhpFootAct:
-                            Control: ModernSpinner@1.1.0
-                            Properties:
-                              AccessibleLabel: |-
-                                  =Switch(varVhpAct, "save", "Saving, please wait", "submit", "Submitting, please wait", "Please wait")
-                              AlignInContainer: |-
-                                  =AlignInContainer.Center
-                              BasePaletteColor: |-
-                                  =C.'color-brand-primary'
-                              Color: |-
-                                  =C.'text-primary'
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              Height: |-
-                                  =24
-                              Label: |-
-                                  =""
-                              LayoutMinWidth: |-
-                                  =24
-                              Visible: |-
-                                  =(IfError(varVhpAct = "save", false) || IfError(varVhpAct = "submit", false))
-                              Width: |-
-                                  =24
                         - txtVhpFootActNote:
                             Control: ModernText
                             Properties:
@@ -15091,7 +15043,7 @@ Screens:
                               Visible: |-
                                   =(!IfError(varVhpViewOnly, true) && !VhpSubmitted)
                               Width: |-
-                                  =(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 8 - If((IfError(varVhpAct = "save", false) || IfError(varVhpAct = "submit", false)), (24) + 8, 0) - If(IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0)) / 2
+                                  =(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 8 - If(IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0)) / 2
                         - btnVhpFootSubmit:
                             Control: ModernButton
                             Properties:
@@ -15173,7 +15125,7 @@ Screens:
                               Visible: |-
                                   =(!VhpSubmitted && (!IfError(varVhpViewOnly, true) || IfError(varVhpCanEdit, false)))
                               Width: |-
-                                  =(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 8 - If((IfError(varVhpAct = "save", false) || IfError(varVhpAct = "submit", false)), (24) + 8, 0) - If(IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0)) / 2
+                                  =(((App.Width - If(LayoutRank >= 2, 56, 0) - 64 - PanelInset)) - 8 - If(IfError(varVhpAct in ["save:ok", "submit:ok", "save:failed", "submit:failed"], false), (Switch(varVhpAct, "save:ok", 42, "submit:ok", 69, "save:failed", 72, "submit:failed", 87, 0)) + 8, 0)) / 2
       - conVhpNav:
           Control: GroupContainer
           Variant: AutoLayout
@@ -18490,7 +18442,7 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =80 + 12 + (Min(0 + (160 + Max(attVhpAttPicker.AttachmentsCount, CountRows(varVhpAttRow.Attachments)) * 44) + If((!IfError(varVhpViewOnly, false)), 12 + (18), 0) + If(((!IfError(varVhpViewOnly, false))) && IsBlank(varVhpAttRow), 12 + (34), 0) + If((!IfError(varVhpViewOnly, false)), 12 + (36), 0) + If(IfError(Coalesce(varVhpAttBusy, false), false), 12 + (18), 0) + If(!(!IfError(varVhpViewOnly, false)), 12 + (18), 0), App.Height - 40 - 36 - 44 - 12))
+                =80 + 12 + (Min(0 + (160 + Max(attVhpAttPicker.AttachmentsCount, CountRows(varVhpAttRow.Attachments)) * 44) + If((!IfError(varVhpViewOnly, false)), 12 + (18), 0) + If(((!IfError(varVhpViewOnly, false))) && IsBlank(varVhpAttRow), 12 + (34), 0) + If((!IfError(varVhpViewOnly, false)), 12 + (36), 0) + If(!(!IfError(varVhpViewOnly, false)), 12 + (18), 0), App.Height - 40 - 36 - 44 - 12))
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -18654,7 +18606,7 @@ Screens:
                   FillPortions: |-
                       =0
                   Height: |-
-                      =Min(0 + (160 + Max(attVhpAttPicker.AttachmentsCount, CountRows(varVhpAttRow.Attachments)) * 44) + If((!IfError(varVhpViewOnly, false)), 12 + (18), 0) + If(((!IfError(varVhpViewOnly, false))) && IsBlank(varVhpAttRow), 12 + (34), 0) + If((!IfError(varVhpViewOnly, false)), 12 + (36), 0) + If(IfError(Coalesce(varVhpAttBusy, false), false), 12 + (18), 0) + If(!(!IfError(varVhpViewOnly, false)), 12 + (18), 0), App.Height - 40 - 36 - 44 - 12)
+                      =Min(0 + (160 + Max(attVhpAttPicker.AttachmentsCount, CountRows(varVhpAttRow.Attachments)) * 44) + If((!IfError(varVhpViewOnly, false)), 12 + (18), 0) + If(((!IfError(varVhpViewOnly, false))) && IsBlank(varVhpAttRow), 12 + (34), 0) + If((!IfError(varVhpViewOnly, false)), 12 + (36), 0) + If(!(!IfError(varVhpViewOnly, false)), 12 + (18), 0), App.Height - 40 - 36 - 44 - 12)
                   LayoutAlignItems: |-
                       =LayoutAlignItems.Stretch
                   LayoutDirection: |-
@@ -18678,7 +18630,7 @@ Screens:
                         DisplayMode: |-
                             =If(!((!IfError(varVhpViewOnly, false))), DisplayMode.View, IfError(Coalesce(varVhpAttBusy, false), false) || IsBlank(varVhpAttRow), DisplayMode.Disabled, DisplayMode.Edit)
                         Height: |-
-                            =Min(160 + Max(Self.AttachmentsCount, CountRows(varVhpAttRow.Attachments)) * 44, Max(160, Parent.Height - (0 + If((!IfError(varVhpViewOnly, false)), 12 + (18), 0) + If(((!IfError(varVhpViewOnly, false))) && IsBlank(varVhpAttRow), 12 + (34), 0) + If((!IfError(varVhpViewOnly, false)), 12 + (36), 0) + If(IfError(Coalesce(varVhpAttBusy, false), false), 12 + (18), 0) + If(!(!IfError(varVhpViewOnly, false)), 12 + (18), 0))))
+                            =Min(160 + Max(Self.AttachmentsCount, CountRows(varVhpAttRow.Attachments)) * 44, Max(160, Parent.Height - (0 + If((!IfError(varVhpViewOnly, false)), 12 + (18), 0) + If(((!IfError(varVhpViewOnly, false))) && IsBlank(varVhpAttRow), 12 + (34), 0) + If((!IfError(varVhpViewOnly, false)), 12 + (36), 0) + If(!(!IfError(varVhpViewOnly, false)), 12 + (18), 0))))
                         Items: |-
                             =varVhpAttRow.Attachments
                         MaxAttachmentSize: |-
@@ -18790,7 +18742,7 @@ Screens:
                             Control: ModernButton
                             Properties:
                               AccessibleLabel: |-
-                                  ="Save the documents on this row"
+                                  =If(IfError(Coalesce(varVhpAttBusy, false), false), "Saving...", "Save the documents on this row")
                               Align: |-
                                   =Align.Center
                               AlignInContainer: |-
@@ -18847,46 +18799,13 @@ Screens:
                               Size: |-
                                   =T.input
                               Text: |-
-                                  ="Save documents"
+                                  =If(IfError(Coalesce(varVhpAttBusy, false), false), "Saving...", "Save documents")
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Visible: |-
                                   =(!IfError(varVhpViewOnly, false))
                               Width: |-
                                   =179
-                  - txtVhpAttStatus:
-                      Control: ModernText
-                      Properties:
-                        AccessibleLabel: |-
-                            =If(IfError(Coalesce(varVhpAttBusy, false), false), "Saving documents... please wait.", "")
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        BorderThickness: |-
-                            =0
-                        Color: |-
-                            =C.'text-muted'
-                        Fill: |-
-                            =RGBA(0, 0, 0, 0)
-                        Font: |-
-                            =Font.'Segoe UI'
-                        Height: |-
-                            =18
-                        PaddingBottom: |-
-                            =0
-                        PaddingLeft: |-
-                            =0
-                        PaddingRight: |-
-                            =0
-                        PaddingTop: |-
-                            =0
-                        Size: |-
-                            =T.small
-                        Text: |-
-                            =If(IfError(Coalesce(varVhpAttBusy, false), false), "Saving documents... please wait.", "")
-                        Visible: |-
-                            =IfError(Coalesce(varVhpAttBusy, false), false)
-                        Wrap: |-
-                            =true
                   - txtVhpAttReadOnly:
                       Control: ModernText
                       Properties:
@@ -19254,7 +19173,7 @@ Screens:
                                           Set(varVhpVenLast, q);
                                           Clear(colVhpVendors);
                                           Set(varVhpVenPick, ""); Reset(cmbVhpVendor);
-                                          Set(varVhpVenMsg, "Searching for " & Upper(q) & " ...");
+                                          Set(varVhpVenMsg, "");
                                           IfError(
                                               Set(varVhpVenRaw, 'BioSap-Integration-VendorsAll'.Run(Substitute(q, Char(34), "")));
                                               If(
@@ -19366,7 +19285,7 @@ Screens:
                                           Set(varVhpVenLast, q);
                                           Clear(colVhpVendors);
                                           Set(varVhpVenPick, ""); Reset(cmbVhpVendor);
-                                          Set(varVhpVenMsg, "Searching for " & Upper(q) & " ...");
+                                          Set(varVhpVenMsg, "");
                                           IfError(
                                               Set(varVhpVenRaw, 'BioSap-Integration-VendorsAll'.Run(Substitute(q, Char(34), "")));
                                               If(
