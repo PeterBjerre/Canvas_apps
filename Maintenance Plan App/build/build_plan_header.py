@@ -8,7 +8,7 @@ import build_help as bh
 import layout_tokens as lay
 from build_helpers import (child_name, text_ctrl, group, button, text_input, number_field, num_value,
                            themed_dropdown, field_cell, col_width, card, grow,
-                           row_n, text_px, fit_button_width, ICON_W, date_picker)
+                           row_n, text_px, fit_button_width, ICON_W, date_picker, modern_badge)
 # Sektionsoverskriften og dens trin-badge staar i build_helpers (issue #228),
 # saa Materials kan bruge samme overskrift som Item Editor.
 from build_helpers import section_header  # noqa: F401
@@ -222,7 +222,6 @@ def summary_height(text_ref):
 CHIP_H = 24
 CHIP_CHAR_W = 7          # 12 px Segoe UI, en lidt rummelig gennemsnitsbredde
 CHIP_PAD = 10
-CHIP_BORDER = 1
 
 
 def status_icon(name, ok_fx, size=20, label_ok="Complete", label_bad="Needs attention"):
@@ -244,21 +243,16 @@ def value_chip(name, label, value_fx, label_w=None, value_chars=None, visible=No
     - eller value_chars tegn, naar vaerdiens laengde er kendt."""
     if label_w is None:
         label_w = text_px(label.strip('"'), 12, False) + 2
-    # Teksterne er pillens INDRE hoejde (issue #421): pillen er CHIP_H hoej
-    # med 1 px kant, saa der er CHIP_H - 2 inden i. Var teksterne CHIP_H
-    # hoeje, var de hoejere end pladsen, og med LayoutOverflow.Hide blev
-    # pillen tegnet som en tom kasse med kant.
-    inner_h = CHIP_H - 2 * CHIP_BORDER
-    lab = text_ctrl(f"txt{name[3:]}Label", label, size=12, color=C_MUTED, height=inner_h, width=label_w,
+    lab = text_ctrl(f"txt{name[3:]}Label", label, size=12, color=C_MUTED, height=CHIP_H, width=label_w,
                     wrap="false", extra={"AlignInContainer": "AlignInContainer.Center"})
     vw = (str(value_chars * CHIP_CHAR_W) if value_chars is not None
           else f"Len({value_fx}) * {CHIP_CHAR_W} + 2")
-    val = text_ctrl(f"txt{name[3:]}Value", value_fx, size=12, weight="Semibold", height=inner_h, width=vw,
+    val = text_ctrl(f"txt{name[3:]}Value", value_fx, size=12, weight="Semibold", height=CHIP_H, width=vw,
                     wrap="false", extra={"AlignInContainer": "AlignInContainer.Center"})
     w = f"{2 * CHIP_PAD + 4} + ({label_w}) + ({vw})"
     return group(name, [lab, val], direction="Horizontal", gap=4, height=CHIP_H, width=w,
                  align_items="Center", fill=C_NEUTRAL_BG, radius=CHIP_H // 2,
-                 border_color=C_DIVIDER, border_thickness=str(CHIP_BORDER),
+                 border_color=C_DIVIDER, border_thickness="1",
                  pad=(0, CHIP_PAD, 0, CHIP_PAD), visible=visible)
 
 
@@ -284,14 +278,18 @@ def plan_fold_row(fold, toggle_set, show):
     # Planens samlede omkostning (Peter 2026-10-19): omkostningsgodkendelsen
     # gaelder hele planen, saa summen af alle items' operationer staar
     # hoejrestillet i titelraekken, ogsaa naar planhovedet er foldet.
+    # Et ModernBadge (som Valid-maerkerne): en gruppe med to tekster blev
+    # tegnet som en tom pille i Studio (Peter 2026-10-19).
     #
     # KUN NAAR DER ER EN SUM (issue #421): uden operationer - eller med en
-    # sum paa 0 - var pillen en tom kasse med kant over Show-knappen. Nu er
-    # den skjult (Visible=false), og en skjult kontrol fylder intet i en
-    # auto-layout-raekke; titlens bredde regner den kun med, naar den ses
-    # (gen_screen._resolve_grow).
-    cost = value_chip("conVhpPlanFoldCost", '"Total cost"',
-                      lay.num_text(PLAN_COST) + ' & " DKK"', visible=FOLD_COST_ON)
+    # sum paa 0 - stod der et tomt maerke over Show-knappen. Nu er det
+    # skjult, og en skjult kontrol fylder intet i en auto-layout-raekke.
+    cost_text = ('"Total cost: " & ' + lay.num_text(PLAN_COST) + ' & " DKK"')
+    cost = modern_badge("bdgVhpPlanFoldCost", cost_text, color=C_TITLE, fill=C_NEUTRAL_BG,
+                        width=f"Len({cost_text}) * 7 + 24", height=24, size=12,
+                        pad=(10, 10), accessible='"Plan " & ' + cost_text,
+                        visible=FOLD_COST_ON,
+                        extra={"AlignInContainer": "AlignInContainer.Center"})
     top = group("conVhpPlanFoldTop", [ok, title, cost], direction="Horizontal", gap=10,
                 height=FOLD_H, align_items="Center")
     # Alle otte vaerdier (issue #287): rykket ind under titlen, ombrudt og

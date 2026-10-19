@@ -69,7 +69,7 @@ def test_show_sits_right_of_the_summary_not_in_the_title_row():
     samlede omkostning (Peter 2026-10-19)."""
     y, _ = _summary()
     top = _block(y, "conVhpPlanFoldTop", 20000)
-    assert _children(top) == ["icoVhpPlanFoldStatus", "txtVhpPlanFoldTitle", "conVhpPlanFoldCost"]
+    assert _children(top) == ["icoVhpPlanFoldStatus", "txtVhpPlanFoldTitle", "bdgVhpPlanFoldCost"]
     body = _block(y, "conVhpPlanFoldBody", 40000)
     assert _children(body) == ["txtVhpPlanFoldSummary", "btnVhpPlanShow"]
     head = body[:body.index("Children:")]
@@ -104,22 +104,17 @@ def _prop(block, prop):
     return block[i:].splitlines()[1].strip()
 
 
-def test_fold_cost_chip_is_hidden_without_a_total_and_fits_its_border():
-    """Issue #421: Total cost-pillen i det foldede planhoved var en tom kasse
-    med kant over Show. Den er nu kun synlig, naar planen har en sum over 0,
-    teksterne er pillens indre hoejde (inden for kanten), og titlen regner
-    kun med pillens bredde, naar den ses."""
+def test_fold_cost_badge_is_hidden_without_a_total():
+    """Issue #421: Total cost i det foldede planhoved stod som en tom kasse
+    over Show. Maerket (bdgVhpPlanFoldCost, PR #424) er nu kun synligt, naar
+    planen har en sum over 0, og titlen regner kun med maerkets bredde, naar
+    det ses."""
     y, _ = _summary()
-    chip = _block(y, "conVhpPlanFoldCost", 6000)
-    head = chip[:chip.index("Children:")]
-    assert _prop(head, "Visible") == "=IfError(Sum(colVhpOperations, Cost) > 0, false)"
-    assert _prop(head, "Height") == "=24"
-    assert _prop(head, "BorderThickness") == "=1"
-    for kid in ("txtVhpPlanFoldCostLabel", "txtVhpPlanFoldCostValue"):
-        assert _prop(_block(y, kid, 3000), "Height") == "=22", kid
+    badge = _block(y, "bdgVhpPlanFoldCost", 6000)
+    assert _prop(badge, "Visible") == "=IfError(Sum(colVhpOperations, Cost) > 0, false)"
     title = _block(y, "txtVhpPlanFoldTitle", 3000)
-    assert "If(IfError(Sum(colVhpOperations, Cost) > 0, false), (24 + (66)" in _prop(title, "Width")
-    # Show bliver i resumeets raekke, hoejrestillet - uberoert af pillen.
+    assert "If(IfError(Sum(colVhpOperations, Cost) > 0, false), (" in _prop(title, "Width")
+    # Show bliver i resumeets raekke, hoejrestillet - uberoert af maerket.
     body = _block(y, "conVhpPlanFoldBody", 40000)
     assert _children(body) == ["txtVhpPlanFoldSummary", "btnVhpPlanShow"]
     assert "LayoutJustifyContent.SpaceBetween" in body[:body.index("Children:")]
