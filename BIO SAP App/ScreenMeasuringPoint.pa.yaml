@@ -7183,7 +7183,7 @@ Screens:
                                  Plant = drpMpPlantFilter.Selected.Value)
                             ), RowId, SortOrder.Descending))))
                         Width: |-
-                            =Max(0, (((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20)) - (If(CountRows(Sort(Filter(
+                            =Max(0, (((If(LayoutRank >= 3, Max(560, App.Width * 0.34), App.Width)) - 20 - 20)) - ((67) + 4) - (If(CountRows(Sort(Filter(
                                 colMpRows,
                                 (IsBlank(Trim(inpMpSearch.Text)) || Trim(inpMpSearch.Text) in Description || Trim(inpMpSearch.Text) in FunctionalLocation || Trim(inpMpSearch.Text) in MeasuringPoint || Trim(inpMpSearch.Text) in ProdosTag || Trim(inpMpSearch.Text) in Characteristic),
                                 (IsBlank(drpMpStatusFilter.Selected.Value) || drpMpStatusFilter.Selected.Value = "All status" ||
@@ -7200,6 +7200,101 @@ Screens:
                             ), RowId, SortOrder.Descending)) > 1, (44) + 4, 0)) - ((44) + 4) - 2)
                         Wrap: |-
                             =false
+                  - conMpFormReqLegend:
+                      Control: GroupContainer
+                      Variant: AutoLayout
+                      Properties:
+                        BorderStyle: |-
+                            =BorderStyle.None
+                        DropShadow: |-
+                            =DropShadow.None
+                        FillPortions: |-
+                            =0
+                        Height: |-
+                            =18
+                        LayoutAlignItems: |-
+                            =LayoutAlignItems.Center
+                        LayoutDirection: |-
+                            =LayoutDirection.Horizontal
+                        LayoutGap: |-
+                            =4
+                        LayoutMinWidth: |-
+                            =67
+                        LayoutOverflowX: |-
+                            =LayoutOverflow.Hide
+                        LayoutOverflowY: |-
+                            =LayoutOverflow.Hide
+                        Width: |-
+                            =67
+                      Children:
+                        - txtMpFormReqStar:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Required"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'state-error-fg'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              FontWeight: |-
+                                  =FontWeight.Semibold
+                              Height: |-
+                                  =18
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =T.small
+                              Text: |-
+                                  ="*"
+                              Width: |-
+                                  =8
+                              Wrap: |-
+                                  =false
+                        - txtMpFormReq:
+                            Control: ModernText
+                            Properties:
+                              AccessibleLabel: |-
+                                  ="Required"
+                              BorderStyle: |-
+                                  =BorderStyle.None
+                              BorderThickness: |-
+                                  =0
+                              Color: |-
+                                  =C.'text-muted'
+                              Fill: |-
+                                  =RGBA(0, 0, 0, 0)
+                              Font: |-
+                                  =Font.'Segoe UI'
+                              Height: |-
+                                  =18
+                              PaddingBottom: |-
+                                  =0
+                              PaddingLeft: |-
+                                  =0
+                              PaddingRight: |-
+                                  =0
+                              PaddingTop: |-
+                                  =0
+                              Size: |-
+                                  =T.small
+                              Text: |-
+                                  ="Required"
+                              Width: |-
+                                  =55
+                              Wrap: |-
+                                  =false
                   - btnMpEditorPrevious:
                       Control: Image
                       Properties:
@@ -7613,101 +7708,6 @@ Screens:
                   Width: |-
                       =Parent.Width
                 Children:
-                  - conMpFormTitle:
-                      Control: GroupContainer
-                      Variant: AutoLayout
-                      Properties:
-                        BorderStyle: |-
-                            =BorderStyle.None
-                        DropShadow: |-
-                            =DropShadow.None
-                        FillPortions: |-
-                            =0
-                        Height: |-
-                            =26
-                        LayoutAlignItems: |-
-                            =LayoutAlignItems.Center
-                        LayoutDirection: |-
-                            =LayoutDirection.Horizontal
-                        LayoutGap: |-
-                            =4
-                        LayoutMinWidth: |-
-                            =0
-                        LayoutOverflowX: |-
-                            =LayoutOverflow.Hide
-                        LayoutOverflowY: |-
-                            =LayoutOverflow.Hide
-                        Width: |-
-                            =Parent.Width
-                      Children:
-                        - txtMpFormReqStar:
-                            Control: ModernText
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Required"
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'state-error-fg'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              FontWeight: |-
-                                  =FontWeight.Semibold
-                              Height: |-
-                                  =18
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =T.small
-                              Text: |-
-                                  ="*"
-                              Width: |-
-                                  =8
-                              Wrap: |-
-                                  =false
-                        - txtMpFormReq:
-                            Control: ModernText
-                            Properties:
-                              AccessibleLabel: |-
-                                  ="Required"
-                              BorderStyle: |-
-                                  =BorderStyle.None
-                              BorderThickness: |-
-                                  =0
-                              Color: |-
-                                  =C.'text-muted'
-                              Fill: |-
-                                  =RGBA(0, 0, 0, 0)
-                              Font: |-
-                                  =Font.'Segoe UI'
-                              Height: |-
-                                  =18
-                              PaddingBottom: |-
-                                  =0
-                              PaddingLeft: |-
-                                  =0
-                              PaddingRight: |-
-                                  =0
-                              PaddingTop: |-
-                                  =0
-                              Size: |-
-                                  =T.small
-                              Text: |-
-                                  ="Required"
-                              Width: |-
-                                  =55
-                              Wrap: |-
-                                  =false
                   - conMpSecObject:
                       Control: GroupContainer
                       Variant: AutoLayout
