@@ -10,7 +10,8 @@ Screens:
           // (BIO SAP App/build/build_screens.py, attach_open). Sloeret taendes
           // her med det samme, naar der tydeligvis skal klargoeres.
           If(IsBlank(varMpOpened) || If(gblNavTo = "Mp", "new:0", Coalesce(gblMpWant, varMpOpened)) <> varMpOpened,
-              Set(varMpLoading, true)
+              Set(varMpLoading, true);
+              Set(varMpLoadCard, StartsWith(If(gblNavTo = "Mp", "new:0", Coalesce(gblMpWant, varMpOpened)), "new"))
           );
           Select(btnMpOpen)
     Children:
@@ -16213,6 +16214,8 @@ Screens:
                             Set(varMpLoadFailed, false);
                             Set(varMpLoadSlow, false);
                             Set(varMpLoadStep, If(IsBlank(gblMpReqId), "Setting up a new request", "Finding the request"));
+                            // Issue #391: en gemt anmodning aabnes uden kort.
+                            Set(varMpLoadCard, IsBlank(gblMpReqId));
                             If(false, ClearCollect(colMpRows, { RowId: 0, ItemKey: "", RequestNo: "", Status: "", FileCount: 0, Description: "", Plant: "", FunctionalLocation: "", ExistsInSap: "", MeasuringPoint: "", MeasuringPointType: "", Characteristic: "", CharacteristicDescription: "", CharacteristicUnit: "", CharacteristicUnitDescription: "", DecimalPlaces: 0, TargetValue: "", LowerLimit: "", UpperLimit: "", ExpectedAnnualUsage: "", InProdos: "", ProdosTag: "", ProdosCounterExists: "", CounterCreateIn: "", Remarks: "", IsCounter: false, ApprovalRequired: false, CreatedMeasuringPointNo: "", CounterCreatedOn: Blank(), CounterCreatedBy: "", SapResult: "" }));
                 
                             If(false, ClearCollect(colMpFl, { Code: "", Description: "", Display: "", Maintainable: false, Level: "" }));
@@ -16588,7 +16591,7 @@ Screens:
             TabIndex: |-
                 =0
             Visible: |-
-                =IfError(varMpLoading, false) || IfError(varMpLoadFailed, false)
+                =(IfError(varMpLoading, false) && IfError(varMpLoadCard, false)) || IfError(varMpLoadFailed, false)
             Width: |-
                 =App.Width
             X: |-
@@ -16640,7 +16643,7 @@ Screens:
             RadiusTopRight: |-
                 =R.modal
             Visible: |-
-                =IfError(varMpLoading, false) || IfError(varMpLoadFailed, false)
+                =(IfError(varMpLoading, false) && IfError(varMpLoadCard, false)) || IfError(varMpLoadFailed, false)
             Width: |-
                 =Min(360, App.Width - 32)
             X: |-

@@ -10,7 +10,8 @@ Screens:
           // (BIO SAP App/build/build_screens.py, attach_open). Sloeret taendes
           // her med det samme, naar der tydeligvis skal klargoeres.
           If(IsBlank(varFlOpened) || If(gblNavTo = "Fl", "new:0", Coalesce(gblFlWant, varFlOpened)) <> varFlOpened,
-              Set(varFlLoading, true)
+              Set(varFlLoading, true);
+              Set(varFlLoadCard, StartsWith(If(gblNavTo = "Fl", "new:0", Coalesce(gblFlWant, varFlOpened)), "new"))
           );
           Select(btnFlOpen)
     Children:
@@ -14240,6 +14241,8 @@ Screens:
                             Set(varFlLoadFailed, false);
                             Set(varFlLoadSlow, false);
                             Set(varFlLoadStep, If(IsBlank(gblFlReqId), "Setting up a new request", "Finding the request"));
+                            // Issue #391: en gemt anmodning aabnes uden kort.
+                            Set(varFlLoadCard, IsBlank(gblFlReqId));
                             Clear(colFlRows);
                             Clear(colFlDeleted);
                             Clear(colFlVals);
@@ -14453,7 +14456,7 @@ Screens:
             TabIndex: |-
                 =0
             Visible: |-
-                =IfError(varFlLoading, false) || IfError(varFlLoadFailed, false)
+                =(IfError(varFlLoading, false) && IfError(varFlLoadCard, false)) || IfError(varFlLoadFailed, false)
             Width: |-
                 =App.Width
             X: |-
@@ -14505,7 +14508,7 @@ Screens:
             RadiusTopRight: |-
                 =R.modal
             Visible: |-
-                =IfError(varFlLoading, false) || IfError(varFlLoadFailed, false)
+                =(IfError(varFlLoading, false) && IfError(varFlLoadCard, false)) || IfError(varFlLoadFailed, false)
             Width: |-
                 =Min(360, App.Width - 32)
             X: |-
