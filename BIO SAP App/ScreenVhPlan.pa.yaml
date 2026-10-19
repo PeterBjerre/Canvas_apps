@@ -9682,10 +9682,10 @@ Screens:
                                                                         BorderThickness: |-
                                                                             =0
                                                                         DisplayMode: |-
-                                                                            =If((IsBlank(varVhpActiveItemId) || !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
+                                                                            =If((IsBlank(varVhpActiveItemId) || (!varVhpViewOnly && !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
                                                                                 colVhpFl,
                                                                                 !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                                                                            )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0))), DisplayMode.Disabled, DisplayMode.Edit)
+                                                                            )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0)))), DisplayMode.Disabled, DisplayMode.Edit)
                                                                         Fill: |-
                                                                             =RGBA(0, 0, 0, 0)
                                                                         FocusedBorderColor: |-
@@ -9697,16 +9697,16 @@ Screens:
                                                                         HoverFill: |-
                                                                             =C.'bg-muted'
                                                                         Image: |-
-                                                                            ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='40' height='34' viewBox='0 0 40 34'><rect x='0.5' y='0.5' width='39' height='33' rx='10' fill='none' stroke='" & If((CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-border-default') & "'/><g transform='translate(11 9) scale(0.666667)' fill='none' stroke='" & If((IsBlank(varVhpActiveItemId) || !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
+                                                                            ="data:image/svg+xml;utf8," & EncodeUrl(If(LayoutRank < 2, "<svg xmlns='http://www.w3.org/2000/svg' width='40' height='34' viewBox='0 0 40 34'><rect x='0.5' y='0.5' width='39' height='33' rx='10' fill='none' stroke='" & If((CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-border-default') & "'/><g transform='translate(11 9) scale(0.666667)' fill='none' stroke='" & If((IsBlank(varVhpActiveItemId) || (!varVhpViewOnly && !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
                                                                                 colVhpFl,
                                                                                 !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                                                                            )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0))), C.'hex-text-muted', (CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-text-primary') & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6h11M9 12h11M9 18h11 M4.5 6h.01M4.5 12h.01M4.5 18h.01'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='185' height='34' viewBox='0 0 185 34'><rect x='0.5' y='0.5' width='184' height='33' rx='10' fill='none' stroke='" & If((CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-border-default') & "'/><g transform='translate(13 9) scale(0.666667)' fill='none' stroke='" & If((IsBlank(varVhpActiveItemId) || !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
+                                                                            )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0)))), C.'hex-text-muted', (CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-text-primary') & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6h11M9 12h11M9 18h11 M4.5 6h.01M4.5 12h.01M4.5 18h.01'/></g></svg>", "<svg xmlns='http://www.w3.org/2000/svg' width='185' height='34' viewBox='0 0 185 34'><rect x='0.5' y='0.5' width='184' height='33' rx='10' fill='none' stroke='" & If((CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-border-default') & "'/><g transform='translate(13 9) scale(0.666667)' fill='none' stroke='" & If((IsBlank(varVhpActiveItemId) || (!varVhpViewOnly && !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
                                                                                 colVhpFl,
                                                                                 !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                                                                            )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0))), C.'hex-text-muted', (CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-text-primary') & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6h11M9 12h11M9 18h11 M4.5 6h.01M4.5 12h.01M4.5 18h.01'/></g><text x='103' y='22' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & If((IsBlank(varVhpActiveItemId) || !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
+                                                                            )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0)))), C.'hex-text-muted', (CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-text-primary') & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6h11M9 12h11M9 18h11 M4.5 6h.01M4.5 12h.01M4.5 18h.01'/></g><text x='103' y='22' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='14' font-weight='600' fill='" & If((IsBlank(varVhpActiveItemId) || (!varVhpViewOnly && !(!IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && (CountRows(Filter(
                                                                                 colVhpFl,
                                                                                 !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                                                                            )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0))), C.'hex-text-muted', (CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-text-primary') & "'>" & "Object list (" & Text(CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId))) & ")" & "</text></svg>"))
+                                                                            )) > 0 || CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0)))), C.'hex-text-muted', (CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) > 0), C.'hex-state-ok-fg', C.'hex-text-primary') & "'>" & "Object list (" & Text(CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId))) & ")" & "</text></svg>"))
                                                                         ImagePosition: |-
                                                                             =ImagePosition.Fit
                                                                         LayoutMinWidth: |-
@@ -21239,10 +21239,10 @@ Screens:
             FillPortions: |-
                 =0
             Height: |-
-                =476 + If(IfError(CountRows(Filter(
+                =476 + If(IfError((varVhpViewOnly || CountRows(Filter(
                     colVhpFl,
                     !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                )) = 0 && CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) = 0, true), 12 + (32), 0)
+                )) = 0) && CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) = 0, true), 12 + (32), 0)
             LayoutAlignItems: |-
                 =LayoutAlignItems.Stretch
             LayoutDirection: |-
@@ -21419,7 +21419,7 @@ Screens:
                   Size: |-
                       =T.small
                   Text: |-
-                      =If(IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)), "No functional location selected.", "Sub-objects under " & Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation) & " - " & Text(CountRows(Filter(
+                      =If(IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)), "No functional location selected.", varVhpViewOnly, "Objects linked under " & Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation) & " - read-only.", "Sub-objects under " & Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation) & " - " & Text(CountRows(Filter(
                           colVhpFl,
                           !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
                       ))) & " found.")
@@ -21447,10 +21447,10 @@ Screens:
                       =Min(306, Max(96, App.Height - 260))
                   Items: |-
                       =With(
-                          { c: ForAll(Filter(
+                          { c: ForAll(Filter(Filter(
                           colVhpFl,
                           !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                      ) As F, { Code: F.Code, Description: F.Description }) },
+                      ), !varVhpViewOnly) As F, { Code: F.Code, Description: F.Description }) },
                           With(
                               { x: ForAll(Filter(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId), !(Code in c.Code)) As O,
                                           { Code: O.Code, Description: Coalesce(O.Description, LookUp(colVhpFl, Code = O.Code).Description, LookUp(colVhpObjDesc, Code = O.Code).Description, "") }) },
@@ -21570,15 +21570,17 @@ Screens:
                       =T.small
                   Text: |-
                       =If(
+                          varVhpViewOnly,
+                          "No objects are linked to this item.",
                           IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)),
                           "Choose a functional location first.",
                           "No results found. Search more broadly in the functional location field."
                       )
                   Visible: |-
-                      =IfError(CountRows(Filter(
+                      =IfError((varVhpViewOnly || CountRows(Filter(
                           colVhpFl,
                           !IsBlank(Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && StartsWith(Code, Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)) && Code <> Coalesce(cmbVhpItemFL.Selected.Code, LookUp(colVhpItems, ItemId = varVhpActiveItemId).FunctionalLocation)
-                      )) = 0 && CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) = 0, true)
+                      )) = 0) && CountRows(Filter(colVhpItemObjects, ItemId = varVhpActiveItemId)) = 0, true)
                   Wrap: |-
                       =true
             - conVhpObjListFooter:
@@ -21642,7 +21644,7 @@ Screens:
                         Text: |-
                             =Text(CountRows(colVhpObjDraft)) & " selected"
                         Width: |-
-                            =Max(0, (((Min(640, App.Width - 40)) - 18 - 18)) - ((133) + 8) - 2)
+                            =Max(0, (((Min(640, App.Width - 40)) - 18 - 18)) - (If(!varVhpViewOnly, (133) + 8, 0)) - 2)
                         Wrap: |-
                             =false
                   - btnVhpObjListUse:
@@ -21691,6 +21693,8 @@ Screens:
                             ="Use selected"
                         VerticalAlign: |-
                             =VerticalAlign.Middle
+                        Visible: |-
+                            =!varVhpViewOnly
                         Width: |-
                             =133
       - conVhpNotesBackdrop:
