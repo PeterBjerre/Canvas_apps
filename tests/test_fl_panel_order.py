@@ -112,5 +112,3 @@ def test_submit_always_answers():
     assert "gblToast" in on or "Notify(" in on
     verify = T._prop("btnFlVerify", "OnSelect")
     assert "IfError(varFlSubmitAsk, false)" in verify
-    # Bundbjaelken under Desktop har den samme knap.
-    assert T._prop("btnFlFootSubmit", "OnSelect") == on

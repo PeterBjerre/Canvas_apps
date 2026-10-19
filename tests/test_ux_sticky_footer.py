@@ -13,7 +13,7 @@ SCREENS = [
     ("ScreenEquipment.pa.yaml", "Eq", ("SendDraft", "Submit")),
     ("ScreenMaterial.pa.yaml", "Mat", ("SendDraft", "Submit")),
     ("ScreenMeasuringPoint.pa.yaml", "Mp", ("SendDraft", "Submit")),
-    ("ScreenFunctionalLocation.pa.yaml", "Fl", ("SaveDraft", "Submit")),
+    # FL har ingen bundbjaelke (issue #392) - se test_fl_header_top.py.
     ("ScreenVhPlan.pa.yaml", "Vhp", ("SaveDraft", "Submit")),
 ]
 _CACHE = {}
