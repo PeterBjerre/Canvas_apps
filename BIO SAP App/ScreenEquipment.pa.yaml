@@ -10502,6 +10502,8 @@ Screens:
                                   =1
                               Color: |-
                                   =C.'text-primary'
+                              DisplayMode: |-
+                                  =If(IfError(varEqViewOnly, false) || !(If(     IsBlank(varEqActiveRowId),     !IsBlank(Trim(Coalesce(varEqFText, ""))) ||     Coalesce(varEqFPlant, "") <> Coalesce(First(colAppPrefs).prefEqNewPlant, "") ||     !IsBlank(Trim(Coalesce(varEqFRequestType, ""))) ||     !IsBlank(Trim(Coalesce(varEqFEquipmentCategory, ""))) ||     !IsBlank(Trim(Coalesce(varEqFManufacturer, ""))) ||     !IsBlank(Trim(Coalesce(varEqFTypeDesignation, ""))) ||     !IsBlank(Trim(Coalesce(varEqFSerialNumber, ""))) ||     !IsBlank(Trim(Coalesce(varEqFFunctionalLocation, ""))) ||     !IsBlank(Trim(Coalesce(varEqFClassData, ""))) ||     !IsBlank(Trim(Coalesce(varEqFRoomCoordinates, ""))) ||     !IsBlank(Trim(Coalesce(varEqFPlacement, ""))) ||     !IsBlank(varEqFWarrantyStart) ||     !IsBlank(varEqFWarrantyEnd),     !IsBlank(With({ o: LookUp(colEqRows, RowId = varEqActiveRowId) },     Concat(         Filter(             Table(             { f: "Description", a: Text(o.Description), b: Text(varEqFText) },             { f: "Plant", a: Text(o.Plant), b: Text(varEqFPlant) },             { f: "Request type", a: Text(o.RequestType), b: Text(varEqFRequestType) },             { f: "Equipment type", a: Text(o.EquipmentCategory), b: Text(varEqFEquipmentCategory) },             { f: "Manufacturer", a: Text(o.Manufacturer), b: Text(varEqFManufacturer) },             { f: "Type designation", a: Text(o.TypeDesignation), b: Text(varEqFTypeDesignation) },             { f: "Serial number", a: Text(o.SerialNumber), b: Text(varEqFSerialNumber) },             { f: "Functional location", a: Text(o.FunctionalLocation), b: Text(varEqFFunctionalLocation) },             { f: "Class data", a: Text(o.ClassData), b: Text(varEqFClassData) },             { f: "Room coordinates", a: Text(o.RoomCoordinates), b: Text(varEqFRoomCoordinates) },             { f: "Placement text", a: Text(o.Placement), b: Text(varEqFPlacement) },             { f: "Warranty from", a: Text(o.WarrantyStart), b: Text(varEqFWarrantyStart) },             { f: "Warranty to", a: Text(o.WarrantyEnd), b: Text(varEqFWarrantyEnd) }             ),             Coalesce(a, "") <> Coalesce(b, "")         ),         "" & f & ": " & Coalesce(a, "(blank)") & " → " & Coalesce(b, "(blank)"),         "; "     ) )) )), DisplayMode.Disabled, DisplayMode.Edit)
                               Font: |-
                                   =Font.'Segoe UI'
                               FontWeight: |-
@@ -10513,26 +10515,52 @@ Screens:
                               LayoutMinWidth: |-
                                   =77
                               OnSelect: |-
-                                  =Set(varEqActiveRowId, Blank());
-                                  Set(varEqRowStatus, "valid");
-                                  Set(varEqValidated, false);
-                                  Set(varEqFText, "");
-                                  Set(varEqFPlant, Coalesce(First(colAppPrefs).prefEqNewPlant, ""));
-                                  Set(varEqEditorOpen, false);
-                                  If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank()); Reset(attEqPicker); Set(varEqAttRow, Blank()));
-                                  Set(varEqFRequestType, "");
-                                  Set(varEqFEquipmentCategory, "");
-                                  Set(varEqFManufacturer, "");
-                                  Set(varEqFTypeDesignation, "");
-                                  Set(varEqFSerialNumber, "");
-                                  Set(varEqFFunctionalLocation, "");
-                                  Set(varEqFClassData, "");
-                                  Set(varEqFRoomCoordinates, "");
-                                  Set(varEqFPlacement, "");
-                                  Set(varEqFWarrantyStart, Blank());
-                                  Set(varEqFWarrantyEnd, Blank());
-                                  Set(varEqFlQuery, ""); Set(varEqFlLast, ""); Set(varEqFlMsg, ""); Clear(colEqFl); Reset(cmbEqFl);
-                                  Set(varEqInfo, "")
+                                  =If(
+                                      IsBlank(LookUp(colEqRows, RowId = varEqActiveRowId)),
+                                      Set(varEqActiveRowId, Blank());
+                                      Set(varEqRowStatus, "valid");
+                                      Set(varEqValidated, false);
+                                      Set(varEqFText, "");
+                                      Set(varEqFPlant, Coalesce(First(colAppPrefs).prefEqNewPlant, ""));
+                                      Set(varEqEditorOpen, false);
+                                      If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank()); Reset(attEqPicker); Set(varEqAttRow, Blank()));
+                                      Set(varEqFRequestType, "");
+                                      Set(varEqFEquipmentCategory, "");
+                                      Set(varEqFManufacturer, "");
+                                      Set(varEqFTypeDesignation, "");
+                                      Set(varEqFSerialNumber, "");
+                                      Set(varEqFFunctionalLocation, "");
+                                      Set(varEqFClassData, "");
+                                      Set(varEqFRoomCoordinates, "");
+                                      Set(varEqFPlacement, "");
+                                      Set(varEqFWarrantyStart, Blank());
+                                      Set(varEqFWarrantyEnd, Blank());
+                                      Set(varEqFlQuery, ""); Set(varEqFlLast, ""); Set(varEqFlMsg, ""); Clear(colEqFl); Reset(cmbEqFl);
+                                      Set(varEqInfo, "");
+                                      Set(varEqEditorOpen, true),
+                                      Set(varEqActiveRowId, LookUp(colEqRows, RowId = varEqActiveRowId).RowId);
+                                      Set(varEqRowStatus, LookUp(colEqRows, RowId = varEqActiveRowId).Status);
+                                      Set(varEqValidated, false);
+                                      Set(varEqFText, LookUp(colEqRows, RowId = varEqActiveRowId).Description);
+                                      Set(varEqFPlant, LookUp(colEqRows, RowId = varEqActiveRowId).Plant);
+                                      Set(varEqEditorOpen, true);
+                                      If(!IfError(Coalesce(varEqAttBusy, false), false), Set(varEqDocsId, Blank()); Reset(attEqPicker); Set(varEqAttRow, Blank()));
+                                      Set(varEqFRequestType, LookUp(colEqRows, RowId = varEqActiveRowId).RequestType);
+                                      Set(varEqFEquipmentCategory, LookUp(colEqRows, RowId = varEqActiveRowId).EquipmentCategory);
+                                      Set(varEqFManufacturer, LookUp(colEqRows, RowId = varEqActiveRowId).Manufacturer);
+                                      Set(varEqFTypeDesignation, LookUp(colEqRows, RowId = varEqActiveRowId).TypeDesignation);
+                                      Set(varEqFSerialNumber, LookUp(colEqRows, RowId = varEqActiveRowId).SerialNumber);
+                                      Set(varEqFFunctionalLocation, LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation);
+                                      Set(varEqFClassData, LookUp(colEqRows, RowId = varEqActiveRowId).ClassData);
+                                      Set(varEqFRoomCoordinates, LookUp(colEqRows, RowId = varEqActiveRowId).RoomCoordinates);
+                                      Set(varEqFPlacement, LookUp(colEqRows, RowId = varEqActiveRowId).Placement);
+                                      Set(varEqFWarrantyStart, LookUp(colEqRows, RowId = varEqActiveRowId).WarrantyStart);
+                                      Set(varEqFWarrantyEnd, LookUp(colEqRows, RowId = varEqActiveRowId).WarrantyEnd);
+                                      If(
+                                          !IsBlank(LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation) && IsBlank(LookUp(colEqFl, Code = LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation)),
+                                          Collect(colEqFl, { Code: LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation, Description: "", Display: LookUp(colEqRows, RowId = varEqActiveRowId).FunctionalLocation & If(IsBlank(""), "", " - " & ""), Maintainable: true, Level: "" })
+                                      )
+                                  )
                               RadiusBottomLeft: |-
                                   =R.input
                               RadiusBottomRight: |-
@@ -10546,7 +10574,7 @@ Screens:
                               Text: |-
                                   ="Reset"
                               Tooltip: |-
-                                  ="Clear the form and start a new row"
+                                  ="Undo the unsaved changes to this row"
                               VerticalAlign: |-
                                   =VerticalAlign.Middle
                               Width: |-
