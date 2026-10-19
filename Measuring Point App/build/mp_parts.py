@@ -299,7 +299,9 @@ def build_form(panel=False):
     dp.check_form_order(FORM_ORDER, SPECIAL, NOT_IN_GRID)
     form_width = dp.PANEL_FORM_W if panel else dp.FORM_W
     cell_width = dp.PANEL_CELL_W if panel else dp.CELL_W
-    head = dp.form_head(None if panel else "Row details")
+    # Med sidepanel staar "* Required" i panelets overskrift (issue #431),
+    # saa formularen starter direkte med den foerste sektion.
+    head = [] if panel else [dp.form_head("Row details")]
     rows = []
     for name, cond, keys in ROWS:
         if name in SECTION_STARTS:
@@ -322,7 +324,7 @@ def build_form(panel=False):
     # Trinstriben lige under hovedet - kun naar godkendelsen er med
     # (features.measuring_point_approval), som i Materials.
     top = [build_steps()] if APPROVAL_ON else []
-    return card("conDomFormCard", [head] + top + rows + dp.form_footer(buttons))
+    return card("conDomFormCard", head + top + rows + dp.form_footer(buttons))
 
 
 # ---------------------------------------------------------------------------
