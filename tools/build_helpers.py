@@ -2960,6 +2960,40 @@ def modern_badge(name, content, *, color, fill, width, height=22, size=lay.SIZE_
     return Ctrl(name, BADGE_CONTROL, props=props, h=height, vis=visible)
 
 
+# KORTET (Card, preview). Peter bad om det moderne Card til noegletallene paa
+# VH-planens taskliste (Total cost og Duration, 2026-10-19). Versionen er
+# den, Microsoft Learns YAML-eksempler skriver ("Card modern control").
+# Kun egenskaber fra Learn: Title, Subtitle, Description, Image,
+# HeaderImage, Fill, *Color og *Size. Image og HeaderImage er Blank(), saa
+# kortet ikke viser et eksempelbillede.
+CARD_CONTROL = "ModernCard@1.0.0"
+
+
+def modern_card(name, title, subtitle, description, *, width, height, fill,
+                title_color, subtitle_color, description_color, title_size=14,
+                subtitle_size=12, description_size=12, visible=None):
+    """Et kort med titel, undertitel og beskrivelse - kun visning."""
+    props = {
+        "Description": description,
+        "DescriptionColor": description_color,
+        "DescriptionSize": str(description_size),
+        "Fill": fill,
+        "HeaderImage": "Blank()",
+        "Height": str(height),
+        "Image": "Blank()",
+        "Subtitle": subtitle,
+        "SubtitleColor": subtitle_color,
+        "SubtitleSize": str(subtitle_size),
+        "Title": title,
+        "TitleColor": title_color,
+        "TitleSize": str(title_size),
+        "Width": str(width),
+    }
+    if visible is not None:
+        props["Visible"] = visible
+    return Ctrl(name, CARD_CONTROL, props=props, h=height, vis=visible)
+
+
 def _badge_no_self(props):
     """Self.Content kan ikke laeses i Studio ("'Content' isn't recognized",
     #331). Hvor en formel bruger den, staar maerkets egen tekst-formel i

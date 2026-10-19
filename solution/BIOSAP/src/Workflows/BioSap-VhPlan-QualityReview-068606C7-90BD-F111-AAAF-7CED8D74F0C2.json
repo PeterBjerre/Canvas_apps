@@ -338,7 +338,7 @@
               "type": "Query",
               "inputs": {
                 "from": "@outputs('Get_items_MaintenanceItems')?['body/value']",
-                "where": "@or(not(contains(body('Select_sys_guids'), coalesce(item()?['ItemGuid'], concat('legacy-', string(item()?['ID']))))), not(contains(body('Select_cost_guids'), coalesce(item()?['ItemGuid'], concat('legacy-', string(item()?['ID']))))))"
+                "where": "@or(not(contains(body('Select_sys_guids'), coalesce(item()?['ItemGuid'], concat('legacy-', string(item()?['ID']))))), not(contains(body('Select_cost_guids'), 'PLAN')))"
               },
               "runAfter": {
                 "Select_cost_guids": [
