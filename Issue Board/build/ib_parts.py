@@ -80,7 +80,7 @@ from build_helpers import (empty_state, fluent, fluent_icon, skeleton_rows, ensu
                            label_px, text_ctrl, text_input, text_min_height, text_px, themed_dropdown, top_bar,
                            ICON_W, modern_badge, spinner, panel_save_fx, panel_save_mode,
                            panel_save_status, panel_save_block, panel_save_text,
-                           act_fx, act_mark, act_button, act_status, act_layers, act_width)
+                           act_fx, act_mark, act_button, act_status, act_layers)
 from permissions import IS_ADMIN, ADMIN_LIST, ADMIN_GROUP
 from design_tokens import ref as _t
 import icons

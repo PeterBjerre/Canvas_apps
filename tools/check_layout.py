@@ -2204,18 +2204,6 @@ def rule_16c(ctx):
                                     f"dokumenteret Spinner-egenskab")
 
 
-PROGRESS_CONTROL = "ModernProgressBar@1.0.0"
-# Den opdaterede Progress bar efter Microsoft Learn ("Progress bar modern
-# control in canvas apps"). Ingen Label, farve, TabIndex eller OnChange.
-PROGRESS_PROPS = {
-    "AccessibleLabel", "ContentLanguage", "DisplayMode", "Height", "Indeterminate", "Max",
-    "ProgressColor", "Shape", "Thickness", "Tooltip", "Value", "Visible", "Width", "X", "Y",
-    # Containerens egne egenskaber paa ethvert barn.
-    "AlignInContainer", "FillPortions", "LayoutMinHeight", "LayoutMinWidth",
-    "LayoutMaxHeight", "LayoutMaxWidth",
-}
-
-
 BUTTON_CONTROL = "ModernButton"
 # Den opdaterede moderne knaps egenskaber efter Microsoft Learn ("Button
 # modern control in canvas apps") plus Layout = ButtonLayout.TextOnly, som
@@ -2236,25 +2224,18 @@ BUTTON_PROPS = {
 
 
 def rule_16f(ctx):
-    """Gem/upload-bjaelken er ModernProgressBar@1.0.0, ubestemt (issue #305)"""
-    # Alle bjaelker kommer fra progress_overlay.progress_bar. Versionen er
-    # Learns; en anden er ikke afproevet (jf. regel 16b og issue #165).
-    # Appen kender aldrig fremskridtet i procent - kun at noget koerer -
-    # saa Indeterminate skal vaere true.
+    """Ingen bjaelke midt paa skaermen - tilstanden staar i knappen (issue #420)"""
+    # Foer #420 var gem og upload et graat sloer med en ModernProgressBar
+    # midt paa skaermen (progress_overlay, issue #305). Den er fjernet: en
+    # handling viser "Saving..." o.l. i den knap, der startede den
+    # (build_helpers.act_fx/act_button/act_status), og et gennemsigtigt lag
+    # (act_block) spaerrer imens. Reglen holder bjaelken ude.
     for p_, name, body in ctx.all_nodes:
         ctl = (body.get("Control") or "").strip()
-        if ctl.split("@")[0] != "ModernProgressBar":
-            continue
-        props = body.get("Properties") or {}
-        if ctl != PROGRESS_CONTROL:
-            ctx.problems.append(f"[16f] {name}: {ctl} - bjaelken er {PROGRESS_CONTROL} "
-                                f"fra progress_overlay.progress_bar")
-        for key in sorted(set(props) - PROGRESS_PROPS):
-            ctx.problems.append(f"[16f] {name}: {ctl} - '{key}' er ikke en "
-                                f"dokumenteret Progress bar-egenskab")
-        if str(props.get("Indeterminate", "")).strip().lstrip("=").strip() != "true":
-            ctx.problems.append(f"[16f] {name}: {ctl} uden Indeterminate = true - appen "
-                                f"kender ikke fremskridtet")
+        if ctl.split("@")[0] == "ModernProgressBar":
+            ctx.problems.append(f"[16f] {name}: {ctl} - ingen bjaelke midt paa skaermen; "
+                                f"vis tilstanden i knappen (build_helpers.act_button, "
+                                f"issue #420)")
 
 
 def rule_16k(ctx):
@@ -2750,7 +2731,7 @@ RULES = [
     Rule('16b', 'Kun ModernAttachments@1.3.0 til filer (issue #161)', rule_16b),
     Rule('16t', 'Faner er ModernTabList@1.0.0 med Learns egenskaber (issue #303)', rule_16t),
     Rule('16c', 'Hjul er ModernSpinner@1.1.0 - aldrig et animeret billede (issue #302)', rule_16c),
-    Rule('16f', 'Gem/upload-bjaelken er ModernProgressBar@1.0.0, ubestemt (issue #305)', rule_16f),
+    Rule('16f', 'Ingen bjaelke midt paa skaermen - tilstanden staar i knappen (issue #420)', rule_16f),
     Rule('16k', 'Knapper er ModernButton - Classic/Button kun som gennemsigtigt klik-lag (issue #307)', rule_16k),
     Rule('33', 'Navnets praefiks foelger kontroltypen (REVIEW.md A3/A4)', rule_33),
     Rule('16i', 'Pynt-/statusikoner er ModernIcon@1.1.0 (issue #306)', rule_16i),

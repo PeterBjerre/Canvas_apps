@@ -57,7 +57,7 @@ from build_helpers import (row_rule, panel_save_fx, ensure_hit, close_x, popup_h
                            fit_button_width, number_field, num_value, themed_dropdown,
                            card, field_cell, pin_widths, top_bar, grow, flow_ok,
                            flow_row, label_px, text_px,
-                           act_fx, act_mark, act_button, act_status, act_layers, panel_save_text,
+                           act_fx, act_mark, act_button, act_status, act_layers,
                            confirm_modal, edit_button, delete_button, delete_modal, ICON_SAVE, ICON_SUBMIT,
                            ICON_W, icon_on_mobile, new_request_label, segmented, empty_state, breadcrumb,
                            request_actions, row_list)
