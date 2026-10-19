@@ -953,7 +953,7 @@ def with_busy(busy_var, fx):
 
 
 def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
-                  confirm_name, icon=ICON_SUBMIT, danger=None):
+                  confirm_name, icon=ICON_SUBMIT, danger=None, act=None):
     """Bekraeftelsen foer Submit (issue #54) - [sloer, popup].
 
     Samme konstruktion som appernes andre popupper: en centreret container
@@ -963,23 +963,40 @@ def confirm_modal(prefix, open_var, title, message, confirm_text, confirm_fx,
 
     danger: knappen sletter eller kasserer noget - roed kant og tekst i
     stedet for den blaa primaerknap (UX-review, screenshots 2026-10-13).
-    Uden angivelse er en Delete-knap (icon="Delete") altid danger."""
+    Uden angivelse er en Delete-knap (icon="Delete") altid danger.
+
+    act: (act_var, key) - handlingen koerer I popuppen (issue #420): den
+    lukker ikke foerst, knappen siger fx "Deleting..." med hjulet ved
+    siden af, og popuppen lukker, naar handlingen lykkes. Fejler den,
+    bliver popuppen staaende med "Delete failed" ved knappen. confirm_fx
+    skriver selv sit udfald (act_mark)."""
     if danger is None:
         danger = icon == "Delete"
     vis = f"IfError({open_var}, false)"
-    backdrop = tap_backdrop(f"con{prefix}ConfirmBackdrop", vis, f"Set({open_var}, false)")
+    close_fx = f"Set({open_var}, false)"
+    run_fx = f"Set({open_var}, false);\n{confirm_fx}"
+    if act:
+        av, key = act
+        # Lukket uden at lykkes: beskeden hoerer til denne popup.
+        close_fx += f';\nIf(IfError({av} = "{key}:failed", false), Set({av}, ""))'
+        run_fx = (act_fx(av, key, confirm_fx) + ";\n"
+                  f'If(IfError({av} = "{key}:ok", false), Set({open_var}, false))')
+    backdrop = tap_backdrop(f"con{prefix}ConfirmBackdrop", vis, close_fx)
     t = text_ctrl(f"txt{prefix}ConfirmTitle", f'"{title}"', size=lay.SIZE_CARD_TITLE, weight="Semibold",
                   height=26, wrap="false")
     # Nej'et er X oeverst til hoejre (issue #343), som i appens andre
     # popupper - det lukker uden at goere noget. Navnet er det gamle.
-    head = popup_head(f"con{prefix}ConfirmHead", t, f"btn{prefix}ConfirmCancel",
-                      f"Set({open_var}, false)")
+    head = popup_head(f"con{prefix}ConfirmHead", t, f"btn{prefix}ConfirmCancel", close_fx)
     msg = text_ctrl(f"txt{prefix}ConfirmText", message, size=13, color=C_MUTED,
                     height=40, wrap="true")
     ok = button(confirm_name, f'"{confirm_text}"',
-                f"Set({open_var}, false);\n{confirm_fx}", primary=not danger, danger=danger,
+                run_fx, primary=not danger, danger=danger,
                 width=fit_button_width(f'"{confirm_text}"') + (ICON_W if icon else 0), height=36, icon=icon)
-    footer = group(f"con{prefix}ConfirmFooter", [ok], direction="Horizontal", gap=8,
+    status = []
+    if act:
+        act_button(ok, av, key)
+        status = act_status(f"{prefix}ConfirmAct", av, (key,))
+    footer = group(f"con{prefix}ConfirmFooter", [*status, ok], direction="Horizontal", gap=8,
                    height=36, justify="End", align_items="Center")
     modal = group(f"con{prefix}ConfirmModal", [head, msg, footer], direction="Vertical", gap=12,
                   fill=C_MODAL_BG, border_color=C_PRIMARY_SOFT, radius=lay.RADIUS_MODAL,
